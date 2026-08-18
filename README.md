@@ -8,6 +8,8 @@ runs in your browser. **No data is ever collected or transmitted to a
 server.** It works offline once loaded, and installs as an app on desktop
 and mobile (PWA).
 
+A reasonably stable (but not necessarily the latest) "official" version is hosted at https://bc.geladen.ch
+
 ## Tools
 
 | Tool | Status | What it does |
@@ -55,4 +57,4 @@ But ~~Now I have a machine gun, hohoho~~ then came AI. Practically all of the UI
 
 ## License
 
-[GPL-3.0-or-later](LICENSE)
+[AGPL-3.0-or-later](LICENSE)
