@@ -72,7 +72,7 @@ function privacyCard() {
   ]);
 }
 
-// The GPLv3's own "how to apply" boilerplate (see LICENSE) asks an
+// The AGPLv3's own "how to apply" boilerplate (see LICENSE) asks an
 // interactive program to make this — a copyright notice, the no-warranty
 // statement, and how to view the license — conveniently reachable; the
 // LICENSE file itself is the verbatim license text and isn't the place

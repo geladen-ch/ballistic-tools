@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Client-side external ballistics calculators — trajectory tables, hit probability, ballistic coefficient estimation. No build step; no server-side component.",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "test": "node --test",
