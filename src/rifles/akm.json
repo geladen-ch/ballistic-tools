@@ -1,0 +1,22 @@
+{
+  "id": "akm",
+  "name": "AKM",
+  "defaultSightHeightM": 0.05,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.24,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "russian-762x39-m43",
+      "name": "122gr M43",
+      "muzzleVelocity": 715,
+      "referenceTempC": 15,
+      "velocityTempSensitivity": 0.7,
+      "bulletId": "russian-762x39-m43"
+    }
+  ]
+}

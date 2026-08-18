@@ -1,0 +1,14 @@
+{
+  "id": "circle-100mm",
+  "nameKey": "targets.circle100mm.name",
+  "widthM": 0.1,
+  "heightM": 0.1,
+  "aspectRatio": 1.0,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.circle100mm.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 50, "y": 50 },
+    "pxPerMeter": 1000
+  }
+}

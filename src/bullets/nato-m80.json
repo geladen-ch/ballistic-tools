@@ -1,0 +1,14 @@
+{
+  "id": "nato-m80",
+  "name": "147gr M80 Ball",
+  "manufacturer": "Military",
+  "caliberM": 0.00783,
+  "lengthM": 0.0322,
+  "massKg": 0.00953,
+  "source": "US Army BRL",
+  "profile": {
+    "type": "bc",
+    "bc": 0.202,
+    "model": "G7"
+  }
+}

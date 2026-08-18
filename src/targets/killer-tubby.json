@@ -1,0 +1,14 @@
+{
+  "id": "killer-tubby",
+  "nameKey": "targets.killerTubby.name",
+  "widthM": 0.6,
+  "heightM": 1.2,
+  "aspectRatio": 2.0,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.killerTubby.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 300, "y": 700 },
+    "pxPerMeter": 1000
+  }
+}

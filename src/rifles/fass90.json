@@ -1,0 +1,22 @@
+{
+  "id": "fass90",
+  "name": "Fass90/Stgw90",
+  "defaultSightHeightM": 0.09,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.254,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "swiss-gp90",
+      "name": "63gr GP90",
+      "muzzleVelocity": 905,
+      "referenceTempC": 7,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "swiss-gp90"
+    }
+  ]
+}

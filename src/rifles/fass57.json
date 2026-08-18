@@ -1,0 +1,22 @@
+{
+  "id": "fass57",
+  "name": "Fass57/Stgw57",
+  "defaultSightHeightM": 0.075,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.27,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "swiss-gp11",
+      "name": "174gr GP11",
+      "muzzleVelocity": 750,
+      "referenceTempC": 7,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "swiss-gp11"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ussr-8",
+  "nameKey": "targets.ussr8.name",
+  "widthM": 0.5,
+  "heightM": 1.5,
+  "aspectRatio": 3.0,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.ussr8.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 250, "y": 750 },
+    "pxPerMeter": 1000
+  }
+}

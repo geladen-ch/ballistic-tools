@@ -1,0 +1,13 @@
+{
+  "name": "geladen.ch ballistics",
+  "short_name": "geladen.ch",
+  "description": "Client-side external ballistics calculators: trajectory tables, hit probability, ballistic coefficient estimation. Peaceful. Precise. Armed.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14181c",
+  "theme_color": "#14181c",
+  "icons": [
+    { "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

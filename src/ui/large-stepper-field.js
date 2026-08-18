@@ -1,0 +1,73 @@
+import { el } from '../dom.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay } from '../units.js';
+import { getUnit } from '../prefs.js';
+import { t, i18nSpan } from '../i18n.js';
+
+// A unitField()-equivalent — same engine<->display unit conversion (see
+// units.js), same "fields.<id>" translation-key convention — but rendered
+// as large +/- buttons flanking the number instead of a plain input, for
+// controls that need to be operable at arm's length or with gloves on.
+// Range Solver's Wind speed is the first (and so far only) user of this;
+// kept as its own small component rather than a unitField() mode since it
+// needs its own DOM (two buttons) unitField() has no hook to add.
+//
+// Unlike unitField()'s plain mode, onInput fires unconditionally, even on
+// a blank/invalid intermediate value (getEngineValue() then reports NaN)
+// — range-solver-view.js's recompute() deliberately relies on seeing that
+// NaN so it can show a "—" placeholder while the field is mid-edit, rather
+// than silently freezing on the last result. What must never happen is a
+// *persistent* component (like the chart's zoomRangeSlider) trusting that
+// NaN into its own retained state — that boundary already guards itself.
+export function largeStepperField({ id, min, max, step, value, onInput }) {
+  const meta = FIELD_UNITS[id];
+  const group = meta ? UNIT_GROUPS[meta.group] : null;
+  let displayUnit = meta ? getUnit(meta.group) : null;
+  if (meta && !unitChoice(id, displayUnit)) displayUnit = group.defaultUnit; // stale/unknown pref
+  const choice = meta ? unitChoice(id, displayUnit) : null;
+
+  const toDisp = (v) => (meta ? roundForDisplay(id, displayUnit, engineToDisplay(id, v, displayUnit)) : v);
+  const toEng = (v) => (meta ? displayToEngine(id, v, displayUnit) : v);
+  const stepDisp = step !== undefined ? engineSpanToDisplay(id, step, displayUnit) : 1;
+  const dMin = min !== undefined ? toDisp(min) : undefined;
+  const dMax = max !== undefined ? toDisp(max) : undefined;
+
+  const number = el('input', { type: 'number', id, min: dMin, max: dMax, step: stepDisp, value: toDisp(value) });
+
+  function clamp(v) {
+    if (dMin !== undefined) v = Math.max(dMin, v);
+    if (dMax !== undefined) v = Math.min(dMax, v);
+    return v;
+  }
+
+  // Reads off the number input itself (not a closed-over variable) so
+  // repeated clicks compound on whatever's currently showing, including a
+  // value the user just typed by hand.
+  function bump(delta) {
+    const current = parseFloat(number.value);
+    const base = Number.isNaN(current) ? toDisp(value) : current;
+    number.value = clamp(base + delta);
+    if (onInput) onInput();
+  }
+
+  const decButton = el('button', { type: 'button', class: 'large-stepper-btn', 'aria-label': t('fields.stepperDecrease') }, ['−']);
+  const incButton = el('button', { type: 'button', class: 'large-stepper-btn', 'aria-label': t('fields.stepperIncrease') }, ['+']);
+  decButton.addEventListener('click', () => bump(-stepDisp));
+  incButton.addEventListener('click', () => bump(stepDisp));
+  number.addEventListener('input', () => { if (onInput) onInput(); });
+
+  const unitSuffix = choice ? document.createTextNode(` (${choice.label})`) : null;
+  const node = el('div', { class: 'field large-stepper-field' }, [
+    el('label', {}, [i18nSpan('fields.' + id), unitSuffix].filter(Boolean)),
+    el('div', { class: 'large-stepper-row' }, [decButton, number, incButton])
+  ]);
+
+  return {
+    node,
+    getEngineValue: () => toEng(parseFloat(number.value)),
+    // Programmatic write path — mirrors unitField()'s setEngineValue,
+    // never fires onInput itself.
+    setEngineValue(v) {
+      number.value = toDisp(v);
+    }
+  };
+}

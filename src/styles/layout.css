@@ -1,0 +1,609 @@
+#app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#app-topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  position: sticky;
+  top: 0;
+  /* Above #app-tabbar (z-index: 10) — in landscape-mobile that bar docks
+     to the right edge starting just below this one (see --topbar-height,
+     published by topbar-scroll.js), and this higher value is a safety
+     margin against the two ever visually overlapping at the corner if
+     that published height is ever a frame stale (e.g. mid-rotation). */
+  z-index: 11;
+  flex-shrink: 0;
+  transition: padding 0.15s ease;
+}
+
+#app-topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  min-width: 0;
+}
+#app-brand-mark { color: var(--accent); flex-shrink: 0; }
+
+.brand-text { display: flex; flex-direction: column; min-width: 0; }
+.brand-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Collapsed on scroll (src/ui/topbar-scroll.js) — the bar carries no
+   navigational controls of its own (just the brand and the language
+   switcher), so hiding this while scrolled reclaims real vertical space
+   for free, on desktop and mobile alike. max-height (not display:none)
+   so it animates shut instead of snapping. */
+.brand-tagline {
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 14px;
+  margin-top: 1px;
+  opacity: 1;
+  transition: max-height 0.15s ease, opacity 0.15s ease, margin-top 0.15s ease;
+}
+#app-topbar.collapsed { padding-top: 6px; padding-bottom: 6px; }
+#app-topbar.collapsed .brand-tagline { max-height: 0; opacity: 0; margin-top: 0; }
+
+#app-topbar-controls {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#app-topbar-controls select {
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+#app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ===== Rail (desktop) ===== */
+#app-rail {
+  flex-shrink: 0;
+  width: 246px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+/* Collapsed content is short (a handful of 44px icon rows) and never
+   needs its own scrollbar in practice, unlike the expanded rail's own
+   full name+description list above — so unlike that one, this doesn't
+   inherit overflow-y:auto's scroll. It has to actively opt back out of
+   it: setting overflow-y alone still leaves overflow-x computed as
+   non-visible too (that's how the two are coupled per spec), which was
+   clipping the collapsed rail's own flyout (see .flyout below) — an
+   absolutely-positioned descendant popping out to the right of this
+   64px-wide rail, invisibly cropped by this element's own overflow
+   despite being laid out correctly and above everything on z-index. */
+#app-rail.collapsed { width: 64px; overflow: visible; }
+
+.rail-inner, .rail-inner-c {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px 0;
+  min-height: 100%;
+}
+.rail-inner-c { align-items: center; padding: 10px 0 0; }
+
+.rail-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 9px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  color: var(--dim);
+  text-decoration: none;
+}
+.rail-item:hover { color: var(--text); background: var(--panel-raised); }
+.rail-item.current { background: var(--panel-raised); color: var(--text); }
+
+.rail-group { margin-top: 4px; --rail-hue: var(--accent); }
+.rail-group.analysis { --rail-hue: var(--analysis); }
+.rail-group-summary {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 9px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim);
+  cursor: pointer;
+}
+/* Some languages' words for "Measurement"/"Analysis" run longer than
+   English — let the label shrink/wrap rather than push the chevron (or,
+   worse, overflow the rail) off its own row. */
+.rail-group-summary span:not(.chev) { min-width: 0; overflow-wrap: break-word; }
+.rail-group-summary:hover { color: var(--text); background: var(--panel-raised); }
+.rail-group.open > .rail-group-summary { color: var(--rail-hue); }
+.rail-group-summary .chev { margin-left: auto; display: inline-flex; transition: transform 0.15s ease; }
+.rail-group-summary .chev.open { transform: rotate(180deg); }
+
+.rail-sub { padding: 0 0 8px 4px; display: flex; flex-direction: column; gap: 1px; }
+.rail-tool {
+  display: block;
+  padding: 7px 9px 8px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  cursor: pointer;
+}
+.rail-tool:hover { background: var(--panel-raised); }
+/* flex-wrap + min-width:0 on the name: a long, unbroken translated word
+   (German compounds especially — no spaces for the browser to wrap at)
+   must wrap or shrink here, not overflow the row — an overflowing flex
+   row with no wrap has painted outside its own card into a neighboring
+   one in testing. The status chip (flex-shrink:0 via .status-chip's own
+   sizing) stays fixed-size and drops to its own line if it has to. */
+.rail-tool .row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 7px; }
+.rail-tool .name { font-size: 12px; font-weight: 600; color: var(--text); min-width: 0; overflow-wrap: break-word; }
+.rail-tool .desc { font-size: 10.5px; color: var(--dim); margin-top: 2px; line-height: 1.35; }
+.rail-tool.active { background: var(--panel-raised); box-shadow: inset 2px 0 0 var(--rail-hue); }
+.rail-tool.active .name { color: var(--rail-hue); }
+.rail-tool.disabled { cursor: not-allowed; opacity: 0.7; }
+.rail-tool.disabled:hover { background: transparent; }
+
+.rail-bottom {
+  margin-top: auto;
+  padding: 8px;
+  border-top: 1px solid var(--line);
+  width: 100%;
+}
+.rail-inner-c .rail-bottom { display: flex; justify-content: center; padding: 8px 0; }
+.rail-collapse-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  border-radius: var(--radius);
+  font-size: 11.5px;
+  color: var(--dim);
+  cursor: pointer;
+  width: 100%;
+}
+.rail-inner-c .rail-collapse-btn { width: 36px; height: 32px; justify-content: center; }
+.rail-collapse-btn:hover { background: var(--panel-raised); color: var(--text); }
+
+/* ---- Guns mode (see guns-nav.js) — replaces the whole rail's own
+   content while the Guns section is open. Range Solver (see range-solver-
+   nav.js) is the same "focused mode" idea a second time — its own
+   Target/Wind/Atmosphere/Gun/Exit-solver items reuse .guns-tab/.done-btn
+   below as-is (same visual treatment, same reasoning nav-tabbar.js's own
+   Guns-mode items already reuse the plain .tab-item class rather than a
+   dedicated one). ---- */
+.rail-guns-mode, .rail-range-solver-mode { gap: 6px; }
+.done-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px;
+  margin-bottom: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.done-btn:hover { background: var(--panel-raised); }
+.guns-tab {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dim);
+  text-decoration: none;
+  /* Range Solver's own Target/Wind/Atmosphere tabs (unlike Guns' Custom/
+     Arsenal above) are real <button> elements, not <a> — without this,
+     the generic `button` rule's solid var(--accent) fill (base.css) wins
+     by default since nothing here contests `background` outside :hover/
+     .active, leaving every non-active tab looking like a filled accent
+     button instead of the intended dim/transparent one. */
+  background: none;
+}
+.guns-tab:hover { color: var(--text); background: var(--panel-raised); }
+.guns-tab.active { color: var(--accent); background: rgba(232, 163, 61, 0.1); }
+
+/* ---- collapsed rail ---- */
+.rail-c-group-wrap { position: relative; }
+.rail-c-item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  color: var(--dim);
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+a.rail-c-item { text-decoration: none; }
+.rail-c-item:hover { color: var(--text); background: var(--panel-raised); }
+.rail-c-item.current { background: var(--panel-raised); color: var(--text); }
+.rail-c-item.measurement { --rail-hue: var(--accent); }
+.rail-c-item.analysis { --rail-hue: var(--analysis); }
+.rail-c-item.group-open, .rail-c-item.current.measurement, .rail-c-item.current.analysis {
+  color: var(--rail-hue);
+  background: var(--panel-raised);
+}
+
+.flyout {
+  position: absolute;
+  top: 0;
+  left: 56px;
+  width: 288px;
+  z-index: 20;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.85);
+  padding: 8px;
+}
+.flyout-head {
+  padding: 8px 10px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.rail-c-group-wrap .flyout .flyout-head { color: var(--rail-hue, var(--accent)); }
+.flyout-item { display: block; padding: 8px 10px 9px; border-radius: 8px; text-decoration: none; cursor: pointer; }
+.flyout-item:hover { background: var(--panel-raised); }
+.flyout-item .row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 7px; }
+.flyout-item .name { font-size: 12.5px; font-weight: 600; color: var(--text); min-width: 0; overflow-wrap: break-word; }
+.flyout-item .desc { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.flyout-item.active .name { color: var(--rail-hue, var(--accent)); }
+.flyout-item.disabled { cursor: not-allowed; opacity: 0.7; }
+.flyout-item.disabled:hover { background: transparent; }
+
+/* ===== Main content ===== */
+#view {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ===== Tab bar (mobile) =====
+   Base: fixed, hidden by default, docked along the bottom edge — the
+   properties below only matter once one of the "mobile chrome" blocks
+   further down flips display to flex, so it's safe (and simpler than
+   repeating them per variant) to give the fixed positioning, border and
+   background here unconditionally rather than inside every gate that can
+   turn the bar on. The landscape-mobile block further down overrides
+   just the handful of properties that differ for its right-edge, vertical
+   variant. */
+#app-tabbar {
+  display: none;
+  flex-shrink: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  flex-direction: row;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  font-size: 9.5px;
+  color: var(--dim);
+  text-decoration: none;
+  min-width: 0;
+}
+/* Every other .tab-item is an <a> (transparent by default) — Guns mode's
+   "Done" (see nav-tabbar.js) is the one <button>, which would otherwise
+   inherit the generic filled-button look (solid accent background) and
+   stick out from its Custom/Arsenal siblings instead of matching them. */
+button.tab-item { background: none; border: none; font-family: inherit; cursor: pointer; }
+/* A translated label can be wider than the 1/5-of-the-bar column
+   flex:1 leaves it — center flex items don't shrink to fit by default,
+   so without this a long word pushes past its own tab into the next. */
+.tab-item span { max-width: 100%; overflow-wrap: break-word; text-align: center; }
+.tab-item.active { color: var(--accent); }
+.tab-item-measurement.active { color: var(--accent); }
+.tab-item-analysis.active { color: var(--analysis); }
+
+/* Two-pane tool layout: fixed controls rail + flexible results area on
+   desktop, stacked (controls above results) on narrow / mobile viewports. */
+.tool-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.tool-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* ===== Mobile chrome: nav rail vs. tab bar =====
+   Two ways to end up here: the viewport itself looks mobile (the classic
+   narrow/portrait case, OR a short landscape viewport — phones in
+   landscape are commonly 700-930px *wide*, which used to slip straight
+   past a width-only check and kept showing the desktop rail); or the
+   user forced it with the header's Auto/Desktop/Mobile switch (see
+   display-mode-prefs.js), which always wins over the automatic check in
+   either direction — hence the :not(.force-desktop) guard on the
+   automatic block below, and the unconditional .force-mobile block that
+   follows it. */
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
+  html:not(.force-desktop) #app-rail { display: none; }
+  html:not(.force-desktop) #app-tabbar { display: flex; }
+  html:not(.force-desktop) #app-body { padding-bottom: 62px; } /* room for the fixed tab bar below */
+  /* Range Solver only, mobile only — desktop keeps the topbar. Hiding it
+     drives its own offsetHeight to 0, which the ResizeObserver in
+     topbar-scroll.js already propagates to --topbar-height, so the
+     landscape-vertical tab bar below automatically starts flush at the
+     top with no extra rule needed here. */
+  html.range-solver-mode:not(.force-desktop) #app-topbar { display: none; }
+}
+html.force-mobile #app-rail { display: none; }
+html.force-mobile #app-tabbar { display: flex; }
+html.force-mobile #app-body { padding-bottom: 62px; }
+html.range-solver-mode.force-mobile #app-topbar { display: none; }
+
+/* Landscape phones (short viewport height, regardless of width) get the
+   tab bar standing on the right edge instead of lying along the bottom —
+   a horizontal bar here would eat a big chunk of the little vertical room
+   a landscape phone has to begin with. Applies whenever mobile chrome is
+   showing at all (same guard as above) and the real viewport happens to
+   be short-and-wide, independent of *why* mobile chrome is showing. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html:not(.force-desktop) #app-tabbar,
+  html.force-mobile #app-tabbar {
+    left: auto;
+    top: var(--topbar-height, 58px);
+    bottom: 0;
+    right: 0;
+    width: 64px;
+    flex-direction: column;
+    border-top: none;
+    border-left: 1px solid var(--line);
+    padding-bottom: 0;
+    padding-right: env(safe-area-inset-right);
+  }
+  html:not(.force-desktop) #app-body,
+  html.force-mobile #app-body {
+    padding-bottom: 0;
+    padding-right: 64px;
+  }
+}
+
+/* Content reflow (as opposed to which nav chrome shows above) stays
+   purely width-driven — a landscape phone is usually plenty wide enough
+   for the two-column tool layout even with the vertical bar's 64px
+   taken off the side, same as it is on a similarly-wide desktop window. */
+@media (max-width: 780px) {
+  #app-topbar { gap: 10px; }
+  .tool-layout { grid-template-columns: 1fr; }
+  #view { padding: 12px; }
+}
+
+/* ===== Range Solver ===== */
+
+/* Output above input in portrait (the default); side by side, output on
+   the left, in landscape — orientation-driven, not width-driven, unlike
+   .tool-layout above, since this split is about screen shape, not
+   available room. */
+.range-solver-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (orientation: landscape) {
+  .range-solver-layout { flex-direction: row; align-items: stretch; }
+  .range-solver-output-pane, .range-solver-input-pane { flex: 1 1 50%; min-width: 0; }
+}
+
+.range-solver-output-pane { display: flex; flex-direction: column; gap: 16px; }
+
+/* The dominant element of the whole screen — see rangeSolver-view.js's
+   own renderClicks(). Elevation and windage are the same size, scaled to
+   their own stat panel's actual width (container query units, not the
+   viewport) rather than a fixed px value — a landscape phone splits the
+   output pane in half again for its own input pane, so "available space"
+   here means each .range-solver-stat's own box, not the screen. */
+.range-solver-readout {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  text-align: center;
+}
+.range-solver-stat { flex: 1; min-width: 0; container-type: inline-size; }
+.range-solver-click-value {
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(54px, 39cqw, 210px); /* 1.5x the original clamp(36px, 26cqw, 140px) */
+}
+/* A plain space character between glyph and number scales with the huge
+   click-value font size and reads as a gap, not a pairing — tighten it to a
+   fixed offset instead of letting it grow with the font. */
+.range-solver-click-glyph {
+  display: inline-block;
+  margin-right: 0.08em;
+}
+.range-solver-click-label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+}
+
+/* Small and non-intrusive, exactly as specified — the opposite visual
+   weight from .range-solver-readout above. */
+.range-solver-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 11.5px;
+  color: var(--dim);
+}
+.range-solver-footer-stat { display: flex; gap: 5px; }
+.range-solver-footer-value { color: var(--text); font-variant-numeric: tabular-nums; }
+
+.range-solver-input-pane { display: flex; flex-direction: column; gap: 16px; }
+
+/* ---- Wind speed's large stepper (src/ui/large-stepper-field.js) — big
+   touch targets, operable at arm's length or with gloves on. ---- */
+.large-stepper-row { display: flex; align-items: center; gap: 10px; }
+.large-stepper-btn {
+  all: unset;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-raised);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.large-stepper-btn:hover { background: var(--line); }
+.large-stepper-row input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Wind angle dial (src/ui/wind-direction-dial.js), enlarged for the
+   Wind tab specifically — scoped under .range-solver-tab-panel rather
+   than the bare .wind-dial-svg/.wind-dial-field classes, which are shared
+   with every other place this same dial appears (Hit Probability's own
+   Simulation panel included) and are left at their existing 120px size
+   there. 1.5x that again (270px) even in a narrow container, scaling
+   up from there via container query units — same "size off the actual
+   box, not the viewport" approach as the click-value readout above.
+   The dial + manual-degrees readout are centered as a group (not
+   left-aligned/stretched) — .wind-dial-readout's own flex-grow is
+   dropped here so the pair keeps its natural width and justify-content
+   can actually center it. ---- */
+.range-solver-tab-panel .wind-dial-field { container-type: inline-size; }
+.range-solver-tab-panel .wind-dial-body { justify-content: center; }
+.range-solver-tab-panel .wind-dial-readout { flex: none; text-align: center; }
+.range-solver-tab-panel .wind-dial-readout input[type="number"] { text-align: center; }
+.range-solver-tab-panel .wind-dial-svg {
+  width: clamp(270px, 105cqw, 480px);
+  height: auto;
+  aspect-ratio: 1;
+  max-width: 100%; /* cqw is relative to the field's own box, not the space
+    left over once the readout sits beside it — without this cap the dial
+    can size itself wider than its own container instead of wrapping. */
+}
+
+/* ---- Wind tab, mobile chrome only: hide the manual angle entry (the
+   big touch dial is plenty on a small screen, and it's still fully
+   keyboard-operable on its own — arrow keys, see wind-direction-dial.js)
+   and let the dial fill whatever vertical room is actually left after
+   the output pane above it and the wind-speed stepper below it, instead
+   of the fixed 270-480px desktop clamp above. Never below the same
+   120px .wind-dial-svg is everywhere else in the app (Trajectory's own
+   wind field included) — .wind-dial-svg's min-height/min-width below
+   enforce that floor regardless of how little room is left.
+   Flexbox can't "fill remaining space" without some ancestor having a
+   real (not just min-) height to divide up, so #app-shell is pinned to
+   the viewport here — only under this same selector, so every other
+   view keeps growing with its content and scrolling the whole page the
+   normal way. #view picks up its own scrollbar instead: if even the
+   120px floor doesn't fit (a very short phone, or the on-screen
+   keyboard eating into the viewport), only this content scrolls, and
+   the fixed tab bar stays put rather than sliding away with the page.
+   Both selector variants below are the exact same "is mobile chrome
+   actually showing" condition the rail-vs-tabbar rules above already
+   use (automatic max-width/short-landscape detection, or the .force-
+   mobile override) — not a new one — so a desktop window, even one
+   narrowed or forced to look mobile via .force-desktop, never matches
+   either and the clamp() above stays exactly as it was. ---- */
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
+  html.range-solver-mode:not(.force-desktop) #app-shell { height: 100dvh; }
+  html.range-solver-mode:not(.force-desktop) #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-layout { flex: 1; min-height: 0; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 1; min-height: 0; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-body { flex: 1; min-height: 0; flex-direction: column; flex-wrap: nowrap; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-svg {
+    width: auto; height: 100%; aspect-ratio: 1; min-width: 120px; min-height: 120px; max-width: 100%;
+  }
+  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-readout input[type="number"] { display: none; }
+}
+html.range-solver-mode.force-mobile #app-shell { height: 100dvh; }
+html.range-solver-mode.force-mobile #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 0; }
+html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 1; min-height: 0; }
+html.range-solver-mode.force-mobile .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-body { flex: 1; min-height: 0; flex-direction: column; flex-wrap: nowrap; }
+html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-svg {
+  width: auto; height: 100%; aspect-ratio: 1; min-width: 120px; min-height: 120px; max-width: 100%;
+}
+html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-readout input[type="number"] { display: none; }

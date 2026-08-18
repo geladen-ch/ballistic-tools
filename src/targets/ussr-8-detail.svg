@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 280" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
+  <!-- target face: single hit/miss torso-silhouette zone, tapered at the bottom corners -->
+  <path d="M134.67,10 H165.33 V34 H183.33 V143.33 L166.67,210 H133.33 L116.67,143.33 V34 H134.67 Z" fill="none" stroke="#7c8790" stroke-width="2"/>
+
+  <!-- point of aim -->
+  <line x1="142" y1="110" x2="158" y2="110" stroke="#e8a33d" stroke-width="1.6"/>
+  <line x1="150" y1="102" x2="150" y2="118" stroke="#e8a33d" stroke-width="1.6"/>
+
+  <!-- width dimension -->
+  <line x1="116.67" y1="225" x2="183.33" y2="225" stroke="#7c8790" stroke-width="1"/>
+  <line x1="116.67" y1="220" x2="116.67" y2="230" stroke="#7c8790" stroke-width="1"/>
+  <line x1="183.33" y1="220" x2="183.33" y2="230" stroke="#7c8790" stroke-width="1"/>
+
+  <text x="150" y="255" text-anchor="middle" fill="#d9e0e6" font-size="16" font-weight="600">50 &#215; 150 cm</text>
+</svg>

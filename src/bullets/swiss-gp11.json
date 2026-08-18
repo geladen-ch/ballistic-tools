@@ -1,0 +1,14 @@
+{
+  "id": "swiss-gp11",
+  "name": "174gr GP11",
+  "manufacturer": "Military",
+  "caliberM": 0.00778,
+  "lengthM": 0.035,
+  "massKg": 0.0113,
+  "source": "Reverse V / RUAG Radar",
+  "profile": {
+    "type": "bc",
+    "bc": 0.274,
+    "model": "G7"
+  }
+}

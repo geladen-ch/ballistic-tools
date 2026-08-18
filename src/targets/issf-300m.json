@@ -1,0 +1,24 @@
+{
+  "id": "issf-300m",
+  "nameKey": "targets.issf300m.name",
+  "widthM": 1.0,
+  "heightM": 1.0,
+  "aspectRatio": 1.0,
+  "zones": [
+    { "id": "1", "nameKey": "targets.issf300m.zone1", "score": 1 },
+    { "id": "2", "nameKey": "targets.issf300m.zone2", "score": 2 },
+    { "id": "3", "nameKey": "targets.issf300m.zone3", "score": 3 },
+    { "id": "4", "nameKey": "targets.issf300m.zone4", "score": 4 },
+    { "id": "5", "nameKey": "targets.issf300m.zone5", "score": 5 },
+    { "id": "6", "nameKey": "targets.issf300m.zone6", "score": 6 },
+    { "id": "7", "nameKey": "targets.issf300m.zone7", "score": 7 },
+    { "id": "8", "nameKey": "targets.issf300m.zone8", "score": 8 },
+    { "id": "9", "nameKey": "targets.issf300m.zone9", "score": 9 },
+    { "id": "10", "nameKey": "targets.issf300m.zone10", "score": 10 },
+    { "id": "10x", "nameKey": "targets.issf300m.zone10x", "score": 10 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 500, "y": 500 },
+    "pxPerMeter": 1000
+  }
+}

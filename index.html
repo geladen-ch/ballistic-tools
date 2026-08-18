@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14181c">
+<title>geladen.ch ballistics</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./src/styles/base.css">
+<link rel="stylesheet" href="./src/styles/layout.css">
+<link rel="stylesheet" href="./src/vendor/chartist/index.css">
+</head>
+<body>
+<div id="app-shell">
+  <header id="app-topbar">
+    <span id="app-brand" class="brand">
+      <svg id="app-brand-mark" viewBox="0 0 100 100" width="20" height="20" fill="none" stroke="currentColor" stroke-width="6" aria-hidden="true">
+        <circle cx="50" cy="50" r="34"/>
+        <circle cx="50" cy="50" r="18"/>
+        <path d="M24,74 L40,57 L50,63 L61,53 L76,74 Z" fill="currentColor" stroke="none"/>
+        <circle cx="50" cy="50" r="4" fill="currentColor" stroke="none"/>
+        <line x1="50" y1="6" x2="50" y2="22"/>
+        <line x1="50" y1="78" x2="50" y2="94"/>
+        <line x1="6" y1="50" x2="22" y2="50"/>
+        <line x1="78" y1="50" x2="94" y2="50"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name" data-i18n="app.title">geladen.ch ballistics</span>
+        <span class="brand-tagline" data-i18n="app.tagline">Peaceful. Precise. Armed.</span>
+      </span>
+    </span>
+    <div id="app-topbar-controls">
+      <div id="app-display-mode"></div>
+      <div id="app-lang"></div>
+    </div>
+  </header>
+  <div id="app-body">
+    <aside id="app-rail"></aside>
+    <main id="view"></main>
+  </div>
+  <nav id="app-tabbar"></nav>
+</div>
+<div id="app-dialog"></div>
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>

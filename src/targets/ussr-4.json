@@ -1,0 +1,14 @@
+{
+  "id": "ussr-4",
+  "nameKey": "targets.ussr4.name",
+  "widthM": 0.5,
+  "heightM": 0.5,
+  "aspectRatio": 1.0,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.ussr4.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 250, "y": 250 },
+    "pxPerMeter": 1000
+  }
+}

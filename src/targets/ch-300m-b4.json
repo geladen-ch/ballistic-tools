@@ -1,0 +1,17 @@
+{
+  "id": "ch-300m-b4",
+  "nameKey": "targets.ch300mB4.name",
+  "widthM": 1.0,
+  "heightM": 1.0,
+  "aspectRatio": 1.0,
+  "zones": [
+    { "id": "1", "nameKey": "targets.ch300mB4.zone1", "score": 1 },
+    { "id": "2", "nameKey": "targets.ch300mB4.zone2", "score": 2 },
+    { "id": "3", "nameKey": "targets.ch300mB4.zone3", "score": 3 },
+    { "id": "4", "nameKey": "targets.ch300mB4.zone4", "score": 4 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 500, "y": 500 },
+    "pxPerMeter": 1000
+  }
+}

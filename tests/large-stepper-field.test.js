@@ -1,0 +1,91 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
+
+installFakeDom();
+
+const { initI18n } = await import('../src/i18n.js');
+await initI18n();
+
+const { setUnit, resetUnits } = await import('../src/prefs.js');
+const { largeStepperField } = await import('../src/ui/large-stepper-field.js');
+
+function findByClass(node, className, out = []) {
+  if (node.className && node.className.split(' ').includes(className)) out.push(node);
+  for (const child of node.childNodes || []) findByClass(child, className, out);
+  return out;
+}
+
+function findInputs(node, out = []) {
+  if (node.tagName === 'INPUT') out.push(node);
+  for (const child of node.childNodes || []) findInputs(child, out);
+  return out;
+}
+
+test.beforeEach(() => resetUnits());
+
+test('renders a number input flanked by two large +/- buttons', () => {
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step: 0.5, value: 2 });
+  const buttons = findByClass(field.node, 'large-stepper-btn');
+  assert.equal(buttons.length, 2);
+  const [number] = findInputs(field.node);
+  assert.equal(number.value, '2');
+  assert.equal(field.getEngineValue(), 2);
+});
+
+test('the + button steps up by the given engine step, and fires onInput', () => {
+  let calls = 0;
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step: 0.5, value: 2, onInput: () => { calls++; } });
+  const [, incButton] = findByClass(field.node, 'large-stepper-btn');
+  fireEvent(incButton, 'click');
+  assert.equal(field.getEngineValue(), 2.5);
+  assert.equal(calls, 1);
+});
+
+test('the - button steps down by the given engine step', () => {
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step: 0.5, value: 2 });
+  const [decButton] = findByClass(field.node, 'large-stepper-btn');
+  fireEvent(decButton, 'click');
+  assert.equal(field.getEngineValue(), 1.5);
+});
+
+test('stepping compounds on a value just typed by hand, not a stale starting value', () => {
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step: 0.5, value: 2 });
+  const [number] = findInputs(field.node);
+  const [, incButton] = findByClass(field.node, 'large-stepper-btn');
+
+  number.value = '10';
+  fireEvent(number, 'input');
+  fireEvent(incButton, 'click');
+  assert.equal(field.getEngineValue(), 10.5);
+});
+
+test('clamps at min and max', () => {
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 1, step: 0.5, value: 1 });
+  const [decButton, incButton] = findByClass(field.node, 'large-stepper-btn');
+
+  fireEvent(incButton, 'click'); // already at max
+  assert.equal(field.getEngineValue(), 1);
+
+  fireEvent(decButton, 'click');
+  fireEvent(decButton, 'click');
+  fireEvent(decButton, 'click'); // past min
+  assert.equal(field.getEngineValue(), 0);
+});
+
+test('setEngineValue() writes the field without firing onInput', () => {
+  let calls = 0;
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step: 0.5, value: 2, onInput: () => { calls++; } });
+  field.setEngineValue(5);
+  assert.equal(field.getEngineValue(), 5);
+  assert.equal(calls, 0);
+});
+
+test('respects a non-metric velocity preference — displays and steps in fps, reads back in m/s', () => {
+  setUnit('velocity', 'ft/s');
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 10, step: 1, value: 5 });
+  const [number] = findInputs(field.node);
+  // ft/s displays with 0 decimals (see units.js) — 5 m/s rounds to 16 ft/s.
+  assert.equal(number.value, '16');
+  assert.ok(Math.abs(field.getEngineValue() - 4.877) < 0.05, `getEngineValue() was ${field.getEngineValue()}`);
+});

@@ -1,0 +1,14 @@
+{
+  "id": "russian-762x54r-7n1",
+  "name": "148gr 7N1",
+  "manufacturer": "Military",
+  "caliberM": 0.00792,
+  "lengthM": 0.032,
+  "massKg": 0.0096,
+  "source": "Reverse V / USSR Army Tables",
+  "profile": {
+    "type": "bc",
+    "bc": 0.202,
+    "model": "G7"
+  }
+}

@@ -1,0 +1,876 @@
+/* ---- Theme tokens (src/range-solver-prefs.js's THEME_CHOICES / Settings)
+   ----
+   Three themes, one shared set of custom properties — every component is
+   written in terms of var(--text) etc., so it re-themes automatically with
+   no per-component overrides, the sole exception being the plotted SVG
+   colors in hit-probability-view.js, which can't reference a custom
+   property from a bare attribute and so read these same tokens via
+   getComputedStyle() at draw time instead (see its own cssVar() helper).
+
+   Each theme is its own plain class (not html-scoped) rather than living
+   only on :root, for two reasons: app.js needs to swap between three named
+   options (not just toggle one on/off), and the Settings theme-picker's
+   own illustrative thumbnails (src/ui/theme-picker.js) reuse these exact
+   same classes on a small scoped preview element to render a genuine,
+   always-in-sync preview of a theme that isn't even the active one — no
+   separate hardcoded swatch colors to keep in sync by hand.
+
+   :root itself keeps a plain copy of .theme-dark's own values as a static
+   fallback (paint before app.js's classList.add runs on the very first
+   load); app.js always applies exactly one of the three classes below to
+   <html> right after, so :root's copy is never the only thing in play. */
+:root {
+  --bg: #14181c;
+  --panel: #1b2127;
+  --panel-raised: #222a31;
+  --line: #2a3138;
+  --text: #d9e0e6;
+  --dim: #7c8790;
+  --accent: #e8a33d;
+  --accent-dim: #8a6327;
+  /* Category color for Analysis (src/nav-tools.js) — Measurement reuses
+     --accent (already the reticle logo's own color); this is the one
+     new hue in the palette, kept clearly distinct from both --accent and
+     the status colors below so it never reads as "success" or "warning". */
+  --analysis: #4fa8d8;
+  --analysis-dim: #2c5f78;
+  --danger: #e0605a;
+  --ok: #5fb87a;
+  /* Hit Probability's two spotter-corrected error ellipses (see
+     hit-probability-view.js's cssVar() reads, and .legend-swatch-
+     conditions/-own-precision below) — their own hues, distinct from
+     --accent/--analysis/--danger/--ok so they never read as "the sample
+     ellipse" or a status color. */
+  --conditions-error: #22d3ee;
+  --own-precision-error: #a855f7;
+  /* Chartist's own index.css hardcodes rgba(0,0,0,...) for gridlines,
+     tuned for a light background — lightened here for this app's dark
+     default (see .chart-container .ct-grid below); the two high-contrast
+     themes redefine it again, each its own way. */
+  --chart-grid: rgba(217, 224, 230, 0.15);
+  /* Text color for content painted directly on top of --accent (button
+     backgrounds, etc.) — near-black reads fine against this theme's
+     bright amber, but needs to flip to light or dark again per
+     high-contrast theme below, matching each one's own accent. */
+  --accent-text: #1b1400;
+  --radius: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Explicit, reusable form of :root's own values above — see the shared
+   comment block above :root for why this duplication is intentional. Keep
+   the two in sync by hand. */
+.theme-dark {
+  --bg: #14181c;
+  --panel: #1b2127;
+  --panel-raised: #222a31;
+  --line: #2a3138;
+  --text: #d9e0e6;
+  --dim: #7c8790;
+  --accent: #e8a33d;
+  --accent-dim: #8a6327;
+  --analysis: #4fa8d8;
+  --analysis-dim: #2c5f78;
+  --danger: #e0605a;
+  --ok: #5fb87a;
+  --conditions-error: #22d3ee;
+  --own-precision-error: #a855f7;
+  --chart-grid: rgba(217, 224, 230, 0.15);
+  --accent-text: #1b1400;
+}
+
+/* Light background, dark text — maximum contrast in direct sunlight,
+   closer to a printed page than the app's own dark palette. */
+.theme-high-contrast-light {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --panel-raised: #e8e8e8;
+  --line: #999999;
+  --text: #000000;
+  --dim: #333333;
+  --accent: #b34700;
+  --accent-dim: #7a3000;
+  --analysis: #004a99;
+  --analysis-dim: #00337a;
+  --danger: #b30000;
+  --ok: #006622;
+  /* Darker/deeper than the dark theme's own values — those are pastel
+     enough to nearly wash out against a white background. */
+  --conditions-error: #0e7490;
+  --own-precision-error: #7e22ce;
+  --chart-grid: rgba(0, 0, 0, 0.15);
+  --accent-text: #ffffff;
+}
+
+/* Pure black background, pure white text — the same "maximum contrast"
+   idea as the light theme above, but for low-light/night use instead of
+   direct sunlight: no bright white panels to bloom or ruin dark
+   adaptation. Every hue pushed brighter/more saturated than the regular
+   dark theme's own (which is deliberately soft) so it still reads as
+   "high contrast" against pure black, not just "the usual dark theme". */
+.theme-high-contrast-dark {
+  --bg: #000000;
+  --panel: #000000;
+  --panel-raised: #1c1c1c;
+  --line: #6b6b6b;
+  --text: #ffffff;
+  --dim: #b3b3b3;
+  --accent: #ffb300;
+  --accent-dim: #c98f00;
+  --analysis: #5ac8ff;
+  --analysis-dim: #2f83ab;
+  --danger: #ff5c5c;
+  --ok: #4ade80;
+  --conditions-error: #2dd4e8;
+  --own-precision-error: #c084fc;
+  --chart-grid: rgba(255, 255, 255, 0.22);
+  /* --accent is bright/light here too (same reasoning as the light
+     theme's own --accent-text), so button text needs to go dark, not
+     white. */
+  --accent-text: #1a1200;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0 0 12px; font-weight: 600; }
+h1 { font-size: 18px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); }
+h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); margin-bottom: 8px; }
+
+p { margin: 0 0 10px; line-height: 1.5; }
+
+a { color: var(--accent); }
+
+.field { margin-bottom: 14px; }
+.field label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--dim);
+  margin-bottom: 4px;
+}
+.field input[type="range"] { width: 100%; }
+.field input[type="number"],
+.field select {
+  width: 100%;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+}
+/* A field driven by a library selection (a rifle's cartridge, e.g.) —
+   still shows its value, just not editable while the selection governs
+   it. */
+.field input:disabled,
+.field select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* Compact number box paired with a range slider — sits inline in the
+   label row instead of taking the full field width. */
+.field label input.val-input {
+  width: 72px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  font-size: 12px;
+  margin-left: 8px;
+}
+.hint { font-size: 11px; color: var(--dim); margin-top: 3px; }
+.hint.warning { color: var(--danger); }
+/* Pasted-in-full Cd-Mach table (src/ui/arsenal/bullet-form.js) — a
+   textarea instead of a single-line input, monospace so pasted columns of
+   numbers stay visually aligned. */
+.field textarea.cd-table-input {
+  width: 100%;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+/* The instructions/example above it are one translated string with
+   embedded newlines — preserve them instead of collapsing to one line. */
+.cd-table-instructions { white-space: pre-line; }
+
+/* Small inline flag next to a bullet's/rifle's name (src/views/
+   arsenal-view.js) — this entry has local changes not reflected in any
+   exported file yet. */
+.unsaved-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 999px;
+}
+
+/* Arsenal (src/views/arsenal-view.js): one row per saved bullet/rifle/
+   cartridge, with its Edit/Delete buttons pinned to the right. */
+.arsenal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.arsenal-row:last-of-type { border-bottom: none; }
+.arsenal-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.arsenal-row-actions button { padding: 5px 10px; font-size: 12px; }
+.arsenal-row-actions select { padding: 4px 6px; font-size: 12px; width: auto; }
+
+/* A rifle row with saved cartridges packs up to six controls into
+   .arsenal-row-actions (cartridge picker, Set active, comparison toggle,
+   Save to file, Edit, Delete) — more than a phone-width row can hold
+   beside the name/description on one line. Below the same breakpoint the
+   rest of the shell switches to its mobile layout at (see layout.css),
+   give the row its own line and let its actions wrap instead of
+   overflowing the card. */
+@media (max-width: 780px) {
+  .arsenal-row { flex-direction: column; align-items: stretch; }
+  .arsenal-row-actions { flex-wrap: wrap; }
+}
+
+.arsenal-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Caliber/manufacturer filters above the rifle/bullet lists (src/views/
+   arsenal-view.js) — side by side on desktop; flex-wrap alone (no media
+   query needed) drops each field to its own full-width row once they no
+   longer fit side by side, which is exactly what a phone-width screen
+   needs. */
+.arsenal-filter-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.arsenal-filter-row .field {
+  flex: 1 1 180px;
+  margin-bottom: 0;
+}
+
+.mass-dual-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* Specificity has to beat .field input[type="number"] (width: 100%) above,
+   or the two number inputs stretch full-width and stack instead of
+   sitting side by side. */
+.field .mass-dual-inputs input[type="number"] { width: 90px; }
+
+/* caliber-field.js's own select+number pair — same reasoning/specificity
+   fix as .mass-dual-inputs above, just with a select (width:100% by
+   default too) added to the mix instead of a second number input. */
+.caliber-dual-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.field .caliber-dual-inputs select { flex: 1 1 160px; width: auto; }
+.field .caliber-dual-inputs input[type="number"] { flex: 0 0 90px; width: 90px; }
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.checkbox-field input[type="checkbox"] { width: auto; margin: 0; }
+
+/* ---- Theme picker (src/ui/theme-picker.js, Settings) ----
+   Each .theme-option-swatch below carries its own .theme-* class (see
+   base.css's :root-adjacent theme block), so its children reading
+   var(--bg)/var(--accent)/etc. resolve to THAT theme's colors, not the
+   page's actual active one — a genuine, always-accurate preview, not a
+   set of hand-picked swatch colors. */
+.theme-picker {
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px; /* room for the scrollbar so it doesn't sit flush under the swatches */
+}
+.theme-option {
+  all: unset;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: calc(var(--radius) + 4px);
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.theme-option:hover { background: var(--panel-raised); }
+.theme-option.active { border-color: var(--accent); }
+.theme-option-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 76px;
+  height: 50px;
+  padding: 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+.theme-swatch-topbar { display: block; width: 55%; height: 6px; border-radius: 2px; background: var(--panel-raised); }
+.theme-swatch-accent {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  position: absolute;
+  top: 7px;
+  right: 7px;
+}
+.theme-swatch-line { display: block; width: 80%; height: 4px; border-radius: 2px; background: var(--dim); }
+.theme-swatch-line-short { width: 45%; }
+.theme-option-label { font-size: 11px; color: var(--dim); text-align: center; }
+.theme-option.active .theme-option-label { color: var(--text); font-weight: 600; }
+
+.muzzle-velocity-temp-details {
+  margin: 10px 0 0 24px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+}
+
+.column-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 6px;
+  margin-bottom: 14px;
+}
+.column-toggles .checkbox-field { margin-bottom: 0; }
+
+.bullet-library-info {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+/* Reusable input-grouping section (Rifle, Cartridge, Bullet, Atmosphere).
+   `.nested` is a section inside another section (Bullet inside
+   Cartridge) — a raised fill instead of its own border/margin so it reads
+   as part of the parent rather than a sibling box. */
+.input-section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.input-section:last-child { margin-bottom: 0; }
+.input-section .field:last-child { margin-bottom: 0; }
+.input-section.nested {
+  background: var(--panel-raised);
+  border: none;
+  padding: 12px;
+  margin: 12px 0 0;
+}
+/* A standalone action button following a group of fields — inside a
+   .input-section (Trajectory's "Add rifle/bullet to arsenal") or a plain
+   .card (BC Estimator's "Estimate", Settings' "Reset to metric defaults").
+   A bare <button> has no margin of its own, so dropped straight after a
+   field it visually fuses with whatever comes right after it instead of
+   the group above it — this reuses .input-section's own 16px rhythm to
+   read as "closing" the group it belongs to. */
+.section-button { margin-top: 16px; }
+
+/* Guns summary card (src/ui/sections/guns-summary.js) — replaces the full
+   rifle+cartridge picker everywhere it used to be embedded inline
+   (Trajectory, Hit Probability). */
+.guns-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: var(--panel-raised);
+}
+.guns-summary .lines { min-width: 0; }
+.guns-summary .rifle-line {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.guns-summary .bullet-line {
+  font-size: 12px;
+  color: var(--dim);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.guns-summary .src-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+  background: rgba(232, 163, 61, 0.1);
+  margin-left: 7px;
+  vertical-align: 1px;
+}
+
+button {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.secondary {
+  background: var(--panel-raised);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+/* Small icon-only action button (src/ui/download-button.js) — a chart's
+   SVG export, the trajectory table's CSV export. Deliberately quiet next
+   to the bold filled `button` default above: no visible chrome until
+   hovered, so it doesn't compete with the primary controls beside it. */
+button.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--dim);
+  flex-shrink: 0;
+}
+button.icon-button:hover { color: var(--text); background: var(--panel-raised); border-color: var(--line); filter: none; }
+
+/* A card's <h2> paired with a small icon-only action (e.g. a chart's own
+   download button) on the same line instead of the heading's default
+   full-width block. */
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.card-header-row h2 { margin-bottom: 0; }
+/* More than one icon-only action sharing a .card-header-row (e.g. the
+   trajectory table's own copy-to-clipboard and download-as-CSV buttons)
+   — grouped tightly together, distinct from the wider gap the row itself
+   uses to separate the heading from this whole cluster. */
+.card-header-actions { display: flex; align-items: center; gap: 4px; }
+
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--dim); font-weight: 500; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.status { font-size: 11px; color: var(--dim); }
+.status.error { color: var(--danger); }
+.status.ok { color: var(--ok); }
+
+.scroll-x { overflow-x: auto; }
+
+/* Trajectory chart (src/views/trajectory-view.js, Chartist — see
+   src/vendor/chartist/). */
+.chart-container { width: 100%; height: 280px; }
+.chart-container .ct-series-a .ct-line { stroke: var(--accent); }
+/* Thinner than Chartist's 4px default, and points are turned off entirely
+   via the showPoint:false chart option rather than hidden with CSS — no
+   .ct-point rule needed since none get created. */
+.chart-container .ct-line { stroke-width: 2px; }
+/* index.css hardcodes rgba(0,0,0,...) for the axis labels and gridlines
+   (there's no separate "axis line" class in this version — the outer
+   gridlines double as the axis) — overridden here to track the theme (see
+   --chart-grid above) instead of staying fixed to one background. */
+.chart-container .ct-label { fill: var(--dim); color: var(--dim); }
+.chart-container .ct-grid { stroke: var(--chart-grid); }
+/* Second series only ever appears in the Arsenal Comparison chart (src/
+   views/arsenal-view.js) — the Trajectory chart plots exactly one column
+   at a time, so .ct-series-b never exists there. */
+.chart-container .ct-series-b .ct-line { stroke: var(--ok); }
+/* Zero-level "Line of sight" reference line, shown on drop-family columns
+   only (see showLineOfSight in trajectory-columns.js) — a fixed custom
+   className (src/ui/chart-column-select.js's lineOfSightSeries()) rather
+   than an auto-assigned ct-series-<letter>, so it can't collide with
+   ct-series-b's own meaning above (a second real trajectory, not a
+   reference line). Thinner and dimmer than a real data line since it's
+   just a reference, not a plotted value. */
+.chart-container .ct-series-zero-line .ct-line { stroke: var(--dim); stroke-width: 1px; }
+
+/* Cd-Mach Curve chart (src/views/cd-mach-curve-view.js) — its "Calculated"
+   series is points-only (showLine:false), the first chart in this app to
+   ever need .ct-point styled at all (every other chart disables points
+   entirely via showPoint:false, see .ct-line comment above), so without
+   this it would render in Chartist's own hardcoded default red instead of
+   the theme's accent color. Chartist's own default point stroke-width is
+   10px (index.css); 6.7px is that scaled down 1.5x, so the scatter reads
+   less heavy against the smoothed Interpolated line drawn through it. */
+.chart-container .ct-series-a .ct-point { stroke: var(--accent); stroke-width: 6.7px; }
+/* G1/G7 reference curves (series c/d) — dashed to read as "reference
+   model," not measured/derived data, alongside the solid Calculated/
+   Interpolated lines. Colors are left as Chartist's own series-c/d
+   defaults (index.css), matched below for the legend swatches. */
+.chart-container .ct-series-c .ct-line,
+.chart-container .ct-series-d .ct-line { stroke-dasharray: 4px; }
+
+/* X axis title (src/views/arsenal-view.js's Comparison chart) — Chartist
+   itself has no axis-title concept, just numeric tick labels, so this is
+   a plain text row placed under the chart instead. */
+.chart-axis-label {
+  text-align: center;
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 2px;
+}
+
+/* Custom legend for the Comparison chart's two series (Chartist has no
+   legend of its own) — one swatch per configuration, colored to match
+   its line (.ct-series-a/.ct-series-b above). */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+.chart-legend-item { display: flex; align-items: center; gap: 6px; }
+.chart-legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+.chart-legend-a .chart-legend-swatch { background: var(--accent); }
+.chart-legend-b .chart-legend-swatch { background: var(--ok); }
+/* Cd-Mach Curve's G1/G7 legend swatches — matching the fixed series-c/d
+   colors index.css's own default Chartist palette already uses (see the
+   dashed ct-series-c/d rule above), not re-derived from a theme
+   variable since the chart lines themselves aren't either. */
+.chart-legend-c .chart-legend-swatch { background: #f4c63d; }
+.chart-legend-d .chart-legend-swatch { background: #d17905; }
+.chart-legend-zero-line .chart-legend-swatch { background: var(--dim); height: 1px; }
+
+/* The zoom/pan sliders' live value readout (src/ui/zoom-range-slider.js)
+   — same treatment as unit-field.js's own .val-input, just a read-only
+   <span> instead of an editable number box. */
+.field label .range-slider-value {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+/* Live/Partial/Planned indicator (src/ui/status-chip.js) — shared by the
+   nav rail, the tab bar's category screens (src/views/category-view.js)
+   and Home. */
+.status-chip {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  border-radius: 999px;
+  line-height: 1.6;
+}
+.status-chip-live { color: var(--ok); background: rgba(95, 184, 122, 0.14); border: 1px solid rgba(95, 184, 122, 0.4); }
+.status-chip-partial { color: var(--accent); background: rgba(232, 163, 61, 0.14); border: 1px solid var(--accent-dim); }
+.status-chip-planned { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
+
+/* Bullet stability traffic light (src/ui/stability-indicator.js) — reuses
+   the same .status-chip base, its own color set: red/amber/green for
+   unstable/marginal/stable, plus a "planned"-style dashed chip for
+   "Stability unknown" (missing input data) rather than a fourth new hue. */
+.status-chip-stable { color: var(--ok); background: rgba(95, 184, 122, 0.14); border: 1px solid rgba(95, 184, 122, 0.4); }
+.status-chip-marginal { color: var(--accent); background: rgba(232, 163, 61, 0.14); border: 1px solid var(--accent-dim); }
+.status-chip-unstable { color: var(--danger); background: rgba(224, 96, 90, 0.14); border: 1px solid var(--danger); }
+.status-chip-unknown { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
+
+.stability-indicator { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
+.stability-indicator .hint { margin: 0; }
+
+/* Shared by stability-indicator.js's "unknown" state and trajectory-view.js's
+   own "spin drift could not be calculated" hint (src/ui/collapsible-hint.js)
+   — a status line/chip paired with a "?" toggle for the hint underneath it. */
+.hint-row { display: flex; align-items: center; gap: 2px; }
+/* Sized down from .icon-button's own 26x26 default — a chip-height affordance
+   next to the small status line it toggles the hint for, not a full-size
+   toolbar action. The larger tap target still comes from the button's own
+   padding/hit area, not this visual box, so it stays comfortable on mobile. */
+.collapsible-hint-toggle { width: 20px; height: 20px; }
+
+/* Tool cards on Home and the two category hub pages (src/views/
+   category-view.js) — a planned tool (no route yet) renders as a plain,
+   inert div instead of a link; see toolCard() there. */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 14px 0 28px;
+}
+.category-card { text-decoration: none; display: block; }
+.category-card-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  margin-bottom: 4px;
+}
+/* A long, unbroken translated title (a German compound word especially
+   — nothing for the browser to wrap at) must shrink/wrap here, not
+   overflow the card — confirmed in testing to otherwise paint outside
+   the card and into whichever one sits next to it in the grid. */
+.category-card-head h2 { margin: 0; min-width: 0; overflow-wrap: break-word; }
+.category-card p { margin: 0; color: var(--dim); font-size: 13px; }
+.category-card.disabled { cursor: not-allowed; opacity: 0.7; }
+
+.home-group:first-of-type { margin-top: 4px; }
+.home-pinned-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.home-pinned-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+}
+.home-pinned-link:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+/* About section on Home (src/views/home-view.js) — Version, Privacy,
+   License, Contact, reusing the same .card/.category-grid look as the
+   tool cards above so it reads as part of the same page, not a bolted-on
+   footer. .home-about-heading only exists because this h2 follows a flex
+   row (.home-pinned-row) instead of a .category-grid, so it can't rely on
+   that grid's own bottom margin collapsing into the next heading's gap
+   the way the Analysis/Measurement headings do. */
+.home-about-heading { margin-top: 24px; }
+.version-number { font-size: 26px; font-weight: 700; color: var(--accent); line-height: 1.1; margin-bottom: 4px; }
+.version-line { font-size: 13px; color: var(--text); margin-bottom: 6px; }
+.version-codename { font-size: 11px; color: var(--dim); line-height: 1.4; }
+.version-codename b { color: var(--dim); font-weight: 600; letter-spacing: 0.02em; }
+
+/* User manual (src/manual-markdown.js) — real prose, not the small
+   uppercase UI-card headings h1-h4 default to elsewhere, so headings are
+   restyled locally rather than overriding the global rule. */
+.manual-body { max-width: 720px; }
+.manual-body h1 { font-size: 22px; text-transform: none; letter-spacing: normal; color: var(--text); margin-top: 4px; }
+.manual-body h2 { font-size: 16px; text-transform: none; letter-spacing: normal; color: var(--text); margin-top: 28px; }
+.manual-body h3 { font-size: 13px; text-transform: none; letter-spacing: normal; color: var(--text); margin-top: 18px; }
+.manual-body hr { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
+.manual-body ul { margin: 0 0 10px; padding-left: 20px; }
+.manual-body li { margin-bottom: 6px; line-height: 1.5; }
+.manual-body code { background: var(--panel-raised); border-radius: 3px; padding: 1px 5px; font-size: 0.9em; }
+.manual-auto-translated-notice {
+  background: rgba(232, 163, 61, 0.14);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+}
+
+canvas { display: block; width: 100%; }
+
+/* Hit Probability (src/views/hit-probability-view.js) — the left-column
+   section switcher (only one of Rifle & Bullet / Uncertainty / Simulation
+   visible at a time), the preset-dropdown-plus-editable-value fields, and
+   the results column (zone bars, target illustration, contribution
+   table). */
+.section-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+.tab-btn {
+  font-family: var(--font); font-size: 12px; font-weight: 600; text-align: center;
+  padding: 9px 6px; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--panel); color: var(--dim); cursor: pointer;
+}
+.tab-btn.active { border-color: var(--accent-dim); background: rgba(232, 163, 61, 0.1); color: var(--accent); }
+
+.target-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.target-picker-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 4px; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--panel); color: var(--dim); cursor: pointer; font-family: var(--font);
+}
+.target-picker-item.active { border-color: var(--accent-dim); background: rgba(232, 163, 61, 0.1); color: var(--accent); }
+.target-picker-thumb { width: 28px; height: 28px; }
+.target-picker-label { font-size: 11px; text-align: center; }
+
+.preset-row { display: grid; grid-template-columns: 1fr 90px; gap: 6px; }
+
+.result-number { font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1.1; }
+.result-row { display: flex; gap: 24px; flex-wrap: wrap; }
+.result-stat .value { font-size: 22px; font-weight: 700; color: var(--text); }
+.result-stat .label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+.zone-bars { display: flex; flex-direction: column; gap: 6px; }
+.zone-bar-row { display: grid; grid-template-columns: 90px 1fr 50px; align-items: center; gap: 8px; font-size: 12px; }
+.zone-bar-track { height: 8px; background: var(--panel-raised); border-radius: 4px; overflow: hidden; }
+.zone-bar-fill { height: 100%; background: var(--accent); }
+.zone-bar-fill.miss { background: var(--dim); }
+
+.illustration-wrap { display: flex; flex-direction: column; gap: 12px; }
+.illustration-svg { width: 100%; background: var(--panel-raised); border-radius: var(--radius); }
+.illustration-svg svg { display: block; width: 100%; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--dim); }
+.legend-item { display: flex; align-items: center; gap: 8px; }
+.legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; border: 1.5px solid var(--dim); background: none; }
+.legend-swatch-poa { border-color: var(--text); }
+.legend-swatch-poi { border-color: var(--analysis); }
+.legend-swatch-ellipse { border-style: dashed; border-color: var(--accent); }
+.legend-swatch-impacts { border: none; background: var(--accent); opacity: 0.75; }
+/* Spotter-corrected's two extra ellipses — same --conditions-error/
+   --own-precision-error tokens hit-probability-view.js's own cssVar()
+   helper reads for the plotted ellipses themselves (SVG attributes can't
+   reference custom properties directly, so it reads them via
+   getComputedStyle() instead — see that file). */
+.legend-swatch-conditions { border-style: dashed; border-color: var(--conditions-error); }
+.legend-swatch-own-precision { border-style: dashed; border-color: var(--own-precision-error); }
+
+/* Wind direction dial (src/ui/wind-direction-dial.js) — the "clock" vs
+   "clean" skin only changes which SVG elements buildFace() draws; both
+   are styled by the same classes below. */
+.wind-dial-body { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.wind-dial-svg { width: 120px; height: 120px; flex: none; touch-action: none; cursor: grab; }
+.wind-dial-svg:active { cursor: grabbing; }
+.wind-dial-svg:focus { outline: none; }
+.wind-dial-svg:focus .wind-dial-face { stroke: var(--accent); }
+.wind-dial-face { fill: var(--panel-raised); stroke: var(--line); }
+.wind-dial-tick, .wind-dial-tick-axis { stroke: var(--dim); }
+.wind-dial-tick-full { stroke: var(--accent); }
+.wind-dial-handle-line { stroke: var(--accent); }
+.wind-dial-handle { fill: var(--accent); stroke: var(--bg); }
+.wind-dial-center { fill: var(--dim); }
+.wind-dial-label, .wind-dial-label-full { font-size: 12px; font-weight: 600; font-family: var(--font); }
+.wind-dial-label { fill: var(--dim); }
+.wind-dial-label-full { fill: var(--accent); }
+.wind-dial-marker { fill: var(--dim); }
+.wind-dial-readout { flex: 1 1 140px; min-width: 140px; }
+.wind-dial-field .wind-dial-readout input[type="number"] {
+  width: 90px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+}
+.wind-dial-readout .hint { margin-top: 8px; }
+
+@media (max-width: 560px) {
+  .section-tabs { gap: 4px; }
+  .tab-btn { font-size: 11px; padding: 9px 4px; }
+  .result-number { font-size: 32px; }
+}
+
+/* The app's one modal overlay (src/ui/app-dialog.js) — update-notifications.js's
+   two dialogs today, generic enough for anything else that needs one later.
+   z-index comfortably above everything else in the app (the previous
+   highest, layout.css's docked mobile chrome, tops out at 20). */
+.app-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+}
+.app-dialog-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.app-dialog-message { margin: 0 0 16px; }
+.app-dialog-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Release History (src/views/release-history-view.js) — one stacked entry
+   per release rather than a table, so it reads correctly at any width
+   (mobile portrait included) with no separate responsive structure: the
+   header row wraps on its own via flex-wrap, and the byline/description
+   are already block-level. */
+.release-entry { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.release-entry:last-child { border-bottom: none; }
+.release-entry-header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.release-entry-version { font-weight: 700; color: var(--accent); }
+.release-entry-date { color: var(--dim); font-size: 12px; }
+.release-entry-fullversion { color: var(--dim); font-size: 12px; margin-top: 2px; }
+.release-entry-description { margin: 8px 0 0; }

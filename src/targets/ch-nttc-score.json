@@ -1,0 +1,16 @@
+{
+  "id": "ch-nttc-score",
+  "nameKey": "targets.chNttcScore.name",
+  "widthM": 0.45,
+  "heightM": 0.73596,
+  "aspectRatio": 1.6354666666666664,
+  "zones": [
+    { "id": "x", "nameKey": "targets.chNttcScore.zoneX", "score": 5 },
+    { "id": "y", "nameKey": "targets.chNttcScore.zoneY", "score": 5 },
+    { "id": "z", "nameKey": "targets.chNttcScore.zoneZ", "score": 2 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 225, "y": 367.98 },
+    "pxPerMeter": 1000
+  }
+}

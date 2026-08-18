@@ -1,0 +1,14 @@
+{
+  "id": "russian-762x39-m43",
+  "name": "122gr M43",
+  "manufacturer": "Military",
+  "caliberM": 0.00792,
+  "lengthM": 0.0268,
+  "massKg": 0.0079,
+  "source": "Reverse V / USSR Army Tables",
+  "profile": {
+    "type": "bc",
+    "bc": 0.15,
+    "model": "G7"
+  }
+}

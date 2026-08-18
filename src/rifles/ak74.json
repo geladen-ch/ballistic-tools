@@ -1,0 +1,30 @@
+{
+  "id": "ak74",
+  "name": "AK74",
+  "defaultSightHeightM": 0.05,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.2,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "russian-545x39-7n6",
+      "name": "53gr 7N6",
+      "muzzleVelocity": 900,
+      "referenceTempC": 15,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "russian-545x39-7n6"
+    },
+    {
+      "id": "russian-545x39-7n10",
+      "name": "56gr 7N10",
+      "muzzleVelocity": 880,
+      "referenceTempC": 15,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "russian-545x39-7n10"
+    }
+  ]
+}

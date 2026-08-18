@@ -1,0 +1,22 @@
+{
+  "id": "k31",
+  "name": "K31",
+  "defaultSightHeightM": 0.07,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.27,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "swiss-gp11",
+      "name": "174gr GP11",
+      "muzzleVelocity": 780,
+      "referenceTempC": 7,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "swiss-gp11"
+    }
+  ]
+}

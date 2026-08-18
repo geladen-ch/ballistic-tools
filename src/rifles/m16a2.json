@@ -1,0 +1,30 @@
+{
+  "id": "m16a2",
+  "name": "M16A2",
+  "defaultSightHeightM": 0.066,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.1778,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "nato-m855",
+      "name": "62gr M855 Ball",
+      "muzzleVelocity": 940,
+      "referenceTempC": 21.11,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "nato-m855"
+    },
+    {
+      "id": "nato-m193",
+      "name": "55gr M193 Ball",
+      "muzzleVelocity": 997,
+      "referenceTempC": 21.11,
+      "velocityTempSensitivity": 0.8,
+      "bulletId": "nato-m193"
+    }
+  ]
+}

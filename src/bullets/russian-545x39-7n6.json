@@ -1,0 +1,14 @@
+{
+  "id": "russian-545x39-7n6",
+  "name": "53gr 7N6",
+  "manufacturer": "Military",
+  "caliberM": 0.00562,
+  "lengthM": 0.0255,
+  "massKg": 0.00342,
+  "source": "Reverse V / USSR Army Tables",
+  "profile": {
+    "type": "bc",
+    "bc": 0.157,
+    "model": "G7"
+  }
+}

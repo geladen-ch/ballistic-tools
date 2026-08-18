@@ -1,0 +1,14 @@
+{
+  "id": "ruag-338-swissp-target-250",
+  "name": "250gr Swiss P Target",
+  "manufacturer": "RUAG",
+  "caliberM": 0.0086,
+  "lengthM": 0.04,
+  "massKg": 0.0162,
+  "source": "RUAG Catalog BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.299,
+    "model": "G7"
+  }
+}

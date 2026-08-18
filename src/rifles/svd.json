@@ -1,0 +1,22 @@
+{
+  "id": "svd",
+  "name": "SVD/СВД",
+  "defaultSightHeightM": 0.068,
+  "defaultZeroRangeM": 100,
+  "defaultRiflingTwistM": 0.24,
+  "defaultTwistDirection": "right",
+  "defaultClickUnit": "mrad",
+  "defaultClickHorizontal": 0.1,
+  "defaultClickVertical": 0.1,
+  "source": "",
+  "cartridges": [
+    {
+      "id": "russian-762x54r-7n1",
+      "name": "148gr 7N1",
+      "muzzleVelocity": 830,
+      "referenceTempC": 15,
+      "velocityTempSensitivity": 1.0,
+      "bulletId": "russian-762x54r-7n1"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "square-1m",
+  "nameKey": "targets.square1m.name",
+  "widthM": 1.0,
+  "heightM": 1.0,
+  "aspectRatio": 1.0,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.square1m.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 500, "y": 500 },
+    "pxPerMeter": 1000
+  }
+}

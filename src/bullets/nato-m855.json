@@ -1,0 +1,14 @@
+{
+  "id": "nato-m855",
+  "name": "62gr M855 Ball",
+  "manufacturer": "Military",
+  "caliberM": 0.0057,
+  "lengthM": 0.0234,
+  "massKg": 0.004,
+  "source": "US Army BRL",
+  "profile": {
+    "type": "bc",
+    "bc": 0.151,
+    "model": "G7"
+  }
+}

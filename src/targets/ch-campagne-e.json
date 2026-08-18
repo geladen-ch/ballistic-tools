@@ -1,0 +1,14 @@
+{
+  "id": "ch-campagne-e",
+  "nameKey": "targets.chCampagneE.name",
+  "widthM": 0.45,
+  "heightM": 1.65,
+  "aspectRatio": 3.6666666666666665,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.chCampagneE.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 225, "y": 825 },
+    "pxPerMeter": 1000
+  }
+}
