@@ -225,8 +225,9 @@ opzioni vivono nello stesso modulo. Alcuni campi meritano una spiegazione:
   facoltativamente come la velocità alla volata di una cartuccia varia con
   la temperatura della polvere, invece di usare un valore fisso.
 - **Resistenza del proiettile** — un coefficiente balistico (BC) con un
-  modello di resistenza standard G1/G7, oppure, per i proiettili di
-  libreria che ne dispongono, una tabella Cd-Mach misurata direttamente (più
+  modello di resistenza standard (G1, G7 e altri — vedi
+  **Impostazioni**), oppure, per i proiettili di libreria che ne
+  dispongono, una tabella Cd-Mach misurata direttamente (più
   precisa, senza BC).
 
 **Aggiungi fucile all'arsenale** / **Aggiungi proiettile all'arsenale**,

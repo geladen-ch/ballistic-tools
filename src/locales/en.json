@@ -20,8 +20,14 @@
   },
   "common": {
     "dragModel": "Drag model",
-    "dragModelG1": "G1 (flat-base / spitzer)",
-    "dragModelG7": "G7 (boat-tail / VLD)",
+    "dragModelG1": "G1 (Generic)",
+    "dragModelG2": "G2 (Historic artillery)",
+    "dragModelG5": "G5 (Short boattail match)",
+    "dragModelG6": "G6 (Flat-base spitzer)",
+    "dragModelG7": "G7 (Modern long-range VLD)",
+    "dragModelG8": "G8 (Rare, flat-base)",
+    "dragModelGI": "GI (Old military ball)",
+    "dragModelGS": "GS (Sphere)",
     "idle": "idle",
     "computing": "computing…",
     "error": "error: {{message}}"
@@ -510,6 +516,8 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v127": "Added six more standard drag models (G2, G5, G6, G8, GI, GS) alongside G1/G7, corrected G7's own table at high Mach numbers, and added a Settings toggle to show or hide individual models — G1 and G7 stay visible by default, the rest are opt-in.",
+      "v126": "Merged the BC Estimator, BC — Time of Flight, and BC — Labradar Track tools into one BC Tools page with Calculation, Conversion, and Labradar tabs — switch between a measured far velocity or a time-of-flight reading, and your entries now persist when you navigate away and back.",
       "v125": "Fixed a bug where changing the comparison chart's max distance in Arsenal (or Trajectory) could blank the chart and leave the zoom sliders stuck on \"NaN\".",
       "v124": "Cd-Mach Curve is live: paste a Doppler radar or chronograph distance/velocity table and back out the bullet's own drag curve, segment by segment. Chart it against G1/G7, export the tables, and save the result straight to Arsenal.",
       "v123": "The Hit Probability tool is now a target-rich environment. Migrated all targets from legacy Plan 33 code, stand by for more scenarios.",

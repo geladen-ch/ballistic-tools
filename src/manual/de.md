@@ -229,8 +229,9 @@ kurze Erklärung:
   die Mündungsgeschwindigkeit einer Patrone mit der Pulvertemperatur
   ändert, anstatt einen festen Wert zu verwenden.
 - **Geschosswiderstand** — entweder ein ballistischer Koeffizient (BC) mit
-  einem Standard-Luftwiderstandsmodell G1/G7, oder, bei Bibliotheksgeschossen,
-  die eine solche besitzen, eine direkt gemessene Cd-Mach-Tabelle (genauer,
+  einem Standard-Luftwiderstandsmodell (G1, G7 und weitere — siehe
+  **Einstellungen**), oder, bei Bibliotheksgeschossen, die eine solche
+  besitzen, eine direkt gemessene Cd-Mach-Tabelle (genauer,
   ohne BC).
 
 **Gewehr zum Arsenal hinzufügen** / **Geschoss zum Arsenal hinzufügen**,

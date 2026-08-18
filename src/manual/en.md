@@ -202,9 +202,10 @@ fields are worth calling out:
 - **Muzzle velocity vs. temperature** — optionally model how a cartridge's
   muzzle velocity shifts with powder temperature, instead of using one fixed
   value.
-- **Bullet drag** — either a ballistic coefficient (BC) with a standard G1/G7
-  drag model, or, for library bullets that have one, a directly measured
-  Cd-Mach table (more accurate, no BC involved).
+- **Bullet drag** — either a ballistic coefficient (BC) with a standard drag
+  model (G1, G7, and others — see **Settings**), or, for library bullets
+  that have one, a directly measured Cd-Mach table (more accurate, no BC
+  involved).
 
 **Add rifle to arsenal** / **Add bullet to arsenal**, next to the rifle and
 bullet fields, save the current entry into your own Arsenal library (below)

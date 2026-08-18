@@ -20,8 +20,14 @@
   },
   "common": {
     "dragModel": "Modello di resistenza",
-    "dragModelG1": "G1 (base piatta / ogiva standard)",
-    "dragModelG7": "G7 (boat-tail / VLD)",
+    "dragModelG1": "G1 (Generico)",
+    "dragModelG2": "G2 (Artiglieria storica)",
+    "dragModelG5": "G5 (Boat-tail corto da competizione)",
+    "dragModelG6": "G6 (Ogiva spitzer a base piatta)",
+    "dragModelG7": "G7 (VLD moderno a lunga gittata)",
+    "dragModelG8": "G8 (Raro, base piatta)",
+    "dragModelGI": "GI (Vecchia palla militare)",
+    "dragModelGS": "GS (Sfera)",
     "idle": "inattivo",
     "computing": "calcolo in corso…",
     "error": "errore: {{message}}"
@@ -510,6 +516,8 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v127": "Aggiunti altri sei modelli di resistenza standard (G2, G5, G6, G8, GI, GS) accanto a G1/G7, corretta la tabella di G7 agli alti numeri di Mach, e aggiunta un'impostazione per mostrare o nascondere i singoli modelli — G1 e G7 restano visibili per impostazione predefinita, gli altri sono opzionali.",
+      "v126": "Lo Stimatore BC, BC – Tempo di volo e BC – Labradar Track sono stati unificati in un'unica pagina Strumenti BC con le schede Calcolo, Conversione e Labradar — passa tra una velocità lontana misurata o un tempo di volo, e i tuoi valori ora restano salvati quando esci dalla pagina e ci torni.",
       "v125": "Risolto un bug: modificare la distanza massima nel grafico di confronto dell'Arsenale (o della Traiettoria) poteva svuotare il grafico e bloccare i cursori dello zoom su «NaN».",
       "v124": "La Curva Cd-Mach è disponibile: incolla una tabella distanza/velocità da radar Doppler o cronografo e ricava la curva di resistenza propria del proiettile, segmento per segmento. Confrontala con G1/G7 nel grafico, esporta le tabelle e salva il risultato direttamente nell'Arsenale.",
       "v123": "Lo strumento di probabilità di colpo è ora ricco di bersagli. Tutti i bersagli sono stati migrati dal vecchio codice Plan 33, altri scenari in arrivo.",

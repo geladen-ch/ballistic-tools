@@ -233,8 +233,9 @@ une explication :
   variation de la vitesse initiale d'une cartouche avec la température de la
   poudre, au lieu d'utiliser une valeur fixe.
 - **Traînée de la balle** — soit un coefficient balistique (BC) avec un
-  modèle de traînée standard G1/G7, soit, pour les balles de la bibliothèque
-  qui en possèdent une, une table Cd-Mach directement mesurée (plus précise,
+  modèle de traînée standard (G1, G7 et d'autres — voir **Paramètres**),
+  soit, pour les balles de la bibliothèque qui en possèdent une, une table
+  Cd-Mach directement mesurée (plus précise,
   sans BC).
 
 **Ajouter la carabine à l'arsenal** / **Ajouter la balle à l'arsenal**, à

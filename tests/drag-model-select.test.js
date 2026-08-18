@@ -10,6 +10,10 @@ const { resetDragModelPrefsForTests, setDragModelVisible } = await import('../sr
 const { removeCookie } = await import('../src/cookies.js');
 
 const COOKIE_NAME = 'ballistics_hidden_drag_models_v1';
+// Only G1/G7 are visible by default (see drag-model-prefs.js) — none of
+// the tests below touch any other model, so this is the option list every
+// one of them should see unless explicitly noted otherwise.
+const DEFAULT_VISIBLE_IDS = ['G1', 'G7'];
 
 test.beforeEach(() => {
   resetDragModelPrefsForTests();
@@ -20,9 +24,9 @@ function optionValues(select) {
   return select.childNodes.map((o) => o.attributes.value);
 }
 
-test('dragModelOptionEls() offers every visible model by default', () => {
+test('dragModelOptionEls() offers only the default-visible models (G1/G7)', () => {
   const values = dragModelOptionEls().map((o) => o.attributes.value);
-  assert.deepEqual(values, ['G1', 'G7']);
+  assert.deepEqual(values, DEFAULT_VISIBLE_IDS);
 });
 
 test('dragModelOptionEls() drops a model hidden in Settings', () => {
@@ -34,13 +38,13 @@ test('dragModelOptionEls() drops a model hidden in Settings', () => {
 test('dragModelOptionEls(required) still includes a hidden model when it is the value being set', () => {
   setDragModelVisible('G1', false);
   const values = dragModelOptionEls('G1').map((o) => o.attributes.value);
-  assert.deepEqual(values, ['G1', 'G7']);
+  assert.deepEqual(values, DEFAULT_VISIBLE_IDS);
 });
 
 test('setDragModelSelectValue selects a visible value normally', () => {
   const select = makeElement('select');
   setDragModelSelectValue(select, 'G7');
-  assert.deepEqual(optionValues(select), ['G1', 'G7']);
+  assert.deepEqual(optionValues(select), DEFAULT_VISIBLE_IDS);
   assert.equal(select.value, 'G7');
 });
 
@@ -48,7 +52,7 @@ test('setDragModelSelectValue still shows and selects a hidden-but-needed value'
   setDragModelVisible('G1', false);
   const select = makeElement('select');
   setDragModelSelectValue(select, 'G1');
-  assert.deepEqual(optionValues(select), ['G1', 'G7']);
+  assert.deepEqual(optionValues(select), DEFAULT_VISIBLE_IDS);
   assert.equal(select.value, 'G1');
 });
 
@@ -58,6 +62,12 @@ test('setDragModelSelectValue rebuilds options on every call (no stale leftover 
   setDragModelSelectValue(select, 'G1'); // forced in, since it's the current value
   setDragModelVisible('G1', true);
   setDragModelSelectValue(select, 'G7'); // no longer needs forcing
-  assert.deepEqual(optionValues(select), ['G1', 'G7']);
+  assert.deepEqual(optionValues(select), DEFAULT_VISIBLE_IDS);
   assert.equal(select.value, 'G7');
+});
+
+test('a model not visible by default appears once explicitly shown', () => {
+  setDragModelVisible('G2', true);
+  const values = dragModelOptionEls().map((o) => o.attributes.value);
+  assert.deepEqual(values, ['G1', 'G2', 'G7']);
 });

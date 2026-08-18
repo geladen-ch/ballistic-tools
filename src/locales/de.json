@@ -20,8 +20,14 @@
   },
   "common": {
     "dragModel": "Luftwiderstandsmodell",
-    "dragModelG1": "G1 (Flachboden / Spitzgeschoss)",
-    "dragModelG7": "G7 (Bootstail / VLD)",
+    "dragModelG1": "G1 (Generisch)",
+    "dragModelG2": "G2 (Historische Artillerie)",
+    "dragModelG5": "G5 (Kurzes Boat-Tail-Match)",
+    "dragModelG6": "G6 (Flachboden-Spitzgeschoss)",
+    "dragModelG7": "G7 (Modernes Langstrecken-VLD)",
+    "dragModelG8": "G8 (Selten, Flachboden)",
+    "dragModelGI": "GI (Altes Militär-Vollmantelgeschoss)",
+    "dragModelGS": "GS (Kugel)",
     "idle": "bereit",
     "computing": "berechne…",
     "error": "Fehler: {{message}}"
@@ -510,6 +516,8 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v127": "Sechs weitere Standard-Luftwiderstandsmodelle (G2, G5, G6, G8, GI, GS) neben G1/G7 hinzugefügt, G7s eigene Tabelle bei hohen Mach-Zahlen korrigiert, und eine Einstellung zum Ein-/Ausblenden einzelner Modelle ergänzt — G1 und G7 bleiben standardmäßig sichtbar, der Rest ist optional.",
+      "v126": "BC-Schätzer, BC – Flugzeit und BC – Labradar-Track wurden zu einer einzigen Seite „BC-Werkzeuge“ mit den Reitern Berechnung, Umrechnung und Labradar zusammengeführt — wählen Sie zwischen einer gemessenen Zielgeschwindigkeit oder einer Flugzeitmessung, und Ihre Eingaben bleiben beim Verlassen und Zurückkehren der Seite erhalten.",
       "v125": "Fehler behoben: Das Ändern der maximalen Distanz im Vergleichsdiagramm des Arsenals (oder der Flugbahn) konnte das Diagramm leeren und die Zoom-Regler auf „NaN“ hängen bleiben lassen.",
       "v124": "Cd-Mach-Kurve ist da: Fügen Sie eine Distanz-/Geschwindigkeitstabelle aus Doppler-Radar oder Chronograf ein und ermitteln Sie die eigene Widerstandskurve des Geschosses, abschnittsweise. Im Diagramm mit G1/G7 vergleichen, Tabellen exportieren und das Ergebnis direkt ins Arsenal speichern.",
       "v123": "Das Trefferwahrscheinlichkeits-Werkzeug bietet jetzt eine ganze Fülle an Zielen. Alle Ziele wurden aus dem alten Plan-33-Code migriert, weitere Szenarien folgen.",

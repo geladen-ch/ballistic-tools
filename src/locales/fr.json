@@ -20,8 +20,14 @@
   },
   "common": {
     "dragModel": "Modèle de traînée",
-    "dragModelG1": "G1 (culot plat / ogive standard)",
-    "dragModelG7": "G7 (culot bateau / VLD)",
+    "dragModelG1": "G1 (Générique)",
+    "dragModelG2": "G2 (Artillerie historique)",
+    "dragModelG5": "G5 (Boat-tail court de compétition)",
+    "dragModelG6": "G6 (Ogive spitzer à culot plat)",
+    "dragModelG7": "G7 (VLD longue portée moderne)",
+    "dragModelG8": "G8 (Rare, culot plat)",
+    "dragModelGI": "GI (Ancienne balle militaire)",
+    "dragModelGS": "GS (Sphère)",
     "idle": "inactif",
     "computing": "calcul en cours…",
     "error": "erreur : {{message}}"
@@ -510,6 +516,8 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v127": "Ajout de six autres modèles de traînée standard (G2, G5, G6, G8, GI, GS) aux côtés de G1/G7, correction de la propre table de G7 aux nombres de Mach élevés, et ajout d'un réglage pour afficher ou masquer chaque modèle — G1 et G7 restent visibles par défaut, les autres sont optionnels.",
+      "v126": "L'Estimateur BC, BC – Temps de vol et BC – Labradar Track ont été fusionnés en une seule page Outils BC avec les onglets Calcul, Conversion et Labradar — basculez entre une vitesse lointaine mesurée ou un temps de vol, et vos saisies sont désormais conservées en quittant la page puis en y revenant.",
       "v125": "Correction d'un bug : modifier la portée maximale du graphique de comparaison dans l'Arsenal (ou la Trajectoire) pouvait vider le graphique et bloquer les curseurs de zoom sur « NaN ».",
       "v124": "La Courbe Cd-Mach est disponible : collez un tableau distance/vitesse issu d'un radar Doppler ou d'un chronographe et déduisez la courbe de traînée propre à la balle, segment par segment. Comparez-la à G1/G7 sur le graphique, exportez les tableaux, et enregistrez le résultat directement dans l'Arsenal.",
       "v123": "L'outil de probabilité d'impact regorge désormais de cibles. Toutes les cibles ont été migrées depuis l'ancien code Plan 33, d'autres scénarios sont à venir.",
