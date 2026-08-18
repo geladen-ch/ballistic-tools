@@ -18,6 +18,7 @@ If you're being a dick (or a cunt), you better have a very good reason (and writ
 
 ## Offenses
 
+We're here to build useful software, not to give everyone comfy feelings.
 If you feel offended, live with it, or feel free to fuck off -- we don't care.
 (hey, it's FOSS, just fork)
 
