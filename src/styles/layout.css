@@ -535,8 +535,22 @@ html.range-solver-mode.force-mobile #app-topbar { display: none; }
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Wind angle dial (src/ui/wind-direction-dial.js), enlarged for the
-   Wind tab specifically — scoped under .range-solver-tab-panel rather
+/* ---- Wind angle dial (src/ui/wind-direction-dial.js), enlarged 1.75x for
+   Trajectory's own wind field specifically — scoped under
+   .trajectory-atmosphere rather than the bare .wind-dial-svg/.wind-dial-
+   body classes, which are shared with every other place this same dial
+   appears (Hit Probability's own Simulation panel, Arsenal's rifle
+   comparison) and are left at their existing 120px size there. The dial
+   and manual-degrees readout are centered as a group within the field,
+   same "drop the readout's own flex-grow so justify-content can actually
+   center the pair" approach the Range Solver Wind tab rule below uses. ---- */
+.trajectory-atmosphere .wind-dial-body { justify-content: center; }
+.trajectory-atmosphere .wind-dial-readout { flex: none; text-align: center; }
+.trajectory-atmosphere .wind-dial-readout input[type="number"] { text-align: center; }
+.trajectory-atmosphere .wind-dial-svg { width: 210px; height: 210px; }
+
+/* ---- Wind angle dial, enlarged for the Wind tab specifically — scoped
+   under .range-solver-tab-panel rather
    than the bare .wind-dial-svg/.wind-dial-field classes, which are shared
    with every other place this same dial appears (Hit Probability's own
    Simulation panel included) and are left at their existing 120px size

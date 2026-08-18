@@ -516,6 +516,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v128": "Cosmetica dell'interfaccia: la manopola dell'angolo del vento nella pagina Traiettoria è ora 1,75× più grande, centrata insieme al campo di inserimento manuale dei gradi.",
       "v127": "Aggiunti altri sei modelli di resistenza standard (G2, G5, G6, G8, GI, GS) accanto a G1/G7, corretta la tabella di G7 agli alti numeri di Mach, e aggiunta un'impostazione per mostrare o nascondere i singoli modelli — G1 e G7 restano visibili per impostazione predefinita, gli altri sono opzionali.",
       "v126": "Lo Stimatore BC, BC – Tempo di volo e BC – Labradar Track sono stati unificati in un'unica pagina Strumenti BC con le schede Calcolo, Conversione e Labradar — passa tra una velocità lontana misurata o un tempo di volo, e i tuoi valori ora restano salvati quando esci dalla pagina e ci torni.",
       "v125": "Risolto un bug: modificare la distanza massima nel grafico di confronto dell'Arsenale (o della Traiettoria) poteva svuotare il grafico e bloccare i cursori dello zoom su «NaN».",

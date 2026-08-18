@@ -516,6 +516,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v128": "UI-Kosmetik: Der Windwinkel-Wahlring auf der Flugbahn-Seite ist jetzt 1,75× größer und wird zusammen mit der manuellen Gradeingabe im Feld zentriert.",
       "v127": "Sechs weitere Standard-Luftwiderstandsmodelle (G2, G5, G6, G8, GI, GS) neben G1/G7 hinzugefügt, G7s eigene Tabelle bei hohen Mach-Zahlen korrigiert, und eine Einstellung zum Ein-/Ausblenden einzelner Modelle ergänzt — G1 und G7 bleiben standardmäßig sichtbar, der Rest ist optional.",
       "v126": "BC-Schätzer, BC – Flugzeit und BC – Labradar-Track wurden zu einer einzigen Seite „BC-Werkzeuge“ mit den Reitern Berechnung, Umrechnung und Labradar zusammengeführt — wählen Sie zwischen einer gemessenen Zielgeschwindigkeit oder einer Flugzeitmessung, und Ihre Eingaben bleiben beim Verlassen und Zurückkehren der Seite erhalten.",
       "v125": "Fehler behoben: Das Ändern der maximalen Distanz im Vergleichsdiagramm des Arsenals (oder der Flugbahn) konnte das Diagramm leeren und die Zoom-Regler auf „NaN“ hängen bleiben lassen.",

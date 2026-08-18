@@ -516,6 +516,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v128": "UI cosmetics: the wind-angle dial on Trajectory is now 1.75x larger, and it's centered together with its manual-degrees entry within the field.",
       "v127": "Added six more standard drag models (G2, G5, G6, G8, GI, GS) alongside G1/G7, corrected G7's own table at high Mach numbers, and added a Settings toggle to show or hide individual models — G1 and G7 stay visible by default, the rest are opt-in.",
       "v126": "Merged the BC Estimator, BC — Time of Flight, and BC — Labradar Track tools into one BC Tools page with Calculation, Conversion, and Labradar tabs — switch between a measured far velocity or a time-of-flight reading, and your entries now persist when you navigate away and back.",
       "v125": "Fixed a bug where changing the comparison chart's max distance in Arsenal (or Trajectory) could blank the chart and leave the zoom sliders stuck on \"NaN\".",

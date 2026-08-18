@@ -516,6 +516,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v128": "Cosmétique de l'interface : le cadran d'angle du vent sur la page Trajectoire est désormais 1,75× plus grand, et il est centré avec sa saisie manuelle en degrés dans le champ.",
       "v127": "Ajout de six autres modèles de traînée standard (G2, G5, G6, G8, GI, GS) aux côtés de G1/G7, correction de la propre table de G7 aux nombres de Mach élevés, et ajout d'un réglage pour afficher ou masquer chaque modèle — G1 et G7 restent visibles par défaut, les autres sont optionnels.",
       "v126": "L'Estimateur BC, BC – Temps de vol et BC – Labradar Track ont été fusionnés en une seule page Outils BC avec les onglets Calcul, Conversion et Labradar — basculez entre une vitesse lointaine mesurée ou un temps de vol, et vos saisies sont désormais conservées en quittant la page puis en y revenant.",
       "v125": "Correction d'un bug : modifier la portée maximale du graphique de comparaison dans l'Arsenal (ou la Trajectoire) pouvait vider le graphique et bloquer les curseurs de zoom sur « NaN ».",

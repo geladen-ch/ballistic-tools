@@ -156,7 +156,7 @@ export function mount(container) {
     rangeStepField.node,
     losAngleField.node,
     guns.node,
-    atmosphere.node,
+    el('div', { class: 'trajectory-atmosphere' }, [atmosphere.node]),
     status,
     spinDriftHint
   ]);

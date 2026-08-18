@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v128',
+    fullVersion: '0.2 beta (ABRUTI — Analyse Balistique Rapide et Unifiée pour Tireurs Intelligents)',
+    date: '2026-08-18',
+    descriptionKey: 'releaseHistory.entries.v128'
+  },
+  {
     cacheVersion: 'v127',
     fullVersion: '0.2 beta (ABRUTI — Analyse Balistique Rapide et Unifiée pour Tireurs Intelligents)',
     date: '2026-08-18',
