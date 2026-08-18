@@ -12,7 +12,7 @@ Honestly, don't bring it up, it's really unasked for.
 
 Because principle #0.
 
-## Being a dick (or a cunt)
+## Being a Dick (or a Cunt)
 
 If you're being a dick (or a cunt), you better have a very good reason (and write good code to start with, because principle #0).
 
