@@ -3,11 +3,13 @@
 // runner without pulling in worker/DOM globals.
 import { integrate } from '../engine/trajectory.js';
 import { estimateBC, estimateBCFromTof } from '../engine/bc-estimate.js';
+import { estimateTrackBCWholeWindow } from '../engine/labradar-bc.js';
 
 const HANDLERS = {
   trajectory: integrate,
   bcEstimate: estimateBC,
-  bcEstimateTof: estimateBCFromTof
+  bcEstimateTof: estimateBCFromTof,
+  labradarTrackBc: estimateTrackBCWholeWindow
 };
 
 self.onmessage = (e) => {

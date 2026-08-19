@@ -283,10 +283,9 @@ come SVG**.
 
 Calcola un coefficiente balistico da dati noti, oppure converte un BC tra
 modelli diversi — raggruppati in un unico strumento con le schede
-**Calcolo BC**, **Conversione BC** e **BC Labradar**. Il **Calcolo BC** è
-già pienamente utilizzabile; la **Conversione BC** e **BC Labradar**
-(importare una traccia di velocità completa misurata dal radar) sono
-**ancora previsti**.
+**Calcolo BC**, **Conversione BC** e **BC Labradar**. Il **Calcolo BC** e
+**BC Labradar** sono già pienamente utilizzabili; la **Conversione BC** è
+**ancora prevista**.
 
 Il **Calcolo BC** ricava un coefficiente balistico da una coppia
 velocità/distanza vicina e da una velocità lontana oppure da un tempo di
@@ -298,6 +297,27 @@ resto (velocità vicina, entrambe le distanze, modello di resistenza,
 atmosfera) resta invariato in entrambi i casi. Utile quando hai misurato
 una perdita di velocità reale, o un tempo di volo reale, su una distanza
 nota e vuoi il BC che lo spiega, invece di affidarti a un valore pubblicato.
+
+**BC Labradar** calcola un BC per ogni colpo a partire da un'esportazione
+del cronografo Labradar — uno **.zip** di file di traccia che il
+dispositivo scrive sulla sua scheda SD, uno per colpo, registrando la
+velocità circa ogni millisecondo durante il volo. Scegli un modello di
+resistenza e l'atmosfera (qui non ci sono preimpostazioni — inserisci
+direttamente la tua pressione di stazione/temperatura/umidità), poi scegli
+lo zip; ogni traccia viene analizzata, ripulita dai punti rumorosi/errati e
+adattata automaticamente per ottenere un BC. I file nello zip che non sono
+vere tracce (il report o il file di progetto del dispositivo, o altri file
+estranei) vengono ignorati. Due filtri regolabili scartano le tracce
+inaffidabili prima che vengano mediate: una **soglia di qualità del
+segnale** (quanto bene i punti ripuliti di una traccia seguono una retta) e
+un **rigetto dei valori anomali** (quanto il BC di una traccia si discosta
+dagli altri) — utile per escludere ad esempio una traccia captata da una
+corsia di tiro vicina, o una in cui il radar ha semplicemente ricevuto un
+segnale scadente. Fai clic sulla riga di una traccia per vedere il suo
+grafico velocità-tempo, con i punti mantenuti e quelli scartati mostrati
+separatamente, e deseleziona la casella di una traccia per escluderla
+manualmente dal risultato medio (o riseleziona una traccia scartata dai
+filtri automatici).
 
 ## Curva Cd-Mach
 

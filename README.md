@@ -55,6 +55,18 @@ And here's another statement: I **fucking hate** the whole concept and paradigm 
 
 But ~~Now I have a machine gun, hohoho~~ then came AI. Practically all of the UI code was written by AI, and the machine is pretty good at it. Otherwise, I would never have gotten around to this whole exercise. To conclude, God bless robots -- they take care of stupid shit, while humans can consecrate themselves to Knowledge and Creation.
 
+## Third-party libraries
+
+Vendored locally under [src/vendor/](src/vendor/) (each with its own
+`LICENSE` and `NOTICE.md`), no CDN dependency at runtime:
+
+| Library | Author | License |
+|---|---|---|
+| [Chartist](https://gionkunz.github.io/chartist-js/) | [Gion Kunz](https://github.com/gionkunz) | MIT / WTFPL |
+| [fflate](https://github.com/101arrowz/fflate) | [Arjun Barrett](https://github.com/101arrowz) | MIT |
+| [i18next](https://www.i18next.com/) | [i18next](https://github.com/i18next) | MIT |
+| [js-quantities](https://github.com/gentooboontoo/js-quantities) | Kevin C. Olbrich and contributors | MIT |
+
 ## License
 
 [AGPL-3.0-or-later](LICENSE)

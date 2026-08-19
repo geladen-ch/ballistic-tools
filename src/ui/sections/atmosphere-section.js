@@ -27,17 +27,26 @@ const ATMOSPHERE_PRESETS = {
 // inputs the calculation silently ignores would be worse than not having
 // them.
 //
+// `presets: false` (same idiom as `includeWind`) drops the preset select
+// AND the "Standard atmosphere" altitude field entirely — not just hides
+// them, never constructs them — pinning the section to "custom" for its
+// whole lifetime. The Labradar tool's own atmosphere block uses this: it
+// has no presets at all in the legacy tool it replaces, and unlike
+// legacy (which always assumed altitude 0, an engine limitation it had),
+// this still back-derives a real altitude from station pressure below,
+// same as every other "custom" atmosphere in this app already does.
+//
 // `load`/`save` default to shot-state.js's own session-only atmosphereState
 // (shared live across Trajectory/Hit Probability/BC Estimator) but can be
 // overridden — Range Solver passes its own cookie-backed pair (see
 // range-solver-state.js) instead, since its own inputs need to survive an
 // app restart, unlike the shared one.
 export function atmosphereSection({
-  slider = false, includeWind = true, onInput,
+  slider = false, includeWind = true, presets = true, onInput,
   load = loadAtmosphereState, save = saveAtmosphereState
 } = {}) {
   const initial = { ...DEFAULTS, ...load() };
-  let currentPreset = initial.atmospherePreset;
+  let currentPreset = presets ? initial.atmospherePreset : 'custom';
 
   // Shared across every field below so any change here — from any view —
   // is what the next view's atmosphereSection sees as its own initial
@@ -59,18 +68,20 @@ export function atmosphereSection({
     ? windDirectionDial({ id: 'windAngle', value: initial.windAngle, onInput: handleChange })
     : null;
 
-  const presetSelectEl = el('select', { id: 'atmospherePreset' }, [
-    el('option', { value: 'standard', i18n: 'fields.atmospherePresetStandard' }),
-    el('option', { value: 'swiss', i18n: 'fields.atmospherePresetSwiss' }),
-    el('option', { value: 'soviet', i18n: 'fields.atmospherePresetSoviet' }),
-    // Freely selectable, unlike hit-probability-view.js's own equivalent
-    // "Custom" option — picking it directly is exactly how you drop out
-    // of a named preset without hand-editing a field first, and it keeps
-    // whatever temp/pressure/humidity the previous preset left showing
-    // (see the 'custom' branch below) rather than resetting anything.
-    el('option', { value: 'custom', i18n: 'fields.atmospherePresetCustom' })
-  ]);
-  presetSelectEl.value = currentPreset;
+  const presetSelectEl = presets
+    ? el('select', { id: 'atmospherePreset' }, [
+      el('option', { value: 'standard', i18n: 'fields.atmospherePresetStandard' }),
+      el('option', { value: 'swiss', i18n: 'fields.atmospherePresetSwiss' }),
+      el('option', { value: 'soviet', i18n: 'fields.atmospherePresetSoviet' }),
+      // Freely selectable, unlike hit-probability-view.js's own equivalent
+      // "Custom" option — picking it directly is exactly how you drop out
+      // of a named preset without hand-editing a field first, and it keeps
+      // whatever temp/pressure/humidity the previous preset left showing
+      // (see the 'custom' branch below) rather than resetting anything.
+      el('option', { value: 'custom', i18n: 'fields.atmospherePresetCustom' })
+    ])
+    : null;
+  if (presetSelectEl) presetSelectEl.value = currentPreset;
 
   // Temperature/pressure/humidity are always editable, whichever preset is
   // active — hand-editing any of them is exactly what flips to "Real
@@ -91,10 +102,12 @@ export function atmosphereSection({
   // reach well below sea-level ranges to stay usable up at this field's
   // own 3000m max (standard station pressure there is ~701 hPa; see
   // icaoStandardPressureHpa() in atmosphere.js).
-  const altitudeField = unitField({ id: 'altitudeM', min: 0, max: 3000, step: 50, value: initial.altitudeM, slider, onInput: applyStandardFromAltitude });
+  const altitudeField = presets
+    ? unitField({ id: 'altitudeM', min: 0, max: 3000, step: 50, value: initial.altitudeM, slider, onInput: applyStandardFromAltitude })
+    : null;
 
   function updateAltitudeVisibility() {
-    altitudeField.node.style.display = currentPreset === 'standard' ? '' : 'none';
+    if (altitudeField) altitudeField.node.style.display = currentPreset === 'standard' ? '' : 'none';
   }
 
   // The "Standard atmosphere" preset's own formula, re-run every time its
@@ -113,7 +126,7 @@ export function atmosphereSection({
   // "Standard atmosphere" included — means you're no longer looking at
   // that preset's own values.
   function markCustom() {
-    if (currentPreset !== 'custom') {
+    if (presets && currentPreset !== 'custom') {
       currentPreset = 'custom';
       presetSelectEl.value = 'custom';
       updateAltitudeVisibility();
@@ -121,31 +134,32 @@ export function atmosphereSection({
     handleChange();
   }
 
-  presetSelectEl.addEventListener('change', () => {
-    currentPreset = presetSelectEl.value;
-    if (currentPreset === 'standard') {
-      applyStandardFromAltitude(); // also persists via handleChange()
-    } else if (currentPreset === 'custom') {
-      // Picked directly (not arrived at via markCustom()) — just unlocks
-      // temp/pressure/humidity for free editing, keeping whatever the
-      // previous preset left them showing rather than resetting anything.
-      handleChange();
-    } else {
-      const preset = ATMOSPHERE_PRESETS[currentPreset];
-      tempField.setEngineValue(preset.tempC);
-      pressureField.setEngineValue(preset.pressureHpa);
-      humidityField.setEngineValue(preset.humidityPct);
-      handleChange();
-    }
-    updateAltitudeVisibility();
-  });
+  if (presetSelectEl) {
+    presetSelectEl.addEventListener('change', () => {
+      currentPreset = presetSelectEl.value;
+      if (currentPreset === 'standard') {
+        applyStandardFromAltitude(); // also persists via handleChange()
+      } else if (currentPreset === 'custom') {
+        // Picked directly (not arrived at via markCustom()) — just unlocks
+        // temp/pressure/humidity for free editing, keeping whatever the
+        // previous preset left them showing rather than resetting anything.
+        handleChange();
+      } else {
+        const preset = ATMOSPHERE_PRESETS[currentPreset];
+        tempField.setEngineValue(preset.tempC);
+        pressureField.setEngineValue(preset.pressureHpa);
+        humidityField.setEngineValue(preset.humidityPct);
+        handleChange();
+      }
+      updateAltitudeVisibility();
+    });
+  }
 
   updateAltitudeVisibility();
 
   const children = [
     ...(includeWind ? [windSpeedField.node, windAngleDial.node] : []),
-    el('div', { class: 'field' }, [el('label', { i18n: 'fields.atmospherePreset' }), presetSelectEl]),
-    altitudeField.node,
+    ...(presets ? [el('div', { class: 'field' }, [el('label', { i18n: 'fields.atmospherePreset' }), presetSelectEl]), altitudeField.node] : []),
     tempField.node,
     pressureField.node,
     humidityField.node
@@ -154,8 +168,9 @@ export function atmosphereSection({
 
   function getValues() {
     // Whenever there's no real altitude input on screen (any preset but
-    // "Standard atmosphere"), back-derive one from the actual station
-    // pressure instead of silently assuming sea level — see
+    // "Standard atmosphere" — always the case when presets:false, since
+    // that mode doesn't exist here), back-derive one from the actual
+    // station pressure instead of silently assuming sea level — see
     // altitudeFromPressureHpa() in atmosphere.js. This is what feeds
     // trajectory.js's own in-flight altitude-drift correction.
     const altitudeM = currentPreset === 'standard'
@@ -167,7 +182,7 @@ export function atmosphereSection({
       pressureHpa: pressureField.getEngineValue(),
       altitudeM,
       humidityPct: humidityField.getEngineValue(),
-      atmospherePreset: currentPreset
+      ...(presets ? { atmospherePreset: currentPreset } : {})
     };
   }
 

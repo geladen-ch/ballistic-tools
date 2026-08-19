@@ -163,6 +163,30 @@ test('atmosphereSection omits wind fields when includeWind is false (matches BC 
   assert.equal(windInputs.length, 0);
 });
 
+test('atmosphereSection omits the preset select and altitude field entirely when presets is false (the Labradar tool\'s own mode)', () => {
+  const atmo = atmosphereSection({ includeWind: false, presets: false });
+  const values = atmo.getValues();
+  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'humidityPct', 'pressureHpa', 'tempC']);
+
+  const inputs = findInputs(atmo.node);
+  assert.equal(inputs.some((n) => n.id === 'atmospherePreset'), false, 'no preset select should exist at all');
+  assert.equal(inputs.some((n) => n.id === 'altitudeM'), false, 'no altitude field should exist at all');
+});
+
+test('presets:false still back-derives a real altitude from station pressure, same as every other "custom" atmosphere', () => {
+  const atmo = atmosphereSection({ presets: false, load: () => ({ pressureHpa: 925.3 }) });
+  const values = atmo.getValues();
+  assert.ok(Math.abs(values.altitudeM - 759.29) < 0.01);
+});
+
+test('presets:false: hand-editing temperature/pressure/humidity works exactly like "Real conditions" always being active', () => {
+  const atmo = atmosphereSection({ presets: false });
+  const [tempInput] = findInputs(atmo.node).filter((n) => n.id === 'tempC');
+  tempInput.value = '20';
+  fireEvent(tempInput, 'input');
+  assert.equal(atmo.getValues().tempC, 20);
+});
+
 // ---- Atmosphere presets ----
 
 test('defaults to "Real conditions" (custom), with today\'s existing default values and no altitude field shown', () => {

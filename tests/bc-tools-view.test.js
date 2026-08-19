@@ -15,9 +15,10 @@ const bcToolsView = await import('../src/views/bc-tools-view.js');
 // a real browser, same limitation every other pool-backed view test lives
 // with.
 
-// The Calculation panel's field values persist in module-level state
-// across mount() calls (see bc-tools-view.js) — reset it between tests so
-// one test's typed values don't leak into the next.
+// Both the Calculation panel's and the Labradar panel's field values
+// persist in module-level state across mount() calls (see
+// bc-tools-view.js) — reset it between tests so one test's typed values
+// don't leak into the next.
 test.beforeEach(() => bcToolsView.resetBcToolsStateForTests());
 
 function findByTag(node, tag, out = []) {
@@ -53,7 +54,7 @@ test('mount() builds a DOM tree without throwing, and re-mounting replaces conte
   assert.equal(container.childNodes.length, firstCount);
 });
 
-test('exactly one of the three outer tabs is active; Conversion and Labradar show their own stub message', () => {
+test('exactly one of the three outer tabs is active; Conversion shows its stub message, Labradar shows its real panel', () => {
   const container = makeElement('main');
   bcToolsView.mount(container);
 
@@ -66,12 +67,12 @@ test('exactly one of the three outer tabs is active; Conversion and Labradar sho
 
   const runButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcEstimate.estimateButton'));
   const conversionStub = findByTag(container, 'P').find((p) => p.textContent === t('bcTools.conversionStub'));
-  const labradarStub = findByTag(container, 'P').find((p) => p.textContent === t('bcTools.labradarStub'));
-  assert.ok(runButton && conversionStub && labradarStub);
+  const pickFileButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcToolsLabradar.pickFileButton'));
+  assert.ok(runButton && conversionStub && pickFileButton);
 
   assert.equal(isHidden(runButton), false, 'Calculation content visible by default');
   assert.equal(isHidden(conversionStub), true);
-  assert.equal(isHidden(labradarStub), true);
+  assert.equal(isHidden(pickFileButton), true);
 
   fireEvent(outerButtons[1], 'click'); // Conversion
   assert.equal(outerButtons[1].className.includes('active'), true);
@@ -82,8 +83,161 @@ test('exactly one of the three outer tabs is active; Conversion and Labradar sho
   fireEvent(outerButtons[2], 'click'); // Labradar
   assert.equal(outerButtons[2].className.includes('active'), true);
   assert.equal(outerButtons[1].className.includes('active'), false);
-  assert.equal(isHidden(labradarStub), false);
+  assert.equal(isHidden(pickFileButton), false);
   assert.equal(isHidden(conversionStub), true, 'Conversion stub hidden once Labradar is active');
+});
+
+test('Labradar tab: the file input is hidden and its picker button triggers it', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  const outerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn') &&
+    [t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabLabradar')].includes(b.textContent));
+  fireEvent(outerButtons[2], 'click'); // Labradar
+
+  const fileInput = findByTag(container, 'INPUT').find((i) => i.type === 'file');
+  assert.ok(fileInput, 'expected a file input in the Labradar panel');
+  assert.equal(isHidden(fileInput), true);
+
+  let clicked = false;
+  fileInput.click = () => { clicked = true; };
+  const pickFileButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcToolsLabradar.pickFileButton'));
+  fireEvent(pickFileButton, 'click');
+  assert.equal(clicked, true);
+});
+
+test('Labradar tab: the R^2 gate and sigma-clip filter selects default to Normal/Conservative', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  const outerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn') &&
+    [t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabLabradar')].includes(b.textContent));
+  fireEvent(outerButtons[2], 'click'); // Labradar
+
+  const r2Select = findById(container, 'labradarR2Gate');
+  const sigmaSelect = findById(container, 'labradarSigmaClip');
+  assert.ok(r2Select && sigmaSelect);
+  assert.equal(r2Select.value, 'normal');
+  assert.equal(sigmaSelect.value, 'conservative');
+});
+
+test('Labradar tab: drag model, atmosphere, and filter choices survive navigating away and back (unmount/remount)', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  fireEvent(findLabradarButton(container), 'click');
+
+  const dragModelSelect = findById(container, 'labradarDragModel');
+  dragModelSelect.value = 'G1';
+  fireEvent(dragModelSelect, 'change');
+
+  const tempInput = findById(container, 'tempC');
+  tempInput.value = '5';
+  fireEvent(tempInput, 'input');
+
+  const r2Select = findById(container, 'labradarR2Gate');
+  r2Select.value = 'highNoise';
+  fireEvent(r2Select, 'change');
+
+  const denoiseSlider = findById(container, 'labradarDenoiseThreshold');
+  denoiseSlider.value = '1.5';
+  fireEvent(denoiseSlider, 'input');
+
+  bcToolsView.mount(container); // simulate navigating away and back
+  fireEvent(findLabradarButton(container), 'click');
+
+  assert.equal(findById(container, 'labradarDragModel').value, 'G1');
+  assert.equal(findById(container, 'tempC').value, '5');
+  assert.equal(findById(container, 'labradarR2Gate').value, 'highNoise');
+  assert.equal(findById(container, 'labradarDenoiseThreshold').value, '1.5');
+});
+
+test('Labradar tab: the De-noise threshold slider defaults to Tight (3) and maps to a threshold of 0.99', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  fireEvent(findLabradarButton(container), 'click');
+
+  const denoiseSlider = findById(container, 'labradarDenoiseThreshold');
+  assert.equal(denoiseSlider.value, '3');
+  assert.equal(denoiseSlider.min, '1');
+  assert.equal(denoiseSlider.max, '3');
+  assert.equal(denoiseSlider.step, '0.5');
+});
+
+function settle(ms = 30) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function labradarTrackZipBlob() {
+  const trackCsv = 'sep=;\nDevice ID;LBR-1;;\nSeries No;0001\nShot No;0001\n\n' +
+    'Time (s);Vel (m/s);Dist (m);SNR\n0.000000;800.00;0.00;-\n0.007021;795.00;5.37;33.07\n' +
+    '0.008021;793.00;6.14;40.15\n0.009021;790.00;6.90;39.80\n0.010021;788.00;7.67;35.07\n';
+  const bytes = zipSync({ 'Shot0001 Track.csv': strToU8(trackCsv) });
+  return new Blob([bytes], { type: 'application/zip' });
+}
+
+function findByClass(node, className, out = []) {
+  if (node.className && String(node.className).split(/\s+/).includes(className)) out.push(node);
+  for (const child of node.childNodes || []) findByClass(child, className, out);
+  return out;
+}
+
+function findLabradarButton(container) {
+  const outerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn') &&
+    [t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabLabradar')].includes(b.textContent));
+  return outerButtons[2];
+}
+
+let zipSync, strToU8;
+test.before(async () => {
+  ({ zipSync, strToU8 } = await import('../src/vendor/fflate/fflate.js'));
+});
+
+test('Labradar tab: uploading a zip parses tracks immediately but does not start computing until Compute is clicked', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  fireEvent(findLabradarButton(container), 'click');
+
+  const fileInput = findByTag(container, 'INPUT').find((n) => n.attributes.type === 'file');
+  fileInput.files = [labradarTrackZipBlob()];
+  fireEvent(fileInput, 'change');
+  await settle();
+
+  const computeButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcToolsLabradar.computeButton'));
+  assert.ok(computeButton, 'expected a Compute button');
+  assert.equal(computeButton.disabled, false, 'Compute should be enabled once a real track parsed');
+  assert.equal(findByClass(container, 'status-chip-pending').length, 1, 'the track should be waiting to compute, not already computing');
+  assert.equal(findByClass(container, 'status-chip-computing').length, 0);
+});
+
+test('Labradar tab: the Compute button stays disabled when the zip contains no real tracks', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  fireEvent(findLabradarButton(container), 'click');
+
+  const bytes = zipSync({ 'Report.csv': strToU8('Shot ID;V0\n0001;768\n') });
+  const fileInput = findByTag(container, 'INPUT').find((n) => n.attributes.type === 'file');
+  fileInput.files = [new Blob([bytes], { type: 'application/zip' })];
+  fireEvent(fileInput, 'change');
+  await settle();
+
+  const computeButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcToolsLabradar.computeButton'));
+  assert.equal(computeButton.disabled, true);
+  assert.equal(findByClass(container, 'status-chip-not-a-track').length, 1);
+});
+
+test('Labradar tab: clicking Compute moves parsed tracks into the computing state', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  fireEvent(findLabradarButton(container), 'click');
+
+  const fileInput = findByTag(container, 'INPUT').find((n) => n.attributes.type === 'file');
+  fileInput.files = [labradarTrackZipBlob()];
+  fireEvent(fileInput, 'change');
+  await settle();
+
+  const computeButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcToolsLabradar.computeButton'));
+  fireEvent(computeButton, 'click');
+
+  assert.equal(findByClass(container, 'status-chip-computing').length, 1, 'expected the track to show as computing right after Compute is clicked');
+  assert.equal(computeButton.disabled, true, 'Compute should be disabled while a batch is in flight');
 });
 
 test('exactly one of the two mode buttons is active; switching swaps the v2 field for the tof field', () => {

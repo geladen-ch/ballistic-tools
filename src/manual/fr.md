@@ -294,9 +294,8 @@ zoom/déplacement et peut être **téléchargé en SVG**.
 Calcule un coefficient balistique à partir de données connues, ou convertit
 un BC entre différents modèles — regroupés sous un seul outil avec les
 onglets **Calcul BC**, **Conversion BC** et **BC Labradar**. Le **Calcul
-BC** est déjà pleinement utilisable ; la **Conversion BC** et **BC
-Labradar** (importer une trace de vitesse mesurée par radar complète) sont
-**encore prévus**.
+BC** et **BC Labradar** sont déjà pleinement utilisables ; la **Conversion
+BC** est **encore prévue**.
 
 Le **Calcul BC** déduit un coefficient balistique à partir d'une paire
 vitesse/distance proche et soit une vitesse éloignée, soit un temps de vol
@@ -309,6 +308,27 @@ atmosphère) reste identique dans les deux cas. Utile lorsque vous avez
 mesuré une perte de vitesse réelle, ou un temps de vol réel, sur une
 distance connue et que vous voulez le BC qui l'explique, plutôt que de vous
 fier à une valeur publiée.
+
+**BC Labradar** ajuste un BC par coup à partir d'un export du chronographe
+Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur
+sa carte SD, un par coup, enregistrant la vitesse environ toutes les
+millisecondes pendant le vol. Choisissez un modèle de traînée et
+l'atmosphère (pas de préréglages ici — saisissez directement votre propre
+pression station/température/humidité), puis sélectionnez le zip ; chaque
+trajectoire est analysée, débarrassée des points bruités/erronés, et
+ajustée pour un BC automatiquement. Les fichiers du zip qui ne sont pas de
+vraies trajectoires (le rapport ou le fichier projet de l'appareil, ou tout
+autre fichier parasite) sont ignorés. Deux filtres réglables écartent les
+trajectoires peu fiables avant qu'elles ne soient moyennées : un **seuil de
+qualité du signal** (à quel point les points nettoyés d'une trajectoire
+suivent une droite) et un **rejet des valeurs aberrantes** (à quel point le
+BC d'une trajectoire s'écarte des autres) — utile pour exclure par exemple
+une trajectoire captée depuis un pas de tir voisin, ou une dont le radar a
+simplement mal capté le signal. Cliquez sur la ligne d'une trajectoire pour
+voir son propre graphique vitesse/temps, avec les points conservés et
+écartés affichés séparément, et décochez la case d'une trajectoire pour
+l'exclure manuellement du résultat moyenné (ou recochez-en une que les
+filtres automatiques avaient rejetée).
 
 ## Courbe Cd-Mach
 

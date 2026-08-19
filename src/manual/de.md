@@ -291,9 +291,8 @@ heruntergeladen** werden.
 Ermittelt einen ballistischen Koeffizienten aus bekannten Daten, oder
 rechnet einen BC zwischen verschiedenen Modellen um — zusammengefasst in
 einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung** und
-**BC-Labradar**. Die **BC-Berechnung** ist bereits voll nutzbar; **BC-
-Umrechnung** und **BC-Labradar** (Import einer vollständigen,
-radargemessenen Geschwindigkeitsspur) sind **noch geplant**.
+**BC-Labradar**. Die **BC-Berechnung** und **BC-Labradar** sind bereits
+voll nutzbar; **BC-Umrechnung** ist **noch geplant**.
 
 Die **BC-Berechnung** ermittelt einen ballistischen Koeffizienten aus einem
 nahen Geschwindigkeits-/Distanzpaar und entweder einer fernen Geschwindigkeit
@@ -307,6 +306,28 @@ in beiden Fällen gleich. Nützlich, wenn Sie den tatsächlichen
 Geschwindigkeitsverlust oder die tatsächliche Flugzeit über eine bekannte
 Distanz gemessen haben und den BC ermitteln möchten, der dies erklärt,
 anstatt sich auf einen veröffentlichten Wert zu verlassen.
+
+**BC-Labradar** ermittelt pro Schuss einen BC aus einem
+Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das
+Gerät pro Schuss auf seiner SD-Karte ablegt und die die Geschwindigkeit
+etwa jede Millisekunde während des Flugs aufzeichnen. Wählen Sie ein
+Luftwiderstandsmodell und die Atmosphäre (hier keine Voreinstellungen —
+Stationsdruck/Temperatur/Feuchtigkeit werden direkt eingegeben), dann
+wählen Sie das Zip; jeder Track wird automatisch geparst, von
+rauschenden/fehlerhaften Punkten bereinigt und für einen BC angepasst.
+Dateien im Zip, die keine echten Tracks sind (der Bericht oder die
+Projektdatei des Geräts, oder sonstige Fremddateien), werden ignoriert.
+Zwei einstellbare Filter sortieren unzuverlässige Tracks aus, bevor sie
+gemittelt werden: eine **Signalqualitätsschwelle** (wie gut die
+bereinigten Punkte eines Tracks auf eine Gerade passen) und ein
+**Ausreißer-Filter** (wie weit der eigene BC eines Tracks von den anderen
+abweicht) — nützlich, um z. B. einen von einer Nachbarbahn aufgezeichneten
+Track oder einen mit schlechtem Radar-Empfang auszuschließen. Klicken Sie
+auf die Zeile eines Tracks, um dessen eigenes Geschwindigkeit-Zeit-Diagramm
+zu sehen, mit behaltenen und verworfenen Punkten getrennt dargestellt, und
+deaktivieren Sie die Checkbox eines Tracks, um ihn manuell aus dem
+gemittelten Ergebnis auszuschließen (oder aktivieren Sie einen von den
+automatischen Filtern abgelehnten Track wieder).
 
 ## Cd-Mach-Kurve
 

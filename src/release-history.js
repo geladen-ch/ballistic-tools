@@ -10,6 +10,18 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v130',
+    fullVersion: '1.0 (PEWPEW — Projectile Evaluation & Weapon Performance Engineering Workbench)',
+    date: '2026-08-19',
+    descriptionKey: 'releaseHistory.entries.v130'
+  },
+  {
+    cacheVersion: 'v129',
+    fullVersion: '0.2 beta (ABRUTI — Analyse Balistique Rapide et Unifiée pour Tireurs Intelligents)',
+    date: '2026-08-19',
+    descriptionKey: 'releaseHistory.entries.v129'
+  },
+  {
     cacheVersion: 'v128',
     fullVersion: '0.2 beta (ABRUTI — Analyse Balistique Rapide et Unifiée pour Tireurs Intelligents)',
     date: '2026-08-18',

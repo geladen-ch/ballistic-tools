@@ -9,3 +9,5 @@ data/
 screenshots/
 .claude/
 ebalka2.code-workspace
+tools/labradar-bc-validation/last-run.csv
+tools/labradar-bc-validation/last-cleaning-run.csv

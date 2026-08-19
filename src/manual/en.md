@@ -254,9 +254,8 @@ as an SVG**.
 
 Calculate a ballistic coefficient from known data, or convert a BC between
 different models — grouped under one tool with **BC Calculation**, **BC
-Conversion**, and **BC Labradar** tabs. **BC Calculation** is fully usable
-today; **BC Conversion** and **BC Labradar** (importing a full
-radar-measured velocity trace) are **still planned**.
+Conversion**, and **BC Labradar** tabs. **BC Calculation** and **BC
+Labradar** are fully usable today; **BC Conversion** is **still planned**.
 
 **BC Calculation** backs out a ballistic coefficient from a near
 velocity/range and either a far velocity or a measured time of flight
@@ -268,6 +267,23 @@ ranges, drag model, atmosphere) stays the same either way. Useful when
 you've measured actual velocity loss, or actual time of flight, over a
 known distance and want the BC that explains it, rather than trusting a
 published number.
+
+**BC Labradar** fits a BC per shot from a Labradar chronograph export — a
+**.zip** of track files the device writes to its SD card, one per shot,
+recording velocity roughly every millisecond during flight. Choose a drag
+model and atmosphere (no presets here — enter your own station
+pressure/temperature/humidity directly), then pick the zip; each track is
+parsed, cleaned of noisy/erroneous points, and fit for a BC automatically.
+Files in the zip that aren't real tracks (the device's own report or
+project files, or unrelated stray files) are ignored. Two adjustable
+filters weed out unreliable tracks before they're averaged together: a
+**signal quality threshold** (how well a track's cleaned points fit a
+straight line) and an **outlier rejection** (how far a track's own BC sits
+from the others') — useful for excluding a track picked up from a nearby
+shooting lane, or one the radar simply had a bad read on. Click a track's
+row to see its own velocity-vs-time chart, with kept and discarded points
+shown separately, and untick a track's checkbox to manually exclude it (or
+re-tick one the automatic filters rejected) from the averaged result.
 
 ## Cd–Mach Curve
 

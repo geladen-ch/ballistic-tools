@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v128';
-export const RELEASE_ID = '0.2 beta';
-export const CODENAME_SHORT = 'ABRUTI';
-export const CODENAME_LONG = 'Analyse Balistique Rapide et Unifiée pour Tireurs Intelligents';
+export const CACHE_VERSION = 'v130';
+export const RELEASE_ID = '1.0';
+export const CODENAME_SHORT = 'PEWPEW';
+export const CODENAME_LONG = 'Projectile Evaluation & Weapon Performance Engineering Workbench';

@@ -619,6 +619,23 @@ th { color: var(--dim); font-weight: 500; }
 .chart-legend-d .chart-legend-swatch { background: #d17905; }
 .chart-legend-zero-line .chart-legend-swatch { background: var(--dim); height: 1px; }
 
+/* Labradar track chart (src/ui/labradar/track-chart.js) — "kept" reuses
+   the generic .ct-series-a/.chart-legend-a accent color for free (same
+   .chart-container class every chart shares), but "discarded" needs its
+   own red, not the generic .chart-legend-b/.ct-series-b green every
+   other chart's second series means here — scoped to this one chart so
+   it doesn't touch cd-mach-curve-view.js's own use of series b. */
+.labradar-track-chart-legend .chart-legend-b .chart-legend-swatch { background: var(--danger); }
+.labradar-track-chart .ct-series-b .ct-point { stroke: var(--danger); stroke-width: 6.7px; }
+
+/* "Fitted" (series c) — a calculated curve, not raw data, so it gets
+   its own --analysis blue rather than Chartist's own series-c default
+   (#f4c63d, a gold too close to the kept-points orange to read as
+   distinct) and a solid, thin line instead of the generic dashed
+   .ct-series-c treatment other charts use for a reference curve. */
+.labradar-track-chart-legend .chart-legend-c .chart-legend-swatch { background: var(--analysis); }
+.labradar-track-chart .ct-series-c .ct-line { stroke: var(--analysis); stroke-width: 1.5px; stroke-dasharray: none; }
+
 /* The zoom/pan sliders' live value readout (src/ui/zoom-range-slider.js)
    — same treatment as unit-field.js's own .val-input, just a read-only
    <span> instead of an editable number box. */
@@ -627,6 +644,25 @@ th { color: var(--dim); font-weight: 500; }
   font-variant-numeric: tabular-nums;
   font-size: 12px;
   margin-left: 8px;
+}
+
+/* Flanking endpoint captions for a slider whose ends aren't self-
+   explanatory numbers (e.g. the Labradar De-noise threshold's
+   "Loose"/"Tight" — src/views/bc-tools-view.js) — no existing slider in
+   this app needed these before, only a live value next to the field
+   label (.range-slider-value above). */
+.range-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.range-slider-row input[type="range"] {
+  flex: 1;
+}
+.range-slider-caption {
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
 }
 
 /* Live/Partial/Planned indicator (src/ui/status-chip.js) — shared by the
@@ -657,6 +693,38 @@ th { color: var(--dim); font-weight: 500; }
 
 .stability-indicator { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 6px; }
 .stability-indicator .hint { margin: 0; }
+
+/* Labradar track-list verdict badges (src/ui/labradar/track-list.js) —
+   same bare .status-chip base, its own status set. "valid" reuses the
+   ok/green role; "rejected-r2" (a soft, R^2-based quality gate) reuses
+   the amber/"marginal" role; "rejected-outlier"/"error" (a harder
+   statistical or outright failure) reuse the red/"unstable" role;
+   "pending"/"computing"/"not-a-track"/"excluded" are all neutral,
+   informational states, not warnings, so they share the dashed/dim role
+   — "computing" gets the accent color instead of dim, just to read as
+   active rather than idle while a job is actually in flight. */
+.status-chip-pending { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
+.status-chip-computing { color: var(--accent); background: transparent; border: 1px dashed var(--accent-dim); }
+.status-chip-not-a-track { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
+.status-chip-excluded { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
+.status-chip-valid { color: var(--ok); background: rgba(95, 184, 122, 0.14); border: 1px solid rgba(95, 184, 122, 0.4); }
+.status-chip-rejected-r2 { color: var(--accent); background: rgba(232, 163, 61, 0.14); border: 1px solid var(--accent-dim); }
+.status-chip-rejected-outlier { color: var(--danger); background: rgba(224, 96, 90, 0.14); border: 1px solid var(--danger); }
+.status-chip-error { color: var(--danger); background: rgba(224, 96, 90, 0.14); border: 1px solid var(--danger); }
+
+/* Labradar results summary (src/ui/labradar/results-summary.js) — a
+   label/value pair per row, same "label left, value right" shape the
+   Comparison table's own summary rows use. */
+.labradar-summary-row { display: flex; justify-content: space-between; padding: 4px 0; }
+.labradar-summary-value { font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* Labradar track list rows (src/ui/labradar/track-list.js) — clickable
+   rows (a track that resolved far enough to have a chart) get a pointer
+   cursor and a subtle hover, and the currently-charted row stays
+   visibly marked even after the pointer moves away. */
+.labradar-track-row-clickable { cursor: pointer; }
+.labradar-track-row-clickable:hover { background: var(--panel-raised); }
+.labradar-track-row.selected { background: var(--panel-raised); }
 
 /* Shared by stability-indicator.js's "unknown" state and trajectory-view.js's
    own "spin drift could not be calculated" hint (src/ui/collapsible-hint.js)
