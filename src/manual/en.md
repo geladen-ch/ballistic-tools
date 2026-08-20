@@ -8,6 +8,13 @@ bullets — runs in your browser. **No data is ever collected or transmitted to
 a server.** It works offline once loaded, and installs as an app on desktop
 and mobile (PWA).
 
+This software is provided with no guarantee of fitness for any particular
+purpose, or whatever — blah blah blah. I tried my best to make it useful
+(kept myself busy over a rainy weekend), and I believe it's reasonably
+accurate, but if you find some creative way to misuse a ballistic
+calculator into hurting yourself, that's on you — who am I to get in the
+way of natural selection?
+
 This manual covers the fully functional tools — **Trajectory**, **Guns**,
 **Cd–Mach Curve**, and **Settings** — plus **Hit Probability**, **Range
 Solver**, and **BC Tools**, all usable for their current scenarios but
@@ -284,6 +291,31 @@ shooting lane, or one the radar simply had a bad read on. Click a track's
 row to see its own velocity-vs-time chart, with kept and discarded points
 shown separately, and untick a track's checkbox to manually exclude it (or
 re-tick one the automatic filters rejected) from the averaged result.
+
+**Remember:** garbage in = garbage out. Atmosphere is *very* important. If
+you don't know humidity, put 50%. A Kestrel is good enough (although I
+wish its thermometer were more precise). "Data pulled through the
+Internet from some 'nearest meteo station'" is not good enough. Make
+*very* sure you are using absolute pressure (a.k.a. station pressure), and
+not some altitude-adjusted one (Kestrel misleadingly uses the term
+"barometric pressure" to designate pressure adjusted to mean sea level —
+this is *not* the one we want). Typically, if you are measuring 1000+ hPa
+at an altitude of 500 m or above (29.5 inHg and 1500 ft for our
+metric-impaired friends), it probably means either you are reading the
+wrong pressure value (adjusted instead of absolute/station), or perhaps
+the End of the World is even closer than expected.
+
+**Remember #2:** Labradar has a setting called "proj. offset"; this
+defines the expected distance from the muzzle to the side of the radar.
+Respect it (within -5 cm) — this is important! The offset refers to the
+distance from the barrel, *not* the distance from the muzzle; keep it in
+mind if your muzzle is not level with the radar, but slightly in front
+of, or behind, it.
+
+**Remember #3:** one shot = one shit. You need at least 20 (for decent
+factory ammo) to even out the errors. Crappy surplus bullets need more
+shots (count on at least 30), while with high-quality projectiles 10
+shots may be enough. Generally, more is better.
 
 ## Cd–Mach Curve
 

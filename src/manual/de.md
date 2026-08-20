@@ -9,6 +9,14 @@ werden niemals Daten erfasst oder an einen Server übertragen.** Die App
 funktioniert offline, sobald sie geladen wurde, und lässt sich auf Desktop
 und Mobilgeräten als App installieren (PWA).
 
+Diese Software wird ohne jegliche Garantie für die Eignung zu einem
+bestimmten Zweck bereitgestellt, oder was auch immer — blabla. Ich habe
+mein Bestes gegeben, um sie nützlich zu machen (ein verregnetes Wochenende
+ging dafür drauf), und ich glaube, sie ist einigermaßen genau — aber wenn
+Sie einen kreativen Weg finden, sich mithilfe eines ballistischen
+Rechners selbst zu verletzen, ist das Ihr eigenes Problem — wer bin ich,
+mich der natürlichen Auslese in den Weg zu stellen?
+
 Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**,
 **Waffen**, **Cd-Mach-Kurve** und **Einstellungen** — sowie
 **Trefferwahrscheinlichkeit**, den **Feldrechner** und die **BC-Werkzeuge**,
@@ -328,6 +336,33 @@ zu sehen, mit behaltenen und verworfenen Punkten getrennt dargestellt, und
 deaktivieren Sie die Checkbox eines Tracks, um ihn manuell aus dem
 gemittelten Ergebnis auszuschließen (oder aktivieren Sie einen von den
 automatischen Filtern abgelehnten Track wieder).
+
+**Merken Sie sich:** Müll rein = Müll raus. Die Atmosphäre ist *sehr*
+wichtig. Wenn Sie die Luftfeuchtigkeit nicht kennen, setzen Sie 50 %. Ein
+Kestrel reicht aus (auch wenn ich mir ein präziseres Thermometer wünschen
+würde). „Über das Internet von der angeblich ‚nächstgelegenen
+Wetterstation' bezogene Daten" reichen nicht aus. Achten Sie *unbedingt*
+darauf, den absoluten Druck (auch Stationsdruck genannt) zu verwenden, und
+nicht einen höhenbereinigten Wert (Kestrel verwendet irreführenderweise
+den Begriff „barometric pressure" für den auf Meereshöhe umgerechneten
+Druck — das ist *nicht* der Wert, den wir wollen). Wenn Sie auf 500 m Höhe
+oder darüber 1000+ hPa messen (29,5 inHg bzw. 1500 ft für unsere metrisch
+unkundigen Freunde), bedeutet das in der Regel entweder, dass Sie den
+falschen Druckwert ablesen (umgerechnet statt absolut/Station), oder dass
+das Ende der Welt näher ist als gedacht.
+
+**Merken Sie sich Nr. 2:** Labradar hat eine Einstellung namens „proj.
+offset"; diese legt den erwarteten Abstand von der Mündung zur Seite des
+Radars fest. Halten Sie sich daran (innerhalb von -5 cm) — das ist
+wichtig! Der Offset bezieht sich auf den Abstand vom Lauf, *nicht* auf den
+Abstand von der Mündung; denken Sie daran, wenn Ihre Mündung nicht auf
+gleicher Höhe mit dem Radar ist, sondern etwas davor oder dahinter.
+
+**Merken Sie sich Nr. 3:** ein Schuss ist Schrott. Sie brauchen mindestens
+20 (bei brauchbarer Fabrikmunition), um die Fehler auszugleichen.
+Minderwertige Überschussgeschosse brauchen mehr Schüsse (rechnen Sie mit
+mindestens 30), während bei hochwertigen Geschossen 10 Schüsse reichen
+können. Generell gilt: mehr ist besser.
 
 ## Cd-Mach-Kurve
 

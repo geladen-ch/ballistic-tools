@@ -209,7 +209,7 @@
     "denoiseThresholdLabel": "De-noise threshold",
     "denoiseLoose": "Loose",
     "denoiseTight": "Normal",
-    "denoiseHint": "Do not touch, unless you are operating in a very noisy environment and are losing too many valid data points.",
+    "denoiseHint": "Leave at 0.990 (Normal), unless you are operating in a very noisy environment and are losing too many valid data points.",
     "pickFileButton": "Choose Labradar .zip…",
     "computeButton": "Compute",
     "trackListHeading": "Tracks",

@@ -209,7 +209,7 @@
     "denoiseThresholdLabel": "Soglia di riduzione del rumore",
     "denoiseLoose": "Permissiva",
     "denoiseTight": "Normale",
-    "denoiseHint": "Non modificare, a meno che non si operi in un ambiente molto rumoroso e si perdano troppi punti dati validi.",
+    "denoiseHint": "Lasciare a 0,990 (Normale), a meno che non si operi in un ambiente molto rumoroso e si perdano troppi punti dati validi.",
     "pickFileButton": "Scegli file .zip Labradar…",
     "computeButton": "Calcola",
     "trackListHeading": "Tracce",

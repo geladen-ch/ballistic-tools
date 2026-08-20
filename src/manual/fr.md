@@ -9,6 +9,13 @@ votre navigateur. **Aucune donnée n'est jamais collectée ni transmise à un
 serveur.** L'application fonctionne hors ligne une fois chargée, et
 s'installe comme une application sur ordinateur et mobile (PWA).
 
+Ce logiciel est fourni sans aucune garantie d'adéquation à un usage
+particulier, ou je ne sais quoi — bla bla bla. J'ai fait de mon mieux pour
+le rendre utile (ça m'a occupé tout un week-end pluvieux), et je pense
+qu'il est raisonnablement précis, mais si vous trouvez un moyen créatif
+de détourner un calculateur balistique au point de vous blesser, ça vous
+regarde — qui suis-je pour faire obstacle à la sélection naturelle ?
+
 Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**,
 **Armes**, **Courbe Cd-Mach** et **Paramètres** —
 ainsi que **Probabilité d'impact**, le **Calculateur de terrain** et les
@@ -329,6 +336,34 @@ voir son propre graphique vitesse/temps, avec les points conservés et
 écartés affichés séparément, et décochez la case d'une trajectoire pour
 l'exclure manuellement du résultat moyenné (ou recochez-en une que les
 filtres automatiques avaient rejetée).
+
+**À retenir :** garbage in = garbage out (des données pourries donnent
+des résultats pourris). L'atmosphère est *très* importante. Si vous ne
+connaissez pas l'humidité, mettez 50 %. Un Kestrel suffit (même si
+j'aurais préféré un thermomètre plus précis). « Des données récupérées
+sur Internet depuis la "station météo la plus proche" » ne suffisent pas.
+Assurez-vous *impérativement* d'utiliser la pression absolue (dite
+pression station), et non une valeur ajustée à l'altitude (le Kestrel
+utilise de façon trompeuse le terme « barometric pressure » pour désigner
+la pression ramenée au niveau de la mer — ce n'est *pas* celle que l'on
+veut). En général, si vous mesurez 1000+ hPa à une altitude de 500 m ou
+plus (29,5 inHg et 1500 ft pour nos amis non métriques), cela signifie
+probablement soit que vous lisez la mauvaise valeur de pression (ajustée
+au lieu d'absolue/station), soit que la fin du monde est plus proche que
+prévu.
+
+**À retenir n° 2 :** le Labradar a un réglage appelé « proj. offset » ; il
+définit la distance attendue entre la bouche du canon et le côté du
+radar. Respectez-le (à -5 cm près) — c'est important ! Ce décalage se
+mesure depuis le canon, *pas* depuis la bouche ; gardez cela en tête si
+votre bouche n'est pas alignée avec le radar, mais légèrement devant ou
+derrière.
+
+**À retenir n° 3 :** un coup ne fait pas le printemps. Il vous en faut au
+moins 20 (pour des munitions d'usine correctes) pour lisser les erreurs.
+Des balles de surplus médiocres en demandent davantage (comptez au moins
+30), tandis qu'avec des projectiles de haute qualité, 10 coups peuvent
+suffire. En général, plus il y en a, mieux c'est.
 
 ## Courbe Cd-Mach
 

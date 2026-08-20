@@ -209,7 +209,7 @@
     "denoiseThresholdLabel": "Seuil de débruitage",
     "denoiseLoose": "Souple",
     "denoiseTight": "Normal",
-    "denoiseHint": "Ne pas modifier, sauf si vous tirez dans un environnement très bruyant et que trop de données valides sont perdues.",
+    "denoiseHint": "Laissez à 0,990 (Normal), sauf si vous tirez dans un environnement très bruyant et que trop de données valides sont perdues.",
     "pickFileButton": "Choisir un .zip Labradar…",
     "computeButton": "Calculer",
     "trackListHeading": "Trajectoires",

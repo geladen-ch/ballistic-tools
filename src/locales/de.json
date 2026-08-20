@@ -209,7 +209,7 @@
     "denoiseThresholdLabel": "Entrauschungsschwelle",
     "denoiseLoose": "Locker",
     "denoiseTight": "Normal",
-    "denoiseHint": "Nicht ändern, außer Sie arbeiten in einer sehr lauten Umgebung und verlieren dadurch zu viele gültige Datenpunkte.",
+    "denoiseHint": "Bei 0,990 (Normal) belassen, außer Sie arbeiten in einer sehr lauten Umgebung und verlieren dadurch zu viele gültige Datenpunkte.",
     "pickFileButton": "Labradar-.zip wählen…",
     "computeButton": "Berechnen",
     "trackListHeading": "Tracks",

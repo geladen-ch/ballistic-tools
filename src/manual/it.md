@@ -9,6 +9,14 @@ browser. **Nessun dato viene mai raccolto o trasmesso a un server.**
 Funziona offline una volta caricata e si installa come app su desktop e
 dispositivi mobili (PWA).
 
+Questo software viene fornito senza alcuna garanzia di idoneità per uno
+scopo particolare, o quel che è — bla bla bla. Ho fatto del mio meglio
+per renderlo utile (mi ci sono tenuto occupato per un weekend piovoso), e
+credo sia ragionevolmente accurato, ma se trovi un modo creativo per
+usare in modo improprio una calcolatrice balistica fino a farti male,
+sono affari tuoi — chi sono io per mettermi di traverso alla selezione
+naturale?
+
 Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**,
 **Armi**, **Curva Cd-Mach** e **Impostazioni** — oltre a
 **Probabilità di colpire**, al **Calcolatore per il poligono** e agli
@@ -318,6 +326,34 @@ grafico velocità-tempo, con i punti mantenuti e quelli scartati mostrati
 separatamente, e deseleziona la casella di una traccia per escluderla
 manualmente dal risultato medio (o riseleziona una traccia scartata dai
 filtri automatici).
+
+**Ricorda:** garbage in = garbage out (spazzatura in entrata, spazzatura
+in uscita). L'atmosfera è *molto* importante. Se non conosci l'umidità,
+imposta 50%. Un Kestrel va bene (anche se avrei preferito un termometro
+più preciso). "Dati presi da Internet dalla presunta 'stazione meteo più
+vicina'" non bastano. Assicurati *assolutamente* di usare la pressione
+assoluta (detta anche pressione di stazione), e non un valore corretto
+per l'altitudine (il Kestrel usa in modo fuorviante il termine
+"barometric pressure" per indicare la pressione ridotta al livello del
+mare — questa *non* è quella che vogliamo). In genere, se stai misurando
+1000+ hPa a un'altitudine di 500 m o superiore (29,5 inHg e 1500 ft per i
+nostri amici poco avvezzi al sistema metrico), probabilmente significa o
+che stai leggendo il valore di pressione sbagliato (corretto anziché
+assoluto/di stazione), oppure che la Fine del Mondo è più vicina del
+previsto.
+
+**Ricorda #2:** il Labradar ha un'impostazione chiamata "proj. offset";
+definisce la distanza prevista tra la volata e il lato del radar.
+Rispettala (con una tolleranza di -5 cm) — è importante! L'offset si
+riferisce alla distanza dalla canna, *non* dalla volata; tienilo a mente
+se la tua volata non è allineata con il radar, ma leggermente più avanti
+o più indietro.
+
+**Ricorda #3:** un colpo non fa primavera. Ne servono almeno 20 (per
+munizioni da fabbrica decenti) per compensare gli errori. Proiettili
+scadenti di surplus ne richiedono di più (conta almeno 30), mentre con
+proiettili di alta qualità 10 colpi possono bastare. In generale, più
+sono meglio è.
 
 ## Curva Cd-Mach
 
