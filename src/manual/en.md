@@ -16,10 +16,10 @@ calculator into hurting yourself, that's on you — who am I to get in the
 way of natural selection?
 
 This manual covers the fully functional tools — **Trajectory**, **Guns**,
-**Cd–Mach Curve**, and **Settings** — plus **Hit Probability**, **Range
-Solver**, and **BC Tools**, all usable for their current scenarios but
-still under active development. Everything else on Home is listed at the
-end, under **Planned / work in progress**.
+**Cd–Mach Curve**, **BC Tools**, and **Settings** — plus **Hit Probability**
+and **Range Solver**, usable for their current scenarios but still under
+active development. Everything else on Home is listed at the end, under
+**Planned / work in progress**.
 
 ---
 
@@ -261,8 +261,7 @@ as an SVG**.
 
 Calculate a ballistic coefficient from known data, or convert a BC between
 different models — grouped under one tool with **BC Calculation**, **BC
-Conversion**, and **BC Labradar** tabs. **BC Calculation** and **BC
-Labradar** are fully usable today; **BC Conversion** is **still planned**.
+Conversion**, and **BC Labradar** tabs, all fully usable today.
 
 **BC Calculation** backs out a ballistic coefficient from a near
 velocity/range and either a far velocity or a measured time of flight
@@ -274,6 +273,16 @@ ranges, drag model, atmosphere) stays the same either way. Useful when
 you've measured actual velocity loss, or actual time of flight, over a
 known distance and want the BC that explains it, rather than trusting a
 published number.
+
+**BC Conversion** converts a ballistic coefficient from one standard drag
+model to another at a single reference velocity — enter the source model
+and BC, a velocity representative of the range band you care about, and the
+destination model; the result updates automatically as any of them
+changes, no button to press. The conversion is exact at that one velocity
+and drifts the further your bullet's actual velocity strays from it, since
+different drag models have differently-shaped curves across the speed
+range. Both model pickers always list every standard model, regardless of
+which ones Settings shows or hides elsewhere.
 
 **BC Labradar** fits a BC per shot from a Labradar chronograph export — a
 **.zip** of track files the device writes to its SD card, one per shot,

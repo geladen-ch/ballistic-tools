@@ -90,6 +90,10 @@
     "v2": "Far velocity",
     "r2": "Far range",
     "tof": "Time of flight (s)",
+    "convSourceModel": "Source model",
+    "convBc": "Ballistic coefficient",
+    "convTargetModel": "Destination model",
+    "convVelocity": "Reference velocity",
     "scopeClickUnit": "Click unit",
     "scopeClickHorizontal": "Horizontal click value",
     "scopeClickVertical": "Vertical click value",
@@ -172,7 +176,7 @@
     "lineOfSightLabel": "Line of sight"
   },
   "bcEstimate": {
-    "intro": "Enter a near velocity and range, then either a far velocity or a measured time of flight to the far range, plus a drag model and atmosphere, to back out the ballistic coefficient that explains the observed change.",
+    "intro": "Enter a near velocity and range, then either a far velocity or a measured time of flight to the far range, plus a drag model and atmosphere, to back out the ballistic coefficient that explains the observed change. If you have a choice, use residual velocity rather than time of flight — this is typically more precise.",
     "measuredVelocitiesHeading": "Measured velocities",
     "modeVelocity": "Velocity",
     "modeTof": "Time of flight",
@@ -186,8 +190,12 @@
     "tabCalculation": "BC Calculation",
     "tabConversion": "BC Conversion",
     "tabLabradar": "BC Labradar",
-    "conversionStub": "BC Conversion tools are planned for implementation. Check back soon.",
     "invalidTof": "Enter a valid time of flight (a positive number of seconds)."
+  },
+  "bcConversion": {
+    "intro": "Convert a ballistic coefficient from one standard drag model to another, at a single reference velocity. The conversion is exact at that velocity, and drifts the further your bullet's actual velocity strays from it — pick a velocity representative of the range band you care about.",
+    "inputsHeading": "Convert",
+    "resultHeading": "Converted ballistic coefficient"
   },
   "bcToolsLabradar": {
     "intro": "This tool only works with tracks from a Labradar v1 device (the big orange box). Upload a Labradar chronograph export (a .zip of track files) to fit a ballistic coefficient per shot, then average across the valid ones. Files that aren't real tracks — the device's own report or project files, or unrelated junk that ended up in the zip — are ignored automatically.",
@@ -566,6 +574,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v132": "BC Tools is complete: BC Conversion now converts a ballistic coefficient between standard drag models at a chosen reference velocity, live as you type. BC Tools no longer shows as Partial.",
       "v131": "Minor UI clarifications and bug fixes.",
       "v130": "First public release. Since the last update: Labradar BC fitting now solves the whole velocity-vs-time window against the physics model directly, instead of a per-pair linear fit, paired with a tighter default de-noise threshold. UI improvements.",
       "v129": "Added the Labradar tool to BC Tools: upload a Labradar chronograph export (a .zip of track files) to fit a BC per shot, with the same noise-cleaning approach as the original standalone tool, adjustable signal-quality and outlier filters, and a velocity-vs-time chart per track.",

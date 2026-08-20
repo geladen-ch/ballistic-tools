@@ -53,7 +53,7 @@ test('every tool row shows its name, a status chip, and a description', () => {
 
   const bcRow = findByClass(container, 'rail-tool').find((row) => row.textContent.includes(t('catalog.bcTools')));
   assert.ok(bcRow, 'expected a rail row for BC Tools');
-  assert.ok(bcRow.textContent.includes(t('catalog.statusPartial')), 'BC Tools is partial (Conversion/Labradar tabs are stubs)');
+  assert.ok(bcRow.textContent.includes(t('catalog.statusLive')), 'BC Tools is fully live (Calculation, Conversion, and Labradar all usable)');
   assert.ok(bcRow.textContent.includes(t('catalog.bcToolsDesc')));
 });
 

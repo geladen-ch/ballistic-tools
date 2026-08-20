@@ -90,6 +90,10 @@
     "v2": "Vitesse éloignée",
     "r2": "Distance éloignée",
     "tof": "Temps de vol (s)",
+    "convSourceModel": "Modèle source",
+    "convBc": "Coefficient balistique",
+    "convTargetModel": "Modèle de destination",
+    "convVelocity": "Vitesse de référence",
     "scopeClickUnit": "Unité du clic",
     "scopeClickHorizontal": "Valeur du clic horizontal",
     "scopeClickVertical": "Valeur du clic vertical",
@@ -172,7 +176,7 @@
     "lineOfSightLabel": "Ligne de mire"
   },
   "bcEstimate": {
-    "intro": "Entrez une vitesse et une distance proches, puis soit une vitesse éloignée, soit un temps de vol mesuré jusqu'à la distance éloignée, ainsi qu'un modèle de traînée et l'atmosphère, pour déduire le coefficient balistique qui explique le changement observé.",
+    "intro": "Entrez une vitesse et une distance proches, puis soit une vitesse éloignée, soit un temps de vol mesuré jusqu'à la distance éloignée, ainsi qu'un modèle de traînée et l'atmosphère, pour déduire le coefficient balistique qui explique le changement observé. Si vous avez le choix, préférez la vitesse résiduelle au temps de vol — c'est généralement plus précis.",
     "measuredVelocitiesHeading": "Vitesses mesurées",
     "modeVelocity": "Vitesse",
     "modeTof": "Temps de vol",
@@ -186,8 +190,12 @@
     "tabCalculation": "Calcul BC",
     "tabConversion": "Conversion BC",
     "tabLabradar": "BC Labradar",
-    "conversionStub": "Les outils de conversion BC sont prévus pour une prochaine version. Revenez bientôt.",
     "invalidTof": "Entrez un temps de vol valide (un nombre positif de secondes)."
+  },
+  "bcConversion": {
+    "intro": "Convertissez un coefficient balistique d'un modèle de traînée standard à un autre, à une seule vitesse de référence. La conversion est exacte à cette vitesse, et s'écarte d'autant plus que la vitesse réelle de votre balle s'en éloigne — choisissez une vitesse représentative de la tranche de distance qui vous intéresse.",
+    "inputsHeading": "Convertir",
+    "resultHeading": "Coefficient balistique converti"
   },
   "bcToolsLabradar": {
     "intro": "Cet outil ne fonctionne qu'avec des trajectoires provenant d'un boîtier Labradar v1 (la grande boîte orange). Importez un export du chronographe Labradar (un .zip de fichiers de trajectoire) pour ajuster un coefficient balistique par coup, puis faire la moyenne sur les tirs valides. Les fichiers qui ne sont pas de vraies trajectoires — le rapport ou le fichier projet de l'appareil, ou tout autre fichier parasite présent dans le zip — sont ignorés automatiquement.",
@@ -566,6 +574,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v132": "Outils BC désormais complets : la Conversion BC convertit un coefficient balistique entre modèles de traînée standard à une vitesse de référence choisie, en direct pendant la saisie. Outils BC n'affiche plus « Partiel ».",
       "v131": "Petites clarifications de l'interface et corrections de bugs.",
       "v130": "Première version publique. Depuis la dernière mise à jour : l'ajustement du BC Labradar résout désormais l'ensemble de la fenêtre vitesse/temps directement par rapport au modèle physique, au lieu d'un ajustement linéaire par paire, associé à un seuil de débruitage par défaut plus strict. Améliorations de l'interface.",
       "v129": "Ajout de l'outil Labradar aux Outils BC : importez un export du chronographe Labradar (un .zip de fichiers de trajectoire) pour ajuster un BC par coup, avec la même approche de nettoyage du bruit que l'outil autonome d'origine, des filtres de qualité de signal et de valeurs aberrantes réglables, et un graphique vitesse/temps par trajectoire.",

@@ -57,8 +57,8 @@ test('the currently-implemented tools are marked live, not planned', () => {
   assert.equal(byId['trajectory'].path, '/trajectory');
 });
 
-test('bc-tools is a real, usable route but marked partial (BC Conversion/Labradar tabs are still stubs)', () => {
+test('bc-tools is a real, fully usable route (Calculation, Conversion, and Labradar tabs all live)', () => {
   const byId = Object.fromEntries(TOOLS.map((t) => [t.id, t]));
-  assert.equal(byId['bc-tools'].status, 'partial');
+  assert.equal(byId['bc-tools'].status, 'live');
   assert.equal(byId['bc-tools'].path, '/bc-tools');
 });

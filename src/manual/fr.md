@@ -17,10 +17,10 @@ de détourner un calculateur balistique au point de vous blesser, ça vous
 regarde — qui suis-je pour faire obstacle à la sélection naturelle ?
 
 Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**,
-**Armes**, **Courbe Cd-Mach** et **Paramètres** —
-ainsi que **Probabilité d'impact**, le **Calculateur de terrain** et les
-**Outils BC**, tous utilisables pour leurs scénarios actuels mais encore en
-développement actif.
+**Armes**, **Courbe Cd-Mach**, **Outils BC** et **Paramètres** —
+ainsi que **Probabilité d'impact** et le **Calculateur de terrain**,
+utilisables pour leurs scénarios actuels mais encore en développement
+actif.
 Tout le reste sur la page d'accueil est listé à la fin, sous **Prévu / en
 développement**.
 
@@ -300,9 +300,8 @@ zoom/déplacement et peut être **téléchargé en SVG**.
 
 Calcule un coefficient balistique à partir de données connues, ou convertit
 un BC entre différents modèles — regroupés sous un seul outil avec les
-onglets **Calcul BC**, **Conversion BC** et **BC Labradar**. Le **Calcul
-BC** et **BC Labradar** sont déjà pleinement utilisables ; la **Conversion
-BC** est **encore prévue**.
+onglets **Calcul BC**, **Conversion BC** et **BC Labradar**, tous déjà
+pleinement utilisables.
 
 Le **Calcul BC** déduit un coefficient balistique à partir d'une paire
 vitesse/distance proche et soit une vitesse éloignée, soit un temps de vol
@@ -315,6 +314,17 @@ atmosphère) reste identique dans les deux cas. Utile lorsque vous avez
 mesuré une perte de vitesse réelle, ou un temps de vol réel, sur une
 distance connue et que vous voulez le BC qui l'explique, plutôt que de vous
 fier à une valeur publiée.
+
+La **Conversion BC** convertit un coefficient balistique d'un modèle de
+traînée standard à un autre, à une seule vitesse de référence — indiquez le
+modèle source et le BC, une vitesse représentative de la tranche de
+distance qui vous intéresse, et le modèle de destination ; le résultat se
+met à jour automatiquement à chaque modification, sans bouton à presser. La
+conversion est exacte à cette vitesse et s'écarte d'autant plus que la
+vitesse réelle de votre balle s'en éloigne, car les différents modèles de
+traînée ont des courbes de forme différente selon la vitesse. Les deux
+listes de modèles affichent toujours tous les modèles standard, quels que
+soient ceux masqués ailleurs par les Paramètres.
 
 **BC Labradar** ajuste un BC par coup à partir d'un export du chronographe
 Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur

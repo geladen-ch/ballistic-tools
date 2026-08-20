@@ -90,6 +90,10 @@
     "v2": "Velocità lontana",
     "r2": "Distanza lontana",
     "tof": "Tempo di volo (s)",
+    "convSourceModel": "Modello di origine",
+    "convBc": "Coefficiente balistico",
+    "convTargetModel": "Modello di destinazione",
+    "convVelocity": "Velocità di riferimento",
     "scopeClickUnit": "Unità di click",
     "scopeClickHorizontal": "Valore click orizzontale",
     "scopeClickVertical": "Valore click verticale",
@@ -172,7 +176,7 @@
     "lineOfSightLabel": "Linea di mira"
   },
   "bcEstimate": {
-    "intro": "Inserisci una velocità e una distanza vicine, poi una velocità lontana oppure un tempo di volo misurato fino alla distanza lontana, più un modello di resistenza e l'atmosfera, per ricavare il coefficiente balistico che spiega la variazione osservata.",
+    "intro": "Inserisci una velocità e una distanza vicine, poi una velocità lontana oppure un tempo di volo misurato fino alla distanza lontana, più un modello di resistenza e l'atmosfera, per ricavare il coefficiente balistico che spiega la variazione osservata. Se possibile, preferisci la velocità residua al tempo di volo — è tipicamente più precisa.",
     "measuredVelocitiesHeading": "Velocità misurate",
     "modeVelocity": "Velocità",
     "modeTof": "Tempo di volo",
@@ -186,8 +190,12 @@
     "tabCalculation": "Calcolo BC",
     "tabConversion": "Conversione BC",
     "tabLabradar": "BC Labradar",
-    "conversionStub": "Gli strumenti di conversione BC sono previsti per una versione futura. Torna presto a controllare.",
     "invalidTof": "Inserisci un tempo di volo valido (un numero positivo di secondi)."
+  },
+  "bcConversion": {
+    "intro": "Converti un coefficiente balistico da un modello di resistenza standard a un altro, a una singola velocità di riferimento. La conversione è esatta a quella velocità e si scosta tanto più quanto la velocità reale del tuo proiettile se ne allontana — scegli una velocità rappresentativa della fascia di distanza che ti interessa.",
+    "inputsHeading": "Converti",
+    "resultHeading": "Coefficiente balistico convertito"
   },
   "bcToolsLabradar": {
     "intro": "Questo strumento funziona solo con tracce provenienti da un dispositivo Labradar v1 (la grande scatola arancione). Carica un'esportazione del cronografo Labradar (uno .zip di file di traccia) per calcolare un coefficiente balistico per ogni colpo, poi calcolarne la media sui colpi validi. I file che non sono vere tracce — il report o il file di progetto del dispositivo, o altri file estranei finiti nello zip — vengono ignorati automaticamente.",
@@ -566,6 +574,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v132": "Strumenti BC ora completi: Conversione BC converte un coefficiente balistico tra modelli di resistenza standard a una velocità di riferimento scelta, in tempo reale mentre digiti. Strumenti BC non mostra più \"Parziale\".",
       "v131": "Piccoli chiarimenti dell'interfaccia e correzioni di bug.",
       "v130": "Prima versione pubblica. Dall'ultimo aggiornamento: il calcolo del BC Labradar ora risolve l'intera finestra velocità-tempo direttamente rispetto al modello fisico, invece di un adattamento lineare a coppie, insieme a una soglia di riduzione del rumore predefinita più severa. Miglioramenti dell'interfaccia.",
       "v129": "Aggiunto lo strumento Labradar a Strumenti BC: carica un'esportazione del cronografo Labradar (uno .zip di file di traccia) per calcolare un BC per ogni colpo, con lo stesso approccio di pulizia del rumore dello strumento autonomo originale, filtri regolabili di qualità del segnale e valori anomali, e un grafico velocità-tempo per ogni traccia.",

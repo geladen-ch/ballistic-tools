@@ -90,6 +90,10 @@
     "v2": "Ferne Geschwindigkeit",
     "r2": "Ferne Distanz",
     "tof": "Flugzeit (s)",
+    "convSourceModel": "Ausgangsmodell",
+    "convBc": "Ballistischer Koeffizient",
+    "convTargetModel": "Zielmodell",
+    "convVelocity": "Referenzgeschwindigkeit",
     "scopeClickUnit": "Klick-Einheit",
     "scopeClickHorizontal": "Horizontaler Klickwert",
     "scopeClickVertical": "Vertikaler Klickwert",
@@ -172,7 +176,7 @@
     "lineOfSightLabel": "Ziellinie"
   },
   "bcEstimate": {
-    "intro": "Geben Sie eine nahe Geschwindigkeit und Distanz ein, dazu entweder eine ferne Geschwindigkeit oder eine gemessene Flugzeit bis zur fernen Distanz, sowie ein Luftwiderstandsmodell und die Atmosphäre, um den ballistischen Koeffizienten zu ermitteln, der die beobachtete Änderung erklärt.",
+    "intro": "Geben Sie eine nahe Geschwindigkeit und Distanz ein, dazu entweder eine ferne Geschwindigkeit oder eine gemessene Flugzeit bis zur fernen Distanz, sowie ein Luftwiderstandsmodell und die Atmosphäre, um den ballistischen Koeffizienten zu ermitteln, der die beobachtete Änderung erklärt. Wenn Sie die Wahl haben, verwenden Sie die Restgeschwindigkeit anstelle der Flugzeit — das ist in der Regel präziser.",
     "measuredVelocitiesHeading": "Gemessene Geschwindigkeiten",
     "modeVelocity": "Geschwindigkeit",
     "modeTof": "Flugzeit",
@@ -186,8 +190,12 @@
     "tabCalculation": "BC-Berechnung",
     "tabConversion": "BC-Umrechnung",
     "tabLabradar": "BC-Labradar",
-    "conversionStub": "BC-Umrechnungswerkzeuge sind für eine zukünftige Version geplant. Schauen Sie bald wieder vorbei.",
     "invalidTof": "Geben Sie eine gültige Flugzeit ein (eine positive Anzahl Sekunden)."
+  },
+  "bcConversion": {
+    "intro": "Rechnen Sie einen ballistischen Koeffizienten von einem Standard-Luftwiderstandsmodell in ein anderes um, bei einer einzelnen Referenzgeschwindigkeit. Die Umrechnung ist bei dieser Geschwindigkeit exakt und weicht umso mehr ab, je weiter die tatsächliche Geschwindigkeit Ihres Geschosses davon entfernt ist — wählen Sie eine Geschwindigkeit, die für den Distanzbereich repräsentativ ist, der Sie interessiert.",
+    "inputsHeading": "Umrechnen",
+    "resultHeading": "Umgerechneter ballistischer Koeffizient"
   },
   "bcToolsLabradar": {
     "intro": "Dieses Werkzeug funktioniert nur mit Tracks von einem Labradar v1 (der großen orangefarbenen Box). Laden Sie einen Labradar-Chronographen-Export (ein .zip mit Track-Dateien) hoch, um pro Schuss einen ballistischen Koeffizienten zu ermitteln und über die gültigen Schüsse zu mitteln. Dateien, die keine echten Tracks sind — der Bericht oder die Projektdatei des Geräts, oder anderer Datenmüll im Zip — werden automatisch ignoriert.",
@@ -566,6 +574,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v132": "BC-Werkzeuge sind vollständig: Die BC-Umrechnung wandelt jetzt einen ballistischen Koeffizienten zwischen Standard-Luftwiderstandsmodellen bei einer gewählten Referenzgeschwindigkeit um, live während der Eingabe. BC-Werkzeuge werden nicht mehr als „Teilweise“ angezeigt.",
       "v131": "Kleinere Klarstellungen an der Benutzeroberfläche und Fehlerbehebungen.",
       "v130": "Erste öffentliche Version. Seit dem letzten Update: Die Labradar-BC-Ermittlung löst das gesamte Geschwindigkeit-Zeit-Fenster jetzt direkt gegen das physikalische Modell, statt einer paarweisen linearen Anpassung, zusammen mit einem strengeren Standard-Rauschschwellenwert. Verbesserungen der Benutzeroberfläche.",
       "v129": "BC-Werkzeuge um das Labradar-Werkzeug erweitert: Laden Sie einen Labradar-Chronographen-Export (ein .zip mit Track-Dateien) hoch, um pro Schuss einen BC zu ermitteln — mit demselben Rauschbereinigungsansatz wie im ursprünglichen eigenständigen Werkzeug, einstellbaren Signalqualitäts- und Ausreißerfiltern sowie einem Geschwindigkeit-Zeit-Diagramm pro Track.",

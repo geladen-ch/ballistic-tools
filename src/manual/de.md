@@ -18,10 +18,10 @@ Rechners selbst zu verletzen, ist das Ihr eigenes Problem — wer bin ich,
 mich der natürlichen Auslese in den Weg zu stellen?
 
 Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**,
-**Waffen**, **Cd-Mach-Kurve** und **Einstellungen** — sowie
-**Trefferwahrscheinlichkeit**, den **Feldrechner** und die **BC-Werkzeuge**,
-die alle für ihre aktuellen Szenarien nutzbar sind, aber noch aktiv
-weiterentwickelt werden. Alles andere auf der Startseite ist am Ende unter
+**Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge** und **Einstellungen** —
+sowie **Trefferwahrscheinlichkeit** und den **Feldrechner**, die für ihre
+aktuellen Szenarien nutzbar sind, aber noch aktiv weiterentwickelt werden.
+Alles andere auf der Startseite ist am Ende unter
 **Geplant / in Arbeit**
 aufgeführt.
 
@@ -299,8 +299,7 @@ heruntergeladen** werden.
 Ermittelt einen ballistischen Koeffizienten aus bekannten Daten, oder
 rechnet einen BC zwischen verschiedenen Modellen um — zusammengefasst in
 einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung** und
-**BC-Labradar**. Die **BC-Berechnung** und **BC-Labradar** sind bereits
-voll nutzbar; **BC-Umrechnung** ist **noch geplant**.
+**BC-Labradar** zusammengefasst, alle bereits voll nutzbar.
 
 Die **BC-Berechnung** ermittelt einen ballistischen Koeffizienten aus einem
 nahen Geschwindigkeits-/Distanzpaar und entweder einer fernen Geschwindigkeit
@@ -314,6 +313,19 @@ in beiden Fällen gleich. Nützlich, wenn Sie den tatsächlichen
 Geschwindigkeitsverlust oder die tatsächliche Flugzeit über eine bekannte
 Distanz gemessen haben und den BC ermitteln möchten, der dies erklärt,
 anstatt sich auf einen veröffentlichten Wert zu verlassen.
+
+**BC-Umrechnung** rechnet einen ballistischen Koeffizienten von einem
+Standard-Luftwiderstandsmodell in ein anderes um, bei einer einzelnen
+Referenzgeschwindigkeit — geben Sie das Ausgangsmodell und den BC ein, eine
+für den Sie interessierenden Distanzbereich repräsentative Geschwindigkeit,
+sowie das Zielmodell; das Ergebnis aktualisiert sich automatisch bei jeder
+Änderung, ohne dass Sie eine Schaltfläche drücken müssen. Die Umrechnung
+ist bei dieser einen Geschwindigkeit exakt und weicht umso mehr ab, je
+weiter die tatsächliche Geschwindigkeit Ihres Geschosses davon entfernt
+ist, da unterschiedliche Luftwiderstandsmodelle über den Geschwindigkeitsbereich
+unterschiedlich geformte Kurven haben. Beide Modell-Auswahllisten zeigen
+immer alle Standardmodelle, unabhängig davon, welche in den Einstellungen
+andernorts ein- oder ausgeblendet sind.
 
 **BC-Labradar** ermittelt pro Schuss einen BC aus einem
 Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das

@@ -8,6 +8,8 @@ const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const bcToolsView = await import('../src/views/bc-tools-view.js');
+const { setDragModelVisible, resetDragModelPrefsForTests } = await import('../src/drag-model-prefs.js');
+const { DRAG_MODELS } = await import('../src/engine/drag-tables.js');
 
 // FakeWorker.postMessage() never responds under this test harness (see
 // tests/helpers/fake-dom.js), so pool.run() never resolves here — no test
@@ -19,7 +21,10 @@ const bcToolsView = await import('../src/views/bc-tools-view.js');
 // persist in module-level state across mount() calls (see
 // bc-tools-view.js) — reset it between tests so one test's typed values
 // don't leak into the next.
-test.beforeEach(() => bcToolsView.resetBcToolsStateForTests());
+test.beforeEach(() => {
+  bcToolsView.resetBcToolsStateForTests();
+  resetDragModelPrefsForTests();
+});
 
 function findByTag(node, tag, out = []) {
   if (node.tagName === tag) out.push(node);
@@ -54,7 +59,7 @@ test('mount() builds a DOM tree without throwing, and re-mounting replaces conte
   assert.equal(container.childNodes.length, firstCount);
 });
 
-test('exactly one of the three outer tabs is active; Conversion shows its stub message, Labradar shows its real panel', () => {
+test('exactly one of the three outer tabs is active; Conversion shows its own panel, Labradar shows its real panel', () => {
   const container = makeElement('main');
   bcToolsView.mount(container);
 
@@ -66,25 +71,25 @@ test('exactly one of the three outer tabs is active; Conversion shows its stub m
   assert.equal(outerButtons[0].className.includes('active'), true, 'Calculation should be the initial tab');
 
   const runButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcEstimate.estimateButton'));
-  const conversionStub = findByTag(container, 'P').find((p) => p.textContent === t('bcTools.conversionStub'));
+  const conversionBcInput = findById(container, 'convBc');
   const pickFileButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('bcToolsLabradar.pickFileButton'));
-  assert.ok(runButton && conversionStub && pickFileButton);
+  assert.ok(runButton && conversionBcInput && pickFileButton);
 
   assert.equal(isHidden(runButton), false, 'Calculation content visible by default');
-  assert.equal(isHidden(conversionStub), true);
+  assert.equal(isHidden(conversionBcInput), true);
   assert.equal(isHidden(pickFileButton), true);
 
   fireEvent(outerButtons[1], 'click'); // Conversion
   assert.equal(outerButtons[1].className.includes('active'), true);
   assert.equal(outerButtons[0].className.includes('active'), false);
-  assert.equal(isHidden(conversionStub), false);
+  assert.equal(isHidden(conversionBcInput), false);
   assert.equal(isHidden(runButton), true);
 
   fireEvent(outerButtons[2], 'click'); // Labradar
   assert.equal(outerButtons[2].className.includes('active'), true);
   assert.equal(outerButtons[1].className.includes('active'), false);
   assert.equal(isHidden(pickFileButton), false);
-  assert.equal(isHidden(conversionStub), true, 'Conversion stub hidden once Labradar is active');
+  assert.equal(isHidden(conversionBcInput), true, 'Conversion panel hidden once Labradar is active');
 });
 
 test('Labradar tab: the file input is hidden and its picker button triggers it', () => {
@@ -353,4 +358,103 @@ test('an invalid time of flight shows an error instead of running the calculatio
 
   assert.equal(status.textContent, t('common.error', { message: t('bcTools.invalidTof') }));
   assert.ok(status.className.includes('error'));
+});
+
+// ---- BC Conversion ----
+// Unlike the Calculation/ToF panels above, conversion is a plain
+// synchronous formula (no worker pool involved — see engine/bc-convert.js),
+// so these tests assert real computed results directly.
+
+function openConversionTab(container) {
+  const outerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn') &&
+    [t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabLabradar')].includes(b.textContent));
+  fireEvent(outerButtons[1], 'click');
+}
+
+test('the conversion result recomputes automatically on every input change, with no button to press', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openConversionTab(container);
+
+  const result = findById(container, 'conv-result');
+  assert.notEqual(result.textContent, '—', 'the default inputs should already produce a real result on mount');
+
+  const before = result.textContent;
+  const bcInput = findById(container, 'convBc');
+  bcInput.value = '0.6';
+  fireEvent(bcInput, 'input');
+  assert.notEqual(result.textContent, before, 'changing the source BC should recompute without a button');
+});
+
+test('converting a model to itself leaves the BC unchanged', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openConversionTab(container);
+
+  const sourceSelect = findById(container, 'convSourceModel');
+  const targetSelect = findById(container, 'convTargetModel');
+  const bcInput = findById(container, 'convBc');
+  bcInput.value = '0.512';
+  fireEvent(bcInput, 'input');
+  sourceSelect.value = 'G7';
+  fireEvent(sourceSelect, 'change');
+  targetSelect.value = 'G7';
+  fireEvent(targetSelect, 'change');
+
+  const result = findById(container, 'conv-result');
+  assert.equal(result.textContent, '0.5120');
+});
+
+test('an empty or non-positive source BC shows the placeholder instead of a stale result', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openConversionTab(container);
+
+  const bcInput = findById(container, 'convBc');
+  bcInput.value = '0';
+  fireEvent(bcInput, 'input');
+
+  const result = findById(container, 'conv-result');
+  assert.equal(result.textContent, '—');
+});
+
+test('toggling the velocity unit restates the same physical velocity and leaves the converted BC unchanged', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openConversionTab(container);
+
+  const velocityInput = findById(container, 'convVelocity');
+  const velocityUnitSelect = findById(container, 'convVelocityUnit');
+  const result = findById(container, 'conv-result');
+
+  assert.equal(velocityUnitSelect.value, 'm/s', 'defaults to m/s absent a ft/s global preference');
+  velocityInput.value = '800';
+  fireEvent(velocityInput, 'input');
+  const before = result.textContent;
+
+  velocityUnitSelect.value = 'ft/s';
+  fireEvent(velocityUnitSelect, 'change');
+  assert.equal(velocityInput.value, (800 / 0.3048).toFixed(0), 'restates 800 m/s in ft/s rather than resetting');
+  assert.equal(result.textContent, before, 'the same physical velocity must convert to the same BC');
+});
+
+test('both drag-model pickers list every standard model, even one hidden in Settings', () => {
+  setDragModelVisible('G8', false);
+
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+
+  // The Calculation panel's own picker respects the Settings preference...
+  const calcSelect = findById(container, 'dragModel');
+  assert.equal(findByTag(calcSelect, 'OPTION').some((o) => o.getAttribute('value') === 'G8'), false);
+
+  // ...but both Conversion pickers must not, regardless of which side G8
+  // would be missing from.
+  openConversionTab(container);
+  const sourceSelect = findById(container, 'convSourceModel');
+  const targetSelect = findById(container, 'convTargetModel');
+  for (const select of [sourceSelect, targetSelect]) {
+    const ids = findByTag(select, 'OPTION').map((o) => o.getAttribute('value'));
+    assert.deepEqual(ids.sort(), DRAG_MODELS.map((m) => m.id).sort());
+  }
 });

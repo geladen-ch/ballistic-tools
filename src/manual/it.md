@@ -18,11 +18,10 @@ sono affari tuoi — chi sono io per mettermi di traverso alla selezione
 naturale?
 
 Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**,
-**Armi**, **Curva Cd-Mach** e **Impostazioni** — oltre a
-**Probabilità di colpire**, al **Calcolatore per il poligono** e agli
-**Strumenti BC**, tutti utilizzabili per i loro scenari attuali ma ancora in
-sviluppo attivo. Tutto il resto nella Home
-è elencato alla fine, sotto **Pianificato / in corso**.
+**Armi**, **Curva Cd-Mach**, **Strumenti BC** e **Impostazioni** — oltre a
+**Probabilità di colpire** e al **Calcolatore per il poligono**,
+utilizzabili per i loro scenari attuali ma ancora in sviluppo attivo. Tutto
+il resto nella Home è elencato alla fine, sotto **Pianificato / in corso**.
 
 ---
 
@@ -291,9 +290,8 @@ come SVG**.
 
 Calcola un coefficiente balistico da dati noti, oppure converte un BC tra
 modelli diversi — raggruppati in un unico strumento con le schede
-**Calcolo BC**, **Conversione BC** e **BC Labradar**. Il **Calcolo BC** e
-**BC Labradar** sono già pienamente utilizzabili; la **Conversione BC** è
-**ancora prevista**.
+**Calcolo BC**, **Conversione BC** e **BC Labradar**, già tutte pienamente
+utilizzabili.
 
 Il **Calcolo BC** ricava un coefficiente balistico da una coppia
 velocità/distanza vicina e da una velocità lontana oppure da un tempo di
@@ -305,6 +303,18 @@ resto (velocità vicina, entrambe le distanze, modello di resistenza,
 atmosfera) resta invariato in entrambi i casi. Utile quando hai misurato
 una perdita di velocità reale, o un tempo di volo reale, su una distanza
 nota e vuoi il BC che lo spiega, invece di affidarti a un valore pubblicato.
+
+La **Conversione BC** converte un coefficiente balistico da un modello di
+resistenza standard a un altro, a una singola velocità di riferimento —
+inserisci il modello di origine e il BC, una velocità rappresentativa della
+fascia di distanza che ti interessa, e il modello di destinazione; il
+risultato si aggiorna automaticamente a ogni modifica, senza pulsanti da
+premere. La conversione è esatta a quella velocità e si scosta tanto più
+quanto la velocità reale del tuo proiettile se ne allontana, poiché modelli
+di resistenza diversi hanno curve di forma diversa lungo la gamma di
+velocità. Entrambi gli elenchi dei modelli mostrano sempre tutti i modelli
+standard, indipendentemente da quali siano nascosti altrove nelle
+Impostazioni.
 
 **BC Labradar** calcola un BC per ogni colpo a partire da un'esportazione
 del cronografo Labradar — uno **.zip** di file di traccia che il

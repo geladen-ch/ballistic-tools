@@ -4,6 +4,10 @@ import { unitField } from '../ui/unit-field.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { setDragModelSelectValue } from '../ui/drag-model-select.js';
 import { applyI18nText, i18nSpan, t } from '../i18n.js';
+import { DRAG_MODELS } from '../engine/drag-tables.js';
+import { convertBallisticCoefficient } from '../engine/bc-convert.js';
+import { getUnit } from '../prefs.js';
+import Qty from '../vendor/js-quantities/quantities.mjs';
 import { openTrackBatch } from '../labradar/zip-batch.js';
 import { parseLabradarTrack } from '../labradar/track-parse.js';
 import { aggregateTracks } from '../engine/labradar-bc.js';
@@ -409,13 +413,13 @@ export function mount(container) {
   const atmosphere = atmosphereSection({ includeWind: false });
 
   // ---- Shared fields (both Velocity and ToF mode) ----
-  const v1Field = persistedUnitField('v1', { value: 880, step: 0.1 });
-  const r1Field = persistedUnitField('r1', { value: 3, step: 1 });
+  const v1Field = persistedUnitField('v1', { value: 800, step: 0.1 });
+  const r1Field = persistedUnitField('r1', { value: 0, step: 1 });
   const r2Field = persistedUnitField('r2', { value: 300, step: 1 });
 
   // ---- Mode-specific field: far velocity (v2) vs. time of flight (tof) ----
-  const v2Field = persistedUnitField('v2', { value: 780, step: 0.1 });
-  const tofInput = el('input', { type: 'number', id: 'tof', step: '0.001', value: persistedValue('tof', '0.35') });
+  const v2Field = persistedUnitField('v2', { value: 629.1, step: 0.1 });
+  const tofInput = el('input', { type: 'number', id: 'tof', step: '0.001', value: persistedValue('tof', '0.423') });
   tofInput.addEventListener('input', () => {
     panelState.tof = tofInput.value;
   });
@@ -460,9 +464,113 @@ export function mount(container) {
     el('p', { i18n: 'bcEstimate.intro' }),
     el('div', { class: 'tool-layout' }, [controls, results])
   ]);
-  const conversionPanel = el('div', { class: 'card' }, [
-    el('p', { i18n: 'bcTools.conversionStub' })
+  // ---- BC Conversion: converts a BC from one standard drag model to
+  // another at a single reference velocity (see engine/bc-convert.js's own
+  // header for the math). Both model pickers deliberately list every
+  // standard model unfiltered — unlike dragModelSelect above, Settings'
+  // show/hide preference is about decluttering everyday pickers, not about
+  // limiting which models a one-off conversion can name on either side.
+  const convSourceSelect = el('select', { id: 'convSourceModel' });
+  const convTargetSelect = el('select', { id: 'convTargetModel' });
+  for (const select of [convSourceSelect, convTargetSelect]) {
+    for (const m of DRAG_MODELS) select.appendChild(el('option', { value: m.id, i18n: m.labelKey }));
+  }
+  convSourceSelect.value = persistedValue('convSourceModel', 'G1');
+  convTargetSelect.value = persistedValue('convTargetModel', 'G7');
+
+  const convBcInput = el('input', {
+    type: 'number', id: 'convBc', step: '0.001', min: '0', value: persistedValue('convBc', '0.5')
+  });
+
+  // Velocity gets its own small unit toggle (m/s / ft/s only, not the full
+  // 4-choice velocity group unitField() reads from Settings) — defaults to
+  // ft/s only when that's already the user's global preference, since mph/
+  // km/h have no place in a Mach-referenced conversion.
+  let convVelocityUnit = persistedValue('convVelocityUnit', getUnit('velocity') === 'ft/s' ? 'ft/s' : 'm/s');
+  const convVelocityInput = el('input', {
+    type: 'number', id: 'convVelocity', step: '0.1', min: '0',
+    value: persistedValue('convVelocity', convVelocityUnit === 'ft/s' ? '2625' : '800')
+  });
+  const convVelocityUnitSelect = el('select', { id: 'convVelocityUnit' }, [
+    el('option', { value: 'm/s', text: 'm/s' }),
+    el('option', { value: 'ft/s', text: 'ft/s' })
   ]);
+  convVelocityUnitSelect.value = convVelocityUnit;
+
+  const convResult = el('div', {
+    id: 'conv-result', class: 'card', style: 'font-size:28px;font-weight:700;color:var(--accent);'
+  }, ['—']);
+
+  function recomputeConversion() {
+    const bcValue = parseFloat(convBcInput.value);
+    const velocityValue = parseFloat(convVelocityInput.value);
+    clear(convResult);
+    if (!(bcValue > 0) || !(velocityValue > 0)) {
+      convResult.appendChild(document.createTextNode('—'));
+      return;
+    }
+    const velocityMs = Qty(velocityValue, convVelocityUnit).to('m/s').scalar;
+    const converted = convertBallisticCoefficient({
+      bc: bcValue,
+      sourceModel: convSourceSelect.value,
+      targetModel: convTargetSelect.value,
+      velocityMs
+    });
+    convResult.appendChild(document.createTextNode(converted.toFixed(4)));
+  }
+
+  convSourceSelect.addEventListener('change', () => {
+    panelState.convSourceModel = convSourceSelect.value;
+    recomputeConversion();
+  });
+  convTargetSelect.addEventListener('change', () => {
+    panelState.convTargetModel = convTargetSelect.value;
+    recomputeConversion();
+  });
+  convBcInput.addEventListener('input', () => {
+    panelState.convBc = convBcInput.value;
+    recomputeConversion();
+  });
+  convVelocityInput.addEventListener('input', () => {
+    panelState.convVelocity = convVelocityInput.value;
+    recomputeConversion();
+  });
+  convVelocityUnitSelect.addEventListener('change', () => {
+    // Re-express whatever's already typed in the new unit, rather than
+    // resetting it — a toggle should restate the same physical velocity,
+    // not throw it away.
+    const newUnit = convVelocityUnitSelect.value;
+    const current = parseFloat(convVelocityInput.value);
+    if (Number.isFinite(current) && current > 0) {
+      const restated = Qty(current, convVelocityUnit).to(newUnit).scalar;
+      convVelocityInput.value = restated.toFixed(newUnit === 'ft/s' ? 0 : 1);
+    }
+    convVelocityUnit = newUnit;
+    panelState.convVelocityUnit = convVelocityUnit;
+    panelState.convVelocity = convVelocityInput.value;
+    recomputeConversion();
+  });
+
+  const conversionControls = el('div', { class: 'card' }, [
+    el('h2', { i18n: 'bcConversion.inputsHeading' }),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.convSourceModel' }), convSourceSelect]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.convBc' }), convBcInput]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.convTargetModel' }), convTargetSelect]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'fields.convVelocity' }),
+      el('div', { class: 'preset-row' }, [convVelocityInput, convVelocityUnitSelect])
+    ])
+  ]);
+
+  const conversionResults = el('div', { class: 'tool-results' }, [
+    el('div', {}, [el('h2', { i18n: 'bcConversion.resultHeading' }), convResult])
+  ]);
+
+  const conversionPanel = el('div', {}, [
+    el('p', { i18n: 'bcConversion.intro' }),
+    el('div', { class: 'tool-layout' }, [conversionControls, conversionResults])
+  ]);
+  recomputeConversion();
   const labradarPanel = buildLabradarPanel();
 
   const outerPanels = { calculation: calculationPanel, conversion: conversionPanel, labradar: labradarPanel };
