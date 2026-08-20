@@ -61,6 +61,26 @@ test('a saved built-in rifle+bullet resolves their real names, no Arsenal badge'
   assert.ok(bulletLine.textContent.includes('807.7'));
 });
 
+test('a built-in rifle\'s own matching cartridge is read from its catalog record, not a stale cartridgeState', async () => {
+  // cartridgeState still carries a previous *custom* selection's bullet/
+  // velocity — cartridge-section.js's setLibraryCartridge() never
+  // persists a locked-in library cartridge there (see its own comment),
+  // so this summary has to resolve the K31's real "swiss-gp11" cartridge
+  // straight off the rifle's own catalog record instead of trusting it.
+  saveCartridgeState({ muzzleVelocity: 900, bullet: { selectedId: '__other__' } });
+  saveRifleState({ library: { rifleId: 'k31', cartridgeId: 'swiss-gp11' } });
+
+  const guns = gunsSummary();
+  await settle();
+
+  const [rifleLine] = findByClass(guns.node, 'rifle-line');
+  assert.equal(rifleLine.textContent, 'K31');
+
+  const [bulletLine] = findByClass(guns.node, 'bullet-line');
+  assert.ok(bulletLine.textContent.includes('174gr GP11'), `expected the K31's own GP11 load, got "${bulletLine.textContent}"`);
+  assert.ok(bulletLine.textContent.includes('780'), `expected the K31's own 780 m/s, got "${bulletLine.textContent}"`);
+});
+
 test('a saved user (Arsenal) rifle shows its name and the Arsenal badge', async () => {
   saveUserRifle({
     id: 'my-rifle', name: 'My Rifle',

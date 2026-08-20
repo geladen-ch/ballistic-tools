@@ -17,7 +17,7 @@ const gunsView = await import('../src/views/guns-view.js');
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { loadUserBullets, saveUserBullet, loadUserRifles, saveUserRifle, generateUserId } = await import('../src/user-library.js');
 const { setPendingBulletPrefill, setPendingRiflePrefill } = await import('../src/arsenal-prefill.js');
-const { resetShotStateForTests, loadRifleState } = await import('../src/shot-state.js');
+const { resetShotStateForTests, loadRifleState, saveCartridgeState, saveRifleState } = await import('../src/shot-state.js');
 const { resetComparisonForTests, getComparisonSelection } = await import('../src/comparison-state.js');
 
 test.beforeEach(() => {
@@ -815,6 +815,37 @@ test('"Set active" fills Guns\' Custom tab rifle, cartridge, and bullet selector
   const bulletSelect = byId(gunsContainer, 'bulletSelect');
   assert.equal(bulletSelect.value, 'swiss-gp11');
   assert.equal(bulletSelect.disabled, true, 'the bullet picker should be locked by the active cartridge');
+});
+
+test('"Set active" on an Arsenal rifle updates Trajectory\'s active-configuration summary away from a previously active custom load', async () => {
+  // A custom (hand-entered) configuration is already active — the bug
+  // this guards against only showed up when replacing one, not when
+  // there was nothing active yet (see trajectory-view.js's own comment
+  // on why cartridge's onInput, not rifle's, is what re-triggers
+  // guns-summary.js's refresh()).
+  saveCartridgeState({ muzzleVelocity: 900, bullet: { selectedId: '__other__' } });
+  saveRifleState({ library: null });
+
+  saveUserRifle({
+    id: 'my-rifle', name: 'My Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [{ id: 'c1', name: 'Load 1', muzzleVelocity: 820, bulletId: 'swiss-gp11' }]
+  });
+
+  const arsenalContainer = makeElement('main');
+  arsenalView.mount(arsenalContainer);
+  const setActiveButton = findByTag(arsenalContainer, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.setActiveButton');
+  fireEvent(setActiveButton, 'click');
+
+  const trajectoryContainer = makeElement('main');
+  trajectoryView.mount(trajectoryContainer);
+  await settle();
+
+  const rifleLine = findByTag(trajectoryContainer, 'DIV').find((d) => d.className === 'rifle-line');
+  const bulletLine = findByTag(trajectoryContainer, 'DIV').find((d) => d.className === 'bullet-line');
+  assert.ok(rifleLine.textContent.includes('My Rifle'), `expected the rifle line to show the newly active Arsenal rifle, got "${rifleLine.textContent}"`);
+  assert.ok(!bulletLine.textContent.includes(t('guns.customBulletLabel')), `expected the bullet line to have moved off the stale custom load, got "${bulletLine.textContent}"`);
 });
 
 test('a rifle with no saved cartridges shows no "Set active" control', () => {

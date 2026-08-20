@@ -190,7 +190,7 @@
     "invalidTof": "Enter a valid time of flight (a positive number of seconds)."
   },
   "bcToolsLabradar": {
-    "intro": "Upload a Labradar chronograph export (a .zip of track files) to fit a ballistic coefficient per shot, then average across the valid ones. Files that aren't real tracks — the device's own report or project files, or unrelated junk that ended up in the zip — are ignored automatically.",
+    "intro": "This tool only works with tracks from a Labradar v1 device (the big orange box). Upload a Labradar chronograph export (a .zip of track files) to fit a ballistic coefficient per shot, then average across the valid ones. Files that aren't real tracks — the device's own report or project files, or unrelated junk that ended up in the zip — are ignored automatically.",
     "setupHeading": "Setup",
     "filterR2Label": "Signal quality threshold",
     "filterR2None": "None",
@@ -566,6 +566,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v131": "Minor UI clarifications and bug fixes.",
       "v130": "First public release. Since the last update: Labradar BC fitting now solves the whole velocity-vs-time window against the physics model directly, instead of a per-pair linear fit, paired with a tighter default de-noise threshold. UI improvements.",
       "v129": "Added the Labradar tool to BC Tools: upload a Labradar chronograph export (a .zip of track files) to fit a BC per shot, with the same noise-cleaning approach as the original standalone tool, adjustable signal-quality and outlier filters, and a velocity-vs-time chart per track.",
       "v128": "UI cosmetics: the wind-angle dial on Trajectory is now 1.75x larger, and it's centered together with its manual-degrees entry within the field.",

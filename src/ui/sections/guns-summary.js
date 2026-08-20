@@ -44,24 +44,41 @@ export function gunsSummary() {
 
     let rifleName = t('guns.customRifleLabel');
     let isArsenalRifle = false;
+    // The rifle's own cartridge record, when a library rifle+cartridge is
+    // active — the authoritative source for that cartridge's bullet/
+    // velocity, not cartridgeState below. cartridge-section.js's
+    // setLibraryCartridge() only ever pre-fills and disables its *fields*
+    // to match this same record (see its own comment); it deliberately
+    // never persists them into shot-state.js's cartridgeState, since a
+    // freshly mounted rifleSection()+cartridgeSection() pair always
+    // re-derives them straight from rifleState.library + this record
+    // instead. This summary has no such pair of its own, so it must
+    // re-derive the same way, rather than trusting cartridgeState — which
+    // is otherwise still whatever a *previous* custom/manual selection
+    // last wrote there.
+    let libraryCartridge = null;
     if (rifleState && rifleState.library) {
-      const { rifleId } = rifleState.library;
+      const { rifleId, cartridgeId } = rifleState.library;
       const userRifle = loadUserRifles().find((r) => r.id === rifleId);
+      let rifle = userRifle;
       if (userRifle) {
         rifleName = userRifle.name;
         isArsenalRifle = true;
       } else {
         try {
-          const rifle = await loadRifle(rifleId);
+          rifle = await loadRifle(rifleId);
           rifleName = rifle.name;
         } catch {
           // built-in catalog unavailable (offline, etc.) — keep the generic label
         }
       }
+      if (rifle) libraryCartridge = rifle.cartridges.find((c) => c.id === cartridgeId) || null;
     }
 
     let bulletName = t('guns.customBulletLabel');
-    const bulletId = cartridgeState && cartridgeState.bullet && cartridgeState.bullet.selectedId;
+    const bulletId = libraryCartridge
+      ? libraryCartridge.bulletId
+      : cartridgeState && cartridgeState.bullet && cartridgeState.bullet.selectedId;
     if (bulletId && bulletId !== BULLET_OTHER) {
       const userBullet = loadUserBullets().find((b) => b.id === bulletId);
       if (userBullet) {
@@ -80,7 +97,9 @@ export function gunsSummary() {
     rifleLine.appendChild(document.createTextNode(rifleName));
     if (isArsenalRifle) rifleLine.appendChild(el('span', { class: 'src-badge', i18n: 'guns.arsenalBadge' }));
 
-    const muzzleVelocity = cartridgeState && cartridgeState.muzzleVelocity != null ? cartridgeState.muzzleVelocity : null;
+    const muzzleVelocity = libraryCartridge
+      ? libraryCartridge.muzzleVelocity
+      : cartridgeState && cartridgeState.muzzleVelocity != null ? cartridgeState.muzzleVelocity : null;
     if (muzzleVelocity != null) {
       const velocityUnit = getUnit('velocity');
       const velocityChoice = unitChoice('muzzleVelocity', velocityUnit);

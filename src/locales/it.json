@@ -190,7 +190,7 @@
     "invalidTof": "Inserisci un tempo di volo valido (un numero positivo di secondi)."
   },
   "bcToolsLabradar": {
-    "intro": "Carica un'esportazione del cronografo Labradar (uno .zip di file di traccia) per calcolare un coefficiente balistico per ogni colpo, poi calcolarne la media sui colpi validi. I file che non sono vere tracce — il report o il file di progetto del dispositivo, o altri file estranei finiti nello zip — vengono ignorati automaticamente.",
+    "intro": "Questo strumento funziona solo con tracce provenienti da un dispositivo Labradar v1 (la grande scatola arancione). Carica un'esportazione del cronografo Labradar (uno .zip di file di traccia) per calcolare un coefficiente balistico per ogni colpo, poi calcolarne la media sui colpi validi. I file che non sono vere tracce — il report o il file di progetto del dispositivo, o altri file estranei finiti nello zip — vengono ignorati automaticamente.",
     "setupHeading": "Impostazione",
     "filterR2Label": "Soglia di qualità del segnale",
     "filterR2None": "Nessuna",
@@ -566,6 +566,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v131": "Piccoli chiarimenti dell'interfaccia e correzioni di bug.",
       "v130": "Prima versione pubblica. Dall'ultimo aggiornamento: il calcolo del BC Labradar ora risolve l'intera finestra velocità-tempo direttamente rispetto al modello fisico, invece di un adattamento lineare a coppie, insieme a una soglia di riduzione del rumore predefinita più severa. Miglioramenti dell'interfaccia.",
       "v129": "Aggiunto lo strumento Labradar a Strumenti BC: carica un'esportazione del cronografo Labradar (uno .zip di file di traccia) per calcolare un BC per ogni colpo, con lo stesso approccio di pulizia del rumore dello strumento autonomo originale, filtri regolabili di qualità del segnale e valori anomali, e un grafico velocità-tempo per ogni traccia.",
       "v128": "Cosmetica dell'interfaccia: la manopola dell'angolo del vento nella pagina Traiettoria è ora 1,75× più grande, centrata insieme al campo di inserimento manuale dei gradi.",

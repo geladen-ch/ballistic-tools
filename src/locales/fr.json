@@ -190,7 +190,7 @@
     "invalidTof": "Entrez un temps de vol valide (un nombre positif de secondes)."
   },
   "bcToolsLabradar": {
-    "intro": "Importez un export du chronographe Labradar (un .zip de fichiers de trajectoire) pour ajuster un coefficient balistique par coup, puis faire la moyenne sur les tirs valides. Les fichiers qui ne sont pas de vraies trajectoires — le rapport ou le fichier projet de l'appareil, ou tout autre fichier parasite présent dans le zip — sont ignorés automatiquement.",
+    "intro": "Cet outil ne fonctionne qu'avec des trajectoires provenant d'un boîtier Labradar v1 (la grande boîte orange). Importez un export du chronographe Labradar (un .zip de fichiers de trajectoire) pour ajuster un coefficient balistique par coup, puis faire la moyenne sur les tirs valides. Les fichiers qui ne sont pas de vraies trajectoires — le rapport ou le fichier projet de l'appareil, ou tout autre fichier parasite présent dans le zip — sont ignorés automatiquement.",
     "setupHeading": "Configuration",
     "filterR2Label": "Seuil de qualité du signal",
     "filterR2None": "Aucun",
@@ -566,6 +566,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v131": "Petites clarifications de l'interface et corrections de bugs.",
       "v130": "Première version publique. Depuis la dernière mise à jour : l'ajustement du BC Labradar résout désormais l'ensemble de la fenêtre vitesse/temps directement par rapport au modèle physique, au lieu d'un ajustement linéaire par paire, associé à un seuil de débruitage par défaut plus strict. Améliorations de l'interface.",
       "v129": "Ajout de l'outil Labradar aux Outils BC : importez un export du chronographe Labradar (un .zip de fichiers de trajectoire) pour ajuster un BC par coup, avec la même approche de nettoyage du bruit que l'outil autonome d'origine, des filtres de qualité de signal et de valeurs aberrantes réglables, et un graphique vitesse/temps par trajectoire.",
       "v128": "Cosmétique de l'interface : le cadran d'angle du vent sur la page Trajectoire est désormais 1,75× plus grand, et il est centré avec sa saisie manuelle en degrés dans le champ.",

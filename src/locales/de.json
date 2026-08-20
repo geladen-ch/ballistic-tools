@@ -190,7 +190,7 @@
     "invalidTof": "Geben Sie eine gültige Flugzeit ein (eine positive Anzahl Sekunden)."
   },
   "bcToolsLabradar": {
-    "intro": "Laden Sie einen Labradar-Chronographen-Export (ein .zip mit Track-Dateien) hoch, um pro Schuss einen ballistischen Koeffizienten zu ermitteln und über die gültigen Schüsse zu mitteln. Dateien, die keine echten Tracks sind — der Bericht oder die Projektdatei des Geräts, oder anderer Datenmüll im Zip — werden automatisch ignoriert.",
+    "intro": "Dieses Werkzeug funktioniert nur mit Tracks von einem Labradar v1 (der großen orangefarbenen Box). Laden Sie einen Labradar-Chronographen-Export (ein .zip mit Track-Dateien) hoch, um pro Schuss einen ballistischen Koeffizienten zu ermitteln und über die gültigen Schüsse zu mitteln. Dateien, die keine echten Tracks sind — der Bericht oder die Projektdatei des Geräts, oder anderer Datenmüll im Zip — werden automatisch ignoriert.",
     "setupHeading": "Einrichtung",
     "filterR2Label": "Signalqualitätsschwelle",
     "filterR2None": "Keine",
@@ -566,6 +566,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v131": "Kleinere Klarstellungen an der Benutzeroberfläche und Fehlerbehebungen.",
       "v130": "Erste öffentliche Version. Seit dem letzten Update: Die Labradar-BC-Ermittlung löst das gesamte Geschwindigkeit-Zeit-Fenster jetzt direkt gegen das physikalische Modell, statt einer paarweisen linearen Anpassung, zusammen mit einem strengeren Standard-Rauschschwellenwert. Verbesserungen der Benutzeroberfläche.",
       "v129": "BC-Werkzeuge um das Labradar-Werkzeug erweitert: Laden Sie einen Labradar-Chronographen-Export (ein .zip mit Track-Dateien) hoch, um pro Schuss einen BC zu ermitteln — mit demselben Rauschbereinigungsansatz wie im ursprünglichen eigenständigen Werkzeug, einstellbaren Signalqualitäts- und Ausreißerfiltern sowie einem Geschwindigkeit-Zeit-Diagramm pro Track.",
       "v128": "UI-Kosmetik: Der Windwinkel-Wahlring auf der Flugbahn-Seite ist jetzt 1,75× größer und wird zusammen mit der manuellen Gradeingabe im Feld zentriert.",

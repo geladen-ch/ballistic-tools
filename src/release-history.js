@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v131',
+    fullVersion: '1.1 (PEWPEW — Projectile Evaluation & Weapon Performance Engineering Workbench)',
+    date: '2026-08-20',
+    descriptionKey: 'releaseHistory.entries.v131'
+  },
+  {
     cacheVersion: 'v130',
     fullVersion: '1.0 (PEWPEW — Projectile Evaluation & Weapon Performance Engineering Workbench)',
     date: '2026-08-19',
