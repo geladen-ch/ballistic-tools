@@ -194,6 +194,11 @@ a { color: var(--accent); }
 }
 .hint { font-size: 11px; color: var(--dim); margin-top: 3px; }
 .hint.warning { color: var(--danger); }
+/* A compass direction shown visually (src/ui/direction-arrow.js) — sized
+   off the surrounding text (1em) and colored off it too (currentColor),
+   so it drops into any label/value context already at the right size and
+   shade with no per-caller styling. */
+.direction-arrow { width: 1em; height: 1em; vertical-align: -0.14em; display: inline-block; transform-origin: center; }
 /* Pasted-in-full Cd-Mach table (src/ui/arsenal/bullet-form.js) — a
    textarea instead of a single-line input, monospace so pasted columns of
    numbers stay visually aligned. */

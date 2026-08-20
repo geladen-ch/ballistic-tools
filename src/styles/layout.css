@@ -455,6 +455,28 @@ html.range-solver-mode.force-mobile #app-topbar { display: none; }
 
 .range-solver-output-pane { display: flex; flex-direction: column; gap: 16px; }
 
+/* The current shot conditions — no labels, just each value's own unit
+   symbol. Even quieter than .range-solver-footer below (smaller, no
+   brighter value color): this is context for the dialed numbers, not a
+   result of its own. */
+.range-solver-conditions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 11px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.range-solver-conditions-sep { opacity: 0.5; }
+/* The reading itself stands out; its unit doesn't — same split
+   .range-solver-footer-value uses below for ToF/velocity/energy. */
+.range-solver-conditions-num { color: var(--text); }
+/* Wind speed and its direction arrow — deliberately not spaced apart like
+   the bar's other items, so they read as one wind reading rather than
+   two unrelated numbers that happen to be neighbors. */
+.range-solver-conditions-wind { display: inline-flex; align-items: center; gap: 2px; }
+
 /* The dominant element of the whole screen — see rangeSolver-view.js's
    own renderClicks(). Elevation and windage are the same size, scaled to
    their own stat panel's actual width (container query units, not the

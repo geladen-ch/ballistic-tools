@@ -20,10 +20,11 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, unitChoice } from '../units.js';
+import { clicksForOffset, engineToDisplay, unitChoice, UNIT_GROUPS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle } from '../range-solver-prefs.js';
+import { directionArrow } from '../ui/direction-arrow.js';
 import { isSpinDriftEnabled } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import {
@@ -136,6 +137,15 @@ export function mount(container) {
   const inputPane = el('div', { class: 'range-solver-input-pane' }, [targetTab, windTab, atmosphereTab]);
 
   // ---- Output pane ----
+  // A quiet, label-free readout of the current shot conditions — target
+  // range, LoS angle (only when non-zero — a flat shot omits it entirely
+  // rather than showing a redundant "0°"), wind speed and direction,
+  // station pressure, temperature and humidity — each value carrying its
+  // own unit symbol as its only identification. Same "small and
+  // non-intrusive" visual weight as the ToF/velocity/energy footer below,
+  // but even quieter (no labels), since this is context for the dialed
+  // numbers, not a result in its own right.
+  const conditionsBar = el('div', { class: 'range-solver-conditions' });
   const elevationValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   const windageValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   const readout = el('div', { class: 'range-solver-readout' }, [
@@ -158,7 +168,7 @@ export function mount(container) {
     el('div', { class: 'range-solver-footer-stat' }, [i18nSpan('rangeSolver.energyLabel'), energyValue])
   ]);
 
-  const outputPane = el('div', { class: 'range-solver-output-pane' }, [guns.node, readout, footer]);
+  const outputPane = el('div', { class: 'range-solver-output-pane' }, [guns.node, conditionsBar, readout, footer]);
 
   container.appendChild(el('div', { class: 'range-solver-layout' }, [outputPane, inputPane]));
 
@@ -197,7 +207,54 @@ export function mount(container) {
     energyValue.textContent = '—';
   }
 
+  // The number itself is the reading; the unit is just how to read it — so
+  // it gets its own brighter span, same "value stands out, its context
+  // doesn't" split the footer below already uses for ToF/velocity/energy.
+  function numberWithUnit(numberStr, unitText) {
+    return [el('span', { class: 'range-solver-conditions-num' }, [numberStr]), document.createTextNode(unitText)];
+  }
+
+  // `fieldId`/`groupName` follow the same FIELD_UNITS/getUnit() convention
+  // every other display value in this app uses — including the same
+  // stale-preference fallback unitField()/largeStepperField() apply.
+  function formatWithUnit(fieldId, groupName, engineValue) {
+    const group = UNIT_GROUPS[groupName];
+    const displayUnit = getUnit(groupName);
+    const choice = unitChoice(fieldId, displayUnit) || group.choices.find((c) => c.unit === group.defaultUnit);
+    const numberStr = engineToDisplay(fieldId, engineValue, choice.unit).toFixed(choice.decimals);
+    return numberWithUnit(numberStr, ` ${choice.label}`);
+  }
+
+  function updateConditions() {
+    clear(conditionsBar);
+    const rangeM = targetRangeField.getEngineValue();
+    const losDeg = losAngleField.getEngineValue();
+    const windSpeedMs = windSpeedField.getEngineValue();
+    const windDeg = windAngleDial.getValue();
+    const { pressureHpa, tempC, humidityPct } = atmosphere.getValues();
+
+    const parts = [];
+    if (Number.isFinite(rangeM)) parts.push(formatWithUnit('targetRange', 'distance', rangeM));
+    if (Number.isFinite(losDeg) && losDeg !== 0) parts.push(numberWithUnit(losDeg.toFixed(0), '°'));
+    // Speed and direction share one ungapped group (an arrow, not a
+    // degree number — see direction-arrow.js) rather than being two
+    // separately-spaced items, so they read as one wind reading.
+    const windParts = [];
+    if (Number.isFinite(windSpeedMs)) windParts.push(...formatWithUnit('windSpeed', 'velocity', windSpeedMs));
+    if (Number.isFinite(windDeg)) windParts.push(directionArrow(windDeg));
+    if (windParts.length) parts.push(el('span', { class: 'range-solver-conditions-wind' }, windParts));
+    if (Number.isFinite(pressureHpa)) parts.push(formatWithUnit('pressureHpa', 'pressure', pressureHpa));
+    if (Number.isFinite(tempC)) parts.push(formatWithUnit('tempC', 'temperature', tempC));
+    if (Number.isFinite(humidityPct)) parts.push(numberWithUnit(String(Math.round(humidityPct)), '%'));
+
+    parts.forEach((part, i) => {
+      if (i > 0) conditionsBar.appendChild(el('span', { class: 'range-solver-conditions-sep' }, ['·']));
+      conditionsBar.appendChild(Array.isArray(part) ? el('span', {}, part) : part);
+    });
+  }
+
   function recompute() {
+    updateConditions();
     const nominalState = {
       ...cartridge.getValues(),
       ...rifle.getValues(),

@@ -574,6 +574,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v133": "Calculateur de terrain : une barre récapitulative des conditions a été ajoutée au-dessus de l'affichage élévation/dérive, montrant la distance, le vent et l'atmosphère en un coup d'œil.",
       "v132": "Outils BC désormais complets : la Conversion BC convertit un coefficient balistique entre modèles de traînée standard à une vitesse de référence choisie, en direct pendant la saisie. Outils BC n'affiche plus « Partiel ».",
       "v131": "Petites clarifications de l'interface et corrections de bugs.",
       "v130": "Première version publique. Depuis la dernière mise à jour : l'ajustement du BC Labradar résout désormais l'ensemble de la fenêtre vitesse/temps directement par rapport au modèle physique, au lieu d'un ajustement linéaire par paire, associé à un seuil de débruitage par défaut plus strict. Améliorations de l'interface.",

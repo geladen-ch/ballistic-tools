@@ -574,6 +574,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v133": "Feldrechner: Über der Anzeige für Höhen- und Seitenverstellung wurde eine zusammenfassende Bedingungsleiste hinzugefügt, die Zielentfernung, Wind und Atmosphäre auf einen Blick zeigt.",
       "v132": "BC-Werkzeuge sind vollständig: Die BC-Umrechnung wandelt jetzt einen ballistischen Koeffizienten zwischen Standard-Luftwiderstandsmodellen bei einer gewählten Referenzgeschwindigkeit um, live während der Eingabe. BC-Werkzeuge werden nicht mehr als „Teilweise“ angezeigt.",
       "v131": "Kleinere Klarstellungen an der Benutzeroberfläche und Fehlerbehebungen.",
       "v130": "Erste öffentliche Version. Seit dem letzten Update: Die Labradar-BC-Ermittlung löst das gesamte Geschwindigkeit-Zeit-Fenster jetzt direkt gegen das physikalische Modell, statt einer paarweisen linearen Anpassung, zusammen mit einem strengeren Standard-Rauschschwellenwert. Verbesserungen der Benutzeroberfläche.",

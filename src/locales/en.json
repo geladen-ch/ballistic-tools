@@ -574,6 +574,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v133": "Range Solver: a summary conditions bar was added above the elevation and windage readout, showing target range, wind, and atmosphere at a glance.",
       "v132": "BC Tools is complete: BC Conversion now converts a ballistic coefficient between standard drag models at a chosen reference velocity, live as you type. BC Tools no longer shows as Partial.",
       "v131": "Minor UI clarifications and bug fixes.",
       "v130": "First public release. Since the last update: Labradar BC fitting now solves the whole velocity-vs-time window against the physics model directly, instead of a per-pair linear fit, paired with a tighter default de-noise threshold. UI improvements.",

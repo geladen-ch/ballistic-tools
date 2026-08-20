@@ -574,6 +574,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v133": "Calcolatore per il poligono: sopra la lettura di elevazione/deriva è stata aggiunta una barra riassuntiva delle condizioni, che mostra a colpo d'occhio distanza, vento e atmosfera.",
       "v132": "Strumenti BC ora completi: Conversione BC converte un coefficiente balistico tra modelli di resistenza standard a una velocità di riferimento scelta, in tempo reale mentre digiti. Strumenti BC non mostra più \"Parziale\".",
       "v131": "Piccoli chiarimenti dell'interfaccia e correzioni di bug.",
       "v130": "Prima versione pubblica. Dall'ultimo aggiornamento: il calcolo del BC Labradar ora risolve l'intera finestra velocità-tempo direttamente rispetto al modello fisico, invece di un adattamento lineare a coppie, insieme a una soglia di riduzione del rumore predefinita più severa. Miglioramenti dell'interfaccia.",
