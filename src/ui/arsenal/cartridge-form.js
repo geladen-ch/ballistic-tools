@@ -122,7 +122,7 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, onSav
   const errorMessage = el('p', { class: 'hint warning' });
   errorMessage.style.display = 'none';
 
-  const saveButton = el('button', { i18n: 'arsenal.saveButton' });
+  const saveButton = el('button', { i18n: 'arsenal.saveCartridgeButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'arsenal.cancelButton' });
 
   function readValues() {

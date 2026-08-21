@@ -89,6 +89,33 @@ export function mount(container) {
   const bulletFormArea = el('div');
   const riflesListEl = el('div');
   const rifleFormArea = el('div');
+
+  // Single stable instances (re-appended, never recreated, by
+  // renderBullets()/renderRifles() below) — their visibility is toggled
+  // by refreshAddButtonVisibility() instead, so opening/closing a form
+  // doesn't need to rebuild either list just to hide/reveal these.
+  // Hidden while ANY add/edit form is open (bullet, rifle, or — nested
+  // within an open rifle form — one of its cartridges), not just the
+  // matching section's own, so there's never a second entry point
+  // competing with whichever form is already open.
+  const bulletAddButton = el('button', { id: 'arsenal-add-bullet', i18n: 'arsenal.addBulletButton' });
+  bulletAddButton.addEventListener('click', () => {
+    bulletFormState = { id: null };
+    renderBulletForm();
+    scrollBulletFormIntoView();
+  });
+  const rifleAddButton = el('button', { id: 'arsenal-add-rifle', i18n: 'arsenal.addRifleButton' });
+  rifleAddButton.addEventListener('click', () => {
+    rifleFormState = { id: null };
+    cartridgeFormState = null;
+    renderRifleForm();
+    scrollRifleFormIntoView();
+  });
+  function refreshAddButtonVisibility() {
+    const anyFormOpen = !!bulletFormState || !!rifleFormState;
+    bulletAddButton.style.display = anyFormOpen ? 'none' : '';
+    rifleAddButton.style.display = anyFormOpen ? 'none' : '';
+  }
   const exportDialogArea = el('div');
   const importArea = el('div');
   const importErrorArea = el('p', { class: 'hint warning' });
@@ -240,7 +267,7 @@ export function mount(container) {
 
   function exportSingleBullet(bullet) {
     const payload = buildExportPayload({ bullets: [bullet], rifles: [] });
-    downloadJsonFile(`${sanitizeFilename(bullet.name)}.json`, serializeExport(payload));
+    downloadJsonFile(`gb-bullet-${sanitizeFilename(bullet.name)}.json`, serializeExport(payload));
     markUserBulletsSaved([bullet.id]);
     refreshLibraryView();
   }
@@ -253,7 +280,7 @@ export function mount(container) {
     const bulletIds = collectRifleBulletIds(rifle, new Set(allUserBullets.map((b) => b.id)));
     const bullets = allUserBullets.filter((b) => bulletIds.has(b.id));
     const payload = buildExportPayload({ bullets, rifles: [rifle] });
-    downloadJsonFile(`${sanitizeFilename(rifle.name)}.json`, serializeExport(payload));
+    downloadJsonFile(`gb-rifle-${sanitizeFilename(rifle.name)}.json`, serializeExport(payload));
     markUserBulletsSaved([...bulletIds]);
     markUserRiflesSaved([rifle.id]);
     refreshLibraryView();
@@ -658,17 +685,16 @@ export function mount(container) {
       ]));
     }
 
-    const addButton = el('button', { id: 'arsenal-add-bullet', i18n: 'arsenal.addBulletButton' });
-    addButton.addEventListener('click', () => {
-      bulletFormState = { id: null };
-      renderBulletForm();
-      scrollBulletFormIntoView();
-    });
-    bulletsListEl.appendChild(addButton);
+    // A single stable instance (see bulletAddButton's own declaration),
+    // just re-appended here on every render — its visibility is managed
+    // separately by refreshAddButtonVisibility(), not by whether it gets
+    // appended, so re-appending it never disturbs that state.
+    bulletsListEl.appendChild(bulletAddButton);
   }
 
   function renderBulletForm() {
     clear(bulletFormArea);
+    refreshAddButtonVisibility();
     if (!bulletFormState) return;
     const editing = bulletFormState.id ? loadUserBullets().find((b) => b.id === bulletFormState.id) : null;
     // pendingBulletPrefill is one-shot: consumed (and nulled) the first time
@@ -913,14 +939,9 @@ export function mount(container) {
       ]));
     }
 
-    const addButton = el('button', { id: 'arsenal-add-rifle', i18n: 'arsenal.addRifleButton' });
-    addButton.addEventListener('click', () => {
-      rifleFormState = { id: null };
-      cartridgeFormState = null;
-      renderRifleForm();
-      scrollRifleFormIntoView();
-    });
-    riflesListEl.appendChild(addButton);
+    // A single stable instance — see bulletsListEl's matching
+    // bulletAddButton append above for why.
+    riflesListEl.appendChild(rifleAddButton);
   }
 
   function renderExportDialog() {
@@ -933,7 +954,7 @@ export function mount(container) {
         const bullets = loadUserBullets().filter((b) => bulletIds.includes(b.id));
         const rifles = loadUserRifles().filter((r) => rifleIds.includes(r.id));
         const payload = buildExportPayload({ bullets, rifles });
-        downloadJsonFile('arsenal-library.json', serializeExport(payload));
+        downloadJsonFile('gb-arsenal-library.json', serializeExport(payload));
         markUserBulletsSaved(bulletIds);
         markUserRiflesSaved(rifleIds);
         exportDialogState = false;
@@ -1041,6 +1062,7 @@ export function mount(container) {
 
   function renderRifleForm() {
     clear(rifleFormArea);
+    refreshAddButtonVisibility();
     if (!rifleFormState) return;
     const editing = rifleFormState.id ? loadUserRifles().find((r) => r.id === rifleFormState.id) : null;
     // See the matching comment in renderBulletForm() — one-shot, and wins

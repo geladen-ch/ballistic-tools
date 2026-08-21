@@ -14,10 +14,25 @@ const { resetShotStateForTests } = await import('../src/shot-state.js');
 const {
   isInRangeSolverMode, getRangeSolverTab, setRangeSolverTab, resetRangeSolverNavForTests
 } = await import('../src/range-solver-nav.js');
-const { resetRangeSolverStateForTests } = await import('../src/range-solver-state.js');
+const {
+  resetRangeSolverStateForTests, saveRangeSolverLocationState, loadRangeSolverLocationState,
+  saveRangeSolverTargetState, wasAtmosphereTouchedThisSession
+} = await import('../src/range-solver-state.js');
 const { setIndicatorStyle } = await import('../src/range-solver-prefs.js');
 const { getCookie } = await import('../src/cookies.js');
+const { saveUserLocation, loadUserLocations } = await import('../src/location-library.js');
+const { generateUserId } = await import('../src/user-library.js');
+const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
+const { takePendingPlacement } = await import('../src/location-placement-nav.js');
 const rangeSolverView = await import('../src/views/range-solver-view.js');
+
+// showDialog() (the sync-target confirm) needs its overlay mounted once —
+// same setup app-dialog.test.js's own suite uses — before any test in
+// this file that clicks the sync button. Kept as its own root (not part
+// of a mounted range-solver-view container) since app-dialog.js's overlay
+// is always a sibling of the routed view, never inside it.
+const dialogRoot = makeElement('div');
+mountDialogRoot(dialogRoot);
 
 test.beforeEach(() => {
   resetShotStateForTests();
@@ -60,6 +75,25 @@ function isHidden(node) {
 function settle(ms = 50) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+function findByTitle(node, title) {
+  if (node.title === title) return node;
+  for (const child of node.childNodes || []) {
+    const found = findByTitle(child, title);
+    if (found) return found;
+  }
+  return null;
+}
+
+function makeTestLocation(overrides = {}) {
+  return { id: generateUserId('location'), name: 'Home Range', altitudeM: null, photo: null, targets: [], ...overrides };
+}
+
+function makeTestTarget(overrides = {}) {
+  return { id: generateUserId('target'), name: null, notes: null, rangeM: 650, losAngleDeg: 12, coords: null, ...overrides };
+}
+
+const TEST_PHOTO = 'data:image/jpeg;base64,AAA';
 
 test('mount() builds a DOM tree without throwing, and enters Range Solver mode', async () => {
   const container = makeElement('main');
@@ -291,5 +325,208 @@ test('always reopens on the Target tab, even if Wind/Atmosphere was active when 
   cleanup = rangeSolverView.mount(container2);
   await settle();
   assert.equal(getRangeSolverTab(), 'target');
+  cleanup();
+});
+
+// ---- Locations & Targets library integration ----
+
+test('with no active location, only the manage-locations icon shows — no name, no target select', async () => {
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  assert.ok(isHidden(findByClass(container, 'range-solver-location-name')[0]));
+  assert.ok(isHidden(findById(container, 'rangeSolverTargetSelect')));
+  assert.ok(!isHidden(findByTitle(container, t('rangeSolverLocations.manageButtonLabel'))));
+
+  cleanup();
+});
+
+test('an active location shows its name and a target select populated from its own targets', async () => {
+  const t1 = makeTestTarget({ name: 'Steel plate' });
+  const t2 = makeTestTarget({ name: null }); // exercises the default-numbered label
+  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const nameEl = findByClass(container, 'range-solver-location-name')[0];
+  assert.ok(!isHidden(nameEl));
+  assert.equal(nameEl.textContent, 'Home Range');
+
+  const select = findById(container, 'rangeSolverTargetSelect');
+  assert.ok(!isHidden(select));
+  const optionLabels = [...select.childNodes].map((o) => o.textContent);
+  assert.deepEqual(optionLabels, ['Steel plate', t('rangeSolverLocations.defaultTargetName', { n: 2 })]);
+  assert.equal(select.value, t1.id);
+  assert.equal(findById(container, 'targetRange').value, '650');
+
+  cleanup();
+});
+
+test('picking a different target in the select copies its range/LoS into the fields', async () => {
+  const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 12 });
+  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: -5 });
+  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const select = findById(container, 'rangeSolverTargetSelect');
+  select.value = t2.id;
+  fireEvent(select, 'change');
+
+  assert.equal(findById(container, 'targetRange').value, '300');
+  assert.equal(findById(container, 'losAngle').value, '-5');
+  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.syncButtonLabel'))), 'freshly loaded, nothing diverged yet');
+
+  cleanup();
+});
+
+test('hand-editing range after a target loads shows the sync button; switching targets hides it again with no confirmation', async () => {
+  const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
+  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 0 });
+  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const syncButton = findByTitle(container, t('rangeSolverLocations.syncButtonLabel'));
+  assert.ok(isHidden(syncButton));
+
+  const rangeInput = findById(container, 'targetRange');
+  rangeInput.value = '700';
+  fireEvent(rangeInput, 'input');
+  assert.ok(!isHidden(syncButton), 'diverged from the loaded target — sync button should appear');
+
+  // Switching targets discards the unsynced edit with no confirmation.
+  const select = findById(container, 'rangeSolverTargetSelect');
+  select.value = t2.id;
+  fireEvent(select, 'change');
+  assert.equal(rangeInput.value, '300');
+  assert.ok(isHidden(syncButton));
+
+  cleanup();
+});
+
+test('the sync button opens a confirm dialog; confirming writes the hand-edited values back into the saved target', async () => {
+  const target = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
+  const location = saveUserLocation(makeTestLocation({ targets: [target] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: target.id });
+  saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const rangeInput = findById(container, 'targetRange');
+  rangeInput.value = '710';
+  fireEvent(rangeInput, 'input');
+
+  const syncButton = findByTitle(container, t('rangeSolverLocations.syncButtonLabel'));
+  fireEvent(syncButton, 'click');
+
+  const confirmButton = findByClass(dialogRoot, 'app-dialog-actions')[0].childNodes[0];
+  assert.equal(confirmButton.textContent, t('rangeSolverLocations.syncConfirmButton'));
+  fireEvent(confirmButton, 'click');
+
+  assert.ok(isHidden(syncButton), 'no longer diverged once saved back');
+  const stored = loadUserLocations().find((l) => l.id === location.id);
+  assert.equal(stored.targets[0].rangeM, 710);
+
+  cleanup();
+});
+
+test('a locationId that no longer resolves (deleted) falls back to "no location" and clears the saved pointer', async () => {
+  saveRangeSolverLocationState({ locationId: 'deleted-location-id', targetId: 'deleted-target-id' });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  assert.ok(isHidden(findByClass(container, 'range-solver-location-name')[0]));
+  assert.equal(loadRangeSolverLocationState().locationId, null);
+
+  cleanup();
+});
+
+test('a location with zero targets shows its name but no target select, behaving like manual entry', async () => {
+  const location = saveUserLocation(makeTestLocation({ targets: [] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: null });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  assert.ok(!isHidden(findByClass(container, 'range-solver-location-name')[0]));
+  assert.ok(isHidden(findById(container, 'rangeSolverTargetSelect')));
+  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.syncButtonLabel'))));
+
+  cleanup();
+});
+
+test('hand-editing the Atmosphere tab flips wasAtmosphereTouchedThisSession(), the signal "Set active" (see locations-view.js) checks before defaulting a location\'s altitude', async () => {
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  assert.equal(wasAtmosphereTouchedThisSession(), false);
+  setRangeSolverTab('atmosphere');
+  const tempInput = findById(container, 'tempC');
+  tempInput.value = '3';
+  fireEvent(tempInput, 'input');
+
+  assert.equal(wasAtmosphereTouchedThisSession(), true);
+
+  cleanup();
+});
+
+test('the photo picker icon is hidden unless the active location has a photo', async () => {
+  const withoutPhoto = saveUserLocation(makeTestLocation({ photo: null, targets: [] }));
+  saveRangeSolverLocationState({ locationId: withoutPhoto.id, targetId: null });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'))));
+
+  cleanup();
+});
+
+test('an active location with a photo shows the photo picker icon; clicking it hands off to the full-screen picker route in select mode, without touching the current selection', async () => {
+  const placed = makeTestTarget({ rangeM: 650, losAngleDeg: 0, coords: { x: 0.3, y: 0.4 } });
+  // Named `savedLocation`, not `location` — this test asserts against the
+  // real global `location.hash` below, which a same-named local would
+  // otherwise shadow (see range-solver-view.js's own matching comment).
+  const savedLocation = saveUserLocation(makeTestLocation({ photo: TEST_PHOTO, targets: [placed] }));
+  saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: placed.id });
+  saveRangeSolverTargetState({ rangeM: placed.rangeM, losAngleDeg: placed.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const photoButton = findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'));
+  assert.ok(!isHidden(photoButton));
+
+  fireEvent(photoButton, 'click');
+
+  assert.equal(location.hash, '#/locations/place');
+  assert.deepEqual(takePendingPlacement(), { locationId: savedLocation.id, targetId: null, returnPath: '/range-solver', selectMode: true });
+  // The button's own handoff never touches the current selection itself —
+  // picking a different target (if any) only happens inside the picker
+  // route, tested in location-placement-view.test.js.
+  assert.deepEqual(loadRangeSolverLocationState(), { locationId: savedLocation.id, targetId: placed.id });
+
   cleanup();
 });

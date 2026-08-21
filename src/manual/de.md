@@ -18,9 +18,9 @@ Rechners selbst zu verletzen, ist das Ihr eigenes Problem — wer bin ich,
 mich der natürlichen Auslese in den Weg zu stellen?
 
 Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**,
-**Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge** und **Einstellungen** —
-sowie **Trefferwahrscheinlichkeit** und den **Feldrechner**, die für ihre
-aktuellen Szenarien nutzbar sind, aber noch aktiv weiterentwickelt werden.
+der **Feldrechner**, **Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge** und
+**Einstellungen** — sowie die **Trefferwahrscheinlichkeit**, die für ihre
+aktuellen Szenarien nutzbar ist, aber noch aktiv weiterentwickelt wird.
 Alles andere auf der Startseite ist am Ende unter
 **Geplant / in Arbeit**
 aufgeführt.
@@ -179,9 +179,9 @@ zur Startseite). Auf einem Smartphone oder Tablet, das dies unterstützt,
 wird der Bildschirm am Einschlafen gehindert, solange der Feldrechner
 geöffnet ist, damit er nicht mitten in einer Schussserie dunkel wird.
 
-- **Ziel** — Distanz und Ziellinienwinkel. Derzeit absichtlich nur diese
-  beiden Felder; ein umfassenderer Ziel-/Standortmodus ist geplant, der
-  diesen Tab ersetzt, ohne Wind oder Atmosphäre zu berühren.
+- **Ziel** — Distanz und Ziellinienwinkel, von Hand eingegeben oder aus der
+  Zielliste eines gespeicherten Standorts ausgewählt — siehe **Standorte &
+  Ziele** unten.
 - **Wind** — Geschwindigkeit (großer +/−-Regler) und Richtung (derselbe
   Regler wie anderswo, hier vergrößert).
 - **Atmosphäre** — Temperatur, Druck, Höhe, Luftfeuchtigkeit und
@@ -195,14 +195,86 @@ vorangestelltem Richtungssymbol: aufwärts/abwärts für die Höhe, links/rechts
 für die Seite. Wählen Sie zwischen einem Pfeilsymbol oder einem
 **+ / −**-Zeichen (Einstellungen → **Anzeigesymbole im Feldrechner**) — **+**
 bedeutet immer nach oben oder nach rechts drehen. Eine kleine Fußzeile zeigt
-zusätzlich Flugzeit, Restgeschwindigkeit und Restenergie. Wird ein Feld
-gerade bearbeitet (z. B. kurzzeitig leer), zeigt die Anzeige ein einfaches
-**—** statt eines fehlerhaften Ergebnisses.
+zusätzlich Flugzeit, Restgeschwindigkeit und Restenergie. Eine zusammen-
+fassende Bedingungsleiste über der Anzeige zeigt Distanz, Wind und
+Atmosphäre auf einen Blick, sodass Sie immer wissen, wofür eine bestimmte
+Höhen-/Seitenkorrektur eingestellt wurde. Wird ein Feld gerade bearbeitet
+(z. B. kurzzeitig leer), zeigt die Anzeige ein einfaches **—** statt eines
+fehlerhaften Ergebnisses.
 
 Verwendet dasselbe aktive Gewehr, dieselbe Patrone und dasselbe Geschoss wie
 Flugbahn und Trefferwahrscheinlichkeit (festgelegt unter **Waffen**) sowie
 denselben Nullpunkt — hier gibt es keine separate Gefechtsnullpunkt-
 Einstellung.
+
+### Standorte & Ziele
+
+Optional: Speichern Sie die Ziele eines Schießstands einmal — Distanz und
+Ziellinienwinkel, und, falls Sie ein vom Schützenstandpunkt aus
+aufgenommenes Foto hinzufügen, wo sich jedes davon darauf befindet — und
+wählen Sie sie bei späteren Besuchen direkt im Reiter „Ziel" aus, statt
+Distanz und Winkel jedes Mal von Hand einzustellen. Wind und Atmosphäre
+gehören nie zu einem gespeicherten Ziel, nur Distanz, Winkel und (mit Foto)
+Position.
+
+Die eigene Zeile **Standorte & Ziele** im Reiter „Ziel" zeigt den Namen des
+aktuellen Standorts (nichts, falls Sie keinen verwenden), ein Auswahlmenü
+seiner Ziele, und bis zu drei Symbole:
+
+- Ein Fotorahmen-Symbol, **Ziel per Foto auswählen** (nur sichtbar, sobald
+  der aktuelle Standort ein Foto hat) — öffnet dieses Foto im
+  Vollbildmodus; auf die Markierung eines bereits platzierten Ziels tippen,
+  um es sofort auszuwählen, oder auf eine Chip-Markierung (oben links
+  gestapelt) für ein noch nicht platziertes Ziel. Es ändert sich nichts,
+  bis Sie eines antippen.
+- Ein Sync-Symbol, **Dieses Ziel mit der aktuellen Distanz/dem aktuellen
+  Winkel aktualisieren** — erscheint, sobald die gerade eingestellte
+  Distanz/der Winkel nicht mehr mit den gespeicherten Werten des
+  ausgewählten Ziels übereinstimmt (z. B. weil Sie die Distanz nach der
+  Auswahl von Hand nachjustiert haben). Aktualisiert das gespeicherte Ziel
+  auf die aktuell eingestellten Werte.
+- **Standorte verwalten** — öffnet die Bibliothek „Standorte & Ziele"
+  selbst (unten). „Fertig" dort bringt Sie zu diesem Reiter zurück.
+
+Die Auswahl eines Ziels (Menü, Foto oder Chip) kopiert dessen Distanz und
+Winkel als einmalige, freie Bearbeitung in den Reiter „Ziel" — keine
+dauerhafte Verknüpfung: Sie können die eingestellten Werte danach weiter
+von Hand nachjustieren, ohne das gespeicherte Ziel zu verändern (dafür ist
+das Sync-Symbol oben da, falls Sie es synchron halten möchten).
+
+**Standorte verwalten.** Der Bibliotheksbildschirm teilt Ihre Standorte in
+**Aktueller Standort** (der jeweils aktive, oder **Kein Standort —
+einzelnes Ziel, manuelle Eingabe**, falls keiner aktiv ist) und **Bekannte
+Standorte** (alle übrigen) auf. Ein Tippen auf einen bekannten Standort
+aktiviert ihn — verschiebt ihn zum aktuellen Standort und scrollt dorthin
+— ohne diesen Bildschirm zu verlassen. Nur der aktuelle Standort zeigt
+**Bearbeiten** und seine Zielliste; jeder Standort, aktuell oder bekannt,
+zeigt **In Datei sichern** und **Löschen**. **Bibliothek in Datei
+sichern…** / **Sicherung aus Datei laden…** oben sichern bzw. stellen die
+gesamte Bibliothek auf einmal wieder her, genauso wie im Arsenal für
+Gewehre und Geschosse.
+
+Ein Standort hat einen Namen, eine optionale Höhe (falls angegeben, füllt
+die Aktivierung des Standorts den Reiter „Atmosphäre" mit der
+Standardatmosphäre für diese Höhe und 50 % Luftfeuchtigkeit — jedoch nur,
+wenn Sie die Atmosphärenwerte in dieser Sitzung noch nicht selbst geändert
+haben), und ein optionales Foto. Seine Ziele haben jeweils einen Namen
+(optional — Standard „Ziel 1", „Ziel 2" usw.), Notizen, Distanz und
+Ziellinienwinkel.
+
+**Ein Ziel auf dem Foto platzieren.** Sobald ein Standort ein Foto hat,
+erhält jedes seiner Ziele eine Schaltfläche **Platzieren** (in seiner Zeile
+und im eigenen Bearbeitungsformular), die das Foto im Vollbildmodus für
+genau dieses Ziel öffnet: tippen oder ziehen, um die Markierung zu
+positionieren, auf freier Fläche ziehen zum Verschieben, zum Zoomen
+zusammen-/auseinanderziehen (oder die Schaltflächen **Vergrößern** /
+**Verkleinern** der Navigationsleiste). Jedes andere bereits platzierte
+Ziel auf demselben Foto erscheint als kleiner Punkt mit Name, Distanz und
+Winkel, sodass Sie das neue Ziel relativ dazu platzieren können.
+**Markierung entfernen** hebt die Platzierung auf; „Fertig" speichert sie
+und kehrt zur Bibliothek zurück. Ein Ziel, das auf dem (vorhandenen) Foto
+noch nicht platziert wurde, zeigt in seiner Zeile zur Erinnerung ein
+Abzeichen **Nicht platziert**.
 
 ## Waffen
 

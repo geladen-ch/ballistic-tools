@@ -24,10 +24,15 @@ import {
   isInRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, onRangeSolverTabChange, setRangeSolverTab
 } from '../range-solver-nav.js';
+import { isInLocationsMode, onLocationsModeChange } from '../locations-nav.js';
+import {
+  isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
+} from '../location-placement-nav.js';
 import { statusChip } from './status-chip.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
-  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, windIcon, atmosphereIcon, exitIcon
+  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, windIcon, atmosphereIcon, exitIcon,
+  zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
 const GROUP_ICON = { measurement: measurementIcon, analysis: analysisIcon };
@@ -58,6 +63,16 @@ export function mountNavRail(container) {
     if (isInRangeSolverMode()) {
       container.className = 'app-rail range-solver-mode';
       container.appendChild(buildRangeSolverMode());
+      return;
+    }
+    if (isInPlacementMode()) {
+      container.className = 'app-rail placement-mode';
+      container.appendChild(buildPlacementMode());
+      return;
+    }
+    if (isInLocationsMode()) {
+      container.className = 'app-rail locations-mode';
+      container.appendChild(buildLocationsMode());
       return;
     }
     const collapsed = isRailCollapsed();
@@ -119,6 +134,30 @@ export function mountNavRail(container) {
       gunLink,
       exitBtn
     ]);
+  }
+
+  // Replaces the whole rail while Locations management is open (see
+  // locations-nav.js) — a single Done, same "focused mode" idea as Guns/
+  // Range Solver above, just with nothing to switch between.
+  function buildLocationsMode() {
+    const doneBtn = el('button', { type: 'button', class: 'done-btn' }, [checkIcon(13), el('span', { i18n: 'guns.doneButton' })]);
+    doneBtn.addEventListener('click', () => { location.hash = '#/range-solver'; });
+    return el('nav', { class: 'rail-inner rail-locations-mode' }, [doneBtn]);
+  }
+
+  // Replaces the whole rail while the full-screen placement/picker route
+  // is open (see location-placement-nav.js) — Zoom In/Zoom Out replace
+  // pinching for precision on non-touch devices; Done reaches into
+  // whichever view is mounted (to commit, in placement mode) before
+  // navigating back to wherever it was opened from.
+  function buildPlacementMode() {
+    const zoomInBtn = el('button', { type: 'button', class: 'guns-tab' }, [zoomInIcon(13), el('span', { i18n: 'rangeSolverLocations.zoomInButton' })]);
+    zoomInBtn.addEventListener('click', () => requestZoomIn());
+    const zoomOutBtn = el('button', { type: 'button', class: 'guns-tab' }, [zoomOutIcon(13), el('span', { i18n: 'rangeSolverLocations.zoomOutButton' })]);
+    zoomOutBtn.addEventListener('click', () => requestZoomOut());
+    const doneBtn = el('button', { type: 'button', class: 'done-btn' }, [checkIcon(13), el('span', { i18n: 'guns.doneButton' })]);
+    doneBtn.addEventListener('click', () => requestDone());
+    return el('nav', { class: 'rail-inner rail-placement-mode' }, [zoomInBtn, zoomOutBtn, doneBtn]);
   }
 
   function pinnedLink(path, nameKey, iconFn, currentP) {
@@ -294,6 +333,8 @@ export function mountNavRail(container) {
   onGunsModeChange(render);
   onRangeSolverModeChange(render);
   onRangeSolverTabChange(render);
+  onLocationsModeChange(render);
+  onPlacementModeChange(render);
   window.addEventListener('hashchange', render);
   return { render };
 }

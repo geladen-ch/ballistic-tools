@@ -206,7 +206,7 @@
    below as-is (same visual treatment, same reasoning nav-tabbar.js's own
    Guns-mode items already reuse the plain .tab-item class rather than a
    dedicated one). ---- */
-.rail-guns-mode, .rail-range-solver-mode { gap: 6px; }
+.rail-guns-mode, .rail-range-solver-mode, .rail-locations-mode, .rail-placement-mode { gap: 6px; }
 .done-btn {
   all: unset;
   box-sizing: border-box;
@@ -400,6 +400,16 @@ html.force-mobile #app-tabbar { display: flex; }
 html.force-mobile #app-body { padding-bottom: 62px; }
 html.range-solver-mode.force-mobile #app-topbar { display: none; }
 
+/* Placement mode's own full-screen takeover — unlike range-solver-mode
+   above, this isn't mobile-only: "the image occupies all screen estate,
+   except the navigation bar" applies on desktop too. #app-body's own
+   mobile-only bottom padding (reserving room for the fixed tab bar,
+   which placement mode still shows — see above) is left untouched. */
+html.placement-mode #app-topbar { display: none; }
+html.placement-mode #app-shell { height: 100dvh; }
+html.placement-mode #view { display: flex; flex-direction: column; min-height: 0; padding: 0; max-width: none; overflow: hidden; }
+html.placement-mode .location-placement-page { flex: 1; min-height: 0; }
+
 /* Landscape phones (short viewport height, regardless of width) get the
    tab bar standing on the right edge instead of lying along the bottom —
    a horizontal bar here would eat a big chunk of the little vertical room
@@ -527,6 +537,193 @@ html.range-solver-mode.force-mobile #app-topbar { display: none; }
 
 .range-solver-input-pane { display: flex; flex-direction: column; gap: 16px; }
 
+/* Locations & Targets library — the active location's name, the "manage
+   locations" icon, its target picker select, the photo target picker
+   icon, and the sync-when-diverged icon, all in one row above the Target
+   tab's own range/LoS fields. Wraps
+   rather than shrinking the select down to unreadable, and every control
+   here keeps a real touch target (the select's own comfortable height,
+   .icon-button's usual 26px tap targets) — same "field, glove-friendly"
+   posture as the rest of Range Solver's own input pane. */
+.range-solver-location-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.range-solver-location-name { font-weight: 600; font-size: 14px; }
+.range-solver-target-select { flex: 1 1 auto; min-width: 140px; }
+/* .icon-button's own default is deliberately dim/quiet everywhere else it's
+   used (download/copy buttons) — these three are the only way to reach
+   the picker/sync/manage actions from the Target tab, so they get the
+   app's own accent color instead to read as clearly present. */
+.range-solver-location-row .icon-button { color: var(--accent); }
+
+/* Locations management's Current-location/Known-locations split
+   (src/views/locations-view.js) — each is just a heading over a stack of
+   .arsenal-row entries, same convention every other list in this app
+   already uses; only the Known-locations rows get their own click-to-
+   activate affordance, since they're the only ones that are plain
+   buttons in row's clothing rather than a row with its own action
+   buttons only. */
+.locations-current { margin-bottom: 20px; }
+.locations-current > h3, .locations-known > h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.location-row-clickable {
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.1s ease;
+}
+.location-row-clickable:hover { background: var(--panel-raised); }
+
+/* Shared full-screen zoomable/pannable photo container
+   (src/ui/locations/photo-viewport.js) behind location-placement-view.js's
+   two modes — placing one target's pin, or browsing/selecting among
+   several. touch-action:none is load-bearing — without it the browser's
+   own native scroll/pinch-zoom fights the widget's own pointer events.
+   user-select/-webkit-touch-callout:none stop a long-press on the photo
+   or a marker from triggering the browser's own text-selection/"save
+   image"/context-menu handling mid-drag — touch-action alone doesn't
+   cover that; photo-viewport.js's own contextmenu listener is the other
+   half of this, for browsers that still show it regardless. */
+.photo-viewport {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  background: var(--panel-raised);
+  flex: 1;
+  min-height: 0;
+}
+.photo-viewport-inner { position: relative; transform-origin: 0 0; }
+.photo-viewport-inner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+/* The one target being placed — draggable, so it gets its own crosshair
+   reticle and cursor, distinct from every other (read-only) pin/dot on
+   the same photo. Centered (not bottom-anchored like a map pin) since the
+   reticle's own center point, not a tip, marks the exact coords.
+   The trailing scale(var(--marker-scale-compensation)) keeps its
+   on-screen size constant regardless of the photo's own zoom — see
+   photo-viewport.js's applyTransform(), which keeps that custom property
+   updated to the inverse of the current scale. Order matters: CSS
+   applies the rightmost transform function first, so the counter-scale
+   happens in local space around this element's own center, and the
+   translate(-50%,-50%) that re-centers it on the coords is unaffected by
+   it (percentages there resolve against this element's own, unscaled,
+   layout size). */
+.photo-viewport-marker {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale-compensation, 1));
+  color: var(--accent);
+  touch-action: none;
+  cursor: grab;
+}
+/* Other already-placed targets, shown as fixed reference points while
+   placing/moving one target's own pin above — reuses the circle-pin dot/
+   label styling below so both placement and the select-mode picker read
+   the same way. pointer-events:none so they never intercept the
+   viewport's own tap/drag/pinch handling.
+   Not a flex stack: the dot must sit exactly on the pinned coords, so it
+   gets its own centered position/transform; the label is independently
+   offset below it rather than sharing a box whose bottom edge (with the
+   label as its last child) would otherwise be what lands on the point.
+   The counter-scale lives here, on the outer wrapper, rather than on the
+   dot/label individually — with transform-origin at this element's own
+   (0,0) anchor point (the pinned coords), scaling the whole dot+label
+   subtree around it keeps that point fixed while shrinking/growing
+   everything else (including the dot-to-label gap) around it uniformly,
+   so the whole marker reads as one constant-size unit at any zoom. */
+.target-pin-other-marker {
+  position: absolute;
+  transform: scale(var(--marker-scale-compensation, 1));
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* location-placement-view.js's own page shell — fills the space under
+   the nav bar (see html.placement-mode below) with the photo viewport,
+   a short instruction line above it, and (placement mode only) a "Clear
+   pin" button below. */
+.location-placement-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  gap: 10px;
+}
+.location-placement-page > .hint { margin: 0; flex-shrink: 0; }
+.location-placement-page > button { flex-shrink: 0; align-self: flex-start; }
+
+/* Select-mode's tap-to-select pins/chips (ported from the retired
+   target-photo-overlay.js) — reused as-is inside photo-viewport.js's own
+   markers layer, placement mode's static reference dots, and here.
+   Same not-a-flex-stack reasoning, and same zoom-counter-scaling on the
+   outer wrapper, as .target-pin-other-marker above. */
+.target-photo-overlay-pin {
+  position: absolute;
+  transform: scale(var(--marker-scale-compensation, 1));
+  transform-origin: 0 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.target-photo-overlay-pin-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+}
+.target-photo-overlay-pin-label {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  transform: translate(-50%, 0);
+  font-size: 11px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 4px;
+  white-space: nowrap;
+  color: var(--text);
+}
+.target-photo-overlay-stack {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.target-photo-overlay-chip {
+  font-size: 11px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: var(--text);
+}
+
 /* ---- Wind speed's large stepper (src/ui/large-stepper-field.js) — big
    touch targets, operable at arm's length or with gloves on. ---- */
 .large-stepper-row { display: flex; align-items: center; gap: 10px; }
@@ -583,6 +780,16 @@ html.range-solver-mode.force-mobile #app-topbar { display: none; }
    left-aligned/stretched) — .wind-dial-readout's own flex-grow is
    dropped here so the pair keeps its natural width and justify-content
    can actually center it. ---- */
+/* Range Solver's own Wind tab drops the dial's "Wind angle (deg,
+   0=head)" label entirely — the tab itself, and the dial's own visible
+   12/3/6/9 face, already make what it controls obvious, and the label
+   was just consuming vertical room this pane can't spare (see the
+   short-landscape pane rebalance above). Scoped the same way the sizing
+   overrides just above it are — the plain .wind-dial-field/.field label
+   rule stays untouched for every other place this component appears
+   (Trajectory, Hit Probability), where there's no adjacent tab label to
+   lean on instead. */
+.range-solver-tab-panel .wind-dial-field > label { display: none; }
 .range-solver-tab-panel .wind-dial-field { container-type: inline-size; }
 .range-solver-tab-panel .wind-dial-body { justify-content: center; }
 .range-solver-tab-panel .wind-dial-readout { flex: none; text-align: center; }
@@ -623,7 +830,6 @@ html.range-solver-mode.force-mobile #app-topbar { display: none; }
   html.range-solver-mode:not(.force-desktop) #app-shell { height: 100dvh; }
   html.range-solver-mode:not(.force-desktop) #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
   html.range-solver-mode:not(.force-desktop) .range-solver-layout { flex: 1; min-height: 0; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 1; min-height: 0; }
   html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-body { flex: 1; min-height: 0; flex-direction: column; flex-wrap: nowrap; }
@@ -635,7 +841,6 @@ html.range-solver-mode.force-mobile #app-topbar { display: none; }
 html.range-solver-mode.force-mobile #app-shell { height: 100dvh; }
 html.range-solver-mode.force-mobile #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 0; }
-html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 1; min-height: 0; }
 html.range-solver-mode.force-mobile .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-body { flex: 1; min-height: 0; flex-direction: column; flex-wrap: nowrap; }
@@ -643,3 +848,48 @@ html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-svg {
   width: auto; height: 100%; aspect-ratio: 1; min-width: 120px; min-height: 120px; max-width: 100%;
 }
 html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-readout input[type="number"] { display: none; }
+
+/* .range-solver-input-pane's own "flex:1; min-height:0" (let it grow to
+   fill the remaining vertical space below the output pane) used to live
+   unconditionally in the two blocks above — but that block's own trigger
+   condition ORs together "narrow viewport" with "short landscape", and in
+   landscape .range-solver-layout switches to flex-direction:row (see
+   above), where the very same flex:1 (flex-basis:0%) instead collapsed
+   the input pane's WIDTH share against the output pane's untouched
+   flex:1 1 50%, crushing the Target tab's large range/wind-speed steppers
+   (regression: a real-device bug report). Scoped to portrait here (the
+   only orientation .range-solver-layout is ever a column in) so it only
+   ever affects the vertical-fill it was meant for. */
+@media (max-width: 780px) and (orientation: portrait) {
+  html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 1; min-height: 0; }
+}
+@media (orientation: portrait) {
+  html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 1; min-height: 0; }
+}
+
+/* Short landscape (phones, not tablets/desktop — see the shared "mobile
+   chrome" condition above) rebalances the row split itself, rather than
+   the plain 50/50 .range-solver-output-pane/.range-solver-input-pane
+   rule further up. Design principle: the output pane's big elevation/
+   windage numbers are the whole point of this screen and should get as
+   much room as possible; the input pane should get just enough to fit
+   its own controls with a little margin, no more.
+   A straight percentage split (an earlier attempt used 58/42) fights
+   that goal on both ends — it's more than the input pane actually needs
+   on a wide phone, and still not enough on a narrow one. Anchoring the
+   input pane to a fixed content-sized basis instead, with flex-grow:0
+   (so it never claims more than that) and the output pane on flex:1 1
+   auto (so it always absorbs 100% of whatever's left), gets both right
+   at any width. 300px is set by the Wind tab's own wind-dial-svg, which
+   has a 270px hard floor of its own (see .range-solver-tab-panel
+   .wind-dial-svg's clamp() below) — the Target tab's large-stepper-field
+   (132px of fixed +/- buttons plus its number field) fits comfortably
+   under that same 300px, so it's the binding constraint, not an
+   arbitrary guess. flex-shrink:1 (the default) still lets it give up
+   that margin on a narrower-than-usual phone rather than overflow. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html.range-solver-mode:not(.force-desktop) .range-solver-output-pane { flex: 1 1 auto; }
+  html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 0 1 300px; }
+  html.range-solver-mode.force-mobile .range-solver-output-pane { flex: 1 1 auto; }
+  html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 0 1 300px; }
+}

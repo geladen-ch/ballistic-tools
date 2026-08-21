@@ -102,6 +102,49 @@ test('an empty Arsenal shows "no bullets"/"no rifles" hints and Add buttons', ()
   assert.ok(text.length > 0);
 });
 
+test('"Add Bullet"/"Add Rifle" hide together while any add/edit form is open, and reappear once it closes', async () => {
+  saveUserRifle({
+    id: 'r1', name: 'My Rifle', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
+  });
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  const addBullet = findAnyById(container, 'arsenal-add-bullet');
+  const addRifle = findAnyById(container, 'arsenal-add-rifle');
+  // Not asserting an exact '' here — a freshly constructed element's
+  // style.display in this fake DOM starts out `undefined` (a plain object
+  // literal, not a real CSSStyleDeclaration), unlike a real browser's own
+  // default of ''. Either way, "not 'none'" is what "visible" actually means.
+  assert.notEqual(addBullet.style.display, 'none', 'both visible with no form open');
+  assert.notEqual(addRifle.style.display, 'none');
+
+  // Opening the bullet form hides both, not just its own.
+  fireEvent(addBullet, 'click');
+  await settle();
+  assert.equal(addBullet.style.display, 'none');
+  assert.equal(addRifle.style.display, 'none', 'the rifle add button hides too — one form open at a time');
+
+  const { cancelButton } = formActions(byId(container, 'arsenalBulletName').parentNode.parentNode);
+  fireEvent(cancelButton, 'click');
+  assert.notEqual(addBullet.style.display, 'none', 'both reappear once the form closes');
+  assert.notEqual(addRifle.style.display, 'none');
+
+  // Editing an existing rifle (not just adding) also hides both.
+  fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
+  await settle();
+  assert.equal(addBullet.style.display, 'none');
+  assert.equal(addRifle.style.display, 'none');
+
+  // Opening the nested cartridge form (within the still-open rifle form)
+  // keeps both hidden too.
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+  assert.equal(addBullet.style.display, 'none');
+  assert.equal(addRifle.style.display, 'none');
+});
+
 test('adding a bullet persists it and shows it in the list', async () => {
   const container = makeElement('main');
   arsenalView.mount(container);
@@ -426,6 +469,40 @@ test('the rifle list shows each rifle\'s last-modified timestamp', () => {
 
   const row = findByClass(container, 'arsenal-row')[0];
   assert.ok(row.textContent.includes(t('arsenal.lastModified', { date: expectedDate })));
+});
+
+test('the bullet, rifle and cartridge forms each show their own explicit Save label, not a generic "Save"', async () => {
+  saveUserBullet({ id: 'my-bullet', name: 'Test Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  fireEvent(findAnyById(container, 'arsenal-add-bullet'), 'click');
+  await settle();
+  let { saveButton } = formActions(byId(container, 'arsenalBulletName').parentNode.parentNode);
+  assert.equal(saveButton.textContent, t('arsenal.saveBulletButton'));
+  assert.notEqual(saveButton.textContent, 'Save');
+
+  const { cancelButton } = formActions(byId(container, 'arsenalBulletName').parentNode.parentNode);
+  fireEvent(cancelButton, 'click');
+
+  fireEvent(findAnyById(container, 'arsenal-add-rifle'), 'click');
+  await settle();
+  ({ saveButton } = formActions(byId(container, 'arsenalRifleName').parentNode.parentNode));
+  assert.equal(saveButton.textContent, t('arsenal.saveRifleButton'));
+
+  const rifleNameInput = byId(container, 'arsenalRifleName');
+  rifleNameInput.value = 'Cartridge Test Rifle';
+  fireEvent(rifleNameInput, 'input');
+  fireEvent(saveButton, 'click');
+
+  fireEvent(rifleEditButton(container, 'Cartridge Test Rifle'), 'click');
+  await settle();
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+  ({ saveButton } = formActions(byId(container, 'arsenalCartridgeName').parentNode.parentNode));
+  assert.equal(saveButton.textContent, t('arsenal.saveCartridgeButton'));
 });
 
 test('saving a rifle closes the form; editing it again reveals cartridge management', async () => {

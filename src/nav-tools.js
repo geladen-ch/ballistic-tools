@@ -10,7 +10,7 @@
 // indicator (src/ui/status-chip.js): a null path always means 'planned'
 // (there's nothing to link to yet); a real path is 'live' unless listed
 // in PARTIAL_IDS below.
-const PARTIAL_IDS = new Set(['hit-probability', 'range-solver']);
+const PARTIAL_IDS = new Set(['hit-probability']);
 
 // Tools kept in TOOL_DEFS (definition, locale keys, status all intact) but
 // excluded from toolsInGroup()'s results — so every listing surface (Home,

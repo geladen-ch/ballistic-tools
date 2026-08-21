@@ -15,11 +15,11 @@ accurate, but if you find some creative way to misuse a ballistic
 calculator into hurting yourself, that's on you — who am I to get in the
 way of natural selection?
 
-This manual covers the fully functional tools — **Trajectory**, **Guns**,
-**Cd–Mach Curve**, **BC Tools**, and **Settings** — plus **Hit Probability**
-and **Range Solver**, usable for their current scenarios but still under
-active development. Everything else on Home is listed at the end, under
-**Planned / work in progress**.
+This manual covers the fully functional tools — **Trajectory**, **Range
+Solver**, **Guns**, **Cd–Mach Curve**, **BC Tools**, and **Settings** — plus
+**Hit Probability**, usable for its current scenarios but still under active
+development. Everything else on Home is listed at the end, under **Planned /
+work in progress**.
 
 ---
 
@@ -161,9 +161,8 @@ back here), and **Exit solver** (always returns to Home). On a phone or
 tablet that supports it, the screen is kept from sleeping while Range Solver
 is open, so it won't dim mid-string.
 
-- **Target** — range and line-of-sight angle. Deliberately just these two
-  fields for now; a fuller target/location mode is planned to replace this
-  tab without touching Wind or Atmosphere.
+- **Target** — range and line-of-sight angle, entered by hand, or picked
+  from a saved location's target list — see **Locations & Targets** below.
 - **Wind** — speed (large +/− stepper) and direction (the same dial used
   elsewhere, enlarged here).
 - **Atmosphere** — temperature, pressure, altitude, humidity, and presets —
@@ -175,13 +174,73 @@ click settings from Guns), each with a leading direction indicator: up/down
 for elevation, left/right for windage. Choose between an arrow glyph or a
 **+ / −** sign (Settings → **Range Solver output indicators**) — **+**
 always means dial up or dial right. A small footer line adds time of flight,
-residual velocity, and residual energy. If an input is mid-edit (e.g.
+residual velocity, and residual energy. A summary conditions bar above the
+readout shows range, wind, and atmosphere at a glance, so you always know
+what a given elevation/windage was dialed for. If an input is mid-edit (e.g.
 momentarily empty), the readout shows a plain **—** instead of a stray
 result.
 
 Uses the same active rifle, cartridge, and bullet as Trajectory and Hit
 Probability (set on **Guns**) and the same zero — no separate battle-zero
 override here.
+
+### Locations & Targets
+
+Optional: save a shooting location's targets once — their range and
+line-of-sight angle, and, if you attach a photo taken from the shooting
+position, where each one is on it — then pick them straight from the Target
+tab on later visits instead of dialing range and angle by hand every time.
+Wind and atmosphere are never part of a saved target, only range, angle,
+and (with a photo) position.
+
+The Target tab's own **Locations & Targets** row shows the active location's
+name (nothing, if you're not using one), a dropdown of its targets, and up
+to three icons:
+
+- A photo-frame icon, **Pick target from photo** (only shown once the
+  active location has a photo attached) — opens that photo full-screen; tap
+  any already-placed target's pin to select it immediately, or a chip
+  (stacked top-left) for one that hasn't been placed on the photo yet.
+  Nothing changes until you tap one.
+- A sync icon, **Update this target with the current range/angle** —
+  appears once the range/angle currently dialed no longer matches the
+  selected target's own saved values (e.g. you nudged range by hand after
+  picking it). Updates the saved target to match what's currently dialed.
+- **Manage locations** — opens the Locations & Targets library itself
+  (below). **Done** there returns you to this tab.
+
+Picking a target (dropdown, photo, or chip) copies its range and angle into
+the Target tab as a one-time, free edit, not a live link — you can still
+nudge the dialed numbers afterward without touching the saved target (that's
+what the sync icon above is for, if you want to keep it in sync).
+
+**Managing locations.** The library screen splits your locations into
+**Current location** (whichever one is active, or **No location — single
+target, manual entry** if none is) and **Known locations** (everything
+else). Tapping a Known location activates it — moves it to Current and
+scrolls there — without leaving this screen. Only the current location shows
+**Edit** and its target list; every location, current or known, shows
+**Backup to file** and **Delete**. **Backup library to file…** / **Load
+backup from file…**, at the top, back up or restore the whole library at
+once, the same way Arsenal does for rifles and bullets.
+
+A location has a name, an optional altitude (if set, activating the
+location fills in the Atmosphere tab with the standard atmosphere at that
+altitude and 50% humidity — but only if you haven't already changed
+atmosphere values yourself this session), and an optional photo. Its
+targets each have a name (optional — defaults to "Target 1", "Target 2",
+etc.), notes, range, and line-of-sight angle.
+
+**Placing a target on the photo.** Once a location has a photo, each of its
+targets gets a **Place it** button (in its row, and inside its own edit
+form) that opens the photo full-screen for that one target: tap or drag to
+position its pin, drag empty space to pan, pinch (or the nav bar's own
+**Zoom in** / **Zoom out** buttons) to zoom. Every other already-placed
+target on the same photo shows as a small dot labeled with its name, range,
+and angle, so you can place the new one relative to them. **Clear pin**
+removes the placement; **Done** saves it and returns to the library. A
+target not yet placed on the photo (on a location that has one) shows a
+**Not placed** badge in its row as a reminder.
 
 ## Guns
 

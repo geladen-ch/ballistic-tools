@@ -17,9 +17,13 @@ import {
   isInRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, onRangeSolverTabChange, setRangeSolverTab
 } from '../range-solver-nav.js';
+import { isInLocationsMode, onLocationsModeChange } from '../locations-nav.js';
+import {
+  isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
+} from '../location-placement-nav.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon, settingsIcon,
-  targetIcon, windIcon, atmosphereIcon, exitIcon
+  targetIcon, windIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
 // Guns has no fixed path of its own here — see the render loop below,
@@ -49,6 +53,16 @@ export function mountNavTabbar(container) {
     if (isInRangeSolverMode()) {
       container.className = 'app-tabbar range-solver-mode';
       for (const item of buildRangeSolverModeItems()) container.appendChild(item);
+      return;
+    }
+    if (isInPlacementMode()) {
+      container.className = 'app-tabbar placement-mode';
+      for (const item of buildPlacementModeItems()) container.appendChild(item);
+      return;
+    }
+    if (isInLocationsMode()) {
+      container.className = 'app-tabbar locations-mode';
+      for (const item of buildLocationsModeItems()) container.appendChild(item);
       return;
     }
     container.className = 'app-tabbar';
@@ -122,11 +136,33 @@ export function mountNavTabbar(container) {
     ];
   }
 
+  // Replaces the whole tab bar while Locations management is open — see
+  // nav-rail.js's own buildLocationsMode() for the desktop equivalent.
+  function buildLocationsModeItems() {
+    const doneBtn = el('button', { type: 'button', class: 'tab-item' }, [checkIcon(19), el('span', { text: t('guns.doneButton') })]);
+    doneBtn.addEventListener('click', () => { location.hash = '#/range-solver'; });
+    return [doneBtn];
+  }
+
+  // Replaces the whole tab bar while the full-screen placement/picker
+  // route is open — see nav-rail.js's own buildPlacementMode().
+  function buildPlacementModeItems() {
+    const zoomInBtn = el('button', { type: 'button', class: 'tab-item' }, [zoomInIcon(19), el('span', { text: t('rangeSolverLocations.zoomInButton') })]);
+    zoomInBtn.addEventListener('click', () => requestZoomIn());
+    const zoomOutBtn = el('button', { type: 'button', class: 'tab-item' }, [zoomOutIcon(19), el('span', { text: t('rangeSolverLocations.zoomOutButton') })]);
+    zoomOutBtn.addEventListener('click', () => requestZoomOut());
+    const doneBtn = el('button', { type: 'button', class: 'tab-item' }, [checkIcon(19), el('span', { text: t('guns.doneButton') })]);
+    doneBtn.addEventListener('click', () => requestDone());
+    return [zoomInBtn, zoomOutBtn, doneBtn];
+  }
+
   render();
   onLanguageChange(render);
   onGunsModeChange(render);
   onRangeSolverModeChange(render);
   onRangeSolverTabChange(render);
+  onLocationsModeChange(render);
+  onPlacementModeChange(render);
   window.addEventListener('hashchange', render);
   return { render };
 }

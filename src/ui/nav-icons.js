@@ -145,6 +145,25 @@ export function exitIcon(size = 18) {
   ]);
 }
 
+// A magnifying glass with a +/- in the lens — location-placement-view.js's
+// own Zoom In/Zoom Out nav buttons.
+export function zoomInIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('circle', { cx: '8.5', cy: '8.5', r: '5.5' }),
+    svgEl('line', { x1: '12.7', y1: '12.7', x2: '18', y2: '18' }),
+    svgEl('line', { x1: '8.5', y1: '6', x2: '8.5', y2: '11' }),
+    svgEl('line', { x1: '6', y1: '8.5', x2: '11', y2: '8.5' })
+  ]);
+}
+
+export function zoomOutIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('circle', { cx: '8.5', cy: '8.5', r: '5.5' }),
+    svgEl('line', { x1: '12.7', y1: '12.7', x2: '18', y2: '18' }),
+    svgEl('line', { x1: '6', y1: '8.5', x2: '11', y2: '8.5' })
+  ]);
+}
+
 export function hamburgerIcon(size = 20) {
   return icon(size, '0 0 20 20', [
     svgEl('line', { x1: '3', y1: '6', x2: '17', y2: '6' }),

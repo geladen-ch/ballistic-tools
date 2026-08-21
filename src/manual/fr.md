@@ -16,11 +16,10 @@ qu'il est raisonnablement précis, mais si vous trouvez un moyen créatif
 de détourner un calculateur balistique au point de vous blesser, ça vous
 regarde — qui suis-je pour faire obstacle à la sélection naturelle ?
 
-Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**,
-**Armes**, **Courbe Cd-Mach**, **Outils BC** et **Paramètres** —
-ainsi que **Probabilité d'impact** et le **Calculateur de terrain**,
-utilisables pour leurs scénarios actuels mais encore en développement
-actif.
+Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**, le
+**Calculateur de terrain**, **Armes**, **Courbe Cd-Mach**, **Outils BC** et
+**Paramètres** — ainsi que **Probabilité d'impact**, utilisable pour ses
+scénarios actuels mais encore en développement actif.
 Tout le reste sur la page d'accueil est listé à la fin, sous **Prévu / en
 développement**.
 
@@ -185,9 +184,9 @@ l'accueil). Sur un téléphone ou une tablette qui le permet, l'écran est
 empêché de se mettre en veille tant que le Calculateur de terrain est
 ouvert, pour qu'il ne s'assombrisse pas en pleine série de tirs.
 
-- **Cible** — distance et angle de ligne de mire. Volontairement seulement
-  ces deux champs pour l'instant ; un mode cible/emplacement plus complet est
-  prévu pour remplacer cet onglet sans toucher à Vent ni Atmosphère.
+- **Cible** — distance et angle de ligne de mire, saisis à la main, ou
+  choisis dans la liste de cibles d'un emplacement enregistré — voir
+  **Emplacements et cibles** ci-dessous.
 - **Vent** — vitesse (grand bouton +/− ) et direction (le même cadran
   qu'ailleurs, agrandi ici).
 - **Atmosphère** — température, pression, altitude, humidité et préréglages
@@ -202,13 +201,84 @@ l'élévation, gauche/droite pour le vent. Choisissez entre une flèche ou un
 signe **+ / −** (Paramètres → **Indicateurs de sortie du Calculateur de
 terrain**) — **+** signifie toujours régler vers le haut ou vers la droite.
 Une petite ligne en bas ajoute le temps de vol, la vitesse résiduelle et
-l'énergie résiduelle. Si un champ est en cours de modification (par exemple
-momentanément vide), l'affichage montre un simple **—** plutôt qu'un
-résultat erroné.
+l'énergie résiduelle. Une barre récapitulative des conditions au-dessus de
+l'affichage montre la distance, le vent et l'atmosphère en un coup d'œil,
+pour toujours savoir pour quoi une élévation/dérive donnée a été réglée. Si
+un champ est en cours de modification (par exemple momentanément vide),
+l'affichage montre un simple **—** plutôt qu'un résultat erroné.
 
 Utilise la même carabine, cartouche et balle actives que Trajectoire et
 Probabilité d'impact (définies dans **Armes**), avec le même zéro — pas de
 réglage de zéro de combat séparé ici.
+
+### Emplacements et cibles
+
+Facultatif : enregistrez une fois les cibles d'un pas de tir — leur
+distance et leur angle de ligne de mire, et, si vous ajoutez une photo
+prise depuis le poste de tir, leur emplacement sur celle-ci — puis
+retrouvez-les directement dans l'onglet Cible lors de vos prochaines
+visites, au lieu de régler distance et angle à la main à chaque fois. Le
+vent et l'atmosphère ne font jamais partie d'une cible enregistrée,
+seulement la distance, l'angle et (avec une photo) la position.
+
+La ligne **Emplacements et cibles** de l'onglet Cible affiche le nom de
+l'emplacement actuel (rien, si vous n'en utilisez pas), un menu déroulant
+de ses cibles, et jusqu'à trois icônes :
+
+- Une icône en forme de cadre photo, **Choisir la cible sur la photo**
+  (visible seulement une fois que l'emplacement actuel a une photo) —
+  ouvre cette photo en plein écran ; touchez le repère d'une cible déjà
+  placée pour la sélectionner immédiatement, ou une puce (empilées en haut
+  à gauche) pour une cible pas encore placée sur la photo. Rien ne change
+  tant que vous n'en touchez pas une.
+- Une icône de synchronisation, **Mettre à jour cette cible avec la
+  distance/l'angle actuels** — apparaît dès que la distance/l'angle
+  actuellement réglés ne correspondent plus aux valeurs enregistrées de la
+  cible sélectionnée (par exemple si vous avez ajusté la distance à la main
+  après l'avoir choisie). Met à jour la cible enregistrée pour qu'elle
+  corresponde à ce qui est actuellement réglé.
+- **Gérer les emplacements** — ouvre la bibliothèque Emplacements et cibles
+  elle-même (ci-dessous). Terminé, là-bas, vous ramène à cet onglet.
+
+Choisir une cible (menu, photo ou puce) copie sa distance et son angle dans
+l'onglet Cible comme une modification libre et ponctuelle, pas un lien
+permanent — vous pouvez toujours ajuster ensuite les valeurs réglées à la
+main sans toucher à la cible enregistrée (c'est à ça que sert l'icône de
+synchronisation ci-dessus, si vous voulez la garder synchronisée).
+
+**Gérer les emplacements.** L'écran de la bibliothèque répartit vos
+emplacements entre **Emplacement actuel** (celui qui est actif, ou **Aucun
+emplacement — cible unique, saisie manuelle** si aucun ne l'est) et
+**Emplacements connus** (tous les autres). Toucher un emplacement connu
+l'active — le déplace vers Emplacement actuel et fait défiler la page
+jusque-là — sans quitter cet écran. Seul l'emplacement actuel affiche
+**Modifier** et sa liste de cibles ; chaque emplacement, actuel ou connu,
+affiche **Sauvegarder dans un fichier** et **Supprimer**. **Sauvegarder la
+bibliothèque dans un fichier…** / **Charger une sauvegarde depuis un
+fichier…**, en haut, sauvegardent ou restaurent toute la bibliothèque
+d'un coup, de la même façon que l'Arsenal pour les carabines et les
+balles.
+
+Un emplacement a un nom, une altitude facultative (si elle est renseignée,
+activer l'emplacement remplit l'onglet Atmosphère avec l'atmosphère
+standard à cette altitude et 50 % d'humidité — mais seulement si vous
+n'avez pas déjà modifié vous-même les valeurs d'atmosphère durant cette
+session), et une photo facultative. Chacune de ses cibles a un nom
+(facultatif — par défaut « Cible 1 », « Cible 2 », etc.), des notes, une
+distance et un angle de ligne de mire.
+
+**Placer une cible sur la photo.** Dès qu'un emplacement a une photo,
+chacune de ses cibles reçoit un bouton **Placer** (dans sa ligne, et dans
+son propre formulaire de modification) qui ouvre la photo en plein écran
+pour cette cible : touchez ou faites glisser pour positionner son repère,
+faites glisser une zone vide pour déplacer la vue, pincez (ou utilisez les
+boutons **Zoom avant** / **Zoom arrière** de la barre de navigation) pour
+zoomer. Chaque autre cible déjà placée sur la même photo apparaît comme un
+petit point étiqueté avec son nom, sa distance et son angle, pour que vous
+puissiez placer la nouvelle par rapport à elles. **Retirer le repère**
+annule le placement ; Terminé l'enregistre et revient à la bibliothèque.
+Une cible pas encore placée sur la photo (sur un emplacement qui en a une)
+affiche un badge **Non placée** dans sa ligne, en rappel.
 
 ## Armes
 

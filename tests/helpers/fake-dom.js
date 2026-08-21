@@ -23,7 +23,17 @@ function makeElement(tag) {
     value: '',
     disabled: false,
     className: '',
-    style: {},
+    // Plain property assignment (style.transform = '...') already worked
+    // as a bare object; these three methods are only for CSS custom
+    // properties (--foo), which real browsers require setProperty()/
+    // getPropertyValue() for — direct dot/bracket assignment is a no-op
+    // on a real CSSStyleDeclaration for those (see photo-viewport.js's
+    // own --marker-scale-compensation).
+    style: {
+      setProperty(prop, value) { this[prop] = value; },
+      removeProperty(prop) { const value = this[prop]; delete this[prop]; return value ?? ''; },
+      getPropertyValue(prop) { return this[prop] ?? ''; }
+    },
     get firstChild() { return this.childNodes[0] || null; },
     // Real textContent recursively concatenates descendant text; a flat
     // property would go stale the moment children are appended after it

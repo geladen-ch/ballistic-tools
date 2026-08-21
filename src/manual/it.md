@@ -18,10 +18,10 @@ sono affari tuoi — chi sono io per mettermi di traverso alla selezione
 naturale?
 
 Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**,
-**Armi**, **Curva Cd-Mach**, **Strumenti BC** e **Impostazioni** — oltre a
-**Probabilità di colpire** e al **Calcolatore per il poligono**,
-utilizzabili per i loro scenari attuali ma ancora in sviluppo attivo. Tutto
-il resto nella Home è elencato alla fine, sotto **Pianificato / in corso**.
+il **Calcolatore per il poligono**, **Armi**, **Curva Cd-Mach**, **Strumenti
+BC** e **Impostazioni** — oltre a **Probabilità di colpire**, utilizzabile
+per i suoi scenari attuali ma ancora in sviluppo attivo. Tutto il resto
+nella Home è elencato alla fine, sotto **Pianificato / in corso**.
 
 ---
 
@@ -179,9 +179,9 @@ alla Home). Su un telefono o tablet che lo supporta, lo schermo viene
 impedito di spegnersi finché il Calcolatore per il poligono è aperto, così
 non si oscura a metà di una serie di colpi.
 
-- **Bersaglio** — distanza e angolo della linea di mira. Deliberatamente
-  solo questi due campi per ora; è previsto un modo bersaglio/posizione più
-  completo che sostituirà questa scheda senza toccare Vento o Atmosfera.
+- **Bersaglio** — distanza e angolo della linea di mira, inseriti a mano,
+  oppure scelti dall'elenco bersagli di una postazione salvata — vedi
+  **Postazioni e bersagli** più sotto.
 - **Vento** — velocità (grande selettore +/−) e direzione (la stessa
   manopola usata altrove, qui ingrandita).
 - **Atmosfera** — temperatura, pressione, altitudine, umidità e preimpostazioni
@@ -196,12 +196,82 @@ sinistra/destra per il vento. Scegli tra una freccia o un segno **+ / −**
 (Impostazioni → **Indicatori di output del Calcolatore per il poligono**) —
 **+** significa sempre regolare verso l'alto o verso destra. Una piccola
 riga in fondo aggiunge tempo di volo, velocità residua ed energia residua.
-Se un campo è in fase di modifica (ad esempio momentaneamente vuoto), la
-lettura mostra un semplice **—** invece di un risultato errato.
+Una barra riassuntiva delle condizioni sopra la lettura mostra distanza,
+vento e atmosfera a colpo d'occhio, così sai sempre per cosa è stata
+regolata una certa elevazione/deriva. Se un campo è in fase di modifica (ad
+esempio momentaneamente vuoto), la lettura mostra un semplice **—** invece
+di un risultato errato.
 
 Usa lo stesso fucile, cartuccia e proiettile attivi di Traiettoria e
 Probabilità di colpire (impostati in **Armi**) e lo stesso azzeramento —
 qui non c'è un'impostazione separata di azzeramento da combattimento.
+
+### Postazioni e bersagli
+
+Facoltativo: salva una volta i bersagli di una postazione di tiro — la loro
+distanza e angolo della linea di mira e, se aggiungi una foto scattata
+dalla posizione di tiro, dove si trova ciascuno su di essa — poi richiamali
+direttamente dalla scheda Bersaglio nelle visite successive, invece di
+regolare distanza e angolo a mano ogni volta. Vento e atmosfera non fanno
+mai parte di un bersaglio salvato, solo distanza, angolo e (con una foto)
+posizione.
+
+La riga **Postazioni e bersagli** della scheda Bersaglio mostra il nome
+della postazione attuale (niente, se non ne stai usando una), un menu a
+tendina dei suoi bersagli, e fino a tre icone:
+
+- Un'icona a forma di cornice fotografica, **Scegli bersaglio dalla foto**
+  (visibile solo quando la postazione attuale ha una foto) — apre quella
+  foto a schermo intero; tocca il segnalino di un bersaglio già
+  posizionato per selezionarlo subito, oppure un chip (impilati in alto a
+  sinistra) per uno non ancora posizionato sulla foto. Non cambia nulla
+  finché non ne tocchi uno.
+- Un'icona di sincronizzazione, **Aggiorna questo bersaglio con la
+  distanza/l'angolo attuali** — appare quando la distanza/l'angolo
+  attualmente regolati non corrispondono più ai valori salvati del
+  bersaglio selezionato (ad esempio se hai regolato la distanza a mano
+  dopo averlo scelto). Aggiorna il bersaglio salvato in modo che
+  corrisponda a ciò che è attualmente regolato.
+- **Gestisci postazioni** — apre la libreria Postazioni e bersagli stessa
+  (più sotto). "Fatto" lì ti riporta a questa scheda.
+
+Scegliere un bersaglio (menu, foto o chip) copia la sua distanza e angolo
+nella scheda Bersaglio come modifica libera e occasionale, non un
+collegamento permanente — puoi comunque regolare in seguito i valori
+impostati a mano senza toccare il bersaglio salvato (a questo serve
+l'icona di sincronizzazione sopra, se vuoi mantenerlo sincronizzato).
+
+**Gestire le postazioni.** La schermata della libreria divide le tue
+postazioni in **Postazione attuale** (quella attiva, o **Nessuna postazione
+— bersaglio singolo, inserimento manuale** se nessuna lo è) e **Postazioni
+conosciute** (tutte le altre). Toccare una postazione conosciuta la attiva
+— la sposta in Postazione attuale e scorre fino a lì — senza uscire da
+questa schermata. Solo la postazione attuale mostra **Modifica** e il suo
+elenco bersagli; ogni postazione, attuale o conosciuta, mostra **Backup su
+file** ed **Elimina**. **Backup della libreria su file…** / **Carica backup
+da file…**, in alto, eseguono il backup o ripristinano l'intera libreria
+in una volta, allo stesso modo dell'Arsenale per fucili e proiettili.
+
+Una postazione ha un nome, un'altitudine facoltativa (se impostata,
+attivare la postazione compila la scheda Atmosfera con l'atmosfera
+standard a quell'altitudine e il 50% di umidità — ma solo se non hai già
+modificato tu stesso i valori atmosferici in questa sessione), e una foto
+facoltativa. Ciascuno dei suoi bersagli ha un nome (facoltativo — di
+default "Bersaglio 1", "Bersaglio 2", ecc.), note, distanza e angolo della
+linea di mira.
+
+**Posizionare un bersaglio sulla foto.** Una volta che una postazione ha
+una foto, ciascuno dei suoi bersagli riceve un pulsante **Posiziona**
+(nella sua riga, e nel proprio modulo di modifica) che apre la foto a
+schermo intero per quel bersaglio: tocca o trascina per posizionare il suo
+segnalino, trascina uno spazio vuoto per spostare la vista, pizzica (oppure
+usa i pulsanti **Ingrandisci** / **Riduci** della barra di navigazione) per
+zoomare. Ogni altro bersaglio già posizionato sulla stessa foto appare come
+un piccolo punto etichettato con nome, distanza e angolo, così puoi
+posizionare quello nuovo rispetto a loro. **Rimuovi segnalino** annulla il
+posizionamento; "Fatto" lo salva e torna alla libreria. Un bersaglio non
+ancora posizionato sulla foto (su una postazione che ne ha una) mostra un
+badge **Non posizionato** nella sua riga, come promemoria.
 
 ## Armi
 

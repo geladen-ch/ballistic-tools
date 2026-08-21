@@ -4,6 +4,7 @@ import { mountLanguageSwitcher } from './ui/language-switcher.js';
 import { mountDisplayModeSwitch } from './ui/display-mode-switch.js';
 import { getDisplayMode, onDisplayModeChange } from './display-mode-prefs.js';
 import { onRangeSolverModeChange } from './range-solver-nav.js';
+import { onPlacementModeChange } from './location-placement-nav.js';
 import { getTheme, onThemeChange } from './range-solver-prefs.js';
 import { mountNavRail } from './ui/nav-rail.js';
 import { mountNavTabbar } from './ui/nav-tabbar.js';
@@ -16,6 +17,8 @@ import * as bcToolsView from './views/bc-tools-view.js';
 import * as cdMachCurveView from './views/cd-mach-curve-view.js';
 import * as hitProbabilityView from './views/hit-probability-view.js';
 import * as rangeSolverView from './views/range-solver-view.js';
+import * as locationsView from './views/locations-view.js';
+import * as locationPlacementView from './views/location-placement-view.js';
 import * as settingsView from './views/settings-view.js';
 import * as manualView from './views/manual-view.js';
 import * as releaseHistoryView from './views/release-history-view.js';
@@ -42,6 +45,15 @@ onRangeSolverModeChange((on) => {
   document.documentElement.classList.toggle('range-solver-mode', on);
 });
 
+// `placement-mode` gates the full-screen photo takeover (topbar hidden,
+// content fills the remaining space) location-placement-view.js needs —
+// unlike range-solver-mode's own topbar-hiding above, this applies on
+// desktop too: "the image occupies all screen estate, except the
+// navigation bar" isn't a mobile-only requirement here.
+onPlacementModeChange((on) => {
+  document.documentElement.classList.toggle('placement-mode', on);
+});
+
 // Theme (see base.css's .theme-dark/.theme-high-contrast-light/.theme-
 // high-contrast-dark) is app-wide — applied from the very first paint, not
 // just once some view mounts, and re-applied instantly on every Settings
@@ -61,6 +73,7 @@ const views = {
   '/cd-mach-curve': cdMachCurveView,
   '/hit-probability': hitProbabilityView,
   '/range-solver': rangeSolverView,
+  '/locations': locationsView,
   '/settings': settingsView,
   '/manual': manualView,
   '/release-history': releaseHistoryView
@@ -92,6 +105,7 @@ registerRoute('/analysis', () => categoryView.mount(view, 'analysis'));
 // parameterized — see guns-view.js.
 registerRoute('/guns/custom', () => gunsView.mount(view, 'custom'));
 registerRoute('/guns/arsenal', () => gunsView.mount(view, 'arsenal'));
+registerRoute('/locations/place', () => locationPlacementView.mount(view));
 
 startRouter('/');
 

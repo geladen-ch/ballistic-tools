@@ -233,10 +233,54 @@ a { color: var(--accent); }
   border-radius: 999px;
 }
 
+/* Locations & Targets library (src/views/locations-view.js) — same pill
+   shape as .unsaved-badge above, in the theme's semantic ok/danger colors
+   instead, so "active" and "needs attention" read at a glance rather than
+   blending into the surrounding .hint text. */
+.active-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ok);
+  border: 1px solid var(--ok);
+  border-radius: 999px;
+}
+.not-placed-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 999px;
+}
+
 /* Arsenal (src/views/arsenal-view.js): one row per saved bullet/rifle/
-   cartridge, with its Edit/Delete buttons pinned to the right. */
+   cartridge, with its Edit/Delete buttons pinned to the right.
+   A rifle row with saved cartridges packs up to six controls into
+   .arsenal-row-actions (cartridge picker, Set active, comparison toggle,
+   Save to file, Edit, Delete) — more than a narrow row can hold beside
+   the name/description on one line. flex-wrap (on both this and
+   .arsenal-row-actions below) handles that by content, not by a
+   viewport-size breakpoint: any fixed width/orientation check (even one
+   covering "mobile chrome" specifically) still leaves a gap — an iPad
+   mini in landscape (1024x768) defaults to this app's *desktop* mode and
+   has the exact same six controls to fit, at a width neither a mobile
+   check nor a short-landscape check would catch. Wrapping unconditionally
+   costs nothing on a wide desktop window (flex-wrap only visibly changes
+   anything once a line's content actually doesn't fit) while never
+   overflowing regardless of viewport, orientation, or forced display
+   mode. */
 .arsenal-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
@@ -246,23 +290,19 @@ a { color: var(--accent); }
 .arsenal-row:last-of-type { border-bottom: none; }
 .arsenal-row-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  flex-shrink: 0;
+  /* No flex-shrink:0 here (unlike most "pin this to its natural size"
+     row-actions blocks) — deliberately: whether this block sits beside
+     .arsenal-row-info or has already wrapped onto its own line below it
+     (see .arsenal-row's own flex-wrap above), that line can still be
+     narrower than this block's own unwrapped width, and it needs to be
+     allowed to shrink for its own flex-wrap (on the buttons) to ever get
+     the chance to kick in — flex-shrink:0 was overriding exactly that,
+     locking it at full width and overflowing instead of wrapping. */
 }
 .arsenal-row-actions button { padding: 5px 10px; font-size: 12px; }
 .arsenal-row-actions select { padding: 4px 6px; font-size: 12px; width: auto; }
-
-/* A rifle row with saved cartridges packs up to six controls into
-   .arsenal-row-actions (cartridge picker, Set active, comparison toggle,
-   Save to file, Edit, Delete) — more than a phone-width row can hold
-   beside the name/description on one line. Below the same breakpoint the
-   rest of the shell switches to its mobile layout at (see layout.css),
-   give the row its own line and let its actions wrap instead of
-   overflowing the card. */
-@media (max-width: 780px) {
-  .arsenal-row { flex-direction: column; align-items: stretch; }
-  .arsenal-row-actions { flex-wrap: wrap; }
-}
 
 .arsenal-form-actions {
   display: flex;
@@ -319,6 +359,17 @@ a { color: var(--accent); }
   margin-bottom: 4px;
 }
 .checkbox-field input[type="checkbox"] { width: auto; margin: 0; }
+
+/* Location photo thumbnail (src/ui/locations/location-photo-field.js) */
+.location-photo-thumb {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  object-fit: cover;
+}
 
 /* ---- Theme picker (src/ui/theme-picker.js, Settings) ----
    Each .theme-option-swatch below carries its own .theme-* class (see

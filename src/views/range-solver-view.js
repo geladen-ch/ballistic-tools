@@ -20,7 +20,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, unitChoice, UNIT_GROUPS } from '../units.js';
+import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle } from '../range-solver-prefs.js';
@@ -30,8 +30,16 @@ import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import {
   loadRangeSolverTargetState, saveRangeSolverTargetState,
   loadRangeSolverWindState, saveRangeSolverWindState,
-  loadRangeSolverAtmosphereState, saveRangeSolverAtmosphereState
+  loadRangeSolverAtmosphereState, saveRangeSolverAtmosphereState,
+  loadRangeSolverLocationState, saveRangeSolverLocationState,
+  markAtmosphereTouched
 } from '../range-solver-state.js';
+import { loadUserLocations, saveUserLocation } from '../location-library.js';
+import { locationPickerButton } from '../ui/locations/location-picker-button.js';
+import { targetSyncButton } from '../ui/target-sync-button.js';
+import { photoPickerButton } from '../ui/photo-picker-button.js';
+import { setPendingPlacement } from '../location-placement-nav.js';
+import { showDialog } from '../ui/app-dialog.js';
 
 const DEFAULT_TARGET_RANGE_M = 400;
 const DEFAULT_LOS_ANGLE_DEG = 0;
@@ -86,7 +94,143 @@ export function mount(container) {
     value: targetSaved.losAngleDeg ?? DEFAULT_LOS_ANGLE_DEG,
     onInput: () => { saveTarget(); recompute(); }
   });
+
+  // ---- Locations & Targets library — active location/target picker ----
+  // The range/LoS fields above stay the single source of truth for what's
+  // actually dialed (still cookie-backed via saveTarget(), exactly as
+  // before) — picking a target here just copies its values in as a free
+  // edit (see the target select's own listener below); it never becomes
+  // a live two-way link, so this widget's whole job is (a) offering that
+  // one-time copy and (b) noticing afterward if the fields have since
+  // diverged from what's saved.
+  const locationSaved = loadRangeSolverLocationState() || {};
+  let activeLocation = locationSaved.locationId
+    ? loadUserLocations().find((l) => l.id === locationSaved.locationId) || null
+    : null;
+  // A locationId that no longer resolves (deleted in the Locations
+  // manager since) falls back to "no location" here rather than needing
+  // any cleanup on the delete side itself.
+  if (locationSaved.locationId && !activeLocation) saveRangeSolverLocationState({ locationId: null, targetId: null });
+  let activeTargetId = activeLocation ? locationSaved.targetId : null;
+  // Same lazy fallback for a targetId that no longer exists within its
+  // (still-resolving) location.
+  if (activeLocation && activeTargetId != null && !activeLocation.targets.some((tg) => tg.id === activeTargetId)) {
+    activeTargetId = null;
+    saveRangeSolverLocationState({ targetId: null });
+  }
+
+  function resolvedActiveTarget() {
+    if (!activeLocation || activeTargetId == null) return null;
+    return activeLocation.targets.find((tg) => tg.id === activeTargetId) || null;
+  }
+
+  const locationNameEl = el('span', { class: 'range-solver-location-name' });
+  const targetSelect = el('select', { id: 'rangeSolverTargetSelect', class: 'range-solver-target-select' });
+  const syncButton = targetSyncButton({
+    label: t('rangeSolverLocations.syncButtonLabel'),
+    onClick: () => {
+      const target = resolvedActiveTarget();
+      if (!target) return;
+      showDialog({
+        message: t('rangeSolverLocations.confirmSyncTarget'),
+        buttons: [
+          {
+            label: t('rangeSolverLocations.syncConfirmButton'),
+            onClick: () => {
+              const updatedTargets = activeLocation.targets.map((tg) => (tg.id === target.id
+                ? { ...tg, rangeM: targetRangeField.getEngineValue(), losAngleDeg: losAngleField.getEngineValue() }
+                : tg));
+              activeLocation = saveUserLocation({ ...activeLocation, targets: updatedTargets });
+              updateSyncIndicator();
+            }
+          },
+          { label: t('rangeSolverLocations.cancelButton') }
+        ]
+      });
+    }
+  });
+  const openLocationsButton = locationPickerButton({
+    label: t('rangeSolverLocations.manageButtonLabel'),
+    onClick: () => { location.hash = '#/locations'; }
+  });
+  const openPhotoOverlayButton = photoPickerButton({
+    label: t('rangeSolverLocations.photoPickerButtonLabel'),
+    onClick: () => {
+      if (!activeLocation || !activeLocation.photo) return;
+      setPendingPlacement({ locationId: activeLocation.id, targetId: null, returnPath: '/range-solver', selectMode: true });
+      location.hash = '#/locations/place';
+    }
+  });
+  const locationRow = el('div', { class: 'range-solver-location-row' }, [
+    locationNameEl, openLocationsButton, targetSelect, openPhotoOverlayButton, syncButton
+  ]);
+
+  function refreshLocationWidget() {
+    const hasLocation = !!activeLocation;
+    locationNameEl.style.display = hasLocation ? '' : 'none';
+    locationNameEl.textContent = hasLocation ? activeLocation.name : '';
+    const hasTargets = hasLocation && activeLocation.targets.length > 0;
+    clear(targetSelect);
+    targetSelect.style.display = hasTargets ? '' : 'none';
+    if (hasTargets) {
+      activeLocation.targets.forEach((tg, i) => {
+        targetSelect.appendChild(el('option', {
+          value: tg.id, text: tg.name || t('rangeSolverLocations.defaultTargetName', { n: i + 1 })
+        }));
+      });
+      targetSelect.value = activeTargetId ?? activeLocation.targets[0].id;
+    }
+    openPhotoOverlayButton.style.display = hasLocation && activeLocation.photo ? '' : 'none';
+  }
+
+  // Shared by the <select> below and the photo overlay's tap-to-select —
+  // both drive the exact same selection path, including discarding any
+  // hand-edited fields with no confirmation; switching targets is always
+  // a fresh copy-in, never a merge.
+  function selectTarget(targetId) {
+    activeTargetId = targetId;
+    saveRangeSolverLocationState({ targetId: activeTargetId });
+    targetSelect.value = targetId; // keep the dropdown in sync when picked via the photo instead
+    const target = resolvedActiveTarget();
+    if (target) {
+      targetRangeField.setEngineValue(target.rangeM);
+      losAngleField.setEngineValue(target.losAngleDeg);
+      saveTarget();
+    }
+    recompute();
+  }
+  targetSelect.addEventListener('change', () => selectTarget(targetSelect.value));
+
+  refreshLocationWidget();
+
+  // A saved target's own rangeM run through the exact same
+  // engine<->display round-trip targetRangeField itself applies (see
+  // unit-field.js/large-stepper-field.js) before comparing — otherwise a
+  // target whose stored value has more precision than the display unit
+  // shows (e.g. distance in yards) would read as "diverged" the instant
+  // it's loaded, from display rounding alone, never having been touched.
+  // losAngleDeg has no FIELD_UNITS entry (plain pass-through degrees, see
+  // units.js), so it round-trips exactly with no rounding step at all —
+  // a raw comparison is already exact.
+  function roundTripEngineValue(fieldId, groupName, engineValue) {
+    const group = UNIT_GROUPS[groupName];
+    const unit = getUnit(groupName);
+    const choice = unitChoice(fieldId, unit) || group.choices.find((c) => c.unit === group.defaultUnit);
+    const displayValue = roundForDisplay(fieldId, choice.unit, engineToDisplay(fieldId, engineValue, choice.unit));
+    return displayToEngine(fieldId, displayValue, choice.unit);
+  }
+
+  function updateSyncIndicator() {
+    const target = resolvedActiveTarget();
+    const diverged = !!target && (
+      targetRangeField.getEngineValue() !== roundTripEngineValue('targetRange', 'distance', target.rangeM) ||
+      losAngleField.getEngineValue() !== target.losAngleDeg
+    );
+    syncButton.style.display = diverged ? '' : 'none';
+  }
+
   const targetTab = el('div', { class: 'input-section range-solver-tab-panel' }, [
+    locationRow,
     targetRangeField.node,
     losAngleField.node
   ]);
@@ -118,7 +262,7 @@ export function mount(container) {
   // deliberately not shot-state.js's shared session-only one (see
   // atmosphere-section.js's own load/save override). ----
   const atmosphere = atmosphereSection({
-    includeWind: false, onInput: () => recompute(),
+    includeWind: false, onInput: () => { markAtmosphereTouched(); recompute(); },
     load: loadRangeSolverAtmosphereState, save: saveRangeSolverAtmosphereState
   });
   const atmosphereTab = el('div', { class: 'range-solver-tab-panel' }, [atmosphere.node]);
@@ -255,6 +399,7 @@ export function mount(container) {
 
   function recompute() {
     updateConditions();
+    updateSyncIndicator();
     const nominalState = {
       ...cartridge.getValues(),
       ...rifle.getValues(),

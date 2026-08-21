@@ -65,9 +65,12 @@ export function largeStepperField({ id, min, max, step, value, onInput }) {
     node,
     getEngineValue: () => toEng(parseFloat(number.value)),
     // Programmatic write path — mirrors unitField()'s setEngineValue,
-    // never fires onInput itself.
+    // never fires onInput itself. String()-wrapped like that one too —
+    // a real browser auto-coerces a number assigned to `.value` anyway,
+    // but explicit here keeps the two components' behavior identical
+    // rather than relying on that coercion.
     setEngineValue(v) {
-      number.value = toDisp(v);
+      number.value = String(toDisp(v));
     }
   };
 }
