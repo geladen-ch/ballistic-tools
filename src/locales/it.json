@@ -478,8 +478,10 @@
     "languageLabel": "Lingua",
     "generalHeading": "Generale",
     "unitsHeading": "Unità",
+    "rifleLibraryHeading": "Libreria fucili",
+    "rifleLibraryHint": "Armi leggere militari comuni",
     "rifleLibraryLabel": "Mostra libreria fucili integrata",
-    "bulletLibraryLabel": "Mostra libreria proiettili integrata",
+    "bulletLibrariesHeading": "Librerie proiettili",
     "spinDriftLabel": "Calcola la deriva giroscopica",
     "zeroForSpinDriftLabel": "Compensa la deriva giroscopica nell'azzeramento",
     "updateNotificationsLabel": "Notificami gli aggiornamenti dell'app",
@@ -651,10 +653,21 @@
     "gotIt": "Capito",
     "restartNow": "Riavvia ora"
   },
+  "bulletLibraries": {
+    "geladen": {
+      "name": "Geladen's own",
+      "description": "La collezione dell'autore"
+    },
+    "lapuaCd": {
+      "name": "Lapua Cd",
+      "description": "Curve Cd-Mach misurate al radar da Lapua, come pubblicate dal produttore"
+    }
+  },
   "releaseHistory": {
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v136": "Supporto per più librerie proiettili integrate, attivabili singolarmente. Importazione delle curve Cd-Mach misurate al radar da Lapua come libreria \"Lapua Cd\". Piccoli miglioramenti dell'interfaccia.",
       "v135": "Validazione degli input / controlli di coerenza implementati in tutta l'app. L'interfaccia di inserimento dell'Arsenale è stata rivista per renderla (si spera) più chiara e (di certo) più fantastica.",
       "v134": "Il Calcolatore per il poligono è completo, con una bella funzione (opzionale) per salvare i dati dei bersagli di una postazione, e scegliere i bersagli direttamente da una foto scattata dalla posizione del tiratore. Una grande rifinitura dell'interfaccia mobile, per far sì che le modalità verticale e orizzontale si visualizzino correttamente su vari dispositivi. Tutto ciò giustifica un salto di versione importante, e un nuovo fantastico nome in codice.",
       "v133": "Calcolatore per il poligono: sopra la lettura di elevazione/deriva è stata aggiunta una barra riassuntiva delle condizioni, che mostra a colpo d'occhio distanza, vento e atmosfera.",

@@ -2,6 +2,7 @@ import { el, clear } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { massDualField } from './mass-field.js';
 import { caliberField } from './caliber-field.js';
+import { manufacturerField } from './manufacturer-field.js';
 import { findUserBulletByName } from '../../user-library.js';
 import { parseCdTable, formatCdTable } from './cd-table-parse.js';
 import { setDragModelSelectValue } from '../drag-model-select.js';
@@ -47,7 +48,7 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
   const values = { ...DEFAULT_VALUES, ...initialValues, ...flattenedProfile };
 
   const nameInput = el('input', { type: 'text', id: 'arsenalBulletName', value: values.name });
-  const manufacturerInput = el('input', { type: 'text', id: 'arsenalBulletManufacturer', value: values.manufacturer });
+  const manufacturer = manufacturerField({ value: values.manufacturer });
 
   const duplicateWarning = el('p', { class: 'hint warning', i18n: 'arsenal.duplicateNameWarning' });
   duplicateWarning.style.display = 'none';
@@ -159,7 +160,7 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
     const lengthRaw = lengthInput.value.trim();
     return {
       name: nameInput.value.trim(),
-      manufacturer: manufacturerInput.value.trim() || 'Custom',
+      manufacturer: manufacturer.getValue().trim() || 'Custom',
       caliberM: caliber.getCaliberM(),
       ...(lengthRaw === '' ? {} : { lengthM: parseFloat(lengthRaw) / 1000 }),
       massKg: mass.getMassKg(),
@@ -217,7 +218,7 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.bulletName' }), nameInput]),
     nameValidity.hintNode,
     duplicateWarning,
-    el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.bulletManufacturer' }), manufacturerInput]),
+    manufacturer.node,
     caliber.node,
     el('div', { class: 'field' }, [
       el('label', {}, [i18nSpan('arsenal.bulletLength'), document.createTextNode(' (mm)')]),

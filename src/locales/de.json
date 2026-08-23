@@ -478,8 +478,10 @@
     "languageLabel": "Sprache",
     "generalHeading": "Allgemein",
     "unitsHeading": "Einheiten",
+    "rifleLibraryHeading": "Gewehrbibliothek",
+    "rifleLibraryHint": "Gängige militärische Handfeuerwaffen",
     "rifleLibraryLabel": "Integrierte Gewehrbibliothek anzeigen",
-    "bulletLibraryLabel": "Integrierte Geschossbibliothek anzeigen",
+    "bulletLibrariesHeading": "Geschossbibliotheken",
     "spinDriftLabel": "Drallbedingte Seitenabweichung berechnen",
     "zeroForSpinDriftLabel": "Beim Einschießen Drallabweichung berücksichtigen",
     "updateNotificationsLabel": "Über App-Updates benachrichtigen",
@@ -651,10 +653,21 @@
     "gotIt": "Verstanden",
     "restartNow": "Jetzt neu starten"
   },
+  "bulletLibraries": {
+    "geladen": {
+      "name": "Geladen's own",
+      "description": "Die Sammlung des Autors"
+    },
+    "lapuaCd": {
+      "name": "Lapua Cd",
+      "description": "Lapua Radar-gemessene Cd-Mach-Kurven, wie vom Hersteller veröffentlicht"
+    }
+  },
   "releaseHistory": {
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v136": "Unterstützung mehrerer integrierter Geschossbibliotheken, einzeln ein-/ausblendbar. Import von Lapua-Radar-gemessenen Cd-Mach-Kurven als Bibliothek „Lapua Cd“. Kleinere UI-Verbesserungen.",
       "v135": "Eingabevalidierung / Plausibilitätsprüfungen wurden in der ganzen App eingeführt. Die Arsenal-Eingabeoberfläche wurde überarbeitet, um sie (hoffentlich) klarer und (ganz sicher) genialer zu machen.",
       "v134": "Der Feldrechner ist fertig, mit einer schönen (optionalen) Funktion, um die Zieldaten eines Standorts zu speichern und die Ziele direkt von einem Foto der Schützenposition aus auszuwählen. Umfangreiche Politur der mobilen Oberfläche, damit Hoch- und Querformat auf verschiedenen Geräten korrekt dargestellt werden. All das rechtfertigt einen großen Versionssprung und einen großartigen neuen Versionsnamen.",
       "v133": "Feldrechner: Über der Anzeige für Höhen- und Seitenverstellung wurde eine zusammenfassende Bedingungsleiste hinzugefügt, die Zielentfernung, Wind und Atmosphäre auf einen Blick zeigt.",

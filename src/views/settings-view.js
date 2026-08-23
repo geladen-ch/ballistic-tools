@@ -2,7 +2,8 @@ import { el, clear } from '../dom.js';
 import { UNIT_GROUPS } from '../units.js';
 import { getUnit, setUnit, resetUnits } from '../prefs.js';
 import { SUPPORTED_LANGUAGES, getLanguage, changeLanguage, i18nSpan } from '../i18n.js';
-import { isRifleLibraryEnabled, setRifleLibraryEnabled, isBulletLibraryEnabled, setBulletLibraryEnabled } from '../library-prefs.js';
+import { isRifleLibraryEnabled, setRifleLibraryEnabled } from '../library-prefs.js';
+import { bulletLibraryCheckboxRows } from '../ui/bullet-library-checkboxes.js';
 import { isSpinDriftEnabled, setSpinDriftEnabled } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled, setZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { isUpdateNotificationsEnabled, setUpdateNotificationsEnabled } from '../update-notification-prefs.js';
@@ -71,15 +72,7 @@ export function mount(container) {
     i18nSpan('settings.rifleLibraryLabel')
   ]);
 
-  const bulletLibraryCheckbox = el('input', { type: 'checkbox', id: 'settings-bullet-library-enabled' });
-  bulletLibraryCheckbox.checked = isBulletLibraryEnabled();
-  bulletLibraryCheckbox.addEventListener('change', () => {
-    setBulletLibraryEnabled(bulletLibraryCheckbox.checked);
-  });
-  const bulletLibraryRow = el('label', { class: 'checkbox-field' }, [
-    bulletLibraryCheckbox,
-    i18nSpan('settings.bulletLibraryLabel')
-  ]);
+  const bulletLibraryRows = bulletLibraryCheckboxRows();
 
   // Off by default (see spin-drift-prefs.js) — unlike the library toggles
   // above, this changes the actual windage numbers every windage-computing
@@ -173,8 +166,6 @@ export function mount(container) {
       el('label', { i18n: 'settings.languageLabel' }),
       languageSelect
     ]),
-    el('div', { class: 'field' }, [rifleLibraryRow]),
-    el('div', { class: 'field' }, [bulletLibraryRow]),
     el('div', { class: 'field' }, [spinDriftRow]),
     zeroForSpinDriftField,
     el('div', { class: 'field' }, [updateNotificationsRow]),
@@ -200,6 +191,15 @@ export function mount(container) {
   const dragModelsSection = sectionGroup('settings.dragModelsHeading', [
     el('p', { class: 'hint', i18n: 'settings.dragModelsHint' }),
     ...dragModelRows.map((r) => el('div', { class: 'field' }, [r.row]))
+  ]);
+
+  const rifleLibrarySection = sectionGroup('settings.rifleLibraryHeading', [
+    el('p', { class: 'hint', i18n: 'settings.rifleLibraryHint' }),
+    el('div', { class: 'field' }, [rifleLibraryRow])
+  ]);
+
+  const bulletLibrariesSection = sectionGroup('settings.bulletLibrariesHeading', [
+    ...bulletLibraryRows.map((r) => r.field)
   ]);
 
   // Only affects the Trajectory table's "export to CSV" button (see
@@ -238,6 +238,8 @@ export function mount(container) {
     el('div', { class: 'card', style: 'max-width:420px;' }, [
       generalSection,
       unitsSection,
+      rifleLibrarySection,
+      bulletLibrariesSection,
       dragModelsSection,
       csvSection
     ])

@@ -207,6 +207,20 @@ a { color: var(--accent); }
    so one rule covers every field in the app regardless of which other
    wrapper classes that control also carries. */
 .field-invalid { border-color: var(--danger) !important; }
+/* A text field's own floating suggestion list (src/ui/arsenal/
+   manufacturer-field.js) — generic naming rather than field-specific, in
+   case another field wants the same treatment later. Modeled on the nav
+   rail's own flyout panel (see .flyout/.flyout-item in layout.css): same
+   panel background/border/shadow, same hover treatment. */
+.field-suggest-wrap { position: relative; }
+.field-suggest-list {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 20;
+  margin-top: 4px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .6);
+  max-height: 240px; overflow-y: auto;
+}
+.field-suggest-item { padding: 6px 10px; cursor: pointer; font-size: 13px; }
+.field-suggest-item:hover, .field-suggest-item.highlighted { background: var(--panel-raised); }
 /* A compass direction shown visually (src/ui/direction-arrow.js) — sized
    off the surrounding text (1em) and colored off it too (currentColor),
    so it drops into any label/value context already at the right size and

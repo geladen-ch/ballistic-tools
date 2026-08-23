@@ -1,29 +1,56 @@
-// Fetches for the built-in bullet library. The catalog is just a list of
-// ids — no name/manufacturer/caliber/mass duplicated there — so building
-// anything that needs those (a picker, a filter) means resolving each id's
-// full record too; see loadBullet(). Everything here is cached in-memory
-// (per browser tab) so re-opening the picker or re-selecting a bullet
-// never re-fetches.
-import { BULLET_IDS } from './bullets/bullet-catalog.js';
+// Fetches for the built-in bullet libraries. Each library's catalog is
+// just a list of ids — no name/manufacturer/caliber/mass duplicated there
+// — so building anything that needs those (a picker, a filter) means
+// resolving each id's full record too; see loadBullet(). Everything here
+// is cached in-memory (per browser tab) so re-opening the picker or
+// re-selecting a bullet never re-fetches.
+import { BULLET_LIBRARIES } from './bullets/bullet-libraries.js';
 
 const CALIBER_DESIGNATIONS_URL = new URL('./bullets/caliber-designations.json', import.meta.url);
+
+// Built once from the registry: which library owns a given built-in
+// bullet id — both to resolve loadBullet()'s fetch path (each library
+// has its own directory) and for callers building a picker to attach a
+// library's display prefix to a resolved bullet record.
+const LIBRARY_BY_ID = new Map(BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id) => [id, lib])));
+// Every built-in id across every library, flattened once — kept as a
+// single stable array (not recomputed per call) so callers that use it
+// as a cache key or compare instances across calls see the same
+// reference every time, same contract loadBulletCatalog() always had.
+const ALL_IDS = [...LIBRARY_BY_ID.keys()];
 
 let designationsPromise = null;
 const bulletPromises = new Map();
 
-// The catalog itself is a real ES module (see bullet-catalog.js), not a
-// fetch — it's code-shaped metadata, imported once as part of the module
-// graph, not data loaded over the network. Still exposed as a loadXxx()
-// function so callers don't need to care that this particular "load" is
-// actually free — and so a `Promise.all([loadBulletCatalog(), ...])`
+// The registry itself is a real ES module (see bullets/bullet-libraries.js),
+// not a fetch — it's code-shaped metadata, imported once as part of the
+// module graph, not data loaded over the network. Still exposed as
+// loadXxx() functions so callers don't need to care that this particular
+// "load" is actually free — and so a `Promise.all([loadBulletCatalog(), ...])`
 // alongside the genuinely async loaders below keeps working unchanged.
+export function loadBulletLibraries() {
+  return BULLET_LIBRARIES;
+}
+
+// Every built-in id across every library, flattened — the "I don't care
+// which library, just give me everything" view most existing callers
+// (built-in-set preloading, id-resolution fallbacks) actually want.
 export function loadBulletCatalog() {
-  return BULLET_IDS;
+  return ALL_IDS;
+}
+
+// The library that owns a given built-in bullet id, or null for an id
+// that isn't a built-in at all (e.g. a user's own Arsenal bullet).
+export function bulletLibraryForBullet(id) {
+  return LIBRARY_BY_ID.get(id) || null;
 }
 
 export function loadBullet(id) {
   if (!bulletPromises.has(id)) {
-    const url = new URL(`./bullets/${id}.json`, import.meta.url);
+    const lib = LIBRARY_BY_ID.get(id);
+    const url = lib
+      ? new URL(`./bullets/${lib.id}/${id}.json`, import.meta.url)
+      : new URL(`./bullets/${id}.json`, import.meta.url);
     bulletPromises.set(id, fetch(url).then((res) => {
       if (!res.ok) throw new Error(`failed to load bullet "${id}": ${res.status}`);
       return res.json();

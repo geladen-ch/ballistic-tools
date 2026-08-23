@@ -122,7 +122,7 @@ checkBootVersionChange();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // type: 'module' so the service worker can `import` bullet-catalog.js
+    // type: 'module' so the service worker can `import` bullet-libraries.js
     // directly (same source of truth the app itself uses) instead of
     // needing every bullet's URL listed by hand.
     navigator.serviceWorker.register('./service-worker.js', { type: 'module' })

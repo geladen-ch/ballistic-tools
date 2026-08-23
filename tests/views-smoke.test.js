@@ -385,18 +385,19 @@ test('settings has a "show built-in rifles library" checkbox, checked by default
   fireEvent(checkbox, 'change');
 });
 
-test('settings has a "show built-in bullets library" checkbox, checked by default, that persists to a cookie', async () => {
-  const { isBulletLibraryEnabled } = await import('../src/library-prefs.js');
+test('settings has a checkbox per built-in bullet library, checked by default, that persists to a cookie', async () => {
+  const { isBulletLibraryVisible } = await import('../src/bullet-library-prefs.js');
   const container = makeElement('main');
   settingsView.mount(container);
 
-  const checkbox = findById(container, 'settings-bullet-library-enabled');
-  assert.ok(checkbox, 'expected a checkbox with id="settings-bullet-library-enabled"');
+  const checkbox = findById(container, 'bullet-library-geladen');
+  assert.ok(checkbox, 'expected a checkbox with id="bullet-library-geladen"');
   assert.equal(checkbox.checked, true);
+  assert.ok(findById(container, 'bullet-library-lapua-cd'), 'expected a checkbox with id="bullet-library-lapua-cd"');
 
   checkbox.checked = false;
   fireEvent(checkbox, 'change');
-  assert.equal(isBulletLibraryEnabled(), false);
+  assert.equal(isBulletLibraryVisible('geladen'), false);
 
   // restore the default so it doesn't leak into other test files
   checkbox.checked = true;

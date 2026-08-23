@@ -2,8 +2,9 @@
 // id list), not data — kept as a real ES module rather than JSON so both
 // the app (targets.js) and the module-type service worker can `import` it
 // directly, with no fetch and exactly one source of truth either side has
-// to stay in sync with. Same shape and reasoning as bullets/bullet-catalog.js
-// and rifles/rifle-catalog.js.
+// to stay in sync with. Same shape and reasoning as rifles/rifle-catalog.js
+// and each built-in bullet library's own catalog.js (see
+// bullets/bullet-libraries.js).
 export const TARGET_IDS = [
   'plate-40x60',
   'issf-300m',

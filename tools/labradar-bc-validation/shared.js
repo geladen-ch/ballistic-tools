@@ -9,13 +9,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { trueStateAtTimes, timeToRange } from './synthetic-track.js';
+import { BULLET_LIBRARIES } from '../../src/bullets/bullet-libraries.js';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const ATMO = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0 };
 export const EXTRAPOLATION_RANGE_M = 300;
 
+const LIBRARY_BY_ID = new Map(BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id) => [id, lib])));
+
 function loadBullet(id) {
-  return JSON.parse(fs.readFileSync(path.join(REPO_ROOT, `src/bullets/${id}.json`), 'utf8'));
+  const lib = LIBRARY_BY_ID.get(id);
+  const relativePath = lib ? `src/bullets/${lib.id}/${id}.json` : `src/bullets/${id}.json`;
+  return JSON.parse(fs.readFileSync(path.join(REPO_ROOT, relativePath), 'utf8'));
 }
 
 // See docs/plans/labradar-cleaning-experiment.md / docs/labradar-bc-validation.md

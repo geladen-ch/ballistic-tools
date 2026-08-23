@@ -5,11 +5,12 @@ import { fieldValidity } from '../field-validity.js';
 import { sectionGroup } from '../section.js';
 import { massDualField } from '../arsenal/mass-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
-import { loadBulletCatalog, loadBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
+import { loadBulletCatalog, loadBullet, loadBulletLibraries, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
 import { loadUserBullets } from '../../user-library.js';
 import { t, i18nSpan } from '../../i18n.js';
 import { loadCartridgeState, saveCartridgeState } from '../../shot-state.js';
-import { isBulletLibraryEnabled, setBulletLibraryEnabled } from '../../library-prefs.js';
+import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
+import { bulletLibraryCheckboxRows } from '../bullet-library-checkboxes.js';
 import { setDragModelSelectValue } from '../drag-model-select.js';
 
 const OTHER_VALUE = '__other__';
@@ -190,22 +191,18 @@ export function bulletSection({ slider = false, onInput } = {}) {
 
   // Duplicated in every place a bullet input is expected (this section,
   // wherever it's nested), always visible — even when there's currently
-  // nothing to pick from — so the user can turn the built-in library back
-  // on without a trip to Settings. Cookie-backed (library-prefs.js) and
-  // read fresh at every mount, the same convention as the rifle-library
-  // checkbox this one is modeled on.
-  const bulletLibraryCheckbox = el('input', { type: 'checkbox', id: 'bulletLibraryEnabled' });
-  bulletLibraryCheckbox.checked = isBulletLibraryEnabled();
-  bulletLibraryCheckbox.addEventListener('change', () => {
-    setBulletLibraryEnabled(bulletLibraryCheckbox.checked);
+  // nothing to pick from — so the user can turn a built-in library back
+  // on without a trip to Settings. Cookie-backed (bullet-library-prefs.js)
+  // and read fresh at every mount, same shared widget Settings' own list
+  // uses — see ../bullet-library-checkboxes.js.
+  const bulletLibraryRows = bulletLibraryCheckboxRows(() => {
     rebuildCatalog();
     if (onInput) onInput();
   });
-  const bulletLibraryRow = el('label', { class: 'checkbox-field' }, [bulletLibraryCheckbox, i18nSpan('settings.bulletLibraryLabel')]);
 
   const node = sectionGroup('sections.bulletHeading', [
     lockedHint,
-    bulletLibraryRow,
+    ...bulletLibraryRows.map((r) => r.field),
     caliberFilterField,
     manufacturerFilterField,
     bulletPickerField,
@@ -229,7 +226,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
   let selectedBullet = null; // entry from `catalog`, or null when "Other"
 
   function updatePickerVisibility() {
-    const hasAnythingToOffer = isBulletLibraryEnabled() || loadUserBullets().length > 0;
+    const hasAnythingToOffer = loadBulletLibraries().some((lib) => isBulletLibraryVisible(lib.id)) || loadUserBullets().length > 0;
     const display = hasAnythingToOffer ? '' : 'none';
     caliberFilterField.style.display = display;
     manufacturerFilterField.style.display = display;
@@ -238,7 +235,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
 
   function rebuildCatalog() {
     const userBullets = loadUserBullets().map((b) => ({ ...b, isUser: true, designation: designationFor(b.caliberM, cachedDesignations) }));
-    catalog = [...(isBulletLibraryEnabled() ? builtInBullets : []), ...userBullets];
+    catalog = [...builtInBullets.filter((b) => isBulletLibraryVisible(b.libraryId)), ...userBullets];
     refreshFilterOptions();
     populateBulletOptions();
     updatePickerVisibility();
@@ -302,10 +299,11 @@ export function bulletSection({ slider = false, onInput } = {}) {
     );
     for (const b of filtered) {
       const grains = Math.round(b.massKg * KG_TO_GRAIN);
-      // "* " marks a user's own Arsenal entry, distinguishing it from a
-      // built-in one wherever it shows up — the same convention used by
-      // every other merged picker in the app (see cartridge-form.js).
-      const prefix = b.isUser ? '* ' : '';
+      // "* " marks a user's own Arsenal entry; a built-in bullet instead
+      // gets its owning library's own bracketed prefix (e.g. "[LCd] ") —
+      // the two are mutually exclusive, and both conventions are shared
+      // with every other merged picker in the app (see cartridge-form.js).
+      const prefix = b.isUser ? '* ' : (b.libraryPrefix ? `[${b.libraryPrefix}] ` : '');
       bulletSelect.appendChild(el('option', { value: b.id, text: `${prefix}${b.manufacturer} ${b.name} (${b.designation}, ${grains}gr)` }));
     }
 
@@ -346,7 +344,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
     // in the summary below.
     const lengthPart = bullet.lengthM != null ? `${(bullet.lengthM * 1000).toFixed(2)}mm, ` : '';
     const caliberMm = (bullet.caliberM * 1000).toFixed(4);
-    const namePrefix = bullet.isUser ? '* ' : '';
+    const namePrefix = bullet.isUser ? '* ' : (bullet.libraryPrefix ? `[${bullet.libraryPrefix}] ` : '');
     const sourceText = bullet.source ? ` ${t('fields.bulletSource')}: ${bullet.source}` : '';
     infoBox.textContent =
       `${namePrefix}${bullet.manufacturer} ${bullet.name} — ${bullet.designation} (${caliberMm}mm), ` +
@@ -411,7 +409,10 @@ export function bulletSection({ slider = false, onInput } = {}) {
       return Promise.all(ids.map((id) => loadBullet(id)));
     })
     .then((bullets) => {
-      builtInBullets = bullets.map((b) => ({ ...b, designation: designationFor(b.caliberM, cachedDesignations) }));
+      builtInBullets = bullets.map((b) => {
+        const lib = bulletLibraryForBullet(b.id);
+        return { ...b, designation: designationFor(b.caliberM, cachedDesignations), libraryId: lib ? lib.id : null, libraryPrefix: lib ? lib.prefix : null };
+      });
       rebuildCatalog();
       // Restore a library bullet a previous view's session left selected
       // (a manual bc/dragModel was already seeded at construction time

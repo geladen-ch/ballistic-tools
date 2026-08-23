@@ -478,8 +478,10 @@
     "languageLabel": "Langue",
     "generalHeading": "Général",
     "unitsHeading": "Unités",
+    "rifleLibraryHeading": "Bibliothèque de carabines",
+    "rifleLibraryHint": "Armes légères militaires courantes",
     "rifleLibraryLabel": "Afficher la bibliothèque de carabines intégrée",
-    "bulletLibraryLabel": "Afficher la bibliothèque de balles intégrée",
+    "bulletLibrariesHeading": "Bibliothèques de balles",
     "spinDriftLabel": "Calculer la dérive gyroscopique",
     "zeroForSpinDriftLabel": "Compenser la dérive gyroscopique lors du réglage du zéro",
     "updateNotificationsLabel": "Me notifier des mises à jour de l'application",
@@ -651,10 +653,21 @@
     "gotIt": "Compris",
     "restartNow": "Redémarrer maintenant"
   },
+  "bulletLibraries": {
+    "geladen": {
+      "name": "Geladen's own",
+      "description": "La collection de l'auteur"
+    },
+    "lapuaCd": {
+      "name": "Lapua Cd",
+      "description": "Courbes Cd-Mach mesurées au radar par Lapua, telles que publiées par le fabricant"
+    }
+  },
   "releaseHistory": {
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v136": "Prise en charge de plusieurs bibliothèques de balles intégrées, activables individuellement. Import des courbes Cd-Mach mesurées au radar par Lapua sous forme de bibliothèque « Lapua Cd ». Améliorations mineures de l'interface.",
       "v135": "Validation des saisies / contrôles de cohérence mis en place dans toute l'application. L'interface de saisie de l'Arsenal a été retravaillée pour la rendre (on l'espère) plus claire, et (assurément) plus géniale.",
       "v134": "Le Calculateur de terrain est finalisé, avec une belle fonctionnalité (optionnelle) pour enregistrer les données de cibles d'un emplacement, et choisir vos cibles directement à partir d'une photo prise depuis la position du tireur. Un gros travail de polissage de l'interface mobile, pour que les modes portrait et paysage s'affichent correctement sur différents appareils. Tout cela justifie un saut de version majeure, et un nouveau nom de version formidable.",
       "v133": "Calculateur de terrain : une barre récapitulative des conditions a été ajoutée au-dessus de l'affichage élévation/dérive, montrant la distance, le vent et l'atmosphère en un coup d'œil.",

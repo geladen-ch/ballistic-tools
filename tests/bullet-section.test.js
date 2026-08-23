@@ -13,12 +13,13 @@ await warmCatalogs();
 
 const { bulletSection } = await import('../src/ui/sections/bullet-section.js');
 const { resetShotStateForTests } = await import('../src/shot-state.js');
-const { isBulletLibraryEnabled, setBulletLibraryEnabled } = await import('../src/library-prefs.js');
+const { isBulletLibraryVisible, setBulletLibraryVisible, resetBulletLibraryPrefsForTests } = await import('../src/bullet-library-prefs.js');
 const { saveUserBullet } = await import('../src/user-library.js');
 const { setDragModelVisible, resetDragModelPrefsForTests } = await import('../src/drag-model-prefs.js');
 const { removeCookie } = await import('../src/cookies.js');
 
 const DRAG_MODEL_COOKIE_NAME = 'ballistics_hidden_drag_models_v1';
+const BULLET_LIBRARY_COOKIE_NAME = 'ballistics_hidden_bullet_libraries_v1';
 
 // Shared shot state is a module-level singleton (by design — see
 // shot-state.js), so each test needs a clean slate the same way
@@ -27,7 +28,8 @@ const DRAG_MODEL_COOKIE_NAME = 'ballistics_hidden_drag_models_v1';
 test.beforeEach(() => {
   resetShotStateForTests();
   localStorage.clear();
-  setBulletLibraryEnabled(true);
+  resetBulletLibraryPrefsForTests();
+  removeCookie(BULLET_LIBRARY_COOKIE_NAME);
   resetDragModelPrefsForTests();
   removeCookie(DRAG_MODEL_COOKIE_NAME);
 });
@@ -581,18 +583,20 @@ test('a user Arsenal bullet appears in the picker, prefixed "* ", and is selecta
   assert.deepEqual(bullet.getValues(), { bc: 0.5, dragModel: 'G1', massKg: 0.01088622 });
 });
 
-test('the "Show built-in bullets library" checkbox is always present, even with nothing to offer', async () => {
-  setBulletLibraryEnabled(false);
+test('a bullet-library checkbox is always present per library, even with nothing to offer', async () => {
+  setBulletLibraryVisible('geladen', false);
+  setBulletLibraryVisible('lapua-cd', false);
   const bullet = bulletSection();
   await settle();
 
-  const checkbox = byId(bullet.node, 'bulletLibraryEnabled');
+  const checkbox = byId(bullet.node, 'bullet-library-geladen');
   assert.ok(checkbox, 'the checkbox itself must never disappear — it\'s the only way back in from this view');
   assert.equal(checkbox.checked, false);
 });
 
-test('the bullet picker (but not the checkbox) is hidden when the built-in library is off and there are no Arsenal bullets', async () => {
-  setBulletLibraryEnabled(false);
+test('the bullet picker (but not the checkboxes) is hidden when every built-in library is off and there are no Arsenal bullets', async () => {
+  setBulletLibraryVisible('geladen', false);
+  setBulletLibraryVisible('lapua-cd', false);
   const bullet = bulletSection();
   await settle();
 
@@ -604,7 +608,7 @@ test('the bullet picker (but not the checkbox) is hidden when the built-in libra
   assert.ok(Math.abs(values.massKg - 0.0113) < 1e-9);
 });
 
-test('unchecking "Show built-in bullets library" live-hides built-in bullets but keeps the user\'s own', async () => {
+test('unchecking a library checkbox live-hides only that library\'s bullets, keeping the user\'s own', async () => {
   saveUserBullet({
     id: 'my-custom-bullet', name: 'Custom 168gr', manufacturer: 'Handload',
     caliberM: 0.0078232, massKg: 0.01088622, profile: { type: 'bc', bc: 0.5, model: 'G1' }
@@ -617,30 +621,35 @@ test('unchecking "Show built-in bullets library" live-hides built-in bullets but
   const beforeCount = bulletSelect.childNodes.length;
   assert.ok(beforeCount > 2, 'expected built-ins plus the user bullet before toggling');
 
-  const checkbox = byId(bullet.node, 'bulletLibraryEnabled');
-  assert.equal(checkbox.checked, true);
-  checkbox.checked = false;
-  fireEvent(checkbox, 'change');
+  const geladenCheckbox = byId(bullet.node, 'bullet-library-geladen');
+  const lapuaCheckbox = byId(bullet.node, 'bullet-library-lapua-cd');
+  assert.equal(geladenCheckbox.checked, true);
+  assert.equal(lapuaCheckbox.checked, true);
+  geladenCheckbox.checked = false;
+  fireEvent(geladenCheckbox, 'change');
+  lapuaCheckbox.checked = false;
+  fireEvent(lapuaCheckbox, 'change');
 
-  assert.equal(isBulletLibraryEnabled(), false);
+  assert.equal(isBulletLibraryVisible('geladen'), false);
+  assert.equal(isBulletLibraryVisible('lapua-cd'), false);
   const values = bulletSelect.childNodes.map((o) => o.attributes.value);
   assert.deepEqual(values, ['__other__', 'my-custom-bullet']);
 });
 
-test('the checkbox persists to a cookie and is shared — a second instance reads the same value', async () => {
+test('a library checkbox persists to a cookie and is shared — a second instance reads the same value', async () => {
   const first = bulletSection();
   await settle();
-  const firstCheckbox = byId(first.node, 'bulletLibraryEnabled');
+  const firstCheckbox = byId(first.node, 'bullet-library-geladen');
   firstCheckbox.checked = false;
   fireEvent(firstCheckbox, 'change');
 
   const second = bulletSection();
   await settle();
-  assert.equal(byId(second.node, 'bulletLibraryEnabled').checked, false);
+  assert.equal(byId(second.node, 'bullet-library-geladen').checked, false);
 });
 
-test('lockToBullet() still resolves a built-in bullet even while "Show built-in bullets library" is off', async () => {
-  setBulletLibraryEnabled(false);
+test('lockToBullet() still resolves a built-in bullet even while its own library is off', async () => {
+  setBulletLibraryVisible('geladen', false);
   const bullet = bulletSection();
   await bullet.lockToBullet('swiss-gp90');
 
@@ -649,8 +658,9 @@ test('lockToBullet() still resolves a built-in bullet even while "Show built-in 
   assert.equal(bulletSelect.value, 'swiss-gp90');
 });
 
-test('unlock() after a lock restores the toggle-respecting picker (built-ins hidden again if the toggle is off)', async () => {
-  setBulletLibraryEnabled(false);
+test('unlock() after a lock restores the toggle-respecting picker (built-ins hidden again if their libraries are off)', async () => {
+  setBulletLibraryVisible('geladen', false);
+  setBulletLibraryVisible('lapua-cd', false);
   const bullet = bulletSection();
   await bullet.lockToBullet('swiss-gp90');
   bullet.unlock();
@@ -658,6 +668,17 @@ test('unlock() after a lock restores the toggle-respecting picker (built-ins hid
   const bulletSelect = byId(bullet.node, 'bulletSelect');
   assert.deepEqual(optionValues(bulletSelect), ['__other__']);
   assert.equal(bulletSelect.parentNode.style.display, 'none');
+});
+
+test('hiding just one library removes only its options and prefix, leaving the other library intact', async () => {
+  setBulletLibraryVisible('lapua-cd', false);
+  const bullet = bulletSection();
+  await settle();
+
+  const bulletSelect = byId(bullet.node, 'bulletSelect');
+  const texts = bulletSelect.childNodes.map((o) => o.textContent);
+  assert.ok(texts.some((t) => t.includes('[Gldn]')), 'expected a Geladen-library option to remain, prefixed [Gldn]');
+  assert.ok(!texts.some((t) => t.includes('[LCd]')), 'expected every Lapua Cd option to be hidden');
 });
 
 test('getArsenalPrefill() returns the manual bc/dragModel while "Other" is selected', () => {

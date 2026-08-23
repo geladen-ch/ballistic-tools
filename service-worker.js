@@ -12,15 +12,15 @@
 // works via the cache fallback and the CACHE_VERSION precache below.
 //
 // This is a module-type worker (registered with { type: 'module' } in
-// app.js) specifically so it can import the bullet catalog directly —
-// see BULLET_IDS below — instead of every bullet's URL having to be
-// listed here by hand.
+// app.js) specifically so it can import the bullet library registry
+// directly — see BULLET_LIBRARIES below — instead of every bullet's URL
+// having to be listed here by hand.
 // The browser's SW update check byte-compares this file's own script
 // text only — never what it imports — so a change confined to
 // version.js's CACHE_VERSION alone won't be noticed by an already-open
 // tab. Editing this file directly (even just a comment, like this one)
 // is what actually triggers that detection.
-import { BULLET_IDS } from './src/bullets/bullet-catalog.js';
+import { BULLET_LIBRARIES } from './src/bullets/bullet-libraries.js';
 import { RIFLE_IDS } from './src/rifles/rifle-catalog.js';
 import { CACHE_VERSION } from './src/version.js';
 
@@ -57,10 +57,13 @@ const APP_SHELL_URLS = [
   './src/version.js',
   './src/svg.js',
   './src/bullets.js',
-  './src/bullets/bullet-catalog.js',
+  './src/bullets/bullet-libraries.js',
+  './src/bullets/geladen/catalog.js',
+  './src/bullets/lapua-cd/catalog.js',
   './src/rifles.js',
   './src/rifles/rifle-catalog.js',
   './src/library-prefs.js',
+  './src/bullet-library-prefs.js',
   './src/spin-drift-prefs.js',
   './src/update-notification-prefs.js',
   './src/update-notifications.js',
@@ -105,6 +108,7 @@ const APP_SHELL_URLS = [
   './src/ui/sections/rifle-section.js',
   './src/ui/sections/cartridge-section.js',
   './src/ui/sections/bullet-section.js',
+  './src/ui/bullet-library-checkboxes.js',
   './src/ui/sections/atmosphere-section.js',
   './src/ui/sections/guns-summary.js',
   './src/ui/drag-model-select.js',
@@ -260,8 +264,10 @@ const APP_SHELL_URLS = [
 // One entry per bullet/rifle, derived from the imported catalogs rather
 // than enumerated here — this is the whole point of the module-worker
 // switch, and is what keeps this file's size independent of how large
-// either library grows.
-const BULLET_URLS = BULLET_IDS.map((id) => `./src/bullets/${id}.json`);
+// either library grows. Each bullet library keeps its own ids in its own
+// directory (see bullets/bullet-libraries.js), so this flat-maps across
+// all of them rather than reading a single ids array.
+const BULLET_URLS = BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id) => `./src/bullets/${lib.id}/${id}.json`));
 const RIFLE_URLS = RIFLE_IDS.map((id) => `./src/rifles/${id}.json`);
 
 const PRECACHE_URLS = [...APP_SHELL_URLS, ...BULLET_URLS, ...RIFLE_URLS];

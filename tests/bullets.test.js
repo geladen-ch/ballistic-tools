@@ -4,7 +4,7 @@ import { installFakeDom } from './helpers/fake-dom.js';
 
 installFakeDom();
 
-const { loadBulletCatalog, loadBullet, loadCaliberDesignations, designationFor, matchCaliberDesignation } = await import('../src/bullets.js');
+const { loadBulletCatalog, loadBullet, loadBulletLibraries, bulletLibraryForBullet, loadCaliberDesignations, designationFor, matchCaliberDesignation } = await import('../src/bullets.js');
 
 test('loadBulletCatalog resolves a plain list of bullet ids — no duplicated name/manufacturer/etc.', () => {
   const catalog = loadBulletCatalog();
@@ -22,6 +22,47 @@ test('loadBulletCatalog resolves a plain list of bullet ids — no duplicated na
     'lapua-338-scenar-300',
     'lapua-65-scenar-139',
     'lapua-65-scenarl-136',
+    'lcd-224-e539-55',
+    'lcd-224-s538-55',
+    'lcd-224-scenar-69-gb501',
+    'lcd-224-scenar-69-gb541',
+    'lcd-224-scenar-77',
+    'lcd-224-scenarl-77',
+    'lcd-243-hp-77',
+    'lcd-243-scenar-105',
+    'lcd-243-scenar-90',
+    'lcd-243-scenarl-105',
+    'lcd-243-scenarl-90',
+    'lcd-30-ap-165',
+    'lcd-30-fmj-123',
+    'lcd-30-fmjbt-185',
+    'lcd-30-fmjbt-200',
+    'lcd-30-lockbase-150',
+    'lcd-30-lockbase-170',
+    'lcd-30-naturalis-170-n518',
+    'lcd-30-naturalis-170-n558',
+    'lcd-30-naturalis-180',
+    'lcd-30-scenar-154',
+    'lcd-30-scenar-185',
+    'lcd-30-scenarl-175',
+    'lcd-30-scenarl-220',
+    'lcd-30-subsonic-200',
+    'lcd-303-fmj-123',
+    'lcd-338-ap-248',
+    'lcd-338-ap-300',
+    'lcd-338-api-253',
+    'lcd-338-lockbase-250',
+    'lcd-338-lockbase-300',
+    'lcd-338-naturalis-231',
+    'lcd-366-naturalis-221',
+    'lcd-366-naturalis-250',
+    'lcd-65-naturalis-140',
+    'lcd-65-scenar-100',
+    'lcd-65-scenar-108',
+    'lcd-65-scenar-123',
+    'lcd-65-scenarl-120',
+    'lcd-7mm-scenarl-150',
+    'lcd-7mm-scenarl-180',
     'nato-m193',
     'nato-m80',
     'nato-m855',
@@ -41,6 +82,31 @@ test('loadBulletCatalog returns the same array instance across repeated calls (i
   const first = loadBulletCatalog();
   const second = loadBulletCatalog();
   assert.equal(first, second);
+});
+
+test('loadBulletLibraries returns every known built-in library with its own id/prefix', () => {
+  const libraries = loadBulletLibraries();
+  assert.deepEqual(libraries.map((lib) => lib.id).sort(), ['geladen', 'lapua-cd']);
+  const geladen = libraries.find((lib) => lib.id === 'geladen');
+  assert.equal(geladen.prefix, 'Gldn');
+  const lapuaCd = libraries.find((lib) => lib.id === 'lapua-cd');
+  assert.equal(lapuaCd.prefix, 'LCd');
+});
+
+test('no built-in bullet id is claimed by more than one library', () => {
+  const seen = new Set();
+  for (const lib of loadBulletLibraries()) {
+    for (const id of lib.ids) {
+      assert.ok(!seen.has(id), `"${id}" is claimed by more than one library`);
+      seen.add(id);
+    }
+  }
+});
+
+test('bulletLibraryForBullet resolves a bullet id to its owning library, or null for an unknown/non-built-in id', () => {
+  assert.equal(bulletLibraryForBullet('lapua-30-scenar-167').id, 'lapua-cd');
+  assert.equal(bulletLibraryForBullet('hornady-30-eldm-208').id, 'geladen');
+  assert.equal(bulletLibraryForBullet('not-a-real-bullet-id'), null);
 });
 
 test('loadBulletCatalog is synchronous — no network round-trip for the catalog itself', () => {
@@ -166,7 +232,7 @@ test('manufacturer is inferred from the bullet id/name (Hornady, Lapua, RUAG), "
     const bullet = await loadBullet(id);
     let expected = 'Military';
     if (id.startsWith('hornady-')) expected = 'Hornady';
-    else if (id.startsWith('lapua-')) expected = 'Lapua';
+    else if (id.startsWith('lapua-') || id.startsWith('lcd-')) expected = 'Lapua';
     else if (id.startsWith('ruag-')) expected = 'RUAG';
     assert.equal(bullet.manufacturer, expected, `${id} should be manufacturer "${expected}"`);
   }

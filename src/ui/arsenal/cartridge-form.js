@@ -3,9 +3,9 @@ import { unitField } from '../unit-field.js';
 import { muzzleVelocityTempField } from '../muzzle-velocity-temp-field.js';
 import { stabilityIndicator } from '../stability-indicator.js';
 import { bulletForm } from './bullet-form.js';
-import { loadBulletCatalog, loadBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
+import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
 import { loadUserBullets, saveUserBullet, findUserBulletByName, generateUserId } from '../../user-library.js';
-import { isBulletLibraryEnabled } from '../../library-prefs.js';
+import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
 import { t } from '../../i18n.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
@@ -15,15 +15,17 @@ const ALL_CALIBERS_VALUE = '__all__';
 const NEW_BULLET_VALUE = '__new__';
 
 // Add/Edit form for one cartridge within a user rifle. The bullet picker
-// draws from both the built-in catalog (unless hidden — see
-// library-prefs.js's isBulletLibraryEnabled(), the same toggle that gates
-// the tool views' own bullet pickers, applied here too for a consistent
-// "hide built-ins" experience everywhere) and the user's own bullets, the
-// latter prefixed "* " — same convention used everywhere else an arsenal
-// entry shows up alongside built-in ones. Built-ins are still fetched
-// even while hidden, so editing a cartridge that already references a
-// (now-hidden) built-in bullet doesn't silently lose that reference —
-// see populateBulletOptions() below.
+// draws from both the built-in libraries (each individually hideable —
+// see bullet-library-prefs.js's isBulletLibraryVisible(), the same
+// per-library toggle that gates the tool views' own bullet pickers,
+// applied here too for a consistent "hide a library" experience
+// everywhere) and the user's own bullets, the latter prefixed "* " —
+// same convention used everywhere else an arsenal entry shows up
+// alongside built-in ones (a built-in instead gets its own library's
+// bracketed prefix, e.g. "[LCd] "). Built-ins are still fetched even
+// while their library is hidden, so editing a cartridge that already
+// references a (now-hidden) built-in bullet doesn't silently lose that
+// reference — see populateBulletOptions() below.
 //
 // A cartridge is never allowed to point directly at a built-in bullet —
 // the Arsenal is meant to be self-contained, so saving one instead copies
@@ -103,7 +105,7 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
   // enumerate which calibers actually have something to offer) and
   // populateBulletOptions() (to then filter by the chosen one).
   function computeOfferedBullets() {
-    let offered = isBulletLibraryEnabled() ? [...builtIns, ...userBullets] : [...userBullets];
+    let offered = [...builtIns.filter((b) => isBulletLibraryVisible(b.libraryId)), ...userBullets];
     if (values.bulletId && !offered.some((b) => b.id === values.bulletId)) {
       const stillReferenced = builtIns.find((b) => b.id === values.bulletId);
       if (stillReferenced) offered = [...offered, stillReferenced];
@@ -156,7 +158,8 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
 
     clear(bulletSelect);
     for (const b of filtered) {
-      bulletSelect.appendChild(el('option', { value: b.id, text: (b.isUser ? '* ' : '') + `${b.manufacturer} ${b.name}` }));
+      const prefix = b.isUser ? '* ' : (b.libraryPrefix ? `[${b.libraryPrefix}] ` : '');
+      bulletSelect.appendChild(el('option', { value: b.id, text: prefix + `${b.manufacturer} ${b.name}` }));
     }
     bulletSelect.appendChild(el('option', { value: NEW_BULLET_VALUE, i18n: 'arsenal.cartridgeAddNewBulletOption' }));
 
@@ -311,7 +314,12 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
   }
 
   const builtInsLoaded = Promise.all(loadBulletCatalog().map((id) => loadBullet(id)))
-    .then((loaded) => { builtIns = loaded; })
+    .then((loaded) => {
+      builtIns = loaded.map((b) => {
+        const lib = bulletLibraryForBullet(b.id);
+        return { ...b, libraryId: lib ? lib.id : null, libraryPrefix: lib ? lib.prefix : null };
+      });
+    })
     .catch(() => { builtIns = []; });
   const designationsLoaded = loadCaliberDesignations()
     .then((list) => { designations = list; })

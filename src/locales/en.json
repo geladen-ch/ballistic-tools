@@ -478,8 +478,10 @@
     "languageLabel": "Language",
     "generalHeading": "General",
     "unitsHeading": "Units",
+    "rifleLibraryHeading": "Rifle library",
+    "rifleLibraryHint": "Common military small arms",
     "rifleLibraryLabel": "Show built-in rifles library",
-    "bulletLibraryLabel": "Show built-in bullets library",
+    "bulletLibrariesHeading": "Bullet libraries",
     "spinDriftLabel": "Calculate spin drift",
     "zeroForSpinDriftLabel": "Account for spin drift when zeroing",
     "updateNotificationsLabel": "Notify me about application updates",
@@ -651,10 +653,21 @@
     "gotIt": "Got it",
     "restartNow": "Restart now"
   },
+  "bulletLibraries": {
+    "geladen": {
+      "name": "Geladen's own",
+      "description": "The author's collection"
+    },
+    "lapuaCd": {
+      "name": "Lapua Cd",
+      "description": "Lapua radar measured Cd-Mach curves, as published by the vendor"
+    }
+  },
   "releaseHistory": {
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v136": "Support of multiple built-in bullet libraries, individually switchable for display. Import of Lapua radar measured Cd-Mach curves as \"Lapua Cd\" lib. Minor UI enhancements.",
       "v135": "Input validation / sanity checks implemented all over the app. Arsenal entry UI reworked to make it (hopefully) clearer, and (certainly) awesomer.",
       "v134": "The Range Solver is final, with a beautiful (optional) feature to save target data for a location, and pick your targets directly from a photo taken from the shooter's position. Major polishing of mobile interface, to make portrait and landscape modes display correctly on various devices. All this mandates a major version bump, and an awesome new version codename.",
       "v133": "Range Solver: a summary conditions bar was added above the elevation and windage readout, showing target range, wind, and atmosphere at a glance.",
