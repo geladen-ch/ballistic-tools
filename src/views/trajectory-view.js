@@ -189,6 +189,8 @@ export function mount(container) {
   // distanceChoice above; a unit-preference change is picked up on the
   // next navigation to this view, like every other unit-aware field here.
   const energyChoice = unitChoice('energy', getUnit('energy'));
+  const velocityChoice = unitChoice('velocity', getUnit('velocity'));
+  const smallLengthChoice = unitChoice('dropCm', getUnit('smallLength'));
 
   // Column visibility only needs the header rebuilt plus the existing
   // points re-rendered — no worker round-trip, since toggling a column
@@ -220,7 +222,7 @@ export function mount(container) {
   // irregular tail gap the old per-window engine call produced.
   const chartContainer = el('div', { class: 'chart-container' });
   const chartColumnSelect = buildChartColumnSelect(COLUMNS, {
-    id: 'trajectoryChartColumn', energyChoice, defaultColumnId: 'dropCm'
+    id: 'trajectoryChartColumn', energyChoice, velocityChoice, smallLengthChoice, defaultColumnId: 'dropCm'
   });
   // Empty and hidden until renderChart() finds the selected column is a
   // drop-family one (see COLUMNS' showLineOfSight) — this is the only
@@ -376,12 +378,14 @@ export function mount(container) {
       i18nSpan('trajectory.colRange'),
       document.createTextNode(` (${distanceChoice.label})`)
     ]));
+    const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
     for (const col of COLUMNS) {
       if (!toggles.isVisible(col.id)) continue;
-      if (col.id === 'energy') {
+      const choice = unitChoiceById[col.id];
+      if (choice) {
         headerRow.appendChild(el('th', {}, [
           i18nSpan(col.headerKey),
-          document.createTextNode(` (${energyChoice.label})`)
+          document.createTextNode(` (${choice.label})`)
         ]));
       } else {
         headerRow.appendChild(el('th', { i18n: col.headerKey }));
@@ -431,10 +435,11 @@ export function mount(container) {
     const fieldSeparator = getFieldSeparator();
     const decimalSeparator = getDecimalSeparator();
 
+    const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
     const header = [
       `${t('trajectory.colRange')} (${distanceChoice.label})`,
-      ...visibleColumns.map((col) => col.id === 'energy'
-        ? `${t(col.headerKey)} (${energyChoice.label})`
+      ...visibleColumns.map((col) => unitChoiceById[col.id]
+        ? `${t(col.headerKey)} (${unitChoiceById[col.id].label})`
         : t(col.headerKey))
     ];
     const rows = lastPoints.map((p) => {

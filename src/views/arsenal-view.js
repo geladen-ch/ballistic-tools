@@ -549,10 +549,12 @@ export function mount(container) {
     const distanceUnit = getUnit('distance');
     const distanceChoice = unitChoice('range', distanceUnit);
     const energyChoice = unitChoice('energy', getUnit('energy'));
+    const velocityChoice = unitChoice('velocity', getUnit('velocity'));
+    const smallLengthChoice = unitChoice('dropCm', getUnit('smallLength'));
 
     const summaryRows = configs.map(({ rifle, cartridge }) => el('p', { class: 'hint' }, [
       el('strong', { text: rifle.name }),
-      document.createTextNode(` — ${cartridge.name}, ${cartridge.muzzleVelocity.toFixed(0)} m/s`)
+      document.createTextNode(` — ${cartridge.name}, ${engineToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}`)
     ]));
 
     const pool = getPool();
@@ -574,7 +576,7 @@ export function mount(container) {
 
     const chartContainer = el('div', { class: 'chart-container' });
     const columnSelect = buildChartColumnSelect(COLUMNS, {
-      id: 'comparisonChartColumn', energyChoice, defaultColumnId: 'dropCm'
+      id: 'comparisonChartColumn', energyChoice, velocityChoice, smallLengthChoice, defaultColumnId: 'dropCm'
     });
 
     let zoomRafScheduled = false;
@@ -942,6 +944,7 @@ export function mount(container) {
   function renderCartridgesSection(rifle) {
     const cartridgesListEl = el('div');
     const userBullets = loadUserBullets();
+    const velocityChoice = unitChoice('velocity', getUnit('velocity'));
     for (const cartridge of rifle.cartridges) {
       const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
       editButton.addEventListener('click', (e) => {
@@ -975,7 +978,7 @@ export function mount(container) {
         el('div', { class: 'arsenal-row-info' }, [
           el('strong', { text: cartridge.name }),
           isActiveCartridge ? el('span', { class: 'active-badge', text: t('arsenal.activeCartridgeBadge') }) : null,
-          el('span', { class: 'hint', text: ` — ${cartridge.muzzleVelocity.toFixed(0)} m/s` }),
+          el('span', { class: 'hint', text: ` — ${engineToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}` }),
           cartridgeStability.node
         ]),
         el('div', { class: 'arsenal-row-actions' }, [editButton, deleteButton])

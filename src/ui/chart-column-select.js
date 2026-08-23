@@ -5,14 +5,15 @@ import { t } from '../i18n.js';
 // chart and the Arsenal Comparison chart, from the same COLUMNS array
 // (see trajectory-view.js) so both always offer exactly the same set of
 // plottable values. Pulled out here rather than duplicated because the
-// energy column needs special handling: an <option> can't hold element
-// children the way a <th>/<label> can (see trajectory-view.js's
-// i18nSpan-based unit suffix in its table header), so its unit suffix has
-// to be folded into one plain-text label instead of the usual `i18n` prop
-// live-binding.
-export function chartColumnSelect(columns, { id, energyChoice, defaultColumnId } = {}) {
-  const select = el('select', { id }, columns.map((col) => (col.id === 'energy'
-    ? el('option', { value: col.id, text: `${t(col.headerKey)} (${energyChoice.label})` })
+// energy/velocity/drop/windage columns need special handling: an
+// <option> can't hold element children the way a <th>/<label> can (see
+// trajectory-view.js's i18nSpan-based unit suffix in its table header),
+// so their unit suffix has to be folded into one plain-text label
+// instead of the usual `i18n` prop live-binding.
+export function chartColumnSelect(columns, { id, energyChoice, velocityChoice, smallLengthChoice, defaultColumnId } = {}) {
+  const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
+  const select = el('select', { id }, columns.map((col) => (unitChoiceById[col.id]
+    ? el('option', { value: col.id, text: `${t(col.headerKey)} (${unitChoiceById[col.id].label})` })
     : el('option', { value: col.id, i18n: col.headerKey }))));
   if (defaultColumnId) select.value = defaultColumnId;
   return select;

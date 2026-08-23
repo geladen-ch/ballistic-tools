@@ -133,6 +133,16 @@ export const FIELD_UNITS = {
   riflingTwist: { group: 'riflingTwist', engineUnit: 'mm' },
   aimOffsetX: { group: 'smallLength', engineUnit: 'cm' },
   aimOffsetY: { group: 'smallLength', engineUnit: 'cm' },
+  // Not form fields — the trajectory table/chart's own drop and windage
+  // columns (dropCm/windageCm on each engine point) convert through these
+  // for display the same way `energy`/`velocity` do below. The engine
+  // value itself must stay in cm wherever it's consumed for math (see
+  // clicksForOffset() in trajectory-columns.js's elevClicks/windClicks/
+  // elevMrad/etc. columns, which read p.dropCm/p.windageCm directly, not
+  // through these entries) — only the two "absolute" cm columns display
+  // through the user's smallLength preference.
+  dropCm: { group: 'smallLength', engineUnit: 'cm' },
+  windageCm: { group: 'smallLength', engineUnit: 'cm' },
 
   altitudeM: { group: 'altitude', engineUnit: 'm' },
   tempC: { group: 'temperature', engineUnit: 'tempC' },
@@ -149,7 +159,11 @@ export const FIELD_UNITS = {
   // chart series computes 0.5*massKg*velocity^2 itself (Joules, SI) and
   // converts it for display through this entry, the same way it already
   // does for `range`.
-  energy: { group: 'energy', engineUnit: 'J' }
+  energy: { group: 'energy', engineUnit: 'J' },
+  // The trajectory table/chart's velocity-at-range column — same
+  // engineUnit as muzzleVelocity, kept as its own entry since it isn't a
+  // form field either (mirrors `energy` above).
+  velocity: { group: 'velocity', engineUnit: 'm/s' }
 };
 
 // Temperature's absolute units (tempC/tempF) convert with a +32/*9/5
@@ -249,7 +263,7 @@ export const FIELD_BOUNDS = {
   tof: { min: 0.001, max: 30 }, // s, no FIELD_UNITS entry
   sightingShotCount: { min: 1, max: 5 }, // count, integer
   convBc: { min: 0.05, max: 1.5 }, // matches bc
-  maxRange: { min: 100, max: 2000 }, // m
+  maxRange: { min: 100, max: 5000 }, // m — matches targetRange, same physical quantity
   rangeStep: { min: 1, max: 500 }, // m
   benchPrecision: { min: 0, max: 3 }, // mrad
   shooterSkill: { min: 0, max: 3 }, // mrad

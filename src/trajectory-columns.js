@@ -23,8 +23,12 @@ import { getUnit } from './prefs.js';
 // "Line of sight", only for these. Windage columns are a horizontal
 // offset, not a position relative to the sight line, so they're excluded.
 export const COLUMNS = [
-  { id: 'dropCm', headerKey: 'trajectory.colDrop', default: true, decimals: 1, showLineOfSight: true, value: (p) => p.dropCm },
-  { id: 'windageCm', headerKey: 'trajectory.colWindage', default: true, decimals: 1, value: (p) => p.windageCm },
+  // Converted through the user's smallLength unit preference — the raw
+  // p.dropCm/p.windageCm engine values (always cm) are still what every
+  // clicksForOffset() call below reads directly, so this conversion only
+  // affects what's displayed, never the click/mrad/MOA math.
+  { id: 'dropCm', headerKey: 'trajectory.colDrop', default: true, decimals: 1, showLineOfSight: true, value: (p) => engineToDisplay('dropCm', p.dropCm, getUnit('smallLength')) },
+  { id: 'windageCm', headerKey: 'trajectory.colWindage', default: true, decimals: 1, value: (p) => engineToDisplay('windageCm', p.windageCm, getUnit('smallLength')) },
   // Sign inverted relative to dropCm itself — a shooter reads this as
   // "dial up N clicks to compensate," so a bullet that's dropped below
   // the line of sight (dropCm negative) should show as a positive click
@@ -35,7 +39,10 @@ export const COLUMNS = [
   { id: 'windMrad', headerKey: 'trajectory.colWindMrad', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageCm, 1, 'mrad', p.range) },
   { id: 'elevMOA', headerKey: 'trajectory.colElevMOA', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropCm, 1, 'arcmin', p.range) },
   { id: 'windMOA', headerKey: 'trajectory.colWindMOA', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageCm, 1, 'arcmin', p.range) },
-  { id: 'velocity', headerKey: 'trajectory.colVelocity', default: true, decimals: 1, value: (p) => p.velocity },
+  // Converted through the user's velocity unit preference the same way
+  // `energy` converts through the energy preference below — getUnit() is
+  // read fresh on every call for the same reason.
+  { id: 'velocity', headerKey: 'trajectory.colVelocity', default: true, decimals: 1, value: (p) => engineToDisplay('velocity', p.velocity, getUnit('velocity')) },
   { id: 'tof', headerKey: 'trajectory.colTof', default: true, decimals: 3, value: (p) => p.tof },
   { id: 'mach', headerKey: 'trajectory.colMach', default: false, decimals: 2, value: (p) => p.mach },
   // Not carried on the engine point itself (the engine only needs mass for

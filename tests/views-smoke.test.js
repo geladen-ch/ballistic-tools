@@ -114,10 +114,13 @@ test('trajectory table includes elevation and windage click columns', () => {
 
   const headerCells = findByTag(container, 'TH').map((th) => th.textContent);
   const rangeUnitLabel = unitChoice('range', 'm').label; // default distance pref is metric
+  const velocityUnitLabel = unitChoice('velocity', 'm/s').label; // default velocity pref is metric
+  const smallLengthUnitLabel = unitChoice('dropCm', 'mm').label; // default smallLength pref is mm
   assert.deepEqual(headerCells, [
-    `${t('trajectory.colRange')} (${rangeUnitLabel})`, t('trajectory.colDrop'), t('trajectory.colWindage'),
+    `${t('trajectory.colRange')} (${rangeUnitLabel})`,
+    `${t('trajectory.colDrop')} (${smallLengthUnitLabel})`, `${t('trajectory.colWindage')} (${smallLengthUnitLabel})`,
     t('trajectory.colElevClicks'), t('trajectory.colWindClicks'),
-    t('trajectory.colVelocity'), t('trajectory.colTof')
+    `${t('trajectory.colVelocity')} (${velocityUnitLabel})`, t('trajectory.colTof')
   ]);
 });
 
@@ -218,8 +221,14 @@ test('the default 6 result columns remain visible out of the box', () => {
   trajectoryView.mount(container);
 
   const headerText = findByTag(container, 'TH').map((th) => th.textContent);
-  for (const key of ['trajectory.colDrop', 'trajectory.colWindage', 'trajectory.colElevClicks', 'trajectory.colWindClicks', 'trajectory.colVelocity', 'trajectory.colTof']) {
+  for (const key of ['trajectory.colElevClicks', 'trajectory.colWindClicks', 'trajectory.colTof']) {
     assert.ok(headerText.includes(t(key)), `expected "${t(key)}" in the default header`);
+  }
+  // colDrop/colWindage/colVelocity carry a unit suffix (like colRange/
+  // colEnergy) rather than an exact-text match — see the dedicated header
+  // test above.
+  for (const key of ['trajectory.colDrop', 'trajectory.colWindage', 'trajectory.colVelocity']) {
+    assert.ok(headerText.some((text) => text.startsWith(t(key))), `expected a "${t(key)}" column header`);
   }
 });
 
