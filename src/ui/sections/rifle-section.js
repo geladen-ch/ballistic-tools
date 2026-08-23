@@ -1,4 +1,5 @@
 import { el, clear } from '../../dom.js';
+import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
 import { scopeClicksField } from '../scope-clicks-field.js';
 import { sectionGroup } from '../section.js';
@@ -73,11 +74,11 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   // "no elevation correction," not an error, so the field must actually
   // allow it rather than hinting a 25m floor.
   const zeroRangeField = unitField({
-    id: 'zeroRange', min: 0, max: 500, step: 5, value: initial.zeroRange, slider,
+    id: 'zeroRange', ...FIELD_BOUNDS.zeroRange, step: 5, value: initial.zeroRange, slider,
     onInput: () => { saveManualRifle(); if (onInput) onInput(); }
   });
   const sightHeightField = unitField({
-    id: 'sightHeight', min: 0, max: 100, step: 1, value: initial.sightHeight, slider,
+    id: 'sightHeight', ...FIELD_BOUNDS.sightHeight, step: 1, value: initial.sightHeight, slider,
     onInput: () => { saveManualRifle(); if (onInput) onInput(); }
   });
   // Not currently read by getValues() — no ballistic factor this app
@@ -85,7 +86,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   // real, persisted rifle parameter carried through the same way
   // zeroRange/sightHeight are, and included in getArsenalPrefill() below.
   const twistField = unitField({
-    id: 'riflingTwist', min: 0, max: 1000, step: 1, optional: true, value: initial.riflingTwist,
+    id: 'riflingTwist', ...FIELD_BOUNDS.riflingTwist, step: 1, optional: true, value: initial.riflingTwist,
     onInput: () => { saveManualRifle(); if (onInput) onInput(); }
   });
   // A plain enum, not a unit-bearing quantity — always has a real value

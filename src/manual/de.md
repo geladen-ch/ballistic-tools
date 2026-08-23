@@ -340,9 +340,10 @@ eine eingefügte Cd-Mach-Tabelle) oder indem Sie ein integriertes Geschoss
 kopieren und anpassen. Fügen Sie ein Gewehr mit eigener Visierhöhe,
 Einschussdistanz und Klickwerten hinzu und hängen Sie ihm dann eine oder
 mehrere Patronen an (jede mit eigenem Geschoss und eigener
-Mündungsgeschwindigkeit). „Aktivieren" bei einem Gewehr macht es zur überall
-aktiven Konfiguration und bringt Sie zurück zu dem Werkzeug, von dem aus Sie
-Waffen geöffnet haben.
+Mündungsgeschwindigkeit). Klicken Sie ein Gewehr an, um es oben als
+„Aktives Gewehr" anzuzeigen, mit seinen eigenen Patronen und einer
+Bearbeiten-Schaltfläche; die dort gewählte Patrone ist es, die „Fertig"
+als aktive Konfiguration überall übernimmt, sobald Sie Waffen verlassen.
 
 Kaliber- und Herstellerfilter verkürzen lange Listen. Ein Geschoss oder
 Gewehr, das bearbeitet, aber noch nicht exportiert wurde, zeigt das

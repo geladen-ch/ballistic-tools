@@ -360,6 +360,36 @@ test('an invalid time of flight shows an error instead of running the calculatio
   assert.ok(status.className.includes('error'));
 });
 
+test('r1 must be nearer than r2 — a live cross-field check on both fields, from either side', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+
+  const r1Input = findById(container, 'r1');
+  const r2Input = findById(container, 'r2');
+
+  // r1's own range tops out at 200, so drop r2 below r1's default (0)
+  // first, then raise r1 past it — both stay within their own plain
+  // min/max bounds, isolating the cross-field check.
+  r2Input.value = '10'; // r2's own min
+  fireEvent(r2Input, 'input');
+  r1Input.value = '50';
+  fireEvent(r1Input, 'input');
+  assert.equal(r1Input.classList.contains('field-invalid'), true);
+  const r1Hint = findByTag(container, 'P').find((p) => p.className.includes('warning') && p.textContent === t('bcEstimate.errorNearRangeExceedsFar'));
+  assert.ok(r1Hint);
+
+  // Fixing it from the other side (raising r2 back past r1) clears both.
+  r2Input.value = '300';
+  fireEvent(r2Input, 'input');
+  assert.equal(r1Input.classList.contains('field-invalid'), false);
+  assert.equal(r2Input.classList.contains('field-invalid'), false);
+
+  // And breaking it from r2's side (dropping it below r1 again) flags r2 too.
+  r2Input.value = '10';
+  fireEvent(r2Input, 'input');
+  assert.equal(r2Input.classList.contains('field-invalid'), true);
+});
+
 // ---- BC Conversion ----
 // Unlike the Calculation/ToF panels above, conversion is a plain
 // synchronous formula (no worker pool involved — see engine/bc-convert.js),

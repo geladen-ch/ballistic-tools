@@ -1,4 +1,5 @@
 import { el } from '../../dom.js';
+import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
 import { muzzleVelocityTempField } from '../muzzle-velocity-temp-field.js';
 import { bulletSection } from './bullet-section.js';
@@ -34,7 +35,7 @@ export function cartridgeSection({ slider = false, onInput } = {}) {
   }
 
   const muzzleVelocityField = unitField({
-    id: 'muzzleVelocity', min: 200, max: 1200, step: 1, value: initialVelocity, slider,
+    id: 'muzzleVelocity', ...FIELD_BOUNDS.muzzleVelocity, step: 1, value: initialVelocity, slider,
     onInput: () => { saveManualCartridge(); if (onInput) onInput(); }
   });
   const muzzleVelocityTemp = muzzleVelocityTempField({

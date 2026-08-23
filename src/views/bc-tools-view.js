@@ -7,6 +7,8 @@ import { applyI18nText, i18nSpan, t } from '../i18n.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
 import { convertBallisticCoefficient } from '../engine/bc-convert.js';
 import { getUnit } from '../prefs.js';
+import { FIELD_BOUNDS } from '../units.js';
+import { fieldValidity } from '../ui/field-validity.js';
 import Qty from '../vendor/js-quantities/quantities.mjs';
 import { openTrackBatch } from '../labradar/zip-batch.js';
 import { parseLabradarTrack } from '../labradar/track-parse.js';
@@ -413,19 +415,42 @@ export function mount(container) {
   const atmosphere = atmosphereSection({ includeWind: false });
 
   // ---- Shared fields (both Velocity and ToF mode) ----
-  const v1Field = persistedUnitField('v1', { value: 800, step: 0.1 });
-  const r1Field = persistedUnitField('r1', { value: 0, step: 1 });
-  const r2Field = persistedUnitField('r2', { value: 300, step: 1 });
+  // r1 < r2 is a cross-field check, same idea as trajectory-view.js's own
+  // rangeStep ≤ maxRange — checked on both fields (so whichever one the
+  // user actually edits shows the violation), each re-validating the
+  // other since a valid pair can become invalid from either side.
+  const v1Field = persistedUnitField('v1', { value: 800, step: 0.1, ...FIELD_BOUNDS.muzzleVelocity });
+  const r1Field = persistedUnitField('r1', {
+    value: 0, step: 1, ...FIELD_BOUNDS.r1,
+    extraCheck: (v) => (v >= r2Field.getEngineValue() ? t('bcEstimate.errorNearRangeExceedsFar') : null),
+    onInput: () => r2Field.validate()
+  });
+  const r2Field = persistedUnitField('r2', {
+    value: 300, step: 1, ...FIELD_BOUNDS.r2,
+    extraCheck: (v) => (v <= r1Field.getEngineValue() ? t('bcEstimate.errorNearRangeExceedsFar') : null),
+    onInput: () => r1Field.validate()
+  });
 
   // ---- Mode-specific field: far velocity (v2) vs. time of flight (tof) ----
-  const v2Field = persistedUnitField('v2', { value: 629.1, step: 0.1 });
+  const v2Field = persistedUnitField('v2', { value: 629.1, step: 0.1, ...FIELD_BOUNDS.muzzleVelocity });
   const tofInput = el('input', { type: 'number', id: 'tof', step: '0.001', value: persistedValue('tof', '0.423') });
   tofInput.addEventListener('input', () => {
     panelState.tof = tofInput.value;
   });
+  function computeTofMessage() {
+    const raw = tofInput.value.trim();
+    if (raw === '') return t('fields.errorRequired');
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return t('fields.errorRequired');
+    const { min, max } = FIELD_BOUNDS.tof;
+    if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max} s` });
+    return null;
+  }
+  const tofValidity = fieldValidity(tofInput, computeTofMessage);
   const tofField = el('div', { class: 'field' }, [
     el('label', { i18n: 'fields.tof' }),
-    tofInput
+    tofInput,
+    tofValidity.hintNode
   ]);
   tofField.style.display = 'none';
 
@@ -481,6 +506,16 @@ export function mount(container) {
   const convBcInput = el('input', {
     type: 'number', id: 'convBc', step: '0.001', min: '0', value: persistedValue('convBc', '0.5')
   });
+  function computeConvBcMessage() {
+    const raw = convBcInput.value.trim();
+    if (raw === '') return t('fields.errorRequired');
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return t('fields.errorRequired');
+    const { min, max } = FIELD_BOUNDS.convBc;
+    if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max}` });
+    return null;
+  }
+  const convBcValidity = fieldValidity(convBcInput, computeConvBcMessage);
 
   // Velocity gets its own small unit toggle (m/s / ft/s only, not the full
   // 4-choice velocity group unitField() reads from Settings) — defaults to
@@ -496,6 +531,26 @@ export function mount(container) {
     el('option', { value: 'ft/s', text: 'ft/s' })
   ]);
   convVelocityUnitSelect.value = convVelocityUnit;
+
+  // Same physical bound as muzzle velocity elsewhere (FIELD_BOUNDS.
+  // muzzleVelocity, m/s) — re-expressed in whichever of this field's own
+  // two local units (m/s/ft/s, independent of the app-wide velocity
+  // preference) is currently selected, via the same Qty conversion the
+  // unit-toggle handler below already uses to restate the typed value.
+  function computeConvVelocityMessage() {
+    const raw = convVelocityInput.value.trim();
+    if (raw === '') return t('fields.errorRequired');
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return t('fields.errorRequired');
+    const decimals = convVelocityUnit === 'ft/s' ? 0 : 1;
+    const min = Qty(FIELD_BOUNDS.muzzleVelocity.min, 'm/s').to(convVelocityUnit).scalar;
+    const max = Qty(FIELD_BOUNDS.muzzleVelocity.max, 'm/s').to(convVelocityUnit).scalar;
+    if (parsed < min || parsed > max) {
+      return t('fields.errorRange', { range: `${min.toFixed(decimals)} – ${max.toFixed(decimals)} ${convVelocityUnit}` });
+    }
+    return null;
+  }
+  const convVelocityValidity = fieldValidity(convVelocityInput, computeConvVelocityMessage);
 
   const convResult = el('div', {
     id: 'conv-result', class: 'card', style: 'font-size:28px;font-weight:700;color:var(--accent);'
@@ -548,17 +603,23 @@ export function mount(container) {
     convVelocityUnit = newUnit;
     panelState.convVelocityUnit = convVelocityUnit;
     panelState.convVelocity = convVelocityInput.value;
+    // The restated value above is a programmatic .value assignment, not
+    // a typed 'input' event — fieldValidity() only listens for the
+    // latter, so this nudges it explicitly (its allowed-range message
+    // also needs recomputing in the new unit regardless).
+    convVelocityValidity.validate();
     recomputeConversion();
   });
 
   const conversionControls = el('div', { class: 'card' }, [
     el('h2', { i18n: 'bcConversion.inputsHeading' }),
     el('div', { class: 'field' }, [el('label', { i18n: 'fields.convSourceModel' }), convSourceSelect]),
-    el('div', { class: 'field' }, [el('label', { i18n: 'fields.convBc' }), convBcInput]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.convBc' }), convBcInput, convBcValidity.hintNode]),
     el('div', { class: 'field' }, [el('label', { i18n: 'fields.convTargetModel' }), convTargetSelect]),
     el('div', { class: 'field' }, [
       el('label', { i18n: 'fields.convVelocity' }),
-      el('div', { class: 'preset-row' }, [convVelocityInput, convVelocityUnitSelect])
+      el('div', { class: 'preset-row' }, [convVelocityInput, convVelocityUnitSelect]),
+      convVelocityValidity.hintNode
     ])
   ]);
 

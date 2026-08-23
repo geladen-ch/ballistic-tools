@@ -3,6 +3,8 @@ import { unitField } from '../unit-field.js';
 import { locationPhotoField } from './location-photo-field.js';
 import { findUserLocationByName } from '../../location-library.js';
 import { t } from '../../i18n.js';
+import { FIELD_BOUNDS } from '../../units.js';
+import { fieldValidity } from '../field-validity.js';
 
 const DEFAULT_VALUES = { name: '', altitudeM: null };
 
@@ -26,30 +28,33 @@ export function locationForm({ initialValues = {}, excludeId, onPhotoChange, onS
     duplicateWarning.style.display = match ? '' : 'none';
   }
   nameInput.addEventListener('input', refreshDuplicateWarning);
+  const nameValidity = fieldValidity(nameInput, () => (nameInput.value.trim() ? null : t('rangeSolverLocations.errorNameRequired')));
 
   // Optional — a location with no known altitude simply never triggers
   // the "Set active" atmosphere default (see locations-view.js).
   const altitudeField = unitField({
-    id: 'altitudeM', min: 0, max: 3000, step: 50, value: values.altitudeM, optional: true
+    id: 'altitudeM', ...FIELD_BOUNDS.altitudeM, step: 50, value: values.altitudeM, optional: true
   });
 
   const photoField = locationPhotoField({ value: values.photo ?? null, onChange: onPhotoChange });
 
-  const errorMessage = el('p', { class: 'hint warning' });
-  errorMessage.style.display = 'none';
-
   const saveButton = el('button', { i18n: 'rangeSolverLocations.saveLocationButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'rangeSolverLocations.cancelButton' });
 
+  // Every field's own live validation (red border + inline hint) is also
+  // the Save gate — see bullet-form.js's own Save handler for the same
+  // pattern.
   saveButton.addEventListener('click', () => {
-    const name = nameInput.value.trim();
-    if (!name) {
-      errorMessage.textContent = t('rangeSolverLocations.errorNameRequired');
-      errorMessage.style.display = '';
+    const checks = [
+      { ok: nameValidity.validate(), node: nameInput },
+      { ok: altitudeField.validate(), node: altitudeField.node }
+    ];
+    const firstInvalid = checks.find((c) => !c.ok);
+    if (firstInvalid) {
+      firstInvalid.node.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    errorMessage.style.display = 'none';
-    if (onSave) onSave({ name, altitudeM: altitudeField.getEngineValue(), photo: photoField.getValue() });
+    if (onSave) onSave({ name: nameInput.value.trim(), altitudeM: altitudeField.getEngineValue(), photo: photoField.getValue() });
   });
   cancelButton.addEventListener('click', () => { if (onCancel) onCancel(); });
 
@@ -57,11 +62,11 @@ export function locationForm({ initialValues = {}, excludeId, onPhotoChange, onS
 
   const node = el('div', { class: 'input-section nested' }, [
     el('div', { class: 'field' }, [el('label', { i18n: 'rangeSolverLocations.locationName' }), nameInput]),
+    nameValidity.hintNode,
     duplicateWarning,
     altitudeField.node,
     el('p', { class: 'hint', i18n: 'rangeSolverLocations.altitudeHint' }),
     photoField.node,
-    errorMessage,
     el('div', { class: 'arsenal-form-actions' }, [saveButton, cancelButton])
   ]);
 

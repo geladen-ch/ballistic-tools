@@ -20,7 +20,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS } from '../units.js';
+import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle } from '../range-solver-prefs.js';
@@ -85,12 +85,12 @@ export function mount(container) {
     saveRangeSolverTargetState({ rangeM: targetRangeField.getEngineValue(), losAngleDeg: losAngleField.getEngineValue() });
   }
   const targetRangeField = largeStepperField({
-    id: 'targetRange', min: 10, max: 3000, step: 10,
+    id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10,
     value: targetSaved.rangeM ?? DEFAULT_TARGET_RANGE_M,
     onInput: () => { saveTarget(); recompute(); }
   });
   const losAngleField = unitField({
-    id: 'losAngle', min: -90, max: 90, step: 1,
+    id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: 1,
     value: targetSaved.losAngleDeg ?? DEFAULT_LOS_ANGLE_DEG,
     onInput: () => { saveTarget(); recompute(); }
   });
@@ -245,7 +245,7 @@ export function mount(container) {
     onInput: () => { saveWind(); recompute(); }
   });
   const windSpeedField = largeStepperField({
-    id: 'windSpeed', min: 0, max: 30, step: 0.5,
+    id: 'windSpeed', ...FIELD_BOUNDS.windSpeed, step: 0.5,
     value: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
     onInput: () => { saveWind(); recompute(); }
   });

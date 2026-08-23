@@ -340,9 +340,10 @@ main (nom, calibre, masse, BC/modèle de traînée ou une table Cd-Mach
 collée), soit en copiant une balle intégrée et en l'ajustant. Ajoutez une
 carabine avec sa propre hauteur de lunette, distance de réglage et valeurs
 de clic, puis attachez-lui une ou plusieurs cartouches (chacune avec sa
-propre balle et vitesse initiale). « Activer » sur une carabine en fait la
-configuration active partout, et vous ramène vers l'outil depuis lequel vous
-avez ouvert Armes.
+propre balle et vitesse initiale). Cliquez sur une carabine pour en faire la
+« Carabine active » affichée en haut, avec ses propres cartouches et un
+bouton Modifier ; la cartouche choisie là est celle que « Terminé » applique
+comme configuration active partout, une fois que vous quittez Armes.
 
 Les filtres par calibre et fabricant réduisent les longues listes. Une balle
 ou une carabine modifiée mais pas encore exportée affiche un badge « Non

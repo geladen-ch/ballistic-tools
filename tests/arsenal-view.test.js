@@ -19,11 +19,13 @@ const { loadUserBullets, saveUserBullet, loadUserRifles, saveUserRifle, generate
 const { setPendingBulletPrefill, setPendingRiflePrefill } = await import('../src/arsenal-prefill.js');
 const { resetShotStateForTests, loadRifleState, saveCartridgeState, saveRifleState } = await import('../src/shot-state.js');
 const { resetComparisonForTests, getComparisonSelection } = await import('../src/comparison-state.js');
+const { requestGunsDone, resetGunsNavForTests } = await import('../src/guns-nav.js');
 
 test.beforeEach(() => {
   localStorage.clear();
   resetShotStateForTests();
   resetComparisonForTests();
+  resetGunsNavForTests();
 });
 
 function settle(ms = 30) {
@@ -61,13 +63,26 @@ function findAnyById(node, id) {
 // The rifle list's own Edit button for one specific rifle, found by the
 // row's text rather than DOM position — robust regardless of how many
 // bullets/rifles are listed, or which of the two cards renders first.
+// Edit only ever renders for the *active* rifle (see arsenal-view.js's
+// renderActiveRifle()) — callers that need it on a rifle that isn't
+// already active must call activateRifleRow() first.
 function rifleEditButton(container, rifleName) {
   const row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes(rifleName));
   return findByTag(row, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
 }
 
+// Clicks an "Other rifles" row to make it the active rifle — the
+// click-to-activate replacement for the old "Set active" button.
+// row-clickable is shared with the active rifle's own Cartridges list
+// rows, so this is scoped to a row whose text also names the rifle,
+// which in practice never collides with a differently-named cartridge.
+function activateRifleRow(container, rifleName) {
+  const row = findByClass(container, 'row-clickable').find((r) => r.textContent.includes(rifleName));
+  fireEvent(row, 'click');
+}
+
 function findByClass(node, className, out = []) {
-  if (node.className === className) out.push(node);
+  if ((node.className || '').split(' ').includes(className)) out.push(node);
   for (const child of node.childNodes || []) findByClass(child, className, out);
   return out;
 }
@@ -77,6 +92,27 @@ function findByClass(node, className, out = []) {
 function formActions(formNode) {
   const [actions] = findByClass(formNode, 'arsenal-form-actions');
   return { saveButton: actions.childNodes[0], cancelButton: actions.childNodes[1] };
+}
+
+// The cartridge form's own outer Save/Cancel, specifically — unlike
+// formActions() above (which takes the *first* '.arsenal-form-actions' it
+// finds, depth-first), this takes the *last* one, since the cartridge
+// form's own action row is always its very last child while an embedded
+// "Add new bullet" form (see cartridge-form.js) — itself carrying an
+// earlier '.arsenal-form-actions' of its own — may or may not currently
+// be showing.
+function outerCartridgeFormActions(container) {
+  const rows = findByClass(container, 'arsenal-form-actions');
+  const outer = rows[rows.length - 1];
+  return { saveButton: outer.childNodes[0], cancelButton: outer.childNodes[1] };
+}
+
+// The bullet select's own "Add new bullet" option (see cartridge-form.js)
+// — found by its translated text rather than the module-private constant
+// backing its value.
+function newBulletOption(container) {
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  return [...bulletSelect.childNodes].find((o) => o.textContent === t('arsenal.cartridgeAddNewBulletOption'));
 }
 
 // The caliber select is required (bullet-form.js) and, unlike every other
@@ -131,18 +167,91 @@ test('"Add Bullet"/"Add Rifle" hide together while any add/edit form is open, an
   assert.notEqual(addBullet.style.display, 'none', 'both reappear once the form closes');
   assert.notEqual(addRifle.style.display, 'none');
 
-  // Editing an existing rifle (not just adding) also hides both.
+  // Editing the active rifle (not just adding) also hides both.
+  activateRifleRow(container, 'My Rifle');
   fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
   await settle();
   assert.equal(addBullet.style.display, 'none');
   assert.equal(addRifle.style.display, 'none');
 
-  // Opening the nested cartridge form (within the still-open rifle form)
-  // keeps both hidden too.
+  // Opening the cartridge form (which discards the still-open rifle form
+  // — see the mutual-exclusivity tests below) keeps both hidden too.
   fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
   await settle();
   assert.equal(addBullet.style.display, 'none');
   assert.equal(addRifle.style.display, 'none');
+});
+
+// ---- Cross-form mutual exclusivity — only one add/edit form (bullet,
+// rifle, or cartridge) is ever open across the whole page at once. ----
+
+test('opening the bullet Edit form closes an already-open rifle Edit form', async () => {
+  saveUserRifle({
+    id: 'r1', name: 'My Rifle', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
+  });
+  saveUserBullet({ id: 'b1', name: 'My Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'My Rifle');
+  fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
+  await settle();
+  assert.ok(byId(container, 'arsenalRifleName'), 'expected the rifle Edit form to be open');
+
+  fireEvent(rifleEditButton(container, 'My Bullet'), 'click');
+  await settle();
+
+  assert.ok(byId(container, 'arsenalBulletName'), 'expected the bullet Edit form to be open');
+  assert.equal(byId(container, 'arsenalRifleName'), undefined, 'the rifle Edit form should have been discarded');
+});
+
+test('opening the active rifle\'s Edit form closes an already-open bullet Edit form', async () => {
+  saveUserRifle({
+    id: 'r1', name: 'My Rifle', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
+  });
+  saveUserBullet({ id: 'b1', name: 'My Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  fireEvent(rifleEditButton(container, 'My Bullet'), 'click');
+  await settle();
+  assert.ok(byId(container, 'arsenalBulletName'), 'expected the bullet Edit form to be open');
+
+  activateRifleRow(container, 'My Rifle');
+  fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
+  await settle();
+
+  assert.ok(byId(container, 'arsenalRifleName'), 'expected the rifle Edit form to be open');
+  assert.equal(byId(container, 'arsenalBulletName'), undefined, 'the bullet Edit form should have been discarded');
+});
+
+test('opening Add Cartridge on the active rifle closes an already-open bullet Edit form', async () => {
+  saveUserRifle({
+    id: 'r1', name: 'My Rifle', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
+  });
+  saveUserBullet({ id: 'b1', name: 'My Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'My Rifle');
+  fireEvent(rifleEditButton(container, 'My Bullet'), 'click');
+  await settle();
+  assert.ok(byId(container, 'arsenalBulletName'), 'expected the bullet Edit form to be open');
+
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+
+  assert.ok(byId(container, 'arsenalCartridgeName'), 'expected the cartridge Add form to be open');
+  // Not byId(container, 'arsenalBulletName') === undefined — the cartridge
+  // form's own "Add new bullet" default (see cartridge-form.js) now opens
+  // an *embedded* bullet form reusing that very id, so its mere presence
+  // no longer distinguishes "the old top-level Edit form is gone." The
+  // top-level Edit form's own heading does, though — only it renders one.
+  const editHeading = findByTag(container, 'H2').find((h) => h.getAttribute && h.getAttribute('data-i18n') === 'arsenal.editBulletHeading');
+  assert.equal(editHeading, undefined, 'the top-level bullet Edit form should have been discarded');
 });
 
 test('adding a bullet persists it and shows it in the list', async () => {
@@ -245,7 +354,7 @@ test('the bullet list shows each bullet\'s last-modified timestamp', () => {
   const container = makeElement('main');
   arsenalView.mount(container);
 
-  const row = findByClass(container, 'arsenal-row')[0];
+  const row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('Dated Bullet'));
   assert.ok(row.textContent.includes(t('arsenal.lastModified', { date: expectedDate })));
 });
 
@@ -297,6 +406,60 @@ test('deleting a bullet removes it after confirmation', async () => {
   fireEvent(deleteButtons[0], 'click');
 
   assert.deepEqual(loadUserBullets(), []);
+});
+
+test('deleting a bullet used by no cartridge shows the plain confirm message, with no count', async () => {
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'Unused Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  let confirmMessage = null;
+  global.confirm = (msg) => { confirmMessage = msg; return true; };
+
+  const deleteButtons = findByTag(container, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.deleteButton');
+  fireEvent(deleteButtons[0], 'click');
+
+  assert.equal(confirmMessage, t('arsenal.confirmDeleteBullet', { name: 'Unused Bullet' }));
+  global.confirm = () => true; // restore the default for later tests
+});
+
+test('deleting a bullet also deletes every cartridge that uses it (on any rifle), and the confirm prompt names the count', async () => {
+  const bullet = saveUserBullet({ id: generateUserId('user-bullet'), name: 'Shared Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  saveUserRifle({
+    id: 'r1', name: 'Rifle One', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'c1', name: 'Load A', muzzleVelocity: 800, bulletId: bullet.id },
+      { id: 'c2', name: 'Load B', muzzleVelocity: 820, bulletId: 'swiss-gp11' }
+    ]
+  });
+  saveUserRifle({
+    id: 'r2', name: 'Rifle Two', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [{ id: 'c3', name: 'Load C', muzzleVelocity: 790, bulletId: bullet.id }]
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  let confirmMessage = null;
+  global.confirm = (msg) => { confirmMessage = msg; return true; };
+
+  const bulletRow = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('Shared Bullet'));
+  const bulletDeleteButton = findByTag(bulletRow, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.deleteButton');
+  fireEvent(bulletDeleteButton, 'click');
+
+  assert.equal(confirmMessage, t('arsenal.confirmDeleteBulletWithCartridges', { name: 'Shared Bullet', count: 2 }));
+
+  assert.equal(loadUserBullets().find((b) => b.id === bullet.id), undefined, 'the bullet itself should be gone');
+  const rifles = loadUserRifles();
+  const riflesById = Object.fromEntries(rifles.map((r) => [r.id, r]));
+  assert.deepEqual(riflesById.r1.cartridges.map((c) => c.id), ['c2'], 'only the cartridge using the deleted bullet should be removed');
+  assert.deepEqual(riflesById.r2.cartridges, [], 'Rifle Two\'s only cartridge used the deleted bullet');
+  global.confirm = () => true; // restore the default for later tests
 });
 
 test('declining the delete confirmation keeps the bullet', async () => {
@@ -467,7 +630,7 @@ test('the rifle list shows each rifle\'s last-modified timestamp', () => {
   const container = makeElement('main');
   arsenalView.mount(container);
 
-  const row = findByClass(container, 'arsenal-row')[0];
+  const row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('My Rifle'));
   assert.ok(row.textContent.includes(t('arsenal.lastModified', { date: expectedDate })));
 });
 
@@ -495,17 +658,15 @@ test('the bullet, rifle and cartridge forms each show their own explicit Save la
   const rifleNameInput = byId(container, 'arsenalRifleName');
   rifleNameInput.value = 'Cartridge Test Rifle';
   fireEvent(rifleNameInput, 'input');
-  fireEvent(saveButton, 'click');
+  fireEvent(saveButton, 'click'); // a newly-added rifle becomes the active one automatically
 
-  fireEvent(rifleEditButton(container, 'Cartridge Test Rifle'), 'click');
-  await settle();
   fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
   await settle();
-  ({ saveButton } = formActions(byId(container, 'arsenalCartridgeName').parentNode.parentNode));
+  ({ saveButton } = outerCartridgeFormActions(container));
   assert.equal(saveButton.textContent, t('arsenal.saveCartridgeButton'));
 });
 
-test('saving a rifle closes the form; editing it again reveals cartridge management', async () => {
+test('saving a new rifle closes the form, makes it the active rifle, and reveals cartridge management right away', async () => {
   saveUserBullet({ id: 'my-bullet', name: 'Test Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
 
   const container = makeElement('main');
@@ -516,8 +677,7 @@ test('saving a rifle closes the form; editing it again reveals cartridge managem
   rifleNameInput.value = 'My Rifle';
   fireEvent(rifleNameInput, 'input');
 
-  let form = rifleNameInput.parentNode.parentNode;
-  let { saveButton } = formActions(form);
+  let { saveButton } = formActions(rifleNameInput.parentNode.parentNode);
   fireEvent(saveButton, 'click');
 
   const rifles = loadUserRifles();
@@ -527,15 +687,8 @@ test('saving a rifle closes the form; editing it again reveals cartridge managem
 
   // Save closes the form — back to the list, no form fields left open
   assert.equal(byId(container, 'arsenalRifleName'), undefined, 'the form should be closed after Save');
-  assert.equal(findAnyById(container, 'arsenal-add-cartridge'), null, 'cartridge management is only shown while editing');
-
-  // Editing it again reveals cartridge management for this persisted rifle.
-  // The bullet saved directly above also has its own Edit button — found
-  // by row text rather than position, since which one comes first depends
-  // on card order.
-  fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
-  await settle();
-
+  // A brand-new rifle becomes the active one immediately, so cartridge
+  // management is already available with no separate activation step.
   assert.ok(findAnyById(container, 'arsenal-add-cartridge'));
 
   fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
@@ -544,10 +697,11 @@ test('saving a rifle closes the form; editing it again reveals cartridge managem
   const cartridgeNameInput = byId(container, 'arsenalCartridgeName');
   cartridgeNameInput.value = 'My Load';
   fireEvent(cartridgeNameInput, 'input');
-  byId(container, 'arsenalCartridgeBullet').value = 'my-bullet';
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = 'my-bullet';
+  fireEvent(bulletSelect, 'change'); // closes the default-open "Add new bullet" embedded form
 
-  form = cartridgeNameInput.parentNode.parentNode;
-  ({ saveButton } = formActions(form));
+  ({ saveButton } = outerCartridgeFormActions(container));
   fireEvent(saveButton, 'click');
 
   const updatedRifles = loadUserRifles();
@@ -575,6 +729,68 @@ test('rifling twist is left out of a saved rifle entirely when the field is left
   assert.equal('defaultRiflingTwistM' in loadUserRifles()[0], false);
 });
 
+// ---- Input validation (sanity checks) — src/ui/field-validity.js and
+// src/units.js's own FIELD_BOUNDS, wired into every Arsenal form. ----
+
+test('Save on the rifle form is blocked while a field is out of range, and unblocked once fixed', () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  fireEvent(findAnyById(container, 'arsenal-add-rifle'), 'click');
+  const rifleNameInput = byId(container, 'arsenalRifleName');
+  rifleNameInput.value = 'Bad Sight Height';
+  fireEvent(rifleNameInput, 'input');
+
+  const sightHeightInput = byId(container, 'sightHeight');
+  sightHeightInput.value = '9999'; // FIELD_BOUNDS.sightHeight is 0–500mm
+  fireEvent(sightHeightInput, 'input');
+  assert.equal(sightHeightInput.classList.contains('field-invalid'), true, 'expected live red-border feedback while typing');
+
+  const { saveButton } = formActions(rifleNameInput.parentNode.parentNode);
+  fireEvent(saveButton, 'click');
+  assert.deepEqual(loadUserRifles(), [], 'Save must be blocked while a field is invalid');
+
+  sightHeightInput.value = '70';
+  fireEvent(sightHeightInput, 'input');
+  assert.equal(sightHeightInput.classList.contains('field-invalid'), false);
+  fireEvent(saveButton, 'click');
+  assert.equal(loadUserRifles().length, 1, 'Save proceeds once every field is back in range');
+});
+
+test('Save is also blocked by a field that was never touched, once Save itself is clicked', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  fireEvent(findAnyById(container, 'arsenal-add-bullet'), 'click');
+  await settle();
+  // Name and caliber are both left blank/untouched — a freshly-opened
+  // form must not already show red (see the next test), but clicking
+  // Save should force both dirty and block.
+  const nameInput = byId(container, 'arsenalBulletName');
+  assert.equal(nameInput.classList.contains('field-invalid'), false, 'pristine on open');
+
+  const { saveButton } = formActions(nameInput.parentNode.parentNode);
+  fireEvent(saveButton, 'click');
+  assert.equal(nameInput.classList.contains('field-invalid'), true, 'Save reveals the never-touched violation');
+  assert.deepEqual(loadUserBullets(), []);
+});
+
+test('rifling twist rejects a literal 0 (a Miller\'s-formula divisor) but still allows blank ("unknown")', () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  fireEvent(findAnyById(container, 'arsenal-add-rifle'), 'click');
+  const twistInput = byId(container, 'riflingTwist');
+
+  twistInput.value = '0';
+  fireEvent(twistInput, 'input');
+  assert.equal(twistInput.classList.contains('field-invalid'), true, 'expected 0 itself to be rejected');
+
+  twistInput.value = '';
+  fireEvent(twistInput, 'input');
+  assert.equal(twistInput.classList.contains('field-invalid'), false, 'blank ("unknown") must still be allowed');
+});
+
 test('a typed rifling twist value is saved in meters, and pre-fills correctly when editing again', () => {
   const container = makeElement('main');
   arsenalView.mount(container);
@@ -593,6 +809,8 @@ test('a typed rifling twist value is saved in meters, and pre-fills correctly wh
   const saved = loadUserRifles()[0];
   assert.ok(Math.abs(saved.defaultRiflingTwistM - 0.178) < 1e-9);
 
+  // A newly-added rifle is already the active one — Edit is reachable
+  // immediately, no separate activation step.
   fireEvent(rifleEditButton(container, 'Twisty Rifle'), 'click');
   assert.equal(byId(container, 'riflingTwist').value, '178');
 });
@@ -607,6 +825,7 @@ test('editing a rifle without touching its twist field never clobbers the stored
 
   const container = makeElement('main');
   arsenalView.mount(container);
+  activateRifleRow(container, 'My Rifle');
   fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
 
   const sourceInput = byId(container, 'arsenalRifleSource');
@@ -653,6 +872,7 @@ test('picking "Left" saves and pre-fills correctly when editing again', () => {
 
   assert.equal(loadUserRifles()[0].defaultTwistDirection, 'left');
 
+  // A newly-added rifle is already the active one.
   fireEvent(rifleEditButton(container, 'Lefty Rifle'), 'click');
   assert.equal(byId(container, 'twistDirection').value, 'left');
 });
@@ -664,15 +884,203 @@ async function openNewCartridgeForm(container) {
   const rifleNameInput = byId(container, 'arsenalRifleName');
   rifleNameInput.value = 'My Rifle';
   fireEvent(rifleNameInput, 'input');
-  let { saveButton } = formActions(rifleNameInput.parentNode.parentNode);
-  fireEvent(saveButton, 'click');
-
-  fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
-  await settle();
+  const { saveButton } = formActions(rifleNameInput.parentNode.parentNode);
+  fireEvent(saveButton, 'click'); // a newly-added rifle becomes the active one automatically
 
   fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
   await settle();
 }
+
+// ---- Cartridge form's caliber filter (src/ui/arsenal/cartridge-form.js) ----
+// swiss-gp11 (0.00778m) matches the "7.5mm(CH)" designation; hornady-30-
+// eldm-208 (0.00783m) matches "7.62 / .308 / .30" — two real built-in
+// bullets in genuinely different calibers, used to exercise filtering.
+
+test('the cartridge form\'s caliber filter defaults to "All" and offers every caliber for a rifle\'s first cartridge', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  assert.ok(caliberSelect, 'expected a caliber filter select');
+  assert.equal(caliberSelect.disabled, false, 'nothing to lock to yet — this is the first cartridge');
+  const selectedCaliberOption = [...caliberSelect.childNodes].find((o) => o.attributes.value === caliberSelect.value);
+  assert.equal(selectedCaliberOption.textContent, t('fields.bulletFilterAllCalibers'), 'defaults to "All"');
+
+  const bulletOptionTexts = findInputs(container).find((n) => n.id === 'arsenalCartridgeBullet').childNodes.map((o) => o.textContent);
+  assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')), 'the 7.5mm(CH) bullet should be offered');
+  assert.ok(bulletOptionTexts.some((t2) => t2.includes('208gr ELD-M')), 'the .308 bullet should be offered too — nothing filtered yet');
+});
+
+test('choosing a caliber in the cartridge form filters the bullet picker to that caliber', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  const caliberOptions = [...caliberSelect.childNodes];
+  const swissOption = caliberOptions.find((o) => o.textContent === '7.5mm(CH)');
+  assert.ok(swissOption, 'expected "7.5mm(CH)" to be one of the offered calibers');
+  caliberSelect.value = swissOption.attributes.value;
+  fireEvent(caliberSelect, 'change');
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  const bulletOptionTexts = bulletSelect.childNodes.map((o) => o.textContent);
+  assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')));
+  assert.ok(!bulletOptionTexts.some((t2) => t2.includes('208gr ELD-M')), 'the .308 bullet should be filtered out');
+});
+
+test('once a rifle\'s cartridge has a resolvable bullet, adding another cartridge locks the caliber filter to it', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'First Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  let { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  assert.equal(caliberSelect.disabled, true, 'a sibling cartridge already established this rifle\'s caliber');
+  assert.equal(caliberSelect.value, '7.5mm(CH)');
+
+  const bulletOptionTexts = byId(container, 'arsenalCartridgeBullet').childNodes.map((o) => o.textContent);
+  assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')));
+  assert.ok(!bulletOptionTexts.some((t2) => t2.includes('208gr ELD-M')), 'a mismatched-caliber bullet must not be offered');
+
+  const hint = findByTag(container, 'P').find((p) => p.getAttribute && p.getAttribute('data-i18n') === 'arsenal.cartridgeCaliberLockedHint');
+  assert.ok(hint && hint.style.display !== 'none', 'expected the locked-caliber hint to be visible');
+});
+
+test('naming a new cartridge the same as an existing sibling shows a live, non-blocking duplicate warning', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'First Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+
+  const nameInput = byId(container, 'arsenalCartridgeName');
+  const warning = () => findByTag(container, 'P').find((p) => p.getAttribute && p.getAttribute('data-i18n') === 'arsenal.duplicateCartridgeNameWarning');
+  assert.equal(warning().style.display, 'none', 'no warning on a freshly-opened blank form');
+
+  nameInput.value = 'First Load';
+  fireEvent(nameInput, 'input');
+  assert.equal(warning().style.display, '', 'duplicating a sibling cartridge name should warn live');
+  assert.equal(nameInput.classList.contains('field-invalid'), false, 'duplicate-name is a non-blocking warning, not a validation error');
+
+  nameInput.value = 'Second Load';
+  fireEvent(nameInput, 'input');
+  assert.equal(warning().style.display, 'none');
+});
+
+test('editing a rifle\'s only cartridge leaves the caliber filter open, even though it already has a bullet', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'Only Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  const cartridgesList = findAnyById(container, 'arsenal-add-cartridge').parentNode;
+  const editButton = findByTag(cartridgesList, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
+  fireEvent(editButton, 'click');
+  await settle();
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  assert.equal(caliberSelect.disabled, false, 'nothing else on the rifle needs this caliber to stay consistent');
+  const selectedOption = [...caliberSelect.childNodes].find((o) => o.attributes.value === caliberSelect.value);
+  assert.equal(selectedOption.textContent, t('fields.bulletFilterAllCalibers'), 'left open on "All", not locked to its own bullet\'s caliber');
+});
+
+test('adding a second cartridge still locks the caliber filter to the first one\'s bullet', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'First Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  assert.equal(caliberSelect.disabled, true, 'a sibling cartridge already established this rifle\'s caliber');
+  assert.equal(caliberSelect.value, '7.5mm(CH)');
+});
+
+test('editing one of two cartridges keeps the caliber filter locked (a sibling still depends on it)', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'First Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  let { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+  byId(container, 'arsenalCartridgeName').value = 'Second Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  ({ saveButton } = outerCartridgeFormActions(container));
+  fireEvent(saveButton, 'click');
+
+  const cartridgesList = findAnyById(container, 'arsenal-add-cartridge').parentNode;
+  const editButtons = findByTag(cartridgesList, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
+  assert.equal(editButtons.length, 2);
+  fireEvent(editButtons[0], 'click');
+  await settle();
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  assert.equal(caliberSelect.disabled, true, 'the sibling cartridge still chambers this rifle\'s established caliber');
+  assert.equal(caliberSelect.value, '7.5mm(CH)');
+});
+
+test('a bullet with a caliber that matches no known designation still gets its own filterable entry', async () => {
+  saveUserBullet({
+    id: 'weird-bullet', name: 'Oddball', manufacturer: 'Acme', caliberM: 0.00912, massKg: 0.01,
+    profile: { type: 'bc', bc: 0.3, model: 'G1' }
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  const customLabel = [...caliberSelect.childNodes].find((o) => o.textContent === '9.12mm');
+  assert.ok(customLabel, 'expected a raw-mm entry for the custom caliber, same as the arsenal-wide caliber filter');
+
+  caliberSelect.value = customLabel.attributes.value;
+  fireEvent(caliberSelect, 'change');
+  const bulletOptionTexts = byId(container, 'arsenalCartridgeBullet').childNodes.map((o) => o.textContent);
+  assert.ok(bulletOptionTexts.some((t2) => t2.includes('Oddball')));
+  assert.equal(bulletOptionTexts.length, 2, 'the custom-caliber bullet, plus the always-present "Add new bullet" option');
+});
 
 test('picking a built-in bullet in the cartridge form shows a copy notice; picking a user bullet doesn\'t', async () => {
   saveUserBullet({ id: 'my-bullet', name: 'Test Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
@@ -780,7 +1188,7 @@ test('re-saving a cartridge that already points at a previously-copied user bull
   fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
   byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
   fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
-  let { saveButton } = formActions(byId(container, 'arsenalCartridgeName').parentNode.parentNode);
+  let { saveButton } = outerCartridgeFormActions(container);
   fireEvent(saveButton, 'click');
 
   const copiedId = loadUserRifles()[0].cartridges[0].bulletId;
@@ -795,11 +1203,180 @@ test('re-saving a cartridge that already points at a previously-copied user bull
   const cartridgeEditButton = findByTag(cartridgesList, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
   fireEvent(cartridgeEditButton, 'click');
   await settle();
-  ({ saveButton } = formActions(byId(container, 'arsenalCartridgeName').parentNode.parentNode));
+  ({ saveButton } = outerCartridgeFormActions(container));
   fireEvent(saveButton, 'click');
 
   assert.equal(loadUserBullets().length, 1, 'must not create a second copy');
   assert.equal(loadUserRifles()[0].cartridges[0].bulletId, copiedId, 'the cartridge should keep pointing at the same copy');
+});
+
+// ---- "Add new bullet", embedded in the cartridge form ----
+
+test('the cartridge form hints that the bullet picker also offers "Add new bullet"', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const hint = findByTag(container, 'P').find((p) => p.getAttribute && p.getAttribute('data-i18n') === 'arsenal.cartridgeBulletHint');
+  assert.ok(hint, 'expected the "select existing or add new" hint');
+  assert.ok(newBulletOption(container), 'expected an "Add new bullet" option in the bullet picker');
+});
+
+test('picking "Add new bullet" shows an embedded Add Bullet form; picking a real bullet again hides it', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+  assert.ok(byId(container, 'arsenalBulletName'), 'expected the embedded Add Bullet form to appear');
+
+  bulletSelect.value = 'swiss-gp11';
+  fireEvent(bulletSelect, 'change');
+  assert.ok(!byId(container, 'arsenalBulletName'), 'expected the embedded form to disappear once a real bullet is picked');
+});
+
+test('the embedded Add Bullet form\'s caliber pre-fills to the cartridge form\'s own caliber filter, and stays in sync as that filter changes', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
+  const swissOption = [...caliberSelect.childNodes].find((o) => o.textContent === '7.5mm(CH)');
+  caliberSelect.value = swissOption.value;
+  fireEvent(caliberSelect, 'change');
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+
+  assert.equal(byId(container, 'bulletCaliberMm').value, '7.78', 'pre-filled from the parent caliber filter');
+
+  const dotThreeOhEight = [...caliberSelect.childNodes].find((o) => o.textContent === '7.62 / .308 / .30');
+  caliberSelect.value = dotThreeOhEight.value;
+  fireEvent(caliberSelect, 'change');
+
+  assert.equal(byId(container, 'bulletCaliberMm').value, '7.83', 'stays in sync live once the parent filter changes');
+});
+
+test('the embedded Add Bullet form\'s caliber is locked (picker and manual entry both) when the parent caliber filter is locked', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'First Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+  byId(container, 'arsenalCartridgeBullet').value = 'swiss-gp11';
+  fireEvent(byId(container, 'arsenalCartridgeBullet'), 'change');
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
+  await settle();
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+
+  assert.equal(byId(container, 'bulletCaliber').disabled, true, 'locked designation picker');
+  assert.equal(byId(container, 'bulletCaliberMm').disabled, true, 'locked manual mm entry');
+  assert.equal(byId(container, 'bulletCaliberMm').value, '7.78', 'pre-filled to the rifle\'s established caliber');
+});
+
+test('saving the embedded Add Bullet form\'s own Save button adds the bullet to the Arsenal, selects it, and hides the embedded form', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+  await settle(); // the embedded form's own caliber-designations fetch
+
+  byId(container, 'arsenalBulletName').value = 'Handloaded Match';
+  fireEvent(byId(container, 'arsenalBulletName'), 'input');
+  selectCaliber(container, '7.62 / .308 / .30');
+
+  const { saveButton } = formActions(byId(container, 'arsenalBulletName').parentNode.parentNode);
+  fireEvent(saveButton, 'click');
+
+  const bullets = loadUserBullets();
+  assert.equal(bullets.length, 1);
+  assert.equal(bullets[0].name, 'Handloaded Match');
+  assert.equal(bulletSelect.value, bullets[0].id, 'the new bullet should now be selected');
+  assert.ok(!byId(container, 'arsenalBulletName'), 'the embedded form should be gone once its own Save succeeds');
+});
+
+test('submitting the cartridge form\'s own Save while a new bullet is still filled in (its own Save button never clicked) creates that bullet too, in one step', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'Fresh Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+  await settle(); // the embedded form's own caliber-designations fetch
+
+  byId(container, 'arsenalBulletName').value = 'Inline New Bullet';
+  fireEvent(byId(container, 'arsenalBulletName'), 'input');
+  selectCaliber(container, '7.62 / .308 / .30');
+
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  const bullets = loadUserBullets();
+  assert.equal(bullets.length, 1);
+  assert.equal(bullets[0].name, 'Inline New Bullet');
+
+  const rifles = loadUserRifles();
+  assert.equal(rifles[0].cartridges.length, 1);
+  assert.equal(rifles[0].cartridges[0].name, 'Fresh Load');
+  assert.equal(rifles[0].cartridges[0].bulletId, bullets[0].id, 'the cartridge should point at the just-created bullet');
+});
+
+test('submitting the cartridge form\'s own Save while "Add new bullet" is active but its own required fields are still blank blocks the save, scrolling to the offending field', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  byId(container, 'arsenalCartridgeName').value = 'Blocked Load';
+  fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+  // Deliberately leave the embedded bullet's own name/caliber blank.
+
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  assert.equal(loadUserBullets().length, 0, 'nothing should be saved yet');
+  assert.equal(loadUserRifles()[0].cartridges.length, 0, 'the cartridge itself must not save either');
+  assert.ok(byId(container, 'arsenalBulletName'), 'the embedded form should still be open, showing its own violation');
+});
+
+test('cancelling the embedded Add Bullet form discards it and reverts the bullet selector to what was chosen before', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const bulletSelect = byId(container, 'arsenalCartridgeBullet');
+  bulletSelect.value = 'swiss-gp11';
+  fireEvent(bulletSelect, 'change');
+
+  bulletSelect.value = newBulletOption(container).value;
+  fireEvent(bulletSelect, 'change');
+  assert.ok(byId(container, 'arsenalBulletName'));
+
+  const { cancelButton } = formActions(byId(container, 'arsenalBulletName').parentNode.parentNode);
+  fireEvent(cancelButton, 'click');
+
+  assert.ok(!byId(container, 'arsenalBulletName'), 'the embedded form should be gone');
+  assert.equal(bulletSelect.value, 'swiss-gp11', 'reverted to the bullet chosen before "Add new bullet"');
 });
 
 test('deleting a cartridge removes only that cartridge from its rifle', async () => {
@@ -815,12 +1392,11 @@ test('deleting a cartridge removes only that cartridge from its rifle', async ()
 
   const container = makeElement('main');
   arsenalView.mount(container);
-
-  const editButtons = findByTag(container, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
-  fireEvent(editButtons[0], 'click'); // the rifle's own Edit button
+  // Cartridge management only shows for the active rifle.
+  activateRifleRow(container, 'My Rifle');
 
   // Scoped to the cartridges list specifically — the container also has
-  // the rifle's own Delete button (in the always-visible rifles list),
+  // the rifle's own Delete button (in the Active-rifle pane's own row),
   // which a plain container-wide search would catch first.
   const cartridgesList = findAnyById(container, 'arsenal-add-cartridge').parentNode;
   const deleteButtons = findByTag(cartridgesList, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.deleteButton');
@@ -833,7 +1409,7 @@ test('deleting a cartridge removes only that cartridge from its rifle', async ()
   assert.equal(rifles[0].cartridges[0].id, 'c2');
 });
 
-test('"Set active" on a rifle\'s cartridge stores it as the shared session selection and navigates to Trajectory Table', () => {
+test('activating a rifle+cartridge and pressing Done stores it as the shared session selection and navigates to Trajectory Table', () => {
   saveUserRifle({
     id: 'my-rifle', name: 'My Rifle',
     defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
@@ -846,22 +1422,23 @@ test('"Set active" on a rifle\'s cartridge stores it as the shared session selec
 
   const container = makeElement('main');
   arsenalView.mount(container);
+  activateRifleRow(container, 'My Rifle');
 
+  // The active rifle's own cartridge picker, now inside the "Active
+  // rifle" pane rather than next to a "Set active" button.
   const select = findByTag(container, 'SELECT').find((s) => s.className === 'arsenal-active-cartridge');
-  assert.ok(select, 'expected a cartridge picker next to the rifle\'s Set active button');
+  assert.ok(select, 'expected the active rifle\'s own cartridge picker');
   select.value = 'c2';
-
-  const setActiveButton = findByTag(container, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.setActiveButton');
-  assert.ok(setActiveButton, 'expected a "Set active" button');
+  fireEvent(select, 'change');
 
   location.hash = '';
-  fireEvent(setActiveButton, 'click');
+  requestGunsDone('/trajectory'); // Done is what commits the staged activation now, not a per-row button
 
   assert.equal(location.hash, '#/trajectory');
   assert.deepEqual(loadRifleState().library, { rifleId: 'my-rifle', cartridgeId: 'c2' });
 });
 
-test('"Set active" fills Guns\' Custom tab rifle, cartridge, and bullet selectors from the chosen combination', async () => {
+test('activating a rifle+cartridge fills Guns\' Custom tab rifle, cartridge, and bullet selectors from the chosen combination once Done commits it', async () => {
   saveUserRifle({
     id: 'my-rifle', name: 'My Rifle',
     defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
@@ -874,10 +1451,11 @@ test('"Set active" fills Guns\' Custom tab rifle, cartridge, and bullet selector
 
   const arsenalContainer = makeElement('main');
   arsenalView.mount(arsenalContainer);
+  activateRifleRow(arsenalContainer, 'My Rifle');
   const select = findByTag(arsenalContainer, 'SELECT').find((s) => s.className === 'arsenal-active-cartridge');
   select.value = 'c2';
-  const setActiveButton = findByTag(arsenalContainer, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.setActiveButton');
-  fireEvent(setActiveButton, 'click');
+  fireEvent(select, 'change');
+  requestGunsDone('/trajectory');
 
   // The live picker now lives on Guns' Custom tab (see guns-view.js) —
   // Trajectory itself only shows a compact summary card.
@@ -894,7 +1472,7 @@ test('"Set active" fills Guns\' Custom tab rifle, cartridge, and bullet selector
   assert.equal(bulletSelect.disabled, true, 'the bullet picker should be locked by the active cartridge');
 });
 
-test('"Set active" on an Arsenal rifle updates Trajectory\'s active-configuration summary away from a previously active custom load', async () => {
+test('activating an Arsenal rifle and pressing Done updates Trajectory\'s active-configuration summary away from a previously active custom load', async () => {
   // A custom (hand-entered) configuration is already active — the bug
   // this guards against only showed up when replacing one, not when
   // there was nothing active yet (see trajectory-view.js's own comment
@@ -912,8 +1490,8 @@ test('"Set active" on an Arsenal rifle updates Trajectory\'s active-configuratio
 
   const arsenalContainer = makeElement('main');
   arsenalView.mount(arsenalContainer);
-  const setActiveButton = findByTag(arsenalContainer, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.setActiveButton');
-  fireEvent(setActiveButton, 'click');
+  activateRifleRow(arsenalContainer, 'My Rifle');
+  requestGunsDone('/trajectory');
 
   const trajectoryContainer = makeElement('main');
   trajectoryView.mount(trajectoryContainer);
@@ -925,7 +1503,7 @@ test('"Set active" on an Arsenal rifle updates Trajectory\'s active-configuratio
   assert.ok(!bulletLine.textContent.includes(t('guns.customBulletLabel')), `expected the bullet line to have moved off the stale custom load, got "${bulletLine.textContent}"`);
 });
 
-test('a rifle with no saved cartridges shows no "Set active" control', () => {
+test('a rifle with no saved cartridges shows no cartridge picker/Compare control, and is marked "Unusable"', () => {
   saveUserRifle({
     id: 'bare-rifle', name: 'Bare Rifle',
     defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
@@ -936,8 +1514,55 @@ test('a rifle with no saved cartridges shows no "Set active" control', () => {
   const container = makeElement('main');
   arsenalView.mount(container);
 
-  const setActiveButton = findByTag(container, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.setActiveButton');
-  assert.equal(setActiveButton, undefined);
+  const select = findByTag(container, 'SELECT').find((s) => s.className === 'arsenal-active-cartridge');
+  assert.equal(select, undefined, 'nothing for a cartridge picker to act on');
+  const compareButton = findByTag(container, 'BUTTON').find((b) => b.className && b.className.includes('arsenal-compare-toggle'));
+  assert.equal(compareButton, undefined);
+
+  const row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('Bare Rifle'));
+  const badge = findByClass(row, 'unusable-badge')[0];
+  assert.ok(badge, 'expected the "Unusable" badge on a cartridge-less rifle');
+  assert.equal(badge.textContent, t('arsenal.unusableBadge'));
+});
+
+test('activating a cartridge-less rifle brings it to the "Active rifle" pane, showing the no-cartridges warning and Add Cartridge', () => {
+  saveUserRifle({
+    id: 'bare-rifle', name: 'Bare Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: []
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Bare Rifle');
+
+  assert.ok(findAnyById(container, 'arsenal-add-cartridge'), 'expected Add Cartridge to be reachable');
+  const warning = findByTag(container, 'P').find((p) => p.getAttribute && p.getAttribute('data-i18n') === 'arsenal.noCartridgesWarning');
+  assert.ok(warning, 'expected the prominent no-cartridges warning');
+});
+
+test('Done does not change the previously-active configuration when the currently active rifle has no cartridges', () => {
+  saveUserRifle({
+    id: 'usable-rifle', name: 'Usable Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [{ id: 'c1', name: 'Load 1', muzzleVelocity: 800, bulletId: 'swiss-gp11' }]
+  });
+  saveUserRifle({
+    id: 'bare-rifle', name: 'Bare Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: []
+  });
+  saveRifleState({ library: { rifleId: 'usable-rifle', cartridgeId: 'c1' } });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Bare Rifle');
+  requestGunsDone('/trajectory');
+
+  assert.deepEqual(loadRifleState().library, { rifleId: 'usable-rifle', cartridgeId: 'c1' }, 'the previous running configuration must be left untouched');
 });
 
 test('a bullet prefill from another view opens the Add Bullet form pre-filled', async () => {
@@ -1074,14 +1699,14 @@ test('a freshly saved bullet/rifle shows the "Unsaved" badge; a per-row "Save to
   fireEvent(saveButton, 'click');
 
   assert.equal(loadUserBullets()[0].unsaved, true);
-  let row = findByClass(container, 'arsenal-row')[0];
+  let row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('New Bullet'));
   assert.ok(unsavedBadgeIn(row), 'expected the Unsaved badge on a just-created bullet');
 
-  const saveToFileButton = findByTag(container, 'BUTTON').find((b) => b.getAttribute('data-i18n') === 'arsenal.saveToFileButton');
+  const saveToFileButton = findByTag(row, 'BUTTON').find((b) => b.getAttribute('data-i18n') === 'arsenal.saveToFileButton');
   fireEvent(saveToFileButton, 'click');
 
   assert.equal(loadUserBullets()[0].unsaved, false, 'exporting must clear unsaved');
-  row = findByClass(container, 'arsenal-row')[0];
+  row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('New Bullet'));
   assert.equal(unsavedBadgeIn(row), undefined, 'the badge must disappear once exported');
 });
 
@@ -1485,8 +2110,7 @@ test('deleting a cartridge that is marked for comparison removes it from the com
   fireEvent(compareToggleButtons(container)[0], 'click'); // rifle-1/c1
   fireEvent(compareToggleButtons(container)[1], 'click'); // rifle-2/c3
 
-  const editButtons = findByTag(container, 'BUTTON').filter((b) => b.getAttribute('data-i18n') === 'arsenal.editButton');
-  fireEvent(editButtons[0], 'click'); // opens rifle-1 for editing, revealing its cartridges
+  activateRifleRow(container, 'Rifle One'); // its Cartridges section is only shown while active
 
   // Scoped to the cartridges sub-section specifically — the top "for
   // comparison" summary also has a row whose text includes "Load 1", so a

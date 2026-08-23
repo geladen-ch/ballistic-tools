@@ -576,12 +576,17 @@ html.placement-mode .location-placement-page { flex: 1; min-height: 0; }
   text-transform: uppercase;
   color: var(--dim);
 }
-.location-row-clickable {
+/* A whole .arsenal-row that activates something on click, rather than
+   only its own buttons — Locations' own Known-locations rows
+   (src/views/locations-view.js) and Arsenal's Other-rifles rows / active-
+   rifle cartridge rows (src/views/arsenal-view.js), both click-to-
+   activate. */
+.row-clickable {
   cursor: pointer;
   border-radius: var(--radius);
   transition: background 0.1s ease;
 }
-.location-row-clickable:hover { background: var(--panel-raised); }
+.row-clickable:hover { background: var(--panel-raised); }
 
 /* Shared full-screen zoomable/pannable photo container
    (src/ui/locations/photo-viewport.js) behind location-placement-view.js's

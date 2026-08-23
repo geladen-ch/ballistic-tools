@@ -1,8 +1,9 @@
 import { el } from '../dom.js';
 import { unitField } from './unit-field.js';
-import { velocityPerTempSymbol, velocityPerTempToDisplay, velocityPerTempToEngine } from '../units.js';
+import { velocityPerTempSymbol, velocityPerTempToDisplay, velocityPerTempToEngine, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
-import { i18nSpan } from '../i18n.js';
+import { i18nSpan, t } from '../i18n.js';
+import { fieldValidity } from './field-validity.js';
 
 const DEFAULT_REFERENCE_TEMP_C = 15;
 const DEFAULT_SENSITIVITY_M_S_PER_C = 1.0;
@@ -23,7 +24,7 @@ export function muzzleVelocityTempField({ onInput } = {}) {
   const checkbox = el('input', { type: 'checkbox', id: 'muzzleVelocityTempEnabled' });
   const checkboxRow = el('label', { class: 'checkbox-field' }, [checkbox, i18nSpan('fields.muzzleVelocityTempEnabled')]);
 
-  const referenceField = unitField({ id: 'referenceTempC', value: DEFAULT_REFERENCE_TEMP_C, step: 1 });
+  const referenceField = unitField({ id: 'referenceTempC', ...FIELD_BOUNDS.referenceTempC, value: DEFAULT_REFERENCE_TEMP_C, step: 1 });
 
   // velocityTempSensitivity is a rate (velocity per degree), not a plain
   // quantity — it doesn't fit FIELD_UNITS/unitField(), so it's built here
@@ -38,11 +39,35 @@ export function muzzleVelocityTempField({ onInput } = {}) {
     value: roundSensitivity(velocityPerTempToDisplay(DEFAULT_SENSITIVITY_M_S_PER_C, velocityUnit, tempUnit))
   });
 
+  // Same FIELD_BOUNDS.velocityTempSensitivity (engine unit m/s per °C)
+  // every other bound is checked against, re-expressed in whichever
+  // velocity/temperature units are currently displayed — same conversion
+  // getValues()/applyValues() below already use. Blank/unparseable stays
+  // a non-violation (matches getValues()'s own tolerant "drop the
+  // correction" behavior on bad input) — only a genuinely out-of-range
+  // number is flagged.
+  function computeSensitivityMessage() {
+    const raw = sensitivityInput.value.trim();
+    if (raw === '') return null;
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return null;
+    const { min, max } = FIELD_BOUNDS.velocityTempSensitivity;
+    const dMin = roundSensitivity(velocityPerTempToDisplay(min, getUnit('velocity'), getUnit('temperature')));
+    const dMax = roundSensitivity(velocityPerTempToDisplay(max, getUnit('velocity'), getUnit('temperature')));
+    const lo = Math.min(dMin, dMax), hi = Math.max(dMin, dMax);
+    if (parsed < lo || parsed > hi) {
+      return t('fields.errorRange', { range: `${lo} – ${hi} ${velocityPerTempSymbol(getUnit('velocity'), getUnit('temperature'))}` });
+    }
+    return null;
+  }
+  const sensitivityValidity = fieldValidity(sensitivityInput, computeSensitivityMessage);
+
   const details = el('div', { class: 'muzzle-velocity-temp-details' }, [
     referenceField.node,
     el('div', { class: 'field' }, [
       el('label', {}, [sensitivityLabel, sensitivitySuffix]),
-      sensitivityInput
+      sensitivityInput,
+      sensitivityValidity.hintNode
     ]),
     el('p', { class: 'hint', i18n: 'fields.muzzleVelocityTempHint' })
   ]);
@@ -111,5 +136,15 @@ export function muzzleVelocityTempField({ onInput } = {}) {
     applyValues(tempData);
   }
 
-  return { node, getValues, lock, unlock, setInitialValues };
+  // Called by cartridge-form.js's own Save handler — the two inner
+  // fields are irrelevant (and hidden) while the checkbox itself is
+  // unchecked, so there's nothing to block on in that case.
+  function validate() {
+    if (!checkbox.checked) return true;
+    const referenceOk = referenceField.validate();
+    const sensitivityOk = sensitivityValidity.validate();
+    return referenceOk && sensitivityOk;
+  }
+
+  return { node, getValues, lock, unlock, setInitialValues, validate };
 }

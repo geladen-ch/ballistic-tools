@@ -1,5 +1,8 @@
 import { el, clear } from '../../dom.js';
 import { loadCaliberDesignations, matchCaliberDesignation } from '../../bullets.js';
+import { FIELD_BOUNDS } from '../../units.js';
+import { t } from '../../i18n.js';
+import { fieldValidity } from '../field-validity.js';
 
 const PLACEHOLDER_VALUE = '';
 const OTHER_VALUE = '__other__';
@@ -15,13 +18,19 @@ const OTHER_VALUE = '__other__';
 // picker, and anything else (present but unrecognized) selects "Other" —
 // never silently left on a stale designation from before the edit.
 // `value` is the initial caliber in meters (engine unit), or null/omitted
-// for "nothing entered yet".
-export function caliberField({ value = null, onInput } = {}) {
+// for "nothing entered yet". `required: true` (bullet-form.js's own
+// Arsenal caliber field) additionally fails validation on a blank value,
+// reusing the exact same `arsenal.errorCaliberRequired` message that
+// used to only ever show on Save click — callers that don't need caliber
+// at all (bullet-section.js's manual/live entry) leave it false, where a
+// blank value is never a violation, only an out-of-range one is.
+export function caliberField({ value = null, onInput, required = false } = {}) {
   let designations = [];
 
   const select = el('select', { id: 'bulletCaliber' });
   const numberInput = el('input', {
-    type: 'number', id: 'bulletCaliberMm', min: 0, step: 0.01,
+    type: 'number', id: 'bulletCaliberMm', step: 0.01,
+    min: FIELD_BOUNDS.caliberM.min * 1000, max: FIELD_BOUNDS.caliberM.max * 1000,
     value: value != null ? (value * 1000).toFixed(2) : ''
   });
 
@@ -52,6 +61,19 @@ export function caliberField({ value = null, onInput } = {}) {
     select.value = match ? match.designation : OTHER_VALUE;
   }
 
+  function computeMessage() {
+    const raw = numberInput.value.trim();
+    if (raw === '') return required ? t('arsenal.errorCaliberRequired') : null;
+    const mm = parseFloat(raw);
+    if (Number.isNaN(mm)) return required ? t('arsenal.errorCaliberRequired') : null;
+    const { min, max } = FIELD_BOUNDS.caliberM;
+    if (mm / 1000 < min || mm / 1000 > max) {
+      return t('fields.errorRange', { range: `${(min * 1000).toFixed(0)} – ${(max * 1000).toFixed(0)} mm` });
+    }
+    return null;
+  }
+  const validity = fieldValidity(numberInput, computeMessage);
+
   numberInput.addEventListener('input', () => {
     syncSelectFromNumber();
     if (onInput) onInput();
@@ -67,6 +89,10 @@ export function caliberField({ value = null, onInput } = {}) {
       const entry = designations.find((d) => d.designation === select.value);
       if (entry) numberInput.value = (entry.caliberM * 1000).toFixed(2);
     }
+    // Picking from the select assigns numberInput.value programmatically
+    // — fieldValidity() only reacts to the control's own input/change
+    // events, so this nudges it explicitly.
+    validity.validate();
     if (onInput) onInput();
   });
 
@@ -81,7 +107,8 @@ export function caliberField({ value = null, onInput } = {}) {
 
   const node = el('div', { class: 'field' }, [
     el('label', { i18n: 'arsenal.bulletCaliber' }),
-    el('div', { class: 'caliber-dual-inputs' }, [select, numberInput, document.createTextNode(' mm')])
+    el('div', { class: 'caliber-dual-inputs' }, [select, numberInput, document.createTextNode(' mm')]),
+    validity.hintNode
   ]);
 
   function getCaliberM() {
@@ -96,5 +123,10 @@ export function caliberField({ value = null, onInput } = {}) {
     syncSelectFromNumber();
   }
 
-  return { node, getCaliberM, setCaliberM };
+  function setDisabled(disabled) {
+    select.disabled = disabled;
+    numberInput.disabled = disabled;
+  }
+
+  return { node, getCaliberM, setCaliberM, setDisabled, validate: validity.validate };
 }

@@ -194,6 +194,19 @@ a { color: var(--accent); }
 }
 .hint { font-size: 11px; color: var(--dim); margin-top: 3px; }
 .hint.warning { color: var(--danger); }
+/* A positive, "read this" callout rather than a warning — e.g. the
+   cartridge form's "select existing or add new" bullet hint (src/ui/
+   arsenal/cartridge-form.js), which sits above a decision point rather
+   than reacting to one. Sized and weighted up from the plain .hint it's
+   otherwise styled like, in the theme's own accent rather than --dim or
+   --danger, so it reads as guidance instead of blending into the quieter
+   field-level hints around it. */
+.hint.prominent { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 8px; margin-bottom: 4px; }
+/* Live per-field validation (src/ui/field-validity.js) — toggled
+   directly on whichever control (input/select/textarea) it's checking,
+   so one rule covers every field in the app regardless of which other
+   wrapper classes that control also carries. */
+.field-invalid { border-color: var(--danger) !important; }
 /* A compass direction shown visually (src/ui/direction-arrow.js) — sized
    off the surrounding text (1em) and colored off it too (currentColor),
    so it drops into any label/value context already at the right size and
@@ -233,10 +246,10 @@ a { color: var(--accent); }
   border-radius: 999px;
 }
 
-/* Locations & Targets library (src/views/locations-view.js) — same pill
-   shape as .unsaved-badge above, in the theme's semantic ok/danger colors
-   instead, so "active" and "needs attention" read at a glance rather than
-   blending into the surrounding .hint text. */
+/* Arsenal's active-rifle cartridge list (src/views/arsenal-view.js) — same
+   pill shape as .unsaved-badge above, in the theme's semantic ok/danger
+   colors instead, so "active" and "needs attention" read at a glance
+   rather than blending into the surrounding .hint text. */
 .active-badge {
   display: inline-block;
   margin-left: 6px;
@@ -262,18 +275,33 @@ a { color: var(--accent); }
   border-radius: 999px;
 }
 
+/* Arsenal (src/views/arsenal-view.js) — a rifle with no cartridges
+   defined, same danger pill shape as .not-placed-badge above. */
+.unusable-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 999px;
+}
+
 /* Arsenal (src/views/arsenal-view.js): one row per saved bullet/rifle/
    cartridge, with its Edit/Delete buttons pinned to the right.
-   A rifle row with saved cartridges packs up to six controls into
-   .arsenal-row-actions (cartridge picker, Set active, comparison toggle,
-   Save to file, Edit, Delete) — more than a narrow row can hold beside
-   the name/description on one line. flex-wrap (on both this and
+   The active rifle's own row packs up to five controls into
+   .arsenal-row-actions (cartridge picker, comparison toggle, Save to
+   file, Edit, Delete) — more than a narrow row can hold beside the name/
+   description on one line. flex-wrap (on both this and
    .arsenal-row-actions below) handles that by content, not by a
    viewport-size breakpoint: any fixed width/orientation check (even one
    covering "mobile chrome" specifically) still leaves a gap — an iPad
    mini in landscape (1024x768) defaults to this app's *desktop* mode and
-   has the exact same six controls to fit, at a width neither a mobile
-   check nor a short-landscape check would catch. Wrapping unconditionally
+   has the exact same controls to fit, at a width neither a mobile check
+   nor a short-landscape check would catch. Wrapping unconditionally
    costs nothing on a wide desktop window (flex-wrap only visibly changes
    anything once a line's content actually doesn't fit) while never
    overflowing regardless of viewport, orientation, or forced display

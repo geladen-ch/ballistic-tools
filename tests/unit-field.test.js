@@ -173,3 +173,84 @@ test('setDisabled(true) disables the number input (and the range, in slider mode
   assert.equal(range.disabled, false);
   assert.equal(number.disabled, false);
 });
+
+// ---- Live validation (src/ui/field-validity.js) ----
+
+test('typing an out-of-range value shows the red border and an "allowed range" hint, live', () => {
+  const field = unitField({ id: 'muzzleVelocity', min: 50, max: 1500, step: 1, value: 800 });
+  const [number] = findInputs(field.node);
+
+  number.value = '30';
+  fireEvent(number, 'input');
+
+  assert.equal(number.classList.contains('field-invalid'), true);
+  const hint = findByTag(field.node, 'P').find((p) => p.className.includes('warning'));
+  assert.ok(hint && hint.textContent.includes('50') && hint.textContent.includes('1500'));
+
+  number.value = '800';
+  fireEvent(number, 'input');
+  assert.equal(number.classList.contains('field-invalid'), false);
+});
+
+test('a blank non-optional field is invalid once touched; a blank optional field never is', () => {
+  const required = unitField({ id: 'zeroRange', min: 0, max: 5000, step: 5, value: 100 });
+  const [requiredInput] = findInputs(required.node);
+  requiredInput.value = '';
+  fireEvent(requiredInput, 'input');
+  assert.equal(requiredInput.classList.contains('field-invalid'), true);
+
+  const optional = unitField({ id: 'riflingTwist', min: 1, max: 1000, step: 1, value: 250, optional: true });
+  const [optionalInput] = findInputs(optional.node);
+  optionalInput.value = '';
+  fireEvent(optionalInput, 'input');
+  assert.equal(optionalInput.classList.contains('field-invalid'), false);
+});
+
+test('a field is pristine (no red border) on a freshly-built, never-touched instance, even with a bad initial value', () => {
+  const field = unitField({ id: 'muzzleVelocity', min: 50, max: 1500, step: 1, value: 9999 });
+  const [number] = findInputs(field.node);
+  assert.equal(number.classList.contains('field-invalid'), false);
+});
+
+test('validate() forces a never-touched field dirty, revealing the violation, and returns its validity', () => {
+  const field = unitField({ id: 'muzzleVelocity', min: 50, max: 1500, step: 1, value: 9999 });
+  const [number] = findInputs(field.node);
+  assert.equal(field.validate(), false);
+  assert.equal(number.classList.contains('field-invalid'), true);
+
+  const validField = unitField({ id: 'muzzleVelocity', min: 50, max: 1500, step: 1, value: 800 });
+  assert.equal(validField.validate(), true);
+});
+
+test('extraCheck runs after the plain min/max check passes, and can fail on its own', () => {
+  let otherValue = 100;
+  const field = unitField({
+    id: 'rangeStep', min: 1, max: 500, step: 1, value: 50,
+    extraCheck: (v) => (v > otherValue ? 'too big' : null)
+  });
+  const [number] = findInputs(field.node);
+
+  number.value = '150';
+  fireEvent(number, 'input');
+  assert.equal(number.classList.contains('field-invalid'), true, 'exceeds otherValue (100)');
+
+  otherValue = 200;
+  number.value = '150'; // re-fire on the same value, same idea as a sibling field's own onInput re-validating
+  fireEvent(number, 'input');
+  assert.equal(number.classList.contains('field-invalid'), false);
+});
+
+test('slider mode reflects a range drag onto the validation state even though it never fires a native input event on the number box', () => {
+  const field = unitField({ id: 'muzzleVelocity', min: 50, max: 1500, step: 1, value: 800, slider: true });
+  // In slider mode the editable number box lives inside the <label> (see
+  // unit-field.js's own labelChildren), so a depth-first scan finds it
+  // *before* the range sibling — this is the box fieldValidity() is
+  // actually attached to, regardless of which the field's own internal
+  // closures happen to call "number" vs. "range".
+  const [number, range] = findInputs(field.node);
+
+  range.value = '30';
+  fireEvent(range, 'input');
+
+  assert.equal(number.classList.contains('field-invalid'), true);
+});

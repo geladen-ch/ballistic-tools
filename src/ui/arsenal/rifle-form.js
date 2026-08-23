@@ -1,8 +1,9 @@
 import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
-import { CLICK_UNITS } from '../../units.js';
+import { CLICK_UNITS, FIELD_BOUNDS } from '../../units.js';
 import { findUserRifleByName } from '../../user-library.js';
 import { t } from '../../i18n.js';
+import { fieldValidity } from '../field-validity.js';
 
 const DEFAULT_VALUES = {
   name: '', defaultSightHeightM: 0.045, defaultZeroRangeM: 100, defaultRiflingTwistM: null, defaultTwistDirection: 'right',
@@ -29,11 +30,12 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
     duplicateWarning.style.display = match ? '' : 'none';
   }
   nameInput.addEventListener('input', refreshDuplicateWarning);
+  const nameValidity = fieldValidity(nameInput, () => (nameInput.value.trim() ? null : t('arsenal.errorNameRequired')));
 
-  const sightHeightField = unitField({ id: 'sightHeight', min: 0, max: 100, step: 1, value: values.defaultSightHeightM * 1000 });
-  const zeroRangeField = unitField({ id: 'zeroRange', min: 0, max: 500, step: 5, value: values.defaultZeroRangeM });
+  const sightHeightField = unitField({ id: 'sightHeight', ...FIELD_BOUNDS.sightHeight, step: 1, value: values.defaultSightHeightM * 1000 });
+  const zeroRangeField = unitField({ id: 'zeroRange', ...FIELD_BOUNDS.zeroRange, step: 5, value: values.defaultZeroRangeM });
   const twistField = unitField({
-    id: 'riflingTwist', min: 0, max: 1000, step: 1, optional: true,
+    id: 'riflingTwist', ...FIELD_BOUNDS.riflingTwist, step: 1, optional: true,
     value: values.defaultRiflingTwistM != null ? values.defaultRiflingTwistM * 1000 : null
   });
   // A plain enum, not a unit-bearing quantity — "Right" first since it's
@@ -49,13 +51,29 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
 
   const clickUnitSelect = el('select', { id: 'arsenalRifleClickUnit' }, CLICK_UNITS.map((u) => el('option', { value: u.unit, text: u.label })));
   clickUnitSelect.value = values.defaultClickUnit;
-  const clickHInput = el('input', { type: 'number', id: 'arsenalRifleClickHorizontal', step: 0.01, value: values.defaultClickHorizontal });
-  const clickVInput = el('input', { type: 'number', id: 'arsenalRifleClickVertical', step: 0.01, value: values.defaultClickVertical });
+  const clickHInput = el('input', {
+    type: 'number', id: 'arsenalRifleClickHorizontal', step: 0.01,
+    min: FIELD_BOUNDS.scopeClick.min, max: FIELD_BOUNDS.scopeClick.max, value: values.defaultClickHorizontal
+  });
+  const clickVInput = el('input', {
+    type: 'number', id: 'arsenalRifleClickVertical', step: 0.01,
+    min: FIELD_BOUNDS.scopeClick.min, max: FIELD_BOUNDS.scopeClick.max, value: values.defaultClickVertical
+  });
+  function clickMessageFor(input) {
+    return () => {
+      const raw = input.value.trim();
+      if (raw === '') return t('fields.errorRequired');
+      const parsed = parseFloat(raw);
+      if (Number.isNaN(parsed)) return t('fields.errorRequired');
+      const { min, max } = FIELD_BOUNDS.scopeClick;
+      if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max}` });
+      return null;
+    };
+  }
+  const clickHValidity = fieldValidity(clickHInput, clickMessageFor(clickHInput));
+  const clickVValidity = fieldValidity(clickVInput, clickMessageFor(clickVInput));
 
   const sourceInput = el('input', { type: 'text', id: 'arsenalRifleSource', value: values.source });
-
-  const errorMessage = el('p', { class: 'hint warning' });
-  errorMessage.style.display = 'none';
 
   const saveButton = el('button', { i18n: 'arsenal.saveRifleButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'arsenal.cancelButton' });
@@ -76,21 +94,34 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
       // just means the default ("right") never has to be touched.
       defaultTwistDirection: twistDirectionSelect.value,
       defaultClickUnit: clickUnitSelect.value,
-      defaultClickHorizontal: parseFloat(clickHInput.value) || 0,
-      defaultClickVertical: parseFloat(clickVInput.value) || 0,
+      // Both are now Save-gated (see below) rather than silently coerced
+      // to 0 on bad input — by the time onSave runs, both are guaranteed
+      // real numbers within FIELD_BOUNDS.scopeClick.
+      defaultClickHorizontal: parseFloat(clickHInput.value),
+      defaultClickVertical: parseFloat(clickVInput.value),
       source: sourceInput.value.trim()
     };
   }
 
+  // Every field's own live validation (red border + inline hint) is also
+  // the Save gate — see bullet-form.js's own Save handler for the same
+  // pattern. No separate shared error banner; Save just scrolls to
+  // whichever field is still wrong.
   saveButton.addEventListener('click', () => {
-    const data = readValues();
-    if (!data.name) {
-      errorMessage.textContent = t('arsenal.errorNameRequired');
-      errorMessage.style.display = '';
+    const checks = [
+      { ok: nameValidity.validate(), node: nameInput },
+      { ok: sightHeightField.validate(), node: sightHeightField.node },
+      { ok: zeroRangeField.validate(), node: zeroRangeField.node },
+      { ok: twistField.validate(), node: twistField.node },
+      { ok: clickHValidity.validate(), node: clickHInput },
+      { ok: clickVValidity.validate(), node: clickVInput }
+    ];
+    const firstInvalid = checks.find((c) => !c.ok);
+    if (firstInvalid) {
+      firstInvalid.node.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    errorMessage.style.display = 'none';
-    if (onSave) onSave(data);
+    if (onSave) onSave(readValues());
   });
   cancelButton.addEventListener('click', () => { if (onCancel) onCancel(); });
 
@@ -98,6 +129,7 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
 
   const node = el('div', { class: 'input-section nested' }, [
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.rifleName' }), nameInput]),
+    nameValidity.hintNode,
     duplicateWarning,
     sightHeightField.node,
     zeroRangeField.node,
@@ -105,10 +137,9 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
     el('p', { class: 'hint', i18n: 'arsenal.riflingTwistHint' }),
     el('div', { class: 'field' }, [el('label', { i18n: 'fields.twistDirection' }), twistDirectionSelect]),
     el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickUnit' }), clickUnitSelect]),
-    el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickHorizontal' }), clickHInput]),
-    el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickVertical' }), clickVInput]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickHorizontal' }), clickHInput, clickHValidity.hintNode]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickVertical' }), clickVInput, clickVValidity.hintNode]),
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.sourceLabel' }), sourceInput]),
-    errorMessage,
     el('div', { class: 'arsenal-form-actions' }, [saveButton, cancelButton])
   ]);
 

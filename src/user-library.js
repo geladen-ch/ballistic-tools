@@ -29,8 +29,8 @@ function save(key, list) {
 }
 
 // Stamped here (rather than left to callers) so every write path — the
-// Arsenal forms, the "Set active"/prefill collision-overwrite flow, a
-// cartridge edit resaving its parent rifle — gets it automatically and
+// Arsenal forms, the prefill collision-overwrite flow, a cartridge edit
+// resaving its parent rifle — gets it automatically and
 // consistently, with no risk of a caller forgetting it. `unsaved: true`
 // marks that this entry's current content has no corresponding export to
 // a file yet (see arsenal-export.js) — every write through here is by

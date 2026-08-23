@@ -61,7 +61,7 @@ export function mount(container) {
 
   // --- Bullet mass/caliber ------------------------------------------
   const mass = massDualField({ value: savedInputs.massKg ?? 0.01, onInput: () => onFieldChange() });
-  const caliber = caliberField({ value: savedInputs.caliberM ?? null, onInput: () => onFieldChange() });
+  const caliber = caliberField({ value: savedInputs.caliberM ?? null, required: true, onInput: () => onFieldChange() });
 
   // --- Atmosphere (own cookie-backed state, default standard sea level)
   const atmosphere = atmosphereSection({

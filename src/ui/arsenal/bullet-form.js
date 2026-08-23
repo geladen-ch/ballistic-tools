@@ -6,6 +6,8 @@ import { findUserBulletByName } from '../../user-library.js';
 import { parseCdTable, formatCdTable } from './cd-table-parse.js';
 import { setDragModelSelectValue } from '../drag-model-select.js';
 import { i18nSpan, t } from '../../i18n.js';
+import { FIELD_BOUNDS } from '../../units.js';
+import { fieldValidity } from '../field-validity.js';
 
 const DEFAULT_VALUES = { name: '', manufacturer: '', caliberM: null, lengthM: null, massKg: 0.01, bc: 0.45, dragModel: 'G1', cdTable: null, source: '' };
 
@@ -22,7 +24,15 @@ const DEFAULT_VALUES = { name: '', manufacturer: '', caliberM: null, lengthM: nu
 // directly — the same shape a handful of built-in library bullets already
 // carry (see e.g. src/bullets/ruag-338-swissp-ball-252.json), just typed
 // in by hand instead of imported.
-export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } = {}) {
+// `caliberLocked`, when true, disables the caliber field entirely (both
+// the designation picker and the free-typed mm number) — used when this
+// form is embedded inside cartridge-form.js's own "Add new bullet" flow
+// and that parent form's own caliber filter is itself locked (a sibling
+// cartridge on the same rifle already established the caliber; see
+// cartridge-form.js's own `lockedCaliberM`), so a bullet created from
+// there can't drift into a caliber the parent cartridge could never
+// actually use.
+export function bulletForm({ initialValues = {}, excludeId, caliberLocked = false, onSave, onCancel } = {}) {
   // initialValues is either a full stored record (drag data nested under
   // `.profile` — see user-library.js) or a flat prefill object (bc/
   // dragModel/cdTable already at the top level — see bullet-section.js's
@@ -46,16 +56,34 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
     duplicateWarning.style.display = match ? '' : 'none';
   }
   nameInput.addEventListener('input', refreshDuplicateWarning);
+  const nameValidity = fieldValidity(nameInput, () => (nameInput.value.trim() ? null : t('arsenal.errorNameRequired')));
 
   // Picker + free-typed mm number, kept in sync in both directions — see
   // caliber-field.js. A bullet whose caliberM isn't within tolerance of
   // any known designation shows "Other" there rather than guessing.
-  const caliber = caliberField({ value: values.caliberM });
+  // `required: true` — caliber-field.js's own live validation reuses the
+  // exact same arsenal.errorCaliberRequired message this form's Save
+  // handler used to show only after clicking Save.
+  const caliber = caliberField({ value: values.caliberM, required: true });
+  if (caliberLocked) caliber.setDisabled(true);
 
   const lengthInput = el('input', {
-    type: 'number', id: 'arsenalBulletLength', min: 0, step: 0.1,
+    type: 'number', id: 'arsenalBulletLength', min: FIELD_BOUNDS.bulletLength.min, max: FIELD_BOUNDS.bulletLength.max, step: 0.1,
     value: values.lengthM != null ? (values.lengthM * 1000).toFixed(2) : ''
   });
+  // Optional — a blank box is never a violation, only a present-but-out-
+  // of-range one is (matches this field's own long-standing "leave blank
+  // if unknown" semantics).
+  function computeLengthMessage() {
+    const raw = lengthInput.value.trim();
+    if (raw === '') return null;
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return null;
+    const { min, max } = FIELD_BOUNDS.bulletLength;
+    if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max} mm` });
+    return null;
+  }
+  const lengthValidity = fieldValidity(lengthInput, computeLengthMessage);
 
   const mass = massDualField({ value: values.massKg });
 
@@ -70,7 +98,7 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
   ]);
   profileTypeSelect.value = values.cdTable ? 'cdTable' : 'bc';
 
-  const bcField = unitField({ id: 'bc', min: 0.1, max: 1.0, step: 0.001, value: values.bc });
+  const bcField = unitField({ id: 'bc', ...FIELD_BOUNDS.bc, step: 0.001, value: values.bc });
   const dragModelSelect = el('select', { id: 'arsenalBulletDragModel' });
   setDragModelSelectValue(dragModelSelect, values.dragModel);
   const bcFields = el('div', {}, [
@@ -85,19 +113,27 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
   const cdTableInput = el('textarea', { id: 'arsenalBulletCdTable', class: 'cd-table-input', rows: 8 });
   cdTableInput.value = values.cdTable ? formatCdTable(values.cdTable) : '';
   const cdTableStatus = el('p', { class: 'hint' });
+  // Already lived here before the rest of this form's fields grew live
+  // validation — this just adds the same red-border cue every other
+  // field now has, on top of the specific parse error this status line
+  // already shows (row-and-reason, more precise than the generic range
+  // message every other field falls back to).
   function refreshCdTableStatus() {
     if (cdTableInput.value.trim() === '') {
       cdTableStatus.className = 'hint';
       cdTableStatus.textContent = '';
+      cdTableInput.classList.remove('field-invalid');
       return;
     }
     const parsed = parseCdTable(cdTableInput.value);
     if (parsed.error) {
       cdTableStatus.className = 'hint warning';
       cdTableStatus.textContent = t(parsed.error.key, parsed.error.params);
+      cdTableInput.classList.add('field-invalid');
     } else {
       cdTableStatus.className = 'hint';
       cdTableStatus.textContent = t('arsenal.cdTableParsedOk', { count: parsed.table.length });
+      cdTableInput.classList.remove('field-invalid');
     }
   }
   cdTableInput.addEventListener('input', refreshCdTableStatus);
@@ -116,9 +152,6 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
 
   const sourceInput = el('input', { type: 'text', id: 'arsenalBulletSource', value: values.source });
 
-  const errorMessage = el('p', { class: 'hint warning' });
-  errorMessage.style.display = 'none';
-
   const saveButton = el('button', { i18n: 'arsenal.saveBulletButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'arsenal.cancelButton' });
 
@@ -135,34 +168,45 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
     };
   }
 
-  saveButton.addEventListener('click', () => {
-    let profileValue;
-    if (profileTypeSelect.value === 'cdTable') {
-      const parsed = parseCdTable(cdTableInput.value);
-      if (parsed.error) {
-        errorMessage.textContent = t(parsed.error.key, parsed.error.params);
-        errorMessage.style.display = '';
-        return;
-      }
-      profileValue = { type: 'cdTable', table: parsed.table };
-    } else {
-      profileValue = { type: 'bc', bc: bcField.getEngineValue(), model: dragModelSelect.value };
+  // Every field's own live validation (red border + inline hint, already
+  // visible as the user types — see each field's own wiring above) is
+  // also the Save gate: attemptSave() forces every field dirty via its
+  // own validate(), and only proceeds once all of them pass. No separate
+  // shared error banner anymore — whichever field is wrong already shows
+  // exactly why right underneath it; Save just scrolls to the first one.
+  //
+  // Exposed as `trySave()` (see the return value below) in addition to
+  // being wired to this form's own Save button — cartridge-form.js calls
+  // it directly from its own Save handler when this form is embedded in
+  // its "Add new bullet" flow, so submitting the cartridge form with a
+  // new bullet still filled in creates that bullet too, in one click,
+  // without the user having to press this form's own Save button first.
+  function attemptSave() {
+    const isCdTable = profileTypeSelect.value === 'cdTable';
+    if (isCdTable) refreshCdTableStatus(); // reflects the border even if the textarea was never touched this session
+    const cdTableOk = !isCdTable || !parseCdTable(cdTableInput.value).error;
+
+    const checks = [
+      { ok: nameValidity.validate(), node: nameInput },
+      { ok: caliber.validate(), node: caliber.node },
+      { ok: lengthValidity.validate(), node: lengthInput },
+      { ok: mass.validate(), node: mass.node },
+      { ok: isCdTable || bcField.validate(), node: bcField.node },
+      { ok: cdTableOk, node: cdTableInput }
+    ];
+    const firstInvalid = checks.find((c) => !c.ok);
+    if (firstInvalid) {
+      firstInvalid.node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
     }
 
-    const data = readValues(profileValue);
-    if (!data.name) {
-      errorMessage.textContent = t('arsenal.errorNameRequired');
-      errorMessage.style.display = '';
-      return;
-    }
-    if (data.caliberM == null) {
-      errorMessage.textContent = t('arsenal.errorCaliberRequired');
-      errorMessage.style.display = '';
-      return;
-    }
-    errorMessage.style.display = 'none';
-    if (onSave) onSave(data);
-  });
+    const profileValue = isCdTable
+      ? { type: 'cdTable', table: parseCdTable(cdTableInput.value).table }
+      : { type: 'bc', bc: bcField.getEngineValue(), model: dragModelSelect.value };
+    if (onSave) onSave(readValues(profileValue));
+    return true;
+  }
+  saveButton.addEventListener('click', attemptSave);
   cancelButton.addEventListener('click', () => { if (onCancel) onCancel(); });
 
   refreshDuplicateWarning();
@@ -171,6 +215,7 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
 
   const node = el('div', { class: 'input-section nested' }, [
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.bulletName' }), nameInput]),
+    nameValidity.hintNode,
     duplicateWarning,
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.bulletManufacturer' }), manufacturerInput]),
     caliber.node,
@@ -178,15 +223,24 @@ export function bulletForm({ initialValues = {}, excludeId, onSave, onCancel } =
       el('label', {}, [i18nSpan('arsenal.bulletLength'), document.createTextNode(' (mm)')]),
       lengthInput
     ]),
+    lengthValidity.hintNode,
     el('p', { class: 'hint', i18n: 'arsenal.bulletLengthHint' }),
     mass.node,
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.bulletProfileType' }), profileTypeSelect]),
     bcFields,
     cdTableFields,
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.sourceLabel' }), sourceInput]),
-    errorMessage,
     el('div', { class: 'arsenal-form-actions' }, [saveButton, cancelButton])
   ]);
 
-  return { node };
+  return {
+    node,
+    trySave: attemptSave,
+    // Both used by cartridge-form.js's own "Add new bullet" flow to keep
+    // this embedded instance's caliber in step with the parent form's own
+    // caliber filter — see that file's currentCaliberFilterM()/
+    // refreshBulletFormVisibility().
+    setCaliberM(caliberM) { caliber.setCaliberM(caliberM); caliber.validate(); },
+    setCaliberLocked(locked) { caliber.setDisabled(locked); }
+  };
 }

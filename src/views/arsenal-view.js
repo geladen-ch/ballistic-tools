@@ -7,8 +7,8 @@ import {
 } from '../user-library.js';
 import { loadCaliberDesignations, designationFor, loadBullet } from '../bullets.js';
 import { takePendingBulletPrefill, takePendingRiflePrefill } from '../arsenal-prefill.js';
-import { saveRifleState } from '../shot-state.js';
-import { takeGunsReturnPath } from '../guns-nav.js';
+import { loadRifleState, saveRifleState } from '../shot-state.js';
+import { registerArsenalDoneHandler } from '../guns-nav.js';
 import { bulletForm } from '../ui/arsenal/bullet-form.js';
 import { rifleForm } from '../ui/arsenal/rifle-form.js';
 import { cartridgeForm } from '../ui/arsenal/cartridge-form.js';
@@ -28,7 +28,7 @@ import { unitField } from '../ui/unit-field.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
 import { chartColumnSelect as buildChartColumnSelect, lineOfSightSeries, lineOfSightLegendItem } from '../ui/chart-column-select.js';
 import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints } from '../trajectory-columns.js';
-import { engineToDisplay, unitChoice } from '../units.js';
+import { engineToDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { LineChart } from '../vendor/chartist/index.js';
 import { downloadButton } from '../ui/download-button.js';
@@ -61,14 +61,58 @@ export function mount(container) {
 
   // { id: null } while adding a brand new entry (not yet persisted),
   // { id: <string> } while editing an existing one — null (no value at
-  // all) means the list is showing with no form open.
+  // all) means the list is showing with no form open. A rifle's own
+  // rifleFormState.id is only ever null (adding, rendered near "+ Add
+  // Rifle") or activeRifleId (editing, rendered inside the "Active
+  // rifle" pane — see renderActiveRifle()) since Edit is only offered
+  // there now.
   let bulletFormState = null;
   let rifleFormState = null;
-  // Cartridge management only ever applies to the rifle currently open
-  // for editing (rifleFormState.id must already be a real, persisted id
-  // — see renderRifleForm()'s onSave) — { id: null } = adding a new
-  // cartridge to it, { id: <string> } = editing one of its existing ones.
+  // Cartridge management only ever applies to the *active* rifle (see
+  // renderActiveRifle()) — { id: null } = adding a new cartridge to it,
+  // { id: <string> } = editing one of its existing ones.
   let cartridgeFormState = null;
+
+  // Only one add/edit form — bullet, rifle, or cartridge — is ever open
+  // across the whole page. Every "open" action below calls this first
+  // (before setting its own state), so opening one always closes and
+  // discards whichever other was left open, rather than letting a second
+  // one silently keep existing (and holding onto whatever was typed into
+  // it) in the background. Doesn't itself re-render anything — callers
+  // still call renderBulletForm()/renderRifleForm() afterward the same
+  // way they always did, which is what actually clears the closed one's
+  // own area from the page (see those functions' own "clear, then only
+  // repopulate if still open" shape).
+  function closeOtherForms(keep) {
+    if (keep !== 'bullet') bulletFormState = null;
+    if (keep !== 'rifle') rifleFormState = null;
+    if (keep !== 'cartridge') cartridgeFormState = null;
+  }
+
+  // The rifle currently shown in the "Active rifle" pane, and which of
+  // its cartridges is currently pointed at — page-local (not persisted)
+  // staging, mirroring locations-view.js's own treatment of "whichever
+  // location is current." Nothing here reaches shot-state.js's shared
+  // cookie until Done is actually pressed (see commitActiveRifleOnDone()
+  // below) — activating a rifle here only ever changes what this page
+  // shows, same as locations-view.js's activateLocation().
+  //
+  // Seeded from shot-state.js's *persisted* rifle pointer so the pane
+  // opens already showing whatever's actually running — but only when
+  // that pointer resolves to one of the user's own Arsenal rifles; a
+  // built-in-library selection or a fully manual entry both look the
+  // same from here (neither is "in the Arsenal"), so both start out as
+  // activeRifleId: null, the "manually defined" pane state.
+  const initialRifleState = loadRifleState();
+  const initialActiveRifle = initialRifleState && initialRifleState.library
+    ? loadUserRifles().find((r) => r.id === initialRifleState.library.rifleId)
+    : null;
+  let activeRifleId = initialActiveRifle ? initialActiveRifle.id : null;
+  let activeCartridgeId = initialActiveRifle
+    ? (initialActiveRifle.cartridges.some((c) => c.id === initialRifleState.library.cartridgeId)
+      ? initialRifleState.library.cartridgeId
+      : (initialActiveRifle.cartridges[0] ? initialActiveRifle.cartridges[0].id : null))
+    : null;
 
   // Whether the "Save Library" selection panel is currently open — the
   // one place a user picks *which* bullets/rifles to bundle into one
@@ -87,32 +131,53 @@ export function mount(container) {
 
   const bulletsListEl = el('div');
   const bulletFormArea = el('div');
+  const activeRifleListEl = el('div');
+  // The whole "Active rifle" card, heading included — activating a rifle
+  // scrolls to *this*, not just activeRifleListEl's own first child, so
+  // the heading itself is what lands at the top of the viewport (see
+  // scrollActiveRifleIntoView()), not scrolled just out of view above it.
+  const activeRifleCard = el('div', { class: 'card' }, [
+    el('h2', { i18n: 'arsenal.activeRifleHeading' }),
+    activeRifleListEl
+  ]);
   const riflesListEl = el('div');
+  // Stable, reused nodes (never recreated — only cleared/refilled by
+  // renderRifleForm() below) so they can be re-parented by
+  // renderActiveRifle()/renderRifles() into whichever spot the currently
+  // open rifle/cartridge form belongs in: nested under the active
+  // rifle's own row (rifleFormArea) or its Cartridges section
+  // (cartridgeFormArea) when editing/adding there, or down by "+ Add
+  // Rifle" (rifleFormArea only — a brand-new rifle has no cartridges to
+  // manage yet) when adding a new one. Same convention
+  // locations-view.js's own locationFormArea/targetFormArea use.
   const rifleFormArea = el('div');
+  const cartridgeFormArea = el('div');
 
   // Single stable instances (re-appended, never recreated, by
   // renderBullets()/renderRifles() below) — their visibility is toggled
   // by refreshAddButtonVisibility() instead, so opening/closing a form
   // doesn't need to rebuild either list just to hide/reveal these.
-  // Hidden while ANY add/edit form is open (bullet, rifle, or — nested
-  // within an open rifle form — one of its cartridges), not just the
-  // matching section's own, so there's never a second entry point
-  // competing with whichever form is already open.
+  // Hidden while ANY add/edit form is open (bullet, rifle, or cartridge),
+  // not just the matching section's own, so there's never a second entry
+  // point competing with whichever form is already open.
   const bulletAddButton = el('button', { id: 'arsenal-add-bullet', i18n: 'arsenal.addBulletButton' });
   bulletAddButton.addEventListener('click', () => {
+    closeOtherForms('bullet');
     bulletFormState = { id: null };
     renderBulletForm();
+    renderRifleForm();
     scrollBulletFormIntoView();
   });
   const rifleAddButton = el('button', { id: 'arsenal-add-rifle', i18n: 'arsenal.addRifleButton' });
   rifleAddButton.addEventListener('click', () => {
+    closeOtherForms('rifle');
     rifleFormState = { id: null };
-    cartridgeFormState = null;
     renderRifleForm();
+    renderBulletForm();
     scrollRifleFormIntoView();
   });
   function refreshAddButtonVisibility() {
-    const anyFormOpen = !!bulletFormState || !!rifleFormState;
+    const anyFormOpen = !!bulletFormState || !!rifleFormState || !!cartridgeFormState;
     bulletAddButton.style.display = anyFormOpen ? 'none' : '';
     rifleAddButton.style.display = anyFormOpen ? 'none' : '';
   }
@@ -252,6 +317,7 @@ export function mount(container) {
   // instead — see their own comments.
   function refreshLibraryView() {
     refreshFilterOptions();
+    renderActiveRifle();
     renderRifles();
     renderBullets();
   }
@@ -263,6 +329,14 @@ export function mount(container) {
   function unsavedBadge(entry) {
     if (!entry.unsaved) return null;
     return el('span', { class: 'unsaved-badge', title: t('arsenal.unsavedBadgeTitle'), text: t('arsenal.unsavedBadge') });
+  }
+
+  // A rifle with no cartridges has nothing to offer Trajectory/Hit
+  // Probability (no muzzle velocity, no bullet) — shown on every row that
+  // has one, active or not, so it's visible before you even open it.
+  function unusableBadge(rifle) {
+    if (rifle.cartridges.length > 0) return null;
+    return el('span', { class: 'unusable-badge', title: t('arsenal.unusableBadgeTitle'), text: t('arsenal.unusableBadge') });
   }
 
   function exportSingleBullet(bullet) {
@@ -302,11 +376,12 @@ export function mount(container) {
   //
   // A comparison entry is a (rifleId, cartridgeId) pointer, resolved fresh
   // against the current Arsenal on every render — same spirit as
-  // "Set active" above, which stores the same shaped pointer rather than a
-  // snapshot, so an edit to the rifle/cartridge afterward is always
-  // reflected. Returns null for a pointer that no longer resolves (deleted
-  // since being marked) — shouldn't normally happen, since the rifle/
-  // cartridge delete handlers below prune comparison-state.js first, but
+  // activeRifleId/activeCartridgeId above, which stage the same shaped
+  // pointer rather than a snapshot, so an edit to the rifle/cartridge
+  // afterward is always reflected. Returns null for a pointer that no
+  // longer resolves (deleted since being marked) — shouldn't normally
+  // happen, since the rifle/cartridge delete handlers below prune
+  // comparison-state.js first, but
   // callers still check for it rather than assume.
   function resolveComparisonConfig(sel) {
     const rifle = loadUserRifles().find((r) => r.id === sel.rifleId);
@@ -342,6 +417,33 @@ export function mount(container) {
 
   function rifleTwistMm(rifle) {
     return rifle.defaultRiflingTwistM != null ? rifle.defaultRiflingTwistM * 1000 : null;
+  }
+
+  // A rifle chambers one caliber — once any of its cartridges already has
+  // a resolvable bullet, that bullet's own caliber governs every other
+  // cartridge on the same rifle too, so the cartridge form's own caliber
+  // filter locks to it (see cartridge-form.js's own lockedCaliberM).
+  // Checking every cartridge (not just "other" ones) means editing the
+  // very cartridge that first established the caliber still finds it —
+  // consistent, since its own bullet is exactly why it's locked. A rifle
+  // with no cartridge carrying a resolvable bullet yet (its first one
+  // being added right now, or a rifle whose only cartridges still
+  // reference a since-deleted bullet) returns null — nothing to lock to.
+  //
+  // Exception: editing the rifle's *only* cartridge (editingCartridgeId
+  // matches it, and there's nothing else on the rifle to stay consistent
+  // with) leaves the choice open too — there's no sibling caliber to
+  // protect, so the user is free to change their mind about what this
+  // cartridge itself chambers.
+  function lockedCaliberMForRifle(rifle, userBullets, editingCartridgeId = null) {
+    if (editingCartridgeId != null && rifle.cartridges.length === 1 && rifle.cartridges[0].id === editingCartridgeId) {
+      return null;
+    }
+    for (const cartridge of rifle.cartridges) {
+      const bullet = userBullets.find((b) => b.id === cartridge.bulletId);
+      if (bullet) return bullet.caliberM;
+    }
+    return null;
   }
 
   // Miller's-formula stability inputs for one saved rifle+cartridge
@@ -463,7 +565,7 @@ export function mount(container) {
       // had neither (FIELD_UNITS has no entry for it, and no locale file
       // defines "fields.comparisonMaxRange"). No DOM id collision risk —
       // this view and the Trajectory page are never mounted at once.
-      id: 'maxRange', min: 100, max: 2000, step: 10, value: 1000,
+      id: 'maxRange', ...FIELD_BOUNDS.maxRange, step: 10, value: 1000,
       onInput: () => {
         zoomSlider.setBounds(maxRangeField.getEngineValue());
         scheduleComparisonRecompute();
@@ -660,17 +762,48 @@ export function mount(container) {
       const modifiedLabel = lastModifiedLabel(bullet);
       const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
       editButton.addEventListener('click', () => {
+        closeOtherForms('bullet');
         bulletFormState = { id: bullet.id };
         renderBulletForm();
+        renderRifleForm();
         scrollBulletFormIntoView();
       });
       const deleteButton = el('button', { class: 'secondary', i18n: 'arsenal.deleteButton' });
       deleteButton.addEventListener('click', () => {
-        if (!confirm(t('arsenal.confirmDeleteBullet', { name: bullet.name }))) return;
+        // A cartridge whose bulletId points at this bullet is meaningless
+        // once it's gone (see the cartridge form's own "a cartridge always
+        // resolves to a real user-library bullet" invariant) — deleting the
+        // bullet takes every such cartridge, on every rifle, with it,
+        // rather than leaving orphaned references behind. The confirm
+        // prompt names the count so this isn't a silent side effect.
+        const rifles = loadUserRifles();
+        const affectedCartridgeCount = rifles.reduce(
+          (sum, rifle) => sum + rifle.cartridges.filter((c) => c.bulletId === bullet.id).length, 0
+        );
+        const message = affectedCartridgeCount > 0
+          ? t('arsenal.confirmDeleteBulletWithCartridges', { name: bullet.name, count: affectedCartridgeCount })
+          : t('arsenal.confirmDeleteBullet', { name: bullet.name });
+        if (!confirm(message)) return;
+
+        for (const rifle of rifles) {
+          const removedIds = rifle.cartridges.filter((c) => c.bulletId === bullet.id).map((c) => c.id);
+          if (removedIds.length === 0) continue;
+          saveUserRifle({ ...rifle, cartridges: rifle.cartridges.filter((c) => c.bulletId !== bullet.id) });
+          for (const id of removedIds) removeFromComparison(rifle.id, id);
+          if (rifle.id === activeRifleId && removedIds.includes(activeCartridgeId)) {
+            const remaining = loadUserRifles().find((r) => r.id === rifle.id).cartridges;
+            activeCartridgeId = remaining[0] ? remaining[0].id : null;
+          }
+          if (cartridgeFormState && removedIds.includes(cartridgeFormState.id)) cartridgeFormState = null;
+        }
+
         deleteUserBullet(bullet.id);
         if (bulletFormState && bulletFormState.id === bullet.id) bulletFormState = null;
         refreshLibraryView();
         renderBulletForm();
+        renderRifleForm();
+        renderComparisonSummary();
+        renderComparisonSection();
       });
       const saveToFileButton = el('button', { class: 'secondary', i18n: 'arsenal.saveToFileButton' });
       saveToFileButton.addEventListener('click', () => exportSingleBullet(bullet));
@@ -741,58 +874,149 @@ export function mount(container) {
     if (bulletFormArea.firstChild) bulletFormArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function renderCartridges(rifle) {
+  // Shared by both the active rifle's own row (renderActiveRifle()) and
+  // every "Other rifles" row (renderRifles()) — the cartridge picker,
+  // its stability readout, and the Compare toggle, all keyed off
+  // whichever cartridge the picker currently names. Only ever built for
+  // a rifle that actually has cartridges (a rifle with none has nothing
+  // for any of these three to act on). `onCartridgeChange`, when given,
+  // additionally fires on every picker change — the active rifle's own
+  // row uses it to keep activeCartridgeId (and so the Cartridges list's
+  // own "Active" highlight below) in sync with whatever's picked here;
+  // an "Other rifles" row has no such hook, since its picker only ever
+  // feeds Compare there, the same as before this rework.
+  function buildCartridgeControls(rifle, userBullets, { onCartridgeChange, initialCartridgeId } = {}) {
+    const select = el('select', { class: 'arsenal-active-cartridge' });
+    for (const c of rifle.cartridges) select.appendChild(el('option', { value: c.id, text: c.name }));
+    if (initialCartridgeId && rifle.cartridges.some((c) => c.id === initialCartridgeId)) select.value = initialCartridgeId;
+
+    const compareButton = el('button', { class: 'secondary arsenal-compare-toggle' });
+    function refreshCompareButton() {
+      const cartridgeId = select.value;
+      const inComparison = isSelectedForComparison(rifle.id, cartridgeId);
+      compareButton.textContent = t(inComparison ? 'arsenal.removeFromComparisonButton' : 'arsenal.addToComparisonButton');
+      compareButton.disabled = !inComparison && !canAddToComparison();
+      compareButton.title = compareButton.disabled ? t('arsenal.comparisonFullHint') : '';
+    }
+    const stability = stabilityIndicator();
+    function refreshStability() {
+      const cartridge = rifle.cartridges.find((c) => c.id === select.value);
+      stability.update(cartridge ? stabilityValuesFor(rifle, cartridge, userBullets) : {});
+    }
+    select.addEventListener('change', () => {
+      refreshStability();
+      refreshCompareButton();
+      if (onCartridgeChange) onCartridgeChange(select.value);
+    });
+    select.addEventListener('click', (e) => e.stopPropagation?.());
+    compareButton.addEventListener('click', (e) => {
+      e.stopPropagation?.();
+      const cartridgeId = select.value;
+      if (isSelectedForComparison(rifle.id, cartridgeId)) {
+        removeFromComparison(rifle.id, cartridgeId);
+      } else {
+        addToComparison(rifle.id, cartridgeId);
+      }
+      // Both lists — the toggled row could be the active rifle's own, or
+      // one from "Other rifles" — plus the library itself didn't change,
+      // just the comparison selection.
+      renderActiveRifle();
+      renderRifles();
+      renderComparisonSummary();
+      renderComparisonSection();
+    });
+
+    refreshStability();
+    refreshCompareButton();
+
+    return { select, compareButton, stability };
+  }
+
+  // The active rifle's own Cartridges section — its list (each row
+  // clickable to make it the active cartridge, per the ask, with the
+  // currently-active one marked), a prominent warning in place of the
+  // list when there are none (this rifle is unusable — see
+  // commitActiveRifleOnDone()), and Add Cartridge. Only ever called for
+  // the active rifle now — cartridge management no longer shows for any
+  // other row.
+  function renderCartridgesSection(rifle) {
     const cartridgesListEl = el('div');
     const userBullets = loadUserBullets();
     for (const cartridge of rifle.cartridges) {
       const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
-      editButton.addEventListener('click', () => {
+      editButton.addEventListener('click', (e) => {
+        e.stopPropagation?.();
+        closeOtherForms('cartridge');
         cartridgeFormState = { id: cartridge.id };
         renderRifleForm();
+        renderBulletForm();
       });
       const deleteButton = el('button', { class: 'secondary', i18n: 'arsenal.deleteButton' });
-      deleteButton.addEventListener('click', () => {
+      deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation?.();
         if (!confirm(t('arsenal.confirmDeleteCartridge', { name: cartridge.name }))) return;
-        saveUserRifle({ ...rifle, cartridges: rifle.cartridges.filter((c) => c.id !== cartridge.id) });
+        const remaining = rifle.cartridges.filter((c) => c.id !== cartridge.id);
+        saveUserRifle({ ...rifle, cartridges: remaining });
         if (cartridgeFormState && cartridgeFormState.id === cartridge.id) cartridgeFormState = null;
+        if (activeCartridgeId === cartridge.id) activeCartridgeId = remaining[0] ? remaining[0].id : null;
         removeFromComparison(rifle.id, cartridge.id);
         // Removing a cartridge can change which caliber(s)/manufacturer(s)
         // this rifle has (see rifleDesignations()/rifleManufacturers()) —
-        // refresh the filters and the rifle list itself, not just this
-        // open form.
+        // refresh the filters and both rifle lists, not just this open form.
         refreshLibraryView();
         renderRifleForm();
         renderComparisonSummary();
         renderComparisonSection();
       });
+      const isActiveCartridge = cartridge.id === activeCartridgeId;
       const cartridgeStability = stabilityIndicator();
       cartridgeStability.update(stabilityValuesFor(rifle, cartridge, userBullets));
-      cartridgesListEl.appendChild(el('div', { class: 'arsenal-row' }, [
+      const row = el('div', { class: 'arsenal-row row-clickable' }, [
         el('div', { class: 'arsenal-row-info' }, [
           el('strong', { text: cartridge.name }),
+          isActiveCartridge ? el('span', { class: 'active-badge', text: t('arsenal.activeCartridgeBadge') }) : null,
           el('span', { class: 'hint', text: ` — ${cartridge.muzzleVelocity.toFixed(0)} m/s` }),
           cartridgeStability.node
         ]),
         el('div', { class: 'arsenal-row-actions' }, [editButton, deleteButton])
-      ]));
+      ]);
+      row.addEventListener('click', () => {
+        activeCartridgeId = cartridge.id;
+        renderActiveRifle();
+      });
+      cartridgesListEl.appendChild(row);
     }
     if (rifle.cartridges.length === 0) {
-      cartridgesListEl.appendChild(el('p', { class: 'hint', i18n: 'arsenal.noCartridges' }));
+      cartridgesListEl.appendChild(el('p', { class: 'hint warning', i18n: 'arsenal.noCartridgesWarning' }));
     }
 
     const addButton = el('button', { class: 'secondary', id: 'arsenal-add-cartridge', i18n: 'arsenal.addCartridgeButton' });
     addButton.addEventListener('click', () => {
+      closeOtherForms('cartridge');
       cartridgeFormState = { id: null };
       renderRifleForm();
+      renderBulletForm();
     });
     cartridgesListEl.appendChild(addButton);
 
-    const cartridgeFormArea = el('div');
+    // Unlike rifleFormArea/bulletFormArea (each cleared once at the very
+    // top of their own dedicated render function, right before their own
+    // conditional rebuild), cartridgeFormArea is a persistent element
+    // whose only populate site is right here — but this function itself
+    // can run from more than one path (a click routed through
+    // renderRifleForm(), which does clear it first, but also directly via
+    // refreshLibraryView() → renderActiveRifle(), e.g. once this view's
+    // own mount-time caliber-designations fetch resolves). Clearing it
+    // unconditionally here, regardless of which path got us here, is what
+    // actually guarantees at most one cartridge form ever lives inside it.
+    clear(cartridgeFormArea);
     if (cartridgeFormState) {
       const editingCartridge = cartridgeFormState.id ? rifle.cartridges.find((c) => c.id === cartridgeFormState.id) : null;
       const form = cartridgeForm({
         initialValues: editingCartridge || {},
         riflingTwistMm: rifleTwistMm(rifle),
+        lockedCaliberM: lockedCaliberMForRifle(rifle, userBullets, cartridgeFormState.id),
+        siblingNames: rifle.cartridges.filter((c) => c.id !== cartridgeFormState.id).map((c) => c.name),
         onSave: (data) => {
           const id = cartridgeFormState.id || generateUserId('user-cartridge');
           const cartridges = cartridgeFormState.id
@@ -800,6 +1024,9 @@ export function mount(container) {
             : [...rifle.cartridges, { ...data, id }];
           saveUserRifle({ ...rifle, cartridges });
           cartridgeFormState = null;
+          // A brand-new cartridge is a reasonable default active one for
+          // a rifle that previously had none (or none active yet).
+          if (!activeCartridgeId) activeCartridgeId = id;
           // A new/edited cartridge can add a caliber/manufacturer to this
           // rifle (and, via the cartridge form's own built-in-bullet-copy
           // behavior, add a bullet to the library too) — refresh both
@@ -822,6 +1049,107 @@ export function mount(container) {
     ]);
   }
 
+  // Makes `rifle` the one shown in the "Active rifle" pane — a purely
+  // page-local action (no cookie write, no navigation), same spirit as
+  // locations-view.js's own activateLocation(). `preferredCartridgeId`
+  // lets a click carry over whichever cartridge a row's own picker was
+  // already showing (see renderRifles() below); `rifle: null` is the
+  // "no active rifle" reset used by Delete. Allowed even for a rifle
+  // with zero cartridges — see commitActiveRifleOnDone()'s own comment
+  // for why activation itself is never blocked.
+  function activateRifle(rifle, preferredCartridgeId) {
+    activeRifleId = rifle ? rifle.id : null;
+    activeCartridgeId = rifle
+      ? (preferredCartridgeId || (rifle.cartridges[0] ? rifle.cartridges[0].id : null))
+      : null;
+    rifleFormState = null;
+    cartridgeFormState = null;
+    refreshLibraryView();
+    scrollActiveRifleIntoView();
+  }
+
+  function scrollActiveRifleIntoView() {
+    activeRifleCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // The "Active rifle" pane — full detail for whichever rifle is
+  // currently staged (see activateRifle()/commitActiveRifleOnDone()), or
+  // a plain explanatory message when the running configuration isn't one
+  // of the user's own Arsenal rifles at all (manual entry, or a built-in
+  // library pick — neither is "in the Arsenal", so both read the same
+  // way here). Always shown regardless of the caliber/manufacturer
+  // filters below, same as Locations' own Current-location pane.
+  function renderActiveRifle() {
+    clear(activeRifleListEl);
+    const rifle = activeRifleId ? loadUserRifles().find((r) => r.id === activeRifleId) : null;
+
+    if (!rifle) {
+      activeRifleListEl.appendChild(el('div', { class: 'arsenal-row' }, [
+        el('div', { class: 'arsenal-row-info' }, [el('span', { i18n: 'arsenal.manualRifleActiveMessage' })])
+      ]));
+      return;
+    }
+
+    const userBullets = loadUserBullets();
+    const modifiedLabel = lastModifiedLabel(rifle);
+
+    const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
+    editButton.addEventListener('click', () => {
+      closeOtherForms('rifle');
+      rifleFormState = { id: rifle.id };
+      renderRifleForm();
+      renderBulletForm();
+      scrollRifleFormIntoView();
+    });
+    const deleteButton = el('button', { class: 'secondary', i18n: 'arsenal.deleteButton' });
+    deleteButton.addEventListener('click', () => {
+      if (!confirm(t('arsenal.confirmDeleteRifle', { name: rifle.name }))) return;
+      deleteUserRifle(rifle.id);
+      removeRifleFromComparison(rifle.id);
+      activateRifle(null);
+      renderComparisonSummary();
+      renderComparisonSection();
+    });
+    const saveToFileButton = el('button', { class: 'secondary', i18n: 'arsenal.saveToFileButton' });
+    saveToFileButton.addEventListener('click', () => exportSingleRifle(rifle));
+
+    const actionChildren = [];
+    if (rifle.cartridges.length > 0) {
+      const controls = buildCartridgeControls(rifle, userBullets, {
+        initialCartridgeId: activeCartridgeId,
+        onCartridgeChange: (cartridgeId) => {
+          activeCartridgeId = cartridgeId;
+          renderActiveRifle();
+        }
+      });
+      actionChildren.push(controls.select, controls.compareButton);
+    }
+    actionChildren.push(saveToFileButton, editButton, deleteButton);
+
+    activeRifleListEl.appendChild(el('div', { class: 'arsenal-row' }, [
+      el('div', { class: 'arsenal-row-info' }, [
+        el('strong', { text: rifle.name }),
+        unsavedBadge(rifle),
+        unusableBadge(rifle),
+        el('span', { class: 'hint', text: t('arsenal.cartridgeCount', { count: rifle.cartridges.length }) }),
+        modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
+      ]),
+      el('div', { class: 'arsenal-row-actions' }, actionChildren)
+    ]));
+
+    if (rifleFormState && rifleFormState.id === rifle.id) activeRifleListEl.appendChild(rifleFormArea);
+
+    activeRifleListEl.appendChild(renderCartridgesSection(rifle));
+  }
+
+  // "Other rifles" — every rifle except the currently active one (which
+  // gets its own full-detail pane above — see renderActiveRifle()), same
+  // Current/Known split locations-view.js already uses. Each row still
+  // carries its own cartridge picker + Compare toggle (needed
+  // independently of which rifle is active — a comparison can pit any
+  // two rifle+cartridge configs against each other) but no longer Edit;
+  // clicking the row itself (rather than one of its own controls) makes
+  // it the active rifle instead.
   function renderRifles() {
     clear(riflesListEl);
     const allRifles = loadUserRifles();
@@ -829,119 +1157,63 @@ export function mount(container) {
     const caliber = caliberFilter.value;
     const manufacturer = manufacturerFilter.value;
     const rifles = allRifles.filter((r) =>
+      r.id !== activeRifleId &&
       (caliber === ALL_VALUE || rifleDesignations(r, userBullets).has(caliber)) &&
       (manufacturer === ALL_VALUE || rifleManufacturers(r, userBullets).has(manufacturer))
     );
     if (rifles.length === 0) {
-      const emptyKey = allRifles.length === 0 ? 'arsenal.noRifles' : 'arsenal.noRiflesFiltered';
+      const emptyKey = allRifles.length <= (activeRifleId ? 1 : 0) ? 'arsenal.noRifles' : 'arsenal.noRiflesFiltered';
       riflesListEl.appendChild(el('p', { class: 'hint', i18n: emptyKey }));
     }
     for (const rifle of rifles) {
       const modifiedLabel = lastModifiedLabel(rifle);
-      const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
-      editButton.addEventListener('click', () => {
-        rifleFormState = { id: rifle.id };
-        cartridgeFormState = null;
-        renderRifleForm();
-        scrollRifleFormIntoView();
-      });
+
       const deleteButton = el('button', { class: 'secondary', i18n: 'arsenal.deleteButton' });
-      deleteButton.addEventListener('click', () => {
+      deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation?.();
         if (!confirm(t('arsenal.confirmDeleteRifle', { name: rifle.name }))) return;
         deleteUserRifle(rifle.id);
-        if (rifleFormState && rifleFormState.id === rifle.id) rifleFormState = null;
         removeRifleFromComparison(rifle.id);
         refreshLibraryView();
-        renderRifleForm();
         renderComparisonSummary();
         renderComparisonSection();
       });
-
-      // "Set active" needs one specific cartridge to pull muzzle velocity
-      // and bullet from — a rifle with none saved yet has nothing to offer
-      // here, so the control (and its cartridge picker) simply don't show.
-      const actionChildren = [];
-      // Stability for whichever cartridge activeCartridgeSelect currently
-      // points at — null (nothing shown) for a rifle with no cartridges,
-      // the same guard the picker itself is behind.
-      let rowStability = null;
-      if (rifle.cartridges.length > 0) {
-        const activeCartridgeSelect = el('select', { class: 'arsenal-active-cartridge' });
-        for (const c of rifle.cartridges) activeCartridgeSelect.appendChild(el('option', { value: c.id, text: c.name }));
-        const setActiveButton = el('button', { class: 'secondary', i18n: 'arsenal.setActiveButton' });
-        setActiveButton.addEventListener('click', () => {
-          // Stores just the (rifleId, cartridgeId) pointer — the same shape
-          // rifle-section.js's own picker saves via saveLibrarySelection().
-          // Every view's rifle/cartridge/bullet sections read this shared
-          // state fresh on mount and restore from it (rifle-section.js's
-          // catalog-load restoration), which fills in
-          // zeroRange/sightHeight/clicks/muzzleVelocity/bullet exactly as
-          // if the user had picked this rifle+cartridge there themselves.
-          saveRifleState({ library: { rifleId: rifle.id, cartridgeId: activeCartridgeSelect.value } });
-          // Same "wherever Guns was opened from" destination Done uses
-          // (see guns-nav.js) — this page is only ever reached via Guns'
-          // own Arsenal tab now, so this is just Done's own behavior,
-          // reused here rather than duplicated.
-          location.hash = '#' + takeGunsReturnPath('/trajectory');
-        });
-
-        // Shares activeCartridgeSelect with "Set active" above rather than
-        // offering a second picker — whichever cartridge is currently
-        // chosen there is also the one this button acts on. Its label and
-        // disabled state track that selection (a rifle can have one
-        // cartridge in comparison and another not, so this can't be a
-        // single static per-rifle toggle) and the two-slot cap.
-        const compareButton = el('button', { class: 'secondary arsenal-compare-toggle' });
-        function refreshCompareButton() {
-          const cartridgeId = activeCartridgeSelect.value;
-          const inComparison = isSelectedForComparison(rifle.id, cartridgeId);
-          compareButton.textContent = t(inComparison ? 'arsenal.removeFromComparisonButton' : 'arsenal.addToComparisonButton');
-          compareButton.disabled = !inComparison && !canAddToComparison();
-          compareButton.title = compareButton.disabled ? t('arsenal.comparisonFullHint') : '';
-        }
-        rowStability = stabilityIndicator();
-        function refreshRowStability() {
-          const cartridge = rifle.cartridges.find((c) => c.id === activeCartridgeSelect.value);
-          rowStability.update(cartridge ? stabilityValuesFor(rifle, cartridge, userBullets) : {});
-        }
-        activeCartridgeSelect.addEventListener('change', refreshRowStability);
-        refreshRowStability();
-
-        activeCartridgeSelect.addEventListener('change', refreshCompareButton);
-        compareButton.addEventListener('click', () => {
-          const cartridgeId = activeCartridgeSelect.value;
-          if (isSelectedForComparison(rifle.id, cartridgeId)) {
-            removeFromComparison(rifle.id, cartridgeId);
-          } else {
-            addToComparison(rifle.id, cartridgeId);
-          }
-          renderRifles(); // just this row's toggle label/state — the library itself didn't change
-          renderComparisonSummary();
-          renderComparisonSection();
-        });
-        refreshCompareButton();
-
-        actionChildren.push(activeCartridgeSelect, setActiveButton, compareButton);
-      }
       const saveToFileButton = el('button', { class: 'secondary', i18n: 'arsenal.saveToFileButton' });
-      saveToFileButton.addEventListener('click', () => exportSingleRifle(rifle));
-      actionChildren.push(saveToFileButton, editButton, deleteButton);
+      saveToFileButton.addEventListener('click', (e) => { e.stopPropagation?.(); exportSingleRifle(rifle); });
 
-      riflesListEl.appendChild(el('div', { class: 'arsenal-row' }, [
+      const actionChildren = [];
+      // A rifle with no cartridges has nothing for the picker/Compare to
+      // act on — same guard this control has always had.
+      let cartridgeSelect = null;
+      if (rifle.cartridges.length > 0) {
+        const controls = buildCartridgeControls(rifle, userBullets);
+        cartridgeSelect = controls.select;
+        actionChildren.push(controls.select, controls.compareButton);
+      }
+      actionChildren.push(saveToFileButton, deleteButton);
+
+      const row = el('div', { class: 'arsenal-row row-clickable' }, [
         el('div', { class: 'arsenal-row-info' }, [
           el('strong', { text: rifle.name }),
           unsavedBadge(rifle),
+          unusableBadge(rifle),
           el('span', { class: 'hint', text: t('arsenal.cartridgeCount', { count: rifle.cartridges.length }) }),
-          rowStability ? rowStability.node : null,
           modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
         ]),
         el('div', { class: 'arsenal-row-actions' }, actionChildren)
-      ]));
+      ]);
+      // A rifle with zero cartridges is still activatable — see
+      // activateRifle()'s own comment — so it can be reached to add one.
+      row.addEventListener('click', () => activateRifle(rifle, cartridgeSelect ? cartridgeSelect.value : null));
+      riflesListEl.appendChild(row);
     }
 
     // A single stable instance — see bulletsListEl's matching
-    // bulletAddButton append above for why.
+    // bulletAddButton append above for why. Only shown near this list
+    // when adding a brand new rifle — an edit of the active one renders
+    // inside the "Active rifle" pane instead (see renderActiveRifle()).
     riflesListEl.appendChild(rifleAddButton);
+    if (rifleFormState && rifleFormState.id === null) riflesListEl.appendChild(rifleFormArea);
   }
 
   function renderExportDialog() {
@@ -1060,9 +1332,21 @@ export function mount(container) {
     fileInput.click();
   });
 
+  // Populates rifleFormArea/cartridgeFormArea from current form state —
+  // called after every mutation that could affect either (not just their
+  // own open/close), exactly like locations-view.js's own
+  // renderLocationForm(). Repositions both stable nodes first (via
+  // renderActiveRifle()/renderRifles(), which append them into whichever
+  // spot their own open state calls for — or nowhere at all, once
+  // cleared, if closed) before filling in real content, so "where does
+  // the form go" and "what's inside it" stay decoupled the same way.
   function renderRifleForm() {
     clear(rifleFormArea);
+    clear(cartridgeFormArea);
     refreshAddButtonVisibility();
+    renderActiveRifle();
+    renderRifles();
+
     if (!rifleFormState) return;
     const editing = rifleFormState.id ? loadUserRifles().find((r) => r.id === rifleFormState.id) : null;
     // See the matching comment in renderBulletForm() — one-shot, and wins
@@ -1074,18 +1358,33 @@ export function mount(container) {
       initialValues: prefill || editing || {},
       excludeId: rifleFormState.id || undefined,
       onSave: (data) => {
+        // Adding a brand-new rifle (not editing an existing one) makes it
+        // the active rifle right away — there's nothing useful to leave
+        // it as one of several "Other rifles" for, since it has no
+        // cartridges yet and the very next thing to do is add one, which
+        // only the active rifle's own pane offers.
+        const wasAdding = !rifleFormState.id;
         const collision = findUserRifleByName(data.name, { excludeId: rifleFormState.id || undefined });
         const existingRecord = rifleFormState.id ? loadUserRifles().find((r) => r.id === rifleFormState.id) : null;
+        let savedId;
         if (collision) {
           if (rifleFormState.id && rifleFormState.id !== collision.id) deleteUserRifle(rifleFormState.id);
           saveUserRifle({ ...collision, ...data, id: collision.id });
+          savedId = collision.id;
         } else {
-          const id = rifleFormState.id || generateUserId('user-rifle');
-          saveUserRifle({ cartridges: [], ...existingRecord, ...data, id });
+          savedId = rifleFormState.id || generateUserId('user-rifle');
+          saveUserRifle({ cartridges: [], ...existingRecord, ...data, id: savedId });
         }
-        rifleFormState = null;
-        cartridgeFormState = null;
-        refreshLibraryView();
+        if (wasAdding) {
+          // activateRifle() resets rifleFormState/cartridgeFormState,
+          // refreshes both rifle lists, and scrolls the Active-rifle
+          // pane into view on its own — see its own comment.
+          activateRifle(loadUserRifles().find((r) => r.id === savedId));
+        } else {
+          rifleFormState = null;
+          cartridgeFormState = null;
+          refreshLibraryView();
+        }
         renderRifleForm();
       },
       onCancel: () => {
@@ -1095,25 +1394,19 @@ export function mount(container) {
       }
     });
 
-    const sections = [
+    rifleFormArea.appendChild(el('div', { class: 'card' }, [
       el('h2', { i18n: rifleFormState.id ? 'arsenal.editRifleHeading' : 'arsenal.addRifleHeading' }),
       form.node
-    ];
-    // Cartridges can only be managed once the rifle itself is a real,
-    // persisted record — a brand-new "Add Rifle" form doesn't have an id
-    // (and so no cartridges array to attach to) until its first Save.
-    const persisted = rifleFormState.id ? loadUserRifles().find((r) => r.id === rifleFormState.id) : null;
-    if (persisted) sections.push(renderCartridges(persisted));
-
-    rifleFormArea.appendChild(el('div', { class: 'card' }, sections));
+    ]));
   }
 
   // Scrolls the (already rendered) rifle form's card to the top of the
-  // viewport — called only from the two rifle-level "open" actions below,
-  // not from renderRifleForm() itself, since that function also re-runs
-  // for cartridge add/edit within an already-open rifle form, where
-  // re-scrolling back up to the rifle's own top would fight the user
-  // right back down to whatever cartridge row they were just looking at.
+  // viewport — called only from the two rifle-level "open" actions
+  // (Edit/Add), not from renderRifleForm() itself, since that function
+  // also re-runs for unrelated mutations (a cartridge add/edit/delete,
+  // any comparison toggle) while the rifle form stays open, where
+  // re-scrolling back up would fight the user right back down to
+  // whatever they were just looking at.
   function scrollRifleFormIntoView() {
     if (rifleFormArea.firstChild) rifleFormArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -1131,12 +1424,12 @@ export function mount(container) {
     ]),
     exportDialogArea,
     importArea,
+    activeRifleCard,
     filterCard,
     el('div', { class: 'card' }, [
-      el('h2', { i18n: 'arsenal.riflesHeading' }),
+      el('h2', { i18n: 'arsenal.otherRiflesHeading' }),
       riflesListEl
     ]),
-    rifleFormArea,
     el('div', { class: 'card' }, [
       el('h2', { i18n: 'arsenal.bulletsHeading' }),
       bulletsListEl
@@ -1160,13 +1453,21 @@ export function mount(container) {
   // opens as a new entry.
   if (pendingBulletPrefill) {
     const existing = pendingBulletPrefill.name ? findUserBulletByName(pendingBulletPrefill.name) : null;
+    closeOtherForms('bullet');
     bulletFormState = { id: existing ? existing.id : null };
     renderBulletForm();
+    renderRifleForm();
   }
   if (pendingRiflePrefill) {
     const existing = pendingRiflePrefill.name ? findUserRifleByName(pendingRiflePrefill.name) : null;
+    // Edit only ever renders for the active rifle now (see
+    // renderActiveRifle()) — a prefill matching an existing *other* rifle
+    // has to activate it first so its Edit form has somewhere to go.
+    if (existing && existing.id !== activeRifleId) activateRifle(existing);
+    closeOtherForms('rifle');
     rifleFormState = { id: existing ? existing.id : null };
     renderRifleForm();
+    renderBulletForm();
   }
 
   loadCaliberDesignations().then((list) => {
@@ -1175,4 +1476,22 @@ export function mount(container) {
   }).catch(() => {
     // caliber list unavailable — bullet rows just show a raw mm figure instead
   });
+
+  // Commits whatever's currently staged in the "Active rifle" pane to
+  // shot-state.js's shared cookie — called by guns-nav.js's own
+  // requestGunsDone() right before it navigates away, never directly.
+  // Leaves the previously-running configuration untouched (rather than
+  // clearing it) when there's nothing usable to commit: no rifle active
+  // at all (manual entry / not-in-Arsenal), or the active one has no
+  // cartridges — "the previous running configuration is not changed," as
+  // asked, not reset to nothing.
+  function commitActiveRifleOnDone() {
+    const rifle = activeRifleId ? loadUserRifles().find((r) => r.id === activeRifleId) : null;
+    if (!rifle || rifle.cartridges.length === 0) return;
+    const cartridgeId = rifle.cartridges.some((c) => c.id === activeCartridgeId) ? activeCartridgeId : rifle.cartridges[0].id;
+    saveRifleState({ library: { rifleId: rifle.id, cartridgeId } });
+  }
+  const unregisterArsenalDoneHandler = registerArsenalDoneHandler(commitActiveRifleOnDone);
+
+  return () => unregisterArsenalDoneHandler();
 }

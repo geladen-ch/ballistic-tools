@@ -1,6 +1,7 @@
 import { el } from '../dom.js';
-import { CLICK_UNITS, convertAngularValue } from '../units.js';
-import { i18nSpan } from '../i18n.js';
+import { CLICK_UNITS, convertAngularValue, FIELD_BOUNDS } from '../units.js';
+import { i18nSpan, t } from '../i18n.js';
+import { fieldValidity } from './field-validity.js';
 
 const DEFAULT_UNIT = 'mrad';
 const DEFAULT_VALUE = 0.1;
@@ -41,11 +42,16 @@ export function scopeClicksField({ onInput } = {}) {
     const newUnit = unitSelect.value;
     for (const input of [horizontalInput, verticalInput]) {
       const raw = parseFloat(input.value);
-      if (!Number.isNaN(raw)) input.value = round(convertAngularValue(raw, currentUnit, newUnit));
+      if (!Number.isNaN(raw)) input.value = String(round(convertAngularValue(raw, currentUnit, newUnit)));
     }
     currentUnit = newUnit;
     lastValidHorizontal = parseFloat(horizontalInput.value);
     lastValidVertical = parseFloat(verticalInput.value);
+    // The conversion above is a programmatic .value assignment on both
+    // inputs, not a typed 'input' event — fieldValidity() only reacts to
+    // the latter, so this nudges both explicitly.
+    horizontalValidity.validate();
+    verticalValidity.validate();
     if (onInput) onInput();
   });
 
@@ -60,11 +66,28 @@ export function scopeClicksField({ onInput } = {}) {
     if (onInput) onInput();
   });
 
+  // Bound is unit-agnostic (FIELD_BOUNDS.scopeClick — a click's own size,
+  // regardless of whether it's expressed in mrad or MOA), so it never
+  // needs re-deriving when the unit toggle above converts the two values.
+  function messageFor(input) {
+    return () => {
+      const raw = input.value.trim();
+      if (raw === '') return t('fields.errorRequired');
+      const parsed = parseFloat(raw);
+      if (Number.isNaN(parsed)) return t('fields.errorRequired');
+      const { min, max } = FIELD_BOUNDS.scopeClick;
+      if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max}` });
+      return null;
+    };
+  }
+  const horizontalValidity = fieldValidity(horizontalInput, messageFor(horizontalInput));
+  const verticalValidity = fieldValidity(verticalInput, messageFor(verticalInput));
+
   const node = el('div', {}, [
     el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickUnit' }), unitSelect]),
-    el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickHorizontal' }), horizontalInput]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'fields.scopeClickHorizontal' }), horizontalInput, horizontalValidity.hintNode]),
     el('div', { class: 'field' }, [
-      el('label', { i18n: 'fields.scopeClickVertical' }), verticalInput
+      el('label', { i18n: 'fields.scopeClickVertical' }), verticalInput, verticalValidity.hintNode
     ]),
     el('p', { class: 'hint', i18n: 'fields.scopeClickHint' })
   ]);
@@ -85,11 +108,19 @@ export function scopeClicksField({ onInput } = {}) {
   function setSettings({ unit, horizontal, vertical }) {
     unitSelect.value = unit;
     currentUnit = unit;
-    horizontalInput.value = round(horizontal);
-    verticalInput.value = round(vertical);
+    horizontalInput.value = String(round(horizontal));
+    verticalInput.value = String(round(vertical));
     lastValidHorizontal = round(horizontal);
     lastValidVertical = round(vertical);
   }
 
-  return { node, getSettings, setSettings };
+  return {
+    node, getSettings, setSettings,
+    // Called by rifle-form.js's own Save handler — both must pass.
+    validate() {
+      const h = horizontalValidity.validate();
+      const v = verticalValidity.validate();
+      return h && v;
+    }
+  };
 }

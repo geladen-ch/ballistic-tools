@@ -338,7 +338,7 @@ export function mount(container) {
       deleteUserLocation(location.id);
       refreshLibraryView();
     });
-    const row = el('div', { class: 'arsenal-row location-row-clickable' }, [
+    const row = el('div', { class: 'arsenal-row row-clickable' }, [
       el('div', { class: 'arsenal-row-info' }, locationInfoChildren(location)),
       el('div', { class: 'arsenal-row-actions' }, [saveToFileButton, deleteButton])
     ]);
@@ -347,7 +347,7 @@ export function mount(container) {
   }
 
   function renderKnownNoLocation() {
-    const row = el('div', { class: 'arsenal-row location-row-clickable' }, [
+    const row = el('div', { class: 'arsenal-row row-clickable' }, [
       el('div', { class: 'arsenal-row-info' }, [el('strong', { i18n: 'rangeSolverLocations.noLocationOption' })])
     ]);
     row.addEventListener('click', () => activateLocation(null));
@@ -466,6 +466,7 @@ export function mount(container) {
           initialValues: editingTarget || {},
           locationId: location.id,
           locationPhoto: location.photo,
+          siblingNames: location.targets.filter((tg) => tg.id !== targetFormState.id).map((tg) => tg.name).filter(Boolean),
           onSave: (data) => {
             const id = targetFormState.id || generateUserId('target');
             const targets = targetFormState.id

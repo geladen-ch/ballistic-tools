@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, unitChoice
+  engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, unitChoice,
+  FIELD_BOUNDS, formatFieldRange, formatFieldValue
 } from '../src/units.js';
 
 test('velocity round-trips through a non-metric unit', () => {
@@ -57,4 +58,37 @@ test('energy converts J to ft-lb correctly and round-trips', () => {
   assert.ok(Math.abs(ftlb - 1475.124) < 0.01);
   const backToJ = displayToEngine('energy', ftlb, 'ft*lbf');
   assert.ok(Math.abs(backToJ - 2000) < 1e-6);
+});
+
+// ---- FIELD_BOUNDS / formatFieldRange / formatFieldValue (sanity-check
+// validation — src/ui/field-validity.js and every field widget built on
+// top of it) ----
+
+test('FIELD_BOUNDS carries the approved bound for every field this session widened or newly bounded', () => {
+  assert.deepEqual(FIELD_BOUNDS.caliberM, { min: 0.004, max: 0.021 });
+  assert.deepEqual(FIELD_BOUNDS.bulletMass, { min: 1, max: 121 });
+  assert.deepEqual(FIELD_BOUNDS.sightHeight, { min: 0, max: 500 });
+  assert.deepEqual(FIELD_BOUNDS.zeroRange, { min: 0, max: 5000 });
+  assert.deepEqual(FIELD_BOUNDS.riflingTwist, { min: 1, max: 1000 });
+  assert.deepEqual(FIELD_BOUNDS.muzzleVelocity, { min: 50, max: 1500 });
+  assert.deepEqual(FIELD_BOUNDS.tempC, { min: -90, max: 60 });
+  assert.deepEqual(FIELD_BOUNDS.windSpeed, { min: 0, max: 35 });
+  assert.deepEqual(FIELD_BOUNDS.pressureHpa, { min: 450, max: 1100 });
+  assert.deepEqual(FIELD_BOUNDS.targetRange, { min: 10, max: 5000 });
+});
+
+test('formatFieldRange renders both bounds in the given display unit, with the unit suffix', () => {
+  assert.equal(formatFieldRange('muzzleVelocity', 50, 1500, 'm/s'), '50 – 1500 m/s');
+  // ft/s conversion, rounded to muzzleVelocity's own display decimals (0)
+  const ftPerS = formatFieldRange('muzzleVelocity', 50, 1500, 'ft/s');
+  assert.match(ftPerS, /^164 – 4921 ft\/s$/);
+});
+
+test('formatFieldRange falls back to bare numbers for a field with no FIELD_UNITS entry', () => {
+  assert.equal(formatFieldRange('bc', 0.05, 1.5, 'anything'), '0.05 – 1.5');
+});
+
+test('formatFieldValue renders a single bound the same way formatFieldRange formats each half', () => {
+  assert.equal(formatFieldValue('maxRange', 1000, 'm'), '1000 m');
+  assert.equal(formatFieldValue('bc', 0.5, 'anything'), '0.5');
 });

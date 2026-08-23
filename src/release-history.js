@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v135',
+    fullVersion: '2.1 (ARSCH — Advanced Range & Shot Calculation Helper)',
+    date: '2026-08-23',
+    descriptionKey: 'releaseHistory.entries.v135'
+  },
+  {
     cacheVersion: 'v134',
     fullVersion: '2.0 (ARSCH — Advanced Range & Shot Calculation Helper)',
     date: '2026-08-21',

@@ -331,9 +331,10 @@ zero (nome, calibro, massa, BC/modello di resistenza o una tabella Cd-Mach
 incollata) oppure copiando un proiettile integrato e modificandolo. Aggiungi
 un fucile con la propria altezza ottica, distanza di azzeramento e valori
 dei click, quindi collega una o più cartucce (ciascuna con il proprio
-proiettile e la propria velocità alla volata). "Imposta attivo" su un
-fucile lo rende la configurazione attiva ovunque, e ti riporta allo
-strumento da cui hai aperto Armi.
+proiettile e la propria velocità alla volata). Fai clic su un fucile per
+renderlo il "Fucile attivo" mostrato in alto, con le sue cartucce e un
+pulsante Modifica; la cartuccia scelta lì è quella che "Fatto" applica come
+configurazione attiva ovunque, una volta usciti da Armi.
 
 I filtri per calibro e produttore riducono elenchi lunghi. Un proiettile o
 un fucile modificato ma non ancora esportato mostra un badge "Non salvato".

@@ -95,6 +95,32 @@ function makeElement(tag) {
     // newly-opened form into view" calls don't throw.
     scrollIntoView() {}
   };
+  // Backed by the same plain `className` string real code already reads/
+  // sets directly (e.g. el()'s own `class` prop) — classList is just a
+  // second way to poke at the same value, same as a real DOM element,
+  // needed once field-validity.js started toggling `.field-invalid` this
+  // way instead of a flat assignment.
+  node.classList = {
+    add(...cls) {
+      const set = new Set(node.className.split(' ').filter(Boolean));
+      for (const c of cls) set.add(c);
+      node.className = [...set].join(' ');
+    },
+    remove(...cls) {
+      const set = new Set(node.className.split(' ').filter(Boolean));
+      for (const c of cls) set.delete(c);
+      node.className = [...set].join(' ');
+    },
+    toggle(cls, force) {
+      const has = node.className.split(' ').filter(Boolean).includes(cls);
+      const shouldHave = force === undefined ? !has : force;
+      if (shouldHave) node.classList.add(cls); else node.classList.remove(cls);
+      return shouldHave;
+    },
+    contains(cls) {
+      return node.className.split(' ').filter(Boolean).includes(cls);
+    }
+  };
   if (tag === 'canvas') node.getContext = () => canvasContext;
   if (tag === 'option') {
     Object.defineProperty(node, 'text', {

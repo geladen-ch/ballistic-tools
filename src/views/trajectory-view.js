@@ -7,7 +7,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { columnToggles } from '../ui/column-toggles.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
-import { engineToDisplay, unitChoice, convertAngularValue } from '../units.js';
+import { engineToDisplay, unitChoice, convertAngularValue, FIELD_BOUNDS, formatFieldValue } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { loadColumnVisibility, saveColumnVisibility } from '../table-columns.js';
 import { applyI18nText, i18nSpan, t } from '../i18n.js';
@@ -116,9 +116,13 @@ export function mount(container) {
   // computed — they aren't rifle/cartridge/atmosphere properties, so they
   // stay outside those reusable sections.
   const maxRangeField = unitField({
-    id: 'maxRange', min: 100, max: 2000, step: 10, value: savedInputs.maxRange ?? 1000,
+    id: 'maxRange', ...FIELD_BOUNDS.maxRange, step: 10, value: savedInputs.maxRange ?? 1000,
     onInput: () => {
       zoomSlider.setBounds(maxRangeField.getEngineValue());
+      // Re-check rangeStep's own step ≤ maxRange cross-check now that
+      // maxRange itself just changed — it may have just become invalid
+      // (or valid again) with no edit of its own.
+      rangeStepField.validate();
       handleShotInputChange();
       persistInputs();
     }
@@ -126,7 +130,17 @@ export function mount(container) {
   // The chart uses its own fixed dense resolution (CHART_DENSE_RANGE_STEP_M),
   // ignoring this — it only ever affects the table's own rows.
   const rangeStepField = unitField({
-    id: 'rangeStep', min: 1, max: 500, step: 1, value: savedInputs.rangeStep ?? 100,
+    id: 'rangeStep', ...FIELD_BOUNDS.rangeStep, step: 1, value: savedInputs.rangeStep ?? 100,
+    // A step bigger than the whole table range would produce at most one
+    // row — not a physically-invalid number on its own, but not a useful
+    // table either, so it's checked the same way an out-of-range value is.
+    extraCheck: (engineValue) => {
+      const maxRangeM = maxRangeField.getEngineValue();
+      if (engineValue > maxRangeM) {
+        return t('fields.errorRangeStepExceedsMax', { maxRange: formatFieldValue('maxRange', maxRangeM, getUnit('distance')) });
+      }
+      return null;
+    },
     onInput: () => { scheduleRecompute(); persistInputs(); }
   });
   // The shot's incline relative to horizontal (+up) — not a distance/angle
@@ -136,7 +150,7 @@ export function mount(container) {
   // rangeStep above, not shared via shot-state.js — but still persisted
   // via trajectory-state.js, same as them.
   const losAngleField = unitField({
-    id: 'losAngle', min: -90, max: 90, step: 1, value: savedInputs.losAngleDeg ?? 0,
+    id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: 1, value: savedInputs.losAngleDeg ?? 0,
     onInput: () => { handleShotInputChange(); persistInputs(); }
   });
   // rifle/cartridge are never rendered here — they exist only to read

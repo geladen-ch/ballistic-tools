@@ -1,7 +1,7 @@
 import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { setPendingPlacement } from '../../location-placement-nav.js';
-import { t } from '../../i18n.js';
+import { FIELD_BOUNDS } from '../../units.js';
 
 const DEFAULT_VALUES = { name: '', notes: '', rangeM: 400, losAngleDeg: 0 };
 
@@ -19,15 +19,27 @@ const DEFAULT_VALUES = { name: '', notes: '', rangeM: 400, losAngleDeg: 0 };
 // editing `coords` in place — that view commits the pin directly via
 // saveUserLocation() on its own Done, independently of this form's own
 // Save button, so `coords` is never part of this form's onSave payload.
-export function targetForm({ initialValues = {}, locationId = null, locationPhoto = null, onSave, onCancel } = {}) {
+// `siblingNames` (see locations-view.js) is every *other* target's name
+// already at this location — for the live duplicate-name warning below,
+// same non-blocking tier as bullet-form.js's/rifle-form.js's own.
+export function targetForm({ initialValues = {}, locationId = null, locationPhoto = null, siblingNames = [], onSave, onCancel } = {}) {
   const values = { ...DEFAULT_VALUES, ...initialValues };
 
   const nameInput = el('input', { type: 'text', id: 'targetName', value: values.name || '' });
+  const duplicateWarning = el('p', { class: 'hint warning', i18n: 'rangeSolverLocations.duplicateTargetNameWarning' });
+  duplicateWarning.style.display = 'none';
+  function refreshDuplicateWarning() {
+    const raw = nameInput.value.trim();
+    const match = raw !== '' && siblingNames.some((n) => n.trim().toLowerCase() === raw.toLowerCase());
+    duplicateWarning.style.display = match ? '' : 'none';
+  }
+  nameInput.addEventListener('input', refreshDuplicateWarning);
+
   const notesInput = el('textarea', { id: 'targetNotes', rows: 3 });
   notesInput.value = values.notes || '';
 
-  const rangeField = unitField({ id: 'targetRange', min: 10, max: 3000, step: 10, value: values.rangeM });
-  const losAngleField = unitField({ id: 'losAngle', min: -90, max: 90, step: 1, value: values.losAngleDeg });
+  const rangeField = unitField({ id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10, value: values.rangeM });
+  const losAngleField = unitField({ id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: 1, value: values.losAngleDeg });
 
   const placeItButton = (locationPhoto && values.id) ? el('button', { type: 'button', class: 'secondary', i18n: 'rangeSolverLocations.placeItButton' }) : null;
   if (placeItButton) {
@@ -37,25 +49,29 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
     });
   }
 
-  const errorMessage = el('p', { class: 'hint warning' });
-  errorMessage.style.display = 'none';
-
   const saveButton = el('button', { i18n: 'rangeSolverLocations.saveTargetButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'rangeSolverLocations.cancelButton' });
 
+  // Every field's own live validation (red border + inline hint — range
+  // required/in-bounds is now enforced the same way every other field's
+  // is, via FIELD_BOUNDS.targetRange, replacing the old bespoke `rangeM
+  // <= 0` check and its own errorRangeRequired message) is also the Save
+  // gate — see bullet-form.js's own Save handler for the same pattern.
   saveButton.addEventListener('click', () => {
-    const rangeM = rangeField.getEngineValue();
-    if (!Number.isFinite(rangeM) || rangeM <= 0) {
-      errorMessage.textContent = t('rangeSolverLocations.errorRangeRequired');
-      errorMessage.style.display = '';
+    const checks = [
+      { ok: rangeField.validate(), node: rangeField.node },
+      { ok: losAngleField.validate(), node: losAngleField.node }
+    ];
+    const firstInvalid = checks.find((c) => !c.ok);
+    if (firstInvalid) {
+      firstInvalid.node.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    errorMessage.style.display = 'none';
     if (onSave) {
       onSave({
         name: nameInput.value.trim() || null,
         notes: notesInput.value.trim() || null,
-        rangeM,
+        rangeM: rangeField.getEngineValue(),
         losAngleDeg: losAngleField.getEngineValue(),
         coords: values.coords ?? null
       });
@@ -63,14 +79,16 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
   });
   cancelButton.addEventListener('click', () => { if (onCancel) onCancel(); });
 
+  refreshDuplicateWarning();
+
   const node = el('div', { class: 'input-section nested' }, [
     el('div', { class: 'field' }, [el('label', { i18n: 'rangeSolverLocations.targetName' }), nameInput]),
     el('p', { class: 'hint', i18n: 'rangeSolverLocations.targetNameHint' }),
+    duplicateWarning,
     el('div', { class: 'field' }, [el('label', { i18n: 'rangeSolverLocations.targetNotes' }), notesInput]),
     rangeField.node,
     losAngleField.node,
     placeItButton,
-    errorMessage,
     el('div', { class: 'arsenal-form-actions' }, [saveButton, cancelButton])
   ]);
 

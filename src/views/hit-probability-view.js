@@ -310,7 +310,11 @@ export function mount(container) {
   // Both scenario-specific inputs live together with the scenario picker
   // itself — the "Scenario" heading doubles as the select's own label, so
   // it isn't repeated as a separate <label> right underneath.
-  const sightingShotCountField = persistedUnitField('sightingShotCount', { min: 1, max: 5, step: 1, value: 1, onInput: () => recompute() });
+  const sightingShotCountField = persistedUnitField('sightingShotCount', {
+    min: 1, max: 5, step: 1, value: 1,
+    extraCheck: (v) => (Number.isInteger(v) ? null : t('fields.errorInteger')),
+    onInput: () => recompute()
+  });
   const spotterMeasureField = presetUnitField('spotterMeasure', { max: 5, step: 0.05, onInput: () => recompute() });
   sightingShotCountField.node.style.display = 'none';
   spotterMeasureField.node.style.display = 'none';
@@ -321,7 +325,7 @@ export function mount(container) {
     spotterMeasureField.node
   ]);
 
-  const targetRangeField = persistedUnitField('targetRange', { min: 10, max: 2000, step: 10, value: 400, onInput: () => recompute() });
+  const targetRangeField = persistedUnitField('targetRange', { min: 10, max: 5000, step: 10, value: 400, onInput: () => recompute() });
   const atmosphere = atmosphereSection({ includeWind: false, onInput: () => recompute() });
 
   const movingTargetSpeedField = presetUnitField('movingTargetSpeed', { max: 30, step: 0.5, onInput: () => recompute() });
@@ -337,7 +341,7 @@ export function mount(container) {
       battleZeroField.node.style.display = battleZeroToggle.checked ? '' : 'none';
       recompute();
     });
-  const battleZeroField = persistedUnitField('battleZeroRange', { min: 0, max: 1000, step: 10, value: 100, onInput: () => recompute() });
+  const battleZeroField = persistedUnitField('battleZeroRange', { min: 0, max: 5000, step: 10, value: 100, onInput: () => recompute() });
   battleZeroField.node.style.display = battleZeroToggle.checked ? '' : 'none';
 
   const aimOffsetXField = persistedUnitField('aimOffsetX', { min: -100, max: 100, step: 0.5, value: 0, onInput: () => recompute() });

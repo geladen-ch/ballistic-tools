@@ -8,6 +8,7 @@ const {
   isInGunsMode, setGunsMode, onGunsModeChange,
   setGunsReturnPath, takeGunsReturnPath,
   resolveGunsDestination, goToGuns,
+  registerArsenalDoneHandler, requestGunsDone,
   resetGunsNavForTests
 } = await import('../src/guns-nav.js');
 const { saveRifleState, resetShotStateForTests } = await import('../src/shot-state.js');
@@ -120,4 +121,45 @@ test('goToGuns falls back to Custom and records the root path when nothing is ac
   goToGuns();
   assert.equal(location.hash, '#/guns/custom');
   assert.equal(takeGunsReturnPath('/fallback'), '/');
+});
+
+// ---- registerArsenalDoneHandler/requestGunsDone — lets Arsenal stage an
+// activation locally and commit it only when Done is actually pressed. ----
+
+test('requestGunsDone navigates like a plain Done click when nothing is registered', () => {
+  setGunsReturnPath('/hit-probability');
+  requestGunsDone('/trajectory');
+  assert.equal(location.hash, '#/hit-probability');
+});
+
+test('requestGunsDone calls the registered handler before navigating', () => {
+  const calls = [];
+  registerArsenalDoneHandler(() => calls.push('committed'));
+  requestGunsDone('/trajectory');
+  assert.deepEqual(calls, ['committed']);
+  assert.equal(location.hash, '#/trajectory');
+});
+
+test('the unregister function returned by registerArsenalDoneHandler stops it from firing', () => {
+  const calls = [];
+  const unregister = registerArsenalDoneHandler(() => calls.push('committed'));
+  unregister();
+  requestGunsDone('/trajectory');
+  assert.deepEqual(calls, []);
+});
+
+test('registering a new handler replaces the previous one', () => {
+  const calls = [];
+  registerArsenalDoneHandler(() => calls.push('first'));
+  registerArsenalDoneHandler(() => calls.push('second'));
+  requestGunsDone('/trajectory');
+  assert.deepEqual(calls, ['second']);
+});
+
+test('resetGunsNavForTests() also clears the registered Arsenal Done handler', () => {
+  const calls = [];
+  registerArsenalDoneHandler(() => calls.push('committed'));
+  resetGunsNavForTests();
+  requestGunsDone('/trajectory');
+  assert.deepEqual(calls, []);
 });

@@ -19,7 +19,7 @@ import { el, clear } from '../dom.js';
 import { t, onLanguageChange } from '../i18n.js';
 import { GROUPS, PINNED, toolsInGroup } from '../nav-tools.js';
 import { isRailCollapsed, setRailCollapsed, isGroupOpen, setGroupOpen } from '../nav-prefs.js';
-import { isInGunsMode, onGunsModeChange, takeGunsReturnPath, resolveGunsDestination, goToGuns } from '../guns-nav.js';
+import { isInGunsMode, onGunsModeChange, requestGunsDone, resolveGunsDestination, goToGuns } from '../guns-nav.js';
 import {
   isInRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, onRangeSolverTabChange, setRangeSolverTab
@@ -88,7 +88,7 @@ export function mountNavRail(container) {
     const path = currentPath();
     const doneBtn = el('button', { type: 'button', class: 'done-btn' }, [checkIcon(13), el('span', { i18n: 'guns.doneButton' })]);
     doneBtn.addEventListener('click', () => {
-      location.hash = '#' + takeGunsReturnPath('/trajectory');
+      requestGunsDone('/trajectory');
     });
     const customLink = el('a', {
       href: '#/guns/custom',

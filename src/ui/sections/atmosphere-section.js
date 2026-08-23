@@ -1,4 +1,5 @@
 import { el } from '../../dom.js';
+import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
 import { windDirectionDial } from '../wind-direction-dial.js';
 import { sectionGroup } from '../section.js';
@@ -59,7 +60,7 @@ export function atmosphereSection({
   }
 
   const windSpeedField = includeWind
-    ? unitField({ id: 'windSpeed', min: 0, max: 20, step: 0.5, value: initial.windSpeed, slider, onInput: handleChange })
+    ? unitField({ id: 'windSpeed', ...FIELD_BOUNDS.windSpeed, step: 0.5, value: initial.windSpeed, slider, onInput: handleChange })
     : null;
   // The compact clock/compass control (src/ui/wind-direction-dial.js) —
   // `slider` doesn't apply to it (there's no linear-range equivalent of a
@@ -88,22 +89,22 @@ export function atmosphereSection({
   // conditions" (see markCustom()), the same "preset pre-fills, typing
   // overrides" pairing presetUnitField() uses in hit-probability-view.js,
   // just with one select governing three fields instead of one.
-  const tempField = unitField({ id: 'tempC', min: -30, max: 45, step: 1, value: initial.tempC, slider, onInput: markCustom });
+  const tempField = unitField({ id: 'tempC', ...FIELD_BOUNDS.tempC, step: 1, value: initial.tempC, slider, onInput: markCustom });
   // This is the shooter's own actual station pressure — taken at face
   // value at whatever elevation applies, never assumed to be a
   // sea-level-referenced reading. 0.01 step (not the usual whole hPa) so
   // the preset reference values (925.3, 1013.25) are exactly reachable by
   // hand too.
-  const pressureField = unitField({ id: 'pressureHpa', min: 650, max: 1050, step: 0.01, value: initial.pressureHpa, slider, onInput: markCustom });
-  const humidityField = unitField({ id: 'humidityPct', min: 0, max: 100, step: 5, value: initial.humidityPct, slider, onInput: markCustom });
+  const pressureField = unitField({ id: 'pressureHpa', ...FIELD_BOUNDS.pressureHpa, step: 0.01, value: initial.pressureHpa, slider, onInput: markCustom });
+  const humidityField = unitField({ id: 'humidityPct', ...FIELD_BOUNDS.humidityPct, step: 5, value: initial.humidityPct, slider, onInput: markCustom });
   // Only ever a real, user-typed input under the "Standard atmosphere"
   // preset — elsewhere it's hidden and altitudeM is instead back-derived
-  // from the station pressure (see getValues()), so the floor has to
-  // reach well below sea-level ranges to stay usable up at this field's
-  // own 3000m max (standard station pressure there is ~701 hPa; see
-  // icaoStandardPressureHpa() in atmosphere.js).
+  // from the station pressure (see getValues()). Same bound as
+  // location-form.js's own altitude field (-500 – 5000m) — both are the
+  // same physical quantity, and the ICAO lapse-rate formula above stays
+  // well-behaved across this whole range.
   const altitudeField = presets
-    ? unitField({ id: 'altitudeM', min: 0, max: 3000, step: 50, value: initial.altitudeM, slider, onInput: applyStandardFromAltitude })
+    ? unitField({ id: 'altitudeM', ...FIELD_BOUNDS.altitudeM, step: 50, value: initial.altitudeM, slider, onInput: applyStandardFromAltitude })
     : null;
 
   function updateAltitudeVisibility() {

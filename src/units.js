@@ -211,6 +211,87 @@ export function roundForDisplay(fieldId, displayUnit, value) {
   return Math.round(value * factor) / factor;
 }
 
+// Sanity-check bounds — one number pair per field id, in the same unit
+// FIELD_UNITS' own `engineUnit` uses for that id (so formatFieldRange()
+// below can run them through the exact same engineToDisplay()/
+// roundForDisplay() path as the field's own value), or in the field's
+// one-and-only raw unit for anything with no FIELD_UNITS entry (bc,
+// caliber/length/mass — always mm/mm/g regardless of prefs, scope
+// clicks, losAngle, humidityPct, tof, sightingShotCount, spotterMeasure,
+// convBc, cdTableCd). Centralized here — not scattered as a literal
+// min/max at each call site — specifically so the same physical
+// quantity can't quietly end up with two different bounds in two views
+// the way windSpeed (20 vs 30 m/s) and targetRange (2000 vs 3000m) had
+// before this was written; every caller now points at the one number.
+export const FIELD_BOUNDS = {
+  caliberM: { min: 0.004, max: 0.021 }, // m — hand-rolled mm field multiplies/divides by 1000 itself
+  bulletLength: { min: 5, max: 100 }, // mm, always — bullet-form.js's own hand-rolled field
+  bulletMass: { min: 1, max: 121 }, // g, always — mass-field.js's own gram/grain pair
+  bc: { min: 0.05, max: 1.5 },
+  cdTableCd: { min: 0.05, max: 3.0 }, // a single Cd-vs-Mach table row's own Cd value
+  sightHeight: { min: 0, max: 500 }, // mm
+  zeroRange: { min: 0, max: 5000 }, // m
+  riflingTwist: { min: 1, max: 1000 }, // mm — optional (blank) is handled separately; 0 itself is a Miller's-formula divisor
+  scopeClick: { min: 0.01, max: 5 }, // click value, unit-agnostic by design (see CLICK_UNITS above)
+  muzzleVelocity: { min: 50, max: 1500 }, // m/s — also reused for BC Tools' v1/v2/conversion velocity
+  referenceTempC: { min: -90, max: 60 }, // °C — also reused for tempC
+  tempC: { min: -90, max: 60 }, // °C
+  velocityTempSensitivity: { min: -5, max: 5 }, // m/s per °C, engine unit always — see velocityPerTempFactor() above
+  altitudeM: { min: -500, max: 6000 }, // m
+  targetRange: { min: 10, max: 5000 }, // m
+  losAngle: { min: -90, max: 90 }, // degrees, no FIELD_UNITS entry
+  windSpeed: { min: 0, max: 35 }, // m/s
+  pressureHpa: { min: 450, max: 1100 }, // hPa
+  humidityPct: { min: 0, max: 100 }, // %, no FIELD_UNITS entry
+  battleZeroRange: { min: 0, max: 5000 }, // m — matches zeroRange, same physical quantity
+  r1: { min: 0, max: 200 }, // m
+  r2: { min: 10, max: 3000 }, // m
+  tof: { min: 0.001, max: 30 }, // s, no FIELD_UNITS entry
+  sightingShotCount: { min: 1, max: 5 }, // count, integer
+  convBc: { min: 0.05, max: 1.5 }, // matches bc
+  maxRange: { min: 100, max: 2000 }, // m
+  rangeStep: { min: 1, max: 500 }, // m
+  benchPrecision: { min: 0, max: 3 }, // mrad
+  shooterSkill: { min: 0, max: 3 }, // mrad
+  combinedPrecision: { min: 0, max: 3 }, // mrad
+  distanceMedianError: { min: 0, max: 50 }, // %, no FIELD_UNITS entry
+  tempMedianError: { min: 0, max: 20 }, // °C span
+  pressureMedianError: { min: 0, max: 30 }, // hPa
+  windMedianError: { min: 0, max: 10 }, // m/s
+  movingTargetSpeed: { min: 0, max: 30 }, // m/s
+  movingTargetSpeedError: { min: 0, max: 100 }, // %, no FIELD_UNITS entry
+  muzzleVelocitySD: { min: 0, max: 20 }, // m/s
+  spotterMeasure: { min: 0, max: 5 }, // mrad (no FIELD_UNITS entry — always raw, matching its existing unconverted display)
+  aimOffsetX: { min: -100, max: 100 }, // cm
+  aimOffsetY: { min: -100, max: 100 } // cm
+};
+
+// The bounds message's own "allowed range" text, in whatever unit the
+// field is currently displayed in — same engineToDisplay()/
+// roundForDisplay() round-trip the field's own value already goes
+// through, so e.g. a muzzle-velocity bound of 50–1500 m/s reads as
+// "164 – 4921 ft/s" for a user who's switched to imperial, not a raw
+// metric number in a field that no longer shows metric anywhere else.
+// Falls back to the bare numbers, no unit suffix, for a field with no
+// FIELD_UNITS entry (bc, clicks, losAngle, ...) — exactly what
+// unitChoice() already returns null for.
+export function formatFieldRange(fieldId, min, max, displayUnit) {
+  const choice = unitChoice(fieldId, displayUnit);
+  if (!choice) return `${min} – ${max}`;
+  const dMin = roundForDisplay(fieldId, displayUnit, engineToDisplay(fieldId, min, displayUnit));
+  const dMax = roundForDisplay(fieldId, displayUnit, engineToDisplay(fieldId, max, displayUnit));
+  return `${dMin} – ${dMax} ${choice.label}`;
+}
+
+// Single-value sibling of formatFieldRange() above — for a cross-field
+// validation message that names another field's own current value (e.g.
+// "cannot exceed Max range (1000 m)") rather than a fixed min/max pair.
+export function formatFieldValue(fieldId, value, displayUnit) {
+  const choice = unitChoice(fieldId, displayUnit);
+  if (!choice) return `${value}`;
+  return `${roundForDisplay(fieldId, displayUnit, engineToDisplay(fieldId, value, displayUnit))} ${choice.label}`;
+}
+
 // Muzzle-velocity-vs-temperature sensitivity (m/s of V0 change per °C) is
 // a rate, not a plain quantity, so it doesn't get its own Settings entry
 // or FIELD_UNITS mapping — its display unit is *derived* from whatever

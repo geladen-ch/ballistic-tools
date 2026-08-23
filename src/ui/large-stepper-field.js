@@ -1,7 +1,8 @@
 import { el } from '../dom.js';
-import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay } from '../units.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, formatFieldRange } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { t, i18nSpan } from '../i18n.js';
+import { fieldValidity } from './field-validity.js';
 
 // A unitField()-equivalent — same engine<->display unit conversion (see
 // units.js), same "fields.<id>" translation-key convention — but rendered
@@ -55,10 +56,32 @@ export function largeStepperField({ id, min, max, step, value, onInput }) {
   incButton.addEventListener('click', () => bump(stepDisp));
   number.addEventListener('input', () => { if (onInput) onInput(); });
 
+  // Live, per-field validation (red border + hint, only once actually
+  // invalid — see field-validity.js), same idea as unitField()'s own.
+  // No `optional` concept here (neither current caller — Range Solver's
+  // target range/wind speed — ever leaves this blank), so an empty or
+  // unparseable box is always a violation, not a legitimate "unset"
+  // state. The +/- buttons never need to trigger this themselves —
+  // bump()'s own clamp() already keeps them in range.
+  function computeMessage() {
+    const raw = number.value.trim();
+    if (raw === '') return t('fields.errorRequired');
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return t('fields.errorRequired');
+    if (min === undefined && max === undefined) return null;
+    const engineValue = toEng(parsed);
+    if ((min !== undefined && engineValue < min) || (max !== undefined && engineValue > max)) {
+      return t('fields.errorRange', { range: formatFieldRange(id, min, max, displayUnit) });
+    }
+    return null;
+  }
+  const validity = fieldValidity(number, computeMessage);
+
   const unitSuffix = choice ? document.createTextNode(` (${choice.label})`) : null;
   const node = el('div', { class: 'field large-stepper-field' }, [
     el('label', {}, [i18nSpan('fields.' + id), unitSuffix].filter(Boolean)),
-    el('div', { class: 'large-stepper-row' }, [decButton, number, incButton])
+    el('div', { class: 'large-stepper-row' }, [decButton, number, incButton]),
+    validity.hintNode
   ]);
 
   return {
@@ -71,6 +94,7 @@ export function largeStepperField({ id, min, max, step, value, onInput }) {
     // rather than relying on that coercion.
     setEngineValue(v) {
       number.value = String(toDisp(v));
-    }
+    },
+    validate: validity.validate
   };
 }

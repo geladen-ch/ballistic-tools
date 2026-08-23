@@ -25,8 +25,11 @@ export function mount(container, tab) {
   setGunsMode(true);
 
   if (tab === 'arsenal') {
-    arsenalView.mount(container);
-    return () => setGunsMode(false);
+    const cleanupArsenal = arsenalView.mount(container);
+    return () => {
+      if (typeof cleanupArsenal === 'function') cleanupArsenal();
+      setGunsMode(false);
+    };
   }
 
   // Live Miller's-formula stability readout for whatever rifle+cartridge

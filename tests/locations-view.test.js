@@ -284,6 +284,29 @@ test('adding a target to the current location saves it nested under that locatio
   assert.equal(stored.targets[0].rangeM, 500);
 });
 
+test('naming a new target the same as an existing sibling at the same location shows a live, non-blocking duplicate warning', async () => {
+  const existing = makeTestTarget({ name: 'Berm', rangeM: 400 });
+  const location = saveUserLocation(makeTestLocation({ targets: [existing] }));
+  makeCurrent(location);
+  const container = makeElement('main');
+  locationsView.mount(container);
+
+  fireEvent(buttonByKey(container, 'rangeSolverLocations.addTargetButton'), 'click');
+
+  const nameInput = byId(container, 'targetName');
+  const warning = () => findByTag(container, 'P').find((p) => p.getAttribute && p.getAttribute('data-i18n') === 'rangeSolverLocations.duplicateTargetNameWarning');
+  assert.equal(warning().style.display, 'none', 'no warning on a freshly-opened blank form');
+
+  nameInput.value = 'Berm';
+  fireEvent(nameInput, 'input');
+  assert.equal(warning().style.display, '', 'duplicating a sibling target name should warn live');
+  assert.equal(nameInput.classList.contains('field-invalid'), false, 'duplicate-name is a non-blocking warning, not a validation error');
+
+  nameInput.value = 'Other Berm';
+  fireEvent(nameInput, 'input');
+  assert.equal(warning().style.display, 'none');
+});
+
 test('a target with no pin is badged "not placed" only once its location has a photo; placing the pin (or removing the photo) clears it', async () => {
   const placed = makeTestTarget({ name: 'Alpha', coords: { x: 0.5, y: 0.5 } });
   const unplaced = makeTestTarget({ name: 'Bravo', coords: null });

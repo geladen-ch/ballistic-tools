@@ -1,5 +1,7 @@
 import { el, clear } from '../../dom.js';
+import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
+import { fieldValidity } from '../field-validity.js';
 import { sectionGroup } from '../section.js';
 import { massDualField } from '../arsenal/mass-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
@@ -83,7 +85,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
   }
 
   const bcField = unitField({
-    id: 'bc', min: 0.1, max: 1.0, step: 0.001, value: initial.manualBc, slider,
+    id: 'bc', ...FIELD_BOUNDS.bc, step: 0.001, value: initial.manualBc, slider,
     onInput: () => { saveManualBullet(); if (onInput) onInput(); }
   });
   const dragModelSelect = el('select', { id: 'dragModel' });
@@ -121,16 +123,29 @@ export function bulletSection({ slider = false, onInput } = {}) {
     onInput: () => { saveManualBullet(); if (onInput) onInput(); }
   });
   const manualLengthField = el('input', {
-    type: 'number', id: 'bulletLength', min: 0, step: 0.1,
+    type: 'number', id: 'bulletLength', min: FIELD_BOUNDS.bulletLength.min, max: FIELD_BOUNDS.bulletLength.max, step: 0.1,
     value: initial.manualLengthM != null ? (initial.manualLengthM * 1000).toFixed(2) : ''
   });
   manualLengthField.addEventListener('input', () => { saveManualBullet(); if (onInput) onInput(); });
+  // Same optional-range check as bullet-form.js's own Arsenal length
+  // field (a separate hand-rolled instance, not shared with this one).
+  function computeManualLengthMessage() {
+    const raw = manualLengthField.value.trim();
+    if (raw === '') return null;
+    const parsed = parseFloat(raw);
+    if (Number.isNaN(parsed)) return null;
+    const { min, max } = FIELD_BOUNDS.bulletLength;
+    if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max} mm` });
+    return null;
+  }
+  const manualLengthValidity = fieldValidity(manualLengthField, computeManualLengthMessage);
   const manualCaliberLengthFields = el('div', {}, [
     manualCaliber.node,
     el('div', { class: 'field' }, [
       el('label', {}, [i18nSpan('fields.bulletLength'), document.createTextNode(' (mm)')]),
       manualLengthField
     ]),
+    manualLengthValidity.hintNode,
     el('p', { class: 'hint', i18n: 'fields.bulletCaliberLengthHint' })
   ]);
 

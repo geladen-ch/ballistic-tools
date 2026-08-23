@@ -294,9 +294,10 @@ are unaffected either way.
 caliber, mass, BC/drag model or a pasted Cd-Mach table) or by copying a
 built-in one and adjusting it. Add a rifle with its own sight height, zero
 range, and scope click settings, then attach one or more cartridges to it
-(each with its own bullet and muzzle velocity). "Set active" on a rifle makes
-it the active configuration used everywhere, and returns you to whichever
-tool you opened Guns from.
+(each with its own bullet and muzzle velocity). Click a rifle to make it the
+"Active rifle" shown at the top, with its own cartridges and an Edit button;
+picking one of those cartridges there is what Done applies as the active
+configuration used everywhere, once you leave Guns.
 
 Caliber and manufacturer filters narrow long lists. A bullet or rifle you've
 edited but not yet exported shows an "Unsaved" badge.

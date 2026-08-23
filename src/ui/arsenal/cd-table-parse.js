@@ -1,3 +1,5 @@
+import { FIELD_BOUNDS } from '../../units.js';
+
 // Parses a pasted Cd-Mach drag table: one "mach cd" pair per line,
 // whitespace-separated, blank lines ignored — producing the same [mach,
 // cd] pair shape the engine's built-in drag tables already use (see
@@ -22,6 +24,9 @@ export function parseCdTable(text) {
     }
     if (mach < 0 || cd <= 0) {
       return { error: { key: 'arsenal.cdTableErrorBadValue', params: { line: i + 1 } } };
+    }
+    if (cd < FIELD_BOUNDS.cdTableCd.min || cd > FIELD_BOUNDS.cdTableCd.max) {
+      return { error: { key: 'arsenal.cdTableErrorOutOfRange', params: { line: i + 1 } } };
     }
     if (table.length > 0 && mach <= table[table.length - 1][0]) {
       return { error: { key: 'arsenal.cdTableErrorNotIncreasing', params: { line: i + 1 } } };
