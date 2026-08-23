@@ -10,6 +10,16 @@ and mobile (PWA).
 
 A reasonably stable (but not necessarily the latest) "official" version is hosted at https://bc.geladen.ch
 
+## Genesis
+
+In the beginning, there was "Modern Exterior Ballistics" by Robert L. McCoy (light shines from him). Depite the archaic units (all kinds of pound-feet per square farenheit), McCoy's book has the immense value of putting together all the key physical and mathematical principles that describe the flight of projectiles in this universe (rather than hunting for bits and pieces of them in dozens of different textbooks). McCoy's book also contains a skeleton of a 3DOF trajectory calculator program, which, I believe, can be considered as the great-grandfather of most of today's ballistic solvers.
+
+Then came the JBM ballistics Web site. which remained for a very long time a reference for small arms external ballistics -- a wealth of information, and a bunch of publicly-accessible Web-based ballistic calculators, which set a standard for such software accuracy (if not for usability -- Web 1.0 UI defaulting to archaic units). Among other things, JBM made available on his site the code of an old version of his ballistic engine, under GPL license (newer and better versions became closed source). This old code of JBM's was... quite imperfect, using Heun over distance integration, sketchy 3-segment polynomial interpolations instead of Cd-Mach curves, bug-ridden atmosphere calculations, etc., but it had the unmistakable *l'avantage d'exister*.
+
+Then came Nikolay Geht (https://github.com/nikolaygekht), the magnificent, who took JBM's legacy code, cleaned it up, and translated it from old-school hardcore K+R C into C# and (to my personal enjoyment) Javascript. That was the beginning ~~of a beautiful friendhip~~ of fully functional and user-friendly (as opposed to proof-of-concept or research) open-source 3DOF engine for small arms ballistics. Nikolay went the native application way (if you need an native ballistic calculator for Windows, Mac, or Linux, look no further than here: https://github.com/nikolaygekht/ballistic.calculator.app.avalonia, and check out his ballistics engine library as well), while I went js-webwards. Over time, what has started as legacy JBM code with crotches and duct tape was gradually fixed and rewritten -- atmosphere, drag modeling, integration, everything. Now I can state with reasonable confidence that in today's code there is nothing left of the original JBM's; the new eingine is fast, neat, precise, and proven by a decade of field testing.
+
+Then JBM decided to remove almost all the contents of his Web site from public access. I will not judge Mr. James B. Millard's motivations here, but personally I was pissed off big time. All the many tools I've been using frequently suddenly disappeared. Somebody had to step in. This project is my attempt to fill the void.
+
 ## Tools
 
 | Tool | Status | What it does |
