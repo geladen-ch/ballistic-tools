@@ -661,12 +661,17 @@
     "lapuaCd": {
       "name": "Lapua Cd",
       "description": "Lapua radar measured Cd-Mach curves, as published by the vendor"
+    },
+    "hornadyReverse": {
+      "name": "Hornady Reverse Radar",
+      "description": "Custom Cd-Mach curves reverse-engineered from the Hornady 4DOF calculator output"
     }
   },
   "releaseHistory": {
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v139": "Added a \"Hornady reverse radar\" built-in bullets library, with a few bullets I actually care for (more to come).",
       "v138": "Unit-related UI fixes / accessibility features for our metric-impaired friends.",
       "v137": "Bugfix: some UI elements ignored weird user unit preferences, and defaulted to metric.",
       "v136": "Support of multiple built-in bullet libraries, individually switchable for display. Import of Lapua radar measured Cd-Mach curves as \"Lapua Cd\" lib. Minor UI enhancements.",

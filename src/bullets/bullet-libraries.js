@@ -16,6 +16,7 @@
 // `bulletLibraries` i18n namespace (src/locales/*.json).
 import { BULLET_IDS as GELADEN_IDS } from './geladen/catalog.js';
 import { BULLET_IDS as LAPUA_CD_IDS } from './lapua-cd/catalog.js';
+import { BULLET_IDS as HORNADY_REVERSE_IDS } from './hornady-reverse/catalog.js';
 
 export const BULLET_LIBRARIES = [
   {
@@ -31,5 +32,12 @@ export const BULLET_LIBRARIES = [
     nameKey: 'bulletLibraries.lapuaCd.name',
     descriptionKey: 'bulletLibraries.lapuaCd.description',
     prefix: 'LCd'
+  },
+  {
+    id: 'hornady-reverse',
+    ids: HORNADY_REVERSE_IDS,
+    nameKey: 'bulletLibraries.hornadyReverse.name',
+    descriptionKey: 'bulletLibraries.hornadyReverse.description',
+    prefix: 'Hrr'
   }
 ];

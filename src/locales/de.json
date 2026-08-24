@@ -661,12 +661,17 @@
     "lapuaCd": {
       "name": "Lapua Cd",
       "description": "Lapua Radar-gemessene Cd-Mach-Kurven, wie vom Hersteller veröffentlicht"
+    },
+    "hornadyReverse": {
+      "name": "Hornady Reverse Radar",
+      "description": "Eigene Cd-Mach-Kurven, zurückentwickelt aus der Ausgabe des Hornady-4DOF-Rechners"
     }
   },
   "releaseHistory": {
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v139": "Eine neue integrierte Geschossbibliothek „Hornady reverse radar“ hinzugefügt, mit ein paar Geschossen, die mir tatsächlich am Herzen liegen (mehr folgt).",
       "v138": "Behebung von Maßeinheiten-bezogenen UI-Fehlern / Barrierefreiheits-Funktionen für unsere metrisch beeinträchtigten Freunde.",
       "v137": "Bugfix: Manche UI-Elemente ignorierten ausgefallene Maßeinheiten-Einstellungen des Benutzers und griffen standardmäßig auf metrische Einheiten zurück.",
       "v136": "Unterstützung mehrerer integrierter Geschossbibliotheken, einzeln ein-/ausblendbar. Import von Lapua-Radar-gemessenen Cd-Mach-Kurven als Bibliothek „Lapua Cd“. Kleinere UI-Verbesserungen.",

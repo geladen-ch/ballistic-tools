@@ -60,6 +60,7 @@ const APP_SHELL_URLS = [
   './src/bullets/bullet-libraries.js',
   './src/bullets/geladen/catalog.js',
   './src/bullets/lapua-cd/catalog.js',
+  './src/bullets/hornady-reverse/catalog.js',
   './src/rifles.js',
   './src/rifles/rifle-catalog.js',
   './src/library-prefs.js',

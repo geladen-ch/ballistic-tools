@@ -10,10 +10,11 @@ test('loadBulletCatalog resolves a plain list of bullet ids — no duplicated na
   const catalog = loadBulletCatalog();
   assert.ok(Array.isArray(catalog));
   assert.deepEqual([...catalog].sort(), [
-    'hornady-30-eldm-208',
-    'hornady-338-eldm-285',
-    'hornady-50-amax-750',
-    'hornady-65-eldm-147',
+    'hrr-30-eldm-208',
+    'hrr-338-atip-300',
+    'hrr-338-eldm-285',
+    'hrr-50-amax-750',
+    'hrr-65-eldm-147',
     'lapua-224-scenarl-69',
     'lapua-22lr',
     'lapua-30-scenar-167',
@@ -86,11 +87,13 @@ test('loadBulletCatalog returns the same array instance across repeated calls (i
 
 test('loadBulletLibraries returns every known built-in library with its own id/prefix', () => {
   const libraries = loadBulletLibraries();
-  assert.deepEqual(libraries.map((lib) => lib.id).sort(), ['geladen', 'lapua-cd']);
+  assert.deepEqual(libraries.map((lib) => lib.id).sort(), ['geladen', 'hornady-reverse', 'lapua-cd']);
   const geladen = libraries.find((lib) => lib.id === 'geladen');
   assert.equal(geladen.prefix, 'Gldn');
   const lapuaCd = libraries.find((lib) => lib.id === 'lapua-cd');
   assert.equal(lapuaCd.prefix, 'LCd');
+  const hornadyReverse = libraries.find((lib) => lib.id === 'hornady-reverse');
+  assert.equal(hornadyReverse.prefix, 'Hrr');
 });
 
 test('no built-in bullet id is claimed by more than one library', () => {
@@ -105,7 +108,7 @@ test('no built-in bullet id is claimed by more than one library', () => {
 
 test('bulletLibraryForBullet resolves a bullet id to its owning library, or null for an unknown/non-built-in id', () => {
   assert.equal(bulletLibraryForBullet('lapua-30-scenar-167').id, 'lapua-cd');
-  assert.equal(bulletLibraryForBullet('hornady-30-eldm-208').id, 'geladen');
+  assert.equal(bulletLibraryForBullet('hrr-30-eldm-208').id, 'hornady-reverse');
   assert.equal(bulletLibraryForBullet('not-a-real-bullet-id'), null);
 });
 
@@ -130,7 +133,7 @@ test('loadBullet resolves a BC-profile bullet with SI-unit fields and no redunda
 });
 
 test('loadBullet resolves a cdTable-profile bullet with a well-formed Mach/Cd table', async () => {
-  const bullet = await loadBullet('hornady-30-eldm-208');
+  const bullet = await loadBullet('hrr-30-eldm-208');
   assert.equal(bullet.profile.type, 'cdTable');
   assert.ok(Array.isArray(bullet.profile.table));
   assert.ok(bullet.profile.table.length > 10);
@@ -231,7 +234,7 @@ test('manufacturer is inferred from the bullet id/name (Hornady, Lapua, RUAG), "
   for (const id of catalog) {
     const bullet = await loadBullet(id);
     let expected = 'Military';
-    if (id.startsWith('hornady-')) expected = 'Hornady';
+    if (id.startsWith('hrr-')) expected = 'Hornady';
     else if (id.startsWith('lapua-') || id.startsWith('lcd-')) expected = 'Lapua';
     else if (id.startsWith('ruag-')) expected = 'RUAG';
     assert.equal(bullet.manufacturer, expected, `${id} should be manufacturer "${expected}"`);

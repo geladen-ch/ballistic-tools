@@ -32,9 +32,9 @@ export const TIER_A_CONFIGS = [
 ];
 
 export function buildTierBConfig() {
-  const bullet = loadBullet('hornady-65-eldm-147');
+  const bullet = loadBullet('hrr-65-eldm-147');
   return {
-    id: 'hornady-65-eldm-147',
+    id: 'hrr-65-eldm-147',
     v1: 820,
     trueBc: null, // no single "true G7 BC" — ground truth is the bullet's own measured Cd(M) curve
     trueState: { cdTable: bullet.profile.table, massKg: bullet.massKg, caliberM: bullet.caliberM, ...ATMO }

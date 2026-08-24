@@ -4,10 +4,6 @@
 // other library's own catalog.js is: both the app and the module-type
 // service worker can `import` it directly, with no fetch.
 export const BULLET_IDS = [
-  'hornady-30-eldm-208',
-  'hornady-338-eldm-285',
-  'hornady-50-amax-750',
-  'hornady-65-eldm-147',
   'nato-m193',
   'nato-m80',
   'nato-m855',

@@ -271,13 +271,13 @@ test('selecting a cdTable-profile library bullet returns cdTable/massKg/caliberM
   await settle();
 
   const bulletSelect = byId(bullet.node, 'bulletSelect');
-  bulletSelect.value = 'hornady-30-eldm-208';
+  bulletSelect.value = 'hrr-30-eldm-208';
   fireEvent(bulletSelect, 'change');
 
   const values = bullet.getValues();
   assert.equal('bc' in values, false);
-  assert.ok(Math.abs(values.massKg - 0.01347817328) < 1e-9);
-  assert.ok(Math.abs(values.caliberM - 0.00783) < 1e-9);
+  assert.ok(Math.abs(values.massKg - 0.01348) < 1e-9);
+  assert.ok(Math.abs(values.caliberM - 0.0078232) < 1e-9);
   assert.ok(Array.isArray(values.cdTable) && values.cdTable.length > 10);
 });
 
@@ -532,7 +532,7 @@ test('selecting a cdTable-profile library bullet hides bc/dragModel and shows th
   await settle();
 
   const bulletSelect = byId(bullet.node, 'bulletSelect');
-  bulletSelect.value = 'hornady-30-eldm-208';
+  bulletSelect.value = 'hrr-30-eldm-208';
   fireEvent(bulletSelect, 'change');
 
   const bcInput = byId(bullet.node, 'bc');
@@ -546,7 +546,7 @@ test('selecting a cdTable-profile library bullet hides bc/dragModel and shows th
   assert.equal(cdTableHint.style.display, '');
   // The indicator only says a custom curve is in use — it must not leak
   // the raw Mach/Cd numbers into the DOM anywhere.
-  assert.ok(!bullet.node.textContent.includes('0.131312539439808'), 'a raw Cd-table value leaked into the rendered section');
+  assert.ok(!bullet.node.textContent.includes('0.09946453174643637'), 'a raw Cd-table value leaked into the rendered section');
 });
 
 test('switching from a BC-profile library bullet back to "Other" re-enables bc/dragModel', async () => {
@@ -579,11 +579,11 @@ test('lockToBullet() also shows a BC-profile bullet\'s values read-only (rifle-d
 
 test('lockToBullet() shows the Cd-table indicator, not raw values, for a cdTable-profile bullet (rifle-driven path)', async () => {
   const bullet = bulletSection();
-  await bullet.lockToBullet('hornady-30-eldm-208');
+  await bullet.lockToBullet('hrr-30-eldm-208');
 
   const cdTableHint = findAnyById(bullet.node, 'i18n-fields-bulletCustomCdTable');
   assert.equal(cdTableHint.style.display, '');
-  assert.ok(!bullet.node.textContent.includes('0.131312539439808'));
+  assert.ok(!bullet.node.textContent.includes('0.09946453174643637'));
 });
 
 test('a user Arsenal bullet appears in the picker, prefixed "* ", and is selectable', async () => {
@@ -619,6 +619,7 @@ test('a bullet-library checkbox is always present per library, even with nothing
 test('the bullet picker (but not the checkboxes) is hidden when every built-in library is off and there are no Arsenal bullets', async () => {
   setBulletLibraryVisible('geladen', false);
   setBulletLibraryVisible('lapua-cd', false);
+  setBulletLibraryVisible('hornady-reverse', false);
   const bullet = bulletSection();
   await settle();
 
@@ -645,15 +646,20 @@ test('unchecking a library checkbox live-hides only that library\'s bullets, kee
 
   const geladenCheckbox = byId(bullet.node, 'bullet-library-geladen');
   const lapuaCheckbox = byId(bullet.node, 'bullet-library-lapua-cd');
+  const hornadyReverseCheckbox = byId(bullet.node, 'bullet-library-hornady-reverse');
   assert.equal(geladenCheckbox.checked, true);
   assert.equal(lapuaCheckbox.checked, true);
+  assert.equal(hornadyReverseCheckbox.checked, true);
   geladenCheckbox.checked = false;
   fireEvent(geladenCheckbox, 'change');
   lapuaCheckbox.checked = false;
   fireEvent(lapuaCheckbox, 'change');
+  hornadyReverseCheckbox.checked = false;
+  fireEvent(hornadyReverseCheckbox, 'change');
 
   assert.equal(isBulletLibraryVisible('geladen'), false);
   assert.equal(isBulletLibraryVisible('lapua-cd'), false);
+  assert.equal(isBulletLibraryVisible('hornady-reverse'), false);
   const values = bulletSelect.childNodes.map((o) => o.attributes.value);
   assert.deepEqual(values, ['__other__', 'my-custom-bullet']);
 });
@@ -683,6 +689,7 @@ test('lockToBullet() still resolves a built-in bullet even while its own library
 test('unlock() after a lock restores the toggle-respecting picker (built-ins hidden again if their libraries are off)', async () => {
   setBulletLibraryVisible('geladen', false);
   setBulletLibraryVisible('lapua-cd', false);
+  setBulletLibraryVisible('hornady-reverse', false);
   const bullet = bulletSection();
   await bullet.lockToBullet('swiss-gp90');
   bullet.unlock();
@@ -734,7 +741,7 @@ test('getArsenalPrefill() carries the cdTable itself (not bc/dragModel) for a se
   const bullet = bulletSection();
   await settle();
   const bulletSelect = byId(bullet.node, 'bulletSelect');
-  bulletSelect.value = 'hornady-30-eldm-208';
+  bulletSelect.value = 'hrr-30-eldm-208';
   fireEvent(bulletSelect, 'change');
 
   const prefill = bullet.getArsenalPrefill();

@@ -661,12 +661,17 @@
     "lapuaCd": {
       "name": "Lapua Cd",
       "description": "Courbes Cd-Mach mesurées au radar par Lapua, telles que publiées par le fabricant"
+    },
+    "hornadyReverse": {
+      "name": "Hornady Reverse Radar",
+      "description": "Courbes Cd-Mach personnalisées, obtenues par rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF"
     }
   },
   "releaseHistory": {
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v139": "Ajout d'une nouvelle bibliothèque de balles intégrée « Hornady reverse radar », avec quelques balles qui me tiennent vraiment à cœur (d'autres à venir).",
       "v138": "Corrections d'interface liées aux unités / fonctionnalités d'accessibilité pour nos amis métriquement handicapés.",
       "v137": "Correction de bug : certains éléments de l'interface ignoraient les préférences d'unités « exotiques » de l'utilisateur, et affichaient par défaut le système métrique.",
       "v136": "Prise en charge de plusieurs bibliothèques de balles intégrées, activables individuellement. Import des courbes Cd-Mach mesurées au radar par Lapua sous forme de bibliothèque « Lapua Cd ». Améliorations mineures de l'interface.",

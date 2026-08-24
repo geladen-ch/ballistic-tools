@@ -90,7 +90,7 @@ test('a hidden library\'s manufacturers are excluded from the suggestion list', 
   fireEvent(input, 'focus');
   const texts = suggestTexts(list);
   assert.ok(!texts.includes('Lapua'), `expected Lapua hidden, got ${texts}`);
-  assert.ok(texts.includes('Hornady'), 'expected the still-visible geladen library\'s vendors to remain');
+  assert.ok(texts.includes('Hornady'), 'expected the still-visible hornady-reverse library\'s vendors to remain');
 });
 
 test('a user-typed manufacturer that only differs in casing from a built-in one is deduped, built-in casing wins', async () => {

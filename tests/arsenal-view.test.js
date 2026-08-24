@@ -939,8 +939,8 @@ async function openNewCartridgeForm(container) {
 }
 
 // ---- Cartridge form's caliber filter (src/ui/arsenal/cartridge-form.js) ----
-// swiss-gp11 (0.00778m) matches the "7.5mm(CH)" designation; hornady-30-
-// eldm-208 (0.00783m) matches "7.62 / .308 / .30" — two real built-in
+// swiss-gp11 (0.00778m) matches the "7.5mm(CH)" designation; hrr-30-
+// eldm-208 (0.0078232m) matches "7.62 / .308 / .30" — two real built-in
 // bullets in genuinely different calibers, used to exercise filtering.
 
 test('the cartridge form\'s caliber filter defaults to "All" and offers every caliber for a rifle\'s first cartridge', async () => {
@@ -1181,7 +1181,7 @@ test('saving a cartridge with a built-in Cd-table bullet copies the table itself
   byId(container, 'arsenalCartridgeName').value = 'Custom Curve Load';
   fireEvent(byId(container, 'arsenalCartridgeName'), 'input');
   const bulletSelect = byId(container, 'arsenalCartridgeBullet');
-  bulletSelect.value = 'hornady-30-eldm-208';
+  bulletSelect.value = 'hrr-30-eldm-208';
   fireEvent(bulletSelect, 'change');
 
   const form = byId(container, 'arsenalCartridgeName').parentNode.parentNode;

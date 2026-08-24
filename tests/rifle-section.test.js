@@ -63,7 +63,7 @@ function saveTestRifle() {
       {
         id: 'handload-175smk-example', name: 'Hand load, 175gr (example, temp-sensitive)',
         muzzleVelocity: 792.0, referenceTempC: 15, velocityTempSensitivity: 1.2,
-        bulletId: 'hornady-30-eldm-208'
+        bulletId: 'hrr-30-eldm-208'
       }
     ]
   });
@@ -156,7 +156,7 @@ test('switching the cartridge picker reports the newly selected cartridge', asyn
   cartridgeSelect.value = 'handload-175smk-example';
   fireEvent(cartridgeSelect, 'change');
 
-  assert.equal(lastCartridge.bulletId, 'hornady-30-eldm-208');
+  assert.equal(lastCartridge.bulletId, 'hrr-30-eldm-208');
   assert.equal(lastCartridge.referenceTempC, 15);
   assert.ok(Math.abs(lastCartridge.velocityTempSensitivity - 1.2) < 1e-9);
 });
@@ -200,7 +200,7 @@ test('a rifle+cartridge selected in one rifleSection instance is restored (and r
   const secondCartridgeSelect = byId(second.node, 'rifleCartridgeSelect');
   assert.equal(secondRifleSelect.value, TEST_RIFLE_ID);
   assert.equal(secondCartridgeSelect.value, 'handload-175smk-example');
-  assert.equal(reportedCartridge.bulletId, 'hornady-30-eldm-208');
+  assert.equal(reportedCartridge.bulletId, 'hrr-30-eldm-208');
   assert.deepEqual(second.getValues(), { zeroRange: 100, sightHeight: 45 });
 });
 
