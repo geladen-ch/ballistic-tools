@@ -155,6 +155,13 @@ export const FIELD_UNITS = {
   benchPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
   shooterSkill: { group: 'angleDispersion', engineUnit: 'mrad' },
   combinedPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
+  // Hit Probability's own spotter-corrected-fire panel — was missing this
+  // entry despite being built with the same presetUnitField()/unitField()
+  // machinery as its three siblings just above, so it silently never
+  // converted to the user's angleDispersion (MOA) preference. PRESETS.
+  // spotterMeasure's own values (src/views/hit-probability-view.js) are
+  // already mrad, matching this engineUnit.
+  spotterMeasure: { group: 'angleDispersion', engineUnit: 'mrad' },
   // Not a form field — the trajectory view's own kinetic-energy column/
   // chart series computes 0.5*massKg*velocity^2 itself (Joules, SI) and
   // converts it for display through this entry, the same way it already
@@ -163,8 +170,27 @@ export const FIELD_UNITS = {
   // The trajectory table/chart's velocity-at-range column — same
   // engineUnit as muzzleVelocity, kept as its own entry since it isn't a
   // form field either (mirrors `energy` above).
-  velocity: { group: 'velocity', engineUnit: 'm/s' }
+  velocity: { group: 'velocity', engineUnit: 'm/s' },
+
+  // Arsenal's bullet add/edit form (caliber-field.js's own number input,
+  // bullet-form.js's length input). caliberM's engine unit is meters,
+  // matching how it's stored everywhere else in the app; bulletLength's
+  // is mm, matching how its own field has always worked (its record
+  // field, lengthM, is meters — bullet-form.js bridges mm<->meters
+  // itself, same as before this entry existed). Both fields use their
+  // own tighter display precision (SMALL_LENGTH_PRECISION_DECIMALS
+  // below) rather than this group's own coarser one — a bore diameter or
+  // a bullet length needs finer resolution than sight height or drop.
+  caliberM: { group: 'smallLength', engineUnit: 'm' },
+  bulletLength: { group: 'smallLength', engineUnit: 'mm' }
 };
+
+// mm/cm/in decimal precision for the two Arsenal bullet-geometry fields
+// above (caliber, length) — real diameters/lengths need finer resolution
+// than UNIT_GROUPS.smallLength's own display `decimals` (tuned for
+// coarser things like sight height or trajectory drop), so these two
+// fields round/step to their own tighter precision instead.
+export const SMALL_LENGTH_PRECISION_DECIMALS = { mm: 2, cm: 3, in: 3 };
 
 // Temperature's absolute units (tempC/tempF) convert with a +32/*9/5
 // offset baked in — correct for a point on the scale, wrong for a *span*
@@ -229,17 +255,17 @@ export function roundForDisplay(fieldId, displayUnit, value) {
 // FIELD_UNITS' own `engineUnit` uses for that id (so formatFieldRange()
 // below can run them through the exact same engineToDisplay()/
 // roundForDisplay() path as the field's own value), or in the field's
-// one-and-only raw unit for anything with no FIELD_UNITS entry (bc,
-// caliber/length/mass — always mm/mm/g regardless of prefs, scope
-// clicks, losAngle, humidityPct, tof, sightingShotCount, spotterMeasure,
-// convBc, cdTableCd). Centralized here — not scattered as a literal
-// min/max at each call site — specifically so the same physical
-// quantity can't quietly end up with two different bounds in two views
-// the way windSpeed (20 vs 30 m/s) and targetRange (2000 vs 3000m) had
-// before this was written; every caller now points at the one number.
+// one-and-only raw unit for anything with no FIELD_UNITS entry (bc, mass
+// — always g regardless of prefs, scope clicks, losAngle, humidityPct,
+// tof, sightingShotCount, spotterMeasure, convBc, cdTableCd). Centralized
+// here — not scattered as a literal min/max at each call site —
+// specifically so the same physical quantity can't quietly end up with
+// two different bounds in two views the way windSpeed (20 vs 30 m/s) and
+// targetRange (2000 vs 3000m) had before this was written; every caller
+// now points at the one number.
 export const FIELD_BOUNDS = {
-  caliberM: { min: 0.004, max: 0.021 }, // m — hand-rolled mm field multiplies/divides by 1000 itself
-  bulletLength: { min: 5, max: 100 }, // mm, always — bullet-form.js's own hand-rolled field
+  caliberM: { min: 0.004, max: 0.021 }, // m — matches FIELD_UNITS.caliberM's own meters engine unit
+  bulletLength: { min: 5, max: 100 }, // mm — matches FIELD_UNITS.bulletLength's own mm engine unit; bullet-section.js's own separate hand-rolled length field still assumes mm too
   bulletMass: { min: 1, max: 121 }, // g, always — mass-field.js's own gram/grain pair
   bc: { min: 0.05, max: 1.5 },
   cdTableCd: { min: 0.05, max: 3.0 }, // a single Cd-vs-Mach table row's own Cd value
@@ -275,7 +301,7 @@ export const FIELD_BOUNDS = {
   movingTargetSpeed: { min: 0, max: 30 }, // m/s
   movingTargetSpeedError: { min: 0, max: 100 }, // %, no FIELD_UNITS entry
   muzzleVelocitySD: { min: 0, max: 20 }, // m/s
-  spotterMeasure: { min: 0, max: 5 }, // mrad (no FIELD_UNITS entry — always raw, matching its existing unconverted display)
+  spotterMeasure: { min: 0, max: 5 }, // mrad — matches FIELD_UNITS.spotterMeasure's own engine unit
   aimOffsetX: { min: -100, max: 100 }, // cm
   aimOffsetY: { min: -100, max: 100 } // cm
 };

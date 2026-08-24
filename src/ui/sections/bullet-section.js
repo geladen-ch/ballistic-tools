@@ -1,13 +1,13 @@
 import { el, clear } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
-import { fieldValidity } from '../field-validity.js';
 import { sectionGroup } from '../section.js';
 import { massDualField } from '../arsenal/mass-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
+import { bulletLengthField } from '../arsenal/bullet-length-field.js';
 import { loadBulletCatalog, loadBullet, loadBulletLibraries, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
 import { loadUserBullets } from '../../user-library.js';
-import { t, i18nSpan } from '../../i18n.js';
+import { t } from '../../i18n.js';
 import { loadCartridgeState, saveCartridgeState } from '../../shot-state.js';
 import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
 import { bulletLibraryCheckboxRows } from '../bullet-library-checkboxes.js';
@@ -80,8 +80,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
     manualDragModel = dragModelSelect.value;
     manualMassKg = manualMassField.getMassKg();
     manualCaliberM = manualCaliber.getCaliberM();
-    const lengthRaw = manualLengthField.value.trim();
-    manualLengthM = lengthRaw === '' ? null : parseFloat(lengthRaw) / 1000;
+    manualLengthM = manualLengthField.getLengthM();
     saveBulletSelection();
   }
 
@@ -108,13 +107,12 @@ export function bulletSection({ slider = false, onInput } = {}) {
     onInput: () => { saveManualBullet(); if (onInput) onInput(); }
   });
 
-  // Caliber: the same shared picker+mm-number pair bullet-form.js's own
-  // Arsenal caliber field uses (see caliber-field.js) — a manual bullet
-  // isn't picked from a catalog, but its caliber can still be entered
-  // either way (a known designation, or a raw diameter that gets matched
-  // against one automatically). Length stays a plain mm input, same
-  // convention as bullet-form.js's own Arsenal length field. Both kept
-  // out of manualFields (like manualMassField above) since a BC-profile
+  // Caliber and length: the same shared components bullet-form.js's own
+  // Arsenal fields use (see caliber-field.js/bullet-length-field.js) — a
+  // manual bullet isn't picked from a catalog, but its caliber/length can
+  // still be entered either way (caliber: a known designation, or a raw
+  // diameter that gets matched against one automatically). Both kept out
+  // of manualFields (like manualMassField above) since a BC-profile
   // library bullet borrows manualFields to show its own bc/model
   // read-only but already has its own caliber/length in infoBox's summary
   // text — these must only ever be visible/editable for genuine manual
@@ -123,30 +121,13 @@ export function bulletSection({ slider = false, onInput } = {}) {
     value: initial.manualCaliberM,
     onInput: () => { saveManualBullet(); if (onInput) onInput(); }
   });
-  const manualLengthField = el('input', {
-    type: 'number', id: 'bulletLength', min: FIELD_BOUNDS.bulletLength.min, max: FIELD_BOUNDS.bulletLength.max, step: 0.1,
-    value: initial.manualLengthM != null ? (initial.manualLengthM * 1000).toFixed(2) : ''
+  const manualLengthField = bulletLengthField({
+    value: initial.manualLengthM,
+    onInput: () => { saveManualBullet(); if (onInput) onInput(); }
   });
-  manualLengthField.addEventListener('input', () => { saveManualBullet(); if (onInput) onInput(); });
-  // Same optional-range check as bullet-form.js's own Arsenal length
-  // field (a separate hand-rolled instance, not shared with this one).
-  function computeManualLengthMessage() {
-    const raw = manualLengthField.value.trim();
-    if (raw === '') return null;
-    const parsed = parseFloat(raw);
-    if (Number.isNaN(parsed)) return null;
-    const { min, max } = FIELD_BOUNDS.bulletLength;
-    if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max} mm` });
-    return null;
-  }
-  const manualLengthValidity = fieldValidity(manualLengthField, computeManualLengthMessage);
   const manualCaliberLengthFields = el('div', {}, [
     manualCaliber.node,
-    el('div', { class: 'field' }, [
-      el('label', {}, [i18nSpan('fields.bulletLength'), document.createTextNode(' (mm)')]),
-      manualLengthField
-    ]),
-    manualLengthValidity.hintNode,
+    manualLengthField.node,
     el('p', { class: 'hint', i18n: 'fields.bulletCaliberLengthHint' })
   ]);
 
@@ -329,7 +310,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
     dragModelSelect.disabled = false;
     manualMassField.setMassKg(manualMassKg);
     manualCaliber.setCaliberM(manualCaliberM);
-    manualLengthField.value = manualLengthM != null ? (manualLengthM * 1000).toFixed(2) : '';
+    manualLengthField.setLengthM(manualLengthM);
   }
 
   function showLibraryInfo(bullet) {

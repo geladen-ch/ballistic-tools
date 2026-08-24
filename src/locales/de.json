@@ -667,6 +667,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v138": "Behebung von Maßeinheiten-bezogenen UI-Fehlern / Barrierefreiheits-Funktionen für unsere metrisch beeinträchtigten Freunde.",
       "v137": "Bugfix: Manche UI-Elemente ignorierten ausgefallene Maßeinheiten-Einstellungen des Benutzers und griffen standardmäßig auf metrische Einheiten zurück.",
       "v136": "Unterstützung mehrerer integrierter Geschossbibliotheken, einzeln ein-/ausblendbar. Import von Lapua-Radar-gemessenen Cd-Mach-Kurven als Bibliothek „Lapua Cd“. Kleinere UI-Verbesserungen.",
       "v135": "Eingabevalidierung / Plausibilitätsprüfungen wurden in der ganzen App eingeführt. Die Arsenal-Eingabeoberfläche wurde überarbeitet, um sie (hoffentlich) klarer und (ganz sicher) genialer zu machen.",

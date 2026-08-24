@@ -17,6 +17,7 @@ const { isBulletLibraryVisible, setBulletLibraryVisible, resetBulletLibraryPrefs
 const { saveUserBullet } = await import('../src/user-library.js');
 const { setDragModelVisible, resetDragModelPrefsForTests } = await import('../src/drag-model-prefs.js');
 const { removeCookie } = await import('../src/cookies.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 
 const DRAG_MODEL_COOKIE_NAME = 'ballistics_hidden_drag_models_v1';
 const BULLET_LIBRARY_COOKIE_NAME = 'ballistics_hidden_bullet_libraries_v1';
@@ -32,6 +33,7 @@ test.beforeEach(() => {
   removeCookie(BULLET_LIBRARY_COOKIE_NAME);
   resetDragModelPrefsForTests();
   removeCookie(DRAG_MODEL_COOKIE_NAME);
+  resetUnits();
 });
 
 function settle(ms = 30) {
@@ -151,6 +153,26 @@ test('the "Other" bullet has manual caliber/length fields, defaulting to GP11\'s
   const stability = bullet.getStabilityValues();
   assert.ok(Math.abs(stability.caliberM - 0.00778) < 1e-9);
   assert.ok(Math.abs(stability.lengthM - 0.035) < 1e-9);
+});
+
+// Regression test for a real bug: this manual length field used to be
+// hardcoded to mm regardless of the user's own smallLength preference —
+// the same bug caliber-field.test.js already covers for the sibling
+// manual caliber field (which is a shared component with Arsenal's own
+// bullet form), fixed here by switching to the equally-shared
+// bullet-length-field.js.
+test('with the smallLength preference set to inches, the manual length field renders and reads back in inches', async () => {
+  setUnit('smallLength', 'in');
+  const bullet = bulletSection();
+  await settle();
+  const lengthInput = byId(bullet.node, 'bulletLength');
+  // GP11's own default length (0.035m = 35mm = 1.378in).
+  assert.equal(lengthInput.value, '1.378');
+
+  lengthInput.value = '1.000';
+  fireEvent(lengthInput, 'input');
+  const stability = bullet.getStabilityValues();
+  assert.ok(Math.abs(stability.lengthM - 0.0254) < 1e-6, 'should still be stored in meters');
 });
 
 test('editing the manual caliber/length fields updates getStabilityValues() and getArsenalPrefill()', () => {

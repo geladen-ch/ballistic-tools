@@ -2,11 +2,12 @@ import { el, clear } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { massDualField } from './mass-field.js';
 import { caliberField } from './caliber-field.js';
+import { bulletLengthField } from './bullet-length-field.js';
 import { manufacturerField } from './manufacturer-field.js';
 import { findUserBulletByName } from '../../user-library.js';
 import { parseCdTable, formatCdTable } from './cd-table-parse.js';
 import { setDragModelSelectValue } from '../drag-model-select.js';
-import { i18nSpan, t } from '../../i18n.js';
+import { t } from '../../i18n.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
 
@@ -68,23 +69,10 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
   const caliber = caliberField({ value: values.caliberM, required: true });
   if (caliberLocked) caliber.setDisabled(true);
 
-  const lengthInput = el('input', {
-    type: 'number', id: 'arsenalBulletLength', min: FIELD_BOUNDS.bulletLength.min, max: FIELD_BOUNDS.bulletLength.max, step: 0.1,
-    value: values.lengthM != null ? (values.lengthM * 1000).toFixed(2) : ''
-  });
-  // Optional — a blank box is never a violation, only a present-but-out-
-  // of-range one is (matches this field's own long-standing "leave blank
-  // if unknown" semantics).
-  function computeLengthMessage() {
-    const raw = lengthInput.value.trim();
-    if (raw === '') return null;
-    const parsed = parseFloat(raw);
-    if (Number.isNaN(parsed)) return null;
-    const { min, max } = FIELD_BOUNDS.bulletLength;
-    if (parsed < min || parsed > max) return t('fields.errorRange', { range: `${min} – ${max} mm` });
-    return null;
-  }
-  const lengthValidity = fieldValidity(lengthInput, computeLengthMessage);
+  // Own id kept as 'arsenalBulletLength' (bullet-length-field.js's
+  // default is bullet-section.js's own id) so this form's DOM/tests are
+  // unaffected by the shared component.
+  const length = bulletLengthField({ value: values.lengthM, id: 'arsenalBulletLength' });
 
   const mass = massDualField({ value: values.massKg });
 
@@ -157,12 +145,12 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
   const cancelButton = el('button', { class: 'secondary', i18n: 'arsenal.cancelButton' });
 
   function readValues(profileValue) {
-    const lengthRaw = lengthInput.value.trim();
+    const lengthM = length.getLengthM();
     return {
       name: nameInput.value.trim(),
       manufacturer: manufacturer.getValue().trim() || 'Custom',
       caliberM: caliber.getCaliberM(),
-      ...(lengthRaw === '' ? {} : { lengthM: parseFloat(lengthRaw) / 1000 }),
+      ...(lengthM == null ? {} : { lengthM }),
       massKg: mass.getMassKg(),
       source: sourceInput.value.trim(),
       profile: profileValue
@@ -190,7 +178,7 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
     const checks = [
       { ok: nameValidity.validate(), node: nameInput },
       { ok: caliber.validate(), node: caliber.node },
-      { ok: lengthValidity.validate(), node: lengthInput },
+      { ok: length.validate(), node: length.node },
       { ok: mass.validate(), node: mass.node },
       { ok: isCdTable || bcField.validate(), node: bcField.node },
       { ok: cdTableOk, node: cdTableInput }
@@ -220,11 +208,7 @@ export function bulletForm({ initialValues = {}, excludeId, caliberLocked = fals
     duplicateWarning,
     manufacturer.node,
     caliber.node,
-    el('div', { class: 'field' }, [
-      el('label', {}, [i18nSpan('arsenal.bulletLength'), document.createTextNode(' (mm)')]),
-      lengthInput
-    ]),
-    lengthValidity.hintNode,
+    length.node,
     el('p', { class: 'hint', i18n: 'arsenal.bulletLengthHint' }),
     mass.node,
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.bulletProfileType' }), profileTypeSelect]),

@@ -667,6 +667,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v138": "Correzioni dell'interfaccia relative alle unità di misura / funzionalità di accessibilità per i nostri amici metricamente svantaggiati.",
       "v137": "Correzione di un bug: alcuni elementi dell'interfaccia ignoravano le preferenze di unità di misura \"particolari\" dell'utente, mostrando di default il sistema metrico.",
       "v136": "Supporto per più librerie proiettili integrate, attivabili singolarmente. Importazione delle curve Cd-Mach misurate al radar da Lapua come libreria \"Lapua Cd\". Piccoli miglioramenti dell'interfaccia.",
       "v135": "Validazione degli input / controlli di coerenza implementati in tutta l'app. L'interfaccia di inserimento dell'Arsenale è stata rivista per renderla (si spera) più chiara e (di certo) più fantastica.",

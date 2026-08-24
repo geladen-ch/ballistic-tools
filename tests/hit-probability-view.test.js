@@ -8,6 +8,7 @@ const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const { resetShotStateForTests } = await import('../src/shot-state.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 const hitProbabilityView = await import('../src/views/hit-probability-view.js');
 
 // This view's async initialization (fetching the target's result SVG and
@@ -21,6 +22,7 @@ const hitProbabilityView = await import('../src/views/hit-probability-view.js');
 test.beforeEach(() => {
   resetShotStateForTests();
   hitProbabilityView.resetHitProbabilityStateForTests();
+  resetUnits();
 });
 
 function findByTag(node, tag, out = []) {
@@ -353,6 +355,28 @@ test('switching to Spotter-corrected reveals the scenario-specific inputs and re
   assert.equal(h2s[3].textContent, t('hitProbability.contributionHeadingSighting'));
   assert.equal(h2s[4].textContent, t('hitProbability.contributionHeadingCorrected'));
   assert.equal(isHidden(h2s[4]), false, 'secondary contribution card should now be visible');
+});
+
+// Regression test for a real bug: spotterMeasure was built with the same
+// unit-aware presetUnitField()/unitField() machinery as benchPrecision/
+// shooterSkill/combinedPrecision right next to it, but had no
+// FIELD_UNITS entry (src/units.js), so it silently never converted to
+// the user's angleDispersion (MOA) preference the way its siblings do.
+test('with the angleDispersion preference set to MOA, spotter\'s measure follows it like its sibling precision fields', () => {
+  setUnit('angleDispersion', 'arcmin');
+  const container = makeElement('main');
+  hitProbabilityView.mount(container);
+  const tabButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn'));
+
+  fireEvent(tabButtons[1], 'click'); // Simulation
+  const scenarioSelect = findById(container, 'scenario');
+  scenarioSelect.value = 'spotterCorrected';
+  fireEvent(scenarioSelect, 'change');
+
+  const spotterInput = findById(container, 'spotterMeasure');
+  // Default preset ('master') is 0.05 mrad = 0.1719... MOA, rounded to
+  // angleDispersion's own 2 display decimals.
+  assert.equal(spotterInput.value, '0.17');
 });
 
 test('the scenario selection survives navigating away and back (unmount/remount)', () => {

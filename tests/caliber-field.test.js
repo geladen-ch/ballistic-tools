@@ -12,10 +12,15 @@ await initI18n();
 await warmCatalogs();
 
 const { caliberField } = await import('../src/ui/arsenal/caliber-field.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 
 function settle(ms = 30) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+test.afterEach(() => {
+  resetUnits(); // several tests below switch smallLength away from its mm default
+});
 
 function findInputs(node, out = []) {
   if (node.tagName === 'INPUT' || node.tagName === 'SELECT') out.push(node);
@@ -132,6 +137,43 @@ test('setCaliberM() writes both the number field and the picker without requirin
   const number = byId(caliber.node, 'bulletCaliberMm');
   assert.equal(number.value, '6.71');
   assert.equal(select.value, '6.5 / .264');
+});
+
+test('with the smallLength preference set to inches, the number field renders and reads back in inches', async () => {
+  setUnit('smallLength', 'in');
+  const caliber = caliberField({ value: 0.0078232 }); // .308
+  await settle();
+  const number = byId(caliber.node, 'bulletCaliberMm');
+  assert.equal(number.value, '0.308');
+  assert.ok(Math.abs(caliber.getCaliberM() - 0.0078232) < 1e-6);
+});
+
+test('with the smallLength preference set to inches, typing a value within tolerance of a known bore diameter still snaps the picker', async () => {
+  setUnit('smallLength', 'in');
+  const caliber = caliberField();
+  await settle();
+  const number = byId(caliber.node, 'bulletCaliberMm');
+  const select = byId(caliber.node, 'bulletCaliber');
+
+  // "6.5 / .264" is 6.71mm = 0.264in, not 0.256in — the marketing name
+  // undersells the real bore diameter (see bullets.js's own comment on
+  // designationFor()).
+  number.value = '0.264';
+  fireEvent(number, 'input');
+  assert.equal(select.value, '6.5 / .264');
+  assert.ok(Math.abs(caliber.getCaliberM() - 0.00671) < 1e-4);
+});
+
+test('with the smallLength preference set to inches, picking a designation writes its own caliber back in inches', async () => {
+  setUnit('smallLength', 'in');
+  const caliber = caliberField();
+  await settle();
+  const select = byId(caliber.node, 'bulletCaliber');
+  const number = byId(caliber.node, 'bulletCaliberMm');
+
+  select.value = '7.62 / .308 / .30';
+  fireEvent(select, 'change');
+  assert.equal(number.value, '0.308');
 });
 
 test('onInput fires from both the number field and the picker', async () => {

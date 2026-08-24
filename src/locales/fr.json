@@ -667,6 +667,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v138": "Corrections d'interface liées aux unités / fonctionnalités d'accessibilité pour nos amis métriquement handicapés.",
       "v137": "Correction de bug : certains éléments de l'interface ignoraient les préférences d'unités « exotiques » de l'utilisateur, et affichaient par défaut le système métrique.",
       "v136": "Prise en charge de plusieurs bibliothèques de balles intégrées, activables individuellement. Import des courbes Cd-Mach mesurées au radar par Lapua sous forme de bibliothèque « Lapua Cd ». Améliorations mineures de l'interface.",
       "v135": "Validation des saisies / contrôles de cohérence mis en place dans toute l'application. L'interface de saisie de l'Arsenal a été retravaillée pour la rendre (on l'espère) plus claire, et (assurément) plus géniale.",

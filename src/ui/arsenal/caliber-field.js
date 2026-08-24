@@ -1,6 +1,7 @@
 import { el, clear } from '../../dom.js';
 import { loadCaliberDesignations, matchCaliberDesignation } from '../../bullets.js';
-import { FIELD_BOUNDS } from '../../units.js';
+import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
+import { getUnit } from '../../prefs.js';
 import { t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
 
@@ -9,9 +10,10 @@ const OTHER_VALUE = '__other__';
 
 // Bullet caliber, entered as a live-linked pair: a picker of known
 // designations (marketing names like "6.5mm" or "7.62 / .308 / .30" —
-// see caliber-designations.json) and a plain mm number, kept in sync in
-// both directions rather than either one driving the other exclusively —
-// a shooter might know the marketing name, the raw diameter, or both.
+// see caliber-designations.json) and a plain number in the user's own
+// smallLength preference (mm/cm/in), kept in sync in both directions
+// rather than either one driving the other exclusively — a shooter might
+// know the marketing name, the raw diameter, or both.
 // Picking a designation writes its own exact caliberM into the number
 // field; typing a number that lands within matchCaliberDesignation()'s
 // own tolerance of a known bore diameter selects that designation in the
@@ -27,11 +29,23 @@ const OTHER_VALUE = '__other__';
 export function caliberField({ value = null, onInput, required = false } = {}) {
   let designations = [];
 
+  // Display unit follows the user's smallLength preference (same group
+  // sight height/drop/windage use), falling back to mm for a stale/unknown
+  // pref — see unit-field.js's own identical fallback. `toDisplay`/
+  // `toEngine` bridge meters (this field's own getCaliberM()/setCaliberM()
+  // unit, and matchCaliberDesignation()'s) to/from that display unit.
+  let displayUnit = getUnit('smallLength');
+  if (!unitChoice('caliberM', displayUnit)) displayUnit = 'mm';
+  const decimals = SMALL_LENGTH_PRECISION_DECIMALS[displayUnit];
+  const unitLabel = unitChoice('caliberM', displayUnit).label;
+  const toDisplay = (m) => engineToDisplay('caliberM', m, displayUnit);
+  const toEngine = (d) => displayToEngine('caliberM', d, displayUnit);
+
   const select = el('select', { id: 'bulletCaliber' });
   const numberInput = el('input', {
-    type: 'number', id: 'bulletCaliberMm', step: 0.01,
-    min: FIELD_BOUNDS.caliberM.min * 1000, max: FIELD_BOUNDS.caliberM.max * 1000,
-    value: value != null ? (value * 1000).toFixed(2) : ''
+    type: 'number', id: 'bulletCaliberMm', step: 1 / 10 ** decimals,
+    min: toDisplay(FIELD_BOUNDS.caliberM.min).toFixed(decimals), max: toDisplay(FIELD_BOUNDS.caliberM.max).toFixed(decimals),
+    value: value != null ? toDisplay(value).toFixed(decimals) : ''
   });
 
   function rebuildOptions() {
@@ -55,20 +69,20 @@ export function caliberField({ value = null, onInput, required = false } = {}) {
   function syncSelectFromNumber() {
     const raw = numberInput.value.trim();
     if (raw === '') { select.value = PLACEHOLDER_VALUE; return; }
-    const mm = parseFloat(raw);
-    if (Number.isNaN(mm)) { select.value = PLACEHOLDER_VALUE; return; }
-    const match = matchCaliberDesignation(mm / 1000, designations);
+    const d = parseFloat(raw);
+    if (Number.isNaN(d)) { select.value = PLACEHOLDER_VALUE; return; }
+    const match = matchCaliberDesignation(toEngine(d), designations);
     select.value = match ? match.designation : OTHER_VALUE;
   }
 
   function computeMessage() {
     const raw = numberInput.value.trim();
     if (raw === '') return required ? t('arsenal.errorCaliberRequired') : null;
-    const mm = parseFloat(raw);
-    if (Number.isNaN(mm)) return required ? t('arsenal.errorCaliberRequired') : null;
+    const d = parseFloat(raw);
+    if (Number.isNaN(d)) return required ? t('arsenal.errorCaliberRequired') : null;
     const { min, max } = FIELD_BOUNDS.caliberM;
-    if (mm / 1000 < min || mm / 1000 > max) {
-      return t('fields.errorRange', { range: `${(min * 1000).toFixed(0)} – ${(max * 1000).toFixed(0)} mm` });
+    if (toEngine(d) < min || toEngine(d) > max) {
+      return t('fields.errorRange', { range: `${toDisplay(min).toFixed(decimals)} – ${toDisplay(max).toFixed(decimals)} ${unitLabel}` });
     }
     return null;
   }
@@ -87,7 +101,7 @@ export function caliberField({ value = null, onInput, required = false } = {}) {
       // left exactly as it was (that's usually what put "Other" here in
       // the first place: an unrecognized number already typed in).
       const entry = designations.find((d) => d.designation === select.value);
-      if (entry) numberInput.value = (entry.caliberM * 1000).toFixed(2);
+      if (entry) numberInput.value = toDisplay(entry.caliberM).toFixed(decimals);
     }
     // Picking from the select assigns numberInput.value programmatically
     // — fieldValidity() only reacts to the control's own input/change
@@ -107,19 +121,19 @@ export function caliberField({ value = null, onInput, required = false } = {}) {
 
   const node = el('div', { class: 'field' }, [
     el('label', { i18n: 'arsenal.bulletCaliber' }),
-    el('div', { class: 'caliber-dual-inputs' }, [select, numberInput, document.createTextNode(' mm')]),
+    el('div', { class: 'caliber-dual-inputs' }, [select, numberInput, document.createTextNode(` ${unitLabel}`)]),
     validity.hintNode
   ]);
 
   function getCaliberM() {
     const raw = numberInput.value.trim();
     if (raw === '') return null;
-    const mm = parseFloat(raw);
-    return Number.isNaN(mm) ? null : mm / 1000;
+    const d = parseFloat(raw);
+    return Number.isNaN(d) ? null : toEngine(d);
   }
 
   function setCaliberM(caliberM) {
-    numberInput.value = caliberM != null ? (caliberM * 1000).toFixed(2) : '';
+    numberInput.value = caliberM != null ? toDisplay(caliberM).toFixed(decimals) : '';
     syncSelectFromNumber();
   }
 

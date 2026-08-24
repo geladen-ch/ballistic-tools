@@ -20,12 +20,14 @@ const { setPendingBulletPrefill, setPendingRiflePrefill } = await import('../src
 const { resetShotStateForTests, loadRifleState, saveCartridgeState, saveRifleState } = await import('../src/shot-state.js');
 const { resetComparisonForTests, getComparisonSelection } = await import('../src/comparison-state.js');
 const { requestGunsDone, resetGunsNavForTests } = await import('../src/guns-nav.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 
 test.beforeEach(() => {
   localStorage.clear();
   resetShotStateForTests();
   resetComparisonForTests();
   resetGunsNavForTests();
+  resetUnits();
 });
 
 function settle(ms = 30) {
@@ -280,6 +282,51 @@ test('adding a bullet persists it and shows it in the list', async () => {
   assert.ok(Math.abs(bullets[0].massKg - 0.0105) < 1e-9);
   assert.equal(bullets[0].profile.type, 'bc');
   assert.ok(Math.abs(bullets[0].caliberM - 0.00671) < 1e-9, 'should save exactly the chosen designation\'s caliber, not a default');
+});
+
+// Regression test for a real bug: the bullet form's caliber and length
+// inputs used to always render/read in mm regardless of the user's own
+// smallLength preference — see units.js's FIELD_UNITS.caliberM/bulletLength
+// and caliber-field.js/bullet-form.js's own conversion of both.
+test('the bullet form\'s caliber and length inputs follow the smallLength unit preference, and still save correctly in meters', async () => {
+  setUnit('smallLength', 'in');
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  const addButton = findAnyById(container, 'arsenal-add-bullet');
+  fireEvent(addButton, 'click');
+  await settle();
+
+  const caliberInput = byId(container, 'bulletCaliberMm');
+  const lengthInput = byId(container, 'arsenalBulletLength');
+  // "7.62 / .308 / .30" is 7.82mm = 0.308in — same designation the mm-mode
+  // test above selects via its own picker, here typed directly to confirm
+  // the number box itself now speaks inches.
+  assert.equal(caliberInput.getAttribute('min'), (0.004 / 0.0254).toFixed(3));
+
+  byId(container, 'arsenalBulletName').value = 'Inches Bullet';
+  fireEvent(byId(container, 'arsenalBulletName'), 'input');
+  byId(container, 'arsenalBulletManufacturer').value = 'Acme';
+  byId(container, 'massGrams').value = '10.5';
+  fireEvent(byId(container, 'massGrams'), 'input');
+
+  caliberInput.value = '0.308';
+  fireEvent(caliberInput, 'input');
+  lengthInput.value = '1.000';
+  fireEvent(lengthInput, 'input');
+
+  const caliberSelect = byId(container, 'bulletCaliber');
+  assert.equal(caliberSelect.value, '7.62 / .308 / .30', 'typing a diameter in inches should still snap to the matching designation');
+
+  const form = byId(container, 'arsenalBulletName').parentNode.parentNode;
+  const { saveButton } = formActions(form);
+  fireEvent(saveButton, 'click');
+
+  const bullets = loadUserBullets();
+  assert.equal(bullets.length, 1);
+  assert.ok(Math.abs(bullets[0].caliberM - 0.0078232) < 1e-4, 'caliber should still be stored in meters');
+  assert.ok(Math.abs(bullets[0].lengthM - 0.0254) < 1e-4, 'length should still be stored in meters');
 });
 
 // Regression test for a real bug: a bullet can carry a slightly different
