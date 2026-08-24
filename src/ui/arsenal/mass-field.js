@@ -1,6 +1,6 @@
 import { el } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
-import { t } from '../../i18n.js';
+import { i18nSpan, t } from '../../i18n.js';
 
 const KG_TO_GRAIN = 15432.358352941432; // matches bullet-section.js's own constant
 const GRAMS_PER_KG = 1000;
@@ -18,17 +18,25 @@ function round(value, decimals) {
 // in metric ones, and a shooter filling in a bullet they're holding often
 // only has one of the two handy, so both stay visible and in sync rather
 // than picking one as "the" unit. `value` is the initial mass in kg
-// (engine unit, matching massKg elsewhere in this app).
-export function massDualField({ value = 0, onInput } = {}) {
+// (engine unit, matching massKg elsewhere in this app), or null/omitted
+// for "nothing entered yet" (both inputs start blank; blank has always
+// been a validation violation here, see computeMessage() below, so this
+// is new only in that the field can now start that way rather than
+// starting pre-filled at some default).
+// `highlightRequired: true` marks the label with a visual "required"
+// asterisk proactively, mirroring caliber-field.js's own opt-in flag of
+// the same name — not just on-violation the way the live-validation hint
+// already is.
+export function massDualField({ value = null, onInput, highlightRequired = false } = {}) {
   const gramsInput = el('input', {
     type: 'number', id: 'massGrams', step: 0.01, min: FIELD_BOUNDS.bulletMass.min, max: FIELD_BOUNDS.bulletMass.max,
-    value: round(value * GRAMS_PER_KG, DECIMALS_G)
+    value: value != null ? round(value * GRAMS_PER_KG, DECIMALS_G) : ''
   });
   const grainsInput = el('input', {
     type: 'number', id: 'massGrains', step: 0.1,
     min: round(FIELD_BOUNDS.bulletMass.min * (KG_TO_GRAIN / GRAMS_PER_KG), DECIMALS_GR),
     max: round(FIELD_BOUNDS.bulletMass.max * (KG_TO_GRAIN / GRAMS_PER_KG), DECIMALS_GR),
-    value: round(value * KG_TO_GRAIN, DECIMALS_GR)
+    value: value != null ? round(value * KG_TO_GRAIN, DECIMALS_GR) : ''
   });
 
   // getMassKg() is read on every keystroke by callers that persist it
@@ -67,6 +75,11 @@ export function massDualField({ value = 0, onInput } = {}) {
   hint.style.display = 'none';
   function computeMessage() {
     const grams = parseFloat(gramsInput.value);
+    // Unlike caliber-field.js's own optional `required`, mass has never
+    // had a caller that tolerates it blank — every one of gramsInput's
+    // callers needs a real mass to do anything useful, so a blank value
+    // is unconditionally a violation here, same as before this field
+    // supported starting blank at all.
     if (Number.isNaN(grams)) return t('fields.errorRequired');
     const { min, max } = FIELD_BOUNDS.bulletMass;
     if (grams < min || grams > max) return t('fields.errorRange', { range: `${min} – ${max} g` });
@@ -84,8 +97,14 @@ export function massDualField({ value = 0, onInput } = {}) {
   gramsInput.addEventListener('input', () => { dirty = true; refreshValidity(); });
   grainsInput.addEventListener('input', () => { dirty = true; refreshValidity(); });
 
+  const requiredMark = highlightRequired
+    ? el('span', { class: 'field-required-mark', title: t('fields.requiredMark') }, [' *'])
+    : null;
   const node = el('div', { class: 'field' }, [
-    el('label', { i18n: 'fields.mass' }),
+    // .field label is itself a space-between flex row (see caliber-
+    // field.js's own identical comment) — label text and the required
+    // mark are wrapped in one shared span so they stay adjacent.
+    el('label', {}, [el('span', {}, [i18nSpan('fields.mass'), requiredMark].filter(Boolean))]),
     el('div', { class: 'mass-dual-inputs' }, [
       gramsInput, document.createTextNode(' g'),
       grainsInput, document.createTextNode(' gr')

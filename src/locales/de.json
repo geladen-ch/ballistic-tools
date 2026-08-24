@@ -40,6 +40,7 @@
     "gunsHeading": "Waffen"
   },
   "fields": {
+    "requiredMark": "Erforderlich",
     "riflePicker": "Gewehr",
     "rifleOther": "Andere (manuelle Eingabe)",
     "rifleCartridgePicker": "Patrone",
@@ -194,6 +195,7 @@
     "intro": "BC anhand bekannter Daten berechnen, zwischen verschiedenen Modellen umrechnen usw.",
     "tabCalculation": "BC-Berechnung",
     "tabConversion": "BC-Umrechnung",
+    "tabMultiBc": "Mehrere BC",
     "tabLabradar": "BC-Labradar",
     "invalidTof": "Geben Sie eine gültige Flugzeit ein (eine positive Anzahl Sekunden)."
   },
@@ -290,6 +292,28 @@
     "legendInterpolated": "Interpoliert",
     "legendG1Scaled": "G1 (skaliert auf Übereinstimmung bei Mach 2.0)",
     "legendG7Scaled": "G7 (skaliert auf Übereinstimmung bei Mach 2.0)"
+  },
+  "multiBc": {
+    "intro": "Wandeln Sie 2-5 vom Hersteller veröffentlichte BC-Werte, jeweils gültig für einen bestimmten Geschwindigkeitsbereich, in eine geschossspezifische Cd-Mach-Kurve um — ziehen Sie die Segmentgrenzen im Diagramm, oder tragen Sie sie in die Tabelle darunter ein.",
+    "speedUnitLabel": "Geschwindigkeitseinheit",
+    "massCaliberHint": "Masse und Kaliber beeinflussen beide direkt die resultierende Kurve und die optimalen BC-Werte unten — bitte genau eingeben.",
+    "chartHint": "Klicken Sie in das Diagramm, um eine Segmentgrenze hinzuzufügen, ziehen Sie eine Grenze, um sie zu verschieben, klicken Sie auf × an einer Grenze, um sie zu entfernen.",
+    "maxSegmentsHint": "Es werden maximal {{max}} Segmente unterstützt.",
+    "fromColumn": "Von",
+    "toColumn": "Bis",
+    "bcColumn": "BC",
+    "andUp": "und darüber",
+    "removeSegment": "Diese Segmentgrenze entfernen",
+    "errorWholeNumber": "Geben Sie eine ganze Zahl ein.",
+    "errorFromExceedsTo": "Dieser Wert muss strikt zwischen den benachbarten Grenzen seines eigenen Segments liegen.",
+    "legendReference": "Referenz-Widerstandsmodell",
+    "legendResult": "Die eigene Kurve dieses Geschosses",
+    "resultsHeading": "Resultierende Cd-Mach-Kurve",
+    "optimalBcHeading": "Optimaler (Kompromiss-)Überschall-BC",
+    "optimalBcHint": "Ein einzelner BC-Wert pro Modell, der das eigene Überschallverhalten dieses Geschosses am besten annähert, berechnet zwischen Mach {{startMach}} (Mündung) und Mach {{endMach}} (Beginn des transsonischen Bereichs), in Standard-Meereshöhen-Atmosphäre.",
+    "dragModelColumn": "Modell",
+    "optimalBcColumn": "Optimaler BC",
+    "optimalBcUnreachable": "Kein BC-Wert für dieses Modell bildet das Überschallverhalten dieses Geschosses innerhalb des üblichen Bereichs nach."
   },
   "hitProbability": {
     "title": "Trefferwahrscheinlichkeit",
@@ -671,6 +695,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v140": "Ein Tool zur Umwandlung mehrerer BC-Werte in eine individuelle Kurve (und in einen einzigen optimalen BC) implementiert. Seit Sierra gemerkt hat, dass wir im dritten Jahrtausend leben, ist das Tool weniger nützlich als früher – aber man weiß nie, wer als Nächstes einzigartig sein möchte.",
       "v139": "Eine neue integrierte Geschossbibliothek „Hornady reverse radar“ hinzugefügt, mit ein paar Geschossen, die mir tatsächlich am Herzen liegen (mehr folgt).",
       "v138": "Behebung von Maßeinheiten-bezogenen UI-Fehlern / Barrierefreiheits-Funktionen für unsere metrisch beeinträchtigten Freunde.",
       "v137": "Bugfix: Manche UI-Elemente ignorierten ausgefallene Maßeinheiten-Einstellungen des Benutzers und griffen standardmäßig auf metrische Einheiten zurück.",

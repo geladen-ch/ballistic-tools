@@ -40,6 +40,7 @@
     "gunsHeading": "Guns"
   },
   "fields": {
+    "requiredMark": "Required",
     "riflePicker": "Rifle",
     "rifleOther": "Other (manual entry)",
     "rifleCartridgePicker": "Cartridge",
@@ -194,6 +195,7 @@
     "intro": "Calculate BC from known data, convert between different models, etc.",
     "tabCalculation": "BC Calculation",
     "tabConversion": "BC Conversion",
+    "tabMultiBc": "Multiple BC",
     "tabLabradar": "BC Labradar",
     "invalidTof": "Enter a valid time of flight (a positive number of seconds)."
   },
@@ -290,6 +292,28 @@
     "legendInterpolated": "Interpolated",
     "legendG1Scaled": "G1 (scaled to match at Mach 2.0)",
     "legendG7Scaled": "G7 (scaled to match at Mach 2.0)"
+  },
+  "multiBc": {
+    "intro": "Turn 2-5 manufacturer-published BC values, each valid over its own speed band, into a bullet-specific Cd-Mach curve — drag the segment borders on the chart, or type them into the table below it.",
+    "speedUnitLabel": "Speed unit",
+    "massCaliberHint": "Mass and caliber both directly affect the resulting curve and the optimal BC values below — enter them accurately.",
+    "chartHint": "Click the chart to add a segment border, drag a border to move it, click × on a border to remove it.",
+    "maxSegmentsHint": "A maximum of {{max}} segments is supported.",
+    "fromColumn": "From",
+    "toColumn": "To",
+    "bcColumn": "BC",
+    "andUp": "and up",
+    "removeSegment": "Remove this segment border",
+    "errorWholeNumber": "Enter a whole number.",
+    "errorFromExceedsTo": "This value must be strictly between its own segment's neighboring borders.",
+    "legendReference": "Reference drag model",
+    "legendResult": "This bullet's own curve",
+    "resultsHeading": "Resulting Cd-Mach curve",
+    "optimalBcHeading": "Optimal (compromise) supersonic BC",
+    "optimalBcHint": "A single BC per model that best approximates this bullet's own supersonic behavior, computed between Mach {{startMach}} (muzzle) and Mach {{endMach}} (the beginning of the transonic band), in standard sea-level atmosphere.",
+    "dragModelColumn": "Model",
+    "optimalBcColumn": "Optimal BC",
+    "optimalBcUnreachable": "No BC value for this model reproduces this bullet's supersonic behavior within the usual range."
   },
   "hitProbability": {
     "title": "Hit Probability",
@@ -671,6 +695,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v140": "Implemented a tool to convert multi-BC to custom curve (and to single optimal BC). Ever since Sierra realized we live in the third millennium, the tool is less useful than it used to be, but you never know who would want to be unique next.",
       "v139": "Added a \"Hornady reverse radar\" built-in bullets library, with a few bullets I actually care for (more to come).",
       "v138": "Unit-related UI fixes / accessibility features for our metric-impaired friends.",
       "v137": "Bugfix: some UI elements ignored weird user unit preferences, and defaulted to metric.",

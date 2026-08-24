@@ -207,6 +207,12 @@ a { color: var(--accent); }
    so one rule covers every field in the app regardless of which other
    wrapper classes that control also carries. */
 .field-invalid { border-color: var(--danger) !important; }
+/* A field's own proactive "this is mandatory" marker (src/ui/arsenal/
+   caliber-field.js's `highlightRequired` option) — shown up front,
+   unlike .field-invalid above which only appears once a required field
+   is actually left blank and touched. --accent (not --danger) so it
+   reads as "pay attention," not as an active validation error. */
+.field-required-mark { color: var(--accent); font-weight: 700; }
 /* A text field's own floating suggestion list (src/ui/arsenal/
    manufacturer-field.js) — generic naming rather than field-specific, in
    case another field wants the same treatment later. Modeled on the nav
@@ -716,6 +722,74 @@ th { color: var(--dim); font-weight: 500; }
 .chart-legend-c .chart-legend-swatch { background: #f4c63d; }
 .chart-legend-d .chart-legend-swatch { background: #d17905; }
 .chart-legend-zero-line .chart-legend-swatch { background: var(--dim); height: 1px; }
+
+/* Multiple BC's own draggable segment-border overlay (src/ui/bc-tools/
+   multi-bc-segments.js) — a transparent, absolutely-positioned layer on
+   top of the chart, one handle per interior border. `chart-container`
+   needs `position: relative` here specifically (its own base rule above
+   has none) so the overlay's `position: absolute` is anchored to it, not
+   to some further-out ancestor. */
+.bc-segments-chart-wrap { position: relative; }
+.bc-segments-chart-wrap .chart-container { position: relative; }
+/* A secondary, velocity-labeled scale for the chart's own X axis — Mach
+   is the chart's own primary/native axis (Chartist has no built-in
+   dual-axis feature, so this is a plain sibling strip, not a second
+   Chartist axis) — sits directly above the chart so its own tick labels,
+   positioned via the exact same pixel<->Mach mapping the segment handles
+   use, read as "the same X position, a second unit." */
+.bc-velocity-ruler { position: relative; height: 14px; margin-bottom: 2px; }
+.bc-velocity-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--dim);
+}
+.bc-segment-overlay {
+  position: absolute;
+  inset: 0;
+  cursor: copy; /* clicking empty space adds a segment border */
+}
+.bc-segment-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Wide enough to comfortably grab with a mouse (let alone a finger) —
+     the visible accent line inside is only 2px, but the whole strip is
+     the real drag target. transform centers this box on the `left`
+     pixel position set in JS, same as .bc-segment-handle-grip's own. */
+  width: 16px;
+  transform: translateX(-50%);
+  touch-action: none; /* this element owns its own drag gesture, not the browser's scroll/zoom */
+  user-select: none; /* a fast drag must never trigger a text-selection highlight underneath it */
+  cursor: ew-resize;
+}
+.bc-segment-handle-line { width: 2px; height: 100%; background: var(--accent); opacity: 0.7; margin: 0 auto; pointer-events: none; }
+.bc-segment-handle-grip {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bc-segment-handle-grip:active { cursor: grabbing; }
+.bc-segment-handle-remove {
+  color: var(--panel);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+}
+.multi-bc-from { color: var(--dim); }
+.multi-bc-to-open { color: var(--dim); font-style: italic; }
 
 /* Labradar track chart (src/ui/labradar/track-chart.js) — "kept" reuses
    the generic .ct-series-a/.chart-legend-a accent color for free (same

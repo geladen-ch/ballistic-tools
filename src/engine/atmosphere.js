@@ -22,6 +22,13 @@ export function speedOfSound(tempC) {
   return Math.sqrt(GAMMA * R_DRY * (tempC + 273.15));
 }
 
+// Speed of sound at standard sea level (15°C) — the fixed reference every
+// "idealized reference curve, not a real trajectory" Mach conversion in
+// this app uses (bc-convert.js's single-point BC conversion, and
+// bc-segments-cd.js's speed-segment <-> Mach boundaries), rather than
+// each recomputing speedOfSound(15) on its own.
+export const STANDARD_SEA_LEVEL_SOUND_MS = speedOfSound(15);
+
 // Standard (ICAO) atmosphere: how temperature and pressure change with
 // altitude. pressureHpa/tempC (state inputs elsewhere in this app) are the
 // shooter's own actual station readings, taken at face value at their own

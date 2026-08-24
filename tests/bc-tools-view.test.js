@@ -7,9 +7,15 @@ installFakeDom();
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
+const { warmCatalogs } = await import('./helpers/warm-catalogs.js');
+// Multiple BC's caliber field (src/ui/arsenal/caliber-field.js) resolves
+// its designation list asynchronously — see every await settle() below
+// that touches it.
+await warmCatalogs();
 const bcToolsView = await import('../src/views/bc-tools-view.js');
 const { setDragModelVisible, resetDragModelPrefsForTests } = await import('../src/drag-model-prefs.js');
 const { DRAG_MODELS } = await import('../src/engine/drag-tables.js');
+const { takePendingBulletPrefill } = await import('../src/arsenal-prefill.js');
 
 // FakeWorker.postMessage() never responds under this test harness (see
 // tests/helpers/fake-dom.js), so pool.run() never resolves here — no test
@@ -487,4 +493,241 @@ test('both drag-model pickers list every standard model, even one hidden in Sett
     const ids = findByTag(select, 'OPTION').map((o) => o.getAttribute('value'));
     assert.deepEqual(ids.sort(), DRAG_MODELS.map((m) => m.id).sort());
   }
+});
+
+// ---- Multiple BC tab (src/ui/bc-tools/multi-bc-segments.js) ----
+
+function openMultiBcTab(container) {
+  const outerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn') &&
+    [t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabMultiBc'), t('bcTools.tabLabradar')].includes(b.textContent));
+  fireEvent(outerButtons[2], 'click');
+  return outerButtons;
+}
+
+test('the Multiple BC tab lives between Conversion and Labradar', () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  const outerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn') &&
+    [t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabMultiBc'), t('bcTools.tabLabradar')].includes(b.textContent));
+  assert.deepEqual(outerButtons.map((b) => b.textContent), [
+    t('bcTools.tabCalculation'), t('bcTools.tabConversion'), t('bcTools.tabMultiBc'), t('bcTools.tabLabradar')
+  ]);
+});
+
+test('Multiple BC: mass, caliber, drag model, speed unit, and segment/BC values survive navigating away and back', async () => {
+  const container = makeElement('main');
+  const unmount = bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  findById(container, 'massGrams').value = '12.5';
+  fireEvent(findById(container, 'massGrams'), 'input');
+  findById(container, 'bulletCaliberMm').value = '7.82';
+  fireEvent(findById(container, 'bulletCaliberMm'), 'input');
+  const dragModelSelect = findById(container, 'multiBcDragModel');
+  dragModelSelect.value = 'G7';
+  fireEvent(dragModelSelect, 'change');
+  findById(container, 'multiBcTo0').value = '400';
+  fireEvent(findById(container, 'multiBcTo0'), 'input');
+  findById(container, 'multiBcBc0').value = '0.35';
+  fireEvent(findById(container, 'multiBcBc0'), 'input');
+  findById(container, 'multiBcBc1').value = '0.42';
+  fireEvent(findById(container, 'multiBcBc1'), 'input');
+
+  unmount();
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  assert.equal(findById(container, 'massGrams').value, '12.5');
+  assert.equal(findById(container, 'bulletCaliberMm').value, '7.82');
+  assert.equal(findById(container, 'multiBcDragModel').value, 'G7');
+  assert.equal(findById(container, 'multiBcTo0').value, '400');
+  assert.equal(findById(container, 'multiBcBc0').value, '0.35');
+  assert.equal(findById(container, 'multiBcBc1').value, '0.42');
+});
+
+test('Multiple BC: Save/CSV/Copy stay disabled until every segment has a valid BC and mass/caliber are set', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  const saveButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('cdMachCurve.saveToArsenalButton'));
+  assert.ok(saveButton, 'expected a Save to Arsenal button');
+  assert.equal(saveButton.disabled, true, 'nothing specified yet');
+
+  findById(container, 'bulletCaliberMm').value = '7.82';
+  fireEvent(findById(container, 'bulletCaliberMm'), 'input');
+  findById(container, 'multiBcBc0').value = '0.35';
+  fireEvent(findById(container, 'multiBcBc0'), 'input');
+  assert.equal(saveButton.disabled, true, 'segment 1 still has no BC');
+
+  findById(container, 'multiBcBc1').value = '0.42';
+  fireEvent(findById(container, 'multiBcBc1'), 'input');
+  assert.equal(saveButton.disabled, true, 'caliber and both BCs set, but mass is still blank (no default) — Save must stay disabled');
+
+  findById(container, 'massGrams').value = '12.5';
+  fireEvent(findById(container, 'massGrams'), 'input');
+  assert.equal(saveButton.disabled, false, 'mass now set too, everything required is present');
+
+  findById(container, 'multiBcBc1').value = '3.0'; // above FIELD_BOUNDS.bc's own max
+  fireEvent(findById(container, 'multiBcBc1'), 'input');
+  assert.equal(saveButton.disabled, true, 'an out-of-range BC must re-disable Save, not just a blank one');
+});
+
+test('Multiple BC: Save to Arsenal hands off massKg/caliberM/cdTable and navigates to Arsenal', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  findById(container, 'bulletCaliberMm').value = '7.82';
+  fireEvent(findById(container, 'bulletCaliberMm'), 'input');
+  findById(container, 'massGrams').value = '12.5';
+  fireEvent(findById(container, 'massGrams'), 'input');
+  findById(container, 'multiBcBc0').value = '0.35';
+  fireEvent(findById(container, 'multiBcBc0'), 'input');
+  findById(container, 'multiBcBc1').value = '0.42';
+  fireEvent(findById(container, 'multiBcBc1'), 'input');
+
+  const saveButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('cdMachCurve.saveToArsenalButton'));
+  assert.equal(saveButton.disabled, false);
+  fireEvent(saveButton, 'click');
+
+  const prefill = takePendingBulletPrefill();
+  assert.ok(prefill, 'expected a pending bullet prefill');
+  assert.ok(Math.abs(prefill.massKg - 0.0125) < 1e-9);
+  assert.ok(Math.abs(prefill.caliberM - 0.00782) < 1e-6);
+  assert.ok(Array.isArray(prefill.cdTable) && prefill.cdTable.length > 10);
+  assert.ok(prefill.cdTable.every(([mach, cd]) => typeof mach === 'number' && typeof cd === 'number' && cd > 0));
+  assert.equal(location.hash, '#/guns/arsenal');
+});
+
+// ---- Optimal (compromise) supersonic BC ----
+
+function optimalBcRows(container) {
+  const heading = findByTag(container, 'H2').find((h) => h.textContent === t('multiBc.optimalBcHeading'));
+  const card = heading.parentNode;
+  const body = findByTag(card, 'TBODY')[0];
+  return body.childNodes.map((tr) => ({ model: tr.childNodes[0].textContent, bc: tr.childNodes[1].textContent }));
+}
+
+test('Multiple BC: the optimal-BC hint states the Mach range explicitly', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  const heading = findByTag(container, 'H2').find((h) => h.textContent === t('multiBc.optimalBcHeading'));
+  assert.ok(heading, 'expected the Optimal BC card');
+  const hint = heading.parentNode.childNodes.find((n) => n.tagName === 'P');
+  assert.equal(hint.textContent, t('multiBc.optimalBcHint', { startMach: 2.5, endMach: 1.3 }));
+});
+
+test('Multiple BC: the optimal-BC table lists every visible drag model, and only those', async () => {
+  setDragModelVisible('G8', false);
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  const rows = optimalBcRows(container);
+  const shownModels = rows.map((r) => r.model);
+  assert.ok(shownModels.includes(t('common.dragModelG1')));
+  assert.ok(!shownModels.includes(t('common.dragModelG8')), 'a hidden model should not get its own row');
+});
+
+test('Multiple BC: every row shows the unreachable dash until the bullet is fully specified', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  const rows = optimalBcRows(container);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every((r) => r.bc === '—'), 'no caliber/BC entered yet — nothing should show a computed value');
+});
+
+test('Multiple BC: a fully-specified bullet with the same BC in every segment recovers that BC in the matching model\'s row', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  // Both default segments given the *same* BC makes this bullet's
+  // resulting curve exactly bc=0.45 across the whole domain against G1
+  // (the default drag model) — the optimal-BC solve for G1 should
+  // self-consistently recover ~0.45, the same round-trip
+  // tests/bc-segments-cd.test.js already proves at the engine level.
+  findById(container, 'bulletCaliberMm').value = '7.82';
+  fireEvent(findById(container, 'bulletCaliberMm'), 'input');
+  findById(container, 'massGrams').value = '11.3';
+  fireEvent(findById(container, 'massGrams'), 'input');
+  findById(container, 'multiBcBc0').value = '0.45';
+  fireEvent(findById(container, 'multiBcBc0'), 'input');
+  findById(container, 'multiBcBc1').value = '0.45';
+  fireEvent(findById(container, 'multiBcBc1'), 'input');
+  await settle();
+
+  const rows = optimalBcRows(container);
+  const g1Row = rows.find((r) => r.model === t('common.dragModelG1'));
+  assert.ok(g1Row, 'expected a G1 row');
+  assert.ok(Math.abs(parseFloat(g1Row.bc) - 0.45) < 1e-3, `expected ~0.45, got ${g1Row.bc}`);
+});
+
+test('Multiple BC: the Optimal BC card appears above the Resulting Cd-Mach curve card', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  const headings = findByTag(container, 'H2').map((h) => h.textContent);
+  const optimalIndex = headings.indexOf(t('multiBc.optimalBcHeading'));
+  const resultsIndex = headings.indexOf(t('multiBc.resultsHeading'));
+  assert.ok(optimalIndex !== -1 && resultsIndex !== -1, 'expected both headings to exist');
+  assert.ok(optimalIndex < resultsIndex, 'Optimal BC should come before the Cd-Mach results table');
+});
+
+test('Multiple BC: the mass and caliber fields are both visually marked required, and a hint explains why they matter', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  function findByClass(node, cls) {
+    if (node.className && node.className.split(' ').includes(cls)) return node;
+    for (const child of node.childNodes || []) {
+      const found = findByClass(child, cls);
+      if (found) return found;
+    }
+    return null;
+  }
+  function fieldWrapperOf(input) {
+    // Walk up to the .field wrapper to search just this field's own subtree.
+    let node = input;
+    while (node && !(node.className && node.className.split(' ').includes('field'))) node = node.parentNode;
+    return node;
+  }
+  assert.ok(
+    findByClass(fieldWrapperOf(findById(container, 'bulletCaliberMm')), 'field-required-mark'),
+    'expected the caliber field to carry a required-mark'
+  );
+  assert.ok(
+    findByClass(fieldWrapperOf(findById(container, 'massGrams')), 'field-required-mark'),
+    'expected the mass field to carry a required-mark'
+  );
+
+  const hints = findByTag(container, 'P').map((p) => p.textContent);
+  assert.ok(hints.includes(t('multiBc.massCaliberHint')), 'expected the mass/caliber hint text');
+});
+
+test('Multiple BC: mass starts blank in both units, with no default value, to force the user to enter one', async () => {
+  const container = makeElement('main');
+  bcToolsView.mount(container);
+  openMultiBcTab(container);
+  await settle();
+
+  assert.equal(findById(container, 'massGrams').value, '');
+  assert.equal(findById(container, 'massGrains').value, '');
 });

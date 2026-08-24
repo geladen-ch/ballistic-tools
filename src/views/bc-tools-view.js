@@ -16,6 +16,17 @@ import { aggregateTracks } from '../engine/labradar-bc.js';
 import { trackListTable } from '../ui/labradar/track-list.js';
 import { trackChart } from '../ui/labradar/track-chart.js';
 import { resultsSummary } from '../ui/labradar/results-summary.js';
+import { massDualField } from '../ui/arsenal/mass-field.js';
+import { caliberField } from '../ui/arsenal/caliber-field.js';
+import { multiBcSegments } from '../ui/bc-tools/multi-bc-segments.js';
+import { optimalSupersonicBcs, OPTIMAL_BC_START_MACH, OPTIMAL_BC_END_MACH } from '../engine/bc-segments-cd.js';
+import { visibleDragModels } from '../drag-model-prefs.js';
+import { setPendingBulletPrefill } from '../arsenal-prefill.js';
+import { copyButton } from '../ui/copy-button.js';
+import { downloadButton } from '../ui/download-button.js';
+import { buildCsv, formatCsvNumber } from '../csv-export.js';
+import { downloadFile } from '../download.js';
+import { getFieldSeparator, getDecimalSeparator } from '../csv-prefs.js';
 
 // Session-only (in-memory, not persisted across a reload — no cookie
 // backing needed) state for the Calculation panel's own fields, so
@@ -134,6 +145,215 @@ const DENOISE_SLIDER_STEP = 0.5;
 const DENOISE_SLIDER_DEFAULT = 3;
 function denoiseSliderToThreshold(sliderValue) {
   return 0.97 + (sliderValue - 1) * 0.01;
+}
+
+// Builds the whole Multiple BC tab in one function, same reason
+// buildLabradarPanel() below is its own function — readability, and this
+// closure's own state (the multiBcSegments() component instance) lives
+// only as long as the panel does, rebuilt fresh on every mount().
+// Converts 2-5 speed-segment BC values into a bullet-specific Cd-Mach
+// curve — see src/engine/bc-segments-cd.js for the math and
+// src/ui/bc-tools/multi-bc-segments.js for the interactive chart+table.
+function buildMultiBcPanel() {
+  const dragModelSelect = el('select', { id: 'multiBcDragModel' });
+  setDragModelSelectValue(dragModelSelect, persistedValue('multiBcDragModel', 'G1'));
+
+  // Local m/s/ft/s toggle, independent of the app-wide velocity
+  // preference — same reasoning (and the same restated-not-reset
+  // handling) as BC Conversion's own convVelocityUnit above: mph/km/h
+  // have no place in a Mach-referenced tool, and defaulting to the
+  // user's global preference only when it's one of these two choices is
+  // least-surprise without forcing an irrelevant option in.
+  let speedUnit = persistedValue('multiBcSpeedUnit', getUnit('velocity') === 'ft/s' ? 'ft/s' : 'm/s');
+  const speedUnitSelect = el('select', { id: 'multiBcSpeedUnit' }, [
+    el('option', { value: 'm/s', text: 'm/s' }),
+    el('option', { value: 'ft/s', text: 'ft/s' })
+  ]);
+  speedUnitSelect.value = speedUnit;
+
+  const mass = massDualField({
+    value: persistedValue('multiBcMassKg', null), highlightRequired: true,
+    onInput: () => { panelState.multiBcMassKg = mass.getMassKg(); segments.setMassCaliber(mass.getMassKg(), caliber.getCaliberM()); refreshResults(); }
+  });
+  const caliber = caliberField({
+    value: persistedValue('multiBcCaliberM', null), required: true, highlightRequired: true,
+    onInput: () => { panelState.multiBcCaliberM = caliber.getCaliberM(); segments.setMassCaliber(mass.getMassKg(), caliber.getCaliberM()); refreshResults(); }
+  });
+
+  const savedBorders = persistedValue('multiBcBorders', null);
+  const savedBc = persistedValue('multiBcBc', null);
+
+  const segments = multiBcSegments({
+    initialBordersMs: savedBorders,
+    initialBcValues: savedBc,
+    initialDragModel: dragModelSelect.value,
+    initialSpeedUnit: speedUnit,
+    initialMassKg: mass.getMassKg(),
+    initialCaliberM: caliber.getCaliberM(),
+    onChange: () => {
+      const segs = segments.getSegments();
+      panelState.multiBcBorders = segs.slice(0, -1).map((s) => s.toVelocityMs);
+      panelState.multiBcBc = segs.map((s) => s.bc);
+      refreshResults();
+    }
+  });
+
+  dragModelSelect.addEventListener('change', () => {
+    panelState.multiBcDragModel = dragModelSelect.value;
+    segments.setDragModel(dragModelSelect.value);
+    refreshResults();
+  });
+  speedUnitSelect.addEventListener('change', () => {
+    speedUnit = speedUnitSelect.value;
+    panelState.multiBcSpeedUnit = speedUnit;
+    segments.setSpeedUnit(speedUnit);
+    const segs = segments.getSegments();
+    panelState.multiBcBorders = segs.slice(0, -1).map((s) => s.toVelocityMs);
+    refreshResults();
+  });
+
+  const controls = el('div', { class: 'card' }, [
+    el('div', { class: 'field' }, [el('label', { i18n: 'common.dragModel' }), dragModelSelect]),
+    el('div', { class: 'field' }, [el('label', { i18n: 'multiBc.speedUnitLabel' }), speedUnitSelect]),
+    mass.node,
+    caliber.node,
+    el('p', { class: 'hint', i18n: 'multiBc.massCaliberHint' })
+  ]);
+
+  // ---- Results table (mach/cd) + copy/CSV/Save to Arsenal — same
+  // pattern as Cd-Mach Curve's own single results table (that tool has
+  // two, Interpolated/Calculated, because it distinguishes raw solved
+  // points from a resampled grid; this tool's own curve is already one
+  // single piecewise-scaled series, so one table covers it).
+  const resultsBody = el('tbody', {});
+  const resultsTable = el('table', {}, [
+    el('thead', {}, [el('tr', {}, [el('th', { i18n: 'cdMachCurve.machColumn' }), el('th', { i18n: 'cdMachCurve.cdColumn' })])]),
+    resultsBody
+  ]);
+
+  function buildResultsCsvText() {
+    const fieldSeparator = getFieldSeparator();
+    const decimalSeparator = getDecimalSeparator();
+    const header = [t('cdMachCurve.machColumn'), t('cdMachCurve.cdColumn')];
+    const rows = segments.getCurve()
+      .filter((p) => p.cd != null)
+      .map((p) => [formatCsvNumber(p.mach, 3, decimalSeparator), formatCsvNumber(p.cd, 4, decimalSeparator)]);
+    return buildCsv([header, ...rows], fieldSeparator);
+  }
+
+  const saveButton = el('button', { class: 'section-button', i18n: 'cdMachCurve.saveToArsenalButton' });
+  saveButton.disabled = true;
+  // copyButton()/downloadButton() both return their own <button> node
+  // directly — kept here (rather than re-found via querySelectorAll,
+  // which the test harness's fake DOM doesn't implement) so
+  // refreshResultActions() below can gate all three the same way.
+  const copyBtn = copyButton({
+    label: t('cdMachCurve.copyTableCsv'),
+    copiedLabel: t('cdMachCurve.copyTableCsvCopied'),
+    getText: buildResultsCsvText
+  });
+  const downloadBtn = downloadButton({
+    label: t('cdMachCurve.downloadTableCsv'),
+    onClick: () => downloadFile('multiple-bc-curve.csv', buildResultsCsvText(), 'text/csv;charset=utf-8')
+  });
+
+  const resultsCard = el('div', { class: 'card' }, [
+    el('div', { class: 'card-header-row' }, [
+      el('h2', { i18n: 'multiBc.resultsHeading' }),
+      el('div', { class: 'card-header-actions' }, [copyBtn, downloadBtn])
+    ]),
+    resultsTable,
+    saveButton
+  ]);
+
+  // ---- Optimal (compromise) supersonic BC, per visible G model ------
+  // The models available here are read once, at panel-build time, same
+  // convention setDragModelSelectValue()'s own option list already
+  // follows — views are freshly rebuilt on navigation, so "current
+  // Settings at mount" is all the reactivity this needs.
+  const visibleModelIds = visibleDragModels().map((m) => m.id);
+  const optimalBcBody = el('tbody', {});
+  const optimalBcTable = el('table', {}, [
+    el('thead', {}, [el('tr', {}, [el('th', { i18n: 'multiBc.dragModelColumn' }), el('th', { i18n: 'multiBc.optimalBcColumn' })])]),
+    optimalBcBody
+  ]);
+  const optimalBcCard = el('div', { class: 'card' }, [
+    el('h2', { i18n: 'multiBc.optimalBcHeading' }),
+    el('p', {
+      class: 'hint',
+      text: t('multiBc.optimalBcHint', { startMach: OPTIMAL_BC_START_MACH, endMach: OPTIMAL_BC_END_MACH })
+    }),
+    optimalBcTable
+  ]);
+
+  // Gated on every segment passing validation (order + BC bounds) — the
+  // curve/chart/table still render live for whatever subset is valid,
+  // but Save/CSV/Copy only make sense once the whole bullet is defined.
+  function refreshResultActions() {
+    const valid = segments.getValidity().allValid && caliber.getCaliberM() != null && mass.getMassKg() > 0;
+    saveButton.disabled = !valid;
+    copyBtn.disabled = !valid;
+    downloadBtn.disabled = !valid;
+  }
+
+  function renderResultsTable() {
+    clear(resultsBody);
+    for (const p of segments.getCurve()) {
+      if (p.cd == null) continue;
+      resultsBody.appendChild(el('tr', {}, [
+        el('td', { text: p.mach.toFixed(3) }),
+        el('td', { text: p.cd.toFixed(4) })
+      ]));
+    }
+  }
+
+  // Same validity gate as Save/CSV/Copy (refreshResultActions) — an
+  // incomplete bullet has no meaningful "resulting curve" for this to
+  // approximate, so every row shows the unreachable dash rather than a
+  // number computed against a partial/gapped curve.
+  function renderOptimalBcTable() {
+    clear(optimalBcBody);
+    const valid = segments.getValidity().allValid && caliber.getCaliberM() != null && mass.getMassKg() > 0;
+    const results = valid
+      ? optimalSupersonicBcs({
+        cdTable: segments.getCurve().filter((p) => p.cd != null).map((p) => [p.mach, p.cd]),
+        massKg: mass.getMassKg(),
+        caliberM: caliber.getCaliberM(),
+        dragModelIds: visibleModelIds
+      })
+      : visibleModelIds.map((id) => ({ dragModel: id, error: true }));
+    for (const r of results) {
+      const model = DRAG_MODELS.find((m) => m.id === r.dragModel);
+      const bcCell = r.error
+        ? el('td', { text: '—', title: t('multiBc.optimalBcUnreachable') })
+        : el('td', { text: r.bc.toFixed(4) });
+      optimalBcBody.appendChild(el('tr', {}, [el('td', { text: t(model.labelKey) }), bcCell]));
+    }
+  }
+
+  function refreshResults() {
+    refreshResultActions();
+    renderResultsTable();
+    renderOptimalBcTable();
+  }
+
+  saveButton.addEventListener('click', () => {
+    const massKg = mass.getMassKg();
+    const caliberM = caliber.getCaliberM();
+    const cdTable = segments.getCurve().filter((p) => p.cd != null).map((p) => [p.mach, p.cd]);
+    setPendingBulletPrefill({ massKg, caliberM, cdTable });
+    location.hash = '#/guns/arsenal';
+  });
+
+  refreshResults();
+
+  return el('div', {}, [
+    el('p', { i18n: 'multiBc.intro' }),
+    el('div', { class: 'tool-layout' }, [
+      controls,
+      el('div', { class: 'tool-results' }, [segments.node, optimalBcCard, resultsCard])
+    ])
+  ]);
 }
 
 // Builds the whole Labradar tab in one function, kept separate from
@@ -632,13 +852,15 @@ export function mount(container) {
     el('div', { class: 'tool-layout' }, [conversionControls, conversionResults])
   ]);
   recomputeConversion();
+  const multiBcPanel = buildMultiBcPanel();
   const labradarPanel = buildLabradarPanel();
 
-  const outerPanels = { calculation: calculationPanel, conversion: conversionPanel, labradar: labradarPanel };
+  const outerPanels = { calculation: calculationPanel, conversion: conversionPanel, multiBc: multiBcPanel, labradar: labradarPanel };
   const outerTabs = tabSwitcher(
     [
       { key: 'calculation', labelKey: 'bcTools.tabCalculation' },
       { key: 'conversion', labelKey: 'bcTools.tabConversion' },
+      { key: 'multiBc', labelKey: 'bcTools.tabMultiBc' },
       { key: 'labradar', labelKey: 'bcTools.tabLabradar' }
     ],
     outerPanels,
@@ -652,6 +874,7 @@ export function mount(container) {
     outerTabs.node,
     calculationPanel,
     conversionPanel,
+    multiBcPanel,
     labradarPanel
   ]));
 

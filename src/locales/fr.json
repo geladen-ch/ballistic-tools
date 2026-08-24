@@ -40,6 +40,7 @@
     "gunsHeading": "Armes"
   },
   "fields": {
+    "requiredMark": "Obligatoire",
     "riflePicker": "Carabine",
     "rifleOther": "Autre (saisie manuelle)",
     "rifleCartridgePicker": "Cartouche",
@@ -194,6 +195,7 @@
     "intro": "Calculer le BC à partir de données connues, convertir entre différents modèles, etc.",
     "tabCalculation": "Calcul BC",
     "tabConversion": "Conversion BC",
+    "tabMultiBc": "BC multiples",
     "tabLabradar": "BC Labradar",
     "invalidTof": "Entrez un temps de vol valide (un nombre positif de secondes)."
   },
@@ -290,6 +292,28 @@
     "legendInterpolated": "Interpolé",
     "legendG1Scaled": "G1 (mis à l'échelle pour correspondre à Mach 2.0)",
     "legendG7Scaled": "G7 (mis à l'échelle pour correspondre à Mach 2.0)"
+  },
+  "multiBc": {
+    "intro": "Transformez 2 à 5 valeurs de BC publiées par le fabricant, chacune valable sur sa propre plage de vitesse, en une courbe Cd-Mach propre à cette balle — faites glisser les bornes de segment sur le graphique, ou saisissez-les dans le tableau ci-dessous.",
+    "speedUnitLabel": "Unité de vitesse",
+    "massCaliberHint": "La masse et le calibre influencent tous deux directement la courbe résultante et les valeurs de BC optimales ci-dessous — saisissez-les avec précision.",
+    "chartHint": "Cliquez sur le graphique pour ajouter une borne de segment, faites glisser une borne pour la déplacer, cliquez sur × sur une borne pour la supprimer.",
+    "maxSegmentsHint": "{{max}} segments maximum sont pris en charge.",
+    "fromColumn": "De",
+    "toColumn": "À",
+    "bcColumn": "BC",
+    "andUp": "et plus",
+    "removeSegment": "Supprimer cette borne de segment",
+    "errorWholeNumber": "Entrez un nombre entier.",
+    "errorFromExceedsTo": "Cette valeur doit être strictement comprise entre les bornes voisines de son propre segment.",
+    "legendReference": "Modèle de traînée de référence",
+    "legendResult": "La courbe propre à cette balle",
+    "resultsHeading": "Courbe Cd-Mach résultante",
+    "optimalBcHeading": "BC supersonique optimal (compromis)",
+    "optimalBcHint": "Un BC unique par modèle qui approxime au mieux le comportement supersonique propre de cette balle, calculé entre Mach {{startMach}} (à la bouche) et Mach {{endMach}} (le début de la bande transsonique), en atmosphère standard au niveau de la mer.",
+    "dragModelColumn": "Modèle",
+    "optimalBcColumn": "BC optimal",
+    "optimalBcUnreachable": "Aucune valeur de BC pour ce modèle ne reproduit le comportement supersonique de cette balle dans la plage habituelle."
   },
   "hitProbability": {
     "title": "Probabilité de toucher",
@@ -671,6 +695,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v140": "Mise en place d'un outil pour convertir plusieurs BC en une courbe personnalisée (et en un seul BC optimal). Depuis que Sierra a réalisé que nous vivons au troisième millénaire, cet outil est moins utile qu'avant, mais on ne sait jamais qui voudra être unique la prochaine fois.",
       "v139": "Ajout d'une nouvelle bibliothèque de balles intégrée « Hornady reverse radar », avec quelques balles qui me tiennent vraiment à cœur (d'autres à venir).",
       "v138": "Corrections d'interface liées aux unités / fonctionnalités d'accessibilité pour nos amis métriquement handicapés.",
       "v137": "Correction de bug : certains éléments de l'interface ignoraient les préférences d'unités « exotiques » de l'utilisateur, et affichaient par défaut le système métrique.",

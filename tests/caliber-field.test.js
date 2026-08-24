@@ -191,3 +191,22 @@ test('onInput fires from both the number field and the picker', async () => {
   fireEvent(select, 'change');
   assert.equal(calls, 2);
 });
+
+function findByClass(node, cls) {
+  if (node.className && node.className.split(' ').includes(cls)) return node;
+  for (const child of node.childNodes || []) {
+    const found = findByClass(child, cls);
+    if (found) return found;
+  }
+  return null;
+}
+
+test('highlightRequired: true shows a required-mark next to the label; omitted/false does not', async () => {
+  const marked = caliberField({ required: true, highlightRequired: true });
+  await settle();
+  assert.ok(findByClass(marked.node, 'field-required-mark'), 'expected a required-mark element');
+
+  const unmarked = caliberField({ required: true });
+  await settle();
+  assert.equal(findByClass(unmarked.node, 'field-required-mark'), null, 'required alone must not show the mark');
+});

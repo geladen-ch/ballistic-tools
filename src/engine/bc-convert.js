@@ -13,9 +13,7 @@
 // between two idealized reference curves, not a real trajectory, so it
 // doesn't need — and shouldn't ask for — a real local atmosphere.
 import { DRAG_TABLES, makeCdLookup } from './drag-tables.js';
-import { speedOfSound, standardAtmosphereAt } from './atmosphere.js';
-
-const STANDARD_SEA_LEVEL_SOUND_MS = speedOfSound(standardAtmosphereAt(0).tempC);
+import { STANDARD_SEA_LEVEL_SOUND_MS } from './atmosphere.js';
 
 export function convertBallisticCoefficient({ bc, sourceModel, targetModel, velocityMs }) {
   if (sourceModel === targetModel) return bc;

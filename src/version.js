@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v139';
-export const RELEASE_ID = '2.5';
+export const CACHE_VERSION = 'v140';
+export const RELEASE_ID = '2.6';
 export const CODENAME_SHORT = 'ARSCH';
 export const CODENAME_LONG = 'Advanced Range & Shot Calculation Helper';

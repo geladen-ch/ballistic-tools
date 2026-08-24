@@ -80,3 +80,27 @@ test('regression: an emptied grains input does not fire onInput and getMassKg() 
   assert.equal(calls, 1, 'onInput should not fire for a blank value');
   assert.ok(Math.abs(field.getMassKg() - massAfterValid) < 1e-6);
 });
+
+test('omitting value (or passing null) starts both boxes blank, and getMassKg() reports null rather than 0', () => {
+  const field = massDualField();
+  const [gramsInput, grainsInput] = findByTag(field.node, 'INPUT');
+  assert.equal(gramsInput.value, '');
+  assert.equal(grainsInput.value, '');
+  assert.equal(field.getMassKg(), null);
+});
+
+test('highlightRequired: true shows a required-mark on the label; omitted/false does not', () => {
+  function findByClass(node, cls) {
+    if (node.className && node.className.split(' ').includes(cls)) return node;
+    for (const child of node.childNodes || []) {
+      const found = findByClass(child, cls);
+      if (found) return found;
+    }
+    return null;
+  }
+  const marked = massDualField({ highlightRequired: true });
+  assert.ok(findByClass(marked.node, 'field-required-mark'));
+
+  const unmarked = massDualField();
+  assert.equal(findByClass(unmarked.node, 'field-required-mark'), null);
+});

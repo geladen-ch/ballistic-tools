@@ -40,6 +40,7 @@
     "gunsHeading": "Armi"
   },
   "fields": {
+    "requiredMark": "Obbligatorio",
     "riflePicker": "Fucile",
     "rifleOther": "Altro (inserimento manuale)",
     "rifleCartridgePicker": "Cartuccia",
@@ -194,6 +195,7 @@
     "intro": "Calcola il BC da dati noti, converti tra modelli diversi, ecc.",
     "tabCalculation": "Calcolo BC",
     "tabConversion": "Conversione BC",
+    "tabMultiBc": "BC multipli",
     "tabLabradar": "BC Labradar",
     "invalidTof": "Inserisci un tempo di volo valido (un numero positivo di secondi)."
   },
@@ -290,6 +292,28 @@
     "legendInterpolated": "Interpolata",
     "legendG1Scaled": "G1 (scalata per corrispondere a Mach 2.0)",
     "legendG7Scaled": "G7 (scalata per corrispondere a Mach 2.0)"
+  },
+  "multiBc": {
+    "intro": "Trasforma 2-5 valori di BC pubblicati dal produttore, ciascuno valido per una propria fascia di velocità, in una curva Cd-Mach specifica per questo proiettile — trascina i confini dei segmenti sul grafico, oppure digitali nella tabella sottostante.",
+    "speedUnitLabel": "Unità di velocità",
+    "massCaliberHint": "Massa e calibro influiscono entrambi direttamente sulla curva risultante e sui valori di BC ottimali qui sotto — inseriscili con precisione.",
+    "chartHint": "Clicca sul grafico per aggiungere un confine di segmento, trascina un confine per spostarlo, clicca sulla × su un confine per rimuoverlo.",
+    "maxSegmentsHint": "Sono supportati al massimo {{max}} segmenti.",
+    "fromColumn": "Da",
+    "toColumn": "A",
+    "bcColumn": "BC",
+    "andUp": "e oltre",
+    "removeSegment": "Rimuovi questo confine di segmento",
+    "errorWholeNumber": "Inserisci un numero intero.",
+    "errorFromExceedsTo": "Questo valore deve essere strettamente compreso tra i confini adiacenti del proprio segmento.",
+    "legendReference": "Modello di resistenza di riferimento",
+    "legendResult": "La curva specifica di questo proiettile",
+    "resultsHeading": "Curva Cd-Mach risultante",
+    "optimalBcHeading": "BC supersonico ottimale (di compromesso)",
+    "optimalBcHint": "Un singolo BC per modello che approssima al meglio il comportamento supersonico proprio di questo proiettile, calcolato tra Mach {{startMach}} (alla volata) e Mach {{endMach}} (l'inizio della banda transonica), in atmosfera standard a livello del mare.",
+    "dragModelColumn": "Modello",
+    "optimalBcColumn": "BC ottimale",
+    "optimalBcUnreachable": "Nessun valore di BC per questo modello riproduce il comportamento supersonico di questo proiettile entro l'intervallo abituale."
   },
   "hitProbability": {
     "title": "Probabilità di colpire",
@@ -671,6 +695,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v140": "Implementato uno strumento per convertire più BC in una curva personalizzata (e in un unico BC ottimale). Da quando Sierra si è resa conto che viviamo nel terzo millennio, lo strumento è meno utile di quanto non fosse un tempo, ma non si sa mai chi vorrà essere unico la prossima volta.",
       "v139": "Aggiunta una nuova libreria di proiettili integrata \"Hornady reverse radar\", con alcuni proiettili a cui tengo davvero (altri in arrivo).",
       "v138": "Correzioni dell'interfaccia relative alle unità di misura / funzionalità di accessibilità per i nostri amici metricamente svantaggiati.",
       "v137": "Correzione di un bug: alcuni elementi dell'interfaccia ignoravano le preferenze di unità di misura \"particolari\" dell'utente, mostrando di default il sistema metrico.",

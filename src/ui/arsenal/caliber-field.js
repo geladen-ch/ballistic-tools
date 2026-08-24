@@ -2,7 +2,7 @@ import { el, clear } from '../../dom.js';
 import { loadCaliberDesignations, matchCaliberDesignation } from '../../bullets.js';
 import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
 import { getUnit } from '../../prefs.js';
-import { t } from '../../i18n.js';
+import { i18nSpan, t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
 
 const PLACEHOLDER_VALUE = '';
@@ -26,7 +26,14 @@ const OTHER_VALUE = '__other__';
 // used to only ever show on Save click — callers that don't need caliber
 // at all (bullet-section.js's manual/live entry) leave it false, where a
 // blank value is never a violation, only an out-of-range one is.
-export function caliberField({ value = null, onInput, required = false } = {}) {
+// `highlightRequired: true` additionally marks the label with a visual
+// "required" asterisk, proactively — not just on-violation the way the
+// live-validation hint already is. Opt-in and independent of `required`
+// itself (rather than always following it) so this doesn't silently
+// change the look of every existing `required: true` caller the moment
+// it's added — only src/views/bc-tools-view.js's own Multiple BC caliber
+// field asks for it today.
+export function caliberField({ value = null, onInput, required = false, highlightRequired = false } = {}) {
   let designations = [];
 
   // Display unit follows the user's smallLength preference (same group
@@ -119,8 +126,15 @@ export function caliberField({ value = null, onInput, required = false } = {}) {
     // at just the placeholder/"Other"; the number field still works fine.
   });
 
+  const requiredMark = highlightRequired
+    ? el('span', { class: 'field-required-mark', title: t('fields.requiredMark') }, [' *'])
+    : null;
   const node = el('div', { class: 'field' }, [
-    el('label', { i18n: 'arsenal.bulletCaliber' }),
+    // .field label is itself a space-between flex row (other fields use
+    // that to put a slider's live value on the opposite side) — the
+    // label text and its own required-mark are wrapped in one shared
+    // span so they stay adjacent instead of being pushed apart by it.
+    el('label', {}, [el('span', {}, [i18nSpan('arsenal.bulletCaliber'), requiredMark].filter(Boolean))]),
     el('div', { class: 'caliber-dual-inputs' }, [select, numberInput, document.createTextNode(` ${unitLabel}`)]),
     validity.hintNode
   ]);
