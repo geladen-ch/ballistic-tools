@@ -8,6 +8,7 @@
     "trajectory": "Flugbahn",
     "hitProbability": "Trefferwahrscheinlichkeit",
     "arsenal": "Arsenal",
+    "rangeSolver": "Schießen",
     "guns": "Waffen",
     "settings": "Einstellungen",
     "manual": "Benutzerhandbuch",
@@ -695,6 +696,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v141": "Der Feldrechner wurde als eigener oberster Navigationspunkt herausgelöst. Die mobile Ansicht wurde angepasst, um Platz für ein weiteres Symbol zu schaffen.",
       "v140": "Ein Tool zur Umwandlung mehrerer BC-Werte in eine individuelle Kurve (und in einen einzigen optimalen BC) implementiert. Seit Sierra gemerkt hat, dass wir im dritten Jahrtausend leben, ist das Tool weniger nützlich als früher – aber man weiß nie, wer als Nächstes einzigartig sein möchte.",
       "v139": "Eine neue integrierte Geschossbibliothek „Hornady reverse radar“ hinzugefügt, mit ein paar Geschossen, die mir tatsächlich am Herzen liegen (mehr folgt).",
       "v138": "Behebung von Maßeinheiten-bezogenen UI-Fehlern / Barrierefreiheits-Funktionen für unsere metrisch beeinträchtigten Freunde.",
@@ -840,7 +842,7 @@
     "rangeCard": "Distanzkarte",
     "rangeCardDesc": "Druckbare Einstelltabelle für ein Gewehr+Ladung, nach Distanz.",
     "rangeSolver": "Feldrechner",
-    "rangeSolverDesc": "Schnelle Lösung für eine einzelne Distanz ohne vollständige Tabelle.",
+    "rangeSolverDesc": "Ausgereifter, windschnittiger Ballistikrechner für den Schießstand. Keine unnötigen Informationen.",
     "statusLive": "Verfügbar",
     "statusPartial": "Teilweise",
     "statusPlanned": "Geplant"

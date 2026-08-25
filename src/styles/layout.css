@@ -338,8 +338,8 @@ a.rail-c-item { text-decoration: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 8px 4px;
+  gap: 2px;
+  padding: 7px 4px;
   font-size: 9.5px;
   color: var(--dim);
   text-decoration: none;
@@ -350,13 +350,36 @@ a.rail-c-item { text-decoration: none; }
    inherit the generic filled-button look (solid accent background) and
    stick out from its Custom/Arsenal siblings instead of matching them. */
 button.tab-item { background: none; border: none; font-family: inherit; cursor: pointer; }
-/* A translated label can be wider than the 1/5-of-the-bar column
-   flex:1 leaves it — center flex items don't shrink to fit by default,
-   so without this a long word pushes past its own tab into the next. */
-.tab-item span { max-width: 100%; overflow-wrap: break-word; text-align: center; }
+/* A translated label can be wider than the column flex:1 leaves it —
+   center flex items don't shrink to fit by default, so without
+   overflow-wrap a long word pushes past its own tab into the next.
+   hyphens:auto (paired with the `lang` attribute nav-tabbar.js's own
+   labelSpan() sets on every label) lets the browser pick a real
+   syllable-boundary break instead, when a 2nd line is unavoidable. */
+.tab-item span { max-width: 100%; overflow-wrap: break-word; text-align: center; hyphens: auto; }
 .tab-item.active { color: var(--accent); }
 .tab-item-measurement.active { color: var(--accent); }
 .tab-item-analysis.active { color: var(--analysis); }
+
+/* Home/Settings (see nav-tabbar.js's own `compact: true`) — icon-only,
+   pulled out of the equal flex:1 split entirely (sized by content, not
+   by a shared column) so every px trimmed off their own padding here is
+   a px handed straight to the four labeled tabs via their own flex:1
+   share. Both are universally-recognizable glyphs already (house,
+   sliders), so dropping the label reads as deliberate rather than
+   broken — but the accessible name has to move to aria-label/title on
+   the link itself (see nav-tabbar.js), since there's no visible text
+   left to carry it. */
+.tab-item-compact {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  color: var(--dim);
+  text-decoration: none;
+}
+.tab-item-compact.active { color: var(--accent); }
 
 /* Two-pane tool layout: fixed controls rail + flexible results area on
    desktop, stacked (controls above results) on narrow / mobile viewports. */
@@ -434,6 +457,38 @@ html.placement-mode .location-placement-page { flex: 1; min-height: 0; }
   html.force-mobile #app-body {
     padding-bottom: 0;
     padding-right: 64px;
+  }
+  /* Horizontal padding cut further here than the base rule's 4px — more
+     raw width for the label text in this already-narrow 64px column, so
+     a label is more likely to clear a single line before the min-height
+     floor below ever needs to grow past it. Vertical padding untouched;
+     width was the actual constraint. */
+  html:not(.force-desktop) #app-tabbar .tab-item,
+  html.force-mobile #app-tabbar .tab-item {
+    padding: 6px 2px;
+    /* Floor, not a target: guarantees icon + one line always has
+       breathing room even when a sibling's own 2-line wrap is eating
+       into the shared flex pool below. Deliberately not sized for 2
+       lines — unlike the portrait bar, stacked rows here already size
+       independently (each is its own flex:1 share of the column, not
+       forced to match a sibling's height the way a horizontal row's
+       default align-items:stretch does), so reserving 2 lines on every
+       row would cost real height in the one orientation with the least
+       of it to spare. */
+    min-height: 46px;
+    /* .tab-item's own default (flex-start) packs icon+label at the row's
+       own top and leaves any flex-grow leftover as dead space at the
+       bottom — fine for one row in isolation, but next to a
+       .tab-item-compact row (already centered in its own short,
+       content-sized box) it reads as a lopsided gap: big below a labeled
+       row, small above one. Centering here splits the leftover evenly
+       above and below, so the visual gap between any two adjacent rows
+       is the same regardless of which two row types they are. */
+    justify-content: center;
+  }
+  html:not(.force-desktop) #app-tabbar .tab-item-compact,
+  html.force-mobile #app-tabbar .tab-item-compact {
+    padding: 10px 8px;
   }
 }
 

@@ -1,5 +1,7 @@
 // The desktop navigation rail: Home, the two collapsible tool groups
-// (Measurement/Analysis), then Guns and Settings pinned below. Has two
+// (Measurement/Analysis), then Shooting (a direct link, not an accordion
+// — see ACCORDION_GROUPS below), then Guns/Settings/Manual pinned (see
+// nav-tools.js's own PINNED). Has two
 // widths — expanded (names + one-line descriptions) and collapsed
 // (icons only, with a flyout reproducing the same list on demand) — see
 // nav-prefs.js for what's persisted across reloads and what isn't.
@@ -41,6 +43,14 @@ const GROUP_ICON = { measurement: measurementIcon, analysis: analysisIcon };
 // differently (source-aware routing) rather than going through the
 // generic pinnedLink()/collapsedIconLink() this map serves.
 const PINNED_ICON = { settings: settingsIcon, manual: manualIcon };
+// Only Analysis/Measurement get the expand-then-pick-one accordion
+// treatment below (groupAccordion()/collapsedGroupItem()) — Shooting is
+// also a GROUPS entry (so Home's own groupSection() can list it as a
+// card, see home-view.js), but with exactly one tool an accordion would
+// just add an extra click before reaching it; buildExpanded()/
+// buildCollapsed() render it as a flat link instead, via the same
+// pinnedLink()/collapsedIconLink() a PINNED entry would use.
+const ACCORDION_GROUPS = [GROUPS.analysis, GROUPS.measurement];
 
 function currentPath() {
   const hash = location.hash || '';
@@ -264,7 +274,8 @@ export function mountNavRail(container) {
     const path = currentPath();
     const inner = el('nav', { class: 'rail-inner' });
     inner.appendChild(pinnedLink('/', 'nav.home', homeIcon, path));
-    for (const group of Object.values(GROUPS)) inner.appendChild(groupAccordion(group, path));
+    for (const group of ACCORDION_GROUPS) inner.appendChild(groupAccordion(group, path));
+    inner.appendChild(pinnedLink(GROUPS.shooting.path, GROUPS.shooting.nameKey, targetIcon, path));
     for (const p of PINNED) inner.appendChild(p.id === 'guns' ? gunsPinnedLink(path) : pinnedLink(p.path, p.nameKey, PINNED_ICON[p.icon], path));
     inner.appendChild(collapseControl(false));
     return inner;
@@ -322,7 +333,8 @@ export function mountNavRail(container) {
     const path = currentPath();
     const inner = el('nav', { class: 'rail-inner-c' });
     inner.appendChild(collapsedIconLink('/', 'nav.home', homeIcon, path));
-    for (const group of Object.values(GROUPS)) inner.appendChild(collapsedGroupItem(group, path));
+    for (const group of ACCORDION_GROUPS) inner.appendChild(collapsedGroupItem(group, path));
+    inner.appendChild(collapsedIconLink(GROUPS.shooting.path, GROUPS.shooting.nameKey, targetIcon, path));
     for (const p of PINNED) inner.appendChild(p.id === 'guns' ? collapsedGunsLink(path) : collapsedIconLink(p.path, p.nameKey, PINNED_ICON[p.icon], path));
     inner.appendChild(collapseControl(true));
     return inner;

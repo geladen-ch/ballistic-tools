@@ -42,11 +42,30 @@ test('every tool and pinned entry has a distinct id', () => {
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test('Guns and Settings sit outside both groups', () => {
+test('Guns, Settings, and Manual sit outside every group', () => {
   const pinnedIds = PINNED.map((p) => p.id);
   assert.ok(pinnedIds.includes('guns'));
   assert.ok(pinnedIds.includes('settings'));
-  assert.ok(!TOOLS.some((tool) => tool.id === 'guns' || tool.id === 'settings'));
+  assert.ok(pinnedIds.includes('manual'));
+  assert.ok(!TOOLS.some((tool) => ['guns', 'settings', 'manual'].includes(tool.id)));
+});
+
+test('Shooting is a group with exactly one tool (Range Solver), not an accordion group', () => {
+  assert.ok(GROUPS.shooting, 'expected a shooting entry in GROUPS');
+  assert.equal(GROUPS.shooting.accordion, undefined, 'Shooting should not be marked accordion:true like Analysis/Measurement');
+  assert.ok(!('range-solver' in Object.fromEntries(PINNED.map((p) => [p.id, p]))), 'range-solver should not also be a PINNED entry');
+
+  const shootingTools = toolsInGroup('shooting');
+  assert.equal(shootingTools.length, 1);
+  assert.equal(shootingTools[0].id, 'range-solver');
+  assert.equal(shootingTools[0].nameKey, 'catalog.rangeSolver', 'the card shows the fuller catalog name, distinct from the short nav label');
+});
+
+test('GROUPS.shooting itself uses the short nav label and points straight at the tool\'s own route (no hub page)', () => {
+  assert.equal(GROUPS.shooting.nameKey, 'nav.rangeSolver');
+  assert.equal(GROUPS.shooting.path, '/range-solver');
+  const rangeSolverTool = TOOLS.find((tool) => tool.id === 'range-solver');
+  assert.equal(GROUPS.shooting.path, rangeSolverTool.path, 'the group\'s own "path" is literally the one tool\'s route');
 });
 
 test('the currently-implemented tools are marked live, not planned', () => {

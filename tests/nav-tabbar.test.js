@@ -28,15 +28,45 @@ function findByTag(node, tag, out = []) {
   return out;
 }
 
-test('shows five tabs: Home, Analysis, Measurement, Guns, Settings', () => {
+test('shows six tabs: Home, Analysis, Measurement, Range Solver, Guns, Settings', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
 
   const tabs = findByTag(container, 'A');
-  assert.equal(tabs.length, 5);
-  assert.deepEqual(tabs.map((a) => a.getAttribute('href')), ['#/', '#/analysis', '#/measurement', '#/guns/custom', '#/settings']);
+  assert.equal(tabs.length, 6);
+  assert.deepEqual(
+    tabs.map((a) => a.getAttribute('href')),
+    ['#/', '#/analysis', '#/measurement', '#/range-solver', '#/guns/custom', '#/settings']
+  );
   assert.ok(tabs[1].textContent.includes(t('catalog.groupAnalysis')));
   assert.ok(tabs[2].textContent.includes(t('catalog.groupMeasurement')));
+  assert.ok(tabs[3].textContent.includes(t('nav.rangeSolver')));
+});
+
+test('Home and Settings are icon-only — no visible label, accessible name via aria-label/title instead', () => {
+  const container = makeElement('nav');
+  mountNavTabbar(container);
+
+  const [home, , , , , settings] = findByTag(container, 'A');
+  for (const link of [home, settings]) {
+    assert.ok(link.className.includes('tab-item-compact'), `expected .tab-item-compact on ${link.getAttribute('href')}`);
+    assert.equal(findByTag(link, 'SPAN').length, 0, 'no visible label span');
+  }
+  assert.equal(home.getAttribute('aria-label'), t('nav.home'));
+  assert.equal(home.getAttribute('title'), t('nav.home'));
+  assert.equal(settings.getAttribute('aria-label'), t('nav.settings'));
+  assert.equal(settings.getAttribute('title'), t('nav.settings'));
+});
+
+test('the four labeled tabs carry a lang attribute on their label, for hyphens:auto', () => {
+  const container = makeElement('nav');
+  mountNavTabbar(container);
+
+  const [, analysis, measurement, rangeSolver, guns] = findByTag(container, 'A');
+  for (const link of [analysis, measurement, rangeSolver, guns]) {
+    const span = findByTag(link, 'SPAN')[0];
+    assert.equal(span.getAttribute('lang'), 'en');
+  }
 });
 
 test('the tab matching the current route is active', () => {
@@ -65,7 +95,7 @@ test('clicking Guns (no active rifle) opens Custom and records the return path',
   const container = makeElement('nav');
   mountNavTabbar(container);
 
-  const gunsTab = findByTag(container, 'A')[3];
+  const gunsTab = findByTag(container, 'A')[4];
   assert.equal(gunsTab.getAttribute('href'), '#/guns/custom');
   fireEvent(gunsTab, 'click');
 
@@ -85,7 +115,7 @@ test('clicking Guns with a saved Arsenal rifle active opens Arsenal instead', ()
   const container = makeElement('nav');
   mountNavTabbar(container);
 
-  const gunsTab = findByTag(container, 'A')[3];
+  const gunsTab = findByTag(container, 'A')[4];
   assert.equal(gunsTab.getAttribute('href'), '#/guns/arsenal');
   fireEvent(gunsTab, 'click');
 
@@ -96,7 +126,7 @@ test('clicking Guns with a saved Arsenal rifle active opens Arsenal instead', ()
 // ---- Guns mode (see guns-nav.js) — replaces the whole bar while the
 // Guns section is open, mirroring nav-rail.js's own Guns-mode chrome. ----
 
-test('while in Guns mode, the bar shows Custom/Arsenal links plus a Done button instead of its normal five tabs', () => {
+test('while in Guns mode, the bar shows Custom/Arsenal links plus a Done button instead of its normal six tabs', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setGunsMode(true);
@@ -123,14 +153,14 @@ test('the Custom/Arsenal link matching the current route is active', () => {
   assert.equal(active[0].getAttribute('href'), '#/guns/custom');
 });
 
-test('turning Guns mode back off restores the normal five tabs', () => {
+test('turning Guns mode back off restores the normal six tabs', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setGunsMode(true);
   setGunsMode(false);
 
   assert.equal(container.className, 'app-tabbar');
-  assert.equal(findByTag(container, 'A').length, 5);
+  assert.equal(findByTag(container, 'A').length, 6);
 });
 
 test('Done navigates to the recorded Guns return path, falling back to Trajectory', () => {
@@ -151,7 +181,7 @@ test('Done navigates to the recorded Guns return path, falling back to Trajector
 // ---- Range Solver mode (see range-solver-nav.js) — the same idea a
 // second time, mirroring nav-rail.js's own Range Solver mode chrome. ----
 
-test('while in Range Solver mode, the bar shows Target/Wind/Atmosphere/Gun/Exit solver instead of its normal five tabs', () => {
+test('while in Range Solver mode, the bar shows Target/Wind/Atmosphere/Gun/Exit solver instead of its normal six tabs', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setRangeSolverMode(true);
@@ -194,12 +224,12 @@ test('Exit solver always goes to Home', () => {
   assert.equal(location.hash, '#/');
 });
 
-test('turning Range Solver mode back off restores the normal five tabs', () => {
+test('turning Range Solver mode back off restores the normal six tabs', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setRangeSolverMode(true);
   setRangeSolverMode(false);
 
   assert.equal(container.className, 'app-tabbar');
-  assert.equal(findByTag(container, 'A').length, 5);
+  assert.equal(findByTag(container, 'A').length, 6);
 });

@@ -8,6 +8,7 @@
     "trajectory": "Trajectory",
     "hitProbability": "Hit Probability",
     "arsenal": "Arsenal",
+    "rangeSolver": "Shooting",
     "guns": "Guns",
     "settings": "Settings",
     "manual": "User Manual",
@@ -695,6 +696,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v141": "Range solver moved out to its own top-level navigation entry. Mobile presentation adjusted to accommodate one more icon.",
       "v140": "Implemented a tool to convert multi-BC to custom curve (and to single optimal BC). Ever since Sierra realized we live in the third millennium, the tool is less useful than it used to be, but you never know who would want to be unique next.",
       "v139": "Added a \"Hornady reverse radar\" built-in bullets library, with a few bullets I actually care for (more to come).",
       "v138": "Unit-related UI fixes / accessibility features for our metric-impaired friends.",
@@ -840,7 +842,7 @@
     "rangeCard": "Range Card",
     "rangeCardDesc": "Printable dial chart for one rifle+load, by distance.",
     "rangeSolver": "Range Solver",
-    "rangeSolverDesc": "Quick single-range solve without a full table.",
+    "rangeSolverDesc": "Refined \"high speed low drag\" ballistic solver for range use. No. Unnecessary. Information.",
     "statusLive": "Live",
     "statusPartial": "Partial",
     "statusPlanned": "Planned"

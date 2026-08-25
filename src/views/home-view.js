@@ -106,6 +106,11 @@ export function mount(container) {
       el('p', { i18n: 'home.intro' }),
       groupSection(GROUPS.analysis),
       groupSection(GROUPS.measurement),
+      // Shooting has exactly one tool (Range Solver) but still renders as
+      // a full group section here, same as Analysis/Measurement — see
+      // GROUPS.shooting's own comment in nav-tools.js for why the rail/
+      // tab bar treat it differently (a direct link, not an accordion).
+      groupSection(GROUPS.shooting),
       el('div', { class: 'home-pinned-row' }, PINNED.map((p) => (p.id === 'guns' ? gunsPinnedLink() : pinnedLink(p)))),
       el('h2', { class: 'home-about-heading', i18n: 'home.aboutHeading' }),
       el('div', { class: 'category-grid' }, [versionCard(), privacyCard(), licenseCard(), contactCard()])

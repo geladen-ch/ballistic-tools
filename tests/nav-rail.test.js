@@ -42,9 +42,22 @@ test('renders expanded by default, with both groups open', () => {
 
   assert.equal(container.className, 'app-rail');
   const tools = findByClass(container, 'rail-tool');
-  // 3 measurement + 3 visible analysis tools (range-card is hidden from
-  // listings), all visible since both groups start open
-  assert.equal(tools.length, 6);
+  // 3 measurement + 2 visible analysis tools (range-card is hidden from
+  // listings; range-solver is a GROUPS.shooting tool, not an accordion
+  // one — see nav-tools.js), all visible since both groups start open
+  assert.equal(tools.length, 5);
+});
+
+test('Shooting is a flat direct link (like Guns/Settings), not an accordion group', () => {
+  const container = makeElement('nav');
+  mountNavRail(container);
+
+  const summaries = findByClass(container, 'rail-group-summary');
+  assert.ok(!summaries.some((n) => n.textContent.includes(t('nav.rangeSolver'))), 'Shooting should not render as an accordion summary');
+
+  const link = findByClass(container, 'rail-item').find((n) => n.getAttribute('href') === '#/range-solver');
+  assert.ok(link, 'expected a plain rail-item link straight to /range-solver');
+  assert.ok(link.textContent.includes(t('nav.rangeSolver')));
 });
 
 test('every tool row shows its name, a status chip, and a description', () => {
@@ -151,6 +164,17 @@ test('the collapse button switches to icon-only mode and persists the choice', (
   assert.equal(container.className, 'app-rail collapsed');
   assert.equal(findByClass(container, 'rail-tool').length, 0, 'expanded tool rows should be gone');
   assert.ok(findByClass(container, 'rail-c-item').length > 0, 'expected icon-only rail items instead');
+});
+
+test('in collapsed mode, Shooting is still a plain icon link straight to /range-solver, not a flyout group', () => {
+  const container = makeElement('nav');
+  mountNavRail(container);
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.id === 'rail-collapse-toggle'), 'click');
+
+  const link = findByClass(container, 'rail-c-item').find((n) => n.getAttribute('href') === '#/range-solver');
+  assert.ok(link, 'expected a plain rail-c-item link straight to /range-solver');
+  assert.equal(link.getAttribute('title'), t('nav.rangeSolver'));
+  assert.equal(link.tagName, 'A', 'not a flyout-toggle BUTTON like the accordion groups use');
 });
 
 test('in collapsed mode, clicking the Guns icon routes the same way as the expanded rail', () => {

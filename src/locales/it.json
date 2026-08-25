@@ -8,6 +8,7 @@
     "trajectory": "Traiettoria",
     "hitProbability": "Probabilità di colpire",
     "arsenal": "Arsenale",
+    "rangeSolver": "Tiro",
     "guns": "Armi",
     "settings": "Impostazioni",
     "manual": "Manuale utente",
@@ -695,6 +696,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v141": "Il Calcolatore per il poligono è stato spostato in una propria voce di navigazione di primo livello. La visualizzazione mobile è stata adattata per fare spazio a un'icona in più.",
       "v140": "Implementato uno strumento per convertire più BC in una curva personalizzata (e in un unico BC ottimale). Da quando Sierra si è resa conto che viviamo nel terzo millennio, lo strumento è meno utile di quanto non fosse un tempo, ma non si sa mai chi vorrà essere unico la prossima volta.",
       "v139": "Aggiunta una nuova libreria di proiettili integrata \"Hornady reverse radar\", con alcuni proiettili a cui tengo davvero (altri in arrivo).",
       "v138": "Correzioni dell'interfaccia relative alle unità di misura / funzionalità di accessibilità per i nostri amici metricamente svantaggiati.",
@@ -840,7 +842,7 @@
     "rangeCard": "Scheda di tiro",
     "rangeCardDesc": "Tabella di regolazione stampabile per un fucile+carica, per distanza.",
     "rangeSolver": "Calcolatore per il poligono",
-    "rangeSolverDesc": "Soluzione rapida per una singola distanza senza tabella completa.",
+    "rangeSolverDesc": "Calcolatore balistico raffinato e scattante per il tiro. Nessuna informazione superflua.",
     "statusLive": "Disponibile",
     "statusPartial": "Parziale",
     "statusPlanned": "Pianificato"

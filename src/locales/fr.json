@@ -8,6 +8,7 @@
     "trajectory": "Trajectoire",
     "hitProbability": "Probabilité de toucher",
     "arsenal": "Arsenal",
+    "rangeSolver": "Tir",
     "guns": "Armes",
     "settings": "Paramètres",
     "manual": "Manuel utilisateur",
@@ -695,6 +696,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v141": "Le Calculateur de terrain a été déplacé vers sa propre entrée de navigation principale. L'affichage mobile a été ajusté pour faire de la place à une icône supplémentaire.",
       "v140": "Mise en place d'un outil pour convertir plusieurs BC en une courbe personnalisée (et en un seul BC optimal). Depuis que Sierra a réalisé que nous vivons au troisième millénaire, cet outil est moins utile qu'avant, mais on ne sait jamais qui voudra être unique la prochaine fois.",
       "v139": "Ajout d'une nouvelle bibliothèque de balles intégrée « Hornady reverse radar », avec quelques balles qui me tiennent vraiment à cœur (d'autres à venir).",
       "v138": "Corrections d'interface liées aux unités / fonctionnalités d'accessibilité pour nos amis métriquement handicapés.",
@@ -840,7 +842,7 @@
     "rangeCard": "Carte de tir",
     "rangeCardDesc": "Tableau de réglage imprimable pour une carabine et une charge, par distance.",
     "rangeSolver": "Calculateur de terrain",
-    "rangeSolverDesc": "Solution rapide à une distance, sans table complète.",
+    "rangeSolverDesc": "Calculateur balistique affûté pour le tir. Aucune information inutile.",
     "statusLive": "Disponible",
     "statusPartial": "Partiel",
     "statusPlanned": "Prévu"

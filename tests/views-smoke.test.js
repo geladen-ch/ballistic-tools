@@ -67,17 +67,20 @@ for (const [name, mod] of Object.entries({ homeView, trajectoryView, bcToolsView
   });
 }
 
-test('Home groups its tool cards under Measurement and Analysis headings, and links to Guns/Settings', () => {
+test('Home groups its tool cards under Measurement, Analysis, and Shooting headings, and links to Guns/Settings', () => {
   const container = makeElement('main');
   homeView.mount(container);
 
   const headings = findByTag(container, 'H2').map((h) => h.textContent);
   assert.ok(headings.includes(t('catalog.groupMeasurement')));
   assert.ok(headings.includes(t('catalog.groupAnalysis')));
+  assert.ok(headings.includes(t('nav.rangeSolver')), 'expected a "Shooting" group heading');
+  assert.ok(headings.includes(t('catalog.rangeSolver')), 'expected the card\'s own fuller "Range Solver" title inside it');
 
   const links = findByTag(container, 'A').map((a) => a.getAttribute('href'));
   assert.ok(links.includes('#/bc-tools'));
   assert.ok(links.includes('#/trajectory'));
+  assert.ok(links.includes('#/range-solver'));
   assert.ok(links.includes('#/guns/custom'));
   assert.ok(links.includes('#/settings'));
 });
