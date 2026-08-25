@@ -533,6 +533,7 @@
     "csvSeparatorHint": "Sollten sich voneinander unterscheiden, sonst liest die Tabellenkalkulation die Datei möglicherweise nicht korrekt.",
     "groups": {
       "velocity": "Geschwindigkeit",
+      "windSpeed": "Windgeschwindigkeit",
       "distance": "Distanz / Reichweite",
       "smallLength": "Kleine Länge (Visierhöhe, Zielgröße)",
       "riflingTwist": "Drall (Drallänge)",
@@ -696,6 +697,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v142": "Neue Maßeinheits-Einstellung – Windgeschwindigkeit – unabhängig von der allgemeinen Geschwindigkeit, verwendet für alle Windeingaben im gesamten Projekt.",
       "v141": "Der Feldrechner wurde als eigener oberster Navigationspunkt herausgelöst. Die mobile Ansicht wurde angepasst, um Platz für ein weiteres Symbol zu schaffen.",
       "v140": "Ein Tool zur Umwandlung mehrerer BC-Werte in eine individuelle Kurve (und in einen einzigen optimalen BC) implementiert. Seit Sierra gemerkt hat, dass wir im dritten Jahrtausend leben, ist das Tool weniger nützlich als früher – aber man weiß nie, wer als Nächstes einzigartig sein möchte.",
       "v139": "Eine neue integrierte Geschossbibliothek „Hornady reverse radar“ hinzugefügt, mit ein paar Geschossen, die mir tatsächlich am Herzen liegen (mehr folgt).",

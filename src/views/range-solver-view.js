@@ -384,7 +384,7 @@ export function mount(container) {
     // degree number — see direction-arrow.js) rather than being two
     // separately-spaced items, so they read as one wind reading.
     const windParts = [];
-    if (Number.isFinite(windSpeedMs)) windParts.push(...formatWithUnit('windSpeed', 'velocity', windSpeedMs));
+    if (Number.isFinite(windSpeedMs)) windParts.push(...formatWithUnit('windSpeed', 'windSpeed', windSpeedMs));
     if (Number.isFinite(windDeg)) windParts.push(directionArrow(windDeg));
     if (windParts.length) parts.push(el('span', { class: 'range-solver-conditions-wind' }, windParts));
     if (Number.isFinite(pressureHpa)) parts.push(formatWithUnit('pressureHpa', 'pressure', pressureHpa));

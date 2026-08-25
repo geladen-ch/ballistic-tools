@@ -533,6 +533,7 @@
     "csvSeparatorHint": "Should be different from each other, or spreadsheet software may not read the file correctly.",
     "groups": {
       "velocity": "Velocity",
+      "windSpeed": "Wind speed",
       "distance": "Range / distance",
       "smallLength": "Small length (sight height, target size)",
       "riflingTwist": "Rifling twist",
@@ -696,6 +697,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v142": "New unit setting – wind speed – separate from the general velocity, and used for all wind inputs across the project.",
       "v141": "Range solver moved out to its own top-level navigation entry. Mobile presentation adjusted to accommodate one more icon.",
       "v140": "Implemented a tool to convert multi-BC to custom curve (and to single optimal BC). Ever since Sierra realized we live in the third millennium, the tool is less useful than it used to be, but you never know who would want to be unique next.",
       "v139": "Added a \"Hornady reverse radar\" built-in bullets library, with a few bullets I actually care for (more to come).",

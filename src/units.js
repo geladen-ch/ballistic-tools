@@ -57,6 +57,21 @@ export const UNIT_GROUPS = {
       { unit: 'in', label: 'in', decimals: 2 }
     ]
   },
+  // Wind speed's own preference, independent of velocity (muzzle velocity,
+  // v1/v2, ...) — a shooter who calls muzzle velocity in ft/s often still
+  // wants wind in mph or km/h (how wind is quoted by weather services/range
+  // flags), so tying them to the same choice would force a pick that fits
+  // neither. Same choice set/decimals as velocity, and same engine unit
+  // (m/s) — this only adds an independent display choice on top.
+  windSpeed: {
+    defaultUnit: 'm/s',
+    choices: [
+      { unit: 'm/s', label: 'm/s', decimals: 1 },
+      { unit: 'ft/s', label: 'ft/s', decimals: 0 },
+      { unit: 'mph', label: 'mph', decimals: 1 },
+      { unit: 'km/h', label: 'km/h', decimals: 1 }
+    ]
+  },
   altitude: {
     defaultUnit: 'm',
     choices: [
@@ -109,11 +124,11 @@ export const UNIT_GROUPS = {
 // through unit fields unconverted.
 export const FIELD_UNITS = {
   muzzleVelocity: { group: 'velocity', engineUnit: 'm/s' },
-  windSpeed: { group: 'velocity', engineUnit: 'm/s' },
+  windSpeed: { group: 'windSpeed', engineUnit: 'm/s' },
   v1: { group: 'velocity', engineUnit: 'm/s' },
   v2: { group: 'velocity', engineUnit: 'm/s' },
   muzzleVelocitySD: { group: 'velocity', engineUnit: 'm/s' },
-  windMedianError: { group: 'velocity', engineUnit: 'm/s' },
+  windMedianError: { group: 'windSpeed', engineUnit: 'm/s' },
   movingTargetSpeed: { group: 'velocity', engineUnit: 'm/s' },
 
   maxRange: { group: 'distance', engineUnit: 'm' },

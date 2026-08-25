@@ -81,8 +81,8 @@ test('setEngineValue() writes the field without firing onInput', () => {
   assert.equal(calls, 0);
 });
 
-test('respects a non-metric velocity preference — displays and steps in fps, reads back in m/s', () => {
-  setUnit('velocity', 'ft/s');
+test('respects a non-metric wind speed preference — displays and steps in fps, reads back in m/s', () => {
+  setUnit('windSpeed', 'ft/s');
   const field = largeStepperField({ id: 'windSpeed', min: 0, max: 10, step: 1, value: 5 });
   const [number] = findInputs(field.node);
   // ft/s displays with 0 decimals (see units.js) — 5 m/s rounds to 16 ft/s.

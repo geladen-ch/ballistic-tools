@@ -533,6 +533,7 @@
     "csvSeparatorHint": "Devono essere diversi tra loro, altrimenti il foglio di calcolo potrebbe non leggere correttamente il file.",
     "groups": {
       "velocity": "Velocità",
+      "windSpeed": "Velocità del vento",
       "distance": "Distanza / gittata",
       "smallLength": "Lunghezza ridotta (altezza ottica, dimensione bersaglio)",
       "riflingTwist": "Passo di rigatura",
@@ -696,6 +697,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v142": "Nuova impostazione di unità – velocità del vento – separata dalla velocità generale, usata per tutti gli input relativi al vento in tutto il progetto.",
       "v141": "Il Calcolatore per il poligono è stato spostato in una propria voce di navigazione di primo livello. La visualizzazione mobile è stata adattata per fare spazio a un'icona in più.",
       "v140": "Implementato uno strumento per convertire più BC in una curva personalizzata (e in un unico BC ottimale). Da quando Sierra si è resa conto che viviamo nel terzo millennio, lo strumento è meno utile di quanto non fosse un tempo, ma non si sa mai chi vorrà essere unico la prossima volta.",
       "v139": "Aggiunta una nuova libreria di proiettili integrata \"Hornady reverse radar\", con alcuni proiettili a cui tengo davvero (altri in arrivo).",

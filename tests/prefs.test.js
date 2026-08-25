@@ -25,6 +25,17 @@ test('setUnit updates the in-memory value and persists it to a cookie', () => {
   resetUnits();
 });
 
+test('windSpeed has its own preference, independent of velocity', () => {
+  setUnit('velocity', 'ft/s');
+  assert.equal(getUnit('windSpeed'), UNIT_GROUPS.windSpeed.defaultUnit);
+
+  setUnit('windSpeed', 'mph');
+  assert.equal(getUnit('velocity'), 'ft/s');
+  assert.equal(getUnit('windSpeed'), 'mph');
+
+  resetUnits();
+});
+
 test('resetUnits restores every group to its default and persists that too', () => {
   setUnit('temperature', 'tempF');
   resetUnits();

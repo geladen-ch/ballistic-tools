@@ -2,8 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, unitChoice,
-  FIELD_BOUNDS, formatFieldRange, formatFieldValue
+  FIELD_BOUNDS, FIELD_UNITS, UNIT_GROUPS, formatFieldRange, formatFieldValue
 } from '../src/units.js';
+
+test('windSpeed has its own unit group, independent of velocity, with the same choices', () => {
+  assert.equal(FIELD_UNITS.windSpeed.group, 'windSpeed');
+  assert.notEqual(FIELD_UNITS.windSpeed.group, FIELD_UNITS.muzzleVelocity.group);
+  assert.deepEqual(UNIT_GROUPS.windSpeed.choices, UNIT_GROUPS.velocity.choices);
+});
+
+test('windMedianError (Hit Probability\'s wind estimation error) rides the windSpeed group too', () => {
+  assert.equal(FIELD_UNITS.windMedianError.group, 'windSpeed');
+});
 
 test('velocity round-trips through a non-metric unit', () => {
   const ftPerS = engineToDisplay('muzzleVelocity', 840, 'ft/s');
