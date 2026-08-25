@@ -1,16 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installFakeDom } from './helpers/fake-dom.js';
+import { installFakeDom, installFakeIndexedDb } from './helpers/fake-dom.js';
 
 installFakeDom();
+installFakeIndexedDb();
 
 const {
   loadUserLocations, saveUserLocation, deleteUserLocation, findUserLocationByName,
-  importUserLocation, markUserLocationsSaved
+  importUserLocation, markUserLocationsSaved,
+  resetLocationLibraryForTests, reloadLocationLibraryForTests, flushLocationLibraryWritesForTests
 } = await import('../src/location-library.js');
 const { generateUserId } = await import('../src/user-library.js');
 
-test.beforeEach(() => localStorage.clear());
+test.beforeEach(async () => { await resetLocationLibraryForTests(); });
 
 function makeLocation(overrides = {}) {
   return { id: generateUserId('location'), name: 'My Range', altitudeM: null, photo: null, targets: [], ...overrides };
@@ -93,4 +95,29 @@ test('importUserLocation preserves the given modifiedAt (unlike saveUserLocation
   assert.equal(result.modifiedAt, importedAt);
   assert.equal(result.unsaved, true);
   assert.equal(loadUserLocations()[0].modifiedAt, importedAt);
+});
+
+test('a saved location and its photo survive a reload from the store (not just from memory)', async () => {
+  const location = makeLocation({
+    photo: 'data:image/jpeg;base64,AAAA',
+    targets: [{ id: 't1', name: null, notes: null, rangeM: 400, losAngleDeg: 0, coords: { x: 0.25, y: 0.75 } }]
+  });
+  saveUserLocation(location);
+  await flushLocationLibraryWritesForTests();
+  await reloadLocationLibraryForTests();
+
+  const reloaded = loadUserLocations()[0];
+  assert.equal(reloaded.photo, location.photo, 'photo must round-trip through Blob storage unchanged');
+  assert.deepEqual(reloaded.targets[0].coords, { x: 0.25, y: 0.75 });
+});
+
+test('a deleted location does not resurrect after a reload from the store', async () => {
+  const location = makeLocation();
+  saveUserLocation(location);
+  await flushLocationLibraryWritesForTests();
+  deleteUserLocation(location.id);
+  await flushLocationLibraryWritesForTests();
+  await reloadLocationLibraryForTests();
+
+  assert.deepEqual(loadUserLocations(), []);
 });

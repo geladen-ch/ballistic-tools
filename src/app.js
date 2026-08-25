@@ -11,6 +11,7 @@ import { mountNavTabbar } from './ui/nav-tabbar.js';
 import { mountTopbarScroll } from './ui/topbar-scroll.js';
 import { mountDialogRoot } from './ui/app-dialog.js';
 import { checkBootVersionChange, watchForLiveUpdate } from './update-notifications.js';
+import { initLocationLibrary } from './location-library.js';
 import * as homeView from './views/home-view.js';
 import * as trajectoryView from './views/trajectory-view.js';
 import * as bcToolsView from './views/bc-tools-view.js';
@@ -81,8 +82,13 @@ const views = {
 
 // Every view calls t() while building its DOM, so translations must be
 // loaded and i18next initialized before the very first mount — otherwise
-// the first paint would flash untranslated keys.
-await initI18n();
+// the first paint would flash untranslated keys. Locations & Targets'
+// in-memory mirror must be populated the same way: location-placement-view.js
+// and range-solver-view.js both read location data synchronously inside
+// mount()'s top-level body (router.js calls mount() synchronously and
+// expects an immediate return, not a Promise), so the mirror has to be
+// warm before startRouter() ever runs, not lazily per-mount.
+await Promise.all([initI18n(), initLocationLibrary()]);
 
 mountLanguageSwitcher(document.getElementById('app-lang'));
 mountDisplayModeSwitch(document.getElementById('app-display-mode'));

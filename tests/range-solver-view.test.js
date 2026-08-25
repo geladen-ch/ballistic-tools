@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
+import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
 import { warmCatalogs } from './helpers/warm-catalogs.js';
 
 installFakeDom();
+installFakeIndexedDb();
 
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
@@ -20,7 +21,7 @@ const {
 } = await import('../src/range-solver-state.js');
 const { setIndicatorStyle } = await import('../src/range-solver-prefs.js');
 const { getCookie } = await import('../src/cookies.js');
-const { saveUserLocation, loadUserLocations } = await import('../src/location-library.js');
+const { saveUserLocation, loadUserLocations, resetLocationLibraryForTests } = await import('../src/location-library.js');
 const { generateUserId } = await import('../src/user-library.js');
 const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
 const { takePendingPlacement } = await import('../src/location-placement-nav.js');
@@ -34,12 +35,12 @@ const rangeSolverView = await import('../src/views/range-solver-view.js');
 const dialogRoot = makeElement('div');
 mountDialogRoot(dialogRoot);
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   resetShotStateForTests();
   resetRangeSolverNavForTests();
   resetRangeSolverStateForTests();
   setIndicatorStyle('signs'); // restore the default so it doesn't leak into other tests
-  localStorage.clear();
+  await resetLocationLibraryForTests();
 });
 
 function findByTag(node, tag, out = []) {

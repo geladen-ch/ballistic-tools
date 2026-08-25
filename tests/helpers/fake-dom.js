@@ -227,4 +227,84 @@ export function installFakeDom() {
   };
 }
 
+// Minimal fake for src/db.js's exact surface: one keyPath-based object
+// store per database, opened via indexedDB.open(name, version), with
+// getAll/put/delete. No indexes, cursors, key ranges, or onblocked
+// handling — src/location-library.js never needs them. Databases persist
+// in `databases` across repeated open() calls within a test (simulating
+// on-disk persistence across a simulated "restart"), but this fake never
+// fires onupgradeneeded on a version bump — only on first-ever creation
+// of a given database name — because location-library.js pins its schema
+// version at 1 permanently. If a future change needs a real version-bump
+// migration, this fake needs extending to model that.
+export function installFakeIndexedDb() {
+  const databases = new Map(); // name -> FakeDatabase
+
+  function makeRequest() {
+    return { result: undefined, error: null, onsuccess: null, onerror: null };
+  }
+  function succeed(request, result) {
+    request.result = result;
+    queueMicrotask(() => request.onsuccess && request.onsuccess({ target: request }));
+  }
+
+  class FakeObjectStore {
+    constructor(keyPath) {
+      this.keyPath = keyPath;
+      this.map = new Map();
+    }
+    getAll() {
+      const request = makeRequest();
+      succeed(request, [...this.map.values()]);
+      return request;
+    }
+    put(record) {
+      const request = makeRequest();
+      this.map.set(record[this.keyPath], record);
+      succeed(request, record[this.keyPath]);
+      return request;
+    }
+    delete(key) {
+      const request = makeRequest();
+      this.map.delete(key);
+      succeed(request, undefined);
+      return request;
+    }
+  }
+
+  class FakeDatabase {
+    constructor() {
+      this.stores = new Map(); // store name -> FakeObjectStore
+      this.objectStoreNames = { contains: (name) => this.stores.has(name) };
+    }
+    createObjectStore(name, { keyPath }) {
+      const store = new FakeObjectStore(keyPath);
+      this.stores.set(name, store);
+      return store;
+    }
+    transaction(name) {
+      const store = this.stores.get(name);
+      return { objectStore: () => store };
+    }
+  }
+
+  global.indexedDB = {
+    open(name /*, version — ignored: this fake never models a version bump */) {
+      const request = makeRequest();
+      queueMicrotask(() => {
+        let db = databases.get(name);
+        const isNew = !db;
+        if (isNew) {
+          db = new FakeDatabase();
+          databases.set(name, db);
+        }
+        request.result = db;
+        if (isNew && request.onupgradeneeded) request.onupgradeneeded({ target: request });
+        if (request.onsuccess) request.onsuccess({ target: request });
+      });
+      return request;
+    }
+  };
+}
+
 export { makeElement };

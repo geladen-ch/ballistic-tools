@@ -1,15 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
+import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
 
 installFakeDom();
+installFakeIndexedDb();
 
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 
 const locationPlacementView = await import('../src/views/location-placement-view.js');
-const { loadUserLocations, saveUserLocation } = await import('../src/location-library.js');
+const { loadUserLocations, saveUserLocation, resetLocationLibraryForTests } = await import('../src/location-library.js');
 const { generateUserId } = await import('../src/user-library.js');
 const {
   resetRangeSolverStateForTests, saveRangeSolverLocationState, loadRangeSolverLocationState,
@@ -20,8 +21,8 @@ const {
   requestZoomIn, requestZoomOut, requestDone, resetLocationPlacementNavForTests
 } = await import('../src/location-placement-nav.js');
 
-test.beforeEach(() => {
-  localStorage.clear();
+test.beforeEach(async () => {
+  await resetLocationLibraryForTests();
   resetRangeSolverStateForTests();
   resetLocationPlacementNavForTests();
   location.hash = '';

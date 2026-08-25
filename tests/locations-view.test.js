@@ -1,15 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
+import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
 
 installFakeDom();
+installFakeIndexedDb();
 
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 
 const locationsView = await import('../src/views/locations-view.js');
-const { loadUserLocations, saveUserLocation } = await import('../src/location-library.js');
+const { loadUserLocations, saveUserLocation, resetLocationLibraryForTests } = await import('../src/location-library.js');
 const { generateUserId } = await import('../src/user-library.js');
 const {
   loadRangeSolverLocationState, saveRangeSolverLocationState, loadRangeSolverTargetState, loadRangeSolverAtmosphereState,
@@ -18,8 +19,8 @@ const {
 const { standardAtmosphereAt } = await import('../src/engine/atmosphere.js');
 const { takePendingPlacement } = await import('../src/location-placement-nav.js');
 
-test.beforeEach(() => {
-  localStorage.clear();
+test.beforeEach(async () => {
+  await resetLocationLibraryForTests();
   resetRangeSolverStateForTests();
   location.hash = '';
   global.confirm = () => true;

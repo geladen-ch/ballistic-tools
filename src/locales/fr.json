@@ -697,6 +697,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v143": "Mise en place d'un back-end de stockage IndexedDB, et migration du stockage des données des lieux vers celui-ci.",
       "v142": "Nouveau réglage d'unité – vitesse du vent – indépendant de la vitesse générale, utilisé pour toutes les entrées de vent dans l'ensemble du projet.",
       "v141": "Le Calculateur de terrain a été déplacé vers sa propre entrée de navigation principale. L'affichage mobile a été ajusté pour faire de la place à une icône supplémentaire.",
       "v140": "Mise en place d'un outil pour convertir plusieurs BC en une courbe personnalisée (et en un seul BC optimal). Depuis que Sierra a réalisé que nous vivons au troisième millénaire, cet outil est moins utile qu'avant, mais on ne sait jamais qui voudra être unique la prochaine fois.",
