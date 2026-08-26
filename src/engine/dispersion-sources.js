@@ -22,6 +22,18 @@ export function probableErrorToSD(medianError) {
 // groups) don't reduce to a clean function of p the same way (they depend
 // on shot count through order statistics), so those two conversion
 // factors are supplied directly rather than derived.
+//
+// The ES factors are E[extreme spread] / SD, which has no closed form for
+// more than two shots and has to come from simulation. Both are quoted here
+// to six significant figures, from the mcgs project's Monte-Carlo runs
+// (https://github.com/lstange/mcgs):
+//
+//   5 shots:  3.0658795  ->  3.06588
+//  10 shots:  3.8115826  ->  3.81158
+//
+// The five-shot figure is corroborated by an independent deterministic
+// route: numerical integration of the 10-dimensional expectation with the
+// Cuba library's VEGAS gives 3.0658794642 +- 0.0000015887.
 export function r50ToSD(r50) {
   return r50 / 1.1774;
 }
@@ -31,11 +43,11 @@ export function r99ToSD(r99) {
 }
 
 export function es5ToSD(es5) {
-  return es5 / 3.06;
+  return es5 / 3.06588;
 }
 
 export function es10ToSD(es10) {
-  return es10 / 3.79;
+  return es10 / 3.81158;
 }
 
 // A dispersion already expressed as an angle (mrad) — bench rifle
