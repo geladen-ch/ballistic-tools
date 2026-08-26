@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -47,25 +48,25 @@ test('setDragModelVisible persists the resulting hidden set to a cookie', () => 
 test('explicitly showing every model persists an empty cookie, and a reload respects that instead of re-defaulting', async () => {
   for (const id of DEFAULT_HIDDEN_IDS) setDragModelVisible(id, true);
   assert.equal(getCookie(COOKIE_NAME), '');
-  const fresh = await import(`../src/drag-model-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/drag-model-prefs.js?reload=${freshId()}`);
   assert.deepEqual(fresh.visibleDragModels().map((m) => m.id), ALL_IDS);
 });
 
 test('a garbage/unknown id in the cookie is dropped rather than trusted verbatim', async () => {
   setCookie(COOKIE_NAME, 'G1,not-a-real-model');
-  const fresh = await import(`../src/drag-model-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/drag-model-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.isDragModelVisible('G1'), false);
   assert.deepEqual(fresh.visibleDragModels().map((m) => m.id), ALL_IDS.filter((id) => id !== 'G1'));
 });
 
 test('a hidden model survives a fresh module load (session-to-session persistence)', async () => {
   setDragModelVisible('G7', false);
-  const fresh = await import(`../src/drag-model-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/drag-model-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.isDragModelVisible('G7'), false);
   assert.equal(fresh.isDragModelVisible('G1'), true);
 });
 
 test('no cookie at all still defaults to G1/G7 only, even on a fresh module load', async () => {
-  const fresh = await import(`../src/drag-model-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/drag-model-prefs.js?reload=${freshId()}`);
   assert.deepEqual(fresh.visibleDragModels().map((m) => m.id), DEFAULT_VISIBLE_IDS);
 });

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -23,7 +24,7 @@ test('setDisplayMode updates the read value and persists to a cookie', () => {
 
 test('a garbage/tampered cookie value falls back to "auto" rather than being trusted verbatim', async () => {
   setCookie('ballistics_display_mode_v1', 'not-a-real-mode');
-  const fresh = await import(`../src/display-mode-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/display-mode-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getDisplayMode(), 'auto');
   removeCookie('ballistics_display_mode_v1');
 });
@@ -51,6 +52,6 @@ test('setDisplayMode ignores an unrecognized value', () => {
 
 test('a value survives a fresh module load (session-to-session persistence)', async () => {
   setDisplayMode('desktop');
-  const fresh = await import(`../src/display-mode-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/display-mode-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getDisplayMode(), 'desktop');
 });

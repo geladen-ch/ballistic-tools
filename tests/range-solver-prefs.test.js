@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -50,7 +51,7 @@ test('setTheme ignores an unrecognized value', () => {
 
 test('a garbage/tampered cookie value falls back to "dark" rather than being trusted verbatim', async () => {
   setCookie(THEME_COOKIE_NAME, 'not-a-real-theme');
-  const fresh = await import(`../src/range-solver-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/range-solver-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getTheme(), 'dark');
 });
 
@@ -75,26 +76,26 @@ test('setTheme to the same value twice in a row only notifies once (no-op on an 
 
 test('a value survives a fresh module load (session-to-session persistence)', async () => {
   setTheme('high-contrast-dark');
-  const fresh = await import(`../src/range-solver-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/range-solver-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getTheme(), 'high-contrast-dark');
 });
 
 test('someone who had the old boolean high-contrast toggle on migrates to "high-contrast-light" (the only high-contrast theme that existed before this one)', async () => {
   setCookie(LEGACY_HIGH_CONTRAST_COOKIE_NAME, 'true');
-  const fresh = await import(`../src/range-solver-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/range-solver-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getTheme(), 'high-contrast-light');
 });
 
 test('the legacy cookie is ignored once a real theme cookie already exists', async () => {
   setCookie(LEGACY_HIGH_CONTRAST_COOKIE_NAME, 'true');
   setCookie(THEME_COOKIE_NAME, 'high-contrast-dark');
-  const fresh = await import(`../src/range-solver-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/range-solver-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getTheme(), 'high-contrast-dark');
 });
 
 test('someone who never touched the old boolean toggle still defaults to "dark"', async () => {
   removeCookie(LEGACY_HIGH_CONTRAST_COOKIE_NAME);
-  const fresh = await import(`../src/range-solver-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/range-solver-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getTheme(), 'dark');
 });
 

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -43,38 +44,38 @@ test('setBulletLibraryVisible persists the resulting hidden set to a cookie', ()
 
 test('a hidden library survives a fresh module load (session-to-session persistence)', async () => {
   setBulletLibraryVisible('lapua-cd', false);
-  const fresh = await import(`../src/bullet-library-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/bullet-library-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.isBulletLibraryVisible('lapua-cd'), false);
   assert.equal(fresh.isBulletLibraryVisible('geladen'), true);
 });
 
 test('a garbage/unknown id in the cookie is dropped rather than trusted verbatim', async () => {
   setCookie(COOKIE_NAME, 'lapua-cd,not-a-real-library');
-  const fresh = await import(`../src/bullet-library-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/bullet-library-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.isBulletLibraryVisible('lapua-cd'), false);
   assert.equal(fresh.isBulletLibraryVisible('geladen'), true);
 });
 
 test('no cookie at all, and no legacy cookie, defaults to every library visible on a fresh module load', async () => {
-  const fresh = await import(`../src/bullet-library-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/bullet-library-prefs.js?reload=${freshId()}`);
   for (const id of ALL_IDS) assert.equal(fresh.isBulletLibraryVisible(id), true);
 });
 
 test('an explicit legacy "off" (the old single boolean toggle) hides every library on first load under the new scheme', async () => {
   setCookie(LEGACY_COOKIE_NAME, 'false');
-  const fresh = await import(`../src/bullet-library-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/bullet-library-prefs.js?reload=${freshId()}`);
   for (const id of ALL_IDS) assert.equal(fresh.isBulletLibraryVisible(id), false);
 });
 
 test('an explicit legacy "on" leaves every library visible on first load under the new scheme', async () => {
   setCookie(LEGACY_COOKIE_NAME, 'true');
-  const fresh = await import(`../src/bullet-library-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/bullet-library-prefs.js?reload=${freshId()}`);
   for (const id of ALL_IDS) assert.equal(fresh.isBulletLibraryVisible(id), true);
 });
 
 test('the legacy cookie is only ever consulted once — an explicit new-scheme empty cookie is not re-defaulted from it', async () => {
   setCookie(LEGACY_COOKIE_NAME, 'false');
   setCookie(COOKIE_NAME, ''); // explicitly saved "hide nothing" under the new scheme
-  const fresh = await import(`../src/bullet-library-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/bullet-library-prefs.js?reload=${freshId()}`);
   for (const id of ALL_IDS) assert.equal(fresh.isBulletLibraryVisible(id), true);
 });
