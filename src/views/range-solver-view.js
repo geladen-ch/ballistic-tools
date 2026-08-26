@@ -20,7 +20,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
+import { clicksForOffset, engineToDisplay, displayToEngine, displaySpanToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle } from '../range-solver-prefs.js';
@@ -41,15 +41,34 @@ import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { showDialog } from '../ui/app-dialog.js';
 
-const DEFAULT_TARGET_RANGE_M = 400;
 const DEFAULT_LOS_ANGLE_DEG = 0;
 const DEFAULT_WIND_ANGLE_DEG = 90;
 const DEFAULT_WIND_SPEED_MS = 0;
 
+// One independently-chosen round number per unit — not a conversion of a
+// single metric default/step into the others (1500 ft isn't "500 m in
+// feet", it's its own sensible round number for someone thinking in feet)
+// — so both tables are keyed straight off the unit symbol.
+const TARGET_RANGE_DEFAULTS = { m: 500, yd: 500, ft: 1500 };
+const TARGET_RANGE_STEPS = { m: 50, yd: 50, ft: 100 };
+// km/h has no user-specified round step; falls back to converting the
+// same fixed 0.5 m/s step every unit used before this table existed.
+const WIND_SPEED_STEPS = { 'm/s': 0.5, mph: 1, 'ft/s': 1 };
+const FALLBACK_WIND_SPEED_STEP_MS = 0.5;
+
+// Same stale/unknown-preference fallback largeStepperField() itself
+// applies internally — needed here too since these tables are looked up
+// before that component ever sees the field.
+function currentUnit(group) {
+  const unit = getUnit(group);
+  return UNIT_GROUPS[group].choices.some((c) => c.unit === unit) ? unit : UNIT_GROUPS[group].defaultUnit;
+}
+
 // Matches range-solver-prefs.js's own INDICATOR_STYLE_CHOICES values.
 const INDICATOR_GLYPHS = {
   arrows: { elevationPositive: '↑', elevationNegative: '↓', windagePositive: '→', windageNegative: '←' },
-  signs: { elevationPositive: '+', elevationNegative: '−', windagePositive: '+', windageNegative: '−' }
+  signs: { elevationPositive: '+', elevationNegative: '−', windagePositive: '+', windageNegative: '−' },
+  udlr: { elevationPositive: 'U', elevationNegative: 'D', windagePositive: 'R', windageNegative: 'L' }
 };
 
 async function requestWakeLock() {
@@ -84,9 +103,12 @@ export function mount(container) {
   function saveTarget() {
     saveRangeSolverTargetState({ rangeM: targetRangeField.getEngineValue(), losAngleDeg: losAngleField.getEngineValue() });
   }
+  const distanceUnit = currentUnit('distance');
   const targetRangeField = largeStepperField({
-    id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10,
-    value: targetSaved.rangeM ?? DEFAULT_TARGET_RANGE_M,
+    id: 'targetRange', ...FIELD_BOUNDS.targetRange,
+    step: displaySpanToEngine('targetRange', TARGET_RANGE_STEPS[distanceUnit], distanceUnit),
+    value: targetSaved.rangeM ?? displayToEngine('targetRange', TARGET_RANGE_DEFAULTS[distanceUnit], distanceUnit),
+    decimals: 1,
     onInput: () => { saveTarget(); recompute(); }
   });
   const losAngleField = unitField({
@@ -244,9 +266,14 @@ export function mount(container) {
     id: 'windAngle', value: windSaved.angle ?? DEFAULT_WIND_ANGLE_DEG,
     onInput: () => { saveWind(); recompute(); }
   });
+  const windUnit = currentUnit('windSpeed');
+  const windSpeedStepMs = windUnit in WIND_SPEED_STEPS
+    ? displaySpanToEngine('windSpeed', WIND_SPEED_STEPS[windUnit], windUnit)
+    : FALLBACK_WIND_SPEED_STEP_MS;
   const windSpeedField = largeStepperField({
-    id: 'windSpeed', ...FIELD_BOUNDS.windSpeed, step: 0.5,
+    id: 'windSpeed', ...FIELD_BOUNDS.windSpeed, step: windSpeedStepMs,
     value: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
+    decimals: 1,
     onInput: () => { saveWind(); recompute(); }
   });
   // range-solver-wind-tab (in addition to the two classes every tab panel

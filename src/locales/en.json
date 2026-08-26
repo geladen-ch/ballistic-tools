@@ -149,7 +149,10 @@
     "viewLicenseLink": "View the full license text",
     "contactHeading": "Contact",
     "contactText": "Questions, feedback, or support requests go through the geladen.ch contact page — not this app.",
-    "contactLink": "Open the geladen.ch contact page"
+    "contactLink": "Open the geladen.ch contact page",
+    "thanksHeading": "Official thanks",
+    "thanksText": "The people and projects that helped make this app possible.",
+    "thanksLink": "View the thanks list"
   },
   "trajectory": {
     "title": "Trajectory",
@@ -683,6 +686,7 @@
     "rangeSolverIndicatorLabel": "Range Solver output indicators",
     "rangeSolverIndicatorArrows": "Arrows",
     "rangeSolverIndicatorSigns": "+ / −",
+    "rangeSolverIndicatorUdlr": "U/D, L/R",
     "dragModelsHeading": "Ballistic models",
     "dragModelsHint": "Hide standard drag models you don't use, to declutter the drag-model picker. A hidden model stays available wherever it's already selected — hiding it never changes an existing choice.",
     "csvExportHeading": "CSV export",
@@ -860,6 +864,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v145": "Bugfix: fixed how the Range Solver's distance and wind speed inputs handle non-metric units — rounding and step size. (Props to 6.5SH.) Feature: added a \"U/D, L/R\" option for the Range Solver's output indicators (not translated).",
       "v144": "The last of the tools has been ported to the new suite platform: meet the Rifle Precision Calculator (formerly known as Taran) – perhaps the most controversial, offensive, ego-shattering, pride-wounding, humiliating, demoralizing, and butthurt-inducing piece of software I've ever written. There's also automatic migration of Locations data from the old storage back-end to the new one, some UI polishing, and an update to the user manual reflecting everything that's happened since v136 (2.2). All this mandates a major version bump, and an awesome new version codename.",
       "v143": "Implemented IndexedDB storage back-end, and migrated Locations data storage to it.",
       "v142": "New unit setting – wind speed – separate from the general velocity, and used for all wind inputs across the project.",
@@ -894,6 +899,9 @@
     "loading": "Loading…",
     "loadError": "Could not load the manual.",
     "autoTranslatedNotice": "This translation was generated automatically and has not yet been reviewed. Some phrasing may be imprecise — see the English version for the authoritative text."
+  },
+  "thanks": {
+    "loadError": "Could not load the thanks list."
   },
   "targets": {
     "plate40x60": {

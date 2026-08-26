@@ -99,7 +99,7 @@ test('someone who never touched the old boolean toggle still defaults to "dark"'
 });
 
 test('INDICATOR_STYLE_CHOICES covers exactly what get/set accept', () => {
-  assert.deepEqual(INDICATOR_STYLE_CHOICES.map((c) => c.value), ['signs', 'arrows']);
+  assert.deepEqual(INDICATOR_STYLE_CHOICES.map((c) => c.value), ['signs', 'arrows', 'udlr']);
 });
 
 test('indicator style defaults to "signs"', () => {
@@ -110,6 +110,12 @@ test('setIndicatorStyle updates the read value and persists to a cookie', () => 
   setIndicatorStyle('arrows');
   assert.equal(getIndicatorStyle(), 'arrows');
   assert.equal(getCookie(INDICATOR_COOKIE_NAME), 'arrows');
+});
+
+test('setIndicatorStyle accepts "udlr"', () => {
+  setIndicatorStyle('udlr');
+  assert.equal(getIndicatorStyle(), 'udlr');
+  assert.equal(getCookie(INDICATOR_COOKIE_NAME), 'udlr');
 });
 
 test('a garbage/tampered cookie value falls back to "signs" rather than being trusted verbatim', () => {

@@ -1,5 +1,5 @@
 import { el } from '../dom.js';
-import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, formatFieldRange } from '../units.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, formatFieldRange } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { t, i18nSpan } from '../i18n.js';
 import { fieldValidity } from './field-validity.js';
@@ -19,16 +19,27 @@ import { fieldValidity } from './field-validity.js';
 // than silently freezing on the last result. What must never happen is a
 // *persistent* component (like the chart's zoomRangeSlider) trusting that
 // NaN into its own retained state — that boundary already guards itself.
-export function largeStepperField({ id, min, max, step, value, onInput }) {
+// `decimals`, when given, overrides the display unit's own choice.decimals
+// (see UNIT_GROUPS in units.js) for this field only — used by Range
+// Solver's target range/wind speed to round to one decimal place
+// regardless of unit, without changing how every other field sharing
+// those unit groups (maxRange, windMedianError, ...) rounds.
+export function largeStepperField({ id, min, max, step, value, onInput, decimals }) {
   const meta = FIELD_UNITS[id];
   const group = meta ? UNIT_GROUPS[meta.group] : null;
   let displayUnit = meta ? getUnit(meta.group) : null;
   if (meta && !unitChoice(id, displayUnit)) displayUnit = group.defaultUnit; // stale/unknown pref
   const choice = meta ? unitChoice(id, displayUnit) : null;
 
-  const toDisp = (v) => (meta ? roundForDisplay(id, displayUnit, engineToDisplay(id, v, displayUnit)) : v);
+  function round(v) {
+    const d = decimals !== undefined ? decimals : (choice ? choice.decimals : 2);
+    const factor = 10 ** d;
+    return Math.round(v * factor) / factor;
+  }
+
+  const toDisp = (v) => (meta ? round(engineToDisplay(id, v, displayUnit)) : v);
   const toEng = (v) => (meta ? displayToEngine(id, v, displayUnit) : v);
-  const stepDisp = step !== undefined ? engineSpanToDisplay(id, step, displayUnit) : 1;
+  const stepDisp = step !== undefined ? round(engineSpanToDisplay(id, step, displayUnit)) : 1;
   const dMin = min !== undefined ? toDisp(min) : undefined;
   const dMax = max !== undefined ? toDisp(max) : undefined;
 
@@ -46,7 +57,7 @@ export function largeStepperField({ id, min, max, step, value, onInput }) {
   function bump(delta) {
     const current = parseFloat(number.value);
     const base = Number.isNaN(current) ? toDisp(value) : current;
-    number.value = clamp(base + delta);
+    number.value = clamp(round(base + delta));
     if (onInput) onInput();
   }
 

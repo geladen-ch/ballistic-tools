@@ -149,7 +149,10 @@
     "viewLicenseLink": "Voir le texte complet de la licence",
     "contactHeading": "Contact",
     "contactText": "Pour toute question, retour ou demande d'assistance, utilisez la page de contact de geladen.ch — pas cette application.",
-    "contactLink": "Ouvrir la page de contact de geladen.ch"
+    "contactLink": "Ouvrir la page de contact de geladen.ch",
+    "thanksHeading": "Remerciements officiels",
+    "thanksText": "Les personnes et projets qui ont contribué à rendre cette application possible.",
+    "thanksLink": "Voir la liste des remerciements"
   },
   "trajectory": {
     "title": "Trajectoire",
@@ -683,6 +686,7 @@
     "rangeSolverIndicatorLabel": "Indicateurs de sortie du Calculateur de terrain",
     "rangeSolverIndicatorArrows": "Flèches",
     "rangeSolverIndicatorSigns": "+ / −",
+    "rangeSolverIndicatorUdlr": "U/D, L/R",
     "dragModelsHeading": "Modèles balistiques",
     "dragModelsHint": "Masquez les modèles de traînée standard que vous n'utilisez pas, pour alléger le sélecteur de modèle. Un modèle masqué reste disponible partout où il est déjà sélectionné — le masquer ne change jamais un choix existant.",
     "csvExportHeading": "Export CSV",
@@ -860,6 +864,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v145": "Correctif : correction de la façon dont les champs Distance et Vitesse du vent du Calculateur de terrain gèrent les unités non métriques — arrondi et pas d'incrémentation. (Merci à 6.5SH.) Nouveauté : ajout de l'option « U/D, L/R » pour les indicateurs de sortie du Calculateur de terrain (non traduite).",
       "v144": "Le dernier des outils a été porté sur la nouvelle plateforme de la suite : voici la Calculette de précision de tir (anciennement connue sous le nom de « Taran ») – sans doute le logiciel le plus controversé, le plus offensant, le plus destructeur d'ego, le plus blessant pour la fierté, le plus humiliant, le plus démoralisant et le plus « butthurt »-inducteur que j'aie jamais écrit. On y trouve aussi la migration automatique des données des emplacements de l'ancien back-end de stockage vers le nouveau, quelques retouches d'interface, et une mise à jour du manuel utilisateur reflétant tout ce qui s'est passé depuis la v136 (2.2). Tout cela justifie un bond de version majeure, et un nouveau nom de code de version qui envoie du lourd.",
       "v143": "Mise en place d'un back-end de stockage IndexedDB, et migration du stockage des données des lieux vers celui-ci.",
       "v142": "Nouveau réglage d'unité – vitesse du vent – indépendant de la vitesse générale, utilisé pour toutes les entrées de vent dans l'ensemble du projet.",
@@ -894,6 +899,9 @@
     "loading": "Chargement…",
     "loadError": "Impossible de charger le manuel.",
     "autoTranslatedNotice": "Cette traduction a été générée automatiquement et n'a pas encore été relue. Certaines formulations peuvent être imprécises — consultez la version anglaise pour le texte de référence."
+  },
+  "thanks": {
+    "loadError": "Impossible de charger la liste des remerciements."
   },
   "targets": {
     "plate40x60": {

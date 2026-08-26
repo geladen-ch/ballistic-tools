@@ -149,7 +149,10 @@
     "viewLicenseLink": "Vollständigen Lizenztext anzeigen",
     "contactHeading": "Kontakt",
     "contactText": "Fragen, Feedback oder Support-Anfragen bitte über die Kontaktseite von geladen.ch — nicht über diese App.",
-    "contactLink": "Kontaktseite von geladen.ch öffnen"
+    "contactLink": "Kontaktseite von geladen.ch öffnen",
+    "thanksHeading": "Offizieller Dank",
+    "thanksText": "Die Menschen und Projekte, die diese App möglich gemacht haben.",
+    "thanksLink": "Dankesliste ansehen"
   },
   "trajectory": {
     "title": "Flugbahn",
@@ -683,6 +686,7 @@
     "rangeSolverIndicatorLabel": "Anzeigesymbole im Feldrechner",
     "rangeSolverIndicatorArrows": "Pfeile",
     "rangeSolverIndicatorSigns": "+ / −",
+    "rangeSolverIndicatorUdlr": "U/D, L/R",
     "dragModelsHeading": "Ballistische Modelle",
     "dragModelsHint": "Blenden Sie nicht genutzte Standard-Luftwiderstandsmodelle aus, um die Modellauswahl übersichtlicher zu machen. Ein ausgeblendetes Modell bleibt dort verfügbar, wo es bereits ausgewählt ist — das Ausblenden ändert keine bestehende Auswahl.",
     "csvExportHeading": "CSV-Export",
@@ -860,6 +864,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v145": "Fehlerbehebung: Korrektur, wie der Feldrechner bei den Eingabefeldern für Distanz und Windgeschwindigkeit mit nicht-metrischen Einheiten umgeht – Rundung und Schrittweite. (Props an 6.5SH.) Neu: Option „U/D, L/R“ für die Ausgabe-Anzeigesymbole des Feldrechners hinzugefügt (nicht übersetzt).",
       "v144": "Das letzte der Werkzeuge wurde auf die neue Suite-Plattform portiert: der Gewehr-Präzisionsrechner (früher bekannt als „Taran“) – vielleicht die kontroverseste, anstößigste, ego-zertrümmerndste, stolzverletzendste, demütigendste, entmutigendste und am meisten Butthurt auslösende Software, die ich je geschrieben habe. Außerdem: automatische Migration der Standortdaten vom alten Speicher-Backend auf das neue, etwas UI-Politur, sowie eine Aktualisierung des Benutzerhandbuchs, die alles seit v136 (2.2) abbildet. Das alles rechtfertigt einen Major-Versionssprung und einen großartigen neuen Versionsnamen.",
       "v143": "IndexedDB-Speicher-Backend implementiert und die Speicherung der Standortdaten darauf umgestellt.",
       "v142": "Neue Maßeinheits-Einstellung – Windgeschwindigkeit – unabhängig von der allgemeinen Geschwindigkeit, verwendet für alle Windeingaben im gesamten Projekt.",
@@ -894,6 +899,9 @@
     "loading": "Wird geladen…",
     "loadError": "Das Handbuch konnte nicht geladen werden.",
     "autoTranslatedNotice": "Diese Übersetzung wurde automatisch erstellt und noch nicht überprüft. Einige Formulierungen können ungenau sein — die maßgebliche Fassung finden Sie in der englischen Version."
+  },
+  "thanks": {
+    "loadError": "Die Dankesliste konnte nicht geladen werden."
   },
   "targets": {
     "plate40x60": {

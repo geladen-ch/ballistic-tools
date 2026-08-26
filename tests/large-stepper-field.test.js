@@ -8,6 +8,7 @@ const { initI18n } = await import('../src/i18n.js');
 await initI18n();
 
 const { setUnit, resetUnits } = await import('../src/prefs.js');
+const { displaySpanToEngine } = await import('../src/units.js');
 const { largeStepperField } = await import('../src/ui/large-stepper-field.js');
 
 function findByClass(node, className, out = []) {
@@ -88,4 +89,25 @@ test('respects a non-metric wind speed preference — displays and steps in fps,
   // ft/s displays with 0 decimals (see units.js) — 5 m/s rounds to 16 ft/s.
   assert.equal(number.value, '16');
   assert.ok(Math.abs(field.getEngineValue() - 4.877) < 0.05, `getEngineValue() was ${field.getEngineValue()}`);
+});
+
+test('a `decimals` override rounds to that precision instead of the unit choice\'s own default (ft/s normally rounds to 0)', () => {
+  setUnit('windSpeed', 'ft/s');
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 10, step: 1, value: 5, decimals: 1 });
+  const [number] = findInputs(field.node);
+  assert.equal(number.value, '16.4');
+});
+
+test('a `decimals` override also keeps stepper clicks free of floating-point noise', () => {
+  setUnit('windSpeed', 'mph');
+  // Mirrors range-solver-view.js's own call: a "1 mph" step handed in as
+  // its engine-unit (m/s) equivalent, which engineSpanToDisplay() then
+  // converts back to mph internally — the round trip that used to leave
+  // noise like 0.9999999999999999 in the displayed value.
+  const step = displaySpanToEngine('windSpeed', 1, 'mph');
+  const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step, value: 0, decimals: 1 });
+  const [number] = findInputs(field.node);
+  const [, incButton] = findByClass(field.node, 'large-stepper-btn');
+  fireEvent(incButton, 'click');
+  assert.equal(number.value, 1);
 });

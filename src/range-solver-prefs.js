@@ -70,11 +70,13 @@ const DEFAULT_INDICATOR_STYLE = 'signs';
 
 // Which glyphs the elevation/windage readout's direction indicator uses
 // (see range-solver-view.js's own INDICATOR_GLYPHS) — "signs" (+/−, the
-// default, with + meaning up for elevation and right for windage) or
-// "arrows" (↑↓←→).
+// default, with + meaning up for elevation and right for windage),
+// "arrows" (↑↓←→), or "udlr" (U/D/L/R letters, same +=up/+=right
+// convention as signs).
 export const INDICATOR_STYLE_CHOICES = [
   { value: 'signs', labelKey: 'settings.rangeSolverIndicatorSigns' },
-  { value: 'arrows', labelKey: 'settings.rangeSolverIndicatorArrows' }
+  { value: 'arrows', labelKey: 'settings.rangeSolverIndicatorArrows' },
+  { value: 'udlr', labelKey: 'settings.rangeSolverIndicatorUdlr' }
 ];
 
 export function getIndicatorStyle() {

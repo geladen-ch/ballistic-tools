@@ -149,7 +149,10 @@
     "viewLicenseLink": "Visualizza il testo completo della licenza",
     "contactHeading": "Contatti",
     "contactText": "Per domande, feedback o richieste di assistenza, usa la pagina dei contatti di geladen.ch — non questa app.",
-    "contactLink": "Apri la pagina dei contatti di geladen.ch"
+    "contactLink": "Apri la pagina dei contatti di geladen.ch",
+    "thanksHeading": "Ringraziamenti ufficiali",
+    "thanksText": "Le persone e i progetti che hanno contribuito a rendere possibile questa app.",
+    "thanksLink": "Visualizza l'elenco dei ringraziamenti"
   },
   "trajectory": {
     "title": "Traiettoria",
@@ -683,6 +686,7 @@
     "rangeSolverIndicatorLabel": "Indicatori di output del Calcolatore per il poligono",
     "rangeSolverIndicatorArrows": "Frecce",
     "rangeSolverIndicatorSigns": "+ / −",
+    "rangeSolverIndicatorUdlr": "U/D, L/R",
     "dragModelsHeading": "Modelli balistici",
     "dragModelsHint": "Nascondi i modelli di resistenza standard che non usi, per snellire il selettore del modello. Un modello nascosto resta disponibile ovunque sia già selezionato — nasconderlo non modifica mai una scelta esistente.",
     "csvExportHeading": "Esportazione CSV",
@@ -860,6 +864,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v145": "Correzione: risolto il modo in cui i campi Distanza e Velocità del vento del Calcolatore per il poligono gestiscono le unità non metriche — arrotondamento e passo d'incremento. (Grazie a 6.5SH.) Novità: aggiunta l'opzione «U/D, L/R» per gli indicatori di output del Calcolatore per il poligono (non tradotta).",
       "v144": "L'ultimo degli strumenti è stato portato sulla nuova piattaforma della suite: ecco il Calcolatore di precisione di tiro (in precedenza noto come «Taran») – forse il software più controverso, offensivo, ego-distruttivo, orgoglio-ferente, umiliante, demoralizzante e «butthurt»-inducente che abbia mai scritto. C'è anche la migrazione automatica dei dati delle postazioni dal vecchio back-end di archiviazione al nuovo, qualche rifinitura dell'interfaccia, e l'aggiornamento del manuale utente per riflettere tutto ciò che è successo dalla v136 (2.2) in poi. Tutto questo giustifica un salto di versione maggiore, e un fantastico nuovo nome in codice della versione.",
       "v143": "Implementato un back-end di archiviazione IndexedDB e migrata a esso l'archiviazione dei dati delle postazioni.",
       "v142": "Nuova impostazione di unità – velocità del vento – separata dalla velocità generale, usata per tutti gli input relativi al vento in tutto il progetto.",
@@ -894,6 +899,9 @@
     "loading": "Caricamento…",
     "loadError": "Impossibile caricare il manuale.",
     "autoTranslatedNotice": "Questa traduzione è stata generata automaticamente e non è ancora stata revisionata. Alcune espressioni potrebbero essere imprecise — per il testo di riferimento consulta la versione inglese."
+  },
+  "thanks": {
+    "loadError": "Impossibile caricare l'elenco dei ringraziamenti."
   },
   "targets": {
     "plate40x60": {

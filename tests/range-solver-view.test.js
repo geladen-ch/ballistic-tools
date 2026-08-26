@@ -20,6 +20,7 @@ const {
   saveRangeSolverTargetState, wasAtmosphereTouchedThisSession
 } = await import('../src/range-solver-state.js');
 const { setIndicatorStyle } = await import('../src/range-solver-prefs.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 const { getCookie } = await import('../src/cookies.js');
 const { saveUserLocation, loadUserLocations, resetLocationLibraryForTests } = await import('../src/location-library.js');
 const { generateUserId } = await import('../src/user-library.js');
@@ -40,6 +41,7 @@ test.beforeEach(async () => {
   resetRangeSolverNavForTests();
   resetRangeSolverStateForTests();
   setIndicatorStyle('signs'); // restore the default so it doesn't leak into other tests
+  resetUnits(); // ditto — several tests below change distance/wind-speed unit prefs
   await resetLocationLibraryForTests();
 });
 
@@ -211,6 +213,25 @@ test('the "Arrows" indicator style (a Settings preference, opted into over the "
   cleanup();
 });
 
+test('the "U/D, L/R" indicator style shows U for up-elevation and R for a right (positive) windage correction', async () => {
+  setIndicatorStyle('udlr');
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const [elevationValue] = findByClass(container, 'range-solver-click-value');
+  assert.match(elevationValue.textContent, /^U\d+$/);
+
+  const windSpeedInput = findById(container, 'windSpeed');
+  windSpeedInput.value = '5';
+  fireEvent(windSpeedInput, 'input');
+
+  const [, windageValue] = findByClass(container, 'range-solver-click-value');
+  assert.match(windageValue.textContent, /^[RL]\d+$/);
+
+  cleanup();
+});
+
 test('changing the target range recomputes the elevation readout live, no Calculate button', async () => {
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
@@ -226,6 +247,80 @@ test('changing the target range recomputes the elevation readout live, no Calcul
   const [elevationValueAfter] = findByClass(container, 'range-solver-click-value');
   assert.notEqual(elevationValueAfter.textContent, before, 'a farther target should need more elevation correction');
   assert.equal(findByTag(container, 'BUTTON').some((b) => /calculate/i.test(b.textContent)), false);
+
+  cleanup();
+});
+
+test('target range default depends on the distance unit: 500 m, 500 yd, or 1500 ft', async () => {
+  for (const [unit, expected] of [['m', 500], ['yd', 500], ['ft', 1500]]) {
+    setUnit('distance', unit);
+    const container = makeElement('main');
+    const cleanup = rangeSolverView.mount(container);
+    await settle();
+    assert.equal(Number(findById(container, 'targetRange').value), expected, `unit ${unit}`);
+    cleanup();
+  }
+});
+
+test('target range stepper is 50 m, 50 yd, or 100 ft depending on the distance unit', async () => {
+  for (const [unit, expected] of [['m', 50], ['yd', 50], ['ft', 100]]) {
+    setUnit('distance', unit);
+    const container = makeElement('main');
+    const cleanup = rangeSolverView.mount(container);
+    await settle();
+    assert.equal(Number(findById(container, 'targetRange').step), expected, `unit ${unit}`);
+    cleanup();
+  }
+});
+
+test('wind speed always defaults to 0, regardless of the wind-speed unit', async () => {
+  for (const unit of ['m/s', 'ft/s', 'mph', 'km/h']) {
+    setUnit('windSpeed', unit);
+    const container = makeElement('main');
+    const cleanup = rangeSolverView.mount(container);
+    await settle();
+    assert.equal(Number(findById(container, 'windSpeed').value), 0, `unit ${unit}`);
+    cleanup();
+  }
+});
+
+test('wind speed stepper is 0.5 m/s, 1 mph, or 1 ft/s depending on the wind-speed unit', async () => {
+  for (const [unit, expected] of [['m/s', 0.5], ['mph', 1], ['ft/s', 1]]) {
+    setUnit('windSpeed', unit);
+    const container = makeElement('main');
+    const cleanup = rangeSolverView.mount(container);
+    await settle();
+    assert.equal(Number(findById(container, 'windSpeed').step), expected, `unit ${unit}`);
+    cleanup();
+  }
+});
+
+test('clicking the target range stepper in yards adds a clean 50 yd, with no floating-point noise', async () => {
+  setUnit('distance', 'yd');
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const rangeInput = findById(container, 'targetRange');
+  const incButton = rangeInput.parentNode.childNodes[2];
+  fireEvent(incButton, 'click');
+
+  assert.equal(rangeInput.value, 550);
+
+  cleanup();
+});
+
+test('clicking the wind speed stepper in mph adds a clean 1 mph, with no floating-point noise', async () => {
+  setUnit('windSpeed', 'mph');
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const windInput = findById(container, 'windSpeed');
+  const incButton = windInput.parentNode.childNodes[2];
+  fireEvent(incButton, 'click');
+
+  assert.equal(windInput.value, 1);
 
   cleanup();
 });

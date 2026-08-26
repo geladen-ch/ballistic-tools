@@ -98,6 +98,19 @@ function contactCard() {
   ]);
 }
 
+// THANKS.md is one file shared by every locale (it's multi-lingual on its
+// own), so unlike the other About cards this link never varies with the
+// current language — see thanks-view.js.
+function officialThanksCard() {
+  return el('div', { class: 'card' }, [
+    el('h3', { i18n: 'home.thanksHeading' }),
+    el('p', { i18n: 'home.thanksText' }),
+    el('p', {}, [
+      el('a', { href: '#/thanks', i18n: 'home.thanksLink' })
+    ])
+  ]);
+}
+
 export function mount(container) {
   clear(container);
   container.appendChild(
@@ -113,7 +126,7 @@ export function mount(container) {
       groupSection(GROUPS.shooting),
       el('div', { class: 'home-pinned-row' }, PINNED.map((p) => (p.id === 'guns' ? gunsPinnedLink() : pinnedLink(p)))),
       el('h2', { class: 'home-about-heading', i18n: 'home.aboutHeading' }),
-      el('div', { class: 'category-grid' }, [versionCard(), privacyCard(), licenseCard(), contactCard()])
+      el('div', { class: 'category-grid' }, [versionCard(), privacyCard(), licenseCard(), contactCard(), officialThanksCard()])
     ])
   );
 }
