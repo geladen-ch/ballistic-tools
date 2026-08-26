@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -68,7 +69,7 @@ test('a cookie value survives a fresh module load (session-to-session persistenc
 
   // Force a genuinely fresh module instance (bypassing the ESM cache) to
   // simulate a new page load reading back whatever was persisted.
-  const fresh = await import(`../src/prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getUnit('altitude'), 'ft');
 
   resetUnits();
@@ -79,7 +80,7 @@ test('an existing legacy localStorage value is migrated into the cookie on load,
   const legacyKey = 'ballistics-tools:unit-prefs:v1';
   localStorage.setItem(legacyKey, JSON.stringify({ distance: 'yd' }));
 
-  const fresh = await import(`../src/prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getUnit('distance'), 'yd');
   assert.equal(localStorage.getItem(legacyKey), null, 'legacy key should be cleared after migrating');
 

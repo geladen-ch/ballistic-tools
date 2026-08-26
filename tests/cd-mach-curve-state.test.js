@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -46,7 +47,7 @@ test('persists to a single cookie a fresh module load would pick up', async () =
   saveCdMachCurveAtmosphereState({ atmospherePreset: 'swiss', tempC: 7, pressureHpa: 925.3, humidityPct: 0 });
   assert.ok(getCookie(COOKIE_NAME), 'expected the state cookie to be written');
 
-  const fresh = await import(`../src/cd-mach-curve-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/cd-mach-curve-state.js?reload=${freshId()}`);
   assert.deepEqual(fresh.loadCdMachCurveAtmosphereState(), {
     atmospherePreset: 'swiss', altitudeM: 0, tempC: 7, pressureHpa: 925.3, humidityPct: 0
   });
@@ -87,7 +88,7 @@ test('saving the inputs slice never touches the atmosphere slice, and vice versa
 test('inputs persist to the same single cookie a fresh module load would pick up', async () => {
   saveCdMachCurveInputsState({ velocityTableText: '0 850\n100 800\n200 750', massKg: 0.0092 });
 
-  const fresh = await import(`../src/cd-mach-curve-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/cd-mach-curve-state.js?reload=${freshId()}`);
   assert.deepEqual(fresh.loadCdMachCurveInputsState(), { velocityTableText: '0 850\n100 800\n200 750', massKg: 0.0092 });
 });
 
