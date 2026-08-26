@@ -18,12 +18,10 @@ Rechners selbst zu verletzen, ist das Ihr eigenes Problem — wer bin ich,
 mich der natürlichen Auslese in den Weg zu stellen?
 
 Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**,
-der **Feldrechner**, **Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge** und
-**Einstellungen** — sowie die **Trefferwahrscheinlichkeit**, die für ihre
-aktuellen Szenarien nutzbar ist, aber noch aktiv weiterentwickelt wird.
-Alles andere auf der Startseite ist am Ende unter
-**Geplant / in Arbeit**
-aufgeführt.
+der **Feldrechner**, **Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge**, der
+**Gewehr-Präzisionsrechner** und **Einstellungen** — sowie die
+**Trefferwahrscheinlichkeit**, die für ihre aktuellen Szenarien nutzbar ist,
+aber noch aktiv weiterentwickelt wird.
 
 ---
 
@@ -81,10 +79,10 @@ Symbole aktuell dasselbe Bild; nur die Namen unterscheiden sich.
 
 ## Flugbahn
 
-Berechnet eine vollständige Tabelle und ein Diagramm für Fall, Windabtrieb,
-Geschwindigkeit und Flugzeit für das aktive Gewehr, die aktive Patrone und
-das aktive Geschoss (festgelegt unter **Waffen**, unten), mit einem
-Punktmassen-RK4-Integrator.
+Geschosse fliegen nicht geradeaus, so sehr Sie sich das auch wünschen mögen.
+Flugbahn verfolgt den gesamten Flug — Fall, Windabtrieb, Geschwindigkeit,
+Flugzeit — für Ihr Gewehr und Ihre Ladung (festgelegt unter **Waffen**,
+unten), auf jede Distanz, die Sie interessiert.
 
 **Die Eingaben** beginnen mit dem aktiven Gewehr und der aktiven Ladung, als
 kurze Zusammenfassung mit einer Schaltfläche **Ändern** zurück zu Waffen,
@@ -324,15 +322,17 @@ Ihre eigene Bibliothek aus Gewehren und Geschossen, nur auf diesem Gerät
 gespeichert (lokaler Speicher des Browsers) — nichts davon verlässt jemals
 Ihren Browser.
 
-**Integrierte Bibliotheken.** Die App wird mit einer integrierten Bibliothek
-gängiger Gewehre und Geschosse ausgeliefert, die neben allem angezeigt wird,
-was Sie selbst hinzufügen (Ihre eigenen Einträge sind mit einem
-vorangestellten „*" gekennzeichnet). Wenn Sie nicht möchten, dass die
-integrierten Einträge Ihre Auswahllisten überladen — etwa weil Sie
-ausschließlich eigene, selbst geladene Daten verwenden — **schalten Sie sie
-einzeln in Einstellungen → Allgemein ab** („Integrierte Gewehrbibliothek
-anzeigen" / „Integrierte Geschossbibliothek anzeigen"). Ihre eigenen
-gespeicherten Einträge sind davon in keinem Fall betroffen.
+**Integrierte Bibliotheken.** Die App wird mit einer integrierten
+Gewehrbibliothek und drei integrierten Geschossbibliotheken ausgeliefert —
+**Geladen's own** („Die Sammlung des Autors"), **Lapua Cd** (Radar-gemessene
+Cd-Mach-Kurven, wie vom Hersteller veröffentlicht) und **Hornady Reverse
+Radar** (eigene Cd-Mach-Kurven, zurückentwickelt aus der Ausgabe des
+Hornady-4DOF-Rechners) — die alle neben allem angezeigt werden, was Sie
+selbst hinzufügen (Ihre eigenen Einträge sind mit einem vorangestellten „*"
+gekennzeichnet). Jede davon lässt sich **einzeln in Einstellungen
+abschalten**, falls Sie nicht möchten, dass sie Ihre Auswahllisten
+überladen. Ihre eigenen gespeicherten Einträge sind davon in keinem Fall
+betroffen.
 
 **Einträge hinzufügen und verwalten.** Fügen Sie ein Geschoss entweder
 komplett von Hand hinzu (Name, Kaliber, Masse, BC/Luftwiderstandsmodell oder
@@ -344,6 +344,8 @@ Mündungsgeschwindigkeit). Klicken Sie ein Gewehr an, um es oben als
 „Aktives Gewehr" anzuzeigen, mit seinen eigenen Patronen und einer
 Bearbeiten-Schaltfläche; die dort gewählte Patrone ist es, die „Fertig"
 als aktive Konfiguration überall übernimmt, sobald Sie Waffen verlassen.
+Das Herstellerfeld schlägt automatisch Namen aus allen aktivierten
+Bibliotheken sowie Ihrem eigenen Arsenal vor.
 
 Kaliber- und Herstellerfilter verkürzen lange Listen. Ein Geschoss oder
 Gewehr, das bearbeitet, aber noch nicht exportiert wurde, zeigt das
@@ -371,8 +373,8 @@ heruntergeladen** werden.
 
 Ermittelt einen ballistischen Koeffizienten aus bekannten Daten, oder
 rechnet einen BC zwischen verschiedenen Modellen um — zusammengefasst in
-einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung** und
-**BC-Labradar** zusammengefasst, alle bereits voll nutzbar.
+einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung**,
+**Mehrere BC** und **BC-Labradar**, alle bereits voll nutzbar.
 
 Die **BC-Berechnung** ermittelt einen ballistischen Koeffizienten aus einem
 nahen Geschwindigkeits-/Distanzpaar und entweder einer fernen Geschwindigkeit
@@ -399,6 +401,18 @@ ist, da unterschiedliche Luftwiderstandsmodelle über den Geschwindigkeitsbereic
 unterschiedlich geformte Kurven haben. Beide Modell-Auswahllisten zeigen
 immer alle Standardmodelle, unabhängig davon, welche in den Einstellungen
 andernorts ein- oder ausgeblendet sind.
+
+**Mehrere BC** wandelt 2–5 vom Hersteller veröffentlichte BC-Werte, jeweils
+gültig für einen bestimmten Geschwindigkeitsbereich, in eine
+geschossspezifische Cd-Mach-Kurve um — ziehen Sie die Segmentgrenzen direkt
+im Diagramm, oder tragen Sie sie in die Tabelle darunter ein. Geben Sie
+Masse und Kaliber ein (beide beeinflussen direkt die resultierende Kurve
+und die optimalen BC-Werte darunter — bitte genau eingeben), wählen Sie ein
+Luftwiderstandsmodell und eine Geschwindigkeitseinheit; Kurve und
+Ergebnistabelle aktualisieren sich dabei live. Das Ergebnis lässt sich
+direkt ins Arsenal speichern, als CSV herunterladen/kopieren, oder als ein
+einzelner „optimaler Kompromiss"-BC pro Modell über den eigenen
+Überschallbereich des Geschosses ablesen.
 
 **BC-Labradar** ermittelt pro Schuss einen BC aus einem
 Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das
@@ -503,15 +517,106 @@ Sie **Berechnet (roh, pro Abschnitt)** oder **Interpoliert (geglättet)**
 als Quelle neben der Schaltfläche. Erst aktiviert, sobald ein Ergebnis
 vorliegt.
 
+## Gewehr-Präzisionsrechner
+
+Misst die tatsächliche Präzision eines Gewehrs anhand von Fotos beschossener
+Papierscheiben — kein Laser-Entfernungsmesser, keine besondere Ausrüstung
+nötig, nur ein Handyfoto von einem Lineal und Ihren Einschusslöchern. Die
+Arbeit gliedert sich in **Projekte** (eine Kombination aus Gewehr, Ladung
+und Distanz) → **Zielscheiben** (je ein Foto) → **Gruppen** (ein Zielpunkt
+und die darauf abgegebenen Schüsse) — und bündelt jede auswertbare Gruppe
+auf jeder auswertbaren Zielscheibe eines Projekts zu einem einzigen,
+kombinierten Präzisionsbericht.
+
+**Projekte.** Ein Projekt hat einen Namen, die Distanz zum Ziel und das
+Kaliber — für jede Zielscheibe und jede Gruppe darin wird angenommen, dass
+auf dieselbe Distanz mit demselben Kaliber geschossen wurde. **In Datei
+sichern** / **Bibliothek in Datei sichern…** / **Sicherung aus Datei
+laden…**, oben sowie pro Projekt, sichern bzw. stellen Projekte genauso
+wieder her, wie das Arsenal es für Gewehre und Geschosse tut — nichts davon
+verlässt jemals Ihren Browser.
+
+**Eine Zielscheibe hinzufügen.** Wählen Sie ein Foto der beschossenen
+Scheibe (bei Bedarf drehen, dann bestätigen) — das führt direkt in die
+Markierung:
+
+- **Maßstab kalibrieren** — tippen Sie auf zwei Punkte mit bekanntem
+  Abstand (ein auf die Zielscheibe gelegtes Lineal, oder ein beliebiges
+  Merkmal bekannter Länge), und geben Sie anschließend diese reale Länge
+  ein. **Kalibrierung abschließen** fährt fort; **Neu kalibrieren** ruft die
+  Kalibrierung später erneut auf, ohne die vorhandenen Punkte zu verlieren.
+- **Zielpunkt festlegen** — tippen Sie dorthin, wohin bei dieser Gruppe
+  gezielt wurde.
+- **Treffer markieren** — tippen Sie auf jedes Einschussloch; weitertippen
+  fügt weitere hinzu. Jeder gesetzte Punkt (Kalibrierung, Zielpunkt,
+  Treffer) lässt sich nachträglich per Ziehen verschieben. **Treffer
+  löschen** wechselt in einen Modus, in dem das Antippen der eigenen Nummer
+  eines Treffers ihn entfernt.
+- Eine Zielscheibe kann mehrere **Gruppen** enthalten (z. B. mehr als eine
+  5-Schuss-Gruppe auf demselben Blatt) — wechseln Sie zwischen ihnen oder
+  beginnen Sie über die Gruppenauswahl eine neue. Jede Gruppenzeile zeigt
+  ihre Schusszahl und den **ES**-Wert (Extreme Spread — der Abstand
+  zwischen den beiden am weitesten auseinanderliegenden Treffern).
+- **Gruppenübersichtsbild speichern** lädt ein PNG der gerade aktiven
+  Gruppe wie markiert herunter, zugeschnitten auf den aktuell
+  gezoomten/verschobenen Ausschnitt.
+
+Eine Zielscheibe braucht eine Kalibrierung, einen Zielpunkt und mindestens
+einen Treffer, um auswertbar zu sein; fehlt eines davon, zeigen ein
+Abzeichen und ein Hinweis genau an, was noch fehlt.
+
+**Der Bericht** („Bericht anzeigen", sobald mindestens eine Zielscheibe
+auswertbar ist) bündelt jeden Schuss jeder auswertbaren Gruppe und
+Zielscheibe — jeder Schuss gemessen relativ zum Zielpunkt seiner eigenen
+Gruppe, sodass auch auf unterschiedliche Stellen des Blatts gezielte
+Gruppen korrekt zusammengeführt werden — zu einem einzigen Satz von
+Statistiken:
+
+- Eine Auswahl **Anzeigeeinheiten der Ergebnisse** (Ihre eigene
+  eingestellte Einheit, mrad oder MOA) bestimmt jeden Wert in der Legende
+  und der Tabelle „Zahlen" darunter.
+- **Aggregierte Ergebnisse** — das gebündelte Streudiagramm — und ihre
+  **Legende** stehen nebeneinander. Nur die Treffer selbst, der Zielpunkt
+  und der mittlere Treffpunkt werden immer eingezeichnet; alles Weitere
+  ist optional.
+- Die Tabelle **Zahlen** listet jede Kennzahl auf (Vertrauensintervall,
+  mittlerer Treffpunkt, Standardabweichung, R50/R95/R99 — der Radius eines
+  Kreises, in dem 50/95/99 % der Treffer erwartet werden —, das
+  Vertrauensintervall von R95, sowie ES5x/ES10x, die durchschnittlich
+  erwartete Streuung (ES) einer 5- bzw. 10-Schuss-Gruppe) mit einer
+  Checkbox **Im Bild anzeigen** pro Zeile, die die jeweilige Kennzahl
+  zugleich im Diagramm, in der Legende und im exportierten Bild ergänzt.
+- **Bildoptionen** — Gitter (mrad- oder MOA-Abstand), maßstabsgetreu
+  gezeichnete Treffer, eine 1-MOA-Referenz, ein per Schieberegler
+  gesteuerter Trefferwahrscheinlichkeitsradius, ein Maßstabsbalken, sowie
+  **Legende mit Ergebnisbild speichern** (standardmäßig aktiv) für den
+  SVG-Export weiter unten.
+- Der **Vertrauensmesser** bewertet, wie sehr einer Gruppe dieser Größe
+  tatsächlich zu trauen ist — wenige Schüsse und ein breites
+  Vertrauensintervall landen deutlich unter der „Bullshit-Schwelle";
+  genug Schüsse, und die Bewertung klettert Richtung „Hervorragend
+  (IDKFA!)". Das fließt auch in den SVG-Export ein, wo es den reinen
+  Vertrauensintervall-Text ersetzt.
+- **CSV exportieren** lädt die rohen Koordinaten jedes gebündelten Schusses
+  herunter; das kleine Symbol neben „Aggregierte Ergebnisse"
+  **exportiert das Diagramm als SVG** — inklusive Legende und
+  Vertrauensmesser, sofern die entsprechende Checkbox aktiv ist.
+
+Jede dieser Einstellungen — Anzeigeeinheiten, welche Kennzahlen im Bild
+erscheinen, Gitter, Bildoptionen, Position des Schiebereglers — wird
+gespeichert und beim nächsten Öffnen dieses Berichts wiederhergestellt,
+selbst nach einem Neustart der App.
+
 ## Einstellungen
 
 - **Sprache** — English, Français, Русский, Deutsch, Italiano.
 - **Einheiten** — eine bevorzugte Einheit pro Messgröße (Geschwindigkeit,
-  Distanz, kleine Längen, Höhe, Temperatur, Druck, Winkelstreuung, Energie),
-  metrisch und imperial frei mischbar; gilt überall dort, wo die Messgröße
-  vorkommt.
-- **Integrierte Bibliotheken** — integrierte Gewehr- und
-  Geschossbibliotheken ein-/ausblenden (siehe **Waffen** oben).
+  Windgeschwindigkeit, Distanz, kleine Längen, Höhe, Temperatur, Druck,
+  Winkelstreuung, Energie), metrisch und imperial frei mischbar; gilt
+  überall dort, wo die Messgröße vorkommt.
+- **Integrierte Bibliotheken** — die integrierte Gewehrbibliothek und jede
+  der drei integrierten Geschossbibliotheken einzeln ein-/ausblenden (siehe
+  **Waffen** oben).
 - **Ballistische Modelle** — einzelne Standard-Luftwiderstandsmodelle (G1,
   G7, ...) in jeder Modellauswahl der App ein-/ausblenden, um sie auf die
   tatsächlich genutzten zu reduzieren. Ein ausgeblendetes Modell bleibt
@@ -532,14 +637,3 @@ vorliegt.
 - **CSV-Export** — das Feldtrennzeichen (Komma/Semikolon/Tabulator) und das
   Dezimaltrennzeichen (Punkt/Komma) für den CSV-Download und das Kopieren in
   der Flugbahn. Wählen Sie das Paar, das Ihre Tabellenkalkulation erwartet.
-
----
-
-## Geplant / in Arbeit
-
-Auf der Startseite aufgeführt, aber noch nicht nutzbar:
-
-- **Präzisionsrechner für Gewehre** — Gewehrpräzision anhand von Bildern von
-  Zielscheiben mit Treffern messen.
-
-Schauen Sie später wieder vorbei.

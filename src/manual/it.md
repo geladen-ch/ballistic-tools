@@ -19,9 +19,9 @@ naturale?
 
 Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**,
 il **Calcolatore per il poligono**, **Armi**, **Curva Cd-Mach**, **Strumenti
-BC** e **Impostazioni** — oltre a **Probabilità di colpire**, utilizzabile
-per i suoi scenari attuali ma ancora in sviluppo attivo. Tutto il resto
-nella Home è elencato alla fine, sotto **Pianificato / in corso**.
+BC**, il **Calcolatore di precisione di tiro** e **Impostazioni** — oltre a
+**Probabilità di colpire**, utilizzabile per i suoi scenari attuali ma
+ancora in sviluppo attivo.
 
 ---
 
@@ -79,9 +79,10 @@ solo il nome.
 
 ## Traiettoria
 
-Calcola una tabella completa di caduta/deriva/velocità/tempo di volo e un
-grafico per il fucile, la cartuccia e il proiettile attivi (impostati in
-**Armi**, sotto), usando un integratore RK4 a massa puntiforme.
+Un proiettile non vola mai in linea retta, per quanto tu lo desideri.
+Traiettoria segue l'intero volo — caduta, deriva, velocità, tempo di volo —
+per il fucile e la carica che hai impostato in **Armi**, qui sotto, a ogni
+distanza che ti interessa.
 
 **I parametri** partono dal fucile e dalla carica attivi, mostrati come un
 breve riepilogo con un pulsante **Cambia** verso Armi, seguito da una
@@ -318,13 +319,15 @@ questo dispositivo (archiviazione locale del browser) — nulla qui lascia
 mai il tuo browser.
 
 **Librerie integrate.** L'app include una libreria integrata di fucili e
-proiettili comuni, mostrata accanto a tutto ciò che aggiungi tu stesso (le
-tue voci personali sono contrassegnate da un "*" iniziale). Se non vuoi che
-le voci integrate affollino i tuoi elenchi di selezione — ad esempio se usi
-solo i tuoi dati personalizzati — **disattivale singolarmente in
-Impostazioni → Generale** ("Mostra libreria fucili integrata" / "Mostra
-libreria proiettili integrata"). Le tue voci salvate non sono influenzate in
-nessuno dei due casi.
+tre librerie integrate di proiettili — **Geladen's own** (la collezione
+dell'autore), **Lapua Cd** (curve Cd-Mach misurate al radar da Lapua, come
+pubblicate dal produttore) e **Hornady Reverse Radar** (curve Cd-Mach
+personalizzate, ricavate tramite reverse engineering dall'output del
+calcolatore Hornady 4DOF) — mostrate accanto a tutto ciò che aggiungi tu
+stesso (le tue voci personali sono contrassegnate da un "*" iniziale).
+Ciascuna può essere **disattivata singolarmente in Impostazioni** se non
+vuoi che affollino i tuoi elenchi di selezione; le tue voci salvate non ne
+sono influenzate in nessun caso.
 
 **Aggiungere e gestire le voci.** Aggiungi un proiettile completamente da
 zero (nome, calibro, massa, BC/modello di resistenza o una tabella Cd-Mach
@@ -334,7 +337,9 @@ dei click, quindi collega una o più cartucce (ciascuna con il proprio
 proiettile e la propria velocità alla volata). Fai clic su un fucile per
 renderlo il "Fucile attivo" mostrato in alto, con le sue cartucce e un
 pulsante Modifica; la cartuccia scelta lì è quella che "Fatto" applica come
-configurazione attiva ovunque, una volta usciti da Armi.
+configurazione attiva ovunque, una volta usciti da Armi. Il campo produttore
+si completa automaticamente attingendo a ogni libreria attiva più il tuo
+Arsenale personale.
 
 I filtri per calibro e produttore riducono elenchi lunghi. Un proiettile o
 un fucile modificato ma non ancora esportato mostra un badge "Non salvato".
@@ -361,8 +366,8 @@ come SVG**.
 
 Calcola un coefficiente balistico da dati noti, oppure converte un BC tra
 modelli diversi — raggruppati in un unico strumento con le schede
-**Calcolo BC**, **Conversione BC** e **BC Labradar**, già tutte pienamente
-utilizzabili.
+**Calcolo BC**, **Conversione BC**, **BC multipli** e **BC Labradar**, già
+tutte pienamente utilizzabili.
 
 Il **Calcolo BC** ricava un coefficiente balistico da una coppia
 velocità/distanza vicina e da una velocità lontana oppure da un tempo di
@@ -386,6 +391,18 @@ di resistenza diversi hanno curve di forma diversa lungo la gamma di
 velocità. Entrambi gli elenchi dei modelli mostrano sempre tutti i modelli
 standard, indipendentemente da quali siano nascosti altrove nelle
 Impostazioni.
+
+**BC multipli** trasforma 2-5 valori di BC pubblicati dal produttore,
+ciascuno valido per una propria fascia di velocità, in una curva Cd-Mach
+specifica per questo proiettile — trascina i confini dei segmenti
+direttamente sul grafico, oppure digitali nella tabella sottostante.
+Inserisci massa e calibro (influiscono entrambi direttamente sulla curva
+risultante e sui valori di BC ottimali qui sotto — inseriscili con
+precisione), scegli un modello di resistenza e un'**unità di velocità**, e
+la curva e la tabella dei risultati si aggiornano in tempo reale a ogni
+modifica. Il risultato può essere salvato direttamente nell'Arsenale,
+scaricato/copiato come CSV, oppure letto come un unico BC "di compromesso
+ottimale" per modello, sulla gamma supersonica propria del proiettile.
 
 **BC Labradar** calcola un BC per ogni colpo a partire da un'esportazione
 del cronografo Labradar — uno **.zip** di file di traccia che il
@@ -489,15 +506,106 @@ dell'Arsenale, con massa, calibro e tabella Cd-Mach precompilati — scegli
 sorgente accanto al pulsante. Attivo solo quando è disponibile un
 risultato.
 
+## Calcolatore di precisione di tiro
+
+Misura la precisione reale del fucile a partire da foto di bersagli di
+carta — niente telemetro laser né attrezzatura sofisticata, solo la foto di
+un righello e dei tuoi fori di proiettile scattata con il telefono.
+Organizza il lavoro in **Progetti** (una combinazione fucile/carica/
+distanza) → **Bersagli** (una foto ciascuno) → **Gruppi** (un punto di mira
+e i colpi sparati su di esso) — e raggruppa ogni gruppo utilizzabile di
+ogni bersaglio utilizzabile di un progetto in un unico rapporto di
+precisione combinato.
+
+**Progetti.** Un progetto ha un nome, la distanza dal bersaglio e il
+calibro — ogni bersaglio e gruppo al suo interno si presume sparato a
+quella stessa distanza con quello stesso calibro. **Backup su file** /
+**Backup della libreria su file…** / **Carica backup da file…**, in alto e
+per singolo progetto, eseguono il backup o ripristinano i progetti allo
+stesso modo dell'Arsenale per fucili e proiettili — nulla qui lascia mai il
+tuo browser.
+
+**Aggiungere un bersaglio.** Scegli una foto del foglio bersaglio (ruotala
+se necessario, poi conferma), il che apre direttamente la fase di
+marcatura:
+
+- **Calibra la scala** — tocca due punti a distanza nota tra loro (un
+  righello appoggiato sul bersaglio, o qualsiasi elemento di lunghezza
+  nota), poi digita quella lunghezza reale. **Fine calibrazione** procede;
+  **Ricalibra** permette di rivedere la calibrazione in seguito senza
+  perdere i punti già inseriti.
+- **Indica il punto di mira** — tocca il punto verso cui è stato mirato
+  questo gruppo.
+- **Segna i colpi** — tocca ogni foro di proiettile; continua a toccare per
+  aggiungerne altri. Ogni punto posizionato (calibrazione, punto di mira,
+  colpi) può essere trascinato per aggiustarlo in seguito. **Elimina
+  colpo** passa a una modalità in cui toccare il numero di un colpo lo
+  rimuove.
+- Un foglio bersaglio può contenere più **gruppi** (ad es. più di un gruppo
+  da 5 colpi stampati sullo stesso foglio) — passa dall'uno all'altro o
+  avviane uno nuovo dal selettore di gruppo. La riga di ogni gruppo mostra
+  il suo conteggio colpi e l'**ES** (extreme spread, la distanza tra i suoi
+  due impatti più distanti tra loro).
+- **Salva immagine panoramica del gruppo** scarica un PNG del gruppo
+  attualmente attivo così come marcato, ritagliato in base allo
+  zoom/spostamento attuale.
+
+Un bersaglio necessita di calibrazione, punto di mira e almeno un colpo per
+essere utilizzabile; se manca qualcosa, un badge e un suggerimento indicano
+esattamente cosa resta da fare.
+
+**Il rapporto** (**Vedi rapporto**, disponibile appena almeno un bersaglio
+è utilizzabile) raggruppa ogni colpo di ogni gruppo e bersaglio
+utilizzabile — ciascun colpo misurato rispetto al punto di mira del
+proprio gruppo, così che gruppi mirati in punti diversi del foglio si
+combinino comunque correttamente — in un unico insieme di statistiche:
+
+- Un selettore di **unità di visualizzazione dei risultati** (la tua unità
+  configurata, mrad o MOA) governa ogni valore nella legenda e nella
+  tabella Numeri sottostanti.
+- **Risultati aggregati** — il grafico a dispersione dei colpi raggruppati
+  — e la sua **Legenda** sono affiancati. Solo gli impatti stessi, il punto
+  di mira e il punto medio di impatto vengono sempre disegnati; tutto il
+  resto è facoltativo.
+- La tabella **Numeri** elenca ogni statistica (intervallo di confidenza,
+  media degli impatti, deviazione standard, R50/R95/R99 — il raggio del
+  cerchio in cui si prevede cada rispettivamente il 50/95/99% degli
+  impatti — l'intervallo di confidenza dell'R95, ed ES5x/ES10x,
+  l'estensione media prevista per un gruppo di 5 e 10 colpi) con una
+  casella **Mostra nell'immagine** per riga, che la aggiunge al diagramma,
+  alla legenda e all'immagine esportata.
+- **Opzioni immagine** — sovrapposizione **Griglia** (passo in mrad o
+  MOA), **Colpi in scala** (disegnati al diametro reale del calibro), un
+  **Riferimento 1 MOA**, un **Raggio di probabilità di colpire** regolato
+  da un cursore, una **Scala**, e **Salva la legenda con l'immagine dei
+  risultati** (attivo per impostazione predefinita) per l'esportazione SVG
+  qui sotto.
+- Il **Confidenziometro** valuta quanto ci si possa davvero fidare di un
+  gruppo di questa dimensione — pochi colpi e un ampio intervallo di
+  confidenza ti lasciano ben al di sotto della "soglia stronzate";
+  abbastanza colpi e sale verso "Magnifico". È incorporato anche
+  nell'esportazione SVG, dove sostituisce il semplice testo dell'intervallo
+  di confidenza.
+- **Esporta CSV** scarica le coordinate grezze di ogni colpo raggruppato;
+  la piccola icona accanto a Risultati aggregati **salva il diagramma come
+  immagine** SVG — con legenda e indicatore di confidenza inclusi se quella
+  casella è attiva.
+
+Ognuna di queste impostazioni — unità di visualizzazione, quali numeri
+compaiono sull'immagine, griglia, opzioni immagine, posizione del cursore —
+viene ricordata e ripristinata la prossima volta che apri questo rapporto,
+anche dopo un riavvio dell'app.
+
 ## Impostazioni
 
 - **Lingua** — English, Français, Русский, Deutsch, Italiano.
 - **Unità** — un'unità preferita per ogni tipo di misura (velocità,
-  distanza, lunghezze ridotte, altitudine, temperatura, pressione,
-  dispersione angolare, energia), mescolando liberamente metrico e
-  imperiale; si applica ovunque compaia quella misura.
-- **Librerie integrate** — mostra/nascondi le librerie integrate di fucili
-  e proiettili (vedi **Armi** sopra).
+  velocità del vento, distanza, lunghezze ridotte, altitudine, temperatura,
+  pressione, dispersione angolare, energia), mescolando liberamente metrico
+  e imperiale; si applica ovunque compaia quella misura.
+- **Librerie integrate** — mostra/nascondi la libreria integrata di fucili
+  e ciascuna delle tre librerie integrate di proiettili singolarmente
+  (vedi **Armi** sopra).
 - **Modelli balistici** — mostra/nascondi i singoli modelli di resistenza
   standard (G1, G7, ...) in ogni selettore di modello dell'app, per
   ridurlo a quelli che usi davvero. Un modello nascosto resta disponibile
@@ -519,14 +627,3 @@ risultato.
   virgola/tabulazione) e il separatore decimale (punto/virgola) usati dal
   download e dalla copia CSV di Traiettoria. Scegli la coppia attesa dal
   tuo foglio di calcolo.
-
----
-
-## Pianificato / in corso
-
-Elencati nella Home ma non ancora utilizzabili:
-
-- **Calcolatore di precisione dell'arma** — misurare la precisione dell'arma
-  usando immagini di bersagli con impatti.
-
-Ricontrolla quando saranno disponibili.

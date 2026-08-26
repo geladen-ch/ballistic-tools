@@ -17,11 +17,10 @@ de détourner un calculateur balistique au point de vous blesser, ça vous
 regarde — qui suis-je pour faire obstacle à la sélection naturelle ?
 
 Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**, le
-**Calculateur de terrain**, **Armes**, **Courbe Cd-Mach**, **Outils BC** et
-**Paramètres** — ainsi que **Probabilité d'impact**, utilisable pour ses
-scénarios actuels mais encore en développement actif.
-Tout le reste sur la page d'accueil est listé à la fin, sous **Prévu / en
-développement**.
+**Calculateur de terrain**, **Armes**, **Courbe Cd-Mach**, **Outils BC**, la
+**Calculette de précision de tir** et **Paramètres** — ainsi que
+**Probabilité d'impact**, utilisable pour ses scénarios actuels mais encore
+en développement actif.
 
 ---
 
@@ -85,9 +84,10 @@ même image ; seuls les noms diffèrent.
 
 ## Trajectoire
 
-Calcule une table complète de chute/dérive/vitesse/temps de vol ainsi qu'un
-graphique, pour la carabine, la cartouche et la balle actives (définies dans
-**Armes**, ci-dessous), à l'aide d'un intégrateur RK4 à masse ponctuelle.
+Une balle ne vole jamais en ligne droite, même si vous le voudriez.
+Trajectoire en suit tout le vol — chute, dérive, vitesse, temps de vol —
+pour la carabine et la munition configurées dans **Armes**, ci-dessous, à
+toutes les distances qui vous intéressent.
 
 **Les paramètres** commencent par la carabine et la cartouche actives, affichées
 sous forme d'un court résumé avec un bouton **Modifier** vers Armes, puis une
@@ -326,14 +326,16 @@ cet appareil (stockage local du navigateur) — rien ici ne quitte jamais
 votre navigateur.
 
 **Bibliothèques intégrées.** L'application est fournie avec une bibliothèque
-intégrée de carabines et balles courantes, affichée à côté de tout ce que
-vous ajoutez vous-même (vos propres entrées sont marquées d'un « * » en
-préfixe). Si vous ne voulez pas que les entrées intégrées encombrent vos
-listes de sélection — par exemple si vous n'utilisez que vos propres données
-personnalisées — **désactivez-les individuellement dans Paramètres →
-Général** (« Afficher la bibliothèque de carabines intégrée » / « Afficher
-la bibliothèque de balles intégrée »). Vos propres entrées enregistrées ne
-sont affectées dans aucun des deux cas.
+intégrée de carabines et trois bibliothèques intégrées de balles — **Geladen's
+own** (« La collection de l'auteur »), **Lapua Cd** (courbes Cd-Mach mesurées
+au radar par Lapua, telles que publiées par le fabricant) et **Hornady
+Reverse Radar** (courbes Cd-Mach personnalisées, obtenues par
+rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF) —
+affichées à côté de tout ce que vous ajoutez vous-même (vos propres entrées
+sont marquées d'un « * » en préfixe). Chacune peut être **désactivée
+individuellement dans Paramètres** si vous ne voulez pas qu'elle encombre vos
+listes de sélection ; vos propres entrées enregistrées ne sont affectées dans
+aucun cas.
 
 **Ajouter et gérer des entrées.** Ajoutez une balle soit entièrement à la
 main (nom, calibre, masse, BC/modèle de traînée ou une table Cd-Mach
@@ -343,7 +345,9 @@ de clic, puis attachez-lui une ou plusieurs cartouches (chacune avec sa
 propre balle et vitesse initiale). Cliquez sur une carabine pour en faire la
 « Carabine active » affichée en haut, avec ses propres cartouches et un
 bouton Modifier ; la cartouche choisie là est celle que « Terminé » applique
-comme configuration active partout, une fois que vous quittez Armes.
+comme configuration active partout, une fois que vous quittez Armes. Le
+champ fabricant se complète automatiquement à partir de toutes les
+bibliothèques activées et de votre propre Arsenal.
 
 Les filtres par calibre et fabricant réduisent les longues listes. Une balle
 ou une carabine modifiée mais pas encore exportée affiche un badge « Non
@@ -371,8 +375,8 @@ zoom/déplacement et peut être **téléchargé en SVG**.
 
 Calcule un coefficient balistique à partir de données connues, ou convertit
 un BC entre différents modèles — regroupés sous un seul outil avec les
-onglets **Calcul BC**, **Conversion BC** et **BC Labradar**, tous déjà
-pleinement utilisables.
+onglets **Calcul BC**, **Conversion BC**, **BC multiples** et **BC
+Labradar**, tous déjà pleinement utilisables.
 
 Le **Calcul BC** déduit un coefficient balistique à partir d'une paire
 vitesse/distance proche et soit une vitesse éloignée, soit un temps de vol
@@ -396,6 +400,19 @@ vitesse réelle de votre balle s'en éloigne, car les différents modèles de
 traînée ont des courbes de forme différente selon la vitesse. Les deux
 listes de modèles affichent toujours tous les modèles standard, quels que
 soient ceux masqués ailleurs par les Paramètres.
+
+**BC multiples** transforme 2 à 5 valeurs de BC publiées par le fabricant,
+chacune valable sur sa propre plage de vitesse, en une courbe Cd-Mach propre
+à cette balle — faites glisser les bornes de segment directement sur le
+graphique, ou saisissez-les dans le tableau en dessous. Indiquez la masse et
+le calibre (les deux influencent directement la courbe résultante et les
+valeurs de BC optimales ci-dessous — saisissez-les avec précision), choisissez
+un modèle de traînée et une unité de vitesse, et le graphique ainsi que le
+tableau de résultats se mettent à jour en direct au fur et à mesure. Le
+résultat peut
+être enregistré directement dans l'Arsenal, téléchargé/copié en CSV, ou lu
+comme un seul BC de « compromis optimal » par modèle sur la plage
+supersonique propre à la balle.
 
 **BC Labradar** ajuste un BC par coup à partir d'un export du chronographe
 Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur
@@ -498,15 +515,100 @@ pré-remplis — choisissez **Calculé (brut, par segment)** ou **Interpolé
 (lissé)** comme source à côté du bouton. Actif uniquement une fois un
 résultat obtenu.
 
+## Calculette de précision de tir
+
+Mesure la précision réelle d'une carabine à partir de photos de cibles
+papier — pas besoin de télémètre laser ni de matériel sophistiqué, juste une
+photo au téléphone d'une règle et de vos trous de balle. Organise le travail
+en **Projets** (une combinaison carabine/charge/distance) → **Cibles** (une
+photo chacune) → **Séries** (un point de visée et les coups tirés dessus) —
+puis regroupe chaque série utilisable de chaque cible utilisable d'un projet
+en un seul rapport de précision combiné.
+
+**Projets.** Un projet a un nom, la distance à la cible et le calibre —
+chaque cible et chaque série qu'il contient est supposée tirée à cette même
+distance avec ce même calibre. **Sauvegarder dans un fichier** /
+**Sauvegarder la bibliothèque dans un fichier…** / **Charger une sauvegarde
+depuis un fichier…**, en haut et par projet, sauvegardent ou restaurent les
+projets de la même façon que l'Arsenal pour les carabines et les balles —
+rien ici ne quitte jamais votre navigateur.
+
+**Ajouter une cible.** Choisissez une photo de la cible papier (pivotez-la
+si nécessaire, puis confirmez), ce qui ouvre directement le marquage :
+
+- **Calibrer l'échelle** — touchez deux points séparés d'une distance
+  connue (une règle posée sur la cible, ou tout élément de longueur connue),
+  puis saisissez cette longueur réelle. **Terminer l'étalonnage** passe à la
+  suite ; **Recalibrer** permet d'y revenir plus tard sans perdre les points
+  déjà placés.
+- **Indiquer le point de visée** — touchez l'endroit visé par cette série.
+- **Marquer les impacts** — touchez chaque trou de balle ; continuez à
+  toucher pour en ajouter d'autres. Chaque point placé (calibration, point
+  de visée, impacts) peut ensuite être glissé pour l'ajuster. **Supprimer un
+  impact** bascule vers un mode où toucher le numéro d'un coup le supprime.
+- Une cible papier peut contenir plusieurs **séries** (par exemple plusieurs
+  groupements de 5 coups imprimés sur la même feuille) — passez de l'une à
+  l'autre ou commencez-en une nouvelle depuis le sélecteur de séries. La
+  ligne de chaque série indique son nombre de coups et sa **Disp. max.**
+  (dispersion maximale — la distance entre ses deux impacts les plus
+  éloignés).
+- **Enregistrer l'image d'ensemble de la série** télécharge un PNG de la
+  série actuellement active telle que marquée, recadré selon le
+  zoom/déplacement en cours.
+
+Une cible doit être calibrée, avoir un point de visée et au moins un impact
+pour être utilisable ; s'il en manque un, un badge et une indication
+précisent exactement ce qu'il reste à faire.
+
+**Le rapport** (« Voir le rapport », dès qu'au moins une cible est
+utilisable) regroupe chaque coup de chaque série et cible utilisable —
+chaque coup étant mesuré par rapport au point de visée de sa propre série,
+si bien que des séries visées à des endroits différents de la feuille se
+combinent quand même correctement — en un seul jeu de statistiques :
+
+- Un sélecteur d'**Unités d'affichage des résultats** (votre propre unité
+  configurée, mrad, ou MOA) régit toutes les valeurs de la légende et du
+  tableau Chiffres ci-dessous.
+- **Résultats agrégés** — le nuage de points combiné — et sa **Légende**
+  sont côte à côte. Seuls les impacts eux-mêmes, le point de visée et le
+  point d'impact moyen sont toujours dessinés ; tout le reste est optionnel.
+- Le tableau **Chiffres** liste toutes les statistiques (intervalle de
+  confiance, moyenne des impacts, écart type, R50/R95/R99 — le rayon d'un
+  cercle dans lequel 50/95/99 % des impacts sont attendus — l'intervalle de
+  confiance du R95, et ES5x/ES10x, l'écart maximal moyen attendu pour un
+  groupement de 5 et de 10 coups) avec une case **Afficher sur l'image** par
+  ligne qui l'ajoute à la fois au diagramme, à la légende et à l'image
+  exportée.
+- **Options de l'image** — grille (espacement en mrad ou en MOA),
+  **Impacts à l'échelle** du calibre réel, un cercle de **Référence 1 MOA**,
+  un cercle de **Rayon de probabilité d'impact** piloté par un curseur, une
+  **Échelle**, et **Enregistrer la légende avec l'image des résultats**
+  (activé par défaut) pour l'export SVG ci-dessous.
+- L'**Indice de confiance** évalue à quel point une série de cette taille
+  peut réellement être crue — peu de coups et un large intervalle de
+  confiance vous placent bien en dessous du « seuil de foutaises » ; assez
+  de coups et il grimpe vers « Excellent ». Il est aussi intégré à l'export
+  SVG, où il remplace le simple texte de l'intervalle de confiance.
+- **Exporter en CSV** télécharge les coordonnées brutes de chaque coup
+  combiné ; la petite icône à côté de Résultats agrégés **exporte le
+  diagramme en SVG** — avec la légende et l'indice de confiance inclus si
+  cette case est cochée.
+
+Chacun de ces réglages — unités d'affichage, chiffres affichés sur l'image,
+grille, options de l'image, position du curseur — est mémorisé et restauré
+la prochaine fois que vous ouvrez ce rapport, même après un redémarrage de
+l'application.
+
 ## Paramètres
 
 - **Langue** — English, Français, Русский, Deutsch, Italiano.
-- **Unités** — une unité préférée par type de mesure (vitesse, distance,
-  petites longueurs, altitude, température, pression, dispersion angulaire,
-  énergie), mélangeant librement métrique et impérial ; s'applique partout
-  où cette mesure apparaît.
-- **Bibliothèques intégrées** — afficher/masquer les bibliothèques intégrées
-  de carabines et de balles (voir **Armes** ci-dessus).
+- **Unités** — une unité préférée par type de mesure (vitesse, vitesse du
+  vent, distance, petites longueurs, altitude, température, pression,
+  dispersion angulaire, énergie), mélangeant librement métrique et
+  impérial ; s'applique partout où cette mesure apparaît.
+- **Bibliothèques intégrées** — afficher/masquer la bibliothèque intégrée de
+  carabines et chacune des trois bibliothèques intégrées de balles
+  individuellement (voir **Armes** ci-dessus).
 - **Modèles balistiques** — afficher/masquer chaque modèle de traînée
   standard (G1, G7, ...) dans tous les sélecteurs de modèle de l'application,
   pour n'y garder que ceux que vous utilisez réellement. Un modèle masqué
@@ -527,14 +629,3 @@ résultat obtenu.
   tabulation) et le séparateur décimal (point/virgule) utilisés par le
   téléchargement et la copie CSV de Trajectoire. Choisissez la paire
   attendue par votre tableur.
-
----
-
-## Prévu / en développement
-
-Listés sur la page d'accueil mais pas encore utilisables :
-
-- **Calculateur de précision de carabine** — mesurer la précision de la
-  carabine à partir d'images de cibles avec impacts.
-
-Revenez voir leur arrivée.

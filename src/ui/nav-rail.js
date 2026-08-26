@@ -30,6 +30,10 @@ import { isInLocationsMode, onLocationsModeChange } from '../locations-nav.js';
 import {
   isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
 } from '../location-placement-nav.js';
+import {
+  isInMarkingMode, onMarkingModeChange,
+  requestZoomIn as requestMarkingZoomIn, requestZoomOut as requestMarkingZoomOut, requestDone as requestMarkingDone
+} from '../rifle-precision-nav.js';
 import { statusChip } from './status-chip.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
@@ -78,6 +82,11 @@ export function mountNavRail(container) {
     if (isInPlacementMode()) {
       container.className = 'app-rail placement-mode';
       container.appendChild(buildPlacementMode());
+      return;
+    }
+    if (isInMarkingMode()) {
+      container.className = 'app-rail rp-marking-mode';
+      container.appendChild(buildMarkingMode());
       return;
     }
     if (isInLocationsMode()) {
@@ -168,6 +177,21 @@ export function mountNavRail(container) {
     const doneBtn = el('button', { type: 'button', class: 'done-btn' }, [checkIcon(13), el('span', { i18n: 'guns.doneButton' })]);
     doneBtn.addEventListener('click', () => requestDone());
     return el('nav', { class: 'rail-inner rail-placement-mode' }, [zoomInBtn, zoomOutBtn, doneBtn]);
+  }
+
+  // Replaces the whole rail while the Rifle Precision Calculator's own
+  // full-screen marking route is open (see rifle-precision-nav.js) —
+  // same shape as buildPlacementMode() just above, reusing its exact
+  // zoom/done icons and i18n strings (Zoom In/Out/Done read the same
+  // regardless of which full-screen photo workflow is open).
+  function buildMarkingMode() {
+    const zoomInBtn = el('button', { type: 'button', class: 'guns-tab' }, [zoomInIcon(13), el('span', { i18n: 'rangeSolverLocations.zoomInButton' })]);
+    zoomInBtn.addEventListener('click', () => requestMarkingZoomIn());
+    const zoomOutBtn = el('button', { type: 'button', class: 'guns-tab' }, [zoomOutIcon(13), el('span', { i18n: 'rangeSolverLocations.zoomOutButton' })]);
+    zoomOutBtn.addEventListener('click', () => requestMarkingZoomOut());
+    const doneBtn = el('button', { type: 'button', class: 'done-btn' }, [checkIcon(13), el('span', { i18n: 'guns.doneButton' })]);
+    doneBtn.addEventListener('click', () => requestMarkingDone());
+    return el('nav', { class: 'rail-inner rail-rp-marking-mode' }, [zoomInBtn, zoomOutBtn, doneBtn]);
   }
 
   function pinnedLink(path, nameKey, iconFn, currentP) {
@@ -347,6 +371,7 @@ export function mountNavRail(container) {
   onRangeSolverTabChange(render);
   onLocationsModeChange(render);
   onPlacementModeChange(render);
+  onMarkingModeChange(render);
   window.addEventListener('hashchange', render);
   return { render };
 }

@@ -194,6 +194,11 @@ a { color: var(--accent); }
 }
 .hint { font-size: 11px; color: var(--dim); margin-top: 3px; }
 .hint.warning { color: var(--danger); }
+/* A lower-severity sibling to .hint.warning — same --accent amber the
+   .status-chip-marginal/-partial states already use for "needs attention
+   but not broken", e.g. a Rifle Precision project where only some targets
+   are unusable (see rifle-precision-view.js's own projectUsabilityHint()). */
+.hint.caution { color: var(--accent); }
 /* A positive, "read this" callout rather than a warning — e.g. the
    cartridge form's "select existing or add new" bullet hint (src/ui/
    arsenal/cartridge-form.js), which sits above a decision point rather

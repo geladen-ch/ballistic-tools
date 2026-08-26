@@ -32,6 +32,10 @@ import {
   isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
 } from '../location-placement-nav.js';
 import {
+  isInMarkingMode, onMarkingModeChange,
+  requestZoomIn as requestMarkingZoomIn, requestZoomOut as requestMarkingZoomOut, requestDone as requestMarkingDone
+} from '../rifle-precision-nav.js';
+import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon, settingsIcon,
   targetIcon, windIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
@@ -82,6 +86,11 @@ export function mountNavTabbar(container) {
     if (isInPlacementMode()) {
       container.className = 'app-tabbar placement-mode';
       for (const item of buildPlacementModeItems()) container.appendChild(item);
+      return;
+    }
+    if (isInMarkingMode()) {
+      container.className = 'app-tabbar rp-marking-mode';
+      for (const item of buildMarkingModeItems()) container.appendChild(item);
       return;
     }
     if (isInLocationsMode()) {
@@ -192,6 +201,19 @@ export function mountNavTabbar(container) {
     return [zoomInBtn, zoomOutBtn, doneBtn];
   }
 
+  // Replaces the whole tab bar while the Rifle Precision Calculator's own
+  // full-screen marking route is open — see nav-rail.js's own
+  // buildMarkingMode() for the desktop equivalent of this exact same idea.
+  function buildMarkingModeItems() {
+    const zoomInBtn = el('button', { type: 'button', class: 'tab-item' }, [zoomInIcon(19), labelSpan(t('rangeSolverLocations.zoomInButton'))]);
+    zoomInBtn.addEventListener('click', () => requestMarkingZoomIn());
+    const zoomOutBtn = el('button', { type: 'button', class: 'tab-item' }, [zoomOutIcon(19), labelSpan(t('rangeSolverLocations.zoomOutButton'))]);
+    zoomOutBtn.addEventListener('click', () => requestMarkingZoomOut());
+    const doneBtn = el('button', { type: 'button', class: 'tab-item' }, [checkIcon(19), labelSpan(t('guns.doneButton'))]);
+    doneBtn.addEventListener('click', () => requestMarkingDone());
+    return [zoomInBtn, zoomOutBtn, doneBtn];
+  }
+
   render();
   onLanguageChange(render);
   onGunsModeChange(render);
@@ -199,6 +221,7 @@ export function mountNavTabbar(container) {
   onRangeSolverTabChange(render);
   onLocationsModeChange(render);
   onPlacementModeChange(render);
+  onMarkingModeChange(render);
   window.addEventListener('hashchange', render);
   return { render };
 }

@@ -57,7 +57,7 @@ const TOOL_DEFS = [
 
   { id: 'bc-tools', group: 'measurement', path: '/bc-tools', nameKey: 'catalog.bcTools', descKey: 'catalog.bcToolsDesc' },
   { id: 'cd-mach-curve', group: 'measurement', path: '/cd-mach-curve', nameKey: 'catalog.cdMachCurve', descKey: 'catalog.cdMachCurveDesc' },
-  { id: 'group-size-photo', group: 'measurement', path: null, nameKey: 'catalog.groupSizePhoto', descKey: 'catalog.groupSizePhotoDesc' },
+  { id: 'rifle-precision', group: 'measurement', path: '/rifle-precision', nameKey: 'catalog.riflePrecision', descKey: 'catalog.riflePrecisionDesc' },
 
   { id: 'range-solver', group: 'shooting', path: '/range-solver', nameKey: 'catalog.rangeSolver', descKey: 'catalog.rangeSolverDesc' }
 ];

@@ -70,17 +70,22 @@ test('every tool row shows its name, a status chip, and a description', () => {
   assert.ok(bcRow.textContent.includes(t('catalog.bcToolsDesc')));
 });
 
-test('a live tool is a real link; a planned tool is not', () => {
+test('a live tool is a real link', () => {
+  // The planned-tool-renders-as-a-disabled-div half of this used to check
+  // against the "Rifle precision calculator" placeholder here, but that
+  // tool is live now (see nav-tools.js) — every tool the catalog
+  // currently exposes in a rail listing has a real route (toolsInGroup()
+  // also hides range-card, its one remaining planned entry, via
+  // HIDDEN_IDS). nav-rail.js's own toolItem() isn't exported for a
+  // synthetic-object check the way category-view.js's toolCard() is, but
+  // it branches on tool.path the exact same way, and that branch is
+  // covered by category-view.test.js's "a live tool renders as a link to
+  // its route; a planned one does not" test.
   const container = makeElement('nav');
   mountNavRail(container);
 
   const links = findByTag(container, 'A');
   assert.ok(links.some((a) => a.getAttribute('href') === '#/bc-tools'));
-
-  const plannedRow = findByClass(container, 'rail-tool').find((row) => row.textContent.includes(t('catalog.groupSizePhoto')));
-  assert.ok(plannedRow, 'expected a row for the planned Rifle precision calculator tool');
-  assert.equal(plannedRow.tagName, 'DIV');
-  assert.ok(plannedRow.className.includes('disabled'));
 });
 
 test('the tool matching the current route is highlighted active', () => {

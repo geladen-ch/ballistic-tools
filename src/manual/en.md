@@ -16,10 +16,9 @@ calculator into hurting yourself, that's on you — who am I to get in the
 way of natural selection?
 
 This manual covers the fully functional tools — **Trajectory**, **Range
-Solver**, **Guns**, **Cd–Mach Curve**, **BC Tools**, and **Settings** — plus
-**Hit Probability**, usable for its current scenarios but still under active
-development. Everything else on Home is listed at the end, under **Planned /
-work in progress**.
+Solver**, **Guns**, **Cd–Mach Curve**, **BC Tools**, **Rifle Precision
+Calculator**, and **Settings** — plus **Hit Probability**, usable for its
+current scenarios but still under active development.
 
 ---
 
@@ -73,9 +72,10 @@ the names differ.
 
 ## Trajectory
 
-Computes a full drop/windage/velocity/time-of-flight table and chart for the
-active rifle, cartridge, and bullet (set on **Guns**, below), using a
-point-mass RK4 integrator.
+Bullets don't fly in straight lines, no matter how much you'd like them to.
+Trajectory tracks the whole flight — drop, wind drift, velocity, time of
+flight — for your rifle and load (set on **Guns**, below), at every distance
+you care about.
 
 **Inputs** start with the active rifle and load, shown as a short summary
 with a **Change** button back to Guns, plus an Atmosphere section, and a
@@ -282,13 +282,14 @@ for reuse.
 Your own library of rifles and bullets, stored only on this device
 (browser local storage) — nothing here ever leaves your browser.
 
-**Built-in libraries.** The app ships with a built-in library of common
-rifles and bullets, shown alongside anything you add yourself (your own
-entries are marked with a leading `*`). If you don't want the built-in
-entries cluttering your pickers — e.g. you only ever use your own hand-loaded
-data — **turn them off individually in Settings → General** ("Show built-in
-rifles library" / "Show built-in bullets library"). Your own saved entries
-are unaffected either way.
+**Built-in libraries.** The app ships with a built-in rifle library and
+three built-in bullet libraries — **Geladen's own**, **Lapua Cd**
+(radar-measured Cd-Mach curves as published by the vendor), and **Hornady
+Reverse Radar** (curves reverse-engineered from Hornady's own 4DOF
+calculator output) — shown alongside anything you add yourself (your own
+entries are marked with a leading `*`). Each one can be **turned off
+individually in Settings** if you don't want it cluttering your pickers;
+your own saved entries are unaffected either way.
 
 **Adding and managing entries.** Add a bullet either from scratch (name,
 caliber, mass, BC/drag model or a pasted Cd-Mach table) or by copying a
@@ -297,7 +298,8 @@ range, and scope click settings, then attach one or more cartridges to it
 (each with its own bullet and muzzle velocity). Click a rifle to make it the
 "Active rifle" shown at the top, with its own cartridges and an Edit button;
 picking one of those cartridges there is what Done applies as the active
-configuration used everywhere, once you leave Guns.
+configuration used everywhere, once you leave Guns. The manufacturer field
+autocompletes from every enabled library plus your own Arsenal.
 
 Caliber and manufacturer filters narrow long lists. A bullet or rifle you've
 edited but not yet exported shows an "Unsaved" badge.
@@ -321,7 +323,8 @@ as an SVG**.
 
 Calculate a ballistic coefficient from known data, or convert a BC between
 different models — grouped under one tool with **BC Calculation**, **BC
-Conversion**, and **BC Labradar** tabs, all fully usable today.
+Conversion**, **Multiple BC**, and **BC Labradar** tabs, all fully usable
+today.
 
 **BC Calculation** backs out a ballistic coefficient from a near
 velocity/range and either a far velocity or a measured time of flight
@@ -343,6 +346,15 @@ and drifts the further your bullet's actual velocity strays from it, since
 different drag models have differently-shaped curves across the speed
 range. Both model pickers always list every standard model, regardless of
 which ones Settings shows or hides elsewhere.
+
+**Multiple BC** turns 2–5 manufacturer-published BC values, each valid over
+its own speed band, into a bullet-specific Cd-Mach curve — drag the segment
+borders directly on the chart, or type them into the table below it. Enter
+mass and caliber (both affect the resulting curve, and the optimal BC
+values below it, directly — get them right), pick a drag model and speed
+unit, and the curve/results table update live as you go. The result can be
+saved straight to Arsenal, downloaded/copied as CSV, or read as a single
+"optimal compromise" BC per model over the bullet's own supersonic range.
 
 **BC Labradar** fits a BC per shot from a Labradar chronograph export — a
 **.zip** of track files the device writes to its SD card, one per shot,
@@ -432,14 +444,88 @@ caliber, and the Cd-Mach table pre-filled — choose **Calculated (raw
 per-segment)** or **Interpolated (smoothed)** as the source next to the
 button. Enabled only once a result exists.
 
+## Rifle Precision Calculator
+
+Measures real rifle precision from photos of paper targets — no laser
+rangefinder or fancy gear, just a phone photo of a ruler and your bullet
+holes. Organizes work as **Projects** (one rifle/load/distance combination)
+→ **Targets** (one photo each) → **Groups** (a point of aim and the shots
+fired at it) — and pools every usable group across every usable target in a
+project into one combined precision report.
+
+**Projects.** A project has a name, the distance to target, and the
+caliber — every target and group inside it is assumed shot at that same
+distance with that same caliber. **Save to file** / **Save library…** /
+**Load library…**, at the top and per-project, back up or restore projects
+the same way Arsenal does for rifles and bullets — nothing here ever leaves
+your browser.
+
+**Adding a target.** Choose a photo of the target sheet (rotate if needed,
+then confirm), which opens straight into marking:
+
+- **Calibrate the scale** — tap two points a known distance apart (a ruler
+  laid on the target, or any feature of known length), then type that
+  real-world length. **Done calibrating** moves on; **Recalibrate** revisits
+  it later without losing the existing points.
+- **Point of aim** — tap where this group was aimed at.
+- **Mark impacts** — tap each bullet hole; keep tapping to add more. Every
+  placed point (calibration, point of aim, impacts) can be dragged to nudge
+  it afterward. **Delete an impact** switches to a mode where tapping a
+  shot's own number removes it.
+- A target sheet can hold several **groups** (e.g. more than one 5-shot
+  group printed on the same sheet) — switch between them or start a new one
+  from the group selector. Each group's own line shows its shot count and
+  **ES** (extreme spread — the distance between its two farthest-apart
+  impacts).
+- **Save group overview image** downloads a PNG of the currently-active
+  group as marked, cropped to whatever you have zoomed/panned to.
+
+A target needs calibration, a point of aim, and at least one impact to be
+usable; one missing any of those shows a badge and a hint spelling out
+exactly what's left.
+
+**The report** ("View report", once at least one target is usable) pools
+every shot from every usable group and target — each shot measured relative
+to its own group's point of aim, so groups aimed at different spots on the
+sheet still combine correctly — into one set of statistics:
+
+- A **results display units** selector (your own configured unit, mrad, or
+  MOA) governs every value in the legend and Numbers table below.
+- **Aggregate results** — the pooled scatterplot — and its **Legend** sit
+  side by side. Only the impacts themselves, the point of aim, and the
+  average point of impact are always drawn; everything else is optional.
+- The **Numbers** table lists every statistic (confidence interval, average
+  point of impact, standard deviation, R50/R95/R99 — the radius containing
+  50/95/99% of impacts — R95's own confidence interval, and ES5x/ES10x, the
+  average expected 5- and 10-shot group size) with a **Show on image**
+  checkbox per row that adds it to the diagram, legend, and exported image
+  alike.
+- **Image options** — grid overlay (mrad or MOA spacing), impacts drawn to
+  true bore scale, a 1-MOA reference circle, a hit-probability circle driven
+  by a slider, a scale bar, and **Save legend with results image** (on by
+  default) for the SVG export below.
+- The **Confidence-o-meter** rates how much a group this size can actually
+  be trusted — few shots and a wide confidence interval land you well below
+  the "bullshit threshold"; enough shots and it climbs toward "Awesome."
+  It's baked into the SVG export too, replacing the plain confidence-
+  interval text.
+- **Export CSV** downloads every pooled shot's raw coordinates; the small
+  icon next to Aggregate results **exports the diagram as SVG** — with the
+  legend and confidence gauge included if that checkbox is on.
+
+Every one of these settings — display units, which numbers show on the
+image, grid, image options, slider position — is remembered and restored
+the next time you open this report, even after restarting the app.
+
 ## Settings
 
 - **Language** — English, Français, Русский, Deutsch, Italiano.
-- **Units** — one preferred unit per measurement kind (velocity, distance,
-  small lengths, altitude, temperature, pressure, angular dispersion, energy),
-  mixed metric/imperial freely; applies everywhere that measurement appears.
-- **Built-in libraries** — show/hide the built-in rifle and bullet libraries
-  (see **Guns** above).
+- **Units** — one preferred unit per measurement kind (velocity, wind speed,
+  distance, small lengths, altitude, temperature, pressure, angular
+  dispersion, energy), mixed metric/imperial freely; applies everywhere
+  that measurement appears.
+- **Built-in libraries** — show/hide the built-in rifle library and each of
+  the three built-in bullet libraries individually (see **Guns** above).
 - **Ballistic models** — show/hide individual standard drag models (G1, G7,
   ...) from every drag-model picker in the app, to declutter it down to the
   ones you actually use. A model you hide stays available wherever it's
@@ -458,14 +544,3 @@ button. Enabled only once a result exists.
 - **CSV export** — the field separator (comma/semicolon/tab) and decimal
   separator (dot/comma) used by Trajectory's CSV download and clipboard copy.
   Pick whichever pair your spreadsheet software expects.
-
----
-
-## Planned / work in progress
-
-Listed on Home but not usable yet:
-
-- **Rifle precision calculator** — measure rifle precision using images of
-  targets with impacts.
-
-Check back as they land.

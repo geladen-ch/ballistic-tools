@@ -5,6 +5,7 @@ import { mountDisplayModeSwitch } from './ui/display-mode-switch.js';
 import { getDisplayMode, onDisplayModeChange } from './display-mode-prefs.js';
 import { onRangeSolverModeChange } from './range-solver-nav.js';
 import { onPlacementModeChange } from './location-placement-nav.js';
+import { onMarkingModeChange } from './rifle-precision-nav.js';
 import { getTheme, onThemeChange } from './range-solver-prefs.js';
 import { mountNavRail } from './ui/nav-rail.js';
 import { mountNavTabbar } from './ui/nav-tabbar.js';
@@ -12,6 +13,8 @@ import { mountTopbarScroll } from './ui/topbar-scroll.js';
 import { mountDialogRoot } from './ui/app-dialog.js';
 import { checkBootVersionChange, watchForLiveUpdate } from './update-notifications.js';
 import { initLocationLibrary } from './location-library.js';
+import { migrateLegacyLocationStorage } from './location-storage-migration.js';
+import { initRiflePrecisionLibrary } from './rifle-precision-library.js';
 import * as homeView from './views/home-view.js';
 import * as trajectoryView from './views/trajectory-view.js';
 import * as bcToolsView from './views/bc-tools-view.js';
@@ -20,6 +23,9 @@ import * as hitProbabilityView from './views/hit-probability-view.js';
 import * as rangeSolverView from './views/range-solver-view.js';
 import * as locationsView from './views/locations-view.js';
 import * as locationPlacementView from './views/location-placement-view.js';
+import * as riflePrecisionView from './views/rifle-precision-view.js';
+import * as riflePrecisionMarkingView from './views/rifle-precision-marking-view.js';
+import * as riflePrecisionAnalysisView from './views/rifle-precision-analysis-view.js';
 import * as settingsView from './views/settings-view.js';
 import * as manualView from './views/manual-view.js';
 import * as releaseHistoryView from './views/release-history-view.js';
@@ -55,6 +61,13 @@ onPlacementModeChange((on) => {
   document.documentElement.classList.toggle('placement-mode', on);
 });
 
+// Same full-screen-photo-takeover idea as placement-mode above, for the
+// Rifle Precision Calculator's own marking workflow (see
+// rifle-precision-nav.js / rifle-precision-marking-view.js).
+onMarkingModeChange((on) => {
+  document.documentElement.classList.toggle('rifle-precision-marking-mode', on);
+});
+
 // Theme (see base.css's .theme-dark/.theme-high-contrast-light/.theme-
 // high-contrast-dark) is app-wide — applied from the very first paint, not
 // just once some view mounts, and re-applied instantly on every Settings
@@ -75,6 +88,7 @@ const views = {
   '/hit-probability': hitProbabilityView,
   '/range-solver': rangeSolverView,
   '/locations': locationsView,
+  '/rifle-precision': riflePrecisionView,
   '/settings': settingsView,
   '/manual': manualView,
   '/release-history': releaseHistoryView
@@ -82,13 +96,18 @@ const views = {
 
 // Every view calls t() while building its DOM, so translations must be
 // loaded and i18next initialized before the very first mount — otherwise
-// the first paint would flash untranslated keys. Locations & Targets'
-// in-memory mirror must be populated the same way: location-placement-view.js
-// and range-solver-view.js both read location data synchronously inside
-// mount()'s top-level body (router.js calls mount() synchronously and
-// expects an immediate return, not a Promise), so the mirror has to be
-// warm before startRouter() ever runs, not lazily per-mount.
-await Promise.all([initI18n(), initLocationLibrary()]);
+// the first paint would flash untranslated keys. Locations & Targets' and
+// Rifle Precision's in-memory mirrors must be populated the same way:
+// their views read the library synchronously inside mount()'s top-level
+// body (router.js calls mount() synchronously and expects an immediate
+// return, not a Promise), so both mirrors have to be warm before
+// startRouter() ever runs, not lazily per-mount.
+await Promise.all([initI18n(), initLocationLibrary(), initRiflePrecisionLibrary()]);
+// One-time import of any pre-v2.9 localStorage location data left behind
+// by the IndexedDB migration — must run after initLocationLibrary() above,
+// since it needs the mirror populated for id-collision checks. See
+// location-storage-migration.js's own comment.
+await migrateLegacyLocationStorage();
 
 mountLanguageSwitcher(document.getElementById('app-lang'));
 mountDisplayModeSwitch(document.getElementById('app-display-mode'));
@@ -112,6 +131,8 @@ registerRoute('/analysis', () => categoryView.mount(view, 'analysis'));
 registerRoute('/guns/custom', () => gunsView.mount(view, 'custom'));
 registerRoute('/guns/arsenal', () => gunsView.mount(view, 'arsenal'));
 registerRoute('/locations/place', () => locationPlacementView.mount(view));
+registerRoute('/rifle-precision/target', () => riflePrecisionMarkingView.mount(view));
+registerRoute('/rifle-precision/analysis', () => riflePrecisionAnalysisView.mount(view));
 
 startRouter('/');
 

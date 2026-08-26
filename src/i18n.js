@@ -74,6 +74,26 @@ export function t(key, options) {
   return i18next.t(key, options);
 }
 
+// For a translation that may deliberately be an empty string (e.g. a
+// two-line label whose second line is blank for some entries) — t() can't
+// tell "present but empty" apart from "missing" here, because this app
+// sets returnEmptyString:false (see initI18n() above) precisely so a
+// genuinely missing key is loud (falls back to showing the raw key) rather
+// than silently rendering blank. That same setting means passing
+// `{ defaultValue: '' }` to t() does NOT work as it looks like it should:
+// i18next only substitutes a defaultValue that is itself truthy, so an
+// empty-string default is indistinguishable from no default at all and
+// t() still falls through to the raw-key fallback (confirmed directly
+// against the vendored i18next, not assumed). getResource() reads the
+// raw stored value straight from the resource bundle, bypassing that
+// missing-key fallback machinery entirely, so an empty string comes back
+// as an empty string. Returns '' for a genuinely missing key too, since
+// every caller of this function wants "the text, or nothing" either way.
+export function tOptional(key) {
+  const raw = i18next.getResource(i18next.language, 'translation', key);
+  return raw === undefined || raw === null ? '' : raw;
+}
+
 export function getLanguage() {
   return i18next.language;
 }

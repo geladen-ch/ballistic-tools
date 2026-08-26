@@ -43,14 +43,18 @@ function loadImage(dataUrl) {
   });
 }
 
-// Always downscales when the picked photo exceeds MAX_DIMENSION_PX on its
-// longest side, re-encoding as JPEG at JPEG_QUALITY; otherwise returns the
+// Always downscales when the picked photo exceeds maxDim on its longest
+// side, re-encoding as JPEG at JPEG_QUALITY; otherwise returns the
 // original data URL untouched — no benefit to re-encoding an already-small
-// photo, and it'd be a needless quality loss.
-export async function processPickedPhoto(file) {
+// photo, and it'd be a needless quality loss. `maxDim` defaults to the
+// shared MAX_DIMENSION_PX (Locations' own cap) so every existing caller is
+// unaffected; the Rifle Precision Calculator passes its own higher cap
+// (see rifle-precision/photo-add-flow.js) since its photos get zoomed in
+// much further to place individual bullet holes precisely.
+export async function processPickedPhoto(file, maxDim = MAX_DIMENSION_PX) {
   const rawDataUrl = await readFileAsDataUrl(file);
   const img = await loadImage(rawDataUrl);
-  const { width, height, scaled } = computeDownscaledDimensions(img.naturalWidth, img.naturalHeight);
+  const { width, height, scaled } = computeDownscaledDimensions(img.naturalWidth, img.naturalHeight, maxDim);
   if (!scaled) return rawDataUrl;
   const canvas = document.createElement('canvas');
   canvas.width = width;

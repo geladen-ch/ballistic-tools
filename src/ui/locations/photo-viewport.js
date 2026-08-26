@@ -11,11 +11,18 @@
 // among them (e.g. a select-mode pin) is automatically left alone by the
 // gesture handling below, so its own click still fires natively.
 //
-// If you also need ONE specific marker to be draggable/tap-to-place
-// (placement mode's own pin), give it `class: 'photo-viewport-marker'`
-// and pass `onMarkerMove` — it's called with the new relative `{x,y}`
-// point on every drag step and on a plain tap on empty background; you
-// own repositioning that marker's own left/top % from there.
+// If you also need marker(s) to be draggable/tap-to-place, give each one
+// `class: 'photo-viewport-marker'` and pass `onMarkerMove` — it's called
+// with the new relative `{x,y}` point on every drag step and on a plain
+// tap on empty background; you own repositioning that marker's own
+// left/top % from there. Several `.photo-viewport-marker` elements can
+// coexist and are each independently draggable (the pointer's own
+// hit-test naturally picks whichever one is literally grabbed) — on a
+// drag-step call (not a tap-on-empty-background call) `onMarkerMove` also
+// receives the actual dragged marker element as a second argument, e.g.
+// `onMarkerMove((point, markerEl) => { ... markerEl.dataset.pointId ... })`,
+// so a caller with more than one marker can tell them apart. Existing
+// single-marker callers that only take one parameter are unaffected.
 //
 // Pass `initialViewport: {scale, tx, ty}` to open already zoomed/panned
 // (e.g. restoring whatever the user last left it at for this same photo)
@@ -45,6 +52,7 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
   let moved = false;
   let panStart = null; // {x, y, tx, ty}
   let pinchStart = null; // {distance, midLocal:{x,y}, scale}
+  let draggedMarkerEl = null; // the .photo-viewport-marker currently being dragged, if any
 
   const img = el('img', { src: photo, alt: '' });
   const markersLayer = el('div', { class: 'photo-viewport-markers' });
@@ -127,6 +135,12 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
       const onMarker = onMarkerMove && e.target.closest('.photo-viewport-marker');
       if (onMarker) {
         gestureMode = 'drag-marker';
+        // Several `.photo-viewport-marker` elements can coexist (each
+        // caller's own choice — this module only ever cares about
+        // whichever one is literally under the pointer for a given
+        // gesture); remembering which one lets onMarkerMove tell them
+        // apart, see the drag-marker branch in pointermove below.
+        draggedMarkerEl = onMarker;
       } else {
         gestureMode = 'pan';
         panStart = { x: e.clientX, y: e.clientY, tx, ty };
@@ -157,7 +171,10 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
       const [p1, p2] = [...activePointers.values()];
       zoomTo(pinchStart.scale * (computeDistance(p1, p2) / pinchStart.distance), pinchStart.midLocal);
     } else if (gestureMode === 'drag-marker') {
-      onMarkerMove(pointToRelative(e.clientX, e.clientY));
+      // Second argument is new — existing single-marker callers (e.g.
+      // location-placement-view.js) take one parameter and simply ignore
+      // it, so this is fully backward compatible.
+      onMarkerMove(pointToRelative(e.clientX, e.clientY), draggedMarkerEl);
     }
   });
 
@@ -181,6 +198,7 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
       moved = true; // a pinch already happened this gesture — never treat the eventual release as a fresh tap
     } else if (activePointers.size === 0) {
       gestureMode = 'none';
+      draggedMarkerEl = null;
     }
     try { widget.releasePointerCapture(e.pointerId); } catch { /* already released — some engines throw */ }
   }

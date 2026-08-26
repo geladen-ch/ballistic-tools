@@ -24,15 +24,9 @@
 // initLocationLibrary() must run once, before any view mounts (see
 // app.js), to populate `mirror` from whatever's already stored.
 import { openDatabase, getAll, put, deleteRecord } from './db.js';
+import { DB_NAME, DB_VERSION, STORES } from './db-schema.js';
 
-const DB_NAME = 'ballistics-tools';
 const STORE_NAME = 'locations';
-// Constant across releases, deliberately unlike service-worker.js's
-// per-CACHE_VERSION cache-busting rename — that pattern is for an
-// ephemeral asset cache; this is durable user data, versioned in place
-// via IndexedDB's own onupgradeneeded mechanism (see db.js) if it ever
-// needs to change.
-const DB_VERSION = 1;
 
 let mirror = [];
 let dbPromise = null;
@@ -44,9 +38,11 @@ let readyPromise = null;
 // posture as this module's own storage-full/disabled handling below).
 let writeChain = Promise.resolve();
 
+// stores: the FULL shared STORES list, not just this module's own store —
+// see db-schema.js's comment on why every store must be declared together.
 function getDb() {
   if (!dbPromise) {
-    dbPromise = openDatabase({ name: DB_NAME, version: DB_VERSION, stores: [{ name: STORE_NAME, keyPath: 'id' }] });
+    dbPromise = openDatabase({ name: DB_NAME, version: DB_VERSION, stores: STORES });
   }
   return dbPromise;
 }
@@ -235,5 +231,14 @@ export async function reloadLocationLibraryForTests() {
 // Lets a test deterministically wait for in-flight background writes to
 // settle before asserting durability, instead of an arbitrary timeout.
 export function flushLocationLibraryWritesForTests() {
+  return writeChain;
+}
+
+// Production-facing equivalent of the test helper above — lets a caller
+// that just enqueued writes (see location-storage-migration.js) wait for
+// them to actually land in IndexedDB before doing something that can't be
+// undone if the write turns out to have failed, e.g. deleting the only
+// other copy of that data.
+export function waitForPendingWrites() {
   return writeChain;
 }

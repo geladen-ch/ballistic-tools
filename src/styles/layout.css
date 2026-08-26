@@ -206,7 +206,7 @@
    below as-is (same visual treatment, same reasoning nav-tabbar.js's own
    Guns-mode items already reuse the plain .tab-item class rather than a
    dedicated one). ---- */
-.rail-guns-mode, .rail-range-solver-mode, .rail-locations-mode, .rail-placement-mode { gap: 6px; }
+.rail-guns-mode, .rail-range-solver-mode, .rail-locations-mode, .rail-placement-mode, .rail-rp-marking-mode { gap: 6px; }
 .done-btn {
   all: unset;
   box-sizing: border-box;
@@ -432,6 +432,15 @@ html.placement-mode #app-topbar { display: none; }
 html.placement-mode #app-shell { height: 100dvh; }
 html.placement-mode #view { display: flex; flex-direction: column; min-height: 0; padding: 0; max-width: none; overflow: hidden; }
 html.placement-mode .location-placement-page { flex: 1; min-height: 0; }
+
+/* Rifle Precision Calculator's own full-screen marking takeover
+   (rifle-precision-marking-view.js) — identical shape to placement-mode
+   above, just its own html class (rifle-precision-nav.js's isInMarkingMode()
+   toggles it) and its own page wrapper selector. */
+html.rifle-precision-marking-mode #app-topbar { display: none; }
+html.rifle-precision-marking-mode #app-shell { height: 100dvh; }
+html.rifle-precision-marking-mode #view { display: flex; flex-direction: column; min-height: 0; padding: 0; max-width: none; overflow: hidden; }
+html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-height: 0; }
 
 /* Landscape phones (short viewport height, regardless of width) get the
    tab bar standing on the right edge instead of lying along the bottom —
@@ -783,6 +792,397 @@ html.placement-mode .location-placement-page { flex: 1; min-height: 0; }
   padding: 3px 6px;
   color: var(--text);
 }
+
+/* rifle-precision-marking-view.js's own page shell — same layout as
+   .location-placement-page above (hint, then the photo viewport filling
+   the rest), plus a scrollable controls strip at the bottom instead of
+   just one "Clear pin" button, since this workflow's own state machine
+   (calibration -> point of aim -> shots -> idle) needs more than one
+   control visible at a time (a length input alongside its confirm button,
+   an Undo alongside Done, a group switcher alongside Add group, ...). */
+.rifle-precision-marking-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  gap: 10px;
+}
+.rifle-precision-marking-page > .hint, .rifle-precision-marking-page > .rp-step-heading { margin: 0; flex-shrink: 0; }
+/* Names the current step ("Calibrate the scale" / "Specify the point of
+   aim" / ...) more prominently than the plain instructional .hint text
+   kept underneath it (see rifle-precision-marking-view.js's own
+   stepHeadingKeyFor()) — unlike this app's other h3/h4 headings, which
+   are deliberately quiet/uppercase section labels (see the shared
+   h1..h4 rule above), this one reads like an actual page heading since
+   it's the most prominent text on this full-screen page (the app
+   topbar/title is hidden here, see html.rifle-precision-marking-mode
+   above). */
+.rp-step-heading {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+}
+.rifle-precision-marking-controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.rifle-precision-marking-controls .field { margin: 0; }
+.rifle-precision-marking-controls .section-tabs { flex-basis: 100%; margin-bottom: 0; }
+
+/* One placed bullet hole — a plain circle (same blue-dot glyph the
+   precision-report diagram itself draws its own pooled shots with, see
+   analysis-diagram.js's COLOR_POOLED_SHOT and src/ui/rifle-precision/
+   marker-style.js), sized to the rifle's own caliber rather than a fixed
+   on-screen size — the opposite of every other marker's own
+   var(--marker-scale-compensation) counter-scale (see .photo-viewport-marker
+   above): this one is deliberately meant to grow/shrink WITH the photo's
+   own zoom, since it represents a fixed *physical* diameter on the target,
+   not a fixed screen size. Its own width/height are set inline per-marker
+   (see rifle-precision-marking-view.js's own renderImpactMarker()) since
+   they depend on the target's calibration scale and the project's own
+   caliberMm — this rule only overrides the transform (dropping the
+   counter-scale) and supplies the shape/cursor. Equal specificity to
+   .photo-viewport-marker's own rule (both one class), so source order
+   (this rule comes after) is what makes the override win. */
+.rp-impact-marker {
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  touch-action: none;
+  cursor: grab;
+}
+/* Delete-impact mode's own shot rendering — a real <button> instead of a
+   draggable .photo-viewport-marker div (photoViewport.js's own gesture
+   handling automatically excludes real buttons from pan/drag capture, so
+   the button's own click fires natively — see the marking view's
+   renderDeleteShotButton()), styled clearly differently/dangerously
+   (var(--danger), same red this app already uses for .hint.warning and
+   .field-invalid) so it doesn't get mistaken for the ordinary draggable
+   marker it's temporarily replacing. Same position/counter-scale
+   convention as .photo-viewport-marker, since it's still just a plain
+   button reset otherwise. */
+.rp-shot-marker-delete {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale-compensation, 1));
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 2px solid var(--panel);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+}
+/* Calibration's live connecting-line overlay (rifle-precision-marking-view.js's
+   renderCalibrationLine()) — a viewBox="0 0 100 100" square stretched
+   non-uniformly (preserveAspectRatio="none") onto the same box every
+   percentage-positioned marker in this file is placed against, so a line
+   from (p1.x*100,p1.y*100) to (p2.x*100,p2.y*100) lands at the exact
+   same pixels as two independently percentage-positioned dot markers.
+   pointer-events:none so it never intercepts the viewport's own tap/
+   drag/pinch handling, same reasoning as .target-pin-other-marker above. */
+.rp-calibration-line-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.rp-calibration-line-svg line {
+  /* stroke color is set inline (COLOR_CALIBRATION, marker-style.js) —
+     not themed, since it must exactly match the precision-report
+     diagram's own hardcoded palette. */
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+/* The calibration line's real-world-length legend — plain HTML (not SVG
+   text), which is why it's a separate element from the line's own <svg>
+   above: SVG text would visually skew under that svg's non-uniform
+   preserveAspectRatio="none" scaling, but a normal left/top%-positioned
+   HTML element (same convention every other marker in this file uses)
+   doesn't. Hidden (not omitted) until a length is actually set, so
+   toggling it doesn't need a separate append/remove dance. */
+.rp-calibration-length-label {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale-compensation, 1));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text);
+  pointer-events: none;
+}
+/* The active group's own extreme-spread line — same non-uniform-stretched-
+   viewBox overlay technique as .rp-calibration-line-svg above (a line's
+   own endpoint positions don't care about the resulting non-circular
+   stretch), drawn between the two most distant impacts (see
+   rifle-precision-marking-view.js's own renderGroupOverlay()). Its own
+   element (not reusing .rp-calibration-line-svg) so both can coexist —
+   the calibration line only shows during the calibration step itself,
+   this one shows whenever the active group's shots do. */
+.rp-extreme-spread-line-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.rp-extreme-spread-line-svg line {
+  /* stroke color is set inline (COLOR_POOLED_SHOT, marker-style.js) —
+     see .rp-calibration-line-svg line's own comment for why. */
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+/* The extreme-spread line's own length legend — same plain-HTML-not-SVG-text
+   reasoning and visual treatment as .rp-calibration-length-label, kept as
+   its own class (rather than reused) so the two stay independently
+   readable in the code even though their styling happens to be identical. */
+.rp-extreme-spread-length-label {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale-compensation, 1));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text);
+  pointer-events: none;
+}
+/* The active group's own average point of impact — a fixed on-screen size
+   (like every other point marker, unlike .rp-impact-marker's own
+   caliber-scaled impacts), filled/bordered to match the precision-report
+   diagram's own POI marker exactly (analysis-diagram.js's poiMarker():
+   COLOR_POI fill, hardcoded white stroke — not themed, for the same
+   exact-match reason as the calibration/ES line strokes above).
+   Non-interactive: it's a computed value, not a placed point. */
+.rp-poi-marker {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale-compensation, 1));
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  pointer-events: none;
+}
+
+/* rifle-precision-view.js's own target rows — a small square thumbnail of
+   the target photo beside its name/notes/per-group summary, same
+   .arsenal-row-info sibling it always was, just with the thumbnail
+   prepended in its own flex row rather than stacked above it. */
+.rp-target-row-body { display: flex; gap: 10px; align-items: flex-start; }
+.rp-target-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+/* photo-add-flow.js's own rotate-preview step — reuses .location-photo-thumb's
+   sizing intent (a comfortably large preview, not a tiny thumbnail) but as
+   its own class since it's a taller/wider live preview the user is
+   actively judging rotation on, not a settled "here's what's saved" thumb. */
+.rp-photo-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  margin: 8px 0;
+}
+
+/* rifle-precision-analysis-view.js's own layout — the scatterplot diagram
+   card (src/ui/rifle-precision/analysis-diagram.js) beside its Legend
+   table, the "Image options" card (grid/toggle/slider controls), the
+   "Numbers" table, and the confidence-o-meter
+   (src/ui/rifle-precision/confidence-o-meter.js). Composed from .card/
+   .checkbox-field/.hint wherever they fit; these are only the genuinely
+   new visual patterns (see the plan's own Styling note). */
+.rp-diagram-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.rp-diagram-svg {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  display: block;
+  background: var(--panel-raised);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+/* The grid spacing <select> (a .field, for its standard select styling)
+   sits inline among the checkbox toggles above instead of stacking label
+   above input the way every other .field in this app does. Also reused by
+   the "Results display units" selector, above the diagram/legend row. */
+.rp-grid-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0;
+}
+.rp-grid-field label { margin-bottom: 0; white-space: nowrap; }
+.rp-grid-field select { width: auto; }
+.rp-hit-probability { margin-top: 10px; }
+.rp-hit-probability-readout {
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+/* Confidence-o-meter — a continuous vertical gauge (docs/plans/
+   confidence-o-meter-redesign.md), replacing the previous flat 8-row
+   list. Three-column body: gradient bar | small pointer connector | info
+   panel, in a 1:2 width ratio between the bar and the panel (the pointer
+   column is a small fixed-width connector, not counted in that ratio).
+   The bar's gradient stops and the info panel's per-level background
+   (set inline from confidence-o-meter.js's own LEVEL_COLORS, since the
+   color itself is data, not a fixed style) are both hardcoded hex, not
+   CSS custom properties — they're legacy's own fixed 8-color/6-stop
+   data, unrelated to the app's light/dark theme. The info panel's own
+   text stays a fixed dark color regardless of theme, for the same
+   reason the old badge did: every one of the 8 legacy colors (from
+   near-black brown to bright green/yellow) reads better with dark text
+   than white across the whole set. */
+.rp-confidence-body { display: flex; gap: 6px; align-items: stretch; margin-top: 6px; }
+
+.rp-confidence-bar-col { position: relative; flex: 1 1 0; min-width: 0; }
+.rp-confidence-bar {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  border-radius: 4px;
+  background: linear-gradient(to top,
+    #7a5901 0%, #7a5901 17%, #ff0000 40%, #ffa500 60%, #ffff00 80%, #00ff00 100%);
+  overflow: hidden;
+}
+.rp-confidence-band-label {
+  position: absolute; left: 0; right: 0; text-align: center;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+}
+.rp-confidence-band-dark { color: #1a1a1a; }
+.rp-confidence-band-light { color: #ffffff; }
+/* Dashed divider between level 0 ("Meaningless") and the real scale
+   above it, at the same 20%-from-bottom mark confidenceScaleFraction()
+   places it at (ci=0.5, the "bullshit threshold" itself). The caption
+   sits just below the line, inside level 0's own band. */
+.rp-confidence-threshold-line {
+  position: absolute; left: 0; right: 0;
+  border-top: 2px dashed rgba(255, 255, 255, 0.85);
+}
+.rp-confidence-threshold-caption {
+  position: absolute; left: 0; right: 0; text-align: center;
+  font-size: 9.5px; font-weight: 700; color: #ffffff;
+}
+
+/* Pointer: a triangle + bar bridging the gauge to the info panel, its
+   vertical position set inline per-update from confidenceScaleFraction()
+   — continuous, not snapped to one of the 8 discrete levels. */
+.rp-confidence-pointer-col { position: relative; width: 22px; flex-shrink: 0; }
+.rp-confidence-pointer {
+  position: absolute; left: 0; right: 0; height: 6px;
+  transform: translateY(50%);
+  display: flex; align-items: center;
+}
+.rp-confidence-pointer-tri {
+  width: 0; height: 0; flex-shrink: 0;
+  border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+  border-left: 10px solid #9a9a9a;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+.rp-confidence-pointer-bar { flex: 1; height: 4px; background: #9a9a9a; border-radius: 2px; margin-left: -1px; }
+
+.rp-confidence-info {
+  flex: 2 1 0; min-width: 0;
+  border-radius: 4px; padding: 12px 10px;
+  display: flex; flex-direction: column; justify-content: center;
+  text-align: center; color: #1a1a1a;
+}
+.rp-confidence-info-line { font-size: 18px; font-weight: 800; line-height: 1.2; }
+.rp-confidence-rating { font-size: 12px; margin: 10px 0 0; }
+.rp-confidence-rating b { font-size: 20px; display: block; margin-top: 1px; }
+.rp-confidence-margin { font-size: 11px; margin: 10px 0 0; opacity: 0.85; }
+
+@media (max-width: 480px) {
+  .rp-confidence-bar { height: 200px; }
+  .rp-confidence-band-label { font-size: 9px; }
+  .rp-confidence-threshold-caption { font-size: 8px; }
+  .rp-confidence-info-line { font-size: 14px; }
+  .rp-confidence-rating { font-size: 10.5px; }
+  .rp-confidence-rating b { font-size: 16px; }
+  .rp-confidence-margin { font-size: 9.5px; }
+}
+
+/* Aggregate results + Legend side by side on wide screens, stacked on
+   narrow ones — same desktop-grid/collapse-at-780px convention as
+   .tool-layout above. */
+.rp-aggregate-legend-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 780px) {
+  .rp-aggregate-legend-row { grid-template-columns: 1fr; }
+}
+
+/* Diagram legend (src/ui/rifle-precision/diagram-legend.js) — a table,
+   one row per element currently on the diagram (R95/R95-CI/1-MOA on by
+   default, sigma/R50/R99/POI-CI/ES5x/ES10x/hit-probability only while
+   their own "show on image" toggle in the Numbers table is checked).
+   Swatch shape varies (solid dot for filled markers, ring for stroked
+   circles, dashed ring for the 1-MOA reference, box for the POI
+   confidence rectangle, pale fill for the R95 confidence band) so the
+   legend visually matches what's actually drawn on the diagram, not just
+   its color. Shares its swatch/shape classes with .rp-numbers-table isn't
+   needed — only the legend carries swatches, the Numbers table (below)
+   just adds its own "show" checkbox column. */
+.rp-legend-table td, .rp-legend-table th { white-space: normal; }
+.rp-legend-table td:first-child, .rp-legend-table th:first-child { width: 24px; }
+.rp-legend-swatch { display: inline-block; flex-shrink: 0; width: 14px; height: 14px; box-sizing: border-box; }
+.rp-legend-swatch-dot { border-radius: 50%; background: var(--rp-legend-swatch-color); }
+.rp-legend-swatch-fill-pale { border-radius: 50%; background: var(--rp-legend-swatch-color); opacity: 0.35; }
+.rp-legend-swatch-ring { border-radius: 50%; border: 2px solid var(--rp-legend-swatch-color); }
+.rp-legend-swatch-ring-dashed { border-radius: 50%; border: 2px dashed var(--rp-legend-swatch-color); }
+.rp-legend-swatch-box { border: 2px dashed var(--rp-legend-swatch-color); }
+/* A small crosshair-grid pattern for the diagram's own optional grid
+   overlay (analysis-diagram.js's gridLines()) — two crossing hairlines
+   rather than a dot/ring/box, since none of those shapes reads as "grid". */
+.rp-legend-swatch-grid {
+  background-image:
+    linear-gradient(var(--rp-legend-swatch-color) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--rp-legend-swatch-color) 1.5px, transparent 1.5px);
+  background-size: 50% 50%;
+  background-position: center;
+}
+
+/* "Numbers" table (src/ui/rifle-precision/numbers-table.js) — every
+   precision statistic, each optional row's own "show on image" checkbox
+   doubling as that element's diagram/legend toggle. Description/value
+   columns wrap instead of the app-wide table default's single-line
+   nowrap — several of these descriptions are full sentences. */
+.rp-numbers-table td:first-child, .rp-numbers-table th:first-child { white-space: normal; }
+.rp-numbers-table td:nth-child(3) { white-space: normal; }
+
+.rp-impacts-to-scale-hint { margin: -6px 0 10px; }
 
 /* ---- Wind speed's large stepper (src/ui/large-stepper-field.js) — big
    touch targets, operable at arm's length or with gloves on. ---- */
