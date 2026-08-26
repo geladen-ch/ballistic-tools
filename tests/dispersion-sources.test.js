@@ -21,8 +21,21 @@ test('probableErrorToSD divides by 0.6745', () => {
 test('r50ToSD / r99ToSD / es5ToSD / es10ToSD use their confirmed factors', () => {
   assert.ok(Math.abs(r50ToSD(1.1774) - 1) < 1e-9);
   assert.ok(Math.abs(r99ToSD(3.0349) - 1) < 1e-9);
-  assert.ok(Math.abs(es5ToSD(3.06) - 1) < 1e-9);
-  assert.ok(Math.abs(es10ToSD(3.79) - 1) < 1e-9);
+  assert.ok(Math.abs(es5ToSD(3.06588) - 1) < 1e-9);
+  assert.ok(Math.abs(es10ToSD(3.81158) - 1) < 1e-9);
+});
+
+test('the ES factors match the simulation figures they are quoted from', () => {
+  // E[extreme spread]/SD has no closed form past two shots, so unlike the
+  // Rayleigh factors above these cannot be checked against an expression --
+  // only against the published values, and for ordering. Guards against a
+  // transposed or misplaced digit rather than against the last place.
+  assert.ok(Math.abs(es5ToSD(3.0658795) - 1) < 5e-6);
+  assert.ok(Math.abs(es10ToSD(3.8115826) - 1) < 5e-6);
+  // Extreme spread is strictly increasing in shot count, and the two-shot
+  // case is exactly sqrt(pi) -- so both factors must exceed it, in order.
+  assert.ok(es5ToSD(Math.sqrt(Math.PI)) < 1);
+  assert.ok(es10ToSD(3.0658795) < 1);
 });
 
 test('angularSDToLinear: 1 mrad at 1000m is 100cm (the standard "mrad at range" rule)', () => {
