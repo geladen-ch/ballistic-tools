@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 10px 16px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
   position: sticky;
@@ -58,7 +58,7 @@
   opacity: 1;
   transition: max-height 0.15s ease, opacity 0.15s ease, margin-top 0.15s ease;
 }
-#app-topbar.collapsed { padding-top: 6px; padding-bottom: 6px; }
+#app-topbar.collapsed { padding-top: calc(6px + env(safe-area-inset-top)); padding-bottom: 6px; }
 #app-topbar.collapsed .brand-tagline { max-height: 0; opacity: 0; margin-top: 0; }
 
 #app-topbar-controls {

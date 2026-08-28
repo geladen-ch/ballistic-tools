@@ -160,6 +160,13 @@ onLanguageChange(rerender);
 // comparison, nothing to do with SW lifecycle timing.
 checkBootVersionChange();
 
+// Best-effort request to be exempted from storage eviction (relevant on
+// iOS Safari, which can clear IndexedDB/localStorage for origins that go
+// unused for a while — this app's location/rifle-precision data lives
+// there). Fire-and-forget: browsers that don't support it, or that just
+// decline, leave nothing for the app to react to either way.
+navigator.storage?.persist?.();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // type: 'module' so the service worker can `import` bullet-libraries.js
