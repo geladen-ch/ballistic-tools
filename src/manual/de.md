@@ -634,6 +634,23 @@ selbst nach einem Neustart der App.
 - **Anzeigesymbole im Feldrechner** — ob die Höhe-/Seite-Anzeige des
   Feldrechners einen Richtungspfeil oder ein **+ / −**-Zeichen zeigt (siehe
   **Feldrechner** oben).
+- **Berechnungsmethode für Drallabweichung** — wie (oder ob) die durch den
+  Eigendrall des Geschosses verursachte horizontale Abweichung in die
+  Seitenabweichung einfließt, in Flugbahn, Feldrechner und Arsenal:
+  - **Aus** (Standard) — die Seitenabweichung berücksichtigt nur den Wind.
+  - **Einfach (Litz)** — Bryan Litz' etablierte empirische Formel.
+  - **Erweitert (McCoy 4-DOF)** — ein vollständiges physikalisches Modell
+    mit 4 Freiheitsgraden, berechnet aus Masse, Kaliber, Länge und
+    Drallrate des Geschosses.
+
+  Beide Methoden fallen automatisch zurück (Erweitert → Einfach → Aus),
+  wenn dem aktiven Geschoss die dafür nötigen Daten fehlen. **Beim
+  Einschießen Drallabweichung berücksichtigen**, die erst erscheint,
+  sobald eine Methode gewählt ist, verschiebt die horizontale
+  Ausrichtung des Gewehrs selbst so, dass der Einschuss die Abweichung
+  bis zur Einschussdistanz bereits ausgleicht — dasselbe, was das Drehen
+  des Seitenverstellturms am Zielfernrohr auf dieser Distanz bewirken
+  würde.
 - **CSV-Export** — das Feldtrennzeichen (Komma/Semikolon/Tabulator) und das
   Dezimaltrennzeichen (Punkt/Komma) für den CSV-Download und das Kopieren in
   der Flugbahn. Wählen Sie das Paar, das Ihre Tabellenkalkulation erwartet.

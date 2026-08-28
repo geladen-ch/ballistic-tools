@@ -2,8 +2,7 @@
 // widget — kept DOM-free so the trickiest part of that widget (converting
 // a pointer position through the current pan/zoom transform into a 0..1
 // fraction of the photo's own natural size) is unit-testable without a
-// real browser. See docs/plans/range-solver-location-photos.md and
-// docs/plans/locations-management-rework.md.
+// real browser.
 export const MIN_SCALE = 1;
 export const MAX_SCALE = 6;
 

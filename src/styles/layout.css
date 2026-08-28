@@ -1047,11 +1047,11 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   margin: 4px 0 0;
   font-variant-numeric: tabular-nums;
 }
-/* Confidence-o-meter — a continuous vertical gauge (docs/plans/
-   confidence-o-meter-redesign.md), replacing the previous flat 8-row
-   list. Three-column body: gradient bar | small pointer connector | info
-   panel, in a 1:2 width ratio between the bar and the panel (the pointer
-   column is a small fixed-width connector, not counted in that ratio).
+/* Confidence-o-meter — a continuous vertical gauge, replacing the
+   previous flat 8-row list. Three-column body: gradient bar | small
+   pointer connector | info panel, in a 1:2 width ratio between the bar
+   and the panel (the pointer column is a small fixed-width connector,
+   not counted in that ratio).
    The bar's gradient stops and the info panel's per-level background
    (set inline from confidence-o-meter.js's own LEVEL_COLORS, since the
    color itself is data, not a fixed style) are both hardcoded hex, not

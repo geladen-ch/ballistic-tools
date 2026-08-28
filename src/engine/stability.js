@@ -10,14 +10,35 @@
 // carry over unchanged; only the W/d^3 and V/2800 terms need re-scaling.
 // C = 30 * KG_TO_GRAIN / (1/0.0254)^3, V0 = 2800 * 0.3048 (m/s) — verified
 // to reproduce the imperial formula bit-for-bit on a cross-check case.
+//
+// Miller's own published formula has no altitude/density term at all —
+// it's implicitly a standard-sea-level-only estimate. But the exact
+// gyroscopic stability relation Sg = 2*Ix^2*p^2/(pi*rho*d^3*Iy*CMalpha*V^2)
+// (see aero-coefficients.js, numerically verified there against two of
+// McCoy's own worked examples) makes the density dependence explicit:
+// Sg is directly inversely proportional to air density rho. Scaling
+// Miller's standard-atmosphere output by (standard density / actual
+// density) is a standard refinement for this (other ballistics tools
+// offer the same "altitude-corrected Sg" adjustment) — thinner air (high
+// altitude, hot day) raises Sg above what Miller's plain formula predicts,
+// denser air lowers it. tempC/pressureHpa/humidityPct default to standard
+// sea level (15°C, 1013.25 hPa, 0% humidity), which makes the correction
+// factor exactly 1 and this function reproduce the plain Miller formula
+// bit-for-bit when no atmosphere is given — every existing caller is
+// unaffected unless it opts in.
+import { airDensity } from './atmosphere.js';
+
 const KG_TO_GRAIN = 15432.358352941432; // matches bullet-section.js's own constant
 const MILLER_C = 7.5867313200175746;
 const MILLER_V0 = 853.44; // 2800 fps in m/s
+const STANDARD_SEA_LEVEL_DENSITY = airDensity({ tempC: 15, pressureHpa: 1013.25, humidityPct: 0 });
 
-export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm }) {
+export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC = 15, pressureHpa = 1013.25, humidityPct = 0 }) {
   const t = riflingTwistMm / (caliberM * 1000);
   const L = lengthM / caliberM;
-  return (MILLER_C * massKg) / (t * t * caliberM ** 3 * L * (1 + L * L)) * (muzzleVelocity / MILLER_V0) ** (1 / 3);
+  const sgStandardAtmo = (MILLER_C * massKg) / (t * t * caliberM ** 3 * L * (1 + L * L)) * (muzzleVelocity / MILLER_V0) ** (1 / 3);
+  const rho = airDensity({ tempC, pressureHpa, humidityPct });
+  return sgStandardAtmo * (STANDARD_SEA_LEVEL_DENSITY / rho);
 }
 
 // All five inputs must be known, positive numbers — a rifling twist of 0

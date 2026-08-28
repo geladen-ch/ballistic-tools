@@ -623,6 +623,23 @@ anche dopo un riavvio dell'app.
   elevazione/vento del Calcolatore per il poligono mostra una freccia di
   direzione o un segno **+ / −** (vedi **Calcolatore per il poligono**
   sopra).
+- **Metodo di calcolo della deriva giroscopica** — come (o se) la deriva
+  orizzontale causata dalla rotazione propria del proiettile viene
+  inclusa nella deriva del vento, in Traiettoria, Calcolatore per il
+  poligono e Arsenale:
+  - **Disattivato** (predefinito) — la deriva riflette solo il vento.
+  - **Semplice (Litz)** — la formula empirica consolidata di Bryan Litz.
+  - **Avanzato (McCoy 4-DOF)** — un modello fisico completo a 4 gradi di
+    libertà, costruito a partire da massa, calibro, lunghezza e velocità
+    di rotazione propri del proiettile.
+
+  Ciascun metodo torna automaticamente indietro (Avanzato → Semplice →
+  Disattivato) se al proiettile attivo mancano i dati necessari.
+  **Compensa la deriva giroscopica nell'azzeramento**, mostrata solo
+  dopo aver scelto un metodo, sposta la mira orizzontale propria del
+  fucile in modo che il suo azzeramento assorba già la deriva fino alla
+  distanza di azzeramento — lo stesso effetto che avrebbe ruotare la
+  torretta di deriva dell'ottica a quella distanza.
 - **Esportazione CSV** — il separatore di campo (virgola/punto e
   virgola/tabulazione) e il separatore decimale (punto/virgola) usati dal
   download e dalla copia CSV di Traiettoria. Scegli la coppia attesa dal

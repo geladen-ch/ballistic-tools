@@ -338,9 +338,8 @@ function legendSwatchSvg(color, shape, cx, cy, size) {
   ]);
 }
 
-// Fixed panel geometry — see docs/plans/ for the mock-up these numbers
-// were measured from. Unlike the old side-by-side layout, panel width no
-// longer scales off the diagram's own size: the confidence gauge and
+// Fixed panel geometry. Unlike the old side-by-side layout, panel width
+// no longer scales off the diagram's own size: the confidence gauge and
 // legend both need a real, fixed amount of room to stay legible (band
 // labels, wrapped legend rows), so the panel is a fixed width and the
 // *diagram* is the one that scales, to match whatever height the panel's

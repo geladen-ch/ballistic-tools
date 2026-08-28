@@ -20,6 +20,7 @@ const {
   saveRangeSolverTargetState, wasAtmosphereTouchedThisSession
 } = await import('../src/range-solver-state.js');
 const { setIndicatorStyle } = await import('../src/range-solver-prefs.js');
+const { setSpinDriftMode } = await import('../src/spin-drift-prefs.js');
 const { setUnit, resetUnits } = await import('../src/prefs.js');
 const { getCookie } = await import('../src/cookies.js');
 const { saveUserLocation, loadUserLocations, resetLocationLibraryForTests } = await import('../src/location-library.js');
@@ -42,6 +43,7 @@ test.beforeEach(async () => {
   resetRangeSolverStateForTests();
   setIndicatorStyle('signs'); // restore the default so it doesn't leak into other tests
   resetUnits(); // ditto — several tests below change distance/wind-speed unit prefs
+  setSpinDriftMode('off'); // ditto — the spin-drift tests below change this cookie
   await resetLocationLibraryForTests();
 });
 
@@ -370,6 +372,40 @@ test('a nonzero crosswind produces a nonzero windage correction with a direction
 
   const [, windageValue] = findByClass(container, 'range-solver-click-value');
   assert.match(windageValue.textContent, /^[+−]\d+$/);
+
+  cleanup();
+});
+
+// Range Solver reads spinDriftMode: getSpinDriftMode() directly — the
+// user's own Settings choice among 'off'/'litz'/'mccoy4dof' — and passes
+// it straight through to trajectory.js's computeImpact(), which
+// dispatches on it via resolveSpinDriftMode() (see range-solver-view.js's
+// own recompute()). The default rifle/bullet (DEFAULT_BULLET_STATE in
+// bullet-section.js, matching defaults in rifle-section.js) already
+// carries a full mass/caliber/length/twist rate, so these exercise the
+// real dispatch through trajectory.js end to end, not just a stub.
+for (const mode of ['litz', 'mccoy4dof']) {
+  test(`with spinDriftMode '${mode}' selected, windage reflects real spin drift, not flat zero, even with no wind`, async () => {
+    setSpinDriftMode(mode);
+    const container = makeElement('main');
+    const cleanup = rangeSolverView.mount(container);
+    await settle();
+
+    const [, windageValue] = findByClass(container, 'range-solver-click-value');
+    assert.match(windageValue.textContent, /^[+−]\d+$/, `expected a nonzero, signed windage correction from spin drift alone, got "${windageValue.textContent}"`);
+
+    cleanup();
+  });
+}
+
+test("with spinDriftMode 'off' selected, windage stays flat zero even though the data could support spin drift — the user's choice to disable it is respected, not silently upgraded", async () => {
+  setSpinDriftMode('off');
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const [, windageValue] = findByClass(container, 'range-solver-click-value');
+  assert.equal(windageValue.textContent, '0');
 
   cleanup();
 });

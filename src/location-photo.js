@@ -1,6 +1,5 @@
 // File -> data-URL pipeline for a location's photo. Resizing is always
-// applied (no user setting) so storage/export size stays bounded — see
-// docs/plans/range-solver-location-photos.md.
+// applied (no user setting) so storage/export size stays bounded.
 export const MAX_DIMENSION_PX = 1600;
 export const JPEG_QUALITY = 0.85;
 

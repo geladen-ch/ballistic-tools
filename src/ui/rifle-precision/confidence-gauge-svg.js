@@ -1,10 +1,9 @@
 // Static SVG replica of the confidence-o-meter widget (confidence-o-meter.js),
-// for the analysis view's "Save legend with results image" SVG export —
-// see docs/plans/ for the mock-up this was measured from. Shares
-// computeConfidenceFacts()/BANDS/THRESHOLD_LINE_BOTTOM_PERCENT with the
-// real on-page widget (single source of truth for the level/fraction/
-// quality-text math), and wrapText() with analysis-diagram.js's own
-// legend-row wrapping.
+// for the analysis view's "Save legend with results image" SVG export.
+// Shares computeConfidenceFacts()/BANDS/THRESHOLD_LINE_BOTTOM_PERCENT
+// with the real on-page widget (single source of truth for the
+// level/fraction/quality-text math), and wrapText() with
+// analysis-diagram.js's own legend-row wrapping.
 //
 // Unlike the on-page widget, this bar is fixed-size, not squeezed into
 // whatever column width a page layout happens to give it — sized wide

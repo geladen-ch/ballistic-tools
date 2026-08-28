@@ -25,7 +25,7 @@ import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle } from '../range-solver-prefs.js';
 import { directionArrow } from '../ui/direction-arrow.js';
-import { isSpinDriftEnabled } from '../spin-drift-prefs.js';
+import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import {
   loadRangeSolverTargetState, saveRangeSolverTargetState,
@@ -433,7 +433,12 @@ export function mount(container) {
       ...atmosphere.getValues(),
       ...cartridge.getStabilityValues(),
       ...rifle.getStabilityValues(),
-      calculateSpinDrift: isSpinDriftEnabled(),
+      // The user's own choice of method (Settings) — resolveSpinDriftMode()
+      // (spin-drift.js) automatically falls back mccoy4dof -> litz -> off
+      // only when the chosen method genuinely isn't computable from the
+      // current bullet/rifle data, never as a way to silently prefer one
+      // method over the user's actual selection.
+      spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled(),
       windSpeed: windSpeedField.getEngineValue(),
       windAngle: windAngleDial.getValue(),

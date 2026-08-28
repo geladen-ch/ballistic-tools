@@ -20,7 +20,7 @@ import { exportChartSvg } from '../chart-svg-export.js';
 import { buildCsv, formatCsvNumber } from '../csv-export.js';
 import { downloadFile } from '../download.js';
 import { getFieldSeparator, getDecimalSeparator } from '../csv-prefs.js';
-import { isSpinDriftEnabled } from '../spin-drift-prefs.js';
+import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { canComputeStability } from '../engine/stability.js';
 import { collapsibleHint } from '../ui/collapsible-hint.js';
@@ -52,7 +52,7 @@ export function mount(container) {
   // since spin-drift availability is purely a function of the shot
   // config, not of the integration itself.
   function refreshSpinDriftHint() {
-    if (!isSpinDriftEnabled()) {
+    if (getSpinDriftMode() === 'off') {
       spinDriftHint.style.display = 'none';
       return;
     }
@@ -367,7 +367,7 @@ export function mount(container) {
       ...atmosphere.getValues(),
       ...cartridge.getStabilityValues(),
       ...rifle.getStabilityValues(),
-      calculateSpinDrift: isSpinDriftEnabled(),
+      spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled()
     };
   }

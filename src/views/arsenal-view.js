@@ -13,7 +13,7 @@ import { bulletForm } from '../ui/arsenal/bullet-form.js';
 import { rifleForm } from '../ui/arsenal/rifle-form.js';
 import { cartridgeForm } from '../ui/arsenal/cartridge-form.js';
 import { stabilityIndicator } from '../ui/stability-indicator.js';
-import { isSpinDriftEnabled } from '../spin-drift-prefs.js';
+import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { exportDialog } from '../ui/arsenal/export-dialog.js';
 import { importDialog } from '../ui/arsenal/import-dialog.js';
@@ -493,7 +493,7 @@ export function mount(container) {
       lengthM: bullet.lengthM,
       riflingTwistMm: rifleTwistMm(rifle),
       twistDirection: rifle.defaultTwistDirection,
-      calculateSpinDrift: isSpinDriftEnabled(),
+      spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled()
     };
   }

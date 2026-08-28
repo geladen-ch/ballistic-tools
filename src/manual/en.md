@@ -541,6 +541,21 @@ the next time you open this report, even after restarting the app.
 - **Range Solver output indicators** — whether Range Solver's elevation/
   windage readout shows a direction arrow or a **+ / −** sign (see
   **Range Solver** above).
+- **Spin drift calculation** — how (or whether) horizontal drift caused
+  by the bullet's own gyroscopic spin is factored into windage, in
+  Trajectory, Range Solver, and Arsenal:
+  - **Off** (the default) — windage reflects wind only.
+  - **Simple (Litz)** — Bryan Litz's well-established empirical formula.
+  - **Advanced (McCoy 4-DOF)** — a full 4-degree-of-freedom physics
+    model, built from the bullet's own mass, caliber, length, and twist
+    rate.
+
+  Either method falls back automatically (Advanced → Simple → Off) when
+  the active bullet is missing the data it needs. **Account for spin
+  drift when zeroing**, shown once a method is chosen, shifts the
+  rifle's own horizontal aim so its zero already absorbs the drift by
+  the zero range — the same thing dialing a scope's windage turret would
+  do for you at the range.
 - **CSV export** — the field separator (comma/semicolon/tab) and decimal
   separator (dot/comma) used by Trajectory's CSV download and clipboard copy.
   Pick whichever pair your spreadsheet software expects.

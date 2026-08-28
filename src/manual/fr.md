@@ -625,6 +625,23 @@ l'application.
 - **Indicateurs de sortie du Calculateur de terrain** — si l'affichage
   élévation/vent du Calculateur de terrain montre une flèche de direction ou
   un signe **+ / −** (voir **Calculateur de terrain** ci-dessus).
+- **Méthode de calcul de la dérive gyroscopique** — comment (ou si) la
+  dérive horizontale causée par le propre spin gyroscopique de la balle
+  est intégrée à la dérive du vent, dans Trajectoire, le Calculateur de
+  terrain et l'Arsenal :
+  - **Désactivée** (par défaut) — la dérive ne reflète que le vent.
+  - **Simple (Litz)** — la formule empirique bien établie de Bryan Litz.
+  - **Avancée (McCoy 4-DOF)** — un modèle physique complet à 4 degrés de
+    liberté, construit à partir de la masse, du calibre, de la longueur
+    et du taux de rotation propres de la balle.
+
+  Chaque méthode revient automatiquement en arrière (Avancée → Simple →
+  Désactivée) si la balle active manque des données nécessaires.
+  **Compenser la dérive gyroscopique lors du réglage du zéro**, affiché
+  une fois une méthode choisie, décale le pointage horizontal propre de
+  la carabine pour que son zéro absorbe déjà la dérive jusqu'à la
+  distance de réglage — ce que ferait tourner la tourelle de dérive de
+  la lunette à cette distance.
 - **Export CSV** — le séparateur de champs (virgule/point-virgule/
   tabulation) et le séparateur décimal (point/virgule) utilisés par le
   téléchargement et la copie CSV de Trajectoire. Choisissez la paire

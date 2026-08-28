@@ -337,3 +337,54 @@ test('solveHorizontalZeroAngle holds the already-solved vertical zero angle fixe
   const { launchAngleDeg } = integrate(state);
   assert.ok(Math.abs(launchAngleDeg - (verticalOnly * 180) / Math.PI) < 1e-9);
 });
+
+// spinDriftMode: 'mccoy4dof' dispatches to the full 4-DOF stepper.
+// Unlike 'litz', the 4-DOF stepper's own integrated z already includes
+// physically-derived spin drift, so windage comes straight out of the
+// trajectory itself, with no separate spinDriftCm() addition layered on
+// top.
+test('spinDriftMode: mccoy4dof produces nonzero windage directly from integration, with no wind and calculateSpinDrift unset', () => {
+  const state = { ...spinDriftState, spinDriftMode: 'mccoy4dof' };
+  const { points } = integrate(state);
+  const last = points[points.length - 1];
+  assert.ok(Math.abs(last.windageCm) > 0.01, `expected real spin drift from the 4-DOF path, got ${last.windageCm}`);
+});
+
+test('spinDriftMode: mccoy4dof and litz agree on the sign of drift and roughly its order of magnitude, for the same bullet', () => {
+  const range = 500;
+  const litz = computeImpact({ ...spinDriftState, calculateSpinDrift: true }, range);
+  const mccoy = computeImpact({ ...spinDriftState, spinDriftMode: 'mccoy4dof' }, range);
+  assert.equal(Math.sign(litz.windageCm), Math.sign(mccoy.windageCm));
+  const ratio = mccoy.windageCm / litz.windageCm;
+  assert.ok(ratio > 0.2 && ratio < 5, `expected the same rough order of magnitude, got litz=${litz.windageCm}cm mccoy4dof=${mccoy.windageCm}cm (ratio ${ratio})`);
+});
+
+test('spinDriftMode: mccoy4dof zeroing nulls windage exactly at zeroRange, same as litz does', () => {
+  const state = { ...spinDriftState, spinDriftMode: 'mccoy4dof', zeroForSpinDrift: true };
+  const atZero = computeImpact(state, state.zeroRange);
+  assert.ok(Math.abs(atZero.windageCm) < 1e-3, `expected ~0 windage at zeroRange, got ${atZero.windageCm}`);
+
+  const beyondZero = computeImpact(state, 500);
+  assert.ok(Math.abs(beyondZero.windageCm) > 0.01, `expected a real residual well past zeroRange, got ${beyondZero.windageCm}`);
+});
+
+test('spinDriftMode: mccoy4dof falls back to litz, and then to off, exactly like resolveSpinDriftMode says it should', () => {
+  const { caliberM, ...withoutCaliber } = spinDriftState; // blocks canMakeStepper4dof but not canComputeStability... actually blocks both (same 5 inputs)
+  const state = { ...withoutCaliber, spinDriftMode: 'mccoy4dof', windSpeed: 0 };
+  const { points } = integrate(state);
+  for (const p of points) assert.equal(p.windageCm, 0); // falls all the way to 'off' — see spin-drift.test.js
+});
+
+// The regression Phase 3's own completion note called for: confirms
+// hit-probability-view.js's own state shape (full bullet/rifle data
+// present, but neither calculateSpinDrift nor spinDriftMode ever set —
+// see its own comment at the recompute() call site) still resolves to
+// 'off' now that trajectory.js's call sites actually dispatch by mode,
+// not just in resolveSpinDriftMode() isolation.
+test('regression: full bullet data with neither calculateSpinDrift nor spinDriftMode set (hit-probability-view.js\'s own state shape) stays off — no drift, no 4-DOF path', () => {
+  const { calculateSpinDrift, ...fullDataNoMode } = spinDriftState;
+  assert.equal(calculateSpinDrift, undefined);
+  const state = { ...fullDataNoMode, windSpeed: 0 };
+  const impact = computeImpact(state, 500);
+  assert.equal(impact.windageCm, 0);
+});

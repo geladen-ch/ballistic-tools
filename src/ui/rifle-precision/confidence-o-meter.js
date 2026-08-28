@@ -1,15 +1,14 @@
 // The "confidence-o-meter" — legacy's own shot-count-adequacy gauge,
 // ported with its irreverent tone intact (the "3+"-style URURA scores,
-// the "bullshit threshold" joke label on the worst tier — see decision #1
-// in docs/plans/rifle-precision-calculator.md). Redesigned per
-// docs/plans/confidence-o-meter-redesign.md as a continuous vertical
-// scale — a smooth gradient bar with a pointer whose position is driven
-// directly by confidenceScaleFraction() (the raw confidence-interval
-// width), not snapped to one of the 8 discrete levels — replacing the
-// previous flat list of 8 separate rows. Traced from the real legacy gauge
-// math (data/legacy.code/taran/synth-pane.js's own cipos formula), not
-// just the reference screenshot. The "Confidence rating:" row label
-// itself is plain, user-facing copy, not part of that legacy tone.
+// the "bullshit threshold" joke label on the worst tier). Redesigned as
+// a continuous vertical scale — a smooth gradient bar with a pointer
+// whose position is driven directly by confidenceScaleFraction() (the
+// raw confidence-interval width), not snapped to one of the 8 discrete
+// levels — replacing the previous flat list of 8 separate rows. Traced
+// from the real legacy gauge math (data/legacy.code/taran/synth-pane.js's
+// own cipos formula), not just the reference screenshot. The
+// "Confidence rating:" row label itself is plain, user-facing copy, not
+// part of that legacy tone.
 // Factory returning {node, update(confidenceLower, confidenceUpper)},
 // same "update rebuilds content" shape as src/ui/stability-indicator.js.
 import { el, clear } from '../../dom.js';

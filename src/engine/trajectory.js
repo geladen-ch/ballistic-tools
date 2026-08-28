@@ -3,7 +3,8 @@
 import { GRAVITY, LBIN2_TO_KGM2, TRANSONIC_LO, TRANSONIC_HI, H_COARSE, H_FINE, MAX_STEPS } from './constants.js';
 import { DRAG_TABLES, makeCdLookup } from './drag-tables.js';
 import { airDensity, speedOfSound, temperatureAtHeightDelta, icaoStandardPressureHpa } from './atmosphere.js';
-import { resolveSpinDrift, spinDriftCm } from './spin-drift.js';
+import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from './spin-drift.js';
+import { makeStepper4dof } from './trajectory-4dof.js';
 
 // Builds the RK4 step function for one fixed set of shot conditions (bc,
 // wind, atmosphere). Reused by the zero-angle solver (many short
@@ -214,6 +215,42 @@ export function resolveMuzzleVelocity(state) {
   return muzzleVelocity + (tempC - referenceTempC) * velocityTempSensitivity;
 }
 
+// Picks the stepper a shot's own resolved spinDriftMode (see
+// resolveSpinDriftMode in spin-drift.js) should actually fly with.
+// 'mccoy4dof' gets the full 4-DOF/MPM stepper — its own z comes out of
+// integrating an actual lift force, already including spin drift
+// physically, so callers must NOT also add Litz's spinDriftCm() on top.
+// 'litz' and 'off' both fly the plain 3-DOF stepper, unchanged from
+// before this dispatch existed; 'litz' callers add spinDriftCm()
+// themselves afterward, from the {sg, twistDirection} resolveSpinDrift()
+// already gives them.
+//
+// `initialExtra` carries whatever extra field(s) a mode's own initial
+// point needs beyond this file's usual {x,y,z,vx,vy,vz,t} shape — just
+// the axial spin rate `p0` for mccoy4dof, spread into every p0 object
+// built at this file's three windage-aware call sites. landOnRange()/
+// lerpPoint() don't preserve unrecognized fields through interpolation,
+// but that's fine here: `p` only needs to survive the raw step-to-step
+// walk (which always round-trips whatever step() itself just returned
+// straight back into the next step() call, never through landOnRange()),
+// since nothing downstream ever reads an interpolated `p` — display
+// points never show spin rate, only position/velocity/tof.
+//
+// solveZeroAngle() deliberately does NOT go through this — it stays on
+// the plain 3-DOF stepper always, regardless of mode. Its own vertical
+// drop differs from 4-DOF's by <0.001% (see trajectory-4dof.test.js),
+// so using the 3-DOF-solved launch angle to fly a 4-DOF trajectory
+// afterward is a well below the numerical noise floor of every other
+// approximation already in this model — not worth doubling
+// solveZeroAngle's own stepper-selection logic for.
+function stepperForMode(state, mode) {
+  if (mode === 'mccoy4dof') {
+    const { step, p0 } = makeStepper4dof(state);
+    return { step, initialExtra: { p: p0 } };
+  }
+  return { step: makeStepper(state).step, initialExtra: {} };
+}
+
 // Secant-method solve for the launch pitch (radians, +up *above the line
 // of sight*) that sends the bullet through the sight line (drop=0) at
 // zeroRange (measured along that same, possibly inclined, line), given the
@@ -284,16 +321,19 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
 // bore yaw explicitly, since here it's the bore's own aim being computed,
 // not a scope correction layered on afterward.
 //
-// Only ever meaningfully nonzero when spin drift is enabled
-// (state.calculateSpinDrift) *and* actually computable (canComputeStability
-// ()'s five inputs all present) *and* the shooter has separately opted in
+// Only ever meaningfully nonzero when spin drift resolves to something
+// other than 'off' (see resolveSpinDriftMode in spin-drift.js — covers
+// both the legacy calculateSpinDrift boolean and the newer spinDriftMode
+// field, and its own automatic fallback when the requested mode isn't
+// actually computable from the five inputs canComputeStability()/
+// canMakeStepper4dof() need) *and* the shooter has separately opted in
 // to zeroing for it (state.zeroForSpinDrift — see zero-spin-drift-prefs.js;
 // a second, more specific switch than just calculating spin drift at all,
 // since silently shifting the bore's own horizontal aim changes windage
-// at every range, not only the one being zeroed for). Any of the three
-// missing means there's nothing to compensate for, so this returns 0
-// immediately without walking the integrator at all, the same "nothing to
-// solve" shortcut zeroRange<=0 gets below.
+// at every range, not only the one being zeroed for). Either missing
+// means there's nothing to compensate for, so this returns 0 immediately
+// without walking the integrator at all, the same "nothing to solve"
+// shortcut zeroRange<=0 gets below.
 //
 // Reuses solveZeroAngle()'s own vertical solve for theta first and holds
 // it fixed while solving phi — the two axes don't meaningfully interact
@@ -307,13 +347,17 @@ export function solveHorizontalZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = 
   if (zeroRange <= 0 || !state.zeroForSpinDrift) return 0;
 
   const muzzleVelocity = resolveMuzzleVelocity(state);
-  const spinDrift = resolveSpinDrift(state, muzzleVelocity);
-  if (!spinDrift) return 0;
+  const mode = resolveSpinDriftMode(state, muzzleVelocity);
+  if (mode === 'off') return 0;
+  // mccoy4dof's own raw.z (below) already includes physically-integrated
+  // drift, so spinDrift stays null there — resolveSpinDrift() itself
+  // still only ever answers for the Litz path (see its own doc comment).
+  const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
 
   const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const theta = solveZeroAngle(state);
-  const stepper = makeStepper(state);
+  const { step, initialExtra } = stepperForMode(state, mode);
   const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
   const boreAngle = losAngle + theta;
   // The already-solved vertical pitch fixes how much of muzzleVelocity
@@ -327,29 +371,33 @@ export function solveHorizontalZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = 
 
   // In meters (matching heightErrorAt()'s own drop, not the cm windageCm
   // consumers like toTablePoint()/computeImpact() display) — spinDriftCm
-  // is folded in directly, so the target this drives to 0 is exactly
-  // "raw windage plus spin drift," the same combined value those two
-  // functions compute, at zeroRange's own time of flight specifically.
-  // Lands on zeroRange via landOnRange() (quadratic — see its own docs
-  // above), the same landing method every other "exact range" solve in
-  // this file uses, rather than a plain 2-point linear one here alone.
+  // is folded in directly for the 'litz' mode, so the target this drives
+  // to 0 is exactly "raw windage plus spin drift," the same combined
+  // value those two functions compute, at zeroRange's own time of flight
+  // specifically. For 'mccoy4dof', raw.z already includes physically-
+  // integrated drift on its own (spinDrift is null there — see above),
+  // so no addition is needed. Lands on zeroRange via landOnRange()
+  // (quadratic — see its own docs above), the same landing method every
+  // other "exact range" solve in this file uses, rather than a plain
+  // 2-point linear one here alone.
   function windageErrorAt(phi) {
     const p0 = {
       x: muzzle.x, y: muzzle.y, z: 0,
-      vx: vxy * Math.cos(phi), vy, vz: vxy * Math.sin(phi), t: 0
+      vx: vxy * Math.cos(phi), vy, vz: vxy * Math.sin(phi), t: 0,
+      ...initialExtra
     };
     const rangeOf = (pt) => rangeAlongLOS(pt, cosL, sinL);
     let older = null, prev = null, cur = p0, steps = 0;
     while (rangeOf(cur) < zeroRange && steps < MAX_STEPS) {
       older = prev;
       prev = cur;
-      cur = stepper.step(cur);
+      cur = step(cur);
       steps++;
     }
     const raw = prev === null
       ? cur
-      : landOnRange(older, prev, cur, () => (steps < MAX_STEPS ? stepper.step(cur) : null), rangeOf, zeroRange);
-    return raw.z + spinDriftCm(spinDrift, raw.t) / 100;
+      : landOnRange(older, prev, cur, () => (steps < MAX_STEPS ? step(cur) : null), rangeOf, zeroRange);
+    return raw.z + (spinDrift ? spinDriftCm(spinDrift, raw.t) / 100 : 0);
   }
 
   let phi0 = 0, phi1 = 0.001;
@@ -502,10 +550,15 @@ export function integrate(state) {
   const rangeOf = (pt) => pt.x * cosL + pt.y * sinL;
 
   const muzzleVelocity = resolveMuzzleVelocity(state);
-  const spinDrift = resolveSpinDrift(state, muzzleVelocity);
+  const mode = resolveSpinDriftMode(state, muzzleVelocity);
+  // mccoy4dof's own trajectory already includes physically-integrated
+  // drift in z (see stepperForMode/toTablePoint below) — spinDrift stays
+  // null there so toTablePoint()'s `spinDrift ? spinDriftCm(...) : 0`
+  // adds nothing on top of it.
+  const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
   const launchAngle = solveZeroAngle(state); // radians above the line of sight
   const horizontalZeroAngle = solveHorizontalZeroAngle(state); // radians, bore yaw that nulls spin drift at zeroRange
-  const stepper = makeStepper(state);
+  const { step: stepFn, initialExtra } = stepperForMode(state, mode);
   const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
   const boreAngle = losAngle + launchAngle;
   const vxy = muzzleVelocity * Math.cos(boreAngle);
@@ -514,7 +567,8 @@ export function integrate(state) {
     x: muzzle.x, y: muzzle.y, z: 0,
     vx: vxy * Math.cos(horizontalZeroAngle),
     vy: muzzleVelocity * Math.sin(boreAngle),
-    vz: vxy * Math.sin(horizontalZeroAngle), t: 0
+    vz: vxy * Math.sin(horizontalZeroAngle), t: 0,
+    ...initialExtra
   };
 
   const points = [toTablePoint(p0, tempC, cosL, sinL, spinDrift)]; // range = 0 row
@@ -550,7 +604,7 @@ export function integrate(state) {
   // at that same range would see, would silently break that invariant.
   let older = null, prev = null, cur = p0, steps = 0;
   while (rangeOf(cur) < maxRange && steps < MAX_STEPS) {
-    const newPoint = stepper.step(cur);
+    const newPoint = stepFn(cur);
     steps++;
     if (prev !== null) emitSamplesInSegment(older, prev, cur, () => newPoint);
     older = prev;
@@ -558,7 +612,7 @@ export function integrate(state) {
     cur = newPoint;
   }
   let finalNext;
-  const getFinalNext = () => (finalNext !== undefined ? finalNext : (finalNext = steps < MAX_STEPS ? stepper.step(cur) : null));
+  const getFinalNext = () => (finalNext !== undefined ? finalNext : (finalNext = steps < MAX_STEPS ? stepFn(cur) : null));
   if (prev !== null) emitSamplesInSegment(older, prev, cur, getFinalNext);
 
   // Always end exactly at maxRange, even when it doesn't land on a whole
@@ -582,10 +636,17 @@ export function computeImpact(state, targetRange) {
   const rangeOf = (pt) => rangeAlongLOS(pt, cosL, sinL);
 
   const muzzleVelocity = resolveMuzzleVelocity(state);
-  const spinDrift = resolveSpinDrift(state, muzzleVelocity);
+  // hit-probability-view.js's own Monte Carlo dispersion loop calls this
+  // (computeImpact) thousands of times per shot group with neither
+  // calculateSpinDrift nor spinDriftMode ever set on its state — mode
+  // resolves to 'off' there (see resolveSpinDriftMode's own doc comment),
+  // so stepperForMode() below returns the plain, cheap 3-DOF stepper
+  // exactly as it always has, never the 4-DOF one.
+  const mode = resolveSpinDriftMode(state, muzzleVelocity);
+  const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
   const theta = launchAngle !== undefined ? launchAngle : solveZeroAngle(state); // radians above the line of sight
   const horizontalZeroAngle = solveHorizontalZeroAngle(state); // radians, bore yaw that nulls spin drift at zeroRange
-  const stepper = makeStepper(state);
+  const { step, initialExtra } = stepperForMode(state, mode);
   const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
   const boreAngle = losAngle + theta;
   const vxy = muzzleVelocity * Math.cos(boreAngle);
@@ -594,14 +655,15 @@ export function computeImpact(state, targetRange) {
     x: muzzle.x, y: muzzle.y, z: 0,
     vx: vxy * Math.cos(horizontalZeroAngle),
     vy: muzzleVelocity * Math.sin(boreAngle),
-    vz: vxy * Math.sin(horizontalZeroAngle), t: 0
+    vz: vxy * Math.sin(horizontalZeroAngle), t: 0,
+    ...initialExtra
   };
 
   let older = null, prev = null, cur = p0, steps = 0;
   while (rangeOf(cur) < targetRange && steps < MAX_STEPS) {
     older = prev;
     prev = cur;
-    cur = stepper.step(cur);
+    cur = step(cur);
     steps++;
   }
 
@@ -612,7 +674,7 @@ export function computeImpact(state, targetRange) {
   // sample.
   const raw = prev === null
     ? cur // targetRange reached at or before the muzzle itself — nothing to interpolate
-    : landOnRange(older, prev, cur, () => (steps < MAX_STEPS ? stepper.step(cur) : null), rangeOf, targetRange);
+    : landOnRange(older, prev, cur, () => (steps < MAX_STEPS ? step(cur) : null), rangeOf, targetRange);
 
   const los = toLOS(raw, cosL, sinL);
   const windageCm = raw.z * 100 + (spinDrift ? spinDriftCm(spinDrift, raw.t) : 0);

@@ -34,10 +34,9 @@ function settle(ms = 30) {
 // The drag/click-on-chart interaction itself needs real getBoundingClientRect
 // geometry this fake DOM doesn't provide (see tests/helpers/fake-dom.js's
 // own header comment on scope) — verified by hand in a real browser
-// instead (see docs/plans/multiple-bc-tool.md's own Verification section).
-// Everything reachable through the table's own inputs — which is most of
-// this component's actual logic (state, validation, cascading, curve
-// computation) — is fully covered here.
+// instead. Everything reachable through the table's own inputs — which
+// is most of this component's actual logic (state, validation,
+// cascading, curve computation) — is fully covered here.
 
 test('starts with 2 segments split exactly at Mach 1.0, both BCs blank', () => {
   const s = multiBcSegments();

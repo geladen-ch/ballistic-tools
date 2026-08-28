@@ -4,7 +4,7 @@ import { getUnit, setUnit, resetUnits } from '../prefs.js';
 import { SUPPORTED_LANGUAGES, getLanguage, changeLanguage, i18nSpan } from '../i18n.js';
 import { isRifleLibraryEnabled, setRifleLibraryEnabled } from '../library-prefs.js';
 import { bulletLibraryCheckboxRows } from '../ui/bullet-library-checkboxes.js';
-import { isSpinDriftEnabled, setSpinDriftEnabled } from '../spin-drift-prefs.js';
+import { SPIN_DRIFT_MODE_CHOICES, getSpinDriftMode, setSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled, setZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { isUpdateNotificationsEnabled, setUpdateNotificationsEnabled } from '../update-notification-prefs.js';
 import {
@@ -76,20 +76,27 @@ export function mount(container) {
 
   // Off by default (see spin-drift-prefs.js) — unlike the library toggles
   // above, this changes the actual windage numbers every windage-computing
-  // tool shows, so it's opt-in rather than opt-out.
-  const spinDriftCheckbox = el('input', { type: 'checkbox', id: 'settings-spin-drift-enabled' });
-  spinDriftCheckbox.checked = isSpinDriftEnabled();
-  const spinDriftRow = el('label', { class: 'checkbox-field' }, [
-    spinDriftCheckbox,
-    i18nSpan('settings.spinDriftLabel')
-  ]);
+  // tool shows, so it's opt-in rather than opt-out. A 3-way method choice
+  // (not a checkbox) since Litz's classical closed-form formula and the
+  // full McCoy 4-DOF (4-degree-of-freedom) physics model are both genuine
+  // options a user might deliberately want, not just an on/off switch —
+  // resolveSpinDriftMode() (spin-drift.js) only ever falls back off the
+  // user's own choice when it isn't actually computable from the current
+  // bullet/rifle data, never to silently prefer one method.
+  const spinDriftModeSelect = el(
+    'select',
+    { id: 'settings-spin-drift-mode' },
+    SPIN_DRIFT_MODE_CHOICES.map((c) => el('option', { value: c.value, i18n: c.labelKey }))
+  );
+  spinDriftModeSelect.value = getSpinDriftMode();
 
-  // Nested under spin drift's own checkbox — off by default (see
-  // zero-spin-drift-prefs.js), and only ever shown while spin drift itself
-  // is on: with spin drift off there's nothing here to zero out. Same
-  // "wrap the dependent row, toggle its container's display" convention
-  // muzzle-velocity-temp-field.js's own checkbox-reveals-fields pattern
-  // already uses, rather than a new one invented just for this row.
+  // Nested under spin drift's own choice — off by default (see
+  // zero-spin-drift-prefs.js), and only ever shown while a spin-drift
+  // method is actually selected: with spin drift off there's nothing here
+  // to zero out. Same "wrap the dependent row, toggle its container's
+  // display" convention muzzle-velocity-temp-field.js's own
+  // checkbox-reveals-fields pattern already uses, rather than a new one
+  // invented just for this row.
   const zeroForSpinDriftCheckbox = el('input', { type: 'checkbox', id: 'settings-zero-for-spin-drift-enabled' });
   zeroForSpinDriftCheckbox.checked = isZeroForSpinDriftEnabled();
   zeroForSpinDriftCheckbox.addEventListener('change', () => {
@@ -100,11 +107,11 @@ export function mount(container) {
     i18nSpan('settings.zeroForSpinDriftLabel')
   ]);
   const zeroForSpinDriftField = el('div', { class: 'field' }, [zeroForSpinDriftRow]);
-  zeroForSpinDriftField.style.display = spinDriftCheckbox.checked ? '' : 'none';
+  zeroForSpinDriftField.style.display = spinDriftModeSelect.value !== 'off' ? '' : 'none';
 
-  spinDriftCheckbox.addEventListener('change', () => {
-    setSpinDriftEnabled(spinDriftCheckbox.checked);
-    zeroForSpinDriftField.style.display = spinDriftCheckbox.checked ? '' : 'none';
+  spinDriftModeSelect.addEventListener('change', () => {
+    setSpinDriftMode(spinDriftModeSelect.value);
+    zeroForSpinDriftField.style.display = spinDriftModeSelect.value !== 'off' ? '' : 'none';
   });
 
   // On by default (see update-notification-prefs.js) — this is the
@@ -166,7 +173,10 @@ export function mount(container) {
       el('label', { i18n: 'settings.languageLabel' }),
       languageSelect
     ]),
-    el('div', { class: 'field' }, [spinDriftRow]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.spinDriftLabel' }),
+      spinDriftModeSelect
+    ]),
     zeroForSpinDriftField,
     el('div', { class: 'field' }, [updateNotificationsRow]),
     el('div', { class: 'field' }, [

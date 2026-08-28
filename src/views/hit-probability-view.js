@@ -798,10 +798,12 @@ export function mount(container) {
       ...cartridge.getValues(),
       ...rifle.getValues(),
       ...atmosphere.getValues(),
-      // Spin drift deliberately excluded here (calculateSpinDrift left
-      // unset, so resolveSpinDrift() in spin-drift.js always resolves to
-      // null) — Hit Probability's own dispersion model doesn't factor it
-      // in, regardless of the Settings toggle.
+      // Spin drift deliberately excluded here (spinDriftMode left unset,
+      // so resolveSpinDriftMode() in spin-drift.js always resolves to
+      // 'off', regardless of the Settings choice) — Hit Probability's own
+      // dispersion model doesn't factor it in, and this is also what
+      // keeps its Monte Carlo loop off the more expensive 4-DOF stepper
+      // even when the user has that mode selected elsewhere.
       windSpeed: 0, windAngle: 90
     };
 
