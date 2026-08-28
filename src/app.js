@@ -104,39 +104,50 @@ const views = {
 // body (router.js calls mount() synchronously and expects an immediate
 // return, not a Promise), so both mirrors have to be warm before
 // startRouter() ever runs, not lazily per-mount.
-await Promise.all([initI18n(), initLocationLibrary(), initRiflePrecisionLibrary()]);
-// One-time import of any pre-v2.9 localStorage location data left behind
-// by the IndexedDB migration — must run after initLocationLibrary() above,
-// since it needs the mirror populated for id-collision checks. See
-// location-storage-migration.js's own comment.
-await migrateLegacyLocationStorage();
+//
+// index.html's #app-boot overlay covers this whole stretch (module graph
+// already loaded by the time this line runs, so what's left is the locale
+// fetches, the two IndexedDB opens, and the legacy-storage migration) —
+// removed the instant the first route mounts below, in `finally` so a
+// failure here can't leave it stuck on screen forever instead of
+// surfacing the actual error.
+try {
+  await Promise.all([initI18n(), initLocationLibrary(), initRiflePrecisionLibrary()]);
+  // One-time import of any pre-v2.9 localStorage location data left behind
+  // by the IndexedDB migration — must run after initLocationLibrary() above,
+  // since it needs the mirror populated for id-collision checks. See
+  // location-storage-migration.js's own comment.
+  await migrateLegacyLocationStorage();
 
-mountLanguageSwitcher(document.getElementById('app-lang'));
-mountDisplayModeSwitch(document.getElementById('app-display-mode'));
-// The rail (desktop) and tab bar (mobile, see layout.css's breakpoint)
-// both listen for hashchange/language-change themselves — mounted once,
-// never re-mounted by the router the way routed views are.
-mountNavRail(document.getElementById('app-rail'));
-mountNavTabbar(document.getElementById('app-tabbar'));
-mountTopbarScroll(document.getElementById('app-topbar'));
-mountDialogRoot(document.getElementById('app-dialog'));
+  mountLanguageSwitcher(document.getElementById('app-lang'));
+  mountDisplayModeSwitch(document.getElementById('app-display-mode'));
+  // The rail (desktop) and tab bar (mobile, see layout.css's breakpoint)
+  // both listen for hashchange/language-change themselves — mounted once,
+  // never re-mounted by the router the way routed views are.
+  mountNavRail(document.getElementById('app-rail'));
+  mountNavTabbar(document.getElementById('app-tabbar'));
+  mountTopbarScroll(document.getElementById('app-topbar'));
+  mountDialogRoot(document.getElementById('app-dialog'));
 
-for (const [path, mod] of Object.entries(views)) {
-  registerRoute(path, () => mod.mount(view));
+  for (const [path, mod] of Object.entries(views)) {
+    registerRoute(path, () => mod.mount(view));
+  }
+  // The two category hub pages share one view module, parameterized by
+  // group id — see category-view.js.
+  registerRoute('/measurement', () => categoryView.mount(view, 'measurement'));
+  registerRoute('/analysis', () => categoryView.mount(view, 'analysis'));
+  // Guns' two tabs (Custom/Arsenal) are the same pattern — one view module,
+  // parameterized — see guns-view.js.
+  registerRoute('/guns/custom', () => gunsView.mount(view, 'custom'));
+  registerRoute('/guns/arsenal', () => gunsView.mount(view, 'arsenal'));
+  registerRoute('/locations/place', () => locationPlacementView.mount(view));
+  registerRoute('/rifle-precision/target', () => riflePrecisionMarkingView.mount(view));
+  registerRoute('/rifle-precision/analysis', () => riflePrecisionAnalysisView.mount(view));
+
+  startRouter('/');
+} finally {
+  document.getElementById('app-boot')?.remove();
 }
-// The two category hub pages share one view module, parameterized by
-// group id — see category-view.js.
-registerRoute('/measurement', () => categoryView.mount(view, 'measurement'));
-registerRoute('/analysis', () => categoryView.mount(view, 'analysis'));
-// Guns' two tabs (Custom/Arsenal) are the same pattern — one view module,
-// parameterized — see guns-view.js.
-registerRoute('/guns/custom', () => gunsView.mount(view, 'custom'));
-registerRoute('/guns/arsenal', () => gunsView.mount(view, 'arsenal'));
-registerRoute('/locations/place', () => locationPlacementView.mount(view));
-registerRoute('/rifle-precision/target', () => riflePrecisionMarkingView.mount(view));
-registerRoute('/rifle-precision/analysis', () => riflePrecisionAnalysisView.mount(view));
-
-startRouter('/');
 
 // The language switcher lives in the header, so it can fire from any
 // page — re-mount whichever view is currently showing so its labels

@@ -867,6 +867,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v147": "Ladeanzeige beim Programmstart hinzugefügt.",
       "v146": "Engine-Upgrade auf 4-DOF/MPM. Berechnung der Drallabweichung nach McCoys Gleichungen implementiert. McCoys feste Konstante für das transversale Trägheitsmoment (entsprechend dem Geschoss .308 168gr SMK) wurde durch eine vom Länge-zu-Kaliber-Verhältnis abhängige Funktionsanpassung ersetzt, kalibriert mit Lapua-6-DOF-Daten.",
       "v145": "Fehlerbehebung: Korrektur, wie der Feldrechner bei den Eingabefeldern für Distanz und Windgeschwindigkeit mit nicht-metrischen Einheiten umgeht – Rundung und Schrittweite. (Props an 6.5SH.) Neu: Option „U/D, L/R“ für die Ausgabe-Anzeigesymbole des Feldrechners hinzugefügt (nicht übersetzt).",
       "v144": "Das letzte der Werkzeuge wurde auf die neue Suite-Plattform portiert: der Gewehr-Präzisionsrechner (früher bekannt als „Taran“) – vielleicht die kontroverseste, anstößigste, ego-zertrümmerndste, stolzverletzendste, demütigendste, entmutigendste und am meisten Butthurt auslösende Software, die ich je geschrieben habe. Außerdem: automatische Migration der Standortdaten vom alten Speicher-Backend auf das neue, etwas UI-Politur, sowie eine Aktualisierung des Benutzerhandbuchs, die alles seit v136 (2.2) abbildet. Das alles rechtfertigt einen Major-Versionssprung und einen großartigen neuen Versionsnamen.",

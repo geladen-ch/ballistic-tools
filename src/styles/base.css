@@ -1107,6 +1107,30 @@ canvas { display: block; width: 100%; }
 .app-dialog-message { margin: 0 0 16px; }
 .app-dialog-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
+/* Boot loader (index.html's #app-boot, removed by app.js once the first
+   route has mounted) — the very first thing painted, before app.js has
+   even finished downloading its module graph, so it can't read the
+   theme-dark/-high-contrast-* classes app.js applies to <html> (those
+   need JS to run first). Fixed color and a transparent background (the
+   themed html/body already painted underneath) rather than any var(--*)
+   here, deliberately — this element is meant to work the same regardless
+   of theme, not to match one. */
+#app-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: transparent;
+}
+#app-boot-mark { animation: app-boot-pulse 1.1s ease-in-out infinite; }
+@keyframes app-boot-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
 /* Release History (src/views/release-history-view.js) — one stacked entry
    per release rather than a table, so it reads correctly at any width
    (mobile portrait included) with no separate responsive structure: the

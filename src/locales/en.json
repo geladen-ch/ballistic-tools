@@ -867,6 +867,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v147": "Added a \"loading\" indicator on application start-up.",
       "v146": "Engine upgrade to 4-DOF / MPM. Spin drift calculations implemented by McCoy's equations. McCoy's transverse moment of inertia constant (corresponding to .308 168gr SMK projectile) replaced by length-to-caliber-dependent function fit, calibrated with Lapua 6-DOF data.",
       "v145": "Bugfix: fixed how the Range Solver's distance and wind speed inputs handle non-metric units — rounding and step size. (Props to 6.5SH.) Feature: added a \"U/D, L/R\" option for the Range Solver's output indicators (not translated).",
       "v144": "The last of the tools has been ported to the new suite platform: meet the Rifle Precision Calculator (formerly known as Taran) – perhaps the most controversial, offensive, ego-shattering, pride-wounding, humiliating, demoralizing, and butthurt-inducing piece of software I've ever written. There's also automatic migration of Locations data from the old storage back-end to the new one, some UI polishing, and an update to the user manual reflecting everything that's happened since v136 (2.2). All this mandates a major version bump, and an awesome new version codename.",
