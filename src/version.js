@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v149';
-export const RELEASE_ID = '3.1.3';
+export const CACHE_VERSION = 'v150';
+export const RELEASE_ID = '3.1.4';
 export const CODENAME_SHORT = 'MTFKR+';
 export const CODENAME_LONG = 'Multi-Target Flight & Kinetic Research+';

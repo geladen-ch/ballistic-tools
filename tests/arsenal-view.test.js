@@ -939,7 +939,7 @@ async function openNewCartridgeForm(container) {
 }
 
 // ---- Cartridge form's caliber filter (src/ui/arsenal/cartridge-form.js) ----
-// swiss-gp11 (0.00778m) matches the "7.5mm(CH)" designation; hrr-30-
+// swiss-gp11 (0.00778m) matches the "7.5mm (CH)" designation; hrr-30-
 // eldm-208 (0.0078232m) matches "7.62 / .308 / .30" — two real built-in
 // bullets in genuinely different calibers, used to exercise filtering.
 
@@ -955,7 +955,7 @@ test('the cartridge form\'s caliber filter defaults to "All" and offers every ca
   assert.equal(selectedCaliberOption.textContent, t('fields.bulletFilterAllCalibers'), 'defaults to "All"');
 
   const bulletOptionTexts = findInputs(container).find((n) => n.id === 'arsenalCartridgeBullet').childNodes.map((o) => o.textContent);
-  assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')), 'the 7.5mm(CH) bullet should be offered');
+  assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')), 'the 7.5mm (CH) bullet should be offered');
   assert.ok(bulletOptionTexts.some((t2) => t2.includes('208gr ELD-M')), 'the .308 bullet should be offered too — nothing filtered yet');
 });
 
@@ -966,8 +966,8 @@ test('choosing a caliber in the cartridge form filters the bullet picker to that
 
   const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
   const caliberOptions = [...caliberSelect.childNodes];
-  const swissOption = caliberOptions.find((o) => o.textContent === '7.5mm(CH)');
-  assert.ok(swissOption, 'expected "7.5mm(CH)" to be one of the offered calibers');
+  const swissOption = caliberOptions.find((o) => o.textContent === '7.5mm (CH)');
+  assert.ok(swissOption, 'expected "7.5mm (CH)" to be one of the offered calibers');
   caliberSelect.value = swissOption.attributes.value;
   fireEvent(caliberSelect, 'change');
 
@@ -994,7 +994,7 @@ test('once a rifle\'s cartridge has a resolvable bullet, adding another cartridg
 
   const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
   assert.equal(caliberSelect.disabled, true, 'a sibling cartridge already established this rifle\'s caliber');
-  assert.equal(caliberSelect.value, '7.5mm(CH)');
+  assert.equal(caliberSelect.value, '7.5mm (CH)');
 
   const bulletOptionTexts = byId(container, 'arsenalCartridgeBullet').childNodes.map((o) => o.textContent);
   assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')));
@@ -1073,7 +1073,7 @@ test('adding a second cartridge still locks the caliber filter to the first one\
 
   const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
   assert.equal(caliberSelect.disabled, true, 'a sibling cartridge already established this rifle\'s caliber');
-  assert.equal(caliberSelect.value, '7.5mm(CH)');
+  assert.equal(caliberSelect.value, '7.5mm (CH)');
 });
 
 test('editing one of two cartridges keeps the caliber filter locked (a sibling still depends on it)', async () => {
@@ -1105,7 +1105,7 @@ test('editing one of two cartridges keeps the caliber filter locked (a sibling s
 
   const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
   assert.equal(caliberSelect.disabled, true, 'the sibling cartridge still chambers this rifle\'s established caliber');
-  assert.equal(caliberSelect.value, '7.5mm(CH)');
+  assert.equal(caliberSelect.value, '7.5mm (CH)');
 });
 
 test('a bullet with a caliber that matches no known designation still gets its own filterable entry', async () => {
@@ -1290,7 +1290,7 @@ test('the embedded Add Bullet form\'s caliber pre-fills to the cartridge form\'s
   await openNewCartridgeForm(container);
 
   const caliberSelect = byId(container, 'arsenalCartridgeCaliberFilter');
-  const swissOption = [...caliberSelect.childNodes].find((o) => o.textContent === '7.5mm(CH)');
+  const swissOption = [...caliberSelect.childNodes].find((o) => o.textContent === '7.5mm (CH)');
   caliberSelect.value = swissOption.value;
   fireEvent(caliberSelect, 'change');
 

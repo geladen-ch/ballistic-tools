@@ -148,7 +148,7 @@ test('the "Other" bullet has manual caliber/length fields, defaulting to GP11\'s
   assert.equal(lengthInput.value, '35.00');
 
   await settle(); // caliber-field.js's own designation list resolves async
-  assert.equal(caliberSelect.value, '7.5mm(CH)', 'GP11\'s own real caliber, matched exactly');
+  assert.equal(caliberSelect.value, '7.5mm (CH)', 'GP11\'s own real caliber, matched exactly');
 
   const stability = bullet.getStabilityValues();
   assert.ok(Math.abs(stability.caliberM - 0.00778) < 1e-9);
