@@ -867,6 +867,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v149": "Valeurs de portée par défaut arrondies pour les yards (si sélectionnés) dans Trajectoire et Probabilité de toucher.",
       "v148": "Ajustements des icônes et de la mise en page pour améliorer le mode PWA sur iOS et Android.",
       "v147": "Ajout d'un indicateur de chargement au démarrage de l'application.",
       "v146": "Mise à niveau du moteur vers le modèle 4-DOF/MPM. Calcul de la dérive gyroscopique implémenté selon les équations de McCoy. La constante fixe de McCoy pour le moment d'inertie transversal (correspondant au projectile .308 168gr SMK) a été remplacée par un ajustement fonctionnel dépendant du rapport longueur/calibre, calibré avec les données 6-DOF de Lapua.",

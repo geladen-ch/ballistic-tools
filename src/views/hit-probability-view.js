@@ -1,5 +1,7 @@
 import { el, clear } from '../dom.js';
 import { unitField } from '../ui/unit-field.js';
+import { displayToEngine } from '../units.js';
+import { getUnit } from '../prefs.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
@@ -175,6 +177,13 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
   return field;
 }
 
+// A user on yards gets a round 600 yd default rather than whatever a
+// straight 600 m conversion happens to land on (656.2 yd) — only used
+// when there's no persisted value yet (see persistedValue()/panelState).
+function roundDistanceDefault(fieldId, metricValue, yardValue) {
+  return getUnit('distance') === 'yd' ? displayToEngine(fieldId, yardValue, 'yd') : metricValue;
+}
+
 // A unitField() with no preset selector, still persisted across
 // navigation the same way (target range, aiming offsets, battle zero).
 function persistedUnitField(id, { onInput, ...rest }) {
@@ -325,7 +334,7 @@ export function mount(container) {
     spotterMeasureField.node
   ]);
 
-  const targetRangeField = persistedUnitField('targetRange', { min: 10, max: 5000, step: 10, value: 400, onInput: () => recompute() });
+  const targetRangeField = persistedUnitField('targetRange', { min: 10, max: 5000, step: 10, value: roundDistanceDefault('targetRange', 600, 600), onInput: () => recompute() });
   const atmosphere = atmosphereSection({ includeWind: false, onInput: () => recompute() });
 
   const movingTargetSpeedField = presetUnitField('movingTargetSpeed', { max: 30, step: 0.5, onInput: () => recompute() });

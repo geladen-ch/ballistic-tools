@@ -867,6 +867,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v149": "Runde Standard-Reichweiten für Yards (falls ausgewählt) in Flugbahn und Trefferwahrscheinlichkeit.",
       "v148": "Icons und Layout-Anpassungen zur Verbesserung des PWA-Modus unter iOS und Android.",
       "v147": "Ladeanzeige beim Programmstart hinzugefügt.",
       "v146": "Engine-Upgrade auf 4-DOF/MPM. Berechnung der Drallabweichung nach McCoys Gleichungen implementiert. McCoys feste Konstante für das transversale Trägheitsmoment (entsprechend dem Geschoss .308 168gr SMK) wurde durch eine vom Länge-zu-Kaliber-Verhältnis abhängige Funktionsanpassung ersetzt, kalibriert mit Lapua-6-DOF-Daten.",

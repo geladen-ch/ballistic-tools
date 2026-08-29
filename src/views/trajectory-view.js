@@ -7,7 +7,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { columnToggles } from '../ui/column-toggles.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
-import { engineToDisplay, unitChoice, convertAngularValue, FIELD_BOUNDS, formatFieldValue } from '../units.js';
+import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, FIELD_BOUNDS, formatFieldValue } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { loadColumnVisibility, saveColumnVisibility } from '../table-columns.js';
 import { applyI18nText, i18nSpan, t } from '../i18n.js';
@@ -104,6 +104,13 @@ export function mount(container) {
   // reset to their hardcoded defaults on every navigation away and back.
   const savedInputs = loadTrajectoryInputsState() || {};
 
+  // A user on yards gets a round 1000 yd / 100 yd default rather than
+  // whatever a straight 1000 m / 100 m conversion happens to land on
+  // (1093.6 yd / 109.4 yd) — only used when there's no persisted value yet.
+  function roundDistanceDefault(fieldId, metricValue, yardValue) {
+    return getUnit('distance') === 'yd' ? displayToEngine(fieldId, yardValue, 'yd') : metricValue;
+  }
+
   function persistInputs() {
     saveTrajectoryInputsState({
       maxRange: maxRangeField.getEngineValue(),
@@ -116,7 +123,7 @@ export function mount(container) {
   // computed — they aren't rifle/cartridge/atmosphere properties, so they
   // stay outside those reusable sections.
   const maxRangeField = unitField({
-    id: 'maxRange', ...FIELD_BOUNDS.maxRange, step: 10, value: savedInputs.maxRange ?? 1000,
+    id: 'maxRange', ...FIELD_BOUNDS.maxRange, step: 10, value: savedInputs.maxRange ?? roundDistanceDefault('maxRange', 1000, 1000),
     onInput: () => {
       zoomSlider.setBounds(maxRangeField.getEngineValue());
       // Re-check rangeStep's own step ≤ maxRange cross-check now that
@@ -130,7 +137,7 @@ export function mount(container) {
   // The chart uses its own fixed dense resolution (CHART_DENSE_RANGE_STEP_M),
   // ignoring this — it only ever affects the table's own rows.
   const rangeStepField = unitField({
-    id: 'rangeStep', ...FIELD_BOUNDS.rangeStep, step: 1, value: savedInputs.rangeStep ?? 100,
+    id: 'rangeStep', ...FIELD_BOUNDS.rangeStep, step: 1, value: savedInputs.rangeStep ?? roundDistanceDefault('rangeStep', 100, 100),
     // A step bigger than the whole table range would produce at most one
     // row — not a physically-invalid number on its own, but not a useful
     // table either, so it's checked the same way an out-of-range value is.

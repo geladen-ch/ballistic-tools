@@ -867,6 +867,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v149": "Valori di portata predefiniti arrotondati per le yard (se selezionate) in Traiettoria e Probabilità di colpire.",
       "v148": "Modifiche alle icone e al layout per migliorare la modalità PWA su iOS e Android.",
       "v147": "Aggiunto un indicatore di caricamento all'avvio dell'applicazione.",
       "v146": "Aggiornamento del motore al modello 4-DOF/MPM. Implementato il calcolo della deriva giroscopica secondo le equazioni di McCoy. La costante fissa di McCoy per il momento d'inerzia trasversale (corrispondente al proiettile .308 168gr SMK) è stata sostituita da un adattamento funzionale dipendente dal rapporto lunghezza/calibro, calibrato con i dati 6-DOF di Lapua.",

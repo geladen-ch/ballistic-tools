@@ -867,6 +867,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v149": "Nice round range defaults for yards (when selected) in Trajectory and Hit Probability.",
       "v148": "Icons and layout tweaks to improve PWA mode on iOS and Android.",
       "v147": "Added a \"loading\" indicator on application start-up.",
       "v146": "Engine upgrade to 4-DOF / MPM. Spin drift calculations implemented by McCoy's equations. McCoy's transverse moment of inertia constant (corresponding to .308 168gr SMK projectile) replaced by length-to-caliber-dependent function fit, calibrated with Lapua 6-DOF data.",
