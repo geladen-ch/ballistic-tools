@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -35,7 +36,7 @@ test('persists to a single cookie a fresh module load would pick up', async () =
   saveTrajectoryInputsState({ maxRange: 1800, rangeStep: 25, losAngleDeg: -5 });
   assert.ok(getCookie(COOKIE_NAME), 'expected the state cookie to be written');
 
-  const fresh = await import(`../src/trajectory-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/trajectory-state.js?reload=${freshId()}`);
   assert.deepEqual(fresh.loadTrajectoryInputsState(), { maxRange: 1800, rangeStep: 25, losAngleDeg: -5 });
 });
 

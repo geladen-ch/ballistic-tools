@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -75,7 +76,7 @@ test('persists to a single cookie a fresh module load would pick up', async () =
 
   assert.ok(getCookie(COOKIE_NAME), 'expected the state cookie to be written');
 
-  const fresh = await import(`../src/range-solver-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/range-solver-state.js?reload=${freshId()}`);
   assert.deepEqual(fresh.loadRangeSolverTargetState(), { rangeM: 777, losAngleDeg: 0 });
   assert.deepEqual(fresh.loadRangeSolverWindState(), { speed: 1.5, angle: 90 });
 });
