@@ -58,6 +58,20 @@ function settle(ms = 30) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Polls instead of sleeping a fixed duration — the target picker's grid
+// fills in once its Promise.all() of per-target fetches resolves, and how
+// long that takes depends on how loaded the machine is. A fixed settle()
+// either wastes time or (under a busy full-suite run) returns too early;
+// this waits only as long as it actually takes, up to a generous ceiling
+// that only trips on a genuine hang.
+async function waitFor(predicate, { timeout = 2000, interval = 5 } = {}) {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeout) throw new Error('waitFor: timed out waiting for condition');
+    await settle(interval);
+  }
+}
+
 test('mount() builds a DOM tree without throwing, and cleans up on unmount', () => {
   const container = makeElement('main');
   let unmount;
@@ -236,10 +250,11 @@ test('the target picker offers a thumbnail button per catalog target, and rememb
   // this part of the async chain genuinely resolves here.
   const container = makeElement('main');
   const unmount = hitProbabilityView.mount(container);
-  // Two parallel real file reads (loadTarget() per catalog entry) back
-  // this — under a loaded full-suite run the default 30ms margin isn't
-  // always enough, so this waits longer specifically here.
-  await settle(150);
+  // Waits for the picker grid's own async population rather than a fixed
+  // delay — how long the parallel per-target loadTarget() calls take
+  // depends on machine load, and a fixed sleep was intermittently too
+  // short under a busy full-suite run.
+  await waitFor(() => findByTag(container, 'BUTTON').some((b) => b.className && b.className.includes('target-picker-item')));
 
   const tabButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn'));
   fireEvent(tabButtons[1], 'click'); // Simulation
@@ -275,7 +290,7 @@ test('the target picker offers a thumbnail button per catalog target, and rememb
 
   unmount();
   const unmount2 = hitProbabilityView.mount(container);
-  await settle(150);
+  await waitFor(() => findByTag(container, 'BUTTON').some((b) => b.className && b.className.includes('target-picker-item')));
   const tabButtons2 = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn'));
   fireEvent(tabButtons2[1], 'click');
   const pickerButtons2 = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('target-picker-item'));
