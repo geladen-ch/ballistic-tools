@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -38,7 +39,7 @@ test('a garbage/tampered cookie value falls back to the default rather than bein
 
 test('a value survives a fresh module load (session-to-session persistence)', async () => {
   setFieldSeparator('\t');
-  const fresh = await import(`../src/csv-prefs.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/csv-prefs.js?reload=${freshId()}`);
   assert.equal(fresh.getFieldSeparator(), '\t');
   setFieldSeparator(',');
 });

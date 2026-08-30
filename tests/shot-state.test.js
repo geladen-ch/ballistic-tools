@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { freshId } from './helpers/fresh-import.js';
 
 installFakeDom();
 
@@ -64,14 +65,14 @@ test('rifle/cartridge state survives a fresh module load (an app restart)', asyn
   saveRifleState({ zeroRange: 175, library: { rifleId: 'my-rifle', cartridgeId: 'c1' } });
   saveCartridgeState({ muzzleVelocity: 810, bullet: { selectedId: 'my-bullet' } });
 
-  const fresh = await import(`../src/shot-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
   assert.deepEqual(fresh.loadRifleState(), { zeroRange: 175, library: { rifleId: 'my-rifle', cartridgeId: 'c1' } });
   assert.deepEqual(fresh.loadCartridgeState(), { muzzleVelocity: 810, bullet: { selectedId: 'my-bullet' } });
 });
 
 test('atmosphere state does NOT survive a fresh module load — session-only, unlike rifle/cartridge', async () => {
   saveAtmosphereState({ tempC: 30 });
-  const fresh = await import(`../src/shot-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
   assert.equal(fresh.loadAtmosphereState(), null);
 });
 
@@ -80,14 +81,14 @@ test('resetShotStateForTests() also clears the cookie itself, not just the in-me
   resetShotStateForTests();
   assert.equal(getCookie('ballistics_gun_state_v1'), null);
 
-  const fresh = await import(`../src/shot-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
   assert.equal(fresh.loadRifleState(), null);
 });
 
 test('a malformed cookie value falls back to defaults rather than throwing', async () => {
   const { setCookie } = await import('../src/cookies.js');
   setCookie('ballistics_gun_state_v1', 'not valid json');
-  const fresh = await import(`../src/shot-state.js?reload=${Date.now()}`);
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
   assert.equal(fresh.loadRifleState(), null);
   assert.equal(fresh.loadCartridgeState(), null);
   resetShotStateForTests();
