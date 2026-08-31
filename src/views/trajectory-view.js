@@ -169,7 +169,7 @@ export function mount(container) {
   const cartridge = cartridgeSection({ onInput: handleShotInputChange });
   const rifle = rifleSection({ onInput: handleShotInputChange, onLibraryCartridgeChange: cartridge.setLibraryCartridge });
   const guns = gunsSummary();
-  const atmosphere = atmosphereSection({ onInput: handleShotInputChange });
+  const atmosphere = atmosphereSection({ combinedWind: true, onInput: handleShotInputChange });
 
   const controls = el('div', { class: 'card' }, [
     el('h2', { i18n: 'trajectory.inputsHeading' }),

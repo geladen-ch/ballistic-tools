@@ -12,8 +12,8 @@
 // Probability — there's no Calculate button.
 import { el, clear } from '../dom.js';
 import { unitField } from '../ui/unit-field.js';
-import { windDirectionDial } from '../ui/wind-direction-dial.js';
 import { largeStepperField } from '../ui/large-stepper-field.js';
+import { windControl } from '../ui/wind-control.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
@@ -51,10 +51,9 @@ const DEFAULT_WIND_SPEED_MS = 0;
 // — so both tables are keyed straight off the unit symbol.
 const TARGET_RANGE_DEFAULTS = { m: 500, yd: 500, ft: 1500 };
 const TARGET_RANGE_STEPS = { m: 50, yd: 50, ft: 100 };
-// km/h has no user-specified round step; falls back to converting the
-// same fixed 0.5 m/s step every unit used before this table existed.
-const WIND_SPEED_STEPS = { 'm/s': 0.5, mph: 1, 'ft/s': 1 };
-const FALLBACK_WIND_SPEED_STEP_MS = 0.5;
+// Wind speed's own unit-aware step/decimals are wind-control.js's own
+// concern now (its WIND_SPEED_STEPS table there) — every windControl()
+// caller gets the same stepping, not just this one.
 
 // Same stale/unknown-preference fallback largeStepperField() itself
 // applies internally — needed here too since these tables are looked up
@@ -96,7 +95,7 @@ export function mount(container) {
   // visible stand-in and guns-view.js for where it's actually edited) ----
   const rifle = rifleSection({ onInput: () => recompute(), onLibraryCartridgeChange: (c) => cartridge.setLibraryCartridge(c) });
   const cartridge = cartridgeSection({ onInput: () => recompute() });
-  const guns = gunsSummary();
+  const guns = gunsSummary({ bare: true });
 
   // ---- Target tab ----
   const targetSaved = loadRangeSolverTargetState() || {};
@@ -257,32 +256,28 @@ export function mount(container) {
     losAngleField.node
   ]);
 
-  // ---- Wind tab ----
+  // ---- Wind tab — a single combined dial (src/ui/wind-control.js), the
+  // dial + large-stepper pairing's replacement here and in Trajectory's
+  // atmosphere section (atmosphere-section.js's own `combinedWind`);
+  // Hit Probability/BC Estimator/Arsenal keep the plain pairing. Wind
+  // speed's step/decimals are unit-aware by default now (that
+  // component's own WIND_SPEED_STEPS table) — no longer computed here.
   const windSaved = loadRangeSolverWindState() || {};
   function saveWind() {
-    saveRangeSolverWindState({ speed: windSpeedField.getEngineValue(), angle: windAngleDial.getValue() });
+    saveRangeSolverWindState({ speed: wind.getEngineSpeed(), angle: wind.getAngle() });
   }
-  const windAngleDial = windDirectionDial({
-    id: 'windAngle', value: windSaved.angle ?? DEFAULT_WIND_ANGLE_DEG,
-    onInput: () => { saveWind(); recompute(); }
-  });
-  const windUnit = currentUnit('windSpeed');
-  const windSpeedStepMs = windUnit in WIND_SPEED_STEPS
-    ? displaySpanToEngine('windSpeed', WIND_SPEED_STEPS[windUnit], windUnit)
-    : FALLBACK_WIND_SPEED_STEP_MS;
-  const windSpeedField = largeStepperField({
-    id: 'windSpeed', ...FIELD_BOUNDS.windSpeed, step: windSpeedStepMs,
-    value: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
-    decimals: 1,
+  const wind = windControl({
+    angle: windSaved.angle ?? DEFAULT_WIND_ANGLE_DEG,
+    speed: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
+    ...FIELD_BOUNDS.windSpeed,
     onInput: () => { saveWind(); recompute(); }
   });
   // range-solver-wind-tab (in addition to the two classes every tab panel
-  // shares) is what layout.css's mobile-only wind-dial-fit-to-screen rules
+  // shares) is what layout.css's mobile-only wind-control sizing rules
   // key off, so they can size just this panel without also touching the
   // Target/Atmosphere ones.
   const windTab = el('div', { class: 'input-section range-solver-tab-panel range-solver-wind-tab' }, [
-    windAngleDial.node,
-    windSpeedField.node
+    wind.node
   ]);
 
   // ---- Atmosphere tab — own cookie-backed state (range-solver-state.js),
@@ -400,8 +395,8 @@ export function mount(container) {
     clear(conditionsBar);
     const rangeM = targetRangeField.getEngineValue();
     const losDeg = losAngleField.getEngineValue();
-    const windSpeedMs = windSpeedField.getEngineValue();
-    const windDeg = windAngleDial.getValue();
+    const windSpeedMs = wind.getEngineSpeed();
+    const windDeg = wind.getAngle();
     const { pressureHpa, tempC, humidityPct } = atmosphere.getValues();
 
     const parts = [];
@@ -440,8 +435,8 @@ export function mount(container) {
       // method over the user's actual selection.
       spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled(),
-      windSpeed: windSpeedField.getEngineValue(),
-      windAngle: windAngleDial.getValue(),
+      windSpeed: wind.getEngineSpeed(),
+      windAngle: wind.getAngle(),
       losAngleDeg: losAngleField.getEngineValue()
     };
     const targetRangeM = targetRangeField.getEngineValue();

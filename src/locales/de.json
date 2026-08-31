@@ -74,6 +74,7 @@
     "twistDirection": "Drallrichtung",
     "twistDirectionRight": "Rechts",
     "twistDirectionLeft": "Links",
+    "wind": "Wind",
     "windSpeed": "Windgeschwindigkeit",
     "windAngle": "Windwinkel (°, 0 = von vorne)",
     "stepperDecrease": "Verringern",
@@ -867,6 +868,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v151": "Neues, grandioses Design für die Windeingabe.",
       "v150": "Ein Durcheinander mit zwei 7-mm-Kalibern behoben — jetzt sauber in 6.8 und ein echtes 7 getrennt. Dank an ForgeValley fürs Aufdecken.",
       "v149": "Runde Standard-Reichweiten für Yards (falls ausgewählt) in Flugbahn und Trefferwahrscheinlichkeit.",
       "v148": "Icons und Layout-Anpassungen zur Verbesserung des PWA-Modus unter iOS und Android.",

@@ -18,6 +18,7 @@ const { cartridgeSection } = await import('../src/ui/sections/cartridge-section.
 const { atmosphereSection } = await import('../src/ui/sections/atmosphere-section.js');
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { resetShotStateForTests, loadAtmosphereState } = await import('../src/shot-state.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 
 // Shared shot state is a module-level singleton (by design — see
 // shot-state.js), so each test needs a clean slate the same way
@@ -28,6 +29,15 @@ function findInputs(node, out = []) {
   if (node.tagName === 'INPUT' || node.tagName === 'SELECT') out.push(node);
   for (const child of node.childNodes || []) findInputs(child, out);
   return out;
+}
+
+function findById(node, id) {
+  if (node.id === id) return node;
+  for (const child of node.childNodes || []) {
+    const found = findById(child, id);
+    if (found) return found;
+  }
+  return null;
 }
 
 test('sectionGroup renders a translated heading and marks nested sections', () => {
@@ -357,6 +367,47 @@ test('windAngle, typed through the dial\'s own number input, flows through getVa
 
   const second = atmosphereSection();
   assert.equal(second.getValues().windAngle, 270);
+});
+
+// combinedWind:true (src/ui/wind-control.js) is Trajectory's own opt-in —
+// see atmosphere-section.js — replacing the plain windSpeedField+
+// windAngleDial pair above with the single dial Range Solver's Wind tab
+// introduced, except labeled and with the headwind/crosswind caption
+// still showing (Range Solver's own instance has neither). The dial's
+// own drag/keyboard/skin behavior isn't re-tested here — same rationale
+// as the plain dial's own note above.
+test('combinedWind:true renders the combined dial instead of the plain pair, labeled "Wind"', () => {
+  const atmo = atmosphereSection({ combinedWind: true });
+  assert.ok(findById(atmo.node, 'windAngle'), 'expected the combined dial\'s SVG');
+  assert.ok(findById(atmo.node, 'windSpeed'), 'expected the combined dial\'s speed input');
+  assert.ok(atmo.node.textContent.includes(t('fields.wind')), 'expected the "Wind" label');
+});
+
+test('combinedWind:true keeps the headwind/crosswind caption, unlike Range Solver\'s own label-free instance', () => {
+  // DEFAULTS.windAngle is 90deg — full-value crosswind.
+  const atmo = atmosphereSection({ combinedWind: true });
+  assert.ok(atmo.node.textContent.includes(t('windDial.fullValue')));
+});
+
+test('combinedWind:true wind speed stepper is unit-aware (0.5 m/s / 1 mph / 1 ft/s), same as Range Solver\'s own instance', () => {
+  for (const [unit, expected] of [['m/s', 0.5], ['mph', 1], ['ft/s', 1]]) {
+    setUnit('windSpeed', unit);
+    const atmo = atmosphereSection({ combinedWind: true });
+    const [windSpeedInput] = findInputs(atmo.node).filter((n) => n.id === 'windSpeed');
+    assert.equal(Number(windSpeedInput.step), expected, `unit ${unit}`);
+  }
+  resetUnits();
+});
+
+test('combinedWind:true wind speed flows through getValues() and persists to the next instance', () => {
+  const first = atmosphereSection({ combinedWind: true });
+  const [windSpeedInput] = findInputs(first.node).filter((n) => n.id === 'windSpeed');
+  windSpeedInput.value = '5';
+  fireEvent(windSpeedInput, 'input');
+  assert.equal(first.getValues().windSpeed, 5);
+
+  const second = atmosphereSection({ combinedWind: true });
+  assert.equal(second.getValues().windSpeed, 5);
 });
 
 test('an atmosphereSection with includeWind:false never clobbers wind fields saved elsewhere', () => {

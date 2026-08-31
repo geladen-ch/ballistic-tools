@@ -1214,100 +1214,187 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Wind angle dial (src/ui/wind-direction-dial.js), enlarged 1.75x for
-   Trajectory's own wind field specifically — scoped under
-   .trajectory-atmosphere rather than the bare .wind-dial-svg/.wind-dial-
-   body classes, which are shared with every other place this same dial
-   appears (Hit Probability's own Simulation panel, Arsenal's rifle
-   comparison) and are left at their existing 120px size there. The dial
-   and manual-degrees readout are centered as a group within the field,
-   same "drop the readout's own flex-grow so justify-content can actually
-   center the pair" approach the Range Solver Wind tab rule below uses. ---- */
-.trajectory-atmosphere .wind-dial-body { justify-content: center; }
-.trajectory-atmosphere .wind-dial-readout { flex: none; text-align: center; }
-.trajectory-atmosphere .wind-dial-readout input[type="number"] { text-align: center; }
-.trajectory-atmosphere .wind-dial-svg { width: 210px; height: 210px; }
+/* Trajectory's own wind field (.trajectory-atmosphere, wrapping
+   atmosphereSection()'s node) used to enlarge the plain wind-direction-
+   dial.js here specifically, since sharing the bare .wind-dial-svg class
+   would have also enlarged it everywhere else that dial appeared. Both
+   Trajectory and Arsenal's rifle comparison now get src/ui/wind-
+   control.js's combined dial instead (atmosphereSection's own
+   `combinedWind: true`) — no override needed for either: that component
+   centers and sizes itself already (see .wind-control-* above), the same
+   everywhere it appears. */
 
-/* ---- Wind angle dial, enlarged for the Wind tab specifically — scoped
-   under .range-solver-tab-panel rather
-   than the bare .wind-dial-svg/.wind-dial-field classes, which are shared
-   with every other place this same dial appears (Hit Probability's own
-   Simulation panel included) and are left at their existing 120px size
-   there. 1.5x that again (270px) even in a narrow container, scaling
-   up from there via container query units — same "size off the actual
-   box, not the viewport" approach as the click-value readout above.
-   The dial + manual-degrees readout are centered as a group (not
-   left-aligned/stretched) — .wind-dial-readout's own flex-grow is
-   dropped here so the pair keeps its natural width and justify-content
-   can actually center it. ---- */
-/* Range Solver's own Wind tab drops the dial's "Wind angle (deg,
-   0=head)" label entirely — the tab itself, and the dial's own visible
-   12/3/6/9 face, already make what it controls obvious, and the label
-   was just consuming vertical room this pane can't spare (see the
-   short-landscape pane rebalance above). Scoped the same way the sizing
-   overrides just above it are — the plain .wind-dial-field/.field label
-   rule stays untouched for every other place this component appears
-   (Trajectory, Hit Probability), where there's no adjacent tab label to
-   lean on instead. */
-.range-solver-tab-panel .wind-dial-field > label { display: none; }
-.range-solver-tab-panel .wind-dial-field { container-type: inline-size; }
-.range-solver-tab-panel .wind-dial-body { justify-content: center; }
-.range-solver-tab-panel .wind-dial-readout { flex: none; text-align: center; }
-.range-solver-tab-panel .wind-dial-readout input[type="number"] { text-align: center; }
-.range-solver-tab-panel .wind-dial-svg {
-  width: clamp(270px, 105cqw, 480px);
-  height: auto;
-  aspect-ratio: 1;
-  max-width: 100%; /* cqw is relative to the field's own box, not the space
-    left over once the readout sits beside it — without this cap the dial
-    can size itself wider than its own container instead of wrapping. */
-}
-
-/* ---- Wind tab, mobile chrome only: hide the manual angle entry (the
-   big touch dial is plenty on a small screen, and it's still fully
-   keyboard-operable on its own — arrow keys, see wind-direction-dial.js)
-   and let the dial fill whatever vertical room is actually left after
-   the output pane above it and the wind-speed stepper below it, instead
-   of the fixed 270-480px desktop clamp above. Never below the same
-   120px .wind-dial-svg is everywhere else in the app (Trajectory's own
-   wind field included) — .wind-dial-svg's min-height/min-width below
-   enforce that floor regardless of how little room is left.
-   Flexbox can't "fill remaining space" without some ancestor having a
-   real (not just min-) height to divide up, so #app-shell is pinned to
-   the viewport here — only under this same selector, so every other
-   view keeps growing with its content and scrolling the whole page the
-   normal way. #view picks up its own scrollbar instead: if even the
-   120px floor doesn't fit (a very short phone, or the on-screen
-   keyboard eating into the viewport), only this content scrolls, and
-   the fixed tab bar stays put rather than sliding away with the page.
-   Both selector variants below are the exact same "is mobile chrome
-   actually showing" condition the rail-vs-tabbar rules above already
-   use (automatic max-width/short-landscape detection, or the .force-
-   mobile override) — not a new one — so a desktop window, even one
-   narrowed or forced to look mobile via .force-desktop, never matches
-   either and the clamp() above stays exactly as it was. ---- */
+/* ---- Range Solver mobile chrome: establishes a real (not just min-)
+   height down through #app-shell/#view/.range-solver-layout so flex:1
+   further down this pane's chain actually has something to divide up —
+   originally added so the old Wind tab dial could fill leftover vertical
+   space, but .range-solver-input-pane's own flex:1 rule further below
+   (the short-landscape "Target tab's large steppers got crushed"
+   real-device fix) depends on this same chain too, so it stays even
+   though wind-control.js's own combo no longer grows to fill it (see
+   that component's CSS above — it's designed down to a fixed 250px
+   floor instead, not a fill-the-viewport one). Both selector variants
+   are the exact same "is mobile chrome actually showing" condition the
+   rail-vs-tabbar rules elsewhere in this file use (automatic
+   max-width/short-landscape detection, or the .force-mobile override). */
 @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
   html.range-solver-mode:not(.force-desktop) #app-shell { height: 100dvh; }
   html.range-solver-mode:not(.force-desktop) #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
   html.range-solver-mode:not(.force-desktop) .range-solver-layout { flex: 1; min-height: 0; }
   html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-body { flex: 1; min-height: 0; flex-direction: column; flex-wrap: nowrap; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-svg {
-    width: auto; height: 100%; aspect-ratio: 1; min-width: 120px; min-height: 120px; max-width: 100%;
-  }
-  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab .wind-dial-readout input[type="number"] { display: none; }
 }
 html.range-solver-mode.force-mobile #app-shell { height: 100dvh; }
 html.range-solver-mode.force-mobile #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 0; }
 html.range-solver-mode.force-mobile .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-body { flex: 1; min-height: 0; flex-direction: column; flex-wrap: nowrap; }
-html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-svg {
-  width: auto; height: 100%; aspect-ratio: 1; min-width: 120px; min-height: 120px; max-width: 100%;
+
+/* ---- Combined wind direction+speed control (src/ui/wind-control.js) —
+   Range Solver's Wind tab, and Trajectory's and Arsenal's rifle
+   comparison's atmosphere sections (that file's own `combinedWind:
+   true`); see wind-control.js for why the other atmosphereSection()
+   callers (Hit Probability, BC Estimator, Cd-Mach Curve, Range Solver's
+   own Atmosphere tab — all `includeWind: false`) aren't also on this.
+   Range Solver renders it label-free (the tab itself and the dial's own
+   12/3/6/9 face already make what it controls obvious); Trajectory and
+   Arsenal turn its `label`/`hint` options on instead, matching their own
+   sections' other labeled fields — all read the same base look below
+   regardless. ----
+   Sizing is one cqw-driven scale rather than a separate per-view override
+   layer, unlike wind-dial-svg/large-stepper-btn's own fixed-px overrides
+   per call site — every consumer here is happy with the same responsive
+   range. --dial-r/--btn/--gap feed the button notch masks below, so the
+   cut they carve stays geometrically locked to the dial's actual center
+   and radius as everything scales; --dial-face-r/--svg-margin correct for
+   the drawn face circle (wind-control.js's own R_FACE=112 of a 270
+   viewBox) sitting inset from the SVG's own edge — anchoring the notch to
+   --dial-r instead would carve it against that invisible margin, not the
+   visible ring. */
+.wind-control-combo {
+  container-type: inline-size;
+  display: flex; align-items: center; justify-content: center;
+  --dial-d: clamp(130px, 57.6cqw, 260px);
+  --dial-r: calc(var(--dial-d) / 2);
+  --dial-face-r: calc(var(--dial-r) * 0.8296);
+  --svg-margin: calc(var(--dial-r) - var(--dial-face-r));
+  --btn: clamp(40px, 17.6cqw, 64px);
+  --gap: clamp(0px, 0.2cqw, 2px);
+  gap: var(--gap);
+  min-width: 250px; /* the floor this control is designed down to, buttons included */
 }
-html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-readout input[type="number"] { display: none; }
+.wind-control-btn {
+  all: unset; box-sizing: border-box; flex-shrink: 0;
+  width: var(--btn); height: var(--btn);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(18px, 10cqw, 30px);
+  font-weight: 700; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--panel-raised); color: var(--text); cursor: pointer; user-select: none;
+}
+.wind-control-btn:hover { background: var(--line); }
+.wind-control-btn:active { background: var(--accent-dim); color: var(--accent-text); }
+.wind-control-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The notch: a disc centered on the dial's own center (O), reaching a
+   little way across the button at the dial's height and tapering to
+   nothing near its top/bottom corners — same circle family as the dial
+   itself, so it reads as wrapping around the ring rather than an
+   arbitrary scoop. --bite stays small on purpose: any amount near half
+   the button would be dead space no --gap trim could claw back.
+   mask-image cuts it out (transparent = hidden, white = kept). White
+   rather than black for "kept": Chrome/Safari read a mask gradient's
+   alpha channel (opaque black or white both mean visible), but Firefox
+   defaults to reading luminance instead, where opaque black has zero
+   luminance and gets treated as hidden — white is opaque *and*
+   full-luminance, so it reads as visible under either interpretation. */
+.wind-control-btn {
+  --bite: calc(var(--btn) * 0.1);
+  --cut-r: calc(var(--dial-face-r) + var(--gap) + var(--bite));
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+/* Pull each button in by exactly the SVG's own invisible margin, so --gap
+   becomes the real visible distance to the drawn circle instead of being
+   added on top of that hidden margin. */
+.wind-control-dec { margin-right: calc(-1 * var(--svg-margin)); }
+.wind-control-inc { margin-left: calc(-1 * var(--svg-margin)); }
+/* Y is the button's own mid-height, not the dial's radius — align-items:
+   center on the flex row means the button's vertical center is already
+   where O sits, and mask position is relative to the button's own box
+   (unaffected by the margin pull above, which only moves the box). */
+.wind-control-dec {
+  --center-x: calc(var(--btn) + var(--dial-face-r) + var(--gap));
+  -webkit-mask-image: radial-gradient(circle at var(--center-x) calc(var(--btn) / 2), transparent 0, transparent var(--cut-r), white var(--cut-r), white 999px);
+  mask-image: radial-gradient(circle at var(--center-x) calc(var(--btn) / 2), transparent 0, transparent var(--cut-r), white var(--cut-r), white 999px);
+}
+.wind-control-inc {
+  --center-x: calc(-1 * (var(--dial-face-r) + var(--gap)));
+  -webkit-mask-image: radial-gradient(circle at var(--center-x) calc(var(--btn) / 2), transparent 0, transparent var(--cut-r), white var(--cut-r), white 999px);
+  mask-image: radial-gradient(circle at var(--center-x) calc(var(--btn) / 2), transparent 0, transparent var(--cut-r), white var(--cut-r), white 999px);
+}
+/* Recenter the glyph within what's left visible after the cut — flex
+   centering alone would leave it crowded against the notch. */
+.wind-control-glyph { display: inline-block; }
+.wind-control-dec .wind-control-glyph { transform: translateX(calc(var(--bite) * -0.5)); }
+.wind-control-inc .wind-control-glyph { transform: translateX(calc(var(--bite) * 0.5)); }
+
+.wind-control-dial-wrap {
+  container-type: inline-size;
+  position: relative;
+  width: var(--dial-d); height: var(--dial-d);
+  flex-shrink: 0;
+  touch-action: none;
+}
+.wind-control-svg { width: 100%; height: 100%; display: block; cursor: grab; }
+.wind-control-svg:active { cursor: grabbing; }
+.wind-control-svg:focus { outline: none; }
+.wind-control-svg:focus .wind-control-face { stroke: var(--accent); }
+
+.wind-control-face { fill: var(--panel-raised); stroke: var(--line); }
+.wind-control-tick, .wind-control-tick-axis { stroke: var(--dim); }
+.wind-control-tick-full { stroke: var(--accent); }
+.wind-control-label, .wind-control-label-full { font-size: 12px; font-weight: 600; font-family: var(--font); }
+.wind-control-label { fill: var(--dim); }
+.wind-control-label-full { fill: var(--accent); }
+.wind-control-marker { fill: var(--dim); }
+.wind-control-needle { stroke: var(--accent); }
+.wind-control-hub { fill: var(--bg); stroke: var(--line); }
+.wind-control-handle { fill: var(--accent); stroke: var(--bg); }
+
+/* Overlaid HTML readouts, positioned by percentage over the SVG's own
+   viewBox coordinates so they track the hub regardless of the dial's
+   rendered size; sized in cqw against .wind-control-dial-wrap's own
+   inline size (its nearest container-type ancestor), so they scale with
+   the dial itself regardless of how much room the flanking buttons take
+   from .wind-control-combo. */
+.wind-control-degrees, .wind-control-speed-wrap, .wind-control-unit {
+  position: absolute; left: 50%; text-align: center; pointer-events: none;
+}
+.wind-control-degrees {
+  top: 36.7%; transform: translate(-50%, -50%);
+  font-size: clamp(9px, 6cqw, 14px); font-weight: 700; letter-spacing: 0.03em;
+  color: var(--accent); font-variant-numeric: tabular-nums;
+}
+.wind-control-speed-wrap { top: 52.2%; transform: translate(-50%, -50%); pointer-events: auto; }
+.wind-control-speed-input {
+  all: unset; display: block; width: 4.2ch; text-align: center;
+  font-size: clamp(20px, 16cqw, 42px); font-weight: 700; color: var(--text); font-family: var(--font);
+  font-variant-numeric: tabular-nums; border-bottom: 2px solid transparent;
+  cursor: text; border-radius: 2px;
+}
+.wind-control-speed-input:hover { border-bottom-color: var(--line); }
+.wind-control-speed-input:focus { border-bottom-color: var(--accent); color: var(--text); }
+/* Out-of-range/unparseable while typing: red underline only, no message —
+   there's no room inside the hub for one (see wind-control.js). Declared
+   after :hover/:focus so it wins the tie on equal specificity. */
+.wind-control-speed-input.field-invalid { border-bottom-color: var(--danger); }
+.wind-control-unit {
+  top: 63.3%; transform: translate(-50%, -50%);
+  font-size: clamp(8px, 4.6cqw, 12px); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--dim);
+}
+/* The optional headwind/crosswind caption (Trajectory's and Arsenal's
+   own `hint: true` — Range Solver never sets it) sits under a
+   horizontally centered combo, so it reads oddly hugging the left edge
+   at .hint's own plain default. */
+.wind-control > .hint { text-align: center; margin-top: 10px; }
 
 /* .range-solver-input-pane's own "flex:1; min-height:0" (let it grow to
    fill the remaining vertical space below the output pane) used to live
@@ -1340,13 +1427,15 @@ html.range-solver-mode.force-mobile .range-solver-wind-tab .wind-dial-readout in
    input pane to a fixed content-sized basis instead, with flex-grow:0
    (so it never claims more than that) and the output pane on flex:1 1
    auto (so it always absorbs 100% of whatever's left), gets both right
-   at any width. 300px is set by the Wind tab's own wind-dial-svg, which
-   has a 270px hard floor of its own (see .range-solver-tab-panel
-   .wind-dial-svg's clamp() below) — the Target tab's large-stepper-field
-   (132px of fixed +/- buttons plus its number field) fits comfortably
-   under that same 300px, so it's the binding constraint, not an
-   arbitrary guess. flex-shrink:1 (the default) still lets it give up
-   that margin on a narrower-than-usual phone rather than overflow. */
+   at any width. 300px was originally set by the Wind tab's old dial,
+   which had a 270px hard floor of its own; the wind-control.js combo
+   that replaced it is designed down to a 250px floor instead (see
+   .wind-control-combo's min-width above), comfortably under this same
+   300px — so it, and the Target tab's large-stepper-field (132px of
+   fixed +/- buttons plus its number field), both still fit under it
+   without needing this number raised. flex-shrink:1 (the default) still
+   lets it give up that margin on a narrower-than-usual phone rather than
+   overflow. */
 @media (orientation: landscape) and (max-height: 500px) {
   html.range-solver-mode:not(.force-desktop) .range-solver-output-pane { flex: 1 1 auto; }
   html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 0 1 300px; }

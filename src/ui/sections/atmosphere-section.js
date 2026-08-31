@@ -2,6 +2,7 @@ import { el } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
 import { windDirectionDial } from '../wind-direction-dial.js';
+import { windControl } from '../wind-control.js';
 import { sectionGroup } from '../section.js';
 import { loadAtmosphereState, saveAtmosphereState } from '../../shot-state.js';
 import { standardAtmosphereAt, altitudeFromPressureHpa } from '../../engine/atmosphere.js';
@@ -42,8 +43,17 @@ const ATMOSPHERE_PRESETS = {
 // overridden — Range Solver passes its own cookie-backed pair (see
 // range-solver-state.js) instead, since its own inputs need to survive an
 // app restart, unlike the shared one.
+//
+// `combinedWind: true` (Trajectory and Arsenal's rifle comparison, so
+// far) swaps the plain windSpeedField+windAngleDial pair below for the
+// single combined dial (src/ui/wind-control.js) Range Solver's Wind tab
+// introduced — labeled "Wind" and keeping the headwind/crosswind caption
+// here, unlike that tab's own label-free, caption-free instance, since
+// this section's other fields all still have their own labels. Every
+// other caller of this section passes `includeWind: false`, so the plain
+// pair below currently has no live caller left either way.
 export function atmosphereSection({
-  slider = false, includeWind = true, presets = true, onInput,
+  slider = false, includeWind = true, presets = true, combinedWind = false, onInput,
   load = loadAtmosphereState, save = saveAtmosphereState
 } = {}) {
   const initial = { ...DEFAULTS, ...load() };
@@ -59,14 +69,23 @@ export function atmosphereSection({
     if (onInput) onInput();
   }
 
-  const windSpeedField = includeWind
+  const windSpeedField = includeWind && !combinedWind
     ? unitField({ id: 'windSpeed', ...FIELD_BOUNDS.windSpeed, step: 0.5, value: initial.windSpeed, slider, onInput: handleChange })
     : null;
   // The compact clock/compass control (src/ui/wind-direction-dial.js) —
   // `slider` doesn't apply to it (there's no linear-range equivalent of a
   // dial), so it renders the same way regardless of that option.
-  const windAngleDial = includeWind
+  const windAngleDial = includeWind && !combinedWind
     ? windDirectionDial({ id: 'windAngle', value: initial.windAngle, onInput: handleChange })
+    : null;
+  // windControl() picks its own unit-aware step and decimals internally
+  // (its own WIND_SPEED_STEPS table) — same stepping/precision as Range
+  // Solver's own instance, not windSpeedField's flat 0.5 m/s above.
+  const windCombined = includeWind && combinedWind
+    ? windControl({
+      angle: initial.windAngle, speed: initial.windSpeed, ...FIELD_BOUNDS.windSpeed,
+      label: true, hint: true, onInput: handleChange
+    })
     : null;
 
   const presetSelectEl = presets
@@ -159,7 +178,7 @@ export function atmosphereSection({
   updateAltitudeVisibility();
 
   const children = [
-    ...(includeWind ? [windSpeedField.node, windAngleDial.node] : []),
+    ...(combinedWind ? [windCombined.node] : includeWind ? [windSpeedField.node, windAngleDial.node] : []),
     ...(presets ? [el('div', { class: 'field' }, [el('label', { i18n: 'fields.atmospherePreset' }), presetSelectEl]), altitudeField.node] : []),
     tempField.node,
     pressureField.node,
@@ -178,7 +197,9 @@ export function atmosphereSection({
       ? altitudeField.getEngineValue()
       : altitudeFromPressureHpa(pressureField.getEngineValue());
     return {
-      ...(includeWind ? { windSpeed: windSpeedField.getEngineValue(), windAngle: windAngleDial.getValue() } : {}),
+      ...(combinedWind
+        ? { windSpeed: windCombined.getEngineSpeed(), windAngle: windCombined.getAngle() }
+        : includeWind ? { windSpeed: windSpeedField.getEngineValue(), windAngle: windAngleDial.getValue() } : {}),
       tempC: tempField.getEngineValue(),
       pressureHpa: pressureField.getEngineValue(),
       altitudeM,
