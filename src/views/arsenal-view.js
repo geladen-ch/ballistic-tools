@@ -558,7 +558,7 @@ export function mount(container) {
     ]));
 
     const pool = getPool();
-    const atmosphere = atmosphereSection({ onInput: () => scheduleComparisonRecompute() });
+    const atmosphere = atmosphereSection({ combinedWind: true, onInput: () => scheduleComparisonRecompute() });
     const maxRangeField = unitField({
       // Reuses the Trajectory page's own "maxRange" field id — the shared
       // FIELD_UNITS entry gives it correct distance-unit conversion, and

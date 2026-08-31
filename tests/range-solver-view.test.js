@@ -318,9 +318,9 @@ test('clicking the wind speed stepper in mph adds a clean 1 mph, with no floatin
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  const windInput = findById(container, 'windSpeed');
-  const incButton = windInput.parentNode.childNodes[2];
+  const incButton = findByClass(container, 'wind-control-inc')[0];
   fireEvent(incButton, 'click');
+  const windInput = findById(container, 'windSpeed');
 
   assert.equal(windInput.value, 1);
 

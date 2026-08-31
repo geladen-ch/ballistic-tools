@@ -24,19 +24,24 @@ const BULLET_OTHER = '__other__';
 // if the active rifle is one of the user's own saved rifles, Custom
 // otherwise (built-in library or fully manual entry). The bullet's own
 // source doesn't affect this, only the rifle's.
-export function gunsSummary() {
+//
+// `bare: true` (Range Solver only — see that view) skips the "Guns"
+// heading and its own outer .input-section card, returning just the
+// .guns-summary box itself: that pane's other readouts (conditions bar,
+// elevation/windage, footer) are already label-free, so the boxed
+// heading read as one card too many stacked above them.
+export function gunsSummary({ bare = false } = {}) {
   const rifleLine = el('div', { class: 'rifle-line' });
   const bulletLine = el('div', { class: 'bullet-line' });
   const changeButton = el('button', { class: 'secondary', i18n: 'guns.changeButton' });
 
   changeButton.addEventListener('click', goToGuns);
 
-  const node = sectionGroup('sections.gunsHeading', [
-    el('div', { class: 'guns-summary' }, [
-      el('div', { class: 'lines' }, [rifleLine, bulletLine]),
-      changeButton
-    ])
+  const summary = el('div', { class: 'guns-summary' }, [
+    el('div', { class: 'lines' }, [rifleLine, bulletLine]),
+    changeButton
   ]);
+  const node = bare ? summary : sectionGroup('sections.gunsHeading', [summary]);
 
   async function refresh() {
     const rifleState = loadRifleState();

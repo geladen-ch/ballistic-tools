@@ -74,6 +74,7 @@
     "twistDirection": "Direzione di rigatura",
     "twistDirectionRight": "Destra",
     "twistDirectionLeft": "Sinistra",
+    "wind": "Vento",
     "windSpeed": "Velocità del vento",
     "windAngle": "Angolo del vento (°, 0 = frontale)",
     "stepperDecrease": "Diminuisci",
@@ -867,6 +868,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v151": "Nuovo fantastico design per l'input del vento.",
       "v150": "Risolto un pasticcio tra due calibri da 7 mm — ora correttamente separati in 6.8 e un vero 7. Grazie a ForgeValley per averlo segnalato.",
       "v149": "Valori di portata predefiniti arrotondati per le yard (se selezionate) in Traiettoria e Probabilità di colpire.",
       "v148": "Modifiche alle icone e al layout per migliorare la modalità PWA su iOS e Android.",

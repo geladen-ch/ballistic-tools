@@ -74,6 +74,7 @@
     "twistDirection": "Twist direction",
     "twistDirectionRight": "Right",
     "twistDirectionLeft": "Left",
+    "wind": "Wind",
     "windSpeed": "Wind speed",
     "windAngle": "Wind angle (deg, 0=head)",
     "stepperDecrease": "Decrease",
@@ -867,6 +868,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v151": "New awesome wind input widget design.",
       "v150": "A mess with two 7mm calibers sorted out — now properly separated into 6.8 and 7 proper. Props to ForgeValley for raising it.",
       "v149": "Nice round range defaults for yards (when selected) in Trajectory and Hit Probability.",
       "v148": "Icons and layout tweaks to improve PWA mode on iOS and Android.",

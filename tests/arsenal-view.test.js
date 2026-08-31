@@ -2118,6 +2118,28 @@ test('the Comparison section only appears once exactly two configs are selected'
   assert.ok(findAnyById(container, 'comparison-section').childNodes.length > 0, 'two selected — the Comparison section should now render automatically');
 });
 
+// Comparison's shared atmosphere+wind control (atmosphereSection's own
+// `combinedWind: true`, arsenal-view.js only) swapped the plain wind-
+// direction-dial.js + unitField pair for the combined dial Range
+// Solver's Wind tab introduced (src/ui/wind-control.js) — labeled and
+// captioned like Trajectory's own instance, not label-free like Range
+// Solver's. Drag/keyboard/skin behavior isn't re-tested here — same
+// rationale as atmosphere-section.js's own plain-dial test note.
+test('the Comparison section\'s wind field is the combined dial, labeled "Wind"', () => {
+  setupTwoRifles();
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  fireEvent(compareToggleButtons(container)[0], 'click');
+  fireEvent(compareToggleButtons(container)[1], 'click');
+
+  const section = findAnyById(container, 'comparison-section');
+  assert.ok(findAnyById(section, 'windAngle'), 'expected the combined dial\'s SVG');
+  assert.ok(findAnyById(section, 'windSpeed'), 'expected the combined dial\'s speed input');
+  assert.ok(section.textContent.includes(t('fields.wind')), 'expected the "Wind" label');
+  assert.ok(section.textContent.includes(t('windDial.fullValue')), 'expected the headwind/crosswind caption (default angle is full-value crosswind)');
+});
+
 test('removing one of two selected configs makes the Comparison section disappear again', () => {
   setupTwoRifles();
   const container = makeElement('main');
