@@ -1,30 +1,31 @@
 # Thanks / Danke / Merci / Grazie / Спасибо
 
 This is where geladen.ch says thanks — to contributors, testers, bug
-reporters, and everyone else who helped shape this suite. It's a stub for
-now; the real list is coming.
+reporters, and everyone else who helped shape this suite.
 
 ---
 
-## English
+**Николаю Гехту** (https://github.com/nikolaygekht) за то, с чего много лет назад началась эта считалка -- перевод на жабаскипт древнего опенсурсного движка от JBM. От старого движка уже давно ничего не осталось, но то, чем считалка стала за эти годы, тоже во многом произошло с участием Николая -- обмен идеями, кодом, предложениями и улучшениями продолжался, продолжается и, надеюсь, будет продолжаться.
 
-Thank you. This list is under construction — check back soon.
+**Дмитрию Майорову** (https://github.com/externalmemory) за ценнейшие и продуктивнейшие обсуждения всевозможных аспектов матмоделирования стрелковки, статистических и не только, ещё с тех стародавних времён, когда жыжа была жывой (и не хостилась на лубянке), вопросом, волновавшим современную молодёжь, была стрельба под углом, а Тарань была даже не в бете. Отдельный поклон за снайперские пулреквесты.
 
-## Deutsch
+**Stéphane Eggertswyler** (https://ldmsuisse.ch/) pour ses tests approfondis, son regard critique sur les versions initiales du logiciel, et ses retours constructifs qui ont beaucoup servi à cerner les fonctionnalités manquantes et à rendre l'interface plus accessible.
 
-Danke. Diese Liste befindet sich im Aufbau — schaut bald wieder vorbei.
+**Юрию Данилову** за ценнейшие в моём случае "ты голову не морочь, пальцем покажи", сказанные в нужный момент и по делу, вследствие чего юзер-интерфейс был немало перепилен в лучшую сторону.
 
-## Français
+**Thomas** (Red Oak Arms, https://www.redoakarms.com/balcalc/) for the extremely generous permission to use the wealth of information he compiled on many thousands of different projectiles from a huge number of sources.
 
-Merci. Cette liste est en cours de rédaction — repassez bientôt.
+## Original Taran (now known as Rifle Precision Calculator tool) i18n
 
-## Italiano
+- **Molon Labe** @ FL: Traduction du Manuel Utilisateur en français
+- **Alexander Birtschenko** (abirtschenko): Übersetzung ins Deutsche
+- **Pompeo Lattanzi** (britishlanguagecorner.it): traduzione italiana
 
-Grazie. Questo elenco è in fase di redazione — ripassate presto.
+---
 
-## Русский
+## Bug reports, feature requests, moral support
 
-Спасибо. Этот список пока в разработке — загляните позже.
+- The SH crowd: Edsel, ForgeValley, 6.5SH, ma smith, lash
 
 ---
 
@@ -35,7 +36,7 @@ This app's ballistics calculations draw on published work by:
 - **Robert L. McCoy**, *Modern Exterior Ballistics*, 2nd ed., Schiffer
   Publishing (2012) — the Modified Point-Mass (4-DOF) trajectory model
   behind spin drift's Advanced mode (Settings → Spin drift calculation).
-- **Bryan Litz**, *Applied Ballistics For Long Range Shooting*, 3rd ed., Applied Ballistics, LLC (2015) — the empirical spin-drift formula behind Simple mode.
+- **Bryan Litz**, *Applied Ballistics for Long-Range Shooting*, 3rd ed., Applied Ballistics, LLC (2015) — the empirical spin-drift formula behind Simple mode.
 - **Don Miller** — the twist-rate stability formula (Miller's Twist Rule)
   used throughout the app.
 
@@ -44,3 +45,26 @@ This app's ballistics calculations draw on published work by:
 - **Дмитриевский А. А., Лысенко Л. Н.**, *Внешняя баллистика*, 4-е издание, перераб. и доп., Машиностроение (2005)
 - **Коновалов А. А., Николаев Ю. В.**, *Внешняя баллистика*, ЦНИИ информации (1979)
 - **Шерешевский М. С., Гонтарев А. Н., Минаев Ю. В.**, *Эффективность стрельбы из автоматического оружия*, ЦНИИ информации (1979)
+
+## Inspiration for the Rifle Precision calculator tool
+
+- The Ballistipedia guys (**David Bookstaber**, **Charles McMillan**, and **Daniel Wollschlaeger**): http://ballistipedia.com/
+- **Louis Stange**'s "Group Size, AMR, CEP, and Hit Probability" Monte Carlo simulation: https://github.com/lstange/mcgs
+- All the excellent sources listed on the **Ballistipedia's prior art** page: http://ballistipedia.com/index.php?title=Prior_Art
+
+---
+
+## Third-party libraries
+
+Thanks to the authors and contributors of the third-party libraries this
+app is built on, for writing efficient, lean, and straight-to-the-point
+software:
+
+- **[Gion Kunz](https://github.com/gionkunz)** and contributors —
+  [Chartist](https://gionkunz.github.io/chartist-js/)
+- **[Arjun Barrett](https://github.com/101arrowz)** and contributors —
+  [fflate](https://github.com/101arrowz/fflate)
+- **[i18next](https://github.com/i18next)** contributors —
+  [i18next](https://www.i18next.com/)
+- **Kevin C. Olbrich** and contributors —
+  [js-quantities](https://github.com/gentooboontoo/js-quantities)
