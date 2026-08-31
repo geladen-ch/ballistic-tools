@@ -868,6 +868,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v152": "La page THANKS n'est plus une ébauche.",
       "v151": "Nouveau design génial pour la saisie du vent.",
       "v150": "Une confusion entre deux calibres de 7 mm corrigée — désormais bien séparés en 6.8 et un véritable 7. Merci à ForgeValley de l'avoir signalé.",
       "v149": "Valeurs de portée par défaut arrondies pour les yards (si sélectionnés) dans Trajectoire et Probabilité de toucher.",
