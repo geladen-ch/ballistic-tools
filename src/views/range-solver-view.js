@@ -350,6 +350,24 @@ export function mount(container) {
     ])
   ]);
 
+  // Elevation and windage are meant to read as a matched pair, so if a
+  // narrow container and/or a long value (see .range-solver-click-value's
+  // cqw-scaled font size in layout.css, floored at 54px) forces one of
+  // them to wrap its sign onto its own line while the other still fits on
+  // one, syncReadoutWrap() below force-breaks the other the same way
+  // rather than leaving the pair visually lopsided. A ResizeObserver
+  // re-runs that check on any width change to either stat panel, not just
+  // when recompute() itself re-runs on an input edit — resizing the
+  // window alone can flip which side wraps. Feature-detected since this
+  // app's test harness's fake DOM has no ResizeObserver (see multi-bc-
+  // segments.js's own use of the same guard).
+  let wrapResizeObserver = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    wrapResizeObserver = new ResizeObserver(() => syncReadoutWrap());
+    wrapResizeObserver.observe(elevationValue.parentElement);
+    wrapResizeObserver.observe(windageValue.parentElement);
+  }
+
   const tofValue = el('span', { class: 'range-solver-footer-value' }, ['—']);
   const velocityValue = el('span', { class: 'range-solver-footer-value' }, ['—']);
   const energyValue = el('span', { class: 'range-solver-footer-value' }, ['—']);
@@ -376,22 +394,83 @@ export function mount(container) {
   // sign for the same shot. Which glyphs (arrows vs +/-) is a Settings
   // preference — see indicatorGlyphs above. `decimals` is 0 for clicks
   // (whole clicks, as always), 1 for mrad/MOA (outputUnit above).
-  function renderAdjustment(node, value, positiveGlyph, negativeGlyph, decimals) {
+  //
+  // The glyph and the number are always two separate spans (rather than
+  // one text node) so syncReadoutWrap() below can tell whether they
+  // actually landed on the same line — `.range-solver-click-glyph`'s own
+  // display:inline-block (layout.css) is what gives the browser a soft
+  // wrap point right after it. `forceBreak` inserts an explicit <br>
+  // between them (or, for a zero value with no glyph at all, before the
+  // lone number) to match a sibling stat that wrapped on its own.
+  function renderAdjustment(node, value, positiveGlyph, negativeGlyph, decimals, forceBreak) {
     clear(node);
     const rounded = Number(value.toFixed(decimals));
     if (rounded === 0) {
+      if (forceBreak) node.appendChild(document.createElement('br'));
       node.appendChild(document.createTextNode(rounded.toFixed(decimals)));
       return;
     }
     const glyph = rounded > 0 ? positiveGlyph : negativeGlyph;
     node.appendChild(el('span', { class: 'range-solver-click-glyph' }, [glyph]));
-    node.appendChild(document.createTextNode(Math.abs(rounded).toFixed(decimals)));
+    if (forceBreak) node.appendChild(document.createElement('br'));
+    node.appendChild(el('span', { class: 'range-solver-click-number' }, [Math.abs(rounded).toFixed(decimals)]));
+  }
+
+  // True once the glyph and the number have actually landed on two
+  // different lines (compared by position, not by a fixed height
+  // threshold, since the font size itself is cqw-scaled — see
+  // .range-solver-click-value in layout.css). A zero-valued reading has no
+  // glyph span to compare against, so it never counts as wrapped on its
+  // own — see syncReadoutWrap()'s own handling of that case.
+  function isWrapped(node) {
+    const glyph = node.querySelector('.range-solver-click-glyph');
+    const number = node.querySelector('.range-solver-click-number');
+    if (!glyph || !number) return false;
+    return Math.abs(glyph.getBoundingClientRect().top - number.getBoundingClientRect().top) > 1;
+  }
+
+  // The last successfully computed reading, kept around so
+  // syncReadoutWrap() can re-render on a pure resize (no recompute()) —
+  // null while showPlaceholder() is showing "—", so a resize during a
+  // mid-edit input never tries to re-render stale numbers over it.
+  let lastElevValue = null;
+  let lastWindValue = null;
+  let lastDecimals = 0;
+
+  // Elevation and windage read as a matched pair — if a narrow container
+  // and/or a long value forces one to wrap its sign onto its own line
+  // while the other still fits on one, force the other to break the same
+  // way rather than leaving the pair visually lopsided. Always starts
+  // from an unforced render of both (not an incremental patch) so a
+  // widening resize un-forces a break exactly as readily as a narrowing
+  // one imposes it.
+  function syncReadoutWrap() {
+    if (lastElevValue === null || lastWindValue === null) return;
+    renderAdjustment(elevationValue, lastElevValue, indicatorGlyphs.elevationPositive, indicatorGlyphs.elevationNegative, lastDecimals, false);
+    renderAdjustment(windageValue, lastWindValue, indicatorGlyphs.windagePositive, indicatorGlyphs.windageNegative, lastDecimals, false);
+
+    const elevWrapped = isWrapped(elevationValue);
+    const windWrapped = isWrapped(windageValue);
+    if (elevWrapped && !windWrapped) {
+      renderAdjustment(windageValue, lastWindValue, indicatorGlyphs.windagePositive, indicatorGlyphs.windageNegative, lastDecimals, true);
+    } else if (windWrapped && !elevWrapped) {
+      renderAdjustment(elevationValue, lastElevValue, indicatorGlyphs.elevationPositive, indicatorGlyphs.elevationNegative, lastDecimals, true);
+    }
+  }
+
+  function renderReadout(elevValue, windValue, decimals) {
+    lastElevValue = elevValue;
+    lastWindValue = windValue;
+    lastDecimals = decimals;
+    syncReadoutWrap();
   }
 
   // Shown whenever an input is mid-edit (e.g. the range field momentarily
   // empty while retyping it) or otherwise produces a non-finite result —
   // "—" everywhere rather than a stray "NaN" reaching the screen.
   function showPlaceholder() {
+    lastElevValue = null;
+    lastWindValue = null;
     clear(elevationValue);
     elevationValue.appendChild(document.createTextNode('—'));
     clear(windageValue);
@@ -501,8 +580,7 @@ export function mount(container) {
       return;
     }
 
-    renderAdjustment(elevationValue, elevValue, indicatorGlyphs.elevationPositive, indicatorGlyphs.elevationNegative, decimals);
-    renderAdjustment(windageValue, windValue, indicatorGlyphs.windagePositive, indicatorGlyphs.windageNegative, decimals);
+    renderReadout(elevValue, windValue, decimals);
     tofValue.textContent = `${result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;
     energyValue.textContent = `${displayEnergy.toFixed(0)} ${energyChoice.label}`;
@@ -532,5 +610,6 @@ export function mount(container) {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     wakeLockSentinel?.release();
     wakeLockSentinel = null;
+    wrapResizeObserver?.disconnect();
   };
 }
