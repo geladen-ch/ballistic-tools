@@ -183,7 +183,7 @@ export function hamburgerIcon(size = 20) {
   ]);
 }
 
-// The app's own reticle mark (icons/icon.svg), redrawn inline so it can
+// The app's own reticle mark (app-icons/icon.svg), redrawn inline so it can
 // take `currentColor` and sit at nav-icon sizes — used as the brand mark
 // when the rail is collapsed and there's no room for the wordmark.
 export function reticleIcon(size = 20) {
