@@ -31,7 +31,11 @@
     "dragModelGS": "GS (Sphere)",
     "idle": "idle",
     "computing": "computing…",
-    "error": "error: {{message}}"
+    "error": "error: {{message}}",
+    "cropHandleTopLeft": "Top-left crop handle",
+    "cropHandleTopRight": "Top-right crop handle",
+    "cropHandleBottomLeft": "Bottom-left crop handle",
+    "cropHandleBottomRight": "Bottom-right crop handle"
   },
   "sections": {
     "rifleHeading": "Rifle",
@@ -460,6 +464,9 @@
     "choosePhotoButton": "Choose photo…",
     "takePhotoButton": "Take photo…",
     "removePhotoButton": "Remove photo",
+    "confirmPhotoButton": "Use this photo",
+    "cropHint": "Drag the corners to crop the photo, or leave them at the edges to use the whole photo.",
+    "cropCancelButton": "Cancel",
     "photoProcessingError": "Could not process that photo. Please try a different file.",
     "duplicateNameWarning": "A location with this name already exists — saving will overwrite it.",
     "duplicateTargetNameWarning": "Another target at this location already has this name.",
@@ -546,6 +553,7 @@
     "rotateLeftButton": "Rotate left",
     "rotateRightButton": "Rotate right",
     "confirmPhotoButton": "Use this photo",
+    "cropHint": "Drag the corners to crop the photo, or leave them at the edges to use the whole photo.",
     "photoProcessingError": "Could not process that photo. Please try a different file.",
     "stepCalibration": "Calibrate the scale",
     "calibrationHint1": "Tap the photo at the first calibration point — one end of a ruler or a known-length feature on the target.",
@@ -868,6 +876,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v153": "Feature to crop images on import. Increased image quality (resolution and lossy compression factor).",
       "v152": "The THANKS page is no longer a stub.",
       "v151": "New awesome wind input widget design.",
       "v150": "A mess with two 7mm calibers sorted out — now properly separated into 6.8 and 7 proper. Props to ForgeValley for raising it.",

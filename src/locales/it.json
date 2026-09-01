@@ -31,7 +31,11 @@
     "dragModelGS": "GS (Sfera)",
     "idle": "inattivo",
     "computing": "calcolo in corso…",
-    "error": "errore: {{message}}"
+    "error": "errore: {{message}}",
+    "cropHandleTopLeft": "Maniglia di ritaglio in alto a sinistra",
+    "cropHandleTopRight": "Maniglia di ritaglio in alto a destra",
+    "cropHandleBottomLeft": "Maniglia di ritaglio in basso a sinistra",
+    "cropHandleBottomRight": "Maniglia di ritaglio in basso a destra"
   },
   "sections": {
     "rifleHeading": "Fucile",
@@ -460,6 +464,9 @@
     "choosePhotoButton": "Scegli foto…",
     "takePhotoButton": "Scatta foto…",
     "removePhotoButton": "Rimuovi foto",
+    "confirmPhotoButton": "Usa questa foto",
+    "cropHint": "Trascina gli angoli per ritagliare la foto, oppure lasciali sui bordi per usare la foto intera.",
+    "cropCancelButton": "Annulla",
     "photoProcessingError": "Impossibile elaborare questa foto. Prova un altro file.",
     "duplicateNameWarning": "Esiste già una postazione con questo nome — salvando la sovrascriverai.",
     "duplicateTargetNameWarning": "Un altro bersaglio di questa postazione ha già questo nome.",
@@ -546,6 +553,7 @@
     "rotateLeftButton": "Ruota a sinistra",
     "rotateRightButton": "Ruota a destra",
     "confirmPhotoButton": "Usa questa foto",
+    "cropHint": "Trascina gli angoli per ritagliare la foto, oppure lasciali sui bordi per usare la foto intera.",
     "photoProcessingError": "Impossibile elaborare questa foto. Prova un altro file.",
     "calibrationHint1": "Tocca la foto nel primo punto di calibrazione — un'estremità di un righello o un elemento di lunghezza nota sul bersaglio.",
     "calibrationHint2": "Tocca la foto nel secondo punto di calibrazione, poi inserisci la distanza reale tra i due punti.",
@@ -868,6 +876,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v153": "Funzione di ritaglio delle immagini all'importazione. Qualità delle immagini migliorata (risoluzione e fattore di compressione con perdita).",
       "v152": "La pagina THANKS non è più uno stub.",
       "v151": "Nuovo fantastico design per l'input del vento.",
       "v150": "Risolto un pasticcio tra due calibri da 7 mm — ora correttamente separati in 6.8 e un vero 7. Grazie a ForgeValley per averlo segnalato.",
