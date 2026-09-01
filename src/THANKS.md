@@ -9,13 +9,14 @@ reporters, and everyone else who helped shape this suite.
 
 **Дмитрию Майорову** [https://github.com/externalmemory](https://github.com/externalmemory) за ценнейшие и продуктивнейшие обсуждения всевозможных аспектов матмоделирования стрелковки, статистических и не только, ещё с тех стародавних времён, когда жыжа была жывой (и не хостилась на лубянке), вопросом, волновавшим современную молодёжь, была стрельба под углом, а Тарань была даже не в бете. Отдельный поклон за снайперские пулреквесты.
 
-**Stéphane Eggertswyler** [https://ldmsuisse.ch/](https://ldmsuisse.ch/) pour ses tests approfondis, son regard critique sur les versions initiales du logiciel, et ses retours constructifs qui ont beaucoup servi à cerner les fonctionnalités manquantes et à rendre l'interface plus accessible.
+**Stéphane Eggertswyler** (LDM, [https://ldmsuisse.ch/](https://ldmsuisse.ch/)) pour ses tests approfondis, son regard critique sur les versions initiales du logiciel, et ses retours constructifs qui ont beaucoup servi à cerner les fonctionnalités manquantes et à rendre l'interface plus accessible.
 
 **Юрию Данилову** за ценнейшие в моём случае "ты голову не морочь, пальцем покажи", сказанные в нужный момент и по делу, вследствие чего юзер-интерфейс был немало перепилен в лучшую сторону.
 
 **Thomas** (Red Oak Arms, [https://www.redoakarms.com/balcalc/](https://www.redoakarms.com/balcalc/)) for the extremely generous permission to use the wealth of information he compiled on many thousands of different projectiles from a huge number of sources.
 
 ## Original Taran (now known as Rifle Precision Calculator tool) i18n
+(fully reused in this new version)
 
 - **Molon Labe** @ FL: Traduction du Manuel Utilisateur en français
 - **Alexander Birtschenko** (abirtschenko): Übersetzung ins Deutsche
@@ -60,11 +61,11 @@ Thanks to the authors and contributors of the third-party libraries this
 app is built on, for writing efficient, lean, and straight-to-the-point
 software:
 
-- **[Gion Kunz](https://github.com/gionkunz)** and contributors —
+- [Gion Kunz](https://github.com/gionkunz) and contributors —
   [Chartist](https://gionkunz.github.io/chartist-js/)
-- **[Arjun Barrett](https://github.com/101arrowz)** and contributors —
+- [Arjun Barrett](https://github.com/101arrowz) and contributors —
   [fflate](https://github.com/101arrowz/fflate)
-- **[i18next](https://github.com/i18next)** contributors —
+- [The i18next team](https://github.com/i18next) contributors —
   [i18next](https://www.i18next.com/)
-- **Kevin C. Olbrich** and contributors —
+- Kevin C. Olbrich and contributors —
   [js-quantities](https://github.com/gentooboontoo/js-quantities)
