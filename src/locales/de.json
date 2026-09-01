@@ -877,6 +877,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v156": "Bugfix: Offline-Funktionalität (manche Werkzeuge liefen offline nicht, wenn sie vorher nie online verwendet wurden).",
       "v155": "Neue Benutzereinstellung: Ausgabeeinheiten im Feldrechner — Extrawurst für alle, die mit Klicks auf Kriegsfuß stehen.",
       "v154": "Der „high speed low drag“ Feldrechner ist jetzt noch geiler geworden — alles Wichtige ist jetzt auf einer einzigen Seite, kein Hin- und Herklicken mehr. Außerdem ein Versionssprung und ein neuer Codename (weil mir ein cooler eingefallen ist).",
       "v153": "Funktion zum Zuschneiden von Bildern beim Import. Höhere Bildqualität (Auflösung und verlustbehafteter Kompressionsfaktor).",

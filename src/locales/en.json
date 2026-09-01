@@ -877,6 +877,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v156": "Bugfix: offline functionality (some tools failed to run offline, if never used online before).",
       "v155": "New user setting: range solver output units, special delivery for our click-impaired friends.",
       "v154": "The 'high speed low drag' range solver just got more awesomer — everything key is in a single pane now, no more clicking back and forth. Also, a version bump and a new release code name (because I thought of a cool one).",
       "v153": "Feature to crop images on import. Increased image quality (resolution and lossy compression factor).",

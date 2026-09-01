@@ -877,6 +877,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v156": "Correzione bug: funzionamento offline (alcuni strumenti non partivano offline se non erano mai stati usati online in precedenza).",
       "v155": "Nuova impostazione utente: unità di output del Calcolatore per il poligono — consegna speciale per gli amici allergici ai clic.",
       "v154": "Il calcolatore per il poligono «high speed low drag» è diventato ancora più fico — ora tutto il necessario sta in un unico pannello, niente più clic avanti e indietro. Inoltre, un salto di versione e un nuovo nome in codice (perché me n'è venuto in mente uno fico).",
       "v153": "Funzione di ritaglio delle immagini all'importazione. Qualità delle immagini migliorata (risoluzione e fattore di compressione con perdita).",
