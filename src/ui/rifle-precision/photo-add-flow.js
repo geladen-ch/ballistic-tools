@@ -1,47 +1,20 @@
-// File pick -> rotate-preview -> confirm/cancel flow for adding a new
-// target's photo. Wraps location-photo.js's processPickedPhoto() (same
-// downscale-on-pick pipeline Locations uses) with a higher dimension cap —
-// target photos get zoomed in up to 6x (photo-viewport.js's own MAX_SCALE)
-// to place individual bullet holes precisely, so they need more headroom
-// than Locations' own 1600px default, which is tuned for a much coarser
-// "which target is this" glance.
+// File pick -> rotate+crop preview -> confirm/cancel flow for adding a new
+// target's photo. Wraps location-photo.js's decodePickedPhoto()/
+// renderPhoto() (the file is decoded once on pick) and image-cropper.js's
+// drag-the-corners overlay. Rotation and cropping share one preview screen:
+// rotating re-renders the (rotation-only, uncropped) preview shown inside
+// the cropper — which resets the crop selection back to full-frame, since
+// a crop rect drawn before a rotation change no longer means the same
+// thing afterward — while dragging the crop corners is a pure overlay
+// operation with no re-render at all. Only the final Confirm click does
+// the one real encode: rotation + whatever crop is currently selected,
+// applied together against the original full-resolution decoded image
+// (not the possibly-downscaled preview), in renderPhoto()'s own single
+// canvas pass.
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { processPickedPhoto } from '../../location-photo.js';
-
-export const RIFLE_PRECISION_MAX_DIMENSION_PX = 2200;
-
-function loadImage(dataUrl) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('failed to decode image'));
-    img.src = dataUrl;
-  });
-}
-
-// Rotates a data URL by a multiple of 90 degrees, returning the rotated
-// data URL plus its natural size post-rotation (width/height swap on an
-// odd number of quarter turns). quarterTurns:0 still round-trips through a
-// decode (no re-encode) so the caller always gets a real {width,height}
-// back regardless of whether any actual rotation happened yet.
-export async function rotateImageDataUrl(dataUrl, quarterTurns) {
-  const img = await loadImage(dataUrl);
-  const turns = ((quarterTurns % 4) + 4) % 4;
-  if (turns === 0) return { dataUrl, width: img.naturalWidth, height: img.naturalHeight };
-
-  const swapped = turns % 2 === 1;
-  const width = swapped ? img.naturalHeight : img.naturalWidth;
-  const height = swapped ? img.naturalWidth : img.naturalHeight;
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.translate(width / 2, height / 2);
-  ctx.rotate((turns * 90 * Math.PI) / 180);
-  ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
-  return { dataUrl: canvas.toDataURL('image/jpeg', 0.9), width, height };
-}
+import { decodePickedPhoto, renderPhoto } from '../../location-photo.js';
+import { imageCropper } from '../image-cropper.js';
 
 // onConfirm({ photo, photoWidth, photoHeight, photoFilename }) fires once,
 // only from an explicit Confirm click — picking a file alone never creates
@@ -50,16 +23,15 @@ export async function rotateImageDataUrl(dataUrl, quarterTurns) {
 // on the Cancel button, available throughout (even before a photo is
 // picked) so "Add target" can always be backed out of.
 export function photoAddFlow({ onConfirm, onCancel } = {}) {
-  let rawPhoto = null; // as returned by processPickedPhoto, before rotation
-  let rotated = null; // { dataUrl, width, height }, refreshed by applyRotation()
+  let decoded = null; // { img, rawDataUrl } from decodePickedPhoto(), before rotation/crop/downscale
   let quarterTurns = 0;
   let fileName = null; // the picked File's own .name — rotation/reprocessing never changes it
 
   const fileInput = el('input', { type: 'file', accept: 'image/*' });
   fileInput.style.display = 'none';
 
-  const preview = el('img', { class: 'rp-photo-preview', alt: '' });
-  preview.style.display = 'none';
+  const cropper = imageCropper({ hintText: t('riflePrecision.cropHint') });
+  cropper.node.style.display = 'none';
   const errorMessage = el('p', { class: 'hint warning' });
   errorMessage.style.display = 'none';
 
@@ -71,9 +43,12 @@ export function photoAddFlow({ onConfirm, onCancel } = {}) {
   const cancelButton = el('button', { type: 'button', class: 'secondary', i18n: 'riflePrecision.cancelButton' });
   [rotateLeftButton, rotateRightButton, confirmButton].forEach((b) => { b.style.display = 'none'; });
 
-  async function applyRotation() {
-    rotated = await rotateImageDataUrl(rawPhoto, quarterTurns);
-    preview.src = rotated.dataUrl;
+  // Rotation-only preview (no crop) — cheap relative to the final encode
+  // since it's the same single-pass renderPhoto() either way, just without
+  // a crop rect. Its result is only ever shown, never handed to onConfirm.
+  function applyRotation() {
+    const preview = renderPhoto(decoded.img, decoded.rawDataUrl, { quarterTurns });
+    cropper.setImage(preview.dataUrl);
   }
 
   fileInput.addEventListener('change', async () => {
@@ -82,29 +57,29 @@ export function photoAddFlow({ onConfirm, onCancel } = {}) {
     if (!file) return;
     errorMessage.style.display = 'none';
     try {
-      rawPhoto = await processPickedPhoto(file, RIFLE_PRECISION_MAX_DIMENSION_PX);
+      decoded = await decodePickedPhoto(file);
       fileName = file.name || null;
       quarterTurns = 0;
-      await applyRotation();
-      preview.style.display = '';
+      applyRotation();
+      cropper.node.style.display = '';
       [rotateLeftButton, rotateRightButton, confirmButton].forEach((b) => { b.style.display = ''; });
     } catch {
-      rawPhoto = null;
-      rotated = null;
+      decoded = null;
       fileName = null;
-      preview.style.display = 'none';
+      cropper.node.style.display = 'none';
       [rotateLeftButton, rotateRightButton, confirmButton].forEach((b) => { b.style.display = 'none'; });
       errorMessage.textContent = t('riflePrecision.photoProcessingError');
       errorMessage.style.display = '';
     }
   });
 
-  rotateLeftButton.addEventListener('click', async () => { quarterTurns -= 1; await applyRotation(); });
-  rotateRightButton.addEventListener('click', async () => { quarterTurns += 1; await applyRotation(); });
+  rotateLeftButton.addEventListener('click', () => { quarterTurns -= 1; applyRotation(); });
+  rotateRightButton.addEventListener('click', () => { quarterTurns += 1; applyRotation(); });
 
   confirmButton.addEventListener('click', () => {
-    if (!rotated) return;
-    if (onConfirm) onConfirm({ photo: rotated.dataUrl, photoWidth: rotated.width, photoHeight: rotated.height, photoFilename: fileName });
+    if (!decoded) return;
+    const final = renderPhoto(decoded.img, decoded.rawDataUrl, { quarterTurns, cropRect: cropper.getRect() });
+    if (onConfirm) onConfirm({ photo: final.dataUrl, photoWidth: final.width, photoHeight: final.height, photoFilename: fileName });
   });
   cancelButton.addEventListener('click', () => { if (onCancel) onCancel(); });
 
@@ -112,7 +87,7 @@ export function photoAddFlow({ onConfirm, onCancel } = {}) {
     el('div', { class: 'arsenal-form-actions' }, [pickButton, cancelButton]),
     fileInput,
     errorMessage,
-    preview,
+    cropper.node,
     el('div', { class: 'arsenal-form-actions' }, [rotateLeftButton, rotateRightButton, confirmButton])
   ]);
 

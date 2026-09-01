@@ -996,18 +996,86 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   flex-shrink: 0;
 }
 
-/* photo-add-flow.js's own rotate-preview step — reuses .location-photo-thumb's
-   sizing intent (a comfortably large preview, not a tiny thumbnail) but as
-   its own class since it's a taller/wider live preview the user is
-   actively judging rotation on, not a settled "here's what's saved" thumb. */
-.rp-photo-preview {
+/* image-cropper.js's shared drag-the-corners crop step, used by both
+   locationPhotoField and photo-add-flow.js's rotate+crop preview during
+   the initial photo import only. .image-cropper-frame shrink-wraps
+   exactly to the <img>'s own rendered box (display:inline-block, not the
+   block/width:100% .photo-viewport-inner uses) so .image-cropper-overlay
+   (position:absolute; inset:0) lines up pixel-for-pixel with the photo
+   with no separate "contain fit" math needed — see the widget's own
+   header comment. touch-action:none/-webkit-touch-callout:none carry the
+   same load-bearing reasoning as .photo-viewport's own (a corner drag is
+   exactly the kind of gesture the browser's native scroll/callout
+   handling would otherwise fight or interrupt). */
+.image-cropper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.image-cropper-frame {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.image-cropper-photo {
   display: block;
   max-width: 100%;
   max-height: 320px;
   border-radius: var(--radius);
   border: 1px solid var(--line);
-  margin: 8px 0;
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
+.image-cropper-overlay { position: absolute; inset: 0; }
+/* The dimmed region outside the current selection — four independent
+   strips (not one mask with a hole) so plain absolutely-positioned divs
+   suffice, no clip-path/SVG-mask needed. Top/bottom span the full width;
+   left/right (.image-cropper-dim-side) are inset from each other's own
+   top/height to cover only the band between them, so the four strips
+   never overlap at double opacity in the corners. */
+.image-cropper-dim {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+.image-cropper-dim-top, .image-cropper-dim-bottom { left: 0; right: 0; }
+.image-cropper-dim-top { top: 0; }
+.image-cropper-dim-bottom { bottom: 0; }
+.image-cropper-outline {
+  position: absolute;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+/* Each handle's own hit target is a full 44x44px square (touch-friendly
+   even though the visible dot drawn via ::after is much smaller) centered
+   exactly on its corner of the current selection. */
+.image-cropper-handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+}
+.image-cropper-handle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.image-cropper-handle-nw, .image-cropper-handle-se { cursor: nwse-resize; }
+.image-cropper-handle-ne, .image-cropper-handle-sw { cursor: nesw-resize; }
 
 /* rifle-precision-analysis-view.js's own layout — the scatterplot diagram
    card (src/ui/rifle-precision/analysis-diagram.js) beside its Legend

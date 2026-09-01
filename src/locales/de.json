@@ -31,7 +31,11 @@
     "dragModelGS": "GS (Kugel)",
     "idle": "bereit",
     "computing": "berechne…",
-    "error": "Fehler: {{message}}"
+    "error": "Fehler: {{message}}",
+    "cropHandleTopLeft": "Ziehpunkt oben links",
+    "cropHandleTopRight": "Ziehpunkt oben rechts",
+    "cropHandleBottomLeft": "Ziehpunkt unten links",
+    "cropHandleBottomRight": "Ziehpunkt unten rechts"
   },
   "sections": {
     "rifleHeading": "Gewehr",
@@ -460,6 +464,9 @@
     "choosePhotoButton": "Foto auswählen…",
     "takePhotoButton": "Foto aufnehmen…",
     "removePhotoButton": "Foto entfernen",
+    "confirmPhotoButton": "Dieses Foto verwenden",
+    "cropHint": "Ecken ziehen, um das Foto zuzuschneiden, oder am Rand belassen, um das ganze Foto zu verwenden.",
+    "cropCancelButton": "Abbrechen",
     "photoProcessingError": "Das Foto konnte nicht verarbeitet werden. Bitte eine andere Datei versuchen.",
     "duplicateNameWarning": "Ein Standort mit diesem Namen existiert bereits — beim Speichern wird er überschrieben.",
     "duplicateTargetNameWarning": "Ein anderes Ziel an diesem Standort trägt bereits diesen Namen.",
@@ -546,6 +553,7 @@
     "rotateLeftButton": "Nach links drehen",
     "rotateRightButton": "Nach rechts drehen",
     "confirmPhotoButton": "Dieses Foto verwenden",
+    "cropHint": "Ecken ziehen, um das Foto zuzuschneiden, oder am Rand belassen, um das ganze Foto zu verwenden.",
     "photoProcessingError": "Das Foto konnte nicht verarbeitet werden. Bitte eine andere Datei versuchen.",
     "calibrationHint1": "Am ersten Kalibrierpunkt auf das Foto tippen – ein Ende eines Lineals oder ein Merkmal bekannter Länge auf der Zielscheibe.",
     "calibrationHint2": "Am zweiten Kalibrierpunkt auf das Foto tippen, dann die tatsächliche Länge zwischen beiden Punkten eingeben.",
@@ -868,6 +876,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v153": "Funktion zum Zuschneiden von Bildern beim Import. Höhere Bildqualität (Auflösung und verlustbehafteter Kompressionsfaktor).",
       "v152": "Die THANKS-Seite ist kein Platzhalter mehr.",
       "v151": "Neues, grandioses Design für die Windeingabe.",
       "v150": "Ein Durcheinander mit zwei 7-mm-Kalibern behoben — jetzt sauber in 6.8 und ein echtes 7 getrennt. Dank an ForgeValley fürs Aufdecken.",

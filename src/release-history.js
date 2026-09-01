@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v153',
+    fullVersion: '3.1.7 (MTFKR+ — Multi-Target Flight & Kinetic Research+)',
+    date: '2026-09-01',
+    descriptionKey: 'releaseHistory.entries.v153'
+  },
+  {
     cacheVersion: 'v152',
     fullVersion: '3.1.6 (MTFKR+ — Multi-Target Flight & Kinetic Research+)',
     date: '2026-08-31',

@@ -11,14 +11,14 @@ test('computeDownscaledDimensions caps a too-wide image on its width', () => {
   const result = computeDownscaledDimensions(3200, 1600);
   assert.equal(result.scaled, true);
   assert.equal(result.width, MAX_DIMENSION_PX);
-  assert.equal(result.height, 800);
+  assert.equal(result.height, Math.round(1600 * MAX_DIMENSION_PX / 3200));
 });
 
 test('computeDownscaledDimensions caps a too-tall image on its height', () => {
   const result = computeDownscaledDimensions(1200, 4800);
   assert.equal(result.scaled, true);
   assert.equal(result.height, MAX_DIMENSION_PX);
-  assert.equal(result.width, 400);
+  assert.equal(result.width, Math.round(1200 * MAX_DIMENSION_PX / 4800));
 });
 
 test('computeDownscaledDimensions treats an exact-at-cap image as unscaled', () => {

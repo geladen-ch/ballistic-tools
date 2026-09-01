@@ -31,7 +31,11 @@
     "dragModelGS": "GS (Sphère)",
     "idle": "inactif",
     "computing": "calcul en cours…",
-    "error": "erreur : {{message}}"
+    "error": "erreur : {{message}}",
+    "cropHandleTopLeft": "Poignée de recadrage en haut à gauche",
+    "cropHandleTopRight": "Poignée de recadrage en haut à droite",
+    "cropHandleBottomLeft": "Poignée de recadrage en bas à gauche",
+    "cropHandleBottomRight": "Poignée de recadrage en bas à droite"
   },
   "sections": {
     "rifleHeading": "Carabine",
@@ -460,6 +464,9 @@
     "choosePhotoButton": "Choisir une photo…",
     "takePhotoButton": "Prendre une photo…",
     "removePhotoButton": "Supprimer la photo",
+    "confirmPhotoButton": "Utiliser cette photo",
+    "cropHint": "Faites glisser les coins pour recadrer la photo, ou laissez-les sur les bords pour utiliser la photo entière.",
+    "cropCancelButton": "Annuler",
     "photoProcessingError": "Impossible de traiter cette photo. Veuillez essayer un autre fichier.",
     "duplicateNameWarning": "Un emplacement portant ce nom existe déjà — l'enregistrer l'écrasera.",
     "duplicateTargetNameWarning": "Une autre cible de cet emplacement porte déjà ce nom.",
@@ -546,6 +553,7 @@
     "rotateLeftButton": "Tourner à gauche",
     "rotateRightButton": "Tourner à droite",
     "confirmPhotoButton": "Utiliser cette photo",
+    "cropHint": "Faites glisser les coins pour recadrer la photo, ou laissez-les sur les bords pour utiliser la photo entière.",
     "photoProcessingError": "Impossible de traiter cette photo. Veuillez essayer un autre fichier.",
     "calibrationHint1": "Touchez la photo au premier point de calibration – une extrémité d'une règle ou un repère de longueur connue sur la cible.",
     "calibrationHint2": "Touchez la photo au deuxième point de calibration, puis entrez la distance réelle entre les deux points.",
@@ -868,6 +876,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v153": "Fonctionnalité de recadrage des images à l'import. Qualité d'image améliorée (résolution et facteur de compression avec perte).",
       "v152": "La page THANKS n'est plus une ébauche.",
       "v151": "Nouveau design génial pour la saisie du vent.",
       "v150": "Une confusion entre deux calibres de 7 mm corrigée — désormais bien séparés en 6.8 et un véritable 7. Merci à ForgeValley de l'avoir signalé.",

@@ -139,6 +139,8 @@ const APP_SHELL_URLS = [
   './src/ui/labradar/results-summary.js',
   './src/ui/arsenal/export-dialog.js',
   './src/ui/arsenal/import-dialog.js',
+  './src/ui/image-crop-geometry.js',
+  './src/ui/image-cropper.js',
   './src/ui/locations/location-export-dialog.js',
   './src/ui/locations/location-form.js',
   './src/ui/locations/location-import-dialog.js',
