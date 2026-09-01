@@ -48,8 +48,8 @@ const ATMOSPHERE_PRESETS = {
 // far) swaps the plain windSpeedField+windAngleDial pair below for the
 // single combined dial (src/ui/wind-control.js) Range Solver introduced
 // — labeled "Wind" and keeping the headwind/crosswind caption here,
-// unlike Range Solver's own instance (labeled but caption-free, embedded
-// on its Target tab), since this section's other fields all still have
+// unlike Range Solver's own instance (no label, no caption, embedded on
+// its Target tab), since this section's other fields all still have
 // their own labels. Every other caller of this section passes
 // `includeWind: false`, so the plain pair below currently has no live
 // caller left either way.

@@ -1,11 +1,11 @@
 // Combined wind direction + speed dial. Three call sites so far, all
 // opt-in via atmosphere-section.js's own `combinedWind` (except Range
 // Solver, which never went through that shared section to begin with):
-//   - Range Solver's Target tab (range-solver-view.js): `label: true`,
-//     no headwind/crosswind caption — it's embedded below the range/LoS
-//     row rather than living on its own dedicated tab (as it used to),
-//     so unlike that tab's own name, the label is what tells you what
-//     you're looking at now.
+//   - Range Solver's Target tab (range-solver-view.js): no label, no
+//     headwind/crosswind caption — embedded below the range/LoS row,
+//     which is label-free for the same reason: the dial's own hub reads
+//     as "wind" without one, same as the row above it reads as "range/
+//     angle" without one.
 //   - Trajectory and Arsenal's rifle comparison (atmosphere-section.js's
 //     own `combinedWind: true`): `label`/`hint` below both true, so it
 //     looks like the rest of that section's fields and keeps the same
