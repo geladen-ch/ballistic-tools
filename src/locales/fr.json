@@ -877,6 +877,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v157": "Correction : dossier « icons » renommé en « app-icons » (et toutes les références mises à jour), pour éviter un conflit avec l'alias « icons » par défaut d'Apache chez certains hébergeurs.",
       "v156": "Correction de bug : fonctionnement hors ligne (certains outils ne se lançaient pas hors ligne s'ils n'avaient jamais été utilisés en ligne auparavant).",
       "v155": "Nouveau réglage utilisateur : unités de sortie du Calculateur de terrain — livraison spéciale pour nos amis qui ne comprennent rien aux clics.",
       "v154": "Le calculateur de terrain «high speed low drag» est devenu encore plus génial — tout l'essentiel tient maintenant sur un seul écran, plus besoin de cliquer dans tous les sens. Et aussi, un bond de version et un nouveau nom de code (parce que j'en ai trouvé un cool).",
