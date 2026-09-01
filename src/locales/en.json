@@ -873,6 +873,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v154": "The 'high speed low drag' range solver just got more awesomer — everything key is in a single pane now, no more clicking back and forth. Also, a version bump and a new release code name (because I thought of a cool one).",
       "v153": "Feature to crop images on import. Increased image quality (resolution and lossy compression factor).",
       "v152": "The THANKS page is no longer a stub.",
       "v151": "New awesome wind input widget design.",
