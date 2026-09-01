@@ -12,7 +12,7 @@ import {
   getFieldSeparator, setFieldSeparator, getDecimalSeparator, setDecimalSeparator
 } from '../csv-prefs.js';
 import { WIND_DIAL_APPEARANCE_CHOICES, getWindDialAppearance, setWindDialAppearance } from '../wind-dial-prefs.js';
-import { INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle } from '../range-solver-prefs.js';
+import { INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit } from '../range-solver-prefs.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
 import { isDragModelVisible, setDragModelVisible } from '../drag-model-prefs.js';
 import { sectionGroup } from '../ui/section.js';
@@ -143,6 +143,14 @@ export function mount(container) {
   indicatorStyleSelect.value = getIndicatorStyle();
   indicatorStyleSelect.addEventListener('change', () => setIndicatorStyle(indicatorStyleSelect.value));
 
+  const outputUnitSelect = el(
+    'select',
+    { id: 'settings-range-solver-output-unit' },
+    OUTPUT_UNIT_CHOICES.map((c) => el('option', { value: c.value, i18n: c.labelKey }))
+  );
+  outputUnitSelect.value = getOutputUnit();
+  outputUnitSelect.addEventListener('change', () => setOutputUnit(outputUnitSelect.value));
+
   // One checkbox per known standard drag model (see engine/drag-tables.js's
   // DRAG_MODELS) — data-driven so a future model added there gets a
   // checkbox here for free. At least one must always stay checked (every
@@ -186,6 +194,10 @@ export function mount(container) {
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.themeLabel' }),
       themePicker()
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.rangeSolverOutputLabel' }),
+      outputUnitSelect
     ]),
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.rangeSolverIndicatorLabel' }),

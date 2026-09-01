@@ -92,3 +92,32 @@ export function setIndicatorStyle(value) {
     // best-effort — losing persistence isn't fatal
   }
 }
+
+const OUTPUT_UNIT_COOKIE_NAME = 'ballistics_range_solver_output_unit_v1';
+const DEFAULT_OUTPUT_UNIT = 'clicks';
+
+// Which unit the Range Solver's own elevation/windage readout (see
+// range-solver-view.js) is dialed in — "clicks" (the default, using the
+// active rifle's own scope click value, same as Trajectory's elevClicks/
+// windClicks columns) or a fixed angular unit ("mrad"/"moa", independent of
+// any scope's click value, same math as Trajectory's elevMrad/elevMOA
+// columns — see clicksForOffset() in units.js).
+export const OUTPUT_UNIT_CHOICES = [
+  { value: 'clicks', labelKey: 'settings.rangeSolverOutputClicks' },
+  { value: 'mrad', labelKey: 'settings.rangeSolverOutputMrad' },
+  { value: 'moa', labelKey: 'settings.rangeSolverOutputMoa' }
+];
+
+export function getOutputUnit() {
+  const raw = getCookie(OUTPUT_UNIT_COOKIE_NAME);
+  return OUTPUT_UNIT_CHOICES.some((c) => c.value === raw) ? raw : DEFAULT_OUTPUT_UNIT;
+}
+
+export function setOutputUnit(value) {
+  if (!OUTPUT_UNIT_CHOICES.some((c) => c.value === value)) return;
+  try {
+    setCookie(OUTPUT_UNIT_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}

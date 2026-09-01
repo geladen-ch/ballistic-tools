@@ -7,19 +7,22 @@ installFakeDom();
 
 const {
   THEME_CHOICES, getTheme, setTheme, onThemeChange, resetThemeForTests,
-  INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle
+  INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle,
+  OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit
 } = await import('../src/range-solver-prefs.js');
 const { getCookie, setCookie, removeCookie } = await import('../src/cookies.js');
 
 const THEME_COOKIE_NAME = 'ballistics_theme_v1';
 const LEGACY_HIGH_CONTRAST_COOKIE_NAME = 'ballistics_range_solver_high_contrast_v1';
 const INDICATOR_COOKIE_NAME = 'ballistics_range_solver_indicator_style_v1';
+const OUTPUT_UNIT_COOKIE_NAME = 'ballistics_range_solver_output_unit_v1';
 
 test.beforeEach(() => {
   resetThemeForTests();
   removeCookie(THEME_COOKIE_NAME);
   removeCookie(LEGACY_HIGH_CONTRAST_COOKIE_NAME);
   removeCookie(INDICATOR_COOKIE_NAME);
+  removeCookie(OUTPUT_UNIT_COOKIE_NAME);
 });
 
 test('THEME_CHOICES covers exactly what get/set accept, "dark" first (the default)', () => {
@@ -128,4 +131,35 @@ test('setIndicatorStyle ignores an unrecognized value', () => {
   setIndicatorStyle('arrows');
   setIndicatorStyle('bogus');
   assert.equal(getIndicatorStyle(), 'arrows');
+});
+
+test('OUTPUT_UNIT_CHOICES covers exactly what get/set accept, "clicks" first (the default)', () => {
+  assert.deepEqual(OUTPUT_UNIT_CHOICES.map((c) => c.value), ['clicks', 'mrad', 'moa']);
+});
+
+test('output unit defaults to "clicks"', () => {
+  assert.equal(getOutputUnit(), 'clicks');
+});
+
+test('setOutputUnit updates the read value and persists to a cookie', () => {
+  setOutputUnit('mrad');
+  assert.equal(getOutputUnit(), 'mrad');
+  assert.equal(getCookie(OUTPUT_UNIT_COOKIE_NAME), 'mrad');
+});
+
+test('setOutputUnit accepts "moa"', () => {
+  setOutputUnit('moa');
+  assert.equal(getOutputUnit(), 'moa');
+  assert.equal(getCookie(OUTPUT_UNIT_COOKIE_NAME), 'moa');
+});
+
+test('a garbage/tampered cookie value falls back to "clicks" rather than being trusted verbatim', () => {
+  setCookie(OUTPUT_UNIT_COOKIE_NAME, 'not-a-real-unit');
+  assert.equal(getOutputUnit(), 'clicks');
+});
+
+test('setOutputUnit ignores an unrecognized value', () => {
+  setOutputUnit('mrad');
+  setOutputUnit('bogus');
+  assert.equal(getOutputUnit(), 'mrad');
 });
