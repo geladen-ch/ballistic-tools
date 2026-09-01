@@ -371,11 +371,11 @@ test('windAngle, typed through the dial\'s own number input, flows through getVa
 
 // combinedWind:true (src/ui/wind-control.js) is Trajectory's own opt-in —
 // see atmosphere-section.js — replacing the plain windSpeedField+
-// windAngleDial pair above with the single dial Range Solver's Wind tab
-// introduced, except labeled and with the headwind/crosswind caption
-// still showing (Range Solver's own instance has neither). The dial's
-// own drag/keyboard/skin behavior isn't re-tested here — same rationale
-// as the plain dial's own note above.
+// windAngleDial pair above with the single dial Range Solver introduced,
+// except with the headwind/crosswind caption still showing (Range
+// Solver's own instance, embedded on its Target tab, has none). The
+// dial's own drag/keyboard/skin behavior isn't re-tested here — same
+// rationale as the plain dial's own note above.
 test('combinedWind:true renders the combined dial instead of the plain pair, labeled "Wind"', () => {
   const atmo = atmosphereSection({ combinedWind: true });
   assert.ok(findById(atmo.node, 'windAngle'), 'expected the combined dial\'s SVG');

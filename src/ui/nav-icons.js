@@ -112,13 +112,24 @@ export function targetIcon(size = 18) {
   ]);
 }
 
-// Gust lines, each curling off at its own trailing end — Range Solver's
-// "Wind" tab.
-export function windIcon(size = 18) {
+// A sight line rising from the shooter to the target, with a small arc
+// marking the angle off the horizontal and a dot at the eye — inline
+// adornment for the Target tab's LoS-angle field (range-solver-view.js),
+// standing in for that field's removed text label. Redrawn from the
+// original data/icons/los-angle-icon.svg (an Inkscape export: hardcoded
+// black, odd mm-based viewBox) into this module's own line-icon
+// convention instead of loaded as a static file. A small hollow ring in
+// the otherwise-empty upper-left corner reads as a bare degree sign (°),
+// making clear the field below it is measured in degrees rather than
+// just "an angle."
+export function losAngleIcon(size = 18) {
   return icon(size, '0 0 20 20', [
-    svgEl('path', { d: 'M3 7h9a2 2 0 1 0-2-2' }),
-    svgEl('path', { d: 'M3 10.5h12a2 2 0 1 1-2 2' }),
-    svgEl('path', { d: 'M3 14h7a1.6 1.6 0 1 0-1.6-1.6' })
+    svgEl('line', { x1: '3', y1: '15', x2: '16', y2: '15' }),
+    svgEl('path', { d: 'M3 15 13 6' }),
+    svgEl('path', { d: 'M8 15A5 5 0 0 1 6.8 11.6', fill: 'none' }),
+    svgEl('circle', { cx: '3', cy: '15', r: '1.2', fill: 'currentColor', stroke: 'none' }),
+    svgEl('circle', { cx: '13', cy: '6', r: '1.4', fill: 'none' }),
+    svgEl('circle', { cx: '3.3', cy: '3.3', r: '1.1', fill: 'none' })
   ]);
 }
 

@@ -11,20 +11,19 @@
 // Auto-recomputes on every input change, same posture as Trajectory/Hit
 // Probability — there's no Calculate button.
 import { el, clear } from '../dom.js';
-import { unitField } from '../ui/unit-field.js';
-import { largeStepperField } from '../ui/large-stepper-field.js';
+import { inlineNumberField } from '../ui/inline-number-field.js';
 import { windControl } from '../ui/wind-control.js';
+import { losAngleIcon } from '../ui/nav-icons.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, displayToEngine, displaySpanToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
+import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle } from '../range-solver-prefs.js';
-import { directionArrow } from '../ui/direction-arrow.js';
 import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import {
@@ -34,23 +33,24 @@ import {
   loadRangeSolverLocationState, saveRangeSolverLocationState,
   markAtmosphereTouched
 } from '../range-solver-state.js';
-import { loadUserLocations, saveUserLocation } from '../location-library.js';
+import { loadUserLocations } from '../location-library.js';
 import { locationPickerButton } from '../ui/locations/location-picker-button.js';
-import { targetSyncButton } from '../ui/target-sync-button.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
-import { showDialog } from '../ui/app-dialog.js';
 
 const DEFAULT_LOS_ANGLE_DEG = 0;
 const DEFAULT_WIND_ANGLE_DEG = 90;
 const DEFAULT_WIND_SPEED_MS = 0;
+// <select>'s own sentinel for "not tracking any library target" — real
+// target ids (location-library.js) are never empty strings, so this can
+// never collide with one.
+const MANUAL_ENTRY_VALUE = '';
 
 // One independently-chosen round number per unit — not a conversion of a
-// single metric default/step into the others (1500 ft isn't "500 m in
-// feet", it's its own sensible round number for someone thinking in feet)
-// — so both tables are keyed straight off the unit symbol.
+// single metric default into the others (1500 ft isn't "500 m in feet",
+// it's its own sensible round number for someone thinking in feet) — so
+// the table is keyed straight off the unit symbol.
 const TARGET_RANGE_DEFAULTS = { m: 500, yd: 500, ft: 1500 };
-const TARGET_RANGE_STEPS = { m: 50, yd: 50, ft: 100 };
 // Wind speed's own unit-aware step/decimals are wind-control.js's own
 // concern now (its WIND_SPEED_STEPS table there) — every windControl()
 // caller gets the same stepping, not just this one.
@@ -103,16 +103,19 @@ export function mount(container) {
     saveRangeSolverTargetState({ rangeM: targetRangeField.getEngineValue(), losAngleDeg: losAngleField.getEngineValue() });
   }
   const distanceUnit = currentUnit('distance');
-  const targetRangeField = largeStepperField({
+  const targetRangeField = inlineNumberField({
     id: 'targetRange', ...FIELD_BOUNDS.targetRange,
-    step: displaySpanToEngine('targetRange', TARGET_RANGE_STEPS[distanceUnit], distanceUnit),
     value: targetSaved.rangeM ?? displayToEngine('targetRange', TARGET_RANGE_DEFAULTS[distanceUnit], distanceUnit),
     decimals: 1,
+    adornment: unitChoice('targetRange', distanceUnit).label,
+    ariaLabel: t('fields.targetRange'),
     onInput: () => { saveTarget(); recompute(); }
   });
-  const losAngleField = unitField({
-    id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: 1,
+  const losAngleField = inlineNumberField({
+    id: 'losAngle', ...FIELD_BOUNDS.losAngle, decimals: 0,
     value: targetSaved.losAngleDeg ?? DEFAULT_LOS_ANGLE_DEG,
+    adornment: losAngleIcon(),
+    ariaLabel: t('fields.losAngle'),
     onInput: () => { saveTarget(); recompute(); }
   });
 
@@ -120,10 +123,13 @@ export function mount(container) {
   // The range/LoS fields above stay the single source of truth for what's
   // actually dialed (still cookie-backed via saveTarget(), exactly as
   // before) — picking a target here just copies its values in as a free
-  // edit (see the target select's own listener below); it never becomes
-  // a live two-way link, so this widget's whole job is (a) offering that
-  // one-time copy and (b) noticing afterward if the fields have since
-  // diverged from what's saved.
+  // edit (see the target select's own listener below); it never becomes a
+  // live two-way link, and there's no path back up to the library either
+  // — so this widget's whole job is (a) offering that one-time copy and
+  // (b) detaching back to "Manual entry" the moment a hand-edit makes the
+  // fields diverge from what's saved (detachIfHandEdited() below), rather
+  // than leaving a stale target selected next to values it no longer
+  // describes.
   const locationSaved = loadRangeSolverLocationState() || {};
   let activeLocation = locationSaved.locationId
     ? loadUserLocations().find((l) => l.id === locationSaved.locationId) || null
@@ -147,29 +153,6 @@ export function mount(container) {
 
   const locationNameEl = el('span', { class: 'range-solver-location-name' });
   const targetSelect = el('select', { id: 'rangeSolverTargetSelect', class: 'range-solver-target-select' });
-  const syncButton = targetSyncButton({
-    label: t('rangeSolverLocations.syncButtonLabel'),
-    onClick: () => {
-      const target = resolvedActiveTarget();
-      if (!target) return;
-      showDialog({
-        message: t('rangeSolverLocations.confirmSyncTarget'),
-        buttons: [
-          {
-            label: t('rangeSolverLocations.syncConfirmButton'),
-            onClick: () => {
-              const updatedTargets = activeLocation.targets.map((tg) => (tg.id === target.id
-                ? { ...tg, rangeM: targetRangeField.getEngineValue(), losAngleDeg: losAngleField.getEngineValue() }
-                : tg));
-              activeLocation = saveUserLocation({ ...activeLocation, targets: updatedTargets });
-              updateSyncIndicator();
-            }
-          },
-          { label: t('rangeSolverLocations.cancelButton') }
-        ]
-      });
-    }
-  });
   const openLocationsButton = locationPickerButton({
     label: t('rangeSolverLocations.manageButtonLabel'),
     onClick: () => { location.hash = '#/locations'; }
@@ -183,7 +166,7 @@ export function mount(container) {
     }
   });
   const locationRow = el('div', { class: 'range-solver-location-row' }, [
-    locationNameEl, openLocationsButton, targetSelect, openPhotoOverlayButton, syncButton
+    locationNameEl, openLocationsButton, targetSelect, openPhotoOverlayButton
   ]);
 
   function refreshLocationWidget() {
@@ -194,12 +177,15 @@ export function mount(container) {
     clear(targetSelect);
     targetSelect.style.display = hasTargets ? '' : 'none';
     if (hasTargets) {
+      // Always first — the one option not backed by a library target, so
+      // it reads as "nothing tracked" rather than one choice among equals.
+      targetSelect.appendChild(el('option', { value: MANUAL_ENTRY_VALUE, text: t('rangeSolverLocations.manualEntryOption') }));
       activeLocation.targets.forEach((tg, i) => {
         targetSelect.appendChild(el('option', {
           value: tg.id, text: tg.name || t('rangeSolverLocations.defaultTargetName', { n: i + 1 })
         }));
       });
-      targetSelect.value = activeTargetId ?? activeLocation.targets[0].id;
+      targetSelect.value = activeTargetId ?? MANUAL_ENTRY_VALUE;
     }
     openPhotoOverlayButton.style.display = hasLocation && activeLocation.photo ? '' : 'none';
   }
@@ -220,15 +206,29 @@ export function mount(container) {
     }
     recompute();
   }
-  targetSelect.addEventListener('change', () => selectTarget(targetSelect.value));
+  // Detaches from whichever target is active, keeping the range/LoS
+  // fields exactly as they currently read — the reverse of selectTarget()
+  // above, which copies a target's values in. Never fires recompute()
+  // itself: the auto-detach path below is already mid-recompute() when it
+  // calls this, and the <select>'s own change listener triggers its own
+  // recompute() right after.
+  function deselectTarget() {
+    activeTargetId = null;
+    saveRangeSolverLocationState({ targetId: null });
+    targetSelect.value = MANUAL_ENTRY_VALUE;
+  }
+  targetSelect.addEventListener('change', () => {
+    if (targetSelect.value === MANUAL_ENTRY_VALUE) { deselectTarget(); recompute(); }
+    else selectTarget(targetSelect.value);
+  });
 
   refreshLocationWidget();
 
   // A saved target's own rangeM run through the exact same
-  // engine<->display round-trip targetRangeField itself applies (see
-  // unit-field.js/large-stepper-field.js) before comparing — otherwise a
-  // target whose stored value has more precision than the display unit
-  // shows (e.g. distance in yards) would read as "diverged" the instant
+  // engine<->display round-trip inlineNumberField() itself applies (see
+  // ui/inline-number-field.js) before comparing — otherwise a target
+  // whose stored value has more precision than the display unit shows
+  // (e.g. distance in yards) would read as "hand-edited" the instant
   // it's loaded, from display rounding alone, never having been touched.
   // losAngleDeg has no FIELD_UNITS entry (plain pass-through degrees, see
   // units.js), so it round-trips exactly with no rounding step at all —
@@ -241,27 +241,33 @@ export function mount(container) {
     return displayToEngine(fieldId, displayValue, choice.unit);
   }
 
-  function updateSyncIndicator() {
+  // There's no live "push these edits back up to the library" path
+  // anymore — hand-editing a loaded target's range/LoS just detaches from
+  // it (dropdown falls back to "Manual entry", see deselectTarget()
+  // above), the fields' own values untouched. Checked on every recompute()
+  // regardless of what actually changed (wind/atmosphere edits included)
+  // — cheap, and correct either way: once activeTargetId is null there's
+  // no target left to diverge from, so this becomes a no-op.
+  function detachIfHandEdited() {
     const target = resolvedActiveTarget();
-    const diverged = !!target && (
+    if (!target) return;
+    const diverged = (
       targetRangeField.getEngineValue() !== roundTripEngineValue('targetRange', 'distance', target.rangeM) ||
       losAngleField.getEngineValue() !== target.losAngleDeg
     );
-    syncButton.style.display = diverged ? '' : 'none';
+    if (diverged) deselectTarget();
   }
 
-  const targetTab = el('div', { class: 'input-section range-solver-tab-panel' }, [
-    locationRow,
-    targetRangeField.node,
-    losAngleField.node
-  ]);
-
-  // ---- Wind tab — a single combined dial (src/ui/wind-control.js), the
-  // dial + large-stepper pairing's replacement here and in Trajectory's
-  // atmosphere section (atmosphere-section.js's own `combinedWind`);
-  // Hit Probability/BC Estimator/Arsenal keep the plain pairing. Wind
-  // speed's step/decimals are unit-aware by default now (that
-  // component's own WIND_SPEED_STEPS table) — no longer computed here.
+  // ---- Wind — a single combined dial (src/ui/wind-control.js), the dial
+  // + large-stepper pairing's replacement here and in Trajectory's
+  // atmosphere section (atmosphere-section.js's own `combinedWind`); Hit
+  // Probability/BC Estimator/Arsenal keep the plain pairing. Wind speed's
+  // step/decimals are unit-aware by default now (that component's own
+  // WIND_SPEED_STEPS table) — no longer computed here. Lives on the
+  // Target tab itself (below the range/LoS row) rather than its own tab
+  // — `label: true` (unlike Trajectory/Arsenal's bare Range Solver usage
+  // this used to be) since there's no longer a "Wind" tab heading to
+  // supply that context.
   const windSaved = loadRangeSolverWindState() || {};
   function saveWind() {
     saveRangeSolverWindState({ speed: wind.getEngineSpeed(), angle: wind.getAngle() });
@@ -270,13 +276,17 @@ export function mount(container) {
     angle: windSaved.angle ?? DEFAULT_WIND_ANGLE_DEG,
     speed: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
     ...FIELD_BOUNDS.windSpeed,
+    label: true,
     onInput: () => { saveWind(); recompute(); }
   });
-  // range-solver-wind-tab (in addition to the two classes every tab panel
-  // shares) is what layout.css's mobile-only wind-control sizing rules
-  // key off, so they can size just this panel without also touching the
-  // Target/Atmosphere ones.
-  const windTab = el('div', { class: 'input-section range-solver-tab-panel range-solver-wind-tab' }, [
+
+  const targetParamsRow = el('div', { class: 'target-params-row' }, [
+    targetRangeField.node,
+    losAngleField.node
+  ]);
+  const targetTab = el('div', { class: 'input-section range-solver-tab-panel' }, [
+    locationRow,
+    targetParamsRow,
     wind.node
   ]);
 
@@ -289,10 +299,10 @@ export function mount(container) {
   });
   const atmosphereTab = el('div', { class: 'range-solver-tab-panel' }, [atmosphere.node]);
 
-  // Which of the three shows is driven by the section nav bar (see
+  // Which of the two shows is driven by the section nav bar (see
   // range-solver-nav.js), not local tab buttons — nav-rail.js/nav-
-  // tabbar.js's own Target/Wind/Atmosphere items call setRangeSolverTab().
-  const tabPanels = { target: targetTab, wind: windTab, atmosphere: atmosphereTab };
+  // tabbar.js's own Target/Atmosphere items call setRangeSolverTab().
+  const tabPanels = { target: targetTab, atmosphere: atmosphereTab };
   function applyActiveTab() {
     const active = getRangeSolverTab();
     for (const key of Object.keys(tabPanels)) tabPanels[key].style.display = key === active ? '' : 'none';
@@ -300,17 +310,18 @@ export function mount(container) {
   applyActiveTab();
   const unsubscribeTab = onRangeSolverTabChange(applyActiveTab);
 
-  const inputPane = el('div', { class: 'range-solver-input-pane' }, [targetTab, windTab, atmosphereTab]);
+  const inputPane = el('div', { class: 'range-solver-input-pane' }, [targetTab, atmosphereTab]);
 
   // ---- Output pane ----
-  // A quiet, label-free readout of the current shot conditions — target
-  // range, LoS angle (only when non-zero — a flat shot omits it entirely
-  // rather than showing a redundant "0°"), wind speed and direction,
+  // A quiet, label-free readout of the current atmospheric conditions —
   // station pressure, temperature and humidity — each value carrying its
   // own unit symbol as its only identification. Same "small and
   // non-intrusive" visual weight as the ToF/velocity/energy footer below,
   // but even quieter (no labels), since this is context for the dialed
-  // numbers, not a result in its own right.
+  // numbers, not a result in its own right. Target range/LoS angle and
+  // wind speed/direction used to show here too — dropped as redundant
+  // once both are visible right above, on the Target tab itself (range/
+  // LoS row plus the embedded wind widget — see targetTab above).
   const conditionsBar = el('div', { class: 'range-solver-conditions' });
   const elevationValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   const windageValue = el('div', { class: 'range-solver-click-value' }, ['—']);
@@ -393,22 +404,9 @@ export function mount(container) {
 
   function updateConditions() {
     clear(conditionsBar);
-    const rangeM = targetRangeField.getEngineValue();
-    const losDeg = losAngleField.getEngineValue();
-    const windSpeedMs = wind.getEngineSpeed();
-    const windDeg = wind.getAngle();
     const { pressureHpa, tempC, humidityPct } = atmosphere.getValues();
 
     const parts = [];
-    if (Number.isFinite(rangeM)) parts.push(formatWithUnit('targetRange', 'distance', rangeM));
-    if (Number.isFinite(losDeg) && losDeg !== 0) parts.push(numberWithUnit(losDeg.toFixed(0), '°'));
-    // Speed and direction share one ungapped group (an arrow, not a
-    // degree number — see direction-arrow.js) rather than being two
-    // separately-spaced items, so they read as one wind reading.
-    const windParts = [];
-    if (Number.isFinite(windSpeedMs)) windParts.push(...formatWithUnit('windSpeed', 'windSpeed', windSpeedMs));
-    if (Number.isFinite(windDeg)) windParts.push(directionArrow(windDeg));
-    if (windParts.length) parts.push(el('span', { class: 'range-solver-conditions-wind' }, windParts));
     if (Number.isFinite(pressureHpa)) parts.push(formatWithUnit('pressureHpa', 'pressure', pressureHpa));
     if (Number.isFinite(tempC)) parts.push(formatWithUnit('tempC', 'temperature', tempC));
     if (Number.isFinite(humidityPct)) parts.push(numberWithUnit(String(Math.round(humidityPct)), '%'));
@@ -421,7 +419,7 @@ export function mount(container) {
 
   function recompute() {
     updateConditions();
-    updateSyncIndicator();
+    detachIfHandEdited();
     const nominalState = {
       ...cartridge.getValues(),
       ...rifle.getValues(),

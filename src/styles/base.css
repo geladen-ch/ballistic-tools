@@ -232,11 +232,6 @@ a { color: var(--accent); }
 }
 .field-suggest-item { padding: 6px 10px; cursor: pointer; font-size: 13px; }
 .field-suggest-item:hover, .field-suggest-item.highlighted { background: var(--panel-raised); }
-/* A compass direction shown visually (src/ui/direction-arrow.js) — sized
-   off the surrounding text (1em) and colored off it too (currentColor),
-   so it drops into any label/value context already at the right size and
-   shade with no per-caller styling. */
-.direction-arrow { width: 1em; height: 1em; vertical-align: -0.14em; display: inline-block; transform-origin: center; }
 /* Pasted-in-full Cd-Mach table (src/ui/arsenal/bullet-form.js) — a
    textarea instead of a single-line input, monospace so pasted columns of
    numbers stay visually aligned. */

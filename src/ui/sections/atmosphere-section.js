@@ -46,12 +46,13 @@ const ATMOSPHERE_PRESETS = {
 //
 // `combinedWind: true` (Trajectory and Arsenal's rifle comparison, so
 // far) swaps the plain windSpeedField+windAngleDial pair below for the
-// single combined dial (src/ui/wind-control.js) Range Solver's Wind tab
-// introduced — labeled "Wind" and keeping the headwind/crosswind caption
-// here, unlike that tab's own label-free, caption-free instance, since
-// this section's other fields all still have their own labels. Every
-// other caller of this section passes `includeWind: false`, so the plain
-// pair below currently has no live caller left either way.
+// single combined dial (src/ui/wind-control.js) Range Solver introduced
+// — labeled "Wind" and keeping the headwind/crosswind caption here,
+// unlike Range Solver's own instance (labeled but caption-free, embedded
+// on its Target tab), since this section's other fields all still have
+// their own labels. Every other caller of this section passes
+// `includeWind: false`, so the plain pair below currently has no live
+// caller left either way.
 export function atmosphereSection({
   slider = false, includeWind = true, presets = true, combinedWind = false, onInput,
   load = loadAtmosphereState, save = saveAtmosphereState

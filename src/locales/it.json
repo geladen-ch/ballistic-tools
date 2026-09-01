@@ -430,7 +430,6 @@
   },
   "rangeSolver": {
     "navTarget": "Bersaglio",
-    "navWind": "Vento",
     "navAtmosphere": "Atmosfera",
     "exitSolver": "Esci dal calcolatore",
     "elevationLabel": "Elevazione",
@@ -499,9 +498,7 @@
     "importFileErrorInvalidJson": "Questo file non è JSON valido.",
     "importFileErrorInvalidFormat": "Questo file non è un export riconosciuto della libreria delle postazioni.",
     "manageButtonLabel": "Gestisci postazioni",
-    "syncButtonLabel": "Aggiorna questo bersaglio con la distanza/l'angolo attuali",
-    "confirmSyncTarget": "Aggiornare la distanza e l'angolo salvati di questo bersaglio con i valori attualmente mostrati?",
-    "syncConfirmButton": "Aggiorna bersaglio",
+    "manualEntryOption": "Inserimento manuale",
     "photoPickerButtonLabel": "Scegli bersaglio dalla foto",
     "zoomInButton": "Ingrandisci",
     "zoomOutButton": "Riduci",

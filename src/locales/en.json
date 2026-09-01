@@ -430,7 +430,6 @@
   },
   "rangeSolver": {
     "navTarget": "Target",
-    "navWind": "Wind",
     "navAtmosphere": "Atmosphere",
     "exitSolver": "Exit solver",
     "elevationLabel": "Elevation",
@@ -499,9 +498,7 @@
     "importFileErrorInvalidJson": "That file isn't valid JSON.",
     "importFileErrorInvalidFormat": "That file isn't a recognized Locations library export.",
     "manageButtonLabel": "Manage locations",
-    "syncButtonLabel": "Update this target with the current range/angle",
-    "confirmSyncTarget": "Update this target's saved range and angle to match what's currently shown?",
-    "syncConfirmButton": "Update target",
+    "manualEntryOption": "Manual entry",
     "photoPickerButtonLabel": "Pick target from photo",
     "zoomInButton": "Zoom in",
     "zoomOutButton": "Zoom out",

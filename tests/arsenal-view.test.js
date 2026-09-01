@@ -2120,11 +2120,12 @@ test('the Comparison section only appears once exactly two configs are selected'
 
 // Comparison's shared atmosphere+wind control (atmosphereSection's own
 // `combinedWind: true`, arsenal-view.js only) swapped the plain wind-
-// direction-dial.js + unitField pair for the combined dial Range
-// Solver's Wind tab introduced (src/ui/wind-control.js) — labeled and
-// captioned like Trajectory's own instance, not label-free like Range
-// Solver's. Drag/keyboard/skin behavior isn't re-tested here — same
-// rationale as atmosphere-section.js's own plain-dial test note.
+// direction-dial.js + unitField pair for the combined dial Range Solver
+// introduced (src/ui/wind-control.js) — labeled and captioned like
+// Trajectory's own instance, not caption-free like Range Solver's own
+// (embedded on its Target tab). Drag/keyboard/skin behavior isn't
+// re-tested here — same rationale as atmosphere-section.js's own
+// plain-dial test note.
 test('the Comparison section\'s wind field is the combined dial, labeled "Wind"', () => {
   setupTwoRifles();
   const container = makeElement('main');

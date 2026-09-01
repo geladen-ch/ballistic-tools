@@ -17,8 +17,10 @@
 // While Guns is open, this whole bar is replaced by Custom/Arsenal/Done
 // (see guns-nav.js) — a focused mode mirrored exactly on the desktop rail.
 // Range Solver's own in-tool nav (see range-solver-nav.js) is the same
-// idea a second time, with its own Target/Wind/Atmosphere/Gun/Exit-solver
-// control instead — not to be confused with the plain link to it above.
+// idea a second time, with its own Target/Atmosphere/Gun/Exit-solver
+// control instead (Wind lives on the Target tab itself now, not a
+// separate tab of its own) — not to be confused with the plain link to
+// it above.
 import { el, clear } from '../dom.js';
 import { t, getLanguage, onLanguageChange } from '../i18n.js';
 import { GROUPS } from '../nav-tools.js';
@@ -37,7 +39,7 @@ import {
 } from '../rifle-precision-nav.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon, settingsIcon,
-  targetIcon, windIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
+  targetIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
 // Guns has no fixed path of its own here — see the render loop below,
@@ -151,7 +153,7 @@ export function mountNavTabbar(container) {
 
   // Replaces the whole tab bar while Range Solver is open — see
   // nav-rail.js's own buildRangeSolverMode() for the desktop equivalent.
-  // Target/Wind/Atmosphere are in-place input-pane tabs (setRangeSolverTab),
+  // Target/Atmosphere are in-place input-pane tabs (setRangeSolverTab),
   // not routes; Gun reuses the same source-aware routing as every other
   // "go to Guns" entry point; Exit solver always returns to Home.
   function buildRangeSolverModeItems() {
@@ -174,7 +176,6 @@ export function mountNavTabbar(container) {
     });
     return [
       tabItem('target', targetIcon, 'rangeSolver.navTarget'),
-      tabItem('wind', windIcon, 'rangeSolver.navWind'),
       tabItem('atmosphere', atmosphereIcon, 'rangeSolver.navAtmosphere'),
       gunLink,
       exitBtn

@@ -296,7 +296,7 @@ test('Done navigates to the recorded Guns return path, falling back to Trajector
 // mode" idea as Guns, with its own Target/Wind/Atmosphere/Gun/Exit-solver
 // control instead. Reuses .guns-tab/.done-btn as-is (see layout.css). ----
 
-test('while in Range Solver mode, the rail shows Target/Wind/Atmosphere/Gun/Exit solver instead of its normal content', () => {
+test('while in Range Solver mode, the rail shows Target/Atmosphere/Gun/Exit solver instead of its normal content', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   setRangeSolverMode(true);
@@ -304,15 +304,14 @@ test('while in Range Solver mode, the rail shows Target/Wind/Atmosphere/Gun/Exit
   assert.equal(container.className, 'app-rail range-solver-mode');
   assert.equal(findByClass(container, 'rail-item').length, 0, 'the normal Home/group/pinned links should be gone');
   const tabs = findByClass(container, 'guns-tab');
-  assert.equal(tabs.length, 4, 'Target, Wind, Atmosphere, Gun');
+  assert.equal(tabs.length, 3, 'Target, Atmosphere, Gun');
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navTarget'))));
-  assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navWind'))));
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navAtmosphere'))));
   assert.ok(tabs.some((n) => n.textContent.includes(t('nav.guns')) && n.getAttribute('href') === '#/guns/custom'));
   assert.ok(findByClass(container, 'done-btn')[0].textContent.includes(t('rangeSolver.exitSolver')));
 });
 
-test('Target is active by default; clicking Wind switches the active tab via range-solver-nav.js', () => {
+test('Target is active by default; clicking Atmosphere switches the active tab via range-solver-nav.js', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   setRangeSolverMode(true);
@@ -320,9 +319,9 @@ test('Target is active by default; clicking Wind switches the active tab via ran
   const tabByLabel = (key) => findByClass(container, 'guns-tab').find((n) => n.textContent.includes(t(key)));
   assert.ok(tabByLabel('rangeSolver.navTarget').className.includes('active'));
 
-  fireEvent(tabByLabel('rangeSolver.navWind'), 'click');
-  assert.equal(getRangeSolverTab(), 'wind');
-  assert.ok(tabByLabel('rangeSolver.navWind').className.includes('active'));
+  fireEvent(tabByLabel('rangeSolver.navAtmosphere'), 'click');
+  assert.equal(getRangeSolverTab(), 'atmosphere');
+  assert.ok(tabByLabel('rangeSolver.navAtmosphere').className.includes('active'));
   assert.ok(!tabByLabel('rangeSolver.navTarget').className.includes('active'));
 });
 
