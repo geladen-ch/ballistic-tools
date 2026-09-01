@@ -548,7 +548,7 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 .range-solver-conditions-num { color: var(--text); }
 
 /* The dominant element of the whole screen — see rangeSolver-view.js's
-   own renderClicks(). Elevation and windage are the same size, scaled to
+   own renderAdjustment(). Elevation and windage are the same size, scaled to
    their own stat panel's actual width (container query units, not the
    viewport) rather than a fixed px value — a landscape phone splits the
    output pane in half again for its own input pane, so "available space"

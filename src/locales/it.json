@@ -696,6 +696,10 @@
     "rangeSolverIndicatorArrows": "Frecce",
     "rangeSolverIndicatorSigns": "+ / −",
     "rangeSolverIndicatorUdlr": "U/D, L/R",
+    "rangeSolverOutputLabel": "Output del Calcolatore per il poligono",
+    "rangeSolverOutputClicks": "Clic",
+    "rangeSolverOutputMrad": "mrad",
+    "rangeSolverOutputMoa": "MOA",
     "dragModelsHeading": "Modelli balistici",
     "dragModelsHint": "Nascondi i modelli di resistenza standard che non usi, per snellire il selettore del modello. Un modello nascosto resta disponibile ovunque sia già selezionato — nasconderlo non modifica mai una scelta esistente.",
     "csvExportHeading": "Esportazione CSV",
@@ -873,6 +877,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v155": "Nuova impostazione utente: unità di output del Calcolatore per il poligono — consegna speciale per gli amici allergici ai clic.",
       "v154": "Il calcolatore per il poligono «high speed low drag» è diventato ancora più fico — ora tutto il necessario sta in un unico pannello, niente più clic avanti e indietro. Inoltre, un salto di versione e un nuovo nome in codice (perché me n'è venuto in mente uno fico).",
       "v153": "Funzione di ritaglio delle immagini all'importazione. Qualità delle immagini migliorata (risoluzione e fattore di compressione con perdita).",
       "v152": "La pagina THANKS non è più uno stub.",

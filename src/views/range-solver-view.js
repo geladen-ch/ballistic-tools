@@ -23,7 +23,7 @@ import { computeImpact } from '../engine/trajectory.js';
 import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
-import { getIndicatorStyle } from '../range-solver-prefs.js';
+import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
 import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import {
@@ -70,6 +70,14 @@ const INDICATOR_GLYPHS = {
   udlr: { elevationPositive: 'U', elevationNegative: 'D', windagePositive: 'R', windageNegative: 'L' }
 };
 
+// Matches range-solver-prefs.js's own OUTPUT_UNIT_CHOICES values other than
+// 'clicks' (which dials through the active rifle's own scope click value
+// instead of a fixed angular unit) — same unit strings clicksForOffset()/
+// angularUnitToCmAtRange() (units.js) already expect, same pairing
+// trajectory-columns.js's own elevMrad/elevMOA columns use.
+const OUTPUT_ANGULAR_UNIT = { mrad: 'mrad', moa: 'arcmin' };
+const OUTPUT_UNIT_LABEL = { mrad: 'mrad', moa: 'MOA' };
+
 async function requestWakeLock() {
   if (!('wakeLock' in navigator)) return null;
   try {
@@ -89,6 +97,7 @@ export function mount(container) {
   // dial.js's own skin) — Settings lives on a different route, so this
   // can't change out from under an already-mounted Range Solver.
   const indicatorGlyphs = INDICATOR_GLYPHS[getIndicatorStyle()];
+  const outputUnit = getOutputUnit();
 
   // ---- Rifle & Bullet (shared active gun configuration — never rendered
   // here, just read for their engine values; see guns-summary.js for the
@@ -324,14 +333,20 @@ export function mount(container) {
   const conditionsBar = el('div', { class: 'range-solver-conditions' });
   const elevationValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   const windageValue = el('div', { class: 'range-solver-click-value' }, ['—']);
+  // Clicks carry no unit suffix (dialing is unit-agnostic, same convention
+  // as Settings' own scopeClick field) — mrad/MOA get one here, on the
+  // small label rather than the huge readout number itself, since the
+  // reading's own font size (up to 210px, see layout.css) would make an
+  // inline " mrad"/" MOA" suffix dominate the screen.
+  const outputUnitSuffix = OUTPUT_UNIT_LABEL[outputUnit] ? ` (${OUTPUT_UNIT_LABEL[outputUnit]})` : '';
   const readout = el('div', { class: 'range-solver-readout' }, [
     el('div', { class: 'range-solver-stat range-solver-elevation' }, [
       elevationValue,
-      el('div', { class: 'range-solver-click-label' }, [i18nSpan('rangeSolver.elevationLabel')])
+      el('div', { class: 'range-solver-click-label' }, [i18nSpan('rangeSolver.elevationLabel'), outputUnitSuffix])
     ]),
     el('div', { class: 'range-solver-stat range-solver-windage' }, [
       windageValue,
-      el('div', { class: 'range-solver-click-label' }, [i18nSpan('rangeSolver.windageLabel')])
+      el('div', { class: 'range-solver-click-label' }, [i18nSpan('rangeSolver.windageLabel'), outputUnitSuffix])
     ])
   ]);
 
@@ -348,26 +363,29 @@ export function mount(container) {
 
   container.appendChild(el('div', { class: 'range-solver-layout' }, [outputPane, inputPane]));
 
-  // Whole clicks (what's actually dialed), sign shown as a direction glyph
-  // (leading, not trailing — read the direction first) rather than +/- —
-  // 0 clicks shows plain, no glyph. Elevation matches trajectory-
-  // columns.js's own elevClicks sign (dropped below the sight line reads
-  // as a positive "dial up" correction). Windage keeps trajectory-
-  // columns.js's own windClicks sign as-is (not inverted) — there's no
-  // established real-world left/right mapping for it anywhere else in the
-  // app to defer to, so positive is defined here as "dial right," negative
-  // as "dial left," consistent with itself and with the Trajectory
-  // table's own raw sign for the same shot. Which glyphs (arrows vs +/-)
-  // is a Settings preference — see indicatorGlyphs above.
-  function renderClicks(node, clicks, positiveGlyph, negativeGlyph) {
+  // The dialed correction, sign shown as a direction glyph (leading, not
+  // trailing — read the direction first) rather than +/- — a value that
+  // rounds to zero at the display precision shows plain, no glyph.
+  // Elevation matches trajectory-columns.js's own elevClicks/elevMrad/
+  // elevMOA sign (dropped below the sight line reads as a positive "dial
+  // up" correction). Windage keeps trajectory-columns.js's own windClicks/
+  // windMrad/windMOA sign as-is (not inverted) — there's no established
+  // real-world left/right mapping for it anywhere else in the app to defer
+  // to, so positive is defined here as "dial right," negative as "dial
+  // left," consistent with itself and with the Trajectory table's own raw
+  // sign for the same shot. Which glyphs (arrows vs +/-) is a Settings
+  // preference — see indicatorGlyphs above. `decimals` is 0 for clicks
+  // (whole clicks, as always), 1 for mrad/MOA (outputUnit above).
+  function renderAdjustment(node, value, positiveGlyph, negativeGlyph, decimals) {
     clear(node);
-    if (clicks === 0) {
-      node.appendChild(document.createTextNode('0'));
+    const rounded = Number(value.toFixed(decimals));
+    if (rounded === 0) {
+      node.appendChild(document.createTextNode(rounded.toFixed(decimals)));
       return;
     }
-    const glyph = clicks > 0 ? positiveGlyph : negativeGlyph;
+    const glyph = rounded > 0 ? positiveGlyph : negativeGlyph;
     node.appendChild(el('span', { class: 'range-solver-click-glyph' }, [glyph]));
-    node.appendChild(document.createTextNode(String(Math.abs(clicks))));
+    node.appendChild(document.createTextNode(Math.abs(rounded).toFixed(decimals)));
   }
 
   // Shown whenever an input is mid-edit (e.g. the range field momentarily
@@ -450,9 +468,23 @@ export function mount(container) {
       return;
     }
 
-    const clickSettings = rifle.getClickSettings();
-    const elevClicks = Math.round(-clicksForOffset(result.dropCm, clickSettings.vertical, clickSettings.unit, targetRangeM));
-    const windClicks = Math.round(clicksForOffset(result.windageCm, clickSettings.horizontal, clickSettings.unit, targetRangeM));
+    let elevValue;
+    let windValue;
+    let decimals;
+    if (outputUnit === 'clicks') {
+      const clickSettings = rifle.getClickSettings();
+      elevValue = Math.round(-clicksForOffset(result.dropCm, clickSettings.vertical, clickSettings.unit, targetRangeM));
+      windValue = Math.round(clicksForOffset(result.windageCm, clickSettings.horizontal, clickSettings.unit, targetRangeM));
+      decimals = 0;
+    } else {
+      // Click value of 1 in the fixed angular unit — same trick
+      // trajectory-columns.js's own elevMrad/elevMOA columns use, sidestepping
+      // the rifle's own scope click value entirely.
+      const angularUnit = OUTPUT_ANGULAR_UNIT[outputUnit];
+      elevValue = -clicksForOffset(result.dropCm, 1, angularUnit, targetRangeM);
+      windValue = clicksForOffset(result.windageCm, 1, angularUnit, targetRangeM);
+      decimals = 1;
+    }
 
     const velocityUnit = getUnit('velocity');
     const velocityChoice = unitChoice('muzzleVelocity', velocityUnit);
@@ -464,13 +496,13 @@ export function mount(container) {
     const energyChoice = unitChoice('energy', energyUnit);
     const displayEnergy = engineToDisplay('energy', energyJ, energyUnit);
 
-    if (![elevClicks, windClicks, displayVelocity, displayEnergy].every(Number.isFinite)) {
+    if (![elevValue, windValue, displayVelocity, displayEnergy].every(Number.isFinite)) {
       showPlaceholder();
       return;
     }
 
-    renderClicks(elevationValue, elevClicks, indicatorGlyphs.elevationPositive, indicatorGlyphs.elevationNegative);
-    renderClicks(windageValue, windClicks, indicatorGlyphs.windagePositive, indicatorGlyphs.windageNegative);
+    renderAdjustment(elevationValue, elevValue, indicatorGlyphs.elevationPositive, indicatorGlyphs.elevationNegative, decimals);
+    renderAdjustment(windageValue, windValue, indicatorGlyphs.windagePositive, indicatorGlyphs.windageNegative, decimals);
     tofValue.textContent = `${result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;
     energyValue.textContent = `${displayEnergy.toFixed(0)} ${energyChoice.label}`;

@@ -19,7 +19,7 @@ const {
   resetRangeSolverStateForTests, saveRangeSolverLocationState, loadRangeSolverLocationState,
   saveRangeSolverTargetState, wasAtmosphereTouchedThisSession
 } = await import('../src/range-solver-state.js');
-const { setIndicatorStyle } = await import('../src/range-solver-prefs.js');
+const { setIndicatorStyle, setOutputUnit } = await import('../src/range-solver-prefs.js');
 const { setSpinDriftMode } = await import('../src/spin-drift-prefs.js');
 const { setUnit, resetUnits } = await import('../src/prefs.js');
 const { getCookie } = await import('../src/cookies.js');
@@ -33,6 +33,7 @@ test.beforeEach(async () => {
   resetRangeSolverNavForTests();
   resetRangeSolverStateForTests();
   setIndicatorStyle('signs'); // restore the default so it doesn't leak into other tests
+  setOutputUnit('clicks'); // ditto — the output-unit tests below change this cookie
   resetUnits(); // ditto — several tests below change distance/wind-speed unit prefs
   setSpinDriftMode('off'); // ditto — the spin-drift tests below change this cookie
   await resetLocationLibraryForTests();
@@ -192,6 +193,33 @@ test('computes a live, whole-click elevation/windage readout from the default ri
   // style's own default (see range-solver-prefs.js).
   assert.match(elevationValue.textContent, /^\+\d+$/);
   assert.equal(windageValue.textContent, '0');
+
+  cleanup();
+});
+
+test('the "mrad" output-unit preference shows a one-decimal angular correction instead of whole clicks', async () => {
+  setOutputUnit('mrad');
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const [elevationValue, windageValue] = findByClass(container, 'range-solver-click-value');
+  // Same default scenario as the whole-click test above (positive elevation,
+  // flat-zero windage) but at one decimal place, no scope click value involved.
+  assert.match(elevationValue.textContent, /^\+\d+\.\d$/);
+  assert.equal(windageValue.textContent, '0.0');
+
+  cleanup();
+});
+
+test('the "MOA" output-unit preference also shows a one-decimal angular correction', async () => {
+  setOutputUnit('moa');
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const [elevationValue] = findByClass(container, 'range-solver-click-value');
+  assert.match(elevationValue.textContent, /^\+\d+\.\d$/);
 
   cleanup();
 });
