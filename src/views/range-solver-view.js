@@ -264,10 +264,10 @@ export function mount(container) {
   // Probability/BC Estimator/Arsenal keep the plain pairing. Wind speed's
   // step/decimals are unit-aware by default now (that component's own
   // WIND_SPEED_STEPS table) — no longer computed here. Lives on the
-  // Target tab itself (below the range/LoS row) rather than its own tab
-  // — `label: true` (unlike Trajectory/Arsenal's bare Range Solver usage
-  // this used to be) since there's no longer a "Wind" tab heading to
-  // supply that context.
+  // Target tab itself (below the range/LoS row) rather than its own tab;
+  // no label — the dial's own hub (speed digits, degree readout) already
+  // reads as "wind" at a glance, same reasoning as the Target tab's own
+  // label-free range/LoS row just above it.
   const windSaved = loadRangeSolverWindState() || {};
   function saveWind() {
     saveRangeSolverWindState({ speed: wind.getEngineSpeed(), angle: wind.getAngle() });
@@ -276,7 +276,6 @@ export function mount(container) {
     angle: windSaved.angle ?? DEFAULT_WIND_ANGLE_DEG,
     speed: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
     ...FIELD_BOUNDS.windSpeed,
-    label: true,
     onInput: () => { saveWind(); recompute(); }
   });
 

@@ -1370,10 +1370,11 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
    true`); see wind-control.js for why the other atmosphereSection()
    callers (Hit Probability, BC Estimator, Cd-Mach Curve, Range Solver's
    own Atmosphere tab — all `includeWind: false`) aren't also on this.
-   Every caller here turns its `label` option on (Range Solver's own
-   usage used to be the one label-free exception, back when it lived on
-   its own dedicated Wind tab whose name alone made what it controlled
-   obvious) — all read the same base look below regardless. ----
+   Range Solver renders it label-free (the dial's own hub already makes
+   what it controls obvious, same reasoning as the label-free range/LoS
+   row above it); Trajectory and Arsenal turn its `label`/`hint` options
+   on instead, matching their own sections' other labeled fields — all
+   read the same base look below regardless. ----
    Sizing is one cqw-driven scale rather than a separate per-view override
    layer, unlike wind-dial-svg/large-stepper-btn's own fixed-px overrides
    per call site — every consumer here is happy with the same responsive
