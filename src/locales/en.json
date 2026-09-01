@@ -877,6 +877,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v157": "Fix: renamed the 'icons' folder to 'app-icons' (and adjusted all references to it), to avoid a collision with Apache's default icons override on some hosts.",
       "v156": "Bugfix: offline functionality (some tools failed to run offline, if never used online before).",
       "v155": "New user setting: range solver output units, special delivery for our click-impaired friends.",
       "v154": "The 'high speed low drag' range solver just got more awesomer — everything key is in a single pane now, no more clicking back and forth. Also, a version bump and a new release code name (because I thought of a cool one).",
