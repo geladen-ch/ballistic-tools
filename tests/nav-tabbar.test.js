@@ -181,7 +181,7 @@ test('Done navigates to the recorded Guns return path, falling back to Trajector
 // ---- Range Solver mode (see range-solver-nav.js) — the same idea a
 // second time, mirroring nav-rail.js's own Range Solver mode chrome. ----
 
-test('while in Range Solver mode, the bar shows Target/Wind/Atmosphere/Gun/Exit solver instead of its normal six tabs', () => {
+test('while in Range Solver mode, the bar shows Target/Atmosphere/Gun/Exit solver instead of its normal six tabs', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setRangeSolverMode(true);
@@ -193,14 +193,13 @@ test('while in Range Solver mode, the bar shows Target/Wind/Atmosphere/Gun/Exit 
   assert.ok(links[0].textContent.includes(t('nav.guns')));
 
   const buttons = findByTag(container, 'BUTTON');
-  assert.equal(buttons.length, 4, 'Target, Wind, Atmosphere, Exit solver');
+  assert.equal(buttons.length, 3, 'Target, Atmosphere, Exit solver');
   assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navTarget'))));
-  assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navWind'))));
   assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navAtmosphere'))));
   assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.exitSolver'))));
 });
 
-test('Target is active by default; clicking Wind switches the active tab via range-solver-nav.js', () => {
+test('Target is active by default; clicking Atmosphere switches the active tab via range-solver-nav.js', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setRangeSolverMode(true);
@@ -208,9 +207,9 @@ test('Target is active by default; clicking Wind switches the active tab via ran
   const btnByLabel = (key) => findByTag(container, 'BUTTON').find((b) => b.textContent.includes(t(key)));
   assert.ok(btnByLabel('rangeSolver.navTarget').className.includes('active'));
 
-  fireEvent(btnByLabel('rangeSolver.navWind'), 'click');
-  assert.equal(getRangeSolverTab(), 'wind');
-  assert.ok(btnByLabel('rangeSolver.navWind').className.includes('active'));
+  fireEvent(btnByLabel('rangeSolver.navAtmosphere'), 'click');
+  assert.equal(getRangeSolverTab(), 'atmosphere');
+  assert.ok(btnByLabel('rangeSolver.navAtmosphere').className.includes('active'));
 });
 
 test('Exit solver always goes to Home', () => {

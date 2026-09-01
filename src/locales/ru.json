@@ -430,7 +430,6 @@
   },
   "rangeSolver": {
     "navTarget": "Цель",
-    "navWind": "Ветер",
     "navAtmosphere": "Атмосфера",
     "exitSolver": "Выйти из калькулятора",
     "elevationLabel": "Вертикаль",
@@ -499,9 +498,7 @@
     "importFileErrorInvalidJson": "Этот файл не является корректным JSON.",
     "importFileErrorInvalidFormat": "Этот файл не распознан как экспорт библиотеки мест.",
     "manageButtonLabel": "Управление местами",
-    "syncButtonLabel": "Обновить эту цель текущей дистанцией/углом",
-    "confirmSyncTarget": "Обновить сохранённые дистанцию и угол этой цели текущими показанными значениями?",
-    "syncConfirmButton": "Обновить цель",
+    "manualEntryOption": "Ручной ввод",
     "photoPickerButtonLabel": "Выбрать цель по фото",
     "zoomInButton": "Увеличить",
     "zoomOutButton": "Уменьшить",

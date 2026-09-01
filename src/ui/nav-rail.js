@@ -16,7 +16,8 @@
 // (see buildGunsMode() below and guns-nav.js) — mirrored exactly on the
 // mobile tab bar. Range Solver (see buildRangeSolverMode() below and
 // range-solver-nav.js) is the same "focused mode" idea a second time, with
-// its own Target/Wind/Atmosphere/Gun/Exit-solver control instead.
+// its own Target/Atmosphere/Gun/Exit-solver control instead (Wind lives
+// on the Target tab itself now, not a separate tab of its own).
 import { el, clear } from '../dom.js';
 import { t, onLanguageChange } from '../i18n.js';
 import { GROUPS, PINNED, toolsInGroup } from '../nav-tools.js';
@@ -37,7 +38,7 @@ import {
 import { statusChip } from './status-chip.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
-  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, windIcon, atmosphereIcon, exitIcon,
+  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, atmosphereIcon, exitIcon,
   zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
@@ -121,7 +122,7 @@ export function mountNavRail(container) {
   }
 
   // Replaces the whole rail while Range Solver is open (see range-solver-
-  // nav.js) — Target/Wind/Atmosphere are in-place input-pane tabs (not
+  // nav.js) — Target/Atmosphere are in-place input-pane tabs (not
   // routes), so they call setRangeSolverTab() rather than changing
   // location.hash; Gun reuses the exact same source-aware routing as the
   // pinned Guns link above; Exit solver always returns to Home (no return-
@@ -148,7 +149,6 @@ export function mountNavRail(container) {
     });
     return el('nav', { class: 'rail-inner rail-range-solver-mode' }, [
       tabButton('target', targetIcon, 'rangeSolver.navTarget'),
-      tabButton('wind', windIcon, 'rangeSolver.navWind'),
       tabButton('atmosphere', atmosphereIcon, 'rangeSolver.navAtmosphere'),
       gunLink,
       exitBtn

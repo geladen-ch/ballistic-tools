@@ -430,7 +430,6 @@
   },
   "rangeSolver": {
     "navTarget": "Ziel",
-    "navWind": "Wind",
     "navAtmosphere": "Atmosphäre",
     "exitSolver": "Feldrechner verlassen",
     "elevationLabel": "Höhe",
@@ -499,9 +498,7 @@
     "importFileErrorInvalidJson": "Diese Datei ist kein gültiges JSON.",
     "importFileErrorInvalidFormat": "Diese Datei ist kein erkannter Export der Standorte-Bibliothek.",
     "manageButtonLabel": "Standorte verwalten",
-    "syncButtonLabel": "Dieses Ziel mit der aktuellen Distanz/dem aktuellen Winkel aktualisieren",
-    "confirmSyncTarget": "Die gespeicherte Distanz und den Winkel dieses Ziels an die aktuell angezeigten Werte anpassen?",
-    "syncConfirmButton": "Ziel aktualisieren",
+    "manualEntryOption": "Manuelle Eingabe",
     "photoPickerButtonLabel": "Ziel per Foto auswählen",
     "zoomInButton": "Vergrößern",
     "zoomOutButton": "Verkleinern",

@@ -546,10 +546,6 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 /* The reading itself stands out; its unit doesn't — same split
    .range-solver-footer-value uses below for ToF/velocity/energy. */
 .range-solver-conditions-num { color: var(--text); }
-/* Wind speed and its direction arrow — deliberately not spaced apart like
-   the bar's other items, so they read as one wind reading rather than
-   two unrelated numbers that happen to be neighbors. */
-.range-solver-conditions-wind { display: inline-flex; align-items: center; gap: 2px; }
 
 /* The dominant element of the whole screen — see rangeSolver-view.js's
    own renderClicks(). Elevation and windage are the same size, scaled to
@@ -592,7 +588,7 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 6px 20px;
+  gap: 6px 12px;
   font-size: 11.5px;
   color: var(--dim);
 }
@@ -602,13 +598,16 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 .range-solver-input-pane { display: flex; flex-direction: column; gap: 16px; }
 
 /* Locations & Targets library — the active location's name, the "manage
-   locations" icon, its target picker select, the photo target picker
-   icon, and the sync-when-diverged icon, all in one row above the Target
-   tab's own range/LoS fields. Wraps
-   rather than shrinking the select down to unreadable, and every control
-   here keeps a real touch target (the select's own comfortable height,
-   .icon-button's usual 26px tap targets) — same "field, glove-friendly"
-   posture as the rest of Range Solver's own input pane. */
+   locations" icon, its target picker select (a hand-edit that diverges
+   the fields from the selected target falls this back to its own
+   "Manual entry" option — see deselectTarget()/detachIfHandEdited() in
+   range-solver-view.js; there's no write-back-to-library path), and the
+   photo target picker icon, all in one row above the Target tab's own
+   range/LoS fields. Wraps rather than shrinking the select down to
+   unreadable, and every control here keeps a real touch target (the
+   select's own comfortable height, .icon-button's usual 26px tap
+   targets) — same "field, glove-friendly" posture as the rest of Range
+   Solver's own input pane. */
 .range-solver-location-row {
   display: flex;
   align-items: center;
@@ -619,9 +618,9 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 .range-solver-location-name { font-weight: 600; font-size: 14px; }
 .range-solver-target-select { flex: 1 1 auto; min-width: 140px; }
 /* .icon-button's own default is deliberately dim/quiet everywhere else it's
-   used (download/copy buttons) — these three are the only way to reach
-   the picker/sync/manage actions from the Target tab, so they get the
-   app's own accent color instead to read as clearly present. */
+   used (download/copy buttons) — these two are the only way to reach the
+   picker/manage actions from the Target tab, so they get the app's own
+   accent color instead to read as clearly present. */
 .range-solver-location-row .icon-button { color: var(--accent); }
 
 /* Locations management's Current-location/Known-locations split
@@ -1282,6 +1281,54 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- Range Solver's Target tab (src/ui/inline-number-field.js) —
+   distance and LoS angle on one line, no steppers, no visible text
+   labels; each field's only visual identifier is its trailing adornment
+   (distance: unit text; LoS angle: losAngleIcon() from nav-icons.js).
+   ~2:1 width split favoring distance, which commonly runs to 4+ digits
+   against LoS angle's 3 (including a sign). Typography matches wind-
+   control.js's own speed input (large, bold, tabular-nums) — but unlike
+   that input, which sits inside a dial hub with no room for a full box,
+   these get the "usual" full-box red border on violation (base.css's
+   own .field-invalid), toggled on .inline-number-row rather than the
+   input itself since the input is `all: unset` (no border of its own to
+   color). Never a message, same silent convention as the wind input. ---- */
+.target-params-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.target-params-row .inline-number-field { margin-bottom: 0; flex: 2 1 0; min-width: 0; }
+.target-params-row .inline-number-field:last-child { flex: 1 1 0; }
+.inline-number-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+.inline-number-input {
+  all: unset;
+  flex: 1;
+  min-width: 0;
+  font-size: clamp(24px, 7vw, 34px);
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+  cursor: text;
+}
+.inline-number-adornment {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--dim);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Trajectory's own wind field (.trajectory-atmosphere, wrapping
    atmosphereSection()'s node) used to enlarge the plain wind-direction-
    dial.js here specifically, since sharing the bare .wind-dial-svg class
@@ -1295,38 +1342,38 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 /* ---- Range Solver mobile chrome: establishes a real (not just min-)
    height down through #app-shell/#view/.range-solver-layout so flex:1
    further down this pane's chain actually has something to divide up —
-   originally added so the old Wind tab dial could fill leftover vertical
-   space, but .range-solver-input-pane's own flex:1 rule further below
-   (the short-landscape "Target tab's large steppers got crushed"
-   real-device fix) depends on this same chain too, so it stays even
-   though wind-control.js's own combo no longer grows to fill it (see
-   that component's CSS above — it's designed down to a fixed 250px
-   floor instead, not a fill-the-viewport one). Both selector variants
-   are the exact same "is mobile chrome actually showing" condition the
-   rail-vs-tabbar rules elsewhere in this file use (automatic
-   max-width/short-landscape detection, or the .force-mobile override). */
+   originally added so the old Wind tab's own dial could fill leftover
+   vertical space (a rule that lived right here on .range-solver-wind-tab
+   itself, removed once Wind moved onto the Target tab instead — see
+   range-solver-view.js — since wind-control.js's own combo never grew to
+   fill it anyway: it's designed down to a fixed 250px floor, not a
+   fill-the-viewport one). Stays regardless, because
+   .range-solver-input-pane's own flex:1 rule further below (the short-
+   landscape "Target tab's large steppers got crushed" real-device fix)
+   depends on this same height chain too. Both selector variants are the
+   exact same "is mobile chrome actually showing" condition the rail-vs-
+   tabbar rules elsewhere in this file use (automatic max-width/short-
+   landscape detection, or the .force-mobile override). */
 @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
   html.range-solver-mode:not(.force-desktop) #app-shell { height: 100dvh; }
   html.range-solver-mode:not(.force-desktop) #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
   html.range-solver-mode:not(.force-desktop) .range-solver-layout { flex: 1; min-height: 0; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 }
 html.range-solver-mode.force-mobile #app-shell { height: 100dvh; }
 html.range-solver-mode.force-mobile #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 0; }
-html.range-solver-mode.force-mobile .range-solver-wind-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 /* ---- Combined wind direction+speed control (src/ui/wind-control.js) —
-   Range Solver's Wind tab, and Trajectory's and Arsenal's rifle
+   embedded in Range Solver's Target tab (below the range/LoS row, see
+   range-solver-view.js), and Trajectory's and Arsenal's rifle
    comparison's atmosphere sections (that file's own `combinedWind:
    true`); see wind-control.js for why the other atmosphereSection()
    callers (Hit Probability, BC Estimator, Cd-Mach Curve, Range Solver's
    own Atmosphere tab — all `includeWind: false`) aren't also on this.
-   Range Solver renders it label-free (the tab itself and the dial's own
-   12/3/6/9 face already make what it controls obvious); Trajectory and
-   Arsenal turn its `label`/`hint` options on instead, matching their own
-   sections' other labeled fields — all read the same base look below
-   regardless. ----
+   Every caller here turns its `label` option on (Range Solver's own
+   usage used to be the one label-free exception, back when it lived on
+   its own dedicated Wind tab whose name alone made what it controlled
+   obvious) — all read the same base look below regardless. ----
    Sizing is one cqw-driven scale rather than a separate per-view override
    layer, unlike wind-dial-svg/large-stepper-btn's own fixed-px overrides
    per call site — every consumer here is happy with the same responsive
@@ -1499,9 +1546,9 @@ html.range-solver-mode.force-mobile .range-solver-wind-tab { flex: 1; min-height
    which had a 270px hard floor of its own; the wind-control.js combo
    that replaced it is designed down to a 250px floor instead (see
    .wind-control-combo's min-width above), comfortably under this same
-   300px — so it, and the Target tab's large-stepper-field (132px of
-   fixed +/- buttons plus its number field), both still fit under it
-   without needing this number raised. flex-shrink:1 (the default) still
+   300px — so it, and the Target tab's own .target-params-row (two plain
+   flex fields, no fixed-width buttons to budget for), both still fit
+   under it without needing this number raised. flex-shrink:1 (the default) still
    lets it give up that margin on a narrower-than-usual phone rather than
    overflow. */
 @media (orientation: landscape) and (max-height: 500px) {

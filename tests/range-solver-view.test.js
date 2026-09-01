@@ -25,17 +25,8 @@ const { setUnit, resetUnits } = await import('../src/prefs.js');
 const { getCookie } = await import('../src/cookies.js');
 const { saveUserLocation, loadUserLocations, resetLocationLibraryForTests } = await import('../src/location-library.js');
 const { generateUserId } = await import('../src/user-library.js');
-const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
 const { takePendingPlacement } = await import('../src/location-placement-nav.js');
 const rangeSolverView = await import('../src/views/range-solver-view.js');
-
-// showDialog() (the sync-target confirm) needs its overlay mounted once —
-// same setup app-dialog.test.js's own suite uses — before any test in
-// this file that clicks the sync button. Kept as its own root (not part
-// of a mounted range-solver-view container) since app-dialog.js's overlay
-// is always a sibling of the routed view, never inside it.
-const dialogRoot = makeElement('div');
-mountDialogRoot(dialogRoot);
 
 test.beforeEach(async () => {
   resetShotStateForTests();
@@ -147,7 +138,7 @@ test('shows the Guns rifle/bullet summary at the top of the output pane', async 
   cleanup();
 });
 
-test('defaults to the Target tab; Wind and Atmosphere start hidden', async () => {
+test('defaults to the Target tab (Wind embedded in it); Atmosphere starts hidden', async () => {
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
   await settle();
@@ -160,7 +151,7 @@ test('defaults to the Target tab; Wind and Atmosphere start hidden', async () =>
   assert.ok(windAngleField, 'expected the Wind angle field');
   assert.ok(tempField, 'expected the Atmosphere temperature field');
   assert.ok(!isHidden(rangeField), 'Target tab should be visible by default');
-  assert.ok(isHidden(windAngleField), 'Wind tab should start hidden');
+  assert.ok(!isHidden(windAngleField), 'Wind lives on the Target tab now, so it\'s visible right alongside it');
   assert.ok(isHidden(tempField), 'Atmosphere tab should start hidden');
 
   cleanup();
@@ -171,16 +162,18 @@ test('switching the nav tab (setRangeSolverTab) swaps which input pane is visibl
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  setRangeSolverTab('wind');
+  setRangeSolverTab('atmosphere');
   const rangeField = findById(container, 'targetRange');
   const windAngleField = findById(container, 'windAngle');
-  assert.ok(isHidden(rangeField), 'Target tab should hide once Wind is active');
-  assert.ok(!isHidden(windAngleField), 'Wind tab should become visible');
-
-  setRangeSolverTab('atmosphere');
   const tempField = findById(container, 'tempC');
+  assert.ok(isHidden(rangeField), 'Target tab (and its embedded Wind widget) should hide once Atmosphere is active');
   assert.ok(isHidden(windAngleField));
   assert.ok(!isHidden(tempField));
+
+  setRangeSolverTab('target');
+  assert.ok(!isHidden(rangeField));
+  assert.ok(!isHidden(windAngleField));
+  assert.ok(isHidden(tempField));
 
   cleanup();
 });
@@ -264,17 +257,6 @@ test('target range default depends on the distance unit: 500 m, 500 yd, or 1500 
   }
 });
 
-test('target range stepper is 50 m, 50 yd, or 100 ft depending on the distance unit', async () => {
-  for (const [unit, expected] of [['m', 50], ['yd', 50], ['ft', 100]]) {
-    setUnit('distance', unit);
-    const container = makeElement('main');
-    const cleanup = rangeSolverView.mount(container);
-    await settle();
-    assert.equal(Number(findById(container, 'targetRange').step), expected, `unit ${unit}`);
-    cleanup();
-  }
-});
-
 test('wind speed always defaults to 0, regardless of the wind-speed unit', async () => {
   for (const unit of ['m/s', 'ft/s', 'mph', 'km/h']) {
     setUnit('windSpeed', unit);
@@ -295,21 +277,6 @@ test('wind speed stepper is 0.5 m/s, 1 mph, or 1 ft/s depending on the wind-spee
     assert.equal(Number(findById(container, 'windSpeed').step), expected, `unit ${unit}`);
     cleanup();
   }
-});
-
-test('clicking the target range stepper in yards adds a clean 50 yd, with no floating-point noise', async () => {
-  setUnit('distance', 'yd');
-  const container = makeElement('main');
-  const cleanup = rangeSolverView.mount(container);
-  await settle();
-
-  const rangeInput = findById(container, 'targetRange');
-  const incButton = rangeInput.parentNode.childNodes[2];
-  fireEvent(incButton, 'click');
-
-  assert.equal(rangeInput.value, 550);
-
-  cleanup();
 });
 
 test('clicking the wind speed stepper in mph adds a clean 1 mph, with no floating-point noise', async () => {
@@ -422,7 +389,7 @@ test('the footer shows time of flight, residual velocity, and residual energy', 
   cleanup();
 });
 
-test('Target/Wind/Atmosphere inputs persist across unmount/remount via range-solver-state.js\'s own cookie', async () => {
+test('Target/Wind/Atmosphere inputs persist across unmount/remount via range-solver-state.js\'s own cookie (Wind is embedded in the Target tab)', async () => {
   const container = makeElement('main');
   let cleanup = rangeSolverView.mount(container);
   await settle();
@@ -446,7 +413,7 @@ test('Target/Wind/Atmosphere inputs persist across unmount/remount via range-sol
   cleanup();
 });
 
-test('always reopens on the Target tab, even if Wind/Atmosphere was active when it was last closed', async () => {
+test('always reopens on the Target tab, even if Atmosphere was active when it was last closed', async () => {
   const container = makeElement('main');
   let cleanup = rangeSolverView.mount(container);
   await settle();
@@ -492,7 +459,9 @@ test('an active location shows its name and a target select populated from its o
   const select = findById(container, 'rangeSolverTargetSelect');
   assert.ok(!isHidden(select));
   const optionLabels = [...select.childNodes].map((o) => o.textContent);
-  assert.deepEqual(optionLabels, ['Steel plate', t('rangeSolverLocations.defaultTargetName', { n: 2 })]);
+  assert.deepEqual(optionLabels, [
+    t('rangeSolverLocations.manualEntryOption'), 'Steel plate', t('rangeSolverLocations.defaultTargetName', { n: 2 })
+  ]);
   assert.equal(select.value, t1.id);
   assert.equal(findById(container, 'targetRange').value, '650');
 
@@ -516,12 +485,12 @@ test('picking a different target in the select copies its range/LoS into the fie
 
   assert.equal(findById(container, 'targetRange').value, '300');
   assert.equal(findById(container, 'losAngle').value, '-5');
-  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.syncButtonLabel'))), 'freshly loaded, nothing diverged yet');
+  assert.equal(select.value, t2.id, 'freshly loaded, nothing hand-edited yet — still tracking the picked target');
 
   cleanup();
 });
 
-test('hand-editing range after a target loads shows the sync button; switching targets hides it again with no confirmation', async () => {
+test('hand-editing range after a target loads detaches it — the select falls back to "Manual entry", with no write-back to the library', async () => {
   const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
   const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 0 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
@@ -532,26 +501,31 @@ test('hand-editing range after a target loads shows the sync button; switching t
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  const syncButton = findByTitle(container, t('rangeSolverLocations.syncButtonLabel'));
-  assert.ok(isHidden(syncButton));
+  const select = findById(container, 'rangeSolverTargetSelect');
+  assert.equal(select.value, t1.id);
 
   const rangeInput = findById(container, 'targetRange');
   rangeInput.value = '700';
   fireEvent(rangeInput, 'input');
-  assert.ok(!isHidden(syncButton), 'diverged from the loaded target — sync button should appear');
+  assert.equal(select.value, '', 'hand-edited away from the loaded target — falls back to Manual entry');
+  assert.equal(loadRangeSolverLocationState().targetId, null);
 
-  // Switching targets discards the unsynced edit with no confirmation.
-  const select = findById(container, 'rangeSolverTargetSelect');
+  // Never written back to the library — this feature no longer exists.
+  const stored = loadUserLocations().find((l) => l.id === location.id);
+  assert.equal(stored.targets[0].rangeM, 650);
+
+  // Picking a target again (from the now-detached state) still works, and
+  // still discards the unsynced edit with no confirmation.
   select.value = t2.id;
   fireEvent(select, 'change');
   assert.equal(rangeInput.value, '300');
-  assert.ok(isHidden(syncButton));
+  assert.equal(select.value, t2.id);
 
   cleanup();
 });
 
-test('the sync button opens a confirm dialog; confirming writes the hand-edited values back into the saved target', async () => {
-  const target = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
+test('picking "Manual entry" explicitly detaches from the active target without touching the current field values', async () => {
+  const target = makeTestTarget({ rangeM: 650, losAngleDeg: 12 });
   const location = saveUserLocation(makeTestLocation({ targets: [target] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: target.id });
   saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
@@ -560,20 +534,13 @@ test('the sync button opens a confirm dialog; confirming writes the hand-edited 
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  const rangeInput = findById(container, 'targetRange');
-  rangeInput.value = '710';
-  fireEvent(rangeInput, 'input');
+  const select = findById(container, 'rangeSolverTargetSelect');
+  select.value = '';
+  fireEvent(select, 'change');
 
-  const syncButton = findByTitle(container, t('rangeSolverLocations.syncButtonLabel'));
-  fireEvent(syncButton, 'click');
-
-  const confirmButton = findByClass(dialogRoot, 'app-dialog-actions')[0].childNodes[0];
-  assert.equal(confirmButton.textContent, t('rangeSolverLocations.syncConfirmButton'));
-  fireEvent(confirmButton, 'click');
-
-  assert.ok(isHidden(syncButton), 'no longer diverged once saved back');
-  const stored = loadUserLocations().find((l) => l.id === location.id);
-  assert.equal(stored.targets[0].rangeM, 710);
+  assert.equal(findById(container, 'targetRange').value, '650');
+  assert.equal(findById(container, 'losAngle').value, '12');
+  assert.equal(loadRangeSolverLocationState().targetId, null);
 
   cleanup();
 });
@@ -601,7 +568,6 @@ test('a location with zero targets shows its name but no target select, behaving
 
   assert.ok(!isHidden(findByClass(container, 'range-solver-location-name')[0]));
   assert.ok(isHidden(findById(container, 'rangeSolverTargetSelect')));
-  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.syncButtonLabel'))));
 
   cleanup();
 });

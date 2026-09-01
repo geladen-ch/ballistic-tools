@@ -430,7 +430,6 @@
   },
   "rangeSolver": {
     "navTarget": "Cible",
-    "navWind": "Vent",
     "navAtmosphere": "Atmosphère",
     "exitSolver": "Quitter le calculateur",
     "elevationLabel": "Élévation",
@@ -499,9 +498,7 @@
     "importFileErrorInvalidJson": "Ce fichier n'est pas un JSON valide.",
     "importFileErrorInvalidFormat": "Ce fichier n'est pas un export reconnu de la bibliothèque d'emplacements.",
     "manageButtonLabel": "Gérer les emplacements",
-    "syncButtonLabel": "Mettre à jour cette cible avec la distance/l'angle actuels",
-    "confirmSyncTarget": "Mettre à jour la distance et l'angle enregistrés de cette cible avec les valeurs actuellement affichées ?",
-    "syncConfirmButton": "Mettre à jour la cible",
+    "manualEntryOption": "Saisie manuelle",
     "photoPickerButtonLabel": "Choisir la cible sur la photo",
     "zoomInButton": "Zoom avant",
     "zoomOutButton": "Zoom arrière",
