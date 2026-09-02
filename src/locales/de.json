@@ -877,6 +877,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v158": "Bugfix: Die Offline-Installation konnte durch einen einzigen fehlgeschlagenen Download bei der Ersteinrichtung komplett scheitern; fehlgeschlagene Downloads werden jetzt vor dem Aufgeben erneut versucht, und ein weiterhin fehlschlagender Download reißt den Rest nicht mehr mit sich.",
       "v157": "Fix: Ordner „icons“ in „app-icons“ umbenannt (und alle Referenzen darauf angepasst), um bei manchen Hostern eine Kollision mit Apaches Standard-Icons-Alias zu vermeiden.",
       "v156": "Bugfix: Offline-Funktionalität (manche Werkzeuge liefen offline nicht, wenn sie vorher nie online verwendet wurden).",
       "v155": "Neue Benutzereinstellung: Ausgabeeinheiten im Feldrechner — Extrawurst für alle, die mit Klicks auf Kriegsfuß stehen.",
