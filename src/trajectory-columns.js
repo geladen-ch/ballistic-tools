@@ -108,3 +108,24 @@ export function resampleChartPoints(densePoints, startM, endM, count = CHART_POI
   }
   return out;
 }
+
+// Minimum horizontal space (px) an x-axis label needs before it starts visually
+// overlapping its neighbor. Both trajectory-view.js and arsenal-view.js render a
+// label for every one of CHART_POINTS_TARGET points (arsenal's comparison chart
+// can exceed that, from unioning two configs' ranges) via Chartist's default
+// StepAxis, which — unlike AutoScaleAxis — has no built-in overlap protection.
+export const CHART_MIN_LABEL_SPACING_PX = 45;
+
+// Builds an axisX.labelInterpolationFnc that thins labels based on the chart
+// container's *current* width, always keeping the last label so the max-range
+// endpoint stays visible even when thinned. Reads width live at call time (not
+// captured once) since Chartist's own window-resize handler re-invokes this on
+// redraw without going through the view's renderChart() again.
+export function thinChartLabels(container, labels) {
+  return (value, index) => {
+    const width = container.clientWidth || 0;
+    const maxLabels = Math.max(2, Math.floor(width / CHART_MIN_LABEL_SPACING_PX));
+    const skip = Math.ceil(labels.length / maxLabels);
+    return index % skip === 0 || index === labels.length - 1 ? value : '';
+  };
+}
