@@ -13,6 +13,7 @@ import { downloadFile } from '../download.js';
 import { computeSingleShot } from '../engine/single-shot.js';
 import { computeSpotterCorrected } from '../engine/spotter-corrected.js';
 import { loadTargetCatalog, loadTarget, loadTargetFunction, targetThumbUrl, targetDetailUrl, targetResultUrl } from '../targets.js';
+import { logDiagnostic } from '../debug-log.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
@@ -583,7 +584,7 @@ export function mount(container) {
       // The target library failed to load (offline on first visit, a
       // missing/corrupt asset, ...) — leave the results column showing its
       // placeholder "—" state rather than a silently-stuck loading state.
-      console.warn(`[catalog:targets] failed to load current target "${id}" (data/scoring-function/illustration):`, err);
+      logDiagnostic('warn', `[catalog:targets] failed to load current target "${id}" (data/scoring-function/illustration):`, err);
       applyI18nText(targetNameLabel, 'hitProbability.targetLoadError');
     });
   }
@@ -600,7 +601,8 @@ export function mount(container) {
     .then((results) => {
       if (disposed) return;
       const failedCount = results.filter((r) => r.status === 'rejected').length;
-      console[failedCount ? 'warn' : 'log'](
+      logDiagnostic(
+        failedCount ? 'warn' : 'log',
         `[catalog:targets] ${results.length - failedCount}/${results.length} built-in targets loaded${failedCount ? ` (${failedCount} failed)` : ''}`
       );
       const targets = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);

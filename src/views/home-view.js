@@ -5,6 +5,7 @@ import { gunsIcon, settingsIcon, manualIcon } from '../ui/nav-icons.js';
 import { t } from '../i18n.js';
 import { CACHE_VERSION, RELEASE_ID, CODENAME_SHORT, CODENAME_LONG } from '../version.js';
 import { resolveGunsDestination, goToGuns } from '../guns-nav.js';
+import { downloadDiagnostics } from '../diagnostics.js';
 
 // Guns isn't looked up here — see gunsPinnedLink() below, which routes it
 // the same source-aware way as the rail/tab bar's own Guns entry (and
@@ -111,6 +112,27 @@ function officialThanksCard() {
   ]);
 }
 
+// Not a real navigation (unlike every other About-card link above) — the
+// download itself needs to await collecting live cache/service-worker
+// state first, so this is intercepted the same way gunsPinnedLink() above
+// intercepts its own non-navigating <a>.
+function troubleshootingLink() {
+  const link = el('a', { href: '#', i18n: 'home.troubleshootingLink' });
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadDiagnostics();
+  });
+  return link;
+}
+
+function troubleshootingCard() {
+  return el('div', { class: 'card' }, [
+    el('h3', { i18n: 'home.troubleshootingHeading' }),
+    el('p', { i18n: 'home.troubleshootingText' }),
+    el('p', {}, [troubleshootingLink()])
+  ]);
+}
+
 export function mount(container) {
   clear(container);
   container.appendChild(
@@ -126,7 +148,7 @@ export function mount(container) {
       groupSection(GROUPS.shooting),
       el('div', { class: 'home-pinned-row' }, PINNED.map((p) => (p.id === 'guns' ? gunsPinnedLink() : pinnedLink(p)))),
       el('h2', { class: 'home-about-heading', i18n: 'home.aboutHeading' }),
-      el('div', { class: 'category-grid' }, [versionCard(), privacyCard(), licenseCard(), contactCard(), officialThanksCard()])
+      el('div', { class: 'category-grid' }, [versionCard(), privacyCard(), licenseCard(), contactCard(), officialThanksCard(), troubleshootingCard()])
     ])
   );
 }

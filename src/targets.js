@@ -8,6 +8,7 @@
 // inlined as DOM when overlay elements need to share its coordinate
 // space, as the results illustration does).
 import { TARGET_IDS } from './targets/target-catalog.js';
+import { logDiagnostic } from './debug-log.js';
 
 const targetPromises = new Map();
 const targetFunctionPromises = new Map();
@@ -27,7 +28,7 @@ export function loadTarget(id) {
       // transient failure poison every future attempt at this target for
       // the rest of the tab's session.
       targetPromises.delete(id);
-      console.warn(`[targets] failed to load "${id}" data:`, err);
+      logDiagnostic('warn', `[targets] failed to load "${id}" data:`, err);
       throw err;
     }));
   }
@@ -39,7 +40,7 @@ export function loadTargetFunction(id) {
     const url = new URL(`./targets/${id}.js`, import.meta.url);
     targetFunctionPromises.set(id, import(url.href).then((mod) => mod.hitProbability).catch((err) => {
       targetFunctionPromises.delete(id);
-      console.warn(`[targets] failed to load "${id}" scoring function:`, err);
+      logDiagnostic('warn', `[targets] failed to load "${id}" scoring function:`, err);
       throw err;
     }));
   }

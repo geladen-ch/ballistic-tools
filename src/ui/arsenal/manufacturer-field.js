@@ -2,6 +2,7 @@ import { el, clear } from '../../dom.js';
 import { loadBulletLibraries, loadBullet } from '../../bullets.js';
 import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
 import { loadUserBullets } from '../../user-library.js';
+import { logDiagnostic } from '../../debug-log.js';
 
 // Every manufacturer name known to the app right now: every bullet in
 // every currently-*enabled* built-in library (a hidden library's vendors
@@ -21,7 +22,7 @@ async function knownManufacturers() {
   // out every manufacturer suggestion from the other 60-odd bullets.
   const results = await Promise.allSettled(ids.map((id) => loadBullet(id)));
   const failedCount = results.filter((r) => r.status === 'rejected').length;
-  if (failedCount) console.warn(`[catalog:bullets] manufacturer suggestions missing ${failedCount}/${ids.length} built-in bullets`);
+  if (failedCount) logDiagnostic('warn', `[catalog:bullets] manufacturer suggestions missing ${failedCount}/${ids.length} built-in bullets`);
   const builtIns = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
 
   const seen = new Map(); // lowercased -> display casing

@@ -157,7 +157,10 @@
     "contactLink": "Apri la pagina dei contatti di geladen.ch",
     "thanksHeading": "Ringraziamenti ufficiali",
     "thanksText": "Le persone e i progetti che hanno contribuito a rendere possibile questa app.",
-    "thanksLink": "Visualizza l'elenco dei ringraziamenti"
+    "thanksLink": "Visualizza l'elenco dei ringraziamenti",
+    "troubleshootingHeading": "Risoluzione dei problemi",
+    "troubleshootingText": "Scarica informazioni sullo stato di avvio e memorizzazione nella cache di questa app — utile per segnalare un problema.",
+    "troubleshootingLink": "Informazioni diagnostiche"
   },
   "trajectory": {
     "title": "Traiettoria",

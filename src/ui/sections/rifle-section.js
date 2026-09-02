@@ -5,6 +5,7 @@ import { scopeClicksField } from '../scope-clicks-field.js';
 import { sectionGroup } from '../section.js';
 import { isRifleLibraryEnabled, setRifleLibraryEnabled } from '../../library-prefs.js';
 import { loadRifleCatalog, loadRifle } from '../../rifles.js';
+import { logDiagnostic } from '../../debug-log.js';
 import { loadUserRifles } from '../../user-library.js';
 import { loadRifleState, saveRifleState } from '../../shot-state.js';
 import { i18nSpan } from '../../i18n.js';
@@ -234,7 +235,8 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     .then((results) => {
       const total = results.length;
       const failedCount = results.filter((r) => r.status === 'rejected').length;
-      console[failedCount ? 'warn' : 'log'](
+      logDiagnostic(
+        failedCount ? 'warn' : 'log',
         `[catalog:rifles] ${total - failedCount}/${total} built-in rifles loaded${failedCount ? ` (${failedCount} failed)` : ''}`
       );
       builtInRifles = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);

@@ -5,6 +5,7 @@
 // is cached in-memory (per browser tab) so re-opening the picker or
 // re-selecting a bullet never re-fetches.
 import { BULLET_LIBRARIES } from './bullets/bullet-libraries.js';
+import { logDiagnostic } from './debug-log.js';
 
 const CALIBER_DESIGNATIONS_URL = new URL('./bullets/caliber-designations.json', import.meta.url);
 
@@ -60,7 +61,7 @@ export function loadBullet(id) {
       // for the rest of the tab's session — evict so the next call
       // re-fetches instead of replaying the same stale rejection forever.
       bulletPromises.delete(id);
-      console.warn(`[bullets] failed to load "${id}":`, err);
+      logDiagnostic('warn', `[bullets] failed to load "${id}":`, err);
       throw err;
     }));
   }
@@ -74,7 +75,7 @@ export function loadCaliberDesignations() {
       return res.json();
     }).catch((err) => {
       designationsPromise = null; // same reasoning as loadBullet() above
-      console.warn('[bullets] failed to load caliber designations:', err);
+      logDiagnostic('warn', '[bullets] failed to load caliber designations:', err);
       throw err;
     });
   }

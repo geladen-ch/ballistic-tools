@@ -6,6 +6,7 @@ import { massDualField } from '../arsenal/mass-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
 import { bulletLengthField } from '../arsenal/bullet-length-field.js';
 import { loadBulletCatalog, loadBullet, loadBulletLibraries, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
+import { logDiagnostic } from '../../debug-log.js';
 import { loadUserBullets } from '../../user-library.js';
 import { t } from '../../i18n.js';
 import { loadCartridgeState, saveCartridgeState } from '../../shot-state.js';
@@ -394,7 +395,8 @@ export function bulletSection({ slider = false, onInput } = {}) {
       return Promise.allSettled(ids.map((id) => loadBullet(id)))
         .then((results) => {
           const failedCount = results.filter((r) => r.status === 'rejected').length;
-          console[failedCount ? 'warn' : 'log'](
+          logDiagnostic(
+            failedCount ? 'warn' : 'log',
             `[catalog:bullets] ${ids.length - failedCount}/${ids.length} built-in bullets loaded${failedCount ? ` (${failedCount} failed)` : ''}`
           );
           return results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
