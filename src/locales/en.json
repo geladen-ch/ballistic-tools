@@ -688,6 +688,7 @@
     "spinDriftMccoy4dof": "Advanced (McCoy 4-DOF)",
     "zeroForSpinDriftLabel": "Account for spin drift when zeroing",
     "updateNotificationsLabel": "Notify me about application updates",
+    "showTroubleshootingLabel": "Show Troubleshooting pane on Home page",
     "windDialAppearanceLabel": "Wind direction dial appearance",
     "windDialAppearanceClock": "Clock",
     "windDialAppearanceClean": "Clean",
@@ -880,6 +881,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v165": "New: a \"Show Troubleshooting pane on Home page\" setting (off by default, under Settings > General) — turn it on to see the Diagnostics info download on Home, without cluttering the About section for everyone else.",
       "v164": "Fix: the service worker could silently fail to register on some page loads due to a timing race with the browser's load event — the likely root cause of the erratic offline/caching behavior reported over time. Diagnostics info now also logs the registration attempt itself, not just its outcome.",
       "v163": "New: a \"Troubleshooting\" section on Home (under About) with a \"Diagnostics info\" download — a file with app version, cache/offline status, and storage info, useful when reporting a problem.",
       "v162": "Bugfix: a single failed locale download could leave the whole app stuck on the loading screen forever, and a bullet/rifle/target that failed to load once could stay permanently broken for the rest of the session even after reconnecting. Both are fixed.",

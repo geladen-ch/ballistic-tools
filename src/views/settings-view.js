@@ -7,6 +7,7 @@ import { bulletLibraryCheckboxRows } from '../ui/bullet-library-checkboxes.js';
 import { SPIN_DRIFT_MODE_CHOICES, getSpinDriftMode, setSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled, setZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { isUpdateNotificationsEnabled, setUpdateNotificationsEnabled } from '../update-notification-prefs.js';
+import { isTroubleshootingPaneEnabled, setTroubleshootingPaneEnabled } from '../troubleshooting-prefs.js';
 import {
   FIELD_SEPARATOR_CHOICES, DECIMAL_SEPARATOR_CHOICES,
   getFieldSeparator, setFieldSeparator, getDecimalSeparator, setDecimalSeparator
@@ -127,6 +128,19 @@ export function mount(container) {
     i18nSpan('settings.updateNotificationsLabel')
   ]);
 
+  // Off by default (see troubleshooting-prefs.js) — gates whether Home's
+  // About section shows the Troubleshooting card at all (see
+  // home-view.js), not something this row itself needs to react to live.
+  const troubleshootingPaneCheckbox = el('input', { type: 'checkbox', id: 'settings-show-troubleshooting-enabled' });
+  troubleshootingPaneCheckbox.checked = isTroubleshootingPaneEnabled();
+  troubleshootingPaneCheckbox.addEventListener('change', () => {
+    setTroubleshootingPaneEnabled(troubleshootingPaneCheckbox.checked);
+  });
+  const troubleshootingPaneRow = el('label', { class: 'checkbox-field' }, [
+    troubleshootingPaneCheckbox,
+    i18nSpan('settings.showTroubleshootingLabel')
+  ]);
+
   const windDialAppearanceSelect = el(
     'select',
     { id: 'settings-wind-dial-appearance' },
@@ -187,6 +201,7 @@ export function mount(container) {
     ]),
     zeroForSpinDriftField,
     el('div', { class: 'field' }, [updateNotificationsRow]),
+    el('div', { class: 'field' }, [troubleshootingPaneRow]),
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.windDialAppearanceLabel' }),
       windDialAppearanceSelect
