@@ -361,9 +361,27 @@ export function mount(container) {
   // window alone can flip which side wraps. Feature-detected since this
   // app's test harness's fake DOM has no ResizeObserver (see multi-bc-
   // segments.js's own use of the same guard).
+  //
+  // The re-sync itself is deferred to the next animation frame rather
+  // than run straight from the observer callback: .range-solver-readout
+  // has no explicit align-items, so its default `stretch` means forcing
+  // one stat to two lines grows *both* stats' own observed height (the
+  // shorter one gets stretched to match) — mutating synchronously inside
+  // the very callback that's observing that mutation is exactly what
+  // trips the browser's (harmless but noisy) "ResizeObserver loop
+  // completed with undelivered notifications" warning. One rAF tick
+  // breaks that same-frame feedback loop; the coalescing guard collapses
+  // a burst of resize notifications into a single re-sync.
   let wrapResizeObserver = null;
+  let wrapSyncFrame = null;
   if (typeof ResizeObserver !== 'undefined') {
-    wrapResizeObserver = new ResizeObserver(() => syncReadoutWrap());
+    wrapResizeObserver = new ResizeObserver(() => {
+      if (wrapSyncFrame !== null) return;
+      wrapSyncFrame = requestAnimationFrame(() => {
+        wrapSyncFrame = null;
+        syncReadoutWrap();
+      });
+    });
     wrapResizeObserver.observe(elevationValue.parentElement);
     wrapResizeObserver.observe(windageValue.parentElement);
   }
@@ -395,13 +413,10 @@ export function mount(container) {
   // preference — see indicatorGlyphs above. `decimals` is 0 for clicks
   // (whole clicks, as always), 1 for mrad/MOA (outputUnit above).
   //
-  // The glyph and the number are always two separate spans (rather than
-  // one text node) so syncReadoutWrap() below can tell whether they
-  // actually landed on the same line — `.range-solver-click-glyph`'s own
-  // display:inline-block (layout.css) is what gives the browser a soft
-  // wrap point right after it. `forceBreak` inserts an explicit <br>
-  // between them (or, for a zero value with no glyph at all, before the
-  // lone number) to match a sibling stat that wrapped on its own.
+  // `forceBreak` inserts an explicit <br> between the glyph and the
+  // number (or, for a zero value with no glyph at all, before the lone
+  // number) to match a sibling stat that wrapped on its own — see
+  // isWrapped()/syncReadoutWrap() below.
   function renderAdjustment(node, value, positiveGlyph, negativeGlyph, decimals, forceBreak) {
     clear(node);
     const rounded = Number(value.toFixed(decimals));
@@ -413,20 +428,27 @@ export function mount(container) {
     const glyph = rounded > 0 ? positiveGlyph : negativeGlyph;
     node.appendChild(el('span', { class: 'range-solver-click-glyph' }, [glyph]));
     if (forceBreak) node.appendChild(document.createElement('br'));
-    node.appendChild(el('span', { class: 'range-solver-click-number' }, [Math.abs(rounded).toFixed(decimals)]));
+    node.appendChild(document.createTextNode(Math.abs(rounded).toFixed(decimals)));
   }
 
   // True once the glyph and the number have actually landed on two
-  // different lines (compared by position, not by a fixed height
-  // threshold, since the font size itself is cqw-scaled — see
-  // .range-solver-click-value in layout.css). A zero-valued reading has no
-  // glyph span to compare against, so it never counts as wrapped on its
-  // own — see syncReadoutWrap()'s own handling of that case.
+  // different lines — compared by the value box's own rendered height
+  // against its single-line height (line-height:1, so exactly one
+  // font-size — see .range-solver-click-value in layout.css), rather than
+  // by comparing the glyph's and number's own top positions. Those two
+  // spans sit at different baseline-aligned heights even on a single
+  // line — `.range-solver-click-glyph`'s display:inline-block gives it
+  // its own baseline-aligned box, a few px off from the plain inline
+  // number span's — so comparing tops directly false-flagged every
+  // single-line reading as "wrapped". The 1.5x threshold cleanly falls
+  // between one line's height (~1x) and two lines' (~2x) regardless of
+  // the cqw-scaled font size actually in effect. Feature-detected — this
+  // app's test harness's fake DOM has no getBoundingClientRect at all
+  // (real layout never runs there), so it always reports "not wrapped".
   function isWrapped(node) {
-    const glyph = node.querySelector('.range-solver-click-glyph');
-    const number = node.querySelector('.range-solver-click-number');
-    if (!glyph || !number) return false;
-    return Math.abs(glyph.getBoundingClientRect().top - number.getBoundingClientRect().top) > 1;
+    if (typeof node.getBoundingClientRect !== 'function') return false;
+    const fontSizePx = parseFloat(getComputedStyle(node).fontSize);
+    return node.getBoundingClientRect().height > fontSizePx * 1.5;
   }
 
   // The last successfully computed reading, kept around so
@@ -611,5 +633,6 @@ export function mount(container) {
     wakeLockSentinel?.release();
     wakeLockSentinel = null;
     wrapResizeObserver?.disconnect();
+    if (wrapSyncFrame !== null) cancelAnimationFrame(wrapSyncFrame);
   };
 }
