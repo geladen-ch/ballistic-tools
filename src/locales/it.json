@@ -877,6 +877,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v161": "Correzione bug: le etichette dell'asse X nel grafico della traiettoria e nel grafico di confronto dell'arsenale potevano sovrapporsi quando la finestra era stretta, o veniva ridimensionata fino a diventarlo. Le etichette vengono ora diradate automaticamente per restare leggibili a qualsiasi larghezza.",
       "v160": "Correzione bug: le librerie integrate di proiettili/carabine/bersagli potevano sparire del tutto se anche una sola falliva il caricamento, e ricaricare l'app offline poteva mostrare la pagina \"nessun accesso a Internet\" del browser invece dell'app stessa. Entrambi risolti.",
       "v159": "Correzione bug: la lettura elevazione/deriva del Calcolatore per il poligono poteva risultare sbilanciata se solo un lato mandava il segno a capo (schermi stretti, o valori mrad/MOA lunghi) — ora vanno a capo insieme. Risolve anche un problema correlato che scatenava questo comportamento anche senza un vero a capo.",
       "v158": "Correzione bug: l'installazione offline poteva essere completamente compromessa da un singolo download fallito durante la prima configurazione; i download falliti vengono ora ritentati prima di arrendersi, e un fallimento persistente non blocca più il resto.",

@@ -27,7 +27,7 @@ import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { unitField } from '../ui/unit-field.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
 import { chartColumnSelect as buildChartColumnSelect, lineOfSightSeries, lineOfSightLegendItem } from '../ui/chart-column-select.js';
-import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints } from '../trajectory-columns.js';
+import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints, thinChartLabels } from '../trajectory-columns.js';
 import { engineToDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { LineChart } from '../vendor/chartist/index.js';
@@ -677,6 +677,7 @@ export function mount(container) {
         fullWidth: true,
         chartPadding: { right: 24 },
         axisY: { onlyInteger: false },
+        axisX: { labelInterpolationFnc: thinChartLabels(chartContainer, labels) },
         showPoint: false,
         lineSmooth: true // default cubic (monotoneCubic) smoothing
       };

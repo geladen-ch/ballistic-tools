@@ -13,7 +13,7 @@ import { loadColumnVisibility, saveColumnVisibility } from '../table-columns.js'
 import { applyI18nText, i18nSpan, t } from '../i18n.js';
 import { LineChart } from '../vendor/chartist/index.js';
 import { chartColumnSelect as buildChartColumnSelect, lineOfSightSeries, lineOfSightLegendItem } from '../ui/chart-column-select.js';
-import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints } from '../trajectory-columns.js';
+import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints, thinChartLabels } from '../trajectory-columns.js';
 import { downloadButton } from '../ui/download-button.js';
 import { copyButton } from '../ui/copy-button.js';
 import { exportChartSvg } from '../chart-svg-export.js';
@@ -295,6 +295,7 @@ export function mount(container) {
       fullWidth: true,
       chartPadding: { right: 24 },
       axisY: { onlyInteger: false },
+      axisX: { labelInterpolationFnc: thinChartLabels(chartContainer, labels) },
       showPoint: false, // line only, no data-point markers
       lineSmooth: true // default cubic (monotoneCubic) smoothing
     };
