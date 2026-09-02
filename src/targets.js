@@ -22,6 +22,12 @@ export function loadTarget(id) {
     targetPromises.set(id, fetch(url).then((res) => {
       if (!res.ok) throw new Error(`failed to load target "${id}": ${res.status}`);
       return res.json();
+    }).catch((err) => {
+      // Same reasoning as bullets.js's own loadBullet(): don't let a
+      // transient failure poison every future attempt at this target for
+      // the rest of the tab's session.
+      targetPromises.delete(id);
+      throw err;
     }));
   }
   return targetPromises.get(id);
@@ -30,7 +36,10 @@ export function loadTarget(id) {
 export function loadTargetFunction(id) {
   if (!targetFunctionPromises.has(id)) {
     const url = new URL(`./targets/${id}.js`, import.meta.url);
-    targetFunctionPromises.set(id, import(url.href).then((mod) => mod.hitProbability));
+    targetFunctionPromises.set(id, import(url.href).then((mod) => mod.hitProbability).catch((err) => {
+      targetFunctionPromises.delete(id);
+      throw err;
+    }));
   }
   return targetFunctionPromises.get(id);
 }
