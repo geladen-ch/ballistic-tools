@@ -877,6 +877,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v159": "Correction de bug : l'affichage élévation/dérive du calculateur de terrain pouvait sembler bancal si un seul côté renvoyait son signe à la ligne (petits écrans, ou valeurs mrad/MOA longues) — les deux passent désormais à la ligne ensemble. Corrige aussi un bug connexe qui déclenchait ce comportement même sans retour à la ligne réel.",
       "v158": "Correction de bug : l'installation hors ligne pouvait être totalement annulée par un seul téléchargement défaillant lors de la première installation ; les téléchargements échoués sont désormais retentés avant d'abandonner, et un échec persistant n'entraîne plus tout le reste avec lui.",
       "v157": "Correction : dossier « icons » renommé en « app-icons » (et toutes les références mises à jour), pour éviter un conflit avec l'alias « icons » par défaut d'Apache chez certains hébergeurs.",
       "v156": "Correction de bug : fonctionnement hors ligne (certains outils ne se lançaient pas hors ligne s'ils n'avaient jamais été utilisés en ligne auparavant).",

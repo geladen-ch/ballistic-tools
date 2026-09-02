@@ -877,6 +877,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v159": "Bugfix: the range solver's elevation/windage readout could look lopsided if only one side wrapped its sign onto a second line (narrow screens, or long mrad/MOA values) — they now wrap together. Also fixes a related glitch that made this trigger even when nothing had actually wrapped.",
       "v158": "Bugfix: offline install could be silently killed entirely by a single flaky download during first-time setup; failed downloads are now retried before giving up, and one that still fails no longer takes the rest down with it.",
       "v157": "Fix: renamed the 'icons' folder to 'app-icons' (and adjusted all references to it), to avoid a collision with Apache's default icons override on some hosts.",
       "v156": "Bugfix: offline functionality (some tools failed to run offline, if never used online before).",
