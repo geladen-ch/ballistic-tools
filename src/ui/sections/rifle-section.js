@@ -232,6 +232,11 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   // catalog load.
   Promise.allSettled(loadRifleCatalog().map((id) => loadRifle(id)))
     .then((results) => {
+      const total = results.length;
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
+      console[failedCount ? 'warn' : 'log'](
+        `[catalog:rifles] ${total - failedCount}/${total} built-in rifles loaded${failedCount ? ` (${failedCount} failed)` : ''}`
+      );
       builtInRifles = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
       rebuildRifleOptions();
       // Restore a rifle+cartridge a previous view's session left

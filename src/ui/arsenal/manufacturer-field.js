@@ -20,6 +20,8 @@ async function knownManufacturers() {
   // allSettled, not all: one bullet id failing to load must not blank
   // out every manufacturer suggestion from the other 60-odd bullets.
   const results = await Promise.allSettled(ids.map((id) => loadBullet(id)));
+  const failedCount = results.filter((r) => r.status === 'rejected').length;
+  if (failedCount) console.warn(`[catalog:bullets] manufacturer suggestions missing ${failedCount}/${ids.length} built-in bullets`);
   const builtIns = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
 
   const seen = new Map(); // lowercased -> display casing

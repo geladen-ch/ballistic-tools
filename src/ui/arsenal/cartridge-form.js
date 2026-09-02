@@ -318,6 +318,10 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
   // bulletSection's own catalog load.
   const builtInsLoaded = Promise.allSettled(loadBulletCatalog().map((id) => loadBullet(id)))
     .then((results) => {
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
+      console[failedCount ? 'warn' : 'log'](
+        `[catalog:bullets] cartridge form: ${results.length - failedCount}/${results.length} built-in bullets loaded${failedCount ? ` (${failedCount} failed)` : ''}`
+      );
       builtIns = results.filter((r) => r.status === 'fulfilled').map((r) => r.value).map((b) => {
         const lib = bulletLibraryForBullet(b.id);
         return { ...b, libraryId: lib ? lib.id : null, libraryPrefix: lib ? lib.prefix : null };

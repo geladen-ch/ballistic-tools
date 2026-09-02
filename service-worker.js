@@ -356,6 +356,8 @@ function precacheOne(cache, url, attemptsLeft) {
 }
 
 self.addEventListener('install', (event) => {
+  const startedAt = Date.now();
+  console.log(`[sw ${CACHE_VERSION}] install starting: ${PRECACHE_URLS.length} files to precache`);
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => Promise.all(
@@ -376,8 +378,23 @@ self.addEventListener('install', (event) => {
         // couldn't fix is far better than losing every file; whatever's
         // still missed here gets opportunistically cached by the fetch
         // handler below on the next successful online visit to it.
-        PRECACHE_URLS.map((url) => precacheOne(cache, url, 3).catch(() => {}))
+        PRECACHE_URLS.map((url) => precacheOne(cache, url, 3).then(
+          () => ({ url, ok: true }),
+          (err) => ({ url, ok: false, error: String(err && err.message || err) })
+        ))
       ))
+      .then((results) => {
+        const failed = results.filter((r) => !r.ok);
+        const elapsedMs = Date.now() - startedAt;
+        if (failed.length === 0) {
+          console.log(`[sw ${CACHE_VERSION}] install complete: all ${results.length} files cached (${elapsedMs}ms)`);
+        } else {
+          console.warn(
+            `[sw ${CACHE_VERSION}] install complete with ${failed.length}/${results.length} files still missing after retries (${elapsedMs}ms):`,
+            failed.map((f) => `${f.url} — ${f.error}`)
+          );
+        }
+      })
       .then(() => self.skipWaiting())
   );
 });
@@ -385,8 +402,14 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+      .then((keys) => {
+        const stale = keys.filter((k) => k !== CACHE_NAME);
+        return Promise.all(stale.map((k) => caches.delete(k))).then(() => stale);
+      })
+      .then((stale) => {
+        console.log(`[sw ${CACHE_VERSION}] activated${stale.length ? `, dropped stale cache(s): ${stale.join(', ')}` : ''}`);
+        return self.clients.claim();
+      })
   );
 });
 
@@ -422,7 +445,11 @@ self.addEventListener('fetch', (event) => {
         // missing image, a bullet id that was never cached) still resolve
         // to undefined here, which is the correct "just don't have it"
         // outcome for those.
-        if (event.request.mode === 'navigate') return caches.match('./index.html');
+        if (event.request.mode === 'navigate') {
+          console.warn(`[sw ${CACHE_VERSION}] offline navigation to ${url.pathname}${url.search} had no cache match — falling back to the app shell`);
+          return caches.match('./index.html');
+        }
+        console.error(`[sw ${CACHE_VERSION}] offline fetch failed with no cache match at all: ${url.pathname}${url.search}`);
       })
     )
   );

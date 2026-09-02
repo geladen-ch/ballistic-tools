@@ -1,5 +1,6 @@
 import { registerRoute, startRouter, rerender } from './router.js';
 import { initI18n, onLanguageChange } from './i18n.js';
+import { CACHE_VERSION, RELEASE_ID } from './version.js';
 import { mountLanguageSwitcher } from './ui/language-switcher.js';
 import { mountDisplayModeSwitch } from './ui/display-mode-switch.js';
 import { getDisplayMode, onDisplayModeChange } from './display-mode-prefs.js';
@@ -111,6 +112,8 @@ const views = {
 // removed the instant the first route mounts below, in `finally` so a
 // failure here can't leave it stuck on screen forever instead of
 // surfacing the actual error.
+const bootStartedAt = performance.now();
+console.log(`[boot] starting (${CACHE_VERSION}, ${RELEASE_ID})`);
 try {
   await Promise.all([initI18n(), initLocationLibrary(), initRiflePrecisionLibrary()]);
   // One-time import of any pre-v2.9 localStorage location data left behind
@@ -145,6 +148,16 @@ try {
   registerRoute('/rifle-precision/analysis', () => riflePrecisionAnalysisView.mount(view));
 
   startRouter('/');
+  console.log(`[boot] app started at #${location.hash.slice(1) || '/'} (${Math.round(performance.now() - bootStartedAt)}ms)`);
+} catch (err) {
+  // Nothing in the awaited chain above should actually reject anymore
+  // (initI18n/initLocationLibrary/initRiflePrecisionLibrary/
+  // migrateLegacyLocationStorage are all deliberately written to degrade
+  // instead) — this is a safety net so a regression there, or a genuine
+  // bug in the synchronous mounting code below it, is at least visible
+  // in the console instead of silently leaving a blank app behind the
+  // boot splash.
+  console.error('[boot] app failed to start:', err);
 } finally {
   document.getElementById('app-boot')?.remove();
 }
@@ -178,9 +191,15 @@ if ('serviceWorker' in navigator) {
       // Deliberately no auto-reload here anymore: restarting is the
       // user's own choice (that dialog says as much), not something this
       // app forces on them mid-session.
-      .then((registration) => watchForLiveUpdate(registration))
-      .catch(() => {
-        // offline support is a nice-to-have, not load-bearing — swallow and move on
+      .then((registration) => {
+        console.log(`[boot] service worker registered (scope ${registration.scope})`);
+        watchForLiveUpdate(registration);
+      })
+      .catch((err) => {
+        // offline support is a nice-to-have, not load-bearing — swallow and
+        // move on, but still surface it: a registration failure here means
+        // this visit gets zero offline capability, worth knowing about.
+        console.error('[boot] service worker registration failed:', err);
       });
   });
 }

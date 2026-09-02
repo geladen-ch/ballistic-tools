@@ -578,11 +578,12 @@ export function mount(container) {
       illustrationSvgRoot.appendChild(overlayGroup);
 
       recompute();
-    }).catch(() => {
+    }).catch((err) => {
       if (disposed || generation !== targetLoadGeneration) return;
       // The target library failed to load (offline on first visit, a
       // missing/corrupt asset, ...) — leave the results column showing its
       // placeholder "—" state rather than a silently-stuck loading state.
+      console.warn(`[catalog:targets] failed to load current target "${id}" (data/scoring-function/illustration):`, err);
       applyI18nText(targetNameLabel, 'hitProbability.targetLoadError');
     });
   }
@@ -598,6 +599,10 @@ export function mount(container) {
   Promise.allSettled(loadTargetCatalog().map((id) => loadTarget(id)))
     .then((results) => {
       if (disposed) return;
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
+      console[failedCount ? 'warn' : 'log'](
+        `[catalog:targets] ${results.length - failedCount}/${results.length} built-in targets loaded${failedCount ? ` (${failedCount} failed)` : ''}`
+      );
       const targets = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
       clear(targetPickerGrid);
       targetButtons.clear();
