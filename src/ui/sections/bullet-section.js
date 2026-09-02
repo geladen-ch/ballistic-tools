@@ -392,7 +392,13 @@ export function bulletSection({ slider = false, onInput } = {}) {
       // the other 60-odd that loaded fine — see the same fix applied to
       // service-worker.js's own precache install for the same reasoning.
       return Promise.allSettled(ids.map((id) => loadBullet(id)))
-        .then((results) => results.filter((r) => r.status === 'fulfilled').map((r) => r.value));
+        .then((results) => {
+          const failedCount = results.filter((r) => r.status === 'rejected').length;
+          console[failedCount ? 'warn' : 'log'](
+            `[catalog:bullets] ${ids.length - failedCount}/${ids.length} built-in bullets loaded${failedCount ? ` (${failedCount} failed)` : ''}`
+          );
+          return results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+        });
     })
     .then((bullets) => {
       builtInBullets = bullets.map((b) => {

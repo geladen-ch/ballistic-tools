@@ -32,6 +32,17 @@ async function loadResources() {
       return [code, { translation: await res.json() }];
     })
   );
+  const failed = results
+    .map((r, i) => ({ r, code: SUPPORTED_CODES[i] }))
+    .filter(({ r }) => r.status === 'rejected');
+  if (failed.length === 0) {
+    console.log(`[i18n] all ${SUPPORTED_CODES.length} locales loaded`);
+  } else {
+    console.warn(
+      `[i18n] ${failed.length}/${SUPPORTED_CODES.length} locale(s) failed to load — those languages fall back to English:`,
+      failed.map(({ code, r }) => `${code} — ${r.reason && r.reason.message || r.reason}`)
+    );
+  }
   return Object.fromEntries(results.filter((r) => r.status === 'fulfilled').map((r) => r.value));
 }
 

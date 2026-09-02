@@ -22,6 +22,7 @@ export function loadRifle(id) {
       // transient failure poison every future attempt at this rifle for
       // the rest of the tab's session.
       riflePromises.delete(id);
+      console.warn(`[rifles] failed to load "${id}":`, err);
       throw err;
     }));
   }

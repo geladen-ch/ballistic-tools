@@ -27,6 +27,7 @@ export function loadTarget(id) {
       // transient failure poison every future attempt at this target for
       // the rest of the tab's session.
       targetPromises.delete(id);
+      console.warn(`[targets] failed to load "${id}" data:`, err);
       throw err;
     }));
   }
@@ -38,6 +39,7 @@ export function loadTargetFunction(id) {
     const url = new URL(`./targets/${id}.js`, import.meta.url);
     targetFunctionPromises.set(id, import(url.href).then((mod) => mod.hitProbability).catch((err) => {
       targetFunctionPromises.delete(id);
+      console.warn(`[targets] failed to load "${id}" scoring function:`, err);
       throw err;
     }));
   }
