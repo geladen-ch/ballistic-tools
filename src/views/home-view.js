@@ -6,6 +6,7 @@ import { t } from '../i18n.js';
 import { CACHE_VERSION, RELEASE_ID, CODENAME_SHORT, CODENAME_LONG } from '../version.js';
 import { resolveGunsDestination, goToGuns } from '../guns-nav.js';
 import { downloadDiagnostics } from '../diagnostics.js';
+import { isTroubleshootingPaneEnabled } from '../troubleshooting-prefs.js';
 
 // Guns isn't looked up here — see gunsPinnedLink() below, which routes it
 // the same source-aware way as the rail/tab bar's own Guns entry (and
@@ -148,7 +149,14 @@ export function mount(container) {
       groupSection(GROUPS.shooting),
       el('div', { class: 'home-pinned-row' }, PINNED.map((p) => (p.id === 'guns' ? gunsPinnedLink() : pinnedLink(p)))),
       el('h2', { class: 'home-about-heading', i18n: 'home.aboutHeading' }),
-      el('div', { class: 'category-grid' }, [versionCard(), privacyCard(), licenseCard(), contactCard(), officialThanksCard(), troubleshootingCard()])
+      el('div', { class: 'category-grid' }, [
+        versionCard(), privacyCard(), licenseCard(), contactCard(), officialThanksCard(),
+        // Off by default — see troubleshooting-prefs.js — and the Settings
+        // checkbox that flips it re-mounts this same view (see
+        // settings-view.js), so this just needs to read the pref fresh on
+        // every mount rather than reacting to it live.
+        ...(isTroubleshootingPaneEnabled() ? [troubleshootingCard()] : [])
+      ])
     ])
   );
 }

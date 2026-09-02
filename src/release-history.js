@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v165',
+    fullVersion: '3.2.11 (BADASS — Ballistics Analysis and Data Assessment Software Suite)',
+    date: '2026-09-02',
+    descriptionKey: 'releaseHistory.entries.v165'
+  },
+  {
     cacheVersion: 'v164',
     fullVersion: '3.2.10 (BADASS — Ballistics Analysis and Data Assessment Software Suite)',
     date: '2026-09-02',

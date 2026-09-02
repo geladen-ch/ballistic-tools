@@ -73,6 +73,7 @@ const APP_SHELL_URLS = [
   './src/bullet-library-prefs.js',
   './src/spin-drift-prefs.js',
   './src/update-notification-prefs.js',
+  './src/troubleshooting-prefs.js',
   './src/update-notifications.js',
   './src/release-history.js',
   './src/csv-prefs.js',
