@@ -347,7 +347,18 @@ self.addEventListener('install', (event) => {
         // still be warm. { cache: 'reload' } forces every precache fetch
         // to hit the network, so a version bump always reflects what's
         // actually on disk.
-        PRECACHE_URLS.map((url) => fetch(url, { cache: 'reload' }).then((response) => cache.put(url, response)))
+        //
+        // Each fetch catches its own failure rather than letting it
+        // propagate: this list runs to ~370 concurrent requests, and
+        // Promise.all fails the *entire* install the moment any single
+        // one rejects (one dropped mobile connection, one slow request)
+        // — with no retry and nothing cached at all, silently, since
+        // app.js's register() swallows the rejection. Losing one file
+        // to a transient blip is far better than losing every file;
+        // whatever's missed here still gets opportunistically cached by
+        // the fetch handler below on the next successful online visit
+        // to it.
+        PRECACHE_URLS.map((url) => fetch(url, { cache: 'reload' }).then((response) => cache.put(url, response)).catch(() => {}))
       ))
       .then(() => self.skipWaiting())
   );
