@@ -54,6 +54,13 @@ export function loadBullet(id) {
     bulletPromises.set(id, fetch(url).then((res) => {
       if (!res.ok) throw new Error(`failed to load bullet "${id}": ${res.status}`);
       return res.json();
+    }).catch((err) => {
+      // Don't let a transient failure (offline for a moment, a cache gap
+      // right after install) poison every future attempt at this bullet
+      // for the rest of the tab's session — evict so the next call
+      // re-fetches instead of replaying the same stale rejection forever.
+      bulletPromises.delete(id);
+      throw err;
     }));
   }
   return bulletPromises.get(id);
@@ -64,6 +71,9 @@ export function loadCaliberDesignations() {
     designationsPromise = fetch(CALIBER_DESIGNATIONS_URL).then((res) => {
       if (!res.ok) throw new Error(`failed to load caliber designations: ${res.status}`);
       return res.json();
+    }).catch((err) => {
+      designationsPromise = null; // same reasoning as loadBullet() above
+      throw err;
     });
   }
   return designationsPromise;

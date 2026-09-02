@@ -17,6 +17,12 @@ export function loadRifle(id) {
     riflePromises.set(id, fetch(url).then((res) => {
       if (!res.ok) throw new Error(`failed to load rifle "${id}": ${res.status}`);
       return res.json();
+    }).catch((err) => {
+      // Same reasoning as bullets.js's own loadBullet(): don't let a
+      // transient failure poison every future attempt at this rifle for
+      // the rest of the tab's session.
+      riflePromises.delete(id);
+      throw err;
     }));
   }
   return riflePromises.get(id);

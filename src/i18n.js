@@ -17,8 +17,14 @@ export const SUPPORTED_LANGUAGES = [
 const SUPPORTED_CODES = SUPPORTED_LANGUAGES.map((l) => l.code);
 const languageChangeListeners = new Set();
 
+// allSettled, not all: this is awaited at the very top of app.js's boot
+// sequence with nothing downstream ever running if it rejects — one
+// locale failing to fetch (a transient blip, a cache gap right after
+// install) must not leave the *entire app* stuck on the boot splash
+// forever. Whatever locale(s) do load are kept; fallbackLng: 'en' below
+// covers any language whose own resources didn't make it.
 async function loadResources() {
-  const entries = await Promise.all(
+  const results = await Promise.allSettled(
     SUPPORTED_CODES.map(async (code) => {
       const url = new URL(`./locales/${code}.json`, import.meta.url);
       const res = await fetch(url);
@@ -26,7 +32,7 @@ async function loadResources() {
       return [code, { translation: await res.json() }];
     })
   );
-  return Object.fromEntries(entries);
+  return Object.fromEntries(results.filter((r) => r.status === 'fulfilled').map((r) => r.value));
 }
 
 function detectInitialLanguage() {
