@@ -877,6 +877,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v158": "Correzione bug: l'installazione offline poteva essere completamente compromessa da un singolo download fallito durante la prima configurazione; i download falliti vengono ora ritentati prima di arrendersi, e un fallimento persistente non blocca più il resto.",
       "v157": "Correzione: cartella \"icons\" rinominata in \"app-icons\" (e aggiornati tutti i riferimenti), per evitare un conflitto con l'alias predefinito \"icons\" di Apache su alcuni host.",
       "v156": "Correzione bug: funzionamento offline (alcuni strumenti non partivano offline se non erano mai stati usati online in precedenza).",
       "v155": "Nuova impostazione utente: unità di output del Calcolatore per il poligono — consegna speciale per gli amici allergici ai clic.",
