@@ -880,6 +880,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v163": "New: a \"Troubleshooting\" section on Home (under About) with a \"Diagnostics info\" download — a file with app version, cache/offline status, and storage info, useful when reporting a problem.",
       "v162": "Bugfix: a single failed locale download could leave the whole app stuck on the loading screen forever, and a bullet/rifle/target that failed to load once could stay permanently broken for the rest of the session even after reconnecting. Both are fixed.",
       "v161": "Bugfix: x-axis labels on the Trajectory chart and the Arsenal comparison chart could overlap each other when the window was narrow, or resized narrower. Labels are now thinned automatically to stay readable at any width.",
       "v160": "Bugfix: the built-in bullet/rifle/target libraries could vanish entirely if just one of them failed to load, and reloading the app while offline could land on the browser's own \"no internet\" page instead of the app itself. Both are fixed.",
