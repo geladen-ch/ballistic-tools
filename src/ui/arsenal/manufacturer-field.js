@@ -17,7 +17,10 @@ async function knownManufacturers() {
   const ids = loadBulletLibraries()
     .filter((lib) => isBulletLibraryVisible(lib.id))
     .flatMap((lib) => lib.ids);
-  const builtIns = await Promise.all(ids.map((id) => loadBullet(id)));
+  // allSettled, not all: one bullet id failing to load must not blank
+  // out every manufacturer suggestion from the other 60-odd bullets.
+  const results = await Promise.allSettled(ids.map((id) => loadBullet(id)));
+  const builtIns = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
 
   const seen = new Map(); // lowercased -> display casing
   for (const b of [...builtIns, ...loadUserBullets()]) {

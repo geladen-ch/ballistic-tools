@@ -387,7 +387,12 @@ export function bulletSection({ slider = false, onInput } = {}) {
   const catalogReady = Promise.all([loadBulletCatalog(), loadCaliberDesignations()])
     .then(([ids, designations]) => {
       cachedDesignations = designations;
-      return Promise.all(ids.map((id) => loadBullet(id)));
+      // allSettled, not all: one bullet id failing to load (a transient
+      // fetch blip, a cache gap on a fresh install) must not blank out
+      // the other 60-odd that loaded fine — see the same fix applied to
+      // service-worker.js's own precache install for the same reasoning.
+      return Promise.allSettled(ids.map((id) => loadBullet(id)))
+        .then((results) => results.filter((r) => r.status === 'fulfilled').map((r) => r.value));
     })
     .then((bullets) => {
       builtInBullets = bullets.map((b) => {
@@ -406,8 +411,10 @@ export function bulletSection({ slider = false, onInput } = {}) {
       }
     })
     .catch(() => {
-      // built-in library unavailable (offline on first load, etc.) —
-      // "Other" and the user's own Arsenal bullets still work fine.
+      // Individual bullet failures no longer land here (see allSettled
+      // above) — this now only catches loadCaliberDesignations() itself
+      // failing, or the catalog fetch never resolving at all. Either
+      // way: "Other" and the user's own Arsenal bullets still work fine.
       rebuildCatalog();
     });
 
