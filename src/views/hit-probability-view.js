@@ -592,9 +592,13 @@ export function mount(container) {
   // front, same pattern rifleSection() uses for its built-in library
   // options (targets.js caches each fetch per id, so loadCurrentTarget()'s
   // own loadTarget(id) call never re-fetches).
-  Promise.all(loadTargetCatalog().map((id) => loadTarget(id)))
-    .then((targets) => {
+  // allSettled, not all: one target id failing to load must not blank
+  // out the picker grid entirely — same reasoning as bulletSection's/
+  // rifleSection's own catalog loads.
+  Promise.allSettled(loadTargetCatalog().map((id) => loadTarget(id)))
+    .then((results) => {
       if (disposed) return;
+      const targets = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
       clear(targetPickerGrid);
       targetButtons.clear();
       for (const target of targets) {
@@ -606,11 +610,11 @@ export function mount(container) {
         targetButtons.set(target.id, btn);
         targetPickerGrid.appendChild(btn);
       }
-      selectTarget(currentTargetId);
-    })
-    .catch(() => {
-      if (disposed) return;
-      applyI18nText(targetNameLabel, 'hitProbability.targetLoadError');
+      if (targets.length) {
+        selectTarget(currentTargetId);
+      } else {
+        applyI18nText(targetNameLabel, 'hitProbability.targetLoadError');
+      }
     });
 
   // Sample scatter for the illustration only — not used by the actual

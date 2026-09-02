@@ -227,9 +227,12 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   rifleSelect.addEventListener('change', () => applySelectedRifle());
   cartridgeSelect.addEventListener('change', () => { applySelectedCartridge(); saveLibrarySelection(); });
 
-  Promise.all(loadRifleCatalog().map((id) => loadRifle(id)))
-    .then((rifles) => {
-      builtInRifles = rifles;
+  // allSettled, not all: one rifle id failing to load must not blank out
+  // the other 7 that loaded fine — same reasoning as bulletSection's own
+  // catalog load.
+  Promise.allSettled(loadRifleCatalog().map((id) => loadRifle(id)))
+    .then((results) => {
+      builtInRifles = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
       rebuildRifleOptions();
       // Restore a rifle+cartridge a previous view's session left
       // selected (built-in or user). Left fully interactive — this is a
@@ -240,10 +243,6 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
         rifleSelect.value = initial.library.rifleId;
         applySelectedRifle(initial.library.cartridgeId);
       }
-    })
-    .catch(() => {
-      // built-in library unavailable (offline on first load, etc.) —
-      // "Other" and the user's own Arsenal rifles still work fine.
     });
 
   const node = sectionGroup('sections.rifleHeading', [

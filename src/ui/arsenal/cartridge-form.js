@@ -313,14 +313,16 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
     bulletFormContainer.style.display = shouldShow ? '' : 'none';
   }
 
-  const builtInsLoaded = Promise.all(loadBulletCatalog().map((id) => loadBullet(id)))
-    .then((loaded) => {
-      builtIns = loaded.map((b) => {
+  // allSettled, not all: one bullet id failing to load must not blank
+  // out the other 60-odd that loaded fine — same reasoning as
+  // bulletSection's own catalog load.
+  const builtInsLoaded = Promise.allSettled(loadBulletCatalog().map((id) => loadBullet(id)))
+    .then((results) => {
+      builtIns = results.filter((r) => r.status === 'fulfilled').map((r) => r.value).map((b) => {
         const lib = bulletLibraryForBullet(b.id);
         return { ...b, libraryId: lib ? lib.id : null, libraryPrefix: lib ? lib.prefix : null };
       });
-    })
-    .catch(() => { builtIns = []; });
+    });
   const designationsLoaded = loadCaliberDesignations()
     .then((list) => { designations = list; })
     .catch(() => { designations = []; });
