@@ -336,6 +336,25 @@ const RIFLE_URLS = RIFLE_IDS.map((id) => `./src/rifles/${id}.json`);
 
 const PRECACHE_URLS = [...APP_SHELL_URLS, ...BULLET_URLS, ...RIFLE_URLS];
 
+// A transient failure (dropped connection, a momentary 502/503) gets a
+// few retries with a short backoff before it's accepted as a real loss —
+// most of what would otherwise permanently blank out one precached file
+// is just a passing blip. `!response.ok` is treated as a failure here
+// too, not just a thrown network error, so a transient error response
+// doesn't get cached as if it were the real file.
+function precacheOne(cache, url, attemptsLeft) {
+  return fetch(url, { cache: 'reload' })
+    .then((response) => {
+      if (!response.ok) throw new Error(`${response.status} fetching ${url}`);
+      return cache.put(url, response);
+    })
+    .catch((err) => {
+      if (attemptsLeft <= 1) throw err;
+      return new Promise((resolve) => setTimeout(resolve, 750))
+        .then(() => precacheOne(cache, url, attemptsLeft - 1));
+    });
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -348,17 +367,16 @@ self.addEventListener('install', (event) => {
         // to hit the network, so a version bump always reflects what's
         // actually on disk.
         //
-        // Each fetch catches its own failure rather than letting it
-        // propagate: this list runs to ~370 concurrent requests, and
-        // Promise.all fails the *entire* install the moment any single
-        // one rejects (one dropped mobile connection, one slow request)
-        // — with no retry and nothing cached at all, silently, since
-        // app.js's register() swallows the rejection. Losing one file
-        // to a transient blip is far better than losing every file;
-        // whatever's missed here still gets opportunistically cached by
-        // the fetch handler below on the next successful online visit
-        // to it.
-        PRECACHE_URLS.map((url) => fetch(url, { cache: 'reload' }).then((response) => cache.put(url, response)).catch(() => {}))
+        // Each fetch catches its own failure (after retries, see
+        // precacheOne above) rather than letting it propagate: this list
+        // runs to ~370 concurrent requests, and Promise.all fails the
+        // *entire* install the moment any single one rejects — with
+        // nothing cached at all, silently, since app.js's register()
+        // swallows the rejection. Losing one file to a failure retries
+        // couldn't fix is far better than losing every file; whatever's
+        // still missed here gets opportunistically cached by the fetch
+        // handler below on the next successful online visit to it.
+        PRECACHE_URLS.map((url) => precacheOne(cache, url, 3).catch(() => {}))
       ))
       .then(() => self.skipWaiting())
   );
