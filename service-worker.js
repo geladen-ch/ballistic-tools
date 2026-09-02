@@ -402,6 +402,28 @@ self.addEventListener('fetch', (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
       }
       return response;
-    }).catch(() => caches.match(event.request))
+    }).catch(() =>
+      // ignoreSearch: caches.match() is an exact-URL match by default,
+      // including the query string — but Android's Chrome sometimes
+      // appends its own launch param (e.g. ?homescreen=1) when relaunching
+      // an installed PWA, which this app never precaches with any query
+      // string attached. An exact-match miss there resolves to undefined,
+      // and respondWith(undefined) is what makes Chrome show its own
+      // native offline page instead of anything from this app — confirmed
+      // by reproducing exactly that with a foreign query string appended
+      // to an otherwise-precached, fully offline-cached URL.
+      caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+        if (cached) return cached;
+        // Still nothing (an address never precached at all, not just a
+        // stray query string) — for an actual page load, falling back to
+        // the app shell beats an unresolved response turning into that
+        // same native offline page; the hash router sorts out the right
+        // view client-side once it runs. Non-navigation requests (a
+        // missing image, a bullet id that was never cached) still resolve
+        // to undefined here, which is the correct "just don't have it"
+        // outcome for those.
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
+      })
+    )
   );
 });
