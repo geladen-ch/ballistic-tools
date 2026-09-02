@@ -168,39 +168,70 @@ try {
 // update immediately instead of waiting for the next navigation.
 onLanguageChange(rerender);
 
-// "You opened a tab and it's now running a different version than last
-// time" — see update-notifications.js. Independent of the service-worker
-// block below: this fires once per fresh load, from a plain CACHE_VERSION
-// comparison, nothing to do with SW lifecycle timing.
-checkBootVersionChange();
+// Wrapped in its own safety net: this all runs as top-level module code
+// after the boot try/catch above has already finished, so an uncaught
+// exception anywhere in here (e.g. from checkBootVersionChange()'s
+// cookie/dialog logic) would otherwise silently abort the rest of this
+// module's evaluation — skipping service worker registration below with
+// zero trace anywhere, not even in the diagnostics log.
+try {
+  // "You opened a tab and it's now running a different version than last
+  // time" — see update-notifications.js. Independent of the service-worker
+  // block below: this fires once per fresh load, from a plain CACHE_VERSION
+  // comparison, nothing to do with SW lifecycle timing.
+  checkBootVersionChange();
 
-// Best-effort request to be exempted from storage eviction (relevant on
-// iOS Safari, which can clear IndexedDB/localStorage for origins that go
-// unused for a while — this app's location/rifle-precision data lives
-// there). Fire-and-forget: browsers that don't support it, or that just
-// decline, leave nothing for the app to react to either way.
-navigator.storage?.persist?.();
+  // Best-effort request to be exempted from storage eviction (relevant on
+  // iOS Safari, which can clear IndexedDB/localStorage for origins that go
+  // unused for a while — this app's location/rifle-precision data lives
+  // there). Fire-and-forget: browsers that don't support it, or that just
+  // decline, leave nothing for the app to react to either way.
+  navigator.storage?.persist?.();
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // type: 'module' so the service worker can `import` bullet-libraries.js
-    // directly (same source of truth the app itself uses) instead of
-    // needing every bullet's URL listed by hand.
-    navigator.serviceWorker.register('./service-worker.js', { type: 'module' })
-      // "An update just finished installing while you were sitting in
-      // this tab" — see update-notifications.js's own watchForLiveUpdate().
-      // Deliberately no auto-reload here anymore: restarting is the
-      // user's own choice (that dialog says as much), not something this
-      // app forces on them mid-session.
-      .then((registration) => {
-        logDiagnostic('log', `[boot] service worker registered (scope ${registration.scope})`);
-        watchForLiveUpdate(registration);
-      })
-      .catch((err) => {
-        // offline support is a nice-to-have, not load-bearing — swallow and
-        // move on, but still surface it: a registration failure here means
-        // this visit gets zero offline capability, worth knowing about.
-        logDiagnostic('error', '[boot] service worker registration failed:', err);
-      });
-  });
+  if ('serviceWorker' in navigator) {
+    const registerServiceWorker = () => {
+      // Logged before the call itself (not just its outcome) so a hang here
+      // — register() neither resolving nor rejecting, e.g. a dev server that
+      // never completes the response — is distinguishable in diagnostics
+      // from this handler never having run at all.
+      logDiagnostic('log', '[boot] registering service worker...');
+      // type: 'module' so the service worker can `import` bullet-libraries.js
+      // directly (same source of truth the app itself uses) instead of
+      // needing every bullet's URL listed by hand.
+      navigator.serviceWorker.register('./service-worker.js', { type: 'module' })
+        // "An update just finished installing while you were sitting in
+        // this tab" — see update-notifications.js's own watchForLiveUpdate().
+        // Deliberately no auto-reload here anymore: restarting is the
+        // user's own choice (that dialog says as much), not something this
+        // app forces on them mid-session.
+        .then((registration) => {
+          logDiagnostic('log', `[boot] service worker registered (scope ${registration.scope})`);
+          watchForLiveUpdate(registration);
+        })
+        .catch((err) => {
+          // offline support is a nice-to-have, not load-bearing — swallow and
+          // move on, but still surface it: a registration failure here means
+          // this visit gets zero offline capability, worth knowing about.
+          logDiagnostic('error', '[boot] service worker registration failed:', err);
+        });
+    };
+    // This module's own boot above (locale fetches, two IndexedDB opens) is
+    // async and can easily take longer than the rest of the page has left
+    // to load — by the time execution reaches this line, `load` may well
+    // have already fired. Attaching a 'load' listener at that point would
+    // silently wait forever for an event that already happened (confirmed
+    // in practice: no error, no log line, registration just never occurs).
+    // Registering immediately when the document is already complete avoids
+    // that race instead of only ever winning it by luck.
+    if (document.readyState === 'complete') {
+      registerServiceWorker();
+    } else {
+      window.addEventListener('load', registerServiceWorker);
+    }
+  }
+} catch (err) {
+  // Same rationale as the boot block's own catch above: surface it in
+  // diagnostics instead of leaving service worker registration silently
+  // skipped with no trace.
+  logDiagnostic('error', '[boot] post-boot setup failed (service worker may not have been registered):', err);
 }

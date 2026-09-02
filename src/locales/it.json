@@ -880,6 +880,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v164": "Correzione: il service worker poteva non registrarsi silenziosamente in alcuni caricamenti della pagina a causa di una race condition con l'evento load del browser — probabile causa principale del comportamento offline/cache incostante segnalato nel tempo. Le informazioni diagnostiche ora registrano anche il tentativo di registrazione stesso, non solo il suo esito.",
       "v163": "Novità: una sezione \"Risoluzione dei problemi\" nella Home (sotto \"Info\") con un download \"Informazioni diagnostiche\" — un file con versione dell'app, stato cache/offline e informazioni di archiviazione, utile per segnalare un problema.",
       "v162": "Correzione bug: un singolo download di lingua fallito poteva bloccare l'intera app sulla schermata di caricamento per sempre, e un proiettile/carabina/bersaglio che falliva il caricamento una volta poteva restare permanentemente rotto per il resto della sessione anche dopo essersi riconnessi. Entrambi risolti.",
       "v161": "Correzione bug: le etichette dell'asse X nel grafico della traiettoria e nel grafico di confronto dell'arsenale potevano sovrapporsi quando la finestra era stretta, o veniva ridimensionata fino a diventarlo. Le etichette vengono ora diradate automaticamente per restare leggibili a qualsiasi larghezza.",

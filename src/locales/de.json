@@ -880,6 +880,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v164": "Fix: Der Service Worker konnte sich bei manchen Seitenaufrufen aufgrund einer Race Condition mit dem load-Ereignis des Browsers unbemerkt nicht registrieren — vermutlich die eigentliche Ursache des im Laufe der Zeit gemeldeten unzuverlässigen Offline-/Cache-Verhaltens. Die Diagnoseinformationen protokollieren jetzt auch den Registrierungsversuch selbst, nicht nur dessen Ergebnis.",
       "v163": "Neu: ein Bereich „Fehlerbehebung“ auf der Startseite (unter „Über“) mit einem Download „Diagnoseinformationen“ — eine Datei mit App-Version, Cache-/Offline-Status und Speicherinformationen, nützlich beim Melden eines Problems.",
       "v162": "Bugfix: Ein einzelner fehlgeschlagener Sprachdownload konnte die ganze App für immer auf dem Ladebildschirm hängen lassen, und ein Geschoss/eine Waffe/eine Zielscheibe, die einmal nicht geladen werden konnte, blieb für den Rest der Sitzung dauerhaft defekt, selbst nach erneuter Verbindung. Beides ist behoben.",
       "v161": "Bugfix: Die Beschriftungen der X-Achse im Trajektorie-Diagramm und im Arsenal-Vergleichsdiagramm konnten sich überlappen, wenn das Fenster schmal war oder schmaler gezogen wurde. Die Beschriftungen werden jetzt automatisch ausgedünnt, damit sie bei jeder Breite lesbar bleiben.",
