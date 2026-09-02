@@ -877,6 +877,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v162": "Correction de bug : un seul téléchargement de langue échoué pouvait bloquer toute l'application sur l'écran de chargement indéfiniment, et une balle/carabine/cible ayant échoué une fois pouvait rester définitivement cassée pour le reste de la session, même après reconnexion. Les deux sont corrigés.",
       "v161": "Correction de bug : les étiquettes de l'axe X du graphique de trajectoire et du graphique de comparaison de l'arsenal pouvaient se chevaucher lorsque la fenêtre était étroite, ou redimensionnée pour l'être. Les étiquettes sont désormais allégées automatiquement pour rester lisibles à toute largeur.",
       "v160": "Correction de bug : les bibliothèques intégrées de balles/carabines/cibles pouvaient disparaître entièrement si une seule d'entre elles échouait au chargement, et recharger l'application hors ligne pouvait afficher la page « pas d'accès à Internet » du navigateur au lieu de l'application elle-même. Les deux sont corrigés.",
       "v159": "Correction de bug : l'affichage élévation/dérive du calculateur de terrain pouvait sembler bancal si un seul côté renvoyait son signe à la ligne (petits écrans, ou valeurs mrad/MOA longues) — les deux passent désormais à la ligne ensemble. Corrige aussi un bug connexe qui déclenchait ce comportement même sans retour à la ligne réel.",
