@@ -877,6 +877,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v162": "Bugfix: Ein einzelner fehlgeschlagener Sprachdownload konnte die ganze App für immer auf dem Ladebildschirm hängen lassen, und ein Geschoss/eine Waffe/eine Zielscheibe, die einmal nicht geladen werden konnte, blieb für den Rest der Sitzung dauerhaft defekt, selbst nach erneuter Verbindung. Beides ist behoben.",
       "v161": "Bugfix: Die Beschriftungen der X-Achse im Trajektorie-Diagramm und im Arsenal-Vergleichsdiagramm konnten sich überlappen, wenn das Fenster schmal war oder schmaler gezogen wurde. Die Beschriftungen werden jetzt automatisch ausgedünnt, damit sie bei jeder Breite lesbar bleiben.",
       "v160": "Bugfix: Die eingebauten Geschoss-/Waffen-/Zielscheiben-Bibliotheken konnten komplett verschwinden, wenn nur eine davon nicht geladen werden konnte, und ein Neuladen der App im Offline-Modus konnte die eigene „Kein Internetzugang“-Seite des Browsers statt der App selbst anzeigen. Beides ist behoben.",
       "v159": "Bugfix: Die Elevation/Windage-Anzeige des Feldrechners konnte schief wirken, wenn nur eine Seite ihr Vorzeichen in eine zweite Zeile umbrach (schmale Bildschirme oder lange mrad/MOA-Werte) — beide brechen jetzt gemeinsam um. Behebt außerdem einen verwandten Fehler, der dies auch ohne echten Zeilenumbruch auslöste.",
