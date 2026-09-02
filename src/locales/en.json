@@ -157,7 +157,10 @@
     "contactLink": "Open the geladen.ch contact page",
     "thanksHeading": "Official thanks",
     "thanksText": "The people and projects that helped make this app possible.",
-    "thanksLink": "View the thanks list"
+    "thanksLink": "View the thanks list",
+    "troubleshootingHeading": "Troubleshooting",
+    "troubleshootingText": "Download information about this app's startup and caching state — useful when reporting a problem.",
+    "troubleshootingLink": "Diagnostics info"
   },
   "trajectory": {
     "title": "Trajectory",

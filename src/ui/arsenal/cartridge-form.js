@@ -4,6 +4,7 @@ import { muzzleVelocityTempField } from '../muzzle-velocity-temp-field.js';
 import { stabilityIndicator } from '../stability-indicator.js';
 import { bulletForm } from './bullet-form.js';
 import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
+import { logDiagnostic } from '../../debug-log.js';
 import { loadUserBullets, saveUserBullet, findUserBulletByName, generateUserId } from '../../user-library.js';
 import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
 import { t } from '../../i18n.js';
@@ -319,7 +320,8 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
   const builtInsLoaded = Promise.allSettled(loadBulletCatalog().map((id) => loadBullet(id)))
     .then((results) => {
       const failedCount = results.filter((r) => r.status === 'rejected').length;
-      console[failedCount ? 'warn' : 'log'](
+      logDiagnostic(
+        failedCount ? 'warn' : 'log',
         `[catalog:bullets] cartridge form: ${results.length - failedCount}/${results.length} built-in bullets loaded${failedCount ? ` (${failedCount} failed)` : ''}`
       );
       builtIns = results.filter((r) => r.status === 'fulfilled').map((r) => r.value).map((b) => {

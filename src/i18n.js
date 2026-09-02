@@ -4,6 +4,7 @@
 // resources already in memory.
 import i18next from './vendor/i18next/i18next.js';
 import { RELEASE_ID, CODENAME_SHORT } from './version.js';
+import { logDiagnostic } from './debug-log.js';
 
 const STORAGE_KEY = 'ballistics-tools:lang:v1';
 
@@ -36,9 +37,10 @@ async function loadResources() {
     .map((r, i) => ({ r, code: SUPPORTED_CODES[i] }))
     .filter(({ r }) => r.status === 'rejected');
   if (failed.length === 0) {
-    console.log(`[i18n] all ${SUPPORTED_CODES.length} locales loaded`);
+    logDiagnostic('log', `[i18n] all ${SUPPORTED_CODES.length} locales loaded`);
   } else {
-    console.warn(
+    logDiagnostic(
+      'warn',
       `[i18n] ${failed.length}/${SUPPORTED_CODES.length} locale(s) failed to load — those languages fall back to English:`,
       failed.map(({ code, r }) => `${code} — ${r.reason && r.reason.message || r.reason}`)
     );

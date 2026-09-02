@@ -157,7 +157,10 @@
     "contactLink": "Kontaktseite von geladen.ch öffnen",
     "thanksHeading": "Offizieller Dank",
     "thanksText": "Die Menschen und Projekte, die diese App möglich gemacht haben.",
-    "thanksLink": "Dankesliste ansehen"
+    "thanksLink": "Dankesliste ansehen",
+    "troubleshootingHeading": "Fehlerbehebung",
+    "troubleshootingText": "Informationen zum Start- und Caching-Status dieser App herunterladen — nützlich beim Melden eines Problems.",
+    "troubleshootingLink": "Diagnoseinformationen"
   },
   "trajectory": {
     "title": "Flugbahn",

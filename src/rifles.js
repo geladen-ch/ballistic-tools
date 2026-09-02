@@ -4,6 +4,7 @@
 // cartridges, each referencing a bullet id from the bullet library) is
 // fetched and cached in-memory per id, once per browser tab.
 import { RIFLE_IDS } from './rifles/rifle-catalog.js';
+import { logDiagnostic } from './debug-log.js';
 
 const riflePromises = new Map();
 
@@ -22,7 +23,7 @@ export function loadRifle(id) {
       // transient failure poison every future attempt at this rifle for
       // the rest of the tab's session.
       riflePromises.delete(id);
-      console.warn(`[rifles] failed to load "${id}":`, err);
+      logDiagnostic('warn', `[rifles] failed to load "${id}":`, err);
       throw err;
     }));
   }
