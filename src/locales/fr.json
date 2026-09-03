@@ -29,6 +29,7 @@
     "dragModelG8": "G8 (Rare, culot plat)",
     "dragModelGI": "GI (Ancienne balle militaire)",
     "dragModelGS": "GS (Sphère)",
+    "dragModelRA4": "RA4 (Percussion annulaire subsonique)",
     "idle": "inactif",
     "computing": "calcul en cours…",
     "error": "erreur : {{message}}",
@@ -881,6 +882,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v166": "Nouveau : ajout du modèle de traînée standard RA4 (Percussion annulaire subsonique), pour les munitions .22 LR et autres charges à percussion annulaire (livraison spéciale pour 6.5SH). Désactivé par défaut — activez-le dans Réglages > Modèles balistiques.",
       "v165": "Nouveau : un réglage « Afficher le panneau Dépannage sur la page d'accueil » (désactivé par défaut, dans Réglages > Général) — activez-le pour voir le téléchargement des infos de diagnostic sur l'accueil, sans encombrer la section « À propos » pour tout le monde.",
       "v164": "Correction : le service worker pouvait échouer silencieusement à s'enregistrer lors de certains chargements de page, à cause d'une condition de course avec l'événement load du navigateur — probable cause profonde du comportement hors ligne/cache erratique signalé au fil du temps. Les infos de diagnostic journalisent désormais aussi la tentative d'enregistrement elle-même, pas seulement son résultat.",
       "v163": "Nouveau : une section « Dépannage » sur l'accueil (sous « À propos ») avec un téléchargement « Infos de diagnostic » — un fichier avec la version de l'application, l'état du cache/hors ligne et les infos de stockage, utile pour signaler un problème.",

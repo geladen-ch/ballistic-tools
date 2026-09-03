@@ -29,6 +29,7 @@
     "dragModelG8": "G8 (Rare, flat-base)",
     "dragModelGI": "GI (Old military ball)",
     "dragModelGS": "GS (Sphere)",
+    "dragModelRA4": "RA4 (Subsonic rimfire)",
     "idle": "idle",
     "computing": "computing…",
     "error": "error: {{message}}",
@@ -881,6 +882,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v166": "New: RA4 (Subsonic rimfire) added as a standard drag model, for .22 LR and other rimfire loads (special delivery for 6.5SH). Off by default — enable it under Settings > Ballistic models.",
       "v165": "New: a \"Show Troubleshooting pane on Home page\" setting (off by default, under Settings > General) — turn it on to see the Diagnostics info download on Home, without cluttering the About section for everyone else.",
       "v164": "Fix: the service worker could silently fail to register on some page loads due to a timing race with the browser's load event — the likely root cause of the erratic offline/caching behavior reported over time. Diagnostics info now also logs the registration attempt itself, not just its outcome.",
       "v163": "New: a \"Troubleshooting\" section on Home (under About) with a \"Diagnostics info\" download — a file with app version, cache/offline status, and storage info, useful when reporting a problem.",
