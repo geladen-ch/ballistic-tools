@@ -110,6 +110,9 @@
     "targetRange": "Distanza",
     "aimOffsetX": "Scostamento del punto di mira X",
     "aimOffsetY": "Scostamento del punto di mira Y",
+    "circleGongDiameter": "Diametro",
+    "rectPlateWidth": "Larghezza",
+    "rectPlateHeight": "Altezza",
     "battleZeroRange": "Distanza dello zero da combattimento",
     "muzzleVelocitySD": "Regolarità della velocità iniziale",
     "benchPrecision": "Precisione dell'arma al banco",
@@ -882,6 +885,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v168": "Novità: bersagli circolari e rettangolari personalizzabili per Probabilità di colpire (idea di 6.5SH).",
       "v167": "Novità: strumento di conversione delle unità integrato (di nuovo un'idea di 6.5SH, “per la piena esperienza offline da ‘coltellino svizzero’”). Dai un'occhiata sotto “Analisi”.",
       "v166": "Novità: aggiunto il modello di resistenza standard RA4 (Percussione anulare subsonica), per munizioni .22 LR e altre cartucce a percussione anulare (consegna speciale per 6.5SH). Disattivato per impostazione predefinita — attivalo in Impostazioni > Modelli balistici.",
       "v165": "Novità: un'impostazione \"Mostra il pannello Risoluzione dei problemi nella Home\" (disattivata per impostazione predefinita, in Impostazioni > Generale) — attivala per vedere il download delle informazioni diagnostiche nella Home, senza affollare la sezione \"Info\" per tutti gli altri.",
@@ -944,8 +948,12 @@
     "loadError": "Impossibile caricare l'elenco dei ringraziamenti."
   },
   "targets": {
-    "plate40x60": {
-      "name": "Piastra 40 × 60 cm",
+    "circleGong": {
+      "name": "Gong circolare",
+      "zoneHit": "Colpito"
+    },
+    "rectPlate": {
+      "name": "Piastra rettangolare",
       "zoneHit": "Colpito"
     },
     "issf300m": {
@@ -1020,18 +1028,6 @@
       "zoneX": "X (5)",
       "zoneY": "Y (5)",
       "zoneZ": "Z (2)"
-    },
-    "circle100mm": {
-      "name": "⌀ 100 mm",
-      "zoneHit": "Colpito"
-    },
-    "circle200mm": {
-      "name": "⌀ 200 mm",
-      "zoneHit": "Colpito"
-    },
-    "square1m": {
-      "name": "1 × 1 m",
-      "zoneHit": "Colpito"
     },
     "square2m": {
       "name": "2 × 2 m",

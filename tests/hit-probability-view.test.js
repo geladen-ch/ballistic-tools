@@ -260,26 +260,24 @@ test('the target picker offers a thumbnail button per catalog target, and rememb
   fireEvent(tabButtons[1], 'click'); // Simulation
 
   const pickerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('target-picker-item'));
-  assert.equal(pickerButtons.length, 18, 'one button per catalog target');
+  assert.equal(pickerButtons.length, 16, 'one button per catalog target');
   const thumbSrcs = pickerButtons.map((b) => findByTag(b, 'IMG')[0].src);
-  assert.ok(thumbSrcs[0].endsWith('/targets/plate-40x60-thumb.svg'));
-  assert.ok(thumbSrcs[1].endsWith('/targets/issf-300m-thumb.svg'));
-  assert.ok(thumbSrcs[2].endsWith('/targets/ch-300m-b4-thumb.svg'));
-  assert.ok(thumbSrcs[3].endsWith('/targets/ch-300m-b10-thumb.svg'));
-  assert.ok(thumbSrcs[4].endsWith('/targets/ussr-4-thumb.svg'));
-  assert.ok(thumbSrcs[5].endsWith('/targets/ussr-5-thumb.svg'));
-  assert.ok(thumbSrcs[6].endsWith('/targets/ussr-8-thumb.svg'));
-  assert.ok(thumbSrcs[7].endsWith('/targets/ch-campagne-e-thumb.svg'));
-  assert.ok(thumbSrcs[8].endsWith('/targets/ch-campagne-f-thumb.svg'));
-  assert.ok(thumbSrcs[9].endsWith('/targets/ch-campagne-g-thumb.svg'));
-  assert.ok(thumbSrcs[10].endsWith('/targets/ch-campagne-h-thumb.svg'));
-  assert.ok(thumbSrcs[11].endsWith('/targets/ch-campagne-k-thumb.svg'));
-  assert.ok(thumbSrcs[12].endsWith('/targets/ch-nttc-score-thumb.svg'));
-  assert.ok(thumbSrcs[13].endsWith('/targets/circle-100mm-thumb.svg'));
-  assert.ok(thumbSrcs[14].endsWith('/targets/circle-200mm-thumb.svg'));
-  assert.ok(thumbSrcs[15].endsWith('/targets/square-1m-thumb.svg'));
-  assert.ok(thumbSrcs[16].endsWith('/targets/square-2m-thumb.svg'));
-  assert.ok(thumbSrcs[17].endsWith('/targets/killer-tubby-thumb.svg'));
+  assert.ok(thumbSrcs[0].endsWith('/targets/circle-gong-thumb.svg'));
+  assert.ok(thumbSrcs[1].endsWith('/targets/rect-plate-thumb.svg'));
+  assert.ok(thumbSrcs[2].endsWith('/targets/issf-300m-thumb.svg'));
+  assert.ok(thumbSrcs[3].endsWith('/targets/ch-300m-b4-thumb.svg'));
+  assert.ok(thumbSrcs[4].endsWith('/targets/ch-300m-b10-thumb.svg'));
+  assert.ok(thumbSrcs[5].endsWith('/targets/ussr-4-thumb.svg'));
+  assert.ok(thumbSrcs[6].endsWith('/targets/ussr-5-thumb.svg'));
+  assert.ok(thumbSrcs[7].endsWith('/targets/ussr-8-thumb.svg'));
+  assert.ok(thumbSrcs[8].endsWith('/targets/ch-campagne-e-thumb.svg'));
+  assert.ok(thumbSrcs[9].endsWith('/targets/ch-campagne-f-thumb.svg'));
+  assert.ok(thumbSrcs[10].endsWith('/targets/ch-campagne-g-thumb.svg'));
+  assert.ok(thumbSrcs[11].endsWith('/targets/ch-campagne-h-thumb.svg'));
+  assert.ok(thumbSrcs[12].endsWith('/targets/ch-campagne-k-thumb.svg'));
+  assert.ok(thumbSrcs[13].endsWith('/targets/ch-nttc-score-thumb.svg'));
+  assert.ok(thumbSrcs[14].endsWith('/targets/square-2m-thumb.svg'));
+  assert.ok(thumbSrcs[15].endsWith('/targets/killer-tubby-thumb.svg'));
   assert.equal(pickerButtons[0].className, 'target-picker-item active', 'default selection should be the first catalog entry');
   assert.equal(pickerButtons[1].className, 'target-picker-item');
 

@@ -110,6 +110,9 @@
     "targetRange": "Range",
     "aimOffsetX": "Aiming point offset X",
     "aimOffsetY": "Aiming point offset Y",
+    "circleGongDiameter": "Diameter",
+    "rectPlateWidth": "Width",
+    "rectPlateHeight": "Height",
     "battleZeroRange": "Battle zero range",
     "muzzleVelocitySD": "Muzzle velocity consistency",
     "benchPrecision": "Bench rifle precision",
@@ -882,6 +885,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v168": "New: user-sizeable circle and rectangle targets for Hit Probability (props to 6.5SH for the idea).",
       "v167": "New: built-in unit conversion tool (again, 6.5SH’s idea, “for the full offline ‘Swiss Army Knife’ experience”). Check it out under “Analysis”.",
       "v166": "New: RA4 (Subsonic rimfire) added as a standard drag model, for .22 LR and other rimfire loads (special delivery for 6.5SH). Off by default — enable it under Settings > Ballistic models.",
       "v165": "New: a \"Show Troubleshooting pane on Home page\" setting (off by default, under Settings > General) — turn it on to see the Diagnostics info download on Home, without cluttering the About section for everyone else.",
@@ -944,8 +948,12 @@
     "loadError": "Could not load the thanks list."
   },
   "targets": {
-    "plate40x60": {
-      "name": "40 × 60 cm plate",
+    "circleGong": {
+      "name": "Circle gong",
+      "zoneHit": "Hit"
+    },
+    "rectPlate": {
+      "name": "Rectangle plate",
       "zoneHit": "Hit"
     },
     "issf300m": {
@@ -1020,18 +1028,6 @@
       "zoneX": "X (5)",
       "zoneY": "Y (5)",
       "zoneZ": "Z (2)"
-    },
-    "circle100mm": {
-      "name": "⌀ 100 mm",
-      "zoneHit": "Hit"
-    },
-    "circle200mm": {
-      "name": "⌀ 200 mm",
-      "zoneHit": "Hit"
-    },
-    "square1m": {
-      "name": "1 × 1 m",
-      "zoneHit": "Hit"
     },
     "square2m": {
       "name": "2 × 2 m",

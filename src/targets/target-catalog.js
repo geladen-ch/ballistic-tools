@@ -6,7 +6,8 @@
 // and each built-in bullet library's own catalog.js (see
 // bullets/bullet-libraries.js).
 export const TARGET_IDS = [
-  'plate-40x60',
+  'circle-gong',
+  'rect-plate',
   'issf-300m',
   'ch-300m-b4',
   'ch-300m-b10',
@@ -19,9 +20,6 @@ export const TARGET_IDS = [
   'ch-campagne-h',
   'ch-campagne-k',
   'ch-nttc-score',
-  'circle-100mm',
-  'circle-200mm',
-  'square-1m',
   'square-2m',
   'killer-tubby'
 ];

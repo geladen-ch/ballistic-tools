@@ -1,0 +1,8 @@
+{
+  "id": "rect-plate",
+  "nameKey": "targets.rectPlate.name",
+  "custom": { "shape": "rectangle" },
+  "zones": [
+    { "id": "hit", "nameKey": "targets.rectPlate.zoneHit", "score": 1 }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "circle-gong",
+  "nameKey": "targets.circleGong.name",
+  "custom": { "shape": "circle" },
+  "zones": [
+    { "id": "hit", "nameKey": "targets.circleGong.zoneHit", "score": 1 }
+  ]
+}

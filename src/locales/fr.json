@@ -110,6 +110,9 @@
     "targetRange": "Distance",
     "aimOffsetX": "Décalage du point de visée X",
     "aimOffsetY": "Décalage du point de visée Y",
+    "circleGongDiameter": "Diamètre",
+    "rectPlateWidth": "Largeur",
+    "rectPlateHeight": "Hauteur",
     "battleZeroRange": "Distance du zéro de combat",
     "muzzleVelocitySD": "Régularité de la vitesse initiale",
     "benchPrecision": "Précision de la carabine au banc",
@@ -882,6 +885,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v168": "Nouveau : cibles circulaires et rectangulaires personnalisables pour Probabilité de toucher (idée de 6.5SH).",
       "v167": "Nouveau : outil de conversion d'unités intégré (encore une idée de 6.5SH, « pour la pleine expérience “couteau suisse” hors ligne »). À découvrir sous « Analyse ».",
       "v166": "Nouveau : ajout du modèle de traînée standard RA4 (Percussion annulaire subsonique), pour les munitions .22 LR et autres charges à percussion annulaire (livraison spéciale pour 6.5SH). Désactivé par défaut — activez-le dans Réglages > Modèles balistiques.",
       "v165": "Nouveau : un réglage « Afficher le panneau Dépannage sur la page d'accueil » (désactivé par défaut, dans Réglages > Général) — activez-le pour voir le téléchargement des infos de diagnostic sur l'accueil, sans encombrer la section « À propos » pour tout le monde.",
@@ -944,8 +948,12 @@
     "loadError": "Impossible de charger la liste des remerciements."
   },
   "targets": {
-    "plate40x60": {
-      "name": "Plaque 40 × 60 cm",
+    "circleGong": {
+      "name": "Gong rond",
+      "zoneHit": "Touché"
+    },
+    "rectPlate": {
+      "name": "Plaque rectangulaire",
       "zoneHit": "Touché"
     },
     "issf300m": {
@@ -1020,18 +1028,6 @@
       "zoneX": "X (5)",
       "zoneY": "Y (5)",
       "zoneZ": "Z (2)"
-    },
-    "circle100mm": {
-      "name": "⌀ 100 mm",
-      "zoneHit": "Touché"
-    },
-    "circle200mm": {
-      "name": "⌀ 200 mm",
-      "zoneHit": "Touché"
-    },
-    "square1m": {
-      "name": "1 × 1 m",
-      "zoneHit": "Touché"
     },
     "square2m": {
       "name": "2 × 2 m",
