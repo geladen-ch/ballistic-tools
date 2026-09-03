@@ -199,12 +199,43 @@ export const GS_TABLE = [
   [4, 0.928]
 ];
 
+// RA4: a McDrag-family standard for lead round-nose .22 LR (subsonic
+// rimfire) projectiles — distinct from the G-series (all centerfire).
+// Sourced verbatim from data/drag/RA4.json's cdData, itself matched
+// exactly against two independent legacy sources found in this repo
+// (data/legacy.code/labrabaco/data/dragmodels/RA4.json and
+// data/legacy.code/toms/data/drag_cd.json's "RA4" entry).
+export const RA4_TABLE = [
+  [0, 0.2283], [0.05, 0.2283], [0.1, 0.2282], [0.15, 0.2281],
+  [0.2, 0.2281], [0.25, 0.2281], [0.3, 0.2281], [0.35, 0.2281],
+  [0.4, 0.2281], [0.45, 0.2281], [0.5, 0.2281], [0.55, 0.2281],
+  [0.6, 0.2281], [0.65, 0.2281], [0.7, 0.2288], [0.725, 0.2296],
+  [0.75, 0.2307], [0.775, 0.232], [0.8, 0.2334], [0.825, 0.2359],
+  [0.85, 0.2389], [0.875, 0.248], [0.9, 0.2604], [0.925, 0.2819],
+  [0.95, 0.3111], [0.975, 0.3496], [1, 0.3975], [1.025, 0.453],
+  [1.05, 0.501], [1.075, 0.5476], [1.1, 0.5719], [1.125, 0.5895],
+  [1.15, 0.5943], [1.175, 0.5933], [1.2, 0.5881], [1.225, 0.581],
+  [1.25, 0.5736], [1.275, 0.569], [1.3, 0.5651], [1.325, 0.5629],
+  [1.35, 0.5609], [1.375, 0.5591], [1.4, 0.5575], [1.425, 0.5558],
+  [1.45, 0.5543], [1.475, 0.5527], [1.5, 0.5513], [1.525, 0.5499],
+  [1.55, 0.5485], [1.575, 0.5472], [1.6, 0.546], [1.625, 0.5449],
+  [1.65, 0.5438], [1.675, 0.5428], [1.7, 0.5419], [1.725, 0.541],
+  [1.75, 0.5401], [1.775, 0.5393], [1.8, 0.5385], [1.825, 0.5377],
+  [1.85, 0.5369], [1.875, 0.5361], [1.9, 0.5354], [1.925, 0.5346],
+  [1.95, 0.5338], [2, 0.5323], [2.1, 0.5294], [2.2, 0.5267],
+  [2.3, 0.524], [2.4, 0.5216], [2.5, 0.5193], [2.6, 0.517],
+  [2.65, 0.516], [2.7, 0.5149], [2.8, 0.5129], [2.9, 0.5109],
+  [3, 0.5091], [3.1, 0.5074], [3.2, 0.5058], [3.3, 0.5043],
+  [3.4, 0.5029], [3.5, 0.5017], [3.6, 0.5006], [3.7, 0.4995],
+  [3.8, 0.4986], [3.9, 0.4977], [4, 0.4969]
+];
+
 // The registry of every standard reference drag model this app knows
 // about — the single source of truth both for DRAG_TABLES below (the
 // engine's own bc+dragModel lookup) and for every ballistic-model
 // <select> in the UI (see ui/drag-model-select.js), plus Settings' own
 // per-model show/hide toggles (see drag-model-prefs.js). Supporting a
-// future standard model (GC, RA4, ...) is just one more table constant
+// future standard model (GC, ...) is just one more table constant
 // above plus one more entry here — nothing else needs to change.
 export const DRAG_MODELS = [
   { id: 'G1', table: G1_TABLE, labelKey: 'common.dragModelG1' },
@@ -214,7 +245,8 @@ export const DRAG_MODELS = [
   { id: 'G7', table: G7_TABLE, labelKey: 'common.dragModelG7' },
   { id: 'G8', table: G8_TABLE, labelKey: 'common.dragModelG8' },
   { id: 'GI', table: GI_TABLE, labelKey: 'common.dragModelGI' },
-  { id: 'GS', table: GS_TABLE, labelKey: 'common.dragModelGS' }
+  { id: 'GS', table: GS_TABLE, labelKey: 'common.dragModelGS' },
+  { id: 'RA4', table: RA4_TABLE, labelKey: 'common.dragModelRA4' }
 ];
 
 export const DRAG_TABLES = Object.fromEntries(DRAG_MODELS.map((m) => [m.id, m.table]));
