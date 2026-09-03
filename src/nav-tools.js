@@ -53,6 +53,7 @@ export const GROUPS = {
 const TOOL_DEFS = [
   { id: 'trajectory', group: 'analysis', path: '/trajectory', nameKey: 'nav.trajectory', descKey: 'home.trajectoryDesc' },
   { id: 'hit-probability', group: 'analysis', path: '/hit-probability', nameKey: 'nav.hitProbability', descKey: 'home.hitProbDesc' },
+  { id: 'unit-conversion', group: 'analysis', path: '/unit-conversion', nameKey: 'catalog.unitConversion', descKey: 'catalog.unitConversionDesc' },
   { id: 'range-card', group: 'analysis', path: null, nameKey: 'catalog.rangeCard', descKey: 'catalog.rangeCardDesc' },
 
   { id: 'bc-tools', group: 'measurement', path: '/bc-tools', nameKey: 'catalog.bcTools', descKey: 'catalog.bcToolsDesc' },

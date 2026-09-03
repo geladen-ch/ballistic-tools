@@ -22,6 +22,7 @@ import * as trajectoryView from './views/trajectory-view.js';
 import * as bcToolsView from './views/bc-tools-view.js';
 import * as cdMachCurveView from './views/cd-mach-curve-view.js';
 import * as hitProbabilityView from './views/hit-probability-view.js';
+import * as unitConversionView from './views/unit-conversion-view.js';
 import * as rangeSolverView from './views/range-solver-view.js';
 import * as locationsView from './views/locations-view.js';
 import * as locationPlacementView from './views/location-placement-view.js';
@@ -89,6 +90,7 @@ const views = {
   '/bc-tools': bcToolsView,
   '/cd-mach-curve': cdMachCurveView,
   '/hit-probability': hitProbabilityView,
+  '/unit-conversion': unitConversionView,
   '/range-solver': rangeSolverView,
   '/locations': locationsView,
   '/rifle-precision': riflePrecisionView,

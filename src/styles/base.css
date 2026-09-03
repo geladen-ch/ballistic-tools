@@ -380,6 +380,19 @@ a { color: var(--accent); }
   gap: 6px;
   flex-wrap: wrap;
 }
+
+/* Unit conversion tool (src/views/unit-conversion-view.js) — one card per
+   category, stacked; within a card, its live-linked unit fields
+   (src/ui/unit-conversion/conversion-group.js) sit side by side and wrap
+   onto their own rows on narrow/mobile widths. */
+.conversion-groups { display: flex; flex-direction: column; gap: 14px; }
+.conversion-group h2 { margin-bottom: 12px; }
+.conversion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px 14px;
+}
+.conversion-field { margin-bottom: 0; }
 /* Specificity has to beat .field input[type="number"] (width: 100%) above,
    or the two number inputs stretch full-width and stack instead of
    sitting side by side. */

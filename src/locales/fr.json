@@ -882,6 +882,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v167": "Nouveau : outil de conversion d'unités intégré (encore une idée de 6.5SH, « pour la pleine expérience “couteau suisse” hors ligne »). À découvrir sous « Analyse ».",
       "v166": "Nouveau : ajout du modèle de traînée standard RA4 (Percussion annulaire subsonique), pour les munitions .22 LR et autres charges à percussion annulaire (livraison spéciale pour 6.5SH). Désactivé par défaut — activez-le dans Réglages > Modèles balistiques.",
       "v165": "Nouveau : un réglage « Afficher le panneau Dépannage sur la page d'accueil » (désactivé par défaut, dans Réglages > Général) — activez-le pour voir le téléchargement des infos de diagnostic sur l'accueil, sans encombrer la section « À propos » pour tout le monde.",
       "v164": "Correction : le service worker pouvait échouer silencieusement à s'enregistrer lors de certains chargements de page, à cause d'une condition de course avec l'événement load du navigateur — probable cause profonde du comportement hors ligne/cache erratique signalé au fil du temps. Les infos de diagnostic journalisent désormais aussi la tentative d'enregistrement elle-même, pas seulement son résultat.",
@@ -1042,6 +1043,17 @@
       "zoneHit": "Touché"
     }
   },
+  "unitConversion": {
+    "title": "Conversion d'unités",
+    "intro": "Convertissez une valeur entre les unités d'angle, de distance, de longueur, de vitesse, de masse, de température et de pression — modifiez un champ et toutes les autres unités de son groupe se mettent à jour instantanément.",
+    "angle": "Angle",
+    "range": "Distance",
+    "length": "Longueur",
+    "speed": "Vitesse",
+    "mass": "Masse",
+    "temperature": "Température",
+    "pressure": "Pression"
+  },
   "catalog": {
     "groupMeasurement": "Mesure",
     "groupMeasurementDesc": "Une lecture en entrée, un coefficient en sortie.",
@@ -1055,6 +1067,8 @@
     "riflePrecisionDesc": "Mesurer la précision de la carabine à partir d'images de cibles avec impacts.",
     "rangeCard": "Carte de tir",
     "rangeCardDesc": "Tableau de réglage imprimable pour une carabine et une charge, par distance.",
+    "unitConversion": "Conversion d'unités",
+    "unitConversionDesc": "Conversion entre unités métriques et impériales pour l'angle, la distance, la longueur, la vitesse, la masse, la température et la pression.",
     "rangeSolver": "Calculateur de terrain",
     "rangeSolverDesc": "Calculateur balistique affûté pour le tir. Aucune information inutile.",
     "statusLive": "Disponible",

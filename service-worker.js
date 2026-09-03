@@ -185,6 +185,8 @@ const APP_SHELL_URLS = [
   './src/views/bc-tools-view.js',
   './src/views/cd-mach-curve-view.js',
   './src/views/hit-probability-view.js',
+  './src/views/unit-conversion-view.js',
+  './src/ui/unit-conversion/conversion-group.js',
   './src/views/range-solver-view.js',
   './src/views/locations-view.js',
   './src/views/location-placement-view.js',
