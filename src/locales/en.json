@@ -882,6 +882,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v167": "New: built-in unit conversion tool (again, 6.5SH’s idea, “for the full offline ‘Swiss Army Knife’ experience”). Check it out under “Analysis”.",
       "v166": "New: RA4 (Subsonic rimfire) added as a standard drag model, for .22 LR and other rimfire loads (special delivery for 6.5SH). Off by default — enable it under Settings > Ballistic models.",
       "v165": "New: a \"Show Troubleshooting pane on Home page\" setting (off by default, under Settings > General) — turn it on to see the Diagnostics info download on Home, without cluttering the About section for everyone else.",
       "v164": "Fix: the service worker could silently fail to register on some page loads due to a timing race with the browser's load event — the likely root cause of the erratic offline/caching behavior reported over time. Diagnostics info now also logs the registration attempt itself, not just its outcome.",
@@ -1042,6 +1043,17 @@
       "zoneHit": "Hit"
     }
   },
+  "unitConversion": {
+    "title": "Unit Conversion",
+    "intro": "Convert a value across angle, range, length, speed, mass, temperature, and pressure units — edit any field and every other unit in its group updates immediately.",
+    "angle": "Angle",
+    "range": "Range",
+    "length": "Length",
+    "speed": "Speed",
+    "mass": "Mass",
+    "temperature": "Temperature",
+    "pressure": "Pressure"
+  },
   "catalog": {
     "groupMeasurement": "Measurement",
     "groupMeasurementDesc": "Reading in, coefficient out.",
@@ -1055,6 +1067,8 @@
     "riflePrecisionDesc": "Measure rifle precision using images of targets with impacts",
     "rangeCard": "Range Card",
     "rangeCardDesc": "Printable dial chart for one rifle+load, by distance.",
+    "unitConversion": "Unit Conversion",
+    "unitConversionDesc": "Convert between metric and imperial units for angle, range, length, speed, mass, temperature, and pressure.",
     "rangeSolver": "Range Solver",
     "rangeSolverDesc": "Refined \"high speed low drag\" ballistic solver for range use. No. Unnecessary. Information.",
     "statusLive": "Live",

@@ -882,6 +882,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v167": "Novità: strumento di conversione delle unità integrato (di nuovo un'idea di 6.5SH, “per la piena esperienza offline da ‘coltellino svizzero’”). Dai un'occhiata sotto “Analisi”.",
       "v166": "Novità: aggiunto il modello di resistenza standard RA4 (Percussione anulare subsonica), per munizioni .22 LR e altre cartucce a percussione anulare (consegna speciale per 6.5SH). Disattivato per impostazione predefinita — attivalo in Impostazioni > Modelli balistici.",
       "v165": "Novità: un'impostazione \"Mostra il pannello Risoluzione dei problemi nella Home\" (disattivata per impostazione predefinita, in Impostazioni > Generale) — attivala per vedere il download delle informazioni diagnostiche nella Home, senza affollare la sezione \"Info\" per tutti gli altri.",
       "v164": "Correzione: il service worker poteva non registrarsi silenziosamente in alcuni caricamenti della pagina a causa di una race condition con l'evento load del browser — probabile causa principale del comportamento offline/cache incostante segnalato nel tempo. Le informazioni diagnostiche ora registrano anche il tentativo di registrazione stesso, non solo il suo esito.",
@@ -1042,6 +1043,17 @@
       "zoneHit": "Colpito"
     }
   },
+  "unitConversion": {
+    "title": "Conversione unità",
+    "intro": "Converti un valore tra unità di angolo, distanza, lunghezza, velocità, massa, temperatura e pressione — modifica un campo e tutte le altre unità del suo gruppo si aggiornano immediatamente.",
+    "angle": "Angolo",
+    "range": "Distanza",
+    "length": "Lunghezza",
+    "speed": "Velocità",
+    "mass": "Massa",
+    "temperature": "Temperatura",
+    "pressure": "Pressione"
+  },
   "catalog": {
     "groupMeasurement": "Misurazione",
     "groupMeasurementDesc": "Una lettura in ingresso, un coefficiente in uscita.",
@@ -1055,6 +1067,8 @@
     "riflePrecisionDesc": "Misura la precisione dell'arma usando immagini di bersagli con impatti.",
     "rangeCard": "Scheda di tiro",
     "rangeCardDesc": "Tabella di regolazione stampabile per un fucile+carica, per distanza.",
+    "unitConversion": "Conversione unità",
+    "unitConversionDesc": "Conversione tra unità metriche e imperiali per angolo, distanza, lunghezza, velocità, massa, temperatura e pressione.",
     "rangeSolver": "Calcolatore per il poligono",
     "rangeSolverDesc": "Calcolatore balistico raffinato e scattante per il tiro. Nessuna informazione superflua.",
     "statusLive": "Disponibile",

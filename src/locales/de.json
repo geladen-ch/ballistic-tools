@@ -882,6 +882,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v167": "Neu: integriertes Einheiten-Umrechnungswerkzeug (wieder eine Idee von 6.5SH, „für das volle Offline-‚Schweizer-Sackmesser‘-Erlebnis“). Zu finden unter „Analyse“.",
       "v166": "Neu: das Standard-Luftwiderstandsmodell RA4 (Subsonisches Randfeuer) für .22 LR und andere Randfeuermunition hinzugefügt (Sonderlieferung für 6.5SH). Standardmäßig aus — aktivieren unter Einstellungen > Ballistische Modelle.",
       "v165": "Neu: eine Einstellung „Bereich ‚Fehlerbehebung‘ auf der Startseite anzeigen“ (standardmäßig aus, unter Einstellungen > Allgemein) — aktivieren, um den Diagnoseinformationen-Download auf der Startseite zu sehen, ohne den Bereich „Über“ für alle anderen zu überladen.",
       "v164": "Fix: Der Service Worker konnte sich bei manchen Seitenaufrufen aufgrund einer Race Condition mit dem load-Ereignis des Browsers unbemerkt nicht registrieren — vermutlich die eigentliche Ursache des im Laufe der Zeit gemeldeten unzuverlässigen Offline-/Cache-Verhaltens. Die Diagnoseinformationen protokollieren jetzt auch den Registrierungsversuch selbst, nicht nur dessen Ergebnis.",
@@ -1042,6 +1043,17 @@
       "zoneHit": "Treffer"
     }
   },
+  "unitConversion": {
+    "title": "Einheitenumrechnung",
+    "intro": "Rechnen Sie einen Wert zwischen Winkel-, Entfernungs-, Längen-, Geschwindigkeits-, Massen-, Temperatur- und Druckeinheiten um – jedes bearbeitete Feld aktualisiert sofort alle anderen Einheiten seiner Gruppe.",
+    "angle": "Winkel",
+    "range": "Entfernung",
+    "length": "Länge",
+    "speed": "Geschwindigkeit",
+    "mass": "Masse",
+    "temperature": "Temperatur",
+    "pressure": "Druck"
+  },
   "catalog": {
     "groupMeasurement": "Messung",
     "groupMeasurementDesc": "Messwert rein, Koeffizient raus.",
@@ -1055,6 +1067,8 @@
     "riflePrecisionDesc": "Gewehrpräzision anhand von Bildern von Zielscheiben mit Treffern messen.",
     "rangeCard": "Distanzkarte",
     "rangeCardDesc": "Druckbare Einstelltabelle für ein Gewehr+Ladung, nach Distanz.",
+    "unitConversion": "Einheitenumrechnung",
+    "unitConversionDesc": "Umrechnung zwischen metrischen und imperialen Einheiten für Winkel, Entfernung, Länge, Geschwindigkeit, Masse, Temperatur und Druck.",
     "rangeSolver": "Feldrechner",
     "rangeSolverDesc": "Ausgereifter, windschnittiger Ballistikrechner für den Schießstand. Keine unnötigen Informationen.",
     "statusLive": "Verfügbar",
