@@ -10,9 +10,9 @@ test('loadTargetCatalog resolves a plain list of target ids', () => {
   const catalog = loadTargetCatalog();
   assert.ok(Array.isArray(catalog));
   assert.deepEqual(catalog, [
-    'plate-40x60', 'issf-300m', 'ch-300m-b4', 'ch-300m-b10', 'ussr-4', 'ussr-5', 'ussr-8',
+    'circle-gong', 'rect-plate', 'issf-300m', 'ch-300m-b4', 'ch-300m-b10', 'ussr-4', 'ussr-5', 'ussr-8',
     'ch-campagne-e', 'ch-campagne-f', 'ch-campagne-g', 'ch-campagne-h', 'ch-campagne-k',
-    'ch-nttc-score', 'circle-100mm', 'circle-200mm', 'square-1m', 'square-2m', 'killer-tubby'
+    'ch-nttc-score', 'square-2m', 'killer-tubby'
   ]);
   for (const entry of catalog) assert.equal(typeof entry, 'string');
 });
@@ -21,18 +21,21 @@ test('loadTargetCatalog returns the same array instance across repeated calls (a
   assert.equal(loadTargetCatalog(), loadTargetCatalog());
 });
 
-test('loadTarget resolves the plate-40x60 target\'s dimensions, zones, and SVG placement', async () => {
-  const target = await loadTarget('plate-40x60');
-  assert.equal(target.id, 'plate-40x60');
-  assert.equal(target.widthM, 0.4);
-  assert.equal(target.heightM, 0.6);
-  assert.equal(target.aspectRatio, 1.5);
+test('loadTarget resolves the circle-gong target\'s custom flag and zones (no static widthM/heightM/resultSvg — those come from the live dimension field, see custom-target-render.js)', async () => {
+  const target = await loadTarget('circle-gong');
+  assert.equal(target.id, 'circle-gong');
+  assert.deepEqual(target.custom, { shape: 'circle' });
   assert.ok(Array.isArray(target.zones) && target.zones.length === 1);
   assert.equal(target.zones[0].id, 'hit');
   assert.equal(typeof target.zones[0].score, 'number');
-  assert.equal(typeof target.resultSvg.pointOfAim.x, 'number');
-  assert.equal(typeof target.resultSvg.pointOfAim.y, 'number');
-  assert.equal(typeof target.resultSvg.pxPerMeter, 'number');
+});
+
+test('loadTarget resolves the rect-plate target\'s custom flag and zones', async () => {
+  const target = await loadTarget('rect-plate');
+  assert.equal(target.id, 'rect-plate');
+  assert.deepEqual(target.custom, { shape: 'rectangle' });
+  assert.ok(Array.isArray(target.zones) && target.zones.length === 1);
+  assert.equal(target.zones[0].id, 'hit');
 });
 
 test('loadTarget rejects for an unknown id', async () => {
@@ -40,24 +43,40 @@ test('loadTarget rejects for an unknown id', async () => {
 });
 
 test('loadTarget caches per id — repeated calls resolve the same data without re-fetching', async () => {
-  const first = await loadTarget('plate-40x60');
-  const second = await loadTarget('plate-40x60');
+  const first = await loadTarget('circle-gong');
+  const second = await loadTarget('circle-gong');
   assert.equal(first, second);
 });
 
-test('loadTargetFunction resolves the target\'s hitProbability function', async () => {
-  const hitProbability = await loadTargetFunction('plate-40x60');
+test('circle-gong\'s hitProbability takes its radius from the dims argument', async () => {
+  const hitProbability = await loadTargetFunction('circle-gong');
   assert.equal(typeof hitProbability, 'function');
-  const zones = hitProbability(10, 10, 0, 0);
-  assert.ok(Array.isArray(zones) && zones.length === 1);
-  assert.equal(zones[0].zoneId, 'hit');
-  assert.ok(zones[0].probability > 0 && zones[0].probability <= 1);
+  const small = hitProbability(10, 10, 0, 0, { diameterCm: 10 });
+  const large = hitProbability(10, 10, 0, 0, { diameterCm: 100 });
+  assert.equal(small.length, 1);
+  assert.equal(small[0].zoneId, 'hit');
+  assert.ok(small[0].probability > 0 && small[0].probability <= 1);
+  assert.ok(large[0].probability > small[0].probability, 'a bigger gong should score a higher hit probability under the same dispersion');
 });
 
-test('the SVG URL builders point at the three per-target asset files', () => {
-  assert.ok(targetThumbUrl('plate-40x60').href.endsWith('/targets/plate-40x60-thumb.svg'));
-  assert.ok(targetDetailUrl('plate-40x60').href.endsWith('/targets/plate-40x60-detail.svg'));
-  assert.ok(targetResultUrl('plate-40x60').href.endsWith('/targets/plate-40x60-result.svg'));
+test('rect-plate\'s hitProbability takes its width/height from the dims argument', async () => {
+  const hitProbability = await loadTargetFunction('rect-plate');
+  const small = hitProbability(10, 10, 0, 0, { widthCm: 10, heightCm: 10 });
+  const large = hitProbability(10, 10, 0, 0, { widthCm: 100, heightCm: 100 });
+  assert.equal(small.length, 1);
+  assert.equal(small[0].zoneId, 'hit');
+  assert.ok(large[0].probability > small[0].probability, 'a bigger plate should score a higher hit probability under the same dispersion');
+});
+
+test('the SVG URL builders point at a fixed target\'s three per-target asset files', () => {
+  assert.ok(targetThumbUrl('issf-300m').href.endsWith('/targets/issf-300m-thumb.svg'));
+  assert.ok(targetDetailUrl('issf-300m').href.endsWith('/targets/issf-300m-detail.svg'));
+  assert.ok(targetResultUrl('issf-300m').href.endsWith('/targets/issf-300m-result.svg'));
+});
+
+test('the thumbnail URL builder also covers the two user-sizeable targets (they only ship a -thumb.svg — no -detail.svg/-result.svg, those are generated at runtime, see custom-target-render.test.js)', () => {
+  assert.ok(targetThumbUrl('circle-gong').href.endsWith('/targets/circle-gong-thumb.svg'));
+  assert.ok(targetThumbUrl('rect-plate').href.endsWith('/targets/rect-plate-thumb.svg'));
 });
 
 test('loadTarget resolves the issf-300m target\'s dimensions, zones, and SVG placement', async () => {
@@ -252,12 +271,23 @@ test('every catalog target resolves to a well-formed record and a callable scori
   for (const id of catalog) {
     const target = await loadTarget(id);
     assert.equal(target.id, id, `id mismatch for ${id}`);
-    assert.ok(target.widthM > 0 && target.heightM > 0, `implausible dimensions for ${id}`);
-    assert.ok(Math.abs(target.aspectRatio - target.heightM / target.widthM) < 1e-9, `aspectRatio doesn't match height/width for ${id}`);
     assert.ok(target.zones.length > 0, `${id} has no zones`);
 
+    // The two user-sizeable targets carry no static widthM/heightM/
+    // aspectRatio — those are derived at render time from the live
+    // dimension field(s), see custom-target-render.js — so their own
+    // scoring function needs a `dims` argument here, standing in for
+    // whatever the Simulation panel's fields currently hold.
+    const dims = target.custom
+      ? (target.custom.shape === 'circle' ? { diameterCm: 25 } : { widthCm: 40, heightCm: 50 })
+      : undefined;
+    if (!target.custom) {
+      assert.ok(target.widthM > 0 && target.heightM > 0, `implausible dimensions for ${id}`);
+      assert.ok(Math.abs(target.aspectRatio - target.heightM / target.widthM) < 1e-9, `aspectRatio doesn't match height/width for ${id}`);
+    }
+
     const hitProbability = await loadTargetFunction(id);
-    const zones = hitProbability(10, 10, 0, 0);
+    const zones = hitProbability(10, 10, 0, 0, dims);
     assert.equal(zones.length, target.zones.length, `${id}'s scoring function returned a different zone count than its own data`);
   }
 });

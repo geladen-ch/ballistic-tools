@@ -148,6 +148,13 @@ export const FIELD_UNITS = {
   riflingTwist: { group: 'riflingTwist', engineUnit: 'mm' },
   aimOffsetX: { group: 'smallLength', engineUnit: 'cm' },
   aimOffsetY: { group: 'smallLength', engineUnit: 'cm' },
+  // The two user-sizeable targets' own dimension fields (Circle gong,
+  // Rectangle plate) — same group/engineUnit as the aim-offset fields
+  // just above, since these are all "how big is this thing, in cm-ish
+  // terms" inputs a shooter thinks about the same way.
+  circleGongDiameter: { group: 'smallLength', engineUnit: 'cm' },
+  rectPlateWidth: { group: 'smallLength', engineUnit: 'cm' },
+  rectPlateHeight: { group: 'smallLength', engineUnit: 'cm' },
   // Not form fields — the trajectory table/chart's own drop and windage
   // columns (dropCm/windageCm on each engine point) convert through these
   // for display the same way `energy`/`velocity` do below. The engine
@@ -318,7 +325,10 @@ export const FIELD_BOUNDS = {
   muzzleVelocitySD: { min: 0, max: 20 }, // m/s
   spotterMeasure: { min: 0, max: 5 }, // mrad — matches FIELD_UNITS.spotterMeasure's own engine unit
   aimOffsetX: { min: -100, max: 100 }, // cm
-  aimOffsetY: { min: -100, max: 100 } // cm
+  aimOffsetY: { min: -100, max: 100 }, // cm
+  circleGongDiameter: { min: 1, max: 200 }, // cm
+  rectPlateWidth: { min: 1, max: 300 }, // cm
+  rectPlateHeight: { min: 1, max: 300 } // cm
 };
 
 // The bounds message's own "allowed range" text, in whatever unit the

@@ -1,6 +1,6 @@
 import { el, clear } from '../dom.js';
 import { unitField } from '../ui/unit-field.js';
-import { displayToEngine } from '../units.js';
+import { displayToEngine, engineToDisplay, roundForDisplay, unitChoice } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
@@ -13,6 +13,11 @@ import { downloadFile } from '../download.js';
 import { computeSingleShot } from '../engine/single-shot.js';
 import { computeSpotterCorrected } from '../engine/spotter-corrected.js';
 import { loadTargetCatalog, loadTarget, loadTargetFunction, targetThumbUrl, targetDetailUrl, targetResultUrl } from '../targets.js';
+import {
+  circleGongGeometry, rectPlateGeometry,
+  circleGongResultSvg, rectPlateResultSvg,
+  circleGongDetailSvg, rectPlateDetailSvg
+} from '../targets/custom-target-render.js';
 import { logDiagnostic } from '../debug-log.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
@@ -183,6 +188,14 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
 // when there's no persisted value yet (see persistedValue()/panelState).
 function roundDistanceDefault(fieldId, metricValue, yardValue) {
   return getUnit('distance') === 'yd' ? displayToEngine(fieldId, yardValue, 'yd') : metricValue;
+}
+
+// Same idiom as roundDistanceDefault() above, for the two user-sizeable
+// targets' own dimension fields: a shooter on inches gets a round
+// inch-based default (e.g. 10 in diameter) rather than whatever a straight
+// cm conversion of the metric default happens to land on.
+function roundSmallLengthDefault(fieldId, metricValueCm, imperialValueIn) {
+  return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueCm;
 }
 
 // A unitField() with no preset selector, still persisted across
@@ -357,6 +370,31 @@ export function mount(container) {
   const aimOffsetXField = persistedUnitField('aimOffsetX', { min: -100, max: 100, step: 0.5, value: 0, onInput: () => recompute() });
   const aimOffsetYField = persistedUnitField('aimOffsetY', { min: -100, max: 100, step: 0.5, value: 0, onInput: () => recompute() });
 
+  // Dimension field(s) for the two user-sizeable targets (Circle gong,
+  // Rectangle plate) — only one of these is ever shown at a time (or
+  // neither, for a fixed-size target), toggled by applyCustomDimsVisibility()
+  // once the currently-selected target's own data has loaded. Changing one
+  // of these has to redo more than a plain recompute(): the target's own
+  // geometry/artwork (widthM/heightM/aspectRatio/resultSvg, the detail
+  // image, the result illustration's underlying shape) are all derived
+  // from these values too — see refreshCustomTargetArtwork() below.
+  const circleGongDiameterField = persistedUnitField('circleGongDiameter', {
+    min: 1, max: 200, step: 0.5, value: roundSmallLengthDefault('circleGongDiameter', 25, 10),
+    onInput: () => { refreshCustomTargetArtwork(); recompute(); }
+  });
+  const rectPlateWidthField = persistedUnitField('rectPlateWidth', {
+    min: 1, max: 300, step: 0.5, value: roundSmallLengthDefault('rectPlateWidth', 40, 15),
+    onInput: () => { refreshCustomTargetArtwork(); recompute(); }
+  });
+  const rectPlateHeightField = persistedUnitField('rectPlateHeight', {
+    min: 1, max: 300, step: 0.5, value: roundSmallLengthDefault('rectPlateHeight', 50, 20),
+    onInput: () => { refreshCustomTargetArtwork(); recompute(); }
+  });
+  circleGongDiameterField.node.style.display = 'none';
+  rectPlateWidthField.node.style.display = 'none';
+  rectPlateHeightField.node.style.display = 'none';
+  const customDimsFields = el('div', {}, [circleGongDiameterField.node, rectPlateWidthField.node, rectPlateHeightField.node]);
+
   const initialTargetId = persistedValue('targetId', loadTargetCatalog()[0]);
   let currentTargetId = initialTargetId;
   const targetButtons = new Map(); // target id -> its picker button, for toggling .active
@@ -375,6 +413,7 @@ export function mount(container) {
     scenarioSection,
     targetRangeField.node,
     el('div', { class: 'field' }, [el('label', { i18n: 'hitProbability.targetLabel' }), targetPickerGrid, targetDetailImg, targetNameLabel]),
+    customDimsFields,
     atmosphere.node,
     movingTargetSpeedField.node,
     battleZeroToggleRow,
@@ -517,6 +556,11 @@ export function mount(container) {
   let overlayGroup = null;
   let illustrationSvgRoot = null;
   let targetLoadGeneration = 0;
+  // The <img>'s current blob: src for a user-sizeable target's generated
+  // detail SVG (see refreshCustomTargetArtwork()/setTargetDetailSvgText()
+  // below) — tracked so each regeneration (every keystroke in a dimension
+  // field) revokes the previous object URL instead of leaking one per edit.
+  let targetDetailObjectUrl = null;
   // The 1x-zoom half-extent (in SVG units, square, symmetric around the
   // target's own point of aim) — fits the target's own source SVG exactly
   // and is fixed once per target load; never touched by recompute()/the
@@ -546,6 +590,86 @@ export function mount(container) {
     return Math.max(halfWidthNeeded, halfHeightNeeded) * (1 + FIT_MARGIN_RATIO);
   }
 
+  // Shows whichever dimension field(s) match the currently-loaded target's
+  // own shape (or none, for a fixed-size target) — called once the
+  // target's own data has resolved, both on a fresh load and right after a
+  // picker switch.
+  function applyCustomDimsVisibility(shape) {
+    circleGongDiameterField.node.style.display = shape === 'circle' ? '' : 'none';
+    rectPlateWidthField.node.style.display = shape === 'rectangle' ? '' : 'none';
+    rectPlateHeightField.node.style.display = shape === 'rectangle' ? '' : 'none';
+  }
+
+  // The live dimensions to hand a custom target's own hitProbability() as
+  // its 5th argument — null for a fixed-size target, where it's simply
+  // unused (every other target's hitProbability ignores a 5th argument).
+  function currentCustomDims() {
+    if (!targetData || !targetData.custom) return null;
+    return targetData.custom.shape === 'circle'
+      ? { diameterCm: circleGongDiameterField.getEngineValue() }
+      : { widthCm: rectPlateWidthField.getEngineValue(), heightCm: rectPlateHeightField.getEngineValue() };
+  }
+
+  function setTargetDetailSvgText(svgText) {
+    if (targetDetailObjectUrl) URL.revokeObjectURL(targetDetailObjectUrl);
+    targetDetailObjectUrl = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml' }));
+    targetDetailImg.src = targetDetailObjectUrl;
+  }
+
+  function formatCircleGongLabel(diameterCm) {
+    const displayUnit = getUnit('smallLength');
+    const value = roundForDisplay('circleGongDiameter', displayUnit, engineToDisplay('circleGongDiameter', diameterCm, displayUnit));
+    const choice = unitChoice('circleGongDiameter', displayUnit);
+    return `Ø ${value}${choice ? ` ${choice.label}` : ''}`;
+  }
+
+  function formatRectPlateLabel(widthCm, heightCm) {
+    const displayUnit = getUnit('smallLength');
+    const w = roundForDisplay('rectPlateWidth', displayUnit, engineToDisplay('rectPlateWidth', widthCm, displayUnit));
+    const h = roundForDisplay('rectPlateHeight', displayUnit, engineToDisplay('rectPlateHeight', heightCm, displayUnit));
+    const choice = unitChoice('rectPlateWidth', displayUnit);
+    return `${w} × ${h}${choice ? ` ${choice.label}` : ''}`;
+  }
+
+  // Regenerates everything a user-sizeable target's own dimension field(s)
+  // drive: targetData's derived geometry (widthM/heightM/aspectRatio/
+  // resultSvg — every other target gets these from its static JSON, these
+  // two get them from here instead), the detail <img>, and the result
+  // illustration's underlying shape (re-parsed and re-appended the same
+  // way loadCurrentTarget() does for a static -result.svg file, with a
+  // fresh overlay group since the old root is discarded). Called once
+  // right after a custom target's own data loads, and again on every edit
+  // to its dimension field(s) — recompute() (called by the caller
+  // immediately after) only ever redraws the overlay on top of whatever
+  // this function just produced, it never touches geometry itself.
+  function refreshCustomTargetArtwork() {
+    if (!targetData || !targetData.custom) return;
+    const dims = currentCustomDims();
+    let geometry, resultSvgText, detailSvgText;
+    if (targetData.custom.shape === 'circle') {
+      const diameterMm = dims.diameterCm * 10;
+      geometry = circleGongGeometry(dims.diameterCm);
+      resultSvgText = circleGongResultSvg(diameterMm);
+      detailSvgText = circleGongDetailSvg(formatCircleGongLabel(dims.diameterCm));
+    } else {
+      const widthMm = dims.widthCm * 10;
+      const heightMm = dims.heightCm * 10;
+      geometry = rectPlateGeometry(dims.widthCm, dims.heightCm);
+      resultSvgText = rectPlateResultSvg(widthMm, heightMm);
+      detailSvgText = rectPlateDetailSvg(widthMm, heightMm, formatRectPlateLabel(dims.widthCm, dims.heightCm));
+    }
+    Object.assign(targetData, geometry);
+    baseHalfExtent = computeBaseHalfExtent();
+
+    setTargetDetailSvgText(detailSvgText);
+
+    clear(illustrationSvgContainer);
+    illustrationSvgRoot = new DOMParser().parseFromString(resultSvgText, 'image/svg+xml').documentElement;
+    illustrationSvgContainer.appendChild(illustrationSvgRoot);
+    overlayGroup = svgEl('g', { id: 'overlay' });
+    illustrationSvgRoot.appendChild(overlayGroup);
+  }
+
   function loadCurrentTarget() {
     const id = currentTargetId;
     const generation = ++targetLoadGeneration;
@@ -560,25 +684,35 @@ export function mount(container) {
     impactsToScale = true;
     impactsToScaleCheckbox.checked = true;
     clear(illustrationSvgContainer);
-    targetDetailImg.src = targetDetailUrl(id).href;
     clear(targetNameLabel);
 
     Promise.all([
       loadTarget(id),
-      loadTargetFunction(id),
-      fetch(targetResultUrl(id)).then((res) => res.text())
-    ]).then(([target, hitProbabilityFn, svgText]) => {
+      loadTargetFunction(id)
+    ]).then(([target, hitProbabilityFn]) => {
       if (disposed || generation !== targetLoadGeneration) return;
       targetData = target;
       targetHitProbability = hitProbabilityFn;
-      baseHalfExtent = computeBaseHalfExtent();
+      applyCustomDimsVisibility(target.custom ? target.custom.shape : null);
 
-      illustrationSvgRoot = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
-      illustrationSvgContainer.appendChild(illustrationSvgRoot);
-      overlayGroup = svgEl('g', { id: 'overlay' });
-      illustrationSvgRoot.appendChild(overlayGroup);
+      if (target.custom) {
+        refreshCustomTargetArtwork();
+        recompute();
+        return;
+      }
 
-      recompute();
+      targetDetailImg.src = targetDetailUrl(id).href;
+      return fetch(targetResultUrl(id)).then((res) => res.text()).then((svgText) => {
+        if (disposed || generation !== targetLoadGeneration) return;
+        baseHalfExtent = computeBaseHalfExtent();
+
+        illustrationSvgRoot = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
+        illustrationSvgContainer.appendChild(illustrationSvgRoot);
+        overlayGroup = svgEl('g', { id: 'overlay' });
+        illustrationSvgRoot.appendChild(overlayGroup);
+
+        recompute();
+      });
     }).catch((err) => {
       if (disposed || generation !== targetLoadGeneration) return;
       // The target library failed to load (offline on first visit, a
@@ -870,8 +1004,9 @@ export function mount(container) {
         return; // leave the last good state showing, same posture as trajectory-view.js
       }
 
-      const sightingZones = targetHitProbability(result.sighting.sdX, result.sighting.sdY, result.sighting.offsetX, result.sighting.offsetY);
-      const correctedZones = targetHitProbability(result.corrected.sdX, result.corrected.sdY, result.corrected.offsetX, result.corrected.offsetY);
+      const dims = currentCustomDims();
+      const sightingZones = targetHitProbability(result.sighting.sdX, result.sighting.sdY, result.sighting.offsetX, result.sighting.offsetY, dims);
+      const correctedZones = targetHitProbability(result.corrected.sdX, result.corrected.sdY, result.corrected.offsetX, result.corrected.offsetY, dims);
       const sightingTotal = sightingZones.reduce((sum, z) => sum + z.probability, 0);
       const correctedTotal = correctedZones.reduce((sum, z) => sum + z.probability, 0);
       // At least one hit across all N sighting shots + the corrected shot,
@@ -894,7 +1029,7 @@ export function mount(container) {
         return; // leave the last good state showing, same posture as trajectory-view.js
       }
 
-      const zones = targetHitProbability(result.sdX, result.sdY, result.offsetX, result.offsetY);
+      const zones = targetHitProbability(result.sdX, result.sdY, result.offsetX, result.offsetY, currentCustomDims());
       const total = zones.reduce((sum, z) => sum + z.probability, 0);
 
       setTotalProbability(total);
@@ -930,6 +1065,7 @@ export function mount(container) {
 
   return () => {
     disposed = true;
+    if (targetDetailObjectUrl) URL.revokeObjectURL(targetDetailObjectUrl);
   };
 }
 

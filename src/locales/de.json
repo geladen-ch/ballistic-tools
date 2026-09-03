@@ -110,6 +110,9 @@
     "targetRange": "Distanz",
     "aimOffsetX": "Zielpunktversatz X",
     "aimOffsetY": "Zielpunktversatz Y",
+    "circleGongDiameter": "Durchmesser",
+    "rectPlateWidth": "Breite",
+    "rectPlateHeight": "Höhe",
     "battleZeroRange": "Gefechtsnullentfernung",
     "muzzleVelocitySD": "Mündungsgeschwindigkeitsstreuung",
     "benchPrecision": "Waffenpräzision (Bank)",
@@ -882,6 +885,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v168": "Neu: frei einstellbare runde und rechteckige Ziele für Trefferwahrscheinlichkeit (Idee von 6.5SH).",
       "v167": "Neu: integriertes Einheiten-Umrechnungswerkzeug (wieder eine Idee von 6.5SH, „für das volle Offline-‚Schweizer-Sackmesser‘-Erlebnis“). Zu finden unter „Analyse“.",
       "v166": "Neu: das Standard-Luftwiderstandsmodell RA4 (Subsonisches Randfeuer) für .22 LR und andere Randfeuermunition hinzugefügt (Sonderlieferung für 6.5SH). Standardmäßig aus — aktivieren unter Einstellungen > Ballistische Modelle.",
       "v165": "Neu: eine Einstellung „Bereich ‚Fehlerbehebung‘ auf der Startseite anzeigen“ (standardmäßig aus, unter Einstellungen > Allgemein) — aktivieren, um den Diagnoseinformationen-Download auf der Startseite zu sehen, ohne den Bereich „Über“ für alle anderen zu überladen.",
@@ -944,8 +948,12 @@
     "loadError": "Die Dankesliste konnte nicht geladen werden."
   },
   "targets": {
-    "plate40x60": {
-      "name": "40 × 60 cm Platte",
+    "circleGong": {
+      "name": "Rundgong",
+      "zoneHit": "Treffer"
+    },
+    "rectPlate": {
+      "name": "Rechteckplatte",
       "zoneHit": "Treffer"
     },
     "issf300m": {
@@ -1020,18 +1028,6 @@
       "zoneX": "X (5)",
       "zoneY": "Y (5)",
       "zoneZ": "Z (2)"
-    },
-    "circle100mm": {
-      "name": "⌀ 100 mm",
-      "zoneHit": "Treffer"
-    },
-    "circle200mm": {
-      "name": "⌀ 200 mm",
-      "zoneHit": "Treffer"
-    },
-    "square1m": {
-      "name": "1 × 1 m",
-      "zoneHit": "Treffer"
     },
     "square2m": {
       "name": "2 × 2 m",
