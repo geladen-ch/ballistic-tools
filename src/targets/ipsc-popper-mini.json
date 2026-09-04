@@ -1,0 +1,14 @@
+{
+  "id": "ipsc-popper-mini",
+  "nameKey": "targets.ipscPopperMini.name",
+  "widthM": 0.2,
+  "heightM": 0.56,
+  "aspectRatio": 2.8,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.ipscPopperMini.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 100, "y": 100 },
+    "pxPerMeter": 1000
+  }
+}

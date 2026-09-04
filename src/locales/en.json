@@ -891,6 +891,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v173": "New: IPSC popper targets (standard and mini) in Hit Probability. Gauss-Legendre hit prob calculations are now available under the hood for random-shaped symmetrical targets.",
       "v172": "Fix: Hit Probability's target detail image briefly requested a nonexistent file when the default target was a user-sizeable one (Circle gong).",
       "v171": "Change: in landscape mobile mode, the navigation bar now sits on the left edge (matching desktop's layout) instead of the right.",
       "v170": "Fix: the active target's range value in Range Card's table could render smaller than the other rows' instead of larger.",
@@ -1046,6 +1047,14 @@
     },
     "killerTubby": {
       "name": "Killer Tubby",
+      "zoneHit": "Hit"
+    },
+    "ipscPopper": {
+      "name": "IPSC Popper",
+      "zoneHit": "Hit"
+    },
+    "ipscPopperMini": {
+      "name": "IPSC Mini Popper",
       "zoneHit": "Hit"
     }
   },
