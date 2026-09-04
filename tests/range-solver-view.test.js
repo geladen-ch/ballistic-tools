@@ -518,6 +518,70 @@ test('picking a different target in the select copies its range/LoS into the fie
   cleanup();
 });
 
+test('picking a target with a fractional LOS angle stays selected — detachIfHandEdited() must not mistake the field\'s own whole-degree display rounding for a hand edit', async () => {
+  // Regression: losAngleField rounds to whole degrees (decimals: 0) on
+  // every setEngineValue() — a target whose own stored losAngleDeg isn't a
+  // whole number (5.5° here) used to fail detachIfHandEdited()'s raw
+  // `losAngleField.getEngineValue() !== target.losAngleDeg` comparison the
+  // instant selectTarget() copied it in (6 !== 5.5), silently deselecting
+  // the target that was just picked — every existing target fixture up to
+  // this test happened to use whole-number angles, which is why this went
+  // uncaught. Range Card's table/photo-picker selection (range-card-
+  // panel.js) goes through this exact same selectTarget()/recompute()
+  // path, so a target like this one was simply un-selectable from any
+  // entry point, not just this <select>.
+  const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
+  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 5.5 });
+  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const select = findById(container, 'rangeSolverTargetSelect');
+  select.value = t2.id;
+  fireEvent(select, 'change');
+
+  assert.equal(findById(container, 'targetRange').value, '300');
+  assert.equal(findById(container, 'losAngle').value, '6', 'displayed rounded to the field\'s own whole-degree precision');
+  assert.equal(select.value, t2.id, 'still tracking the picked target — not silently detached to Manual entry');
+  assert.equal(loadRangeSolverLocationState().targetId, t2.id);
+
+  cleanup();
+});
+
+test('picking a target stays selected even when the display unit\'s own decimals differ from the range field\'s hardcoded precision (feet: 0 vs the field\'s 1)', async () => {
+  // Same class of bug as the LOS-angle regression above, on the other
+  // field: targetRangeField is built with a hardcoded `decimals: 1`
+  // regardless of unit (range-solver-view.js), but distance's `ft` choice
+  // prefers 0 decimals (units.js) — a hand-rolled round-trip keyed off the
+  // *unit's* preferred decimals (rather than the field's own) would drift
+  // from what the field actually displays/rounds to, exactly like the LOS
+  // case. 328 m is chosen so its feet conversion (~1076.1 ft) doesn't
+  // already happen to be a whole number.
+  setUnit('distance', 'ft');
+  const t1 = makeTestTarget({ rangeM: 500, losAngleDeg: 0 });
+  const t2 = makeTestTarget({ rangeM: 328, losAngleDeg: 0 });
+  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const select = findById(container, 'rangeSolverTargetSelect');
+  select.value = t2.id;
+  fireEvent(select, 'change');
+
+  assert.equal(select.value, t2.id, 'still tracking the picked target — not silently detached to Manual entry');
+  assert.equal(loadRangeSolverLocationState().targetId, t2.id);
+
+  cleanup();
+});
+
 test('hand-editing range after a target loads detaches it — the select falls back to "Manual entry", with no write-back to the library', async () => {
   const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
   const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 0 });

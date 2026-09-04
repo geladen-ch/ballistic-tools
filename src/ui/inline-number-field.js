@@ -105,6 +105,14 @@ export function inlineNumberField({ id, min, max, decimals, value, adornment, ar
     setEngineValue(v) {
       committed = toDisp(v);
       input.value = String(committed);
-    }
+    },
+    // "If I called setEngineValue(v) right now, what would getEngineValue()
+    // then report?" — without touching the field. Exposes this field's own
+    // engine<->display round-trip (unit conversion, if any, plus its own
+    // `decimals`) as the single source of truth for that rounding, so a
+    // caller comparing "did the loaded value actually change" (e.g. Range
+    // Solver's own detachIfHandEdited()) can't drift out of sync with a
+    // second, hand-rolled copy of the same rounding.
+    peekRoundTrip: (v) => toEng(toDisp(v))
   };
 }

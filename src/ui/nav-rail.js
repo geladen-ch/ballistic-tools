@@ -38,7 +38,7 @@ import {
 import { statusChip } from './status-chip.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
-  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, atmosphereIcon, exitIcon,
+  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, rangeCardIcon, atmosphereIcon, exitIcon,
   zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
@@ -149,6 +149,7 @@ export function mountNavRail(container) {
     });
     return el('nav', { class: 'rail-inner rail-range-solver-mode' }, [
       tabButton('target', targetIcon, 'rangeSolver.navTarget'),
+      tabButton('rangeCard', rangeCardIcon, 'rangeSolver.navRangeCard'),
       tabButton('atmosphere', atmosphereIcon, 'rangeSolver.navAtmosphere'),
       gunLink,
       exitBtn

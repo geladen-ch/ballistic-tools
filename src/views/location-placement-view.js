@@ -12,29 +12,15 @@
 // nav-tabbar.js's own buildPlacementMode()) lives outside this view, so
 // it reaches in via registerPlacementHandlers() rather than local clicks.
 import { el, clear } from '../dom.js';
-import { svgEl } from '../svg.js';
 import { t } from '../i18n.js';
 import { loadUserLocations, saveUserLocation } from '../location-library.js';
 import { saveRangeSolverLocationState, saveRangeSolverTargetState } from '../range-solver-state.js';
 import { photoViewport } from '../ui/locations/photo-viewport.js';
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
+import { crosshairGlyph, placedDot } from '../ui/locations/target-pin-glyphs.js';
 import {
   setPlacementMode, takePendingPlacement, registerPlacementHandlers
 } from '../location-placement-nav.js';
-
-// The one target being placed gets a precise reticle, not a pin — its own
-// center (not a tip, unlike a map pin) is the exact coords being set.
-function crosshairGlyph(size = 30) {
-  return svgEl('svg', { viewBox: '0 0 30 30', width: size, height: size, fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
-    svgEl('circle', { cx: '15', cy: '15', r: '10' }),
-    svgEl('line', { x1: '15', y1: '2', x2: '15', y2: '28' }),
-    svgEl('line', { x1: '2', y1: '15', x2: '28', y2: '15' })
-  ]);
-}
-
-function placedDot() {
-  return el('span', { class: 'target-photo-overlay-pin-dot' });
-}
 
 // Select mode's own tap-to-select pins/chips — range/angle only, same as
 // the retired target-photo-overlay.js's original label, except a target's
@@ -105,6 +91,7 @@ export function mount(container) {
   let coords = null; // local, uncommitted — only meaningful in placement mode
   let clearButton = null;
   let marker = null;
+  let targetInfo = null; // placement mode only — see below
 
   const viewport = photoViewport({
     photo: loc.photo,
@@ -148,8 +135,23 @@ export function mount(container) {
       viewport.markersLayer.appendChild(stack);
     }
   } else {
-    const placingTarget = loc.targets.find((target) => target.id === pending.targetId);
+    const targetIndex = loc.targets.findIndex((target) => target.id === pending.targetId);
+    const placingTarget = targetIndex >= 0 ? loc.targets[targetIndex] : null;
     coords = placingTarget ? (placingTarget.coords ?? null) : null;
+
+    if (placingTarget) {
+      const displayName = placingTarget.name || t('rangeSolverLocations.defaultTargetName', { n: targetIndex + 1 });
+      targetInfo = el('p', { class: 'location-placement-target-info' }, [
+        el('strong', { text: displayName }), ` — ${formatTargetSummary(placingTarget.rangeM, placingTarget.losAngleDeg)}`
+      ]);
+      // Re-placing an already-placed target — open already centered on
+      // its current pin (as close as the viewport's own current zoom
+      // allows), same reasoning/mechanism as range-card-panel.js's own
+      // centerOn() call when a target is picked from its table: onReady()
+      // defers this past the photo's own decode, since centerOn() is a
+      // no-op before that (see photo-viewport.js's own comment on it).
+      if (placingTarget.coords) viewport.onReady(() => viewport.centerOn(placingTarget.coords));
+    }
 
     loc.targets.forEach((target, index) => {
       if (target.id === pending.targetId || !target.coords) return;
@@ -169,7 +171,7 @@ export function mount(container) {
     renderMarker();
   }
 
-  container.appendChild(el('div', { class: 'location-placement-page' }, [hint, viewport.node, ...contentExtras]));
+  container.appendChild(el('div', { class: 'location-placement-page' }, [hint, targetInfo, viewport.node, ...contentExtras]));
 
   const unregister = registerPlacementHandlers({
     onZoomIn: viewport.zoomIn,

@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v168';
-export const RELEASE_ID = '3.3.0';
-export const CODENAME_SHORT = 'BADASS';
-export const CODENAME_LONG = 'Ballistics Analysis and Data Assessment Software Suite';
+export const CACHE_VERSION = 'v169';
+export const RELEASE_ID = '3.4.0';
+export const CODENAME_SHORT = 'HARDASS';
+export const CODENAME_LONG = 'High-Accuracy Range and Data Analysis Software Suite';

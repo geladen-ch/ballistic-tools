@@ -437,6 +437,7 @@
   },
   "rangeSolver": {
     "navTarget": "Target",
+    "navRangeCard": "Range Card",
     "navAtmosphere": "Atmosphere",
     "exitSolver": "Exit solver",
     "elevationLabel": "Elevation",
@@ -444,7 +445,12 @@
     "tofLabel": "Time of flight",
     "velocityLabel": "Velocity",
     "energyLabel": "Energy",
-    "secondsUnit": "s"
+    "secondsUnit": "s",
+    "rangeCardNoLocationHint": "Tap the location icon above to pick a location and see its range card.",
+    "rangeCardNoTargetsHint": "This location has no targets yet — add some from the Locations manager.",
+    "rangeCardNoPhotoHint": "Add a photo to this location to pick targets visually here.",
+    "rangeCardRangeHeader": "Range",
+    "rangeCardRowCountLabel": "Rows"
   },
   "rangeSolverLocations": {
     "title": "Locations & Targets",
@@ -885,6 +891,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v169": "New: Range Card view in Range Solver — all targets for a given location, on the same screen, with visual on-photo picker (thanks to ma smith for the idea).",
       "v168": "New: user-sizeable circle and rectangle targets for Hit Probability (props to 6.5SH for the idea).",
       "v167": "New: built-in unit conversion tool (again, 6.5SH’s idea, “for the full offline ‘Swiss Army Knife’ experience”). Check it out under “Analysis”.",
       "v166": "New: RA4 (Subsonic rimfire) added as a standard drag model, for .22 LR and other rimfire loads (special delivery for 6.5SH). Off by default — enable it under Settings > Ballistic models.",

@@ -437,6 +437,7 @@
   },
   "rangeSolver": {
     "navTarget": "Bersaglio",
+    "navRangeCard": "Scheda di tiro",
     "navAtmosphere": "Atmosfera",
     "exitSolver": "Esci dal calcolatore",
     "elevationLabel": "Elevazione",
@@ -444,7 +445,12 @@
     "tofLabel": "Tempo di volo",
     "velocityLabel": "Velocità",
     "energyLabel": "Energia",
-    "secondsUnit": "s"
+    "secondsUnit": "s",
+    "rangeCardNoLocationHint": "Tocca l'icona della postazione qui sopra per scegliere una postazione e vederne la scheda di tiro.",
+    "rangeCardNoTargetsHint": "Questa posizione non ha ancora bersagli — aggiungine dalla gestione posizioni.",
+    "rangeCardNoPhotoHint": "Aggiungi una foto a questa posizione per scegliere i bersagli visivamente qui.",
+    "rangeCardRangeHeader": "Distanza",
+    "rangeCardRowCountLabel": "Righe"
   },
   "rangeSolverLocations": {
     "title": "Postazioni e bersagli",
@@ -885,6 +891,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v169": "Novità: vista «Scheda di tiro» nel Calcolatore per il poligono — tutti i bersagli di una postazione sulla stessa schermata, con selettore visivo sulla foto (grazie a ma smith per l'idea).",
       "v168": "Novità: bersagli circolari e rettangolari personalizzabili per Probabilità di colpire (idea di 6.5SH).",
       "v167": "Novità: strumento di conversione delle unità integrato (di nuovo un'idea di 6.5SH, “per la piena esperienza offline da ‘coltellino svizzero’”). Dai un'occhiata sotto “Analisi”.",
       "v166": "Novità: aggiunto il modello di resistenza standard RA4 (Percussione anulare subsonica), per munizioni .22 LR e altre cartucce a percussione anulare (consegna speciale per 6.5SH). Disattivato per impostazione predefinita — attivalo in Impostazioni > Modelli balistici.",

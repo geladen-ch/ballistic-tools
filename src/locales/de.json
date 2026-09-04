@@ -437,6 +437,7 @@
   },
   "rangeSolver": {
     "navTarget": "Ziel",
+    "navRangeCard": "Schusskarte",
     "navAtmosphere": "Atmosphäre",
     "exitSolver": "Feldrechner verlassen",
     "elevationLabel": "Höhe",
@@ -444,7 +445,12 @@
     "tofLabel": "Flugzeit",
     "velocityLabel": "Geschwindigkeit",
     "energyLabel": "Energie",
-    "secondsUnit": "s"
+    "secondsUnit": "s",
+    "rangeCardNoLocationHint": "Tippen Sie oben auf das Standort-Symbol, um einen Standort auszuwählen und dessen Schusskarte zu sehen.",
+    "rangeCardNoTargetsHint": "Für diesen Standort sind noch keine Ziele vorhanden — fügen Sie welche in der Standortverwaltung hinzu.",
+    "rangeCardNoPhotoHint": "Fügen Sie diesem Standort ein Foto hinzu, um Ziele hier visuell auszuwählen.",
+    "rangeCardRangeHeader": "Entfernung",
+    "rangeCardRowCountLabel": "Zeilen"
   },
   "rangeSolverLocations": {
     "title": "Standorte & Ziele",
@@ -885,6 +891,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v169": "Neu: Ansicht „Distanzkarte“ im Feldrechner — alle Ziele eines Standorts auf einem Bildschirm, mit visueller Zielauswahl auf dem Foto (danke an ma smith für die Idee).",
       "v168": "Neu: frei einstellbare runde und rechteckige Ziele für Trefferwahrscheinlichkeit (Idee von 6.5SH).",
       "v167": "Neu: integriertes Einheiten-Umrechnungswerkzeug (wieder eine Idee von 6.5SH, „für das volle Offline-‚Schweizer-Sackmesser‘-Erlebnis“). Zu finden unter „Analyse“.",
       "v166": "Neu: das Standard-Luftwiderstandsmodell RA4 (Subsonisches Randfeuer) für .22 LR und andere Randfeuermunition hinzugefügt (Sonderlieferung für 6.5SH). Standardmäßig aus — aktivieren unter Einstellungen > Ballistische Modelle.",

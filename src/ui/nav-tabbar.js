@@ -39,7 +39,7 @@ import {
 } from '../rifle-precision-nav.js';
 import {
   homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon, settingsIcon,
-  targetIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
+  targetIcon, rangeCardIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
 // Guns has no fixed path of its own here — see the render loop below,
@@ -176,6 +176,7 @@ export function mountNavTabbar(container) {
     });
     return [
       tabItem('target', targetIcon, 'rangeSolver.navTarget'),
+      tabItem('rangeCard', rangeCardIcon, 'rangeSolver.navRangeCard'),
       tabItem('atmosphere', atmosphereIcon, 'rangeSolver.navAtmosphere'),
       gunLink,
       exitBtn
