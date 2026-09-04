@@ -891,6 +891,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v172": "Correction : l'image détaillée de la cible dans Probabilité d'impact demandait brièvement un fichier inexistant lorsque la cible par défaut était une cible à taille réglable (Gong rond).",
       "v171": "Modification : en mode mobile paysage, la barre de navigation est désormais ancrée à gauche (comme la disposition du bureau) au lieu de la droite.",
       "v170": "Correction : la valeur de distance de la cible active dans le tableau de la Carte de tir pouvait s'afficher plus petite que les autres lignes au lieu de plus grande.",
       "v169": "Nouveau : vue « Carte de tir » dans le Calculateur de terrain — toutes les cibles d'un lieu sur le même écran, avec sélecteur visuel sur la photo (merci à ma smith pour l'idée).",

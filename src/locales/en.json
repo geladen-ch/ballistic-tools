@@ -891,6 +891,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v172": "Fix: Hit Probability's target detail image briefly requested a nonexistent file when the default target was a user-sizeable one (Circle gong).",
       "v171": "Change: in landscape mobile mode, the navigation bar now sits on the left edge (matching desktop's layout) instead of the right.",
       "v170": "Fix: the active target's range value in Range Card's table could render smaller than the other rows' instead of larger.",
       "v169": "New: Range Card view in Range Solver — all targets for a given location, on the same screen, with visual on-photo picker (thanks to ma smith for the idea).",
