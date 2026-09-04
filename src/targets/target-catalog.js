@@ -21,5 +21,7 @@ export const TARGET_IDS = [
   'ch-campagne-k',
   'ch-nttc-score',
   'square-2m',
-  'killer-tubby'
+  'killer-tubby',
+  'ipsc-popper',
+  'ipsc-popper-mini'
 ];

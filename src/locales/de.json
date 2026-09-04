@@ -891,6 +891,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v173": "Neu: IPSC-Popper-Ziele (Standard und Mini) in Trefferwahrscheinlichkeit. Gauss-Legendre-Berechnungen der Trefferwahrscheinlichkeit stehen jetzt intern für beliebig geformte symmetrische Ziele zur Verfügung.",
       "v172": "Fix: Beim Trefferwahrscheinlichkeits-Detailbild wurde beim Standardziel kurzzeitig eine nicht existierende Datei angefragt, wenn es sich um ein frei einstellbares Ziel handelte (Rundgong).",
       "v171": "Änderung: Im mobilen Querformat-Modus wird die Navigationsleiste jetzt links angedockt (wie im Desktop-Layout) statt rechts.",
       "v170": "Fix: Der Distanzwert des aktiven Ziels in der Tabelle der Distanzkarte konnte kleiner statt größer als die anderen Zeilen dargestellt werden.",
@@ -1046,6 +1047,14 @@
     },
     "killerTubby": {
       "name": "Killer Tubby",
+      "zoneHit": "Treffer"
+    },
+    "ipscPopper": {
+      "name": "IPSC Popper",
+      "zoneHit": "Treffer"
+    },
+    "ipscPopperMini": {
+      "name": "IPSC Mini Popper",
       "zoneHit": "Treffer"
     }
   },

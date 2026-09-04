@@ -12,7 +12,7 @@ test('loadTargetCatalog resolves a plain list of target ids', () => {
   assert.deepEqual(catalog, [
     'circle-gong', 'rect-plate', 'issf-300m', 'ch-300m-b4', 'ch-300m-b10', 'ussr-4', 'ussr-5', 'ussr-8',
     'ch-campagne-e', 'ch-campagne-f', 'ch-campagne-g', 'ch-campagne-h', 'ch-campagne-k',
-    'ch-nttc-score', 'square-2m', 'killer-tubby'
+    'ch-nttc-score', 'square-2m', 'killer-tubby', 'ipsc-popper', 'ipsc-popper-mini'
   ]);
   for (const entry of catalog) assert.equal(typeof entry, 'string');
 });
@@ -264,6 +264,62 @@ test('loadTarget resolves the killer-tubby target\'s dimensions, and its hitProb
   for (const [sdX, sdY, offsetX, offsetY] of [[15, 15, 0, 0], [8, 12, 3, -5], [40, 40, 0, 0]]) {
     assert.deepEqual(tubby(sdX, sdY, offsetX, offsetY), campagneF(sdX, sdY, offsetX, offsetY));
   }
+});
+
+test('loadTarget resolves the ipsc-popper target\'s dimensions, zones, and SVG placement', async () => {
+  const target = await loadTarget('ipsc-popper');
+  assert.equal(target.id, 'ipsc-popper');
+  assert.equal(target.widthM, 0.3);
+  assert.equal(target.heightM, 0.85);
+  assert.ok(Math.abs(target.aspectRatio - 0.85 / 0.3) < 1e-9);
+  assert.equal(target.zones.length, 1);
+  assert.equal(target.zones[0].id, 'hit');
+  assert.equal(target.zones[0].score, 1);
+  assert.equal(target.resultSvg.pointOfAim.x, 150);
+  assert.equal(target.resultSvg.pointOfAim.y, 150, 'the circular head\'s own center, not the bounding-box center');
+  assert.equal(target.resultSvg.pxPerMeter, 1000);
+});
+
+test('ipsc-popper\'s hitProbability: with negligible dispersion dead-center (the circular head\'s own center), essentially all mass is a hit', async () => {
+  const hitProbability = await loadTargetFunction('ipsc-popper');
+  const zones = hitProbability(0.01, 0.01, 0, 0);
+  assert.equal(zones.length, 1);
+  assert.ok(zones[0].probability > 0.999, `expected ~certain hit, got ${zones[0].probability}`);
+});
+
+test('ipsc-popper\'s hitProbability: a huge dispersion relative to the target scores near-zero', async () => {
+  const hitProbability = await loadTargetFunction('ipsc-popper');
+  const zones = hitProbability(1000, 1000, 0, 0);
+  assert.ok(zones[0].probability < 5e-3, `a target this small under this much dispersion should score near-zero, got ${zones[0].probability}`);
+});
+
+test('loadTarget resolves the ipsc-popper-mini target\'s dimensions, zones, and SVG placement', async () => {
+  const target = await loadTarget('ipsc-popper-mini');
+  assert.equal(target.id, 'ipsc-popper-mini');
+  assert.equal(target.widthM, 0.2);
+  assert.equal(target.heightM, 0.56);
+  assert.ok(Math.abs(target.aspectRatio - 0.56 / 0.2) < 1e-9);
+  assert.equal(target.zones.length, 1);
+  assert.equal(target.zones[0].id, 'hit');
+  assert.equal(target.resultSvg.pointOfAim.x, 100);
+  assert.equal(target.resultSvg.pointOfAim.y, 100, 'the circular head\'s own center, not the bounding-box center');
+  assert.equal(target.resultSvg.pxPerMeter, 1000);
+});
+
+test('ipsc-popper-mini\'s hitProbability: with negligible dispersion dead-center, essentially all mass is a hit; a huge dispersion scores near-zero', async () => {
+  const hitProbability = await loadTargetFunction('ipsc-popper-mini');
+  const centered = hitProbability(0.01, 0.01, 0, 0);
+  assert.ok(centered[0].probability > 0.999, `expected ~certain hit, got ${centered[0].probability}`);
+  const wide = hitProbability(1000, 1000, 0, 0);
+  assert.ok(wide[0].probability < 5e-3, `a target this small under this much dispersion should score near-zero, got ${wide[0].probability}`);
+});
+
+test('ipsc-popper is bigger than ipsc-popper-mini: same dispersion off both targets\' centers scores strictly higher on the full popper', async () => {
+  const popper = await loadTargetFunction('ipsc-popper');
+  const mini = await loadTargetFunction('ipsc-popper-mini');
+  const full = popper(15, 15, 0, 0)[0].probability;
+  const small = mini(15, 15, 0, 0)[0].probability;
+  assert.ok(full > small, `expected full popper (${full}) > mini (${small})`);
 });
 
 test('every catalog target resolves to a well-formed record and a callable scoring function', async () => {
