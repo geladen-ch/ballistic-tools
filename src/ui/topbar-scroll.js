@@ -7,7 +7,7 @@
 // language/display-mode switches.
 //
 // Also publishes the bar's own live rendered height as --topbar-height —
-// the landscape-mobile tab bar (see layout.css) docks to the right edge
+// the landscape-mobile tab bar (see layout.css) docks to the left edge
 // as a fixed, viewport-relative strip, and needs to start below this
 // (sticky, in-flow) bar rather than under it; the height isn't a fixed
 // number (it shrinks when collapsed, and varies by language/font

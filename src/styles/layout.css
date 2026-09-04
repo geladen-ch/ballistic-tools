@@ -14,7 +14,7 @@
   position: sticky;
   top: 0;
   /* Above #app-tabbar (z-index: 10) — in landscape-mobile that bar docks
-     to the right edge starting just below this one (see --topbar-height,
+     to the left edge starting just below this one (see --topbar-height,
      published by topbar-scroll.js), and this higher value is a safety
      margin against the two ever visually overlapping at the corner if
      that published height is ever a frame stale (e.g. mid-rotation). */
@@ -443,7 +443,7 @@ html.rifle-precision-marking-mode #view { display: flex; flex-direction: column;
 html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-height: 0; }
 
 /* Landscape phones (short viewport height, regardless of width) get the
-   tab bar standing on the right edge instead of lying along the bottom —
+   tab bar standing on the left edge instead of lying along the bottom —
    a horizontal bar here would eat a big chunk of the little vertical room
    a landscape phone has to begin with. Applies whenever mobile chrome is
    showing at all (same guard as above) and the real viewport happens to
@@ -451,21 +451,21 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 @media (orientation: landscape) and (max-height: 500px) {
   html:not(.force-desktop) #app-tabbar,
   html.force-mobile #app-tabbar {
-    left: auto;
+    left: 0;
     top: var(--topbar-height, 58px);
     bottom: 0;
-    right: 0;
+    right: auto;
     width: 64px;
     flex-direction: column;
     border-top: none;
-    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
     padding-bottom: 0;
-    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left);
   }
   html:not(.force-desktop) #app-body,
   html.force-mobile #app-body {
     padding-bottom: 0;
-    padding-right: 64px;
+    padding-left: 64px;
   }
   /* Horizontal padding cut further here than the base rule's 4px — more
      raw width for the label text in this already-narrow 64px column, so
