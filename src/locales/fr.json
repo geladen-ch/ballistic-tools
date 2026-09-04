@@ -891,6 +891,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v175": "Correction : les bordures des champs de saisie et des panneaux étaient à peine visibles dans le thème sombre, et celles du thème « contraste élevé clair » n'atteignaient pas son propre niveau de contraste ; celles-ci, ainsi que quelques couleurs de libellés et de validation à la limite, respectent désormais des niveaux de contraste accessibles (merci à 6.5SH d'avoir signalé le problème).",
       "v174": "Modification : les libellés des paramètres de simulation dans Probabilité d'impact indiquent désormais quelle mesure statistique chaque valeur représente (SD, R50 ou erreur médiane).",
       "v173": "Nouveau : cibles IPSC popper (standard et mini) dans Probabilité d'impact. Le calcul de probabilité d'impact par quadrature de Gauss-Legendre est désormais disponible en interne pour des cibles symétriques de forme quelconque.",
       "v172": "Correction : l'image détaillée de la cible dans Probabilité d'impact demandait brièvement un fichier inexistant lorsque la cible par défaut était une cible à taille réglable (Gong rond).",

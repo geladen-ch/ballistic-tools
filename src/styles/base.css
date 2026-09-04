@@ -23,18 +23,18 @@
   --bg: #14181c;
   --panel: #1b2127;
   --panel-raised: #222a31;
-  --line: #2a3138;
+  --line: #647585;
   --text: #d9e0e6;
-  --dim: #7c8790;
+  --dim: #87929a;
   --accent: #e8a33d;
-  --accent-dim: #8a6327;
+  --accent-dim: #a5762e;
   /* Category color for Analysis (src/nav-tools.js) — Measurement reuses
      --accent (already the reticle logo's own color); this is the one
      new hue in the palette, kept clearly distinct from both --accent and
      the status colors below so it never reads as "success" or "warning". */
   --analysis: #4fa8d8;
   --analysis-dim: #2c5f78;
-  --danger: #e0605a;
+  --danger: #e26c66;
   --ok: #5fb87a;
   /* Hit Probability's two spotter-corrected error ellipses (see
      hit-probability-view.js's cssVar() reads, and .legend-swatch-
@@ -64,14 +64,14 @@
   --bg: #14181c;
   --panel: #1b2127;
   --panel-raised: #222a31;
-  --line: #2a3138;
+  --line: #647585;
   --text: #d9e0e6;
-  --dim: #7c8790;
+  --dim: #87929a;
   --accent: #e8a33d;
-  --accent-dim: #8a6327;
+  --accent-dim: #a5762e;
   --analysis: #4fa8d8;
   --analysis-dim: #2c5f78;
-  --danger: #e0605a;
+  --danger: #e26c66;
   --ok: #5fb87a;
   --conditions-error: #22d3ee;
   --own-precision-error: #a855f7;
@@ -85,7 +85,7 @@
   --bg: #ffffff;
   --panel: #ffffff;
   --panel-raised: #e8e8e8;
-  --line: #999999;
+  --line: #848484;
   --text: #000000;
   --dim: #333333;
   --accent: #b34700;
