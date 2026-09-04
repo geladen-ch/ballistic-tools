@@ -891,6 +891,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v171": "Änderung: Im mobilen Querformat-Modus wird die Navigationsleiste jetzt links angedockt (wie im Desktop-Layout) statt rechts.",
       "v170": "Fix: Der Distanzwert des aktiven Ziels in der Tabelle der Distanzkarte konnte kleiner statt größer als die anderen Zeilen dargestellt werden.",
       "v169": "Neu: Ansicht „Distanzkarte“ im Feldrechner — alle Ziele eines Standorts auf einem Bildschirm, mit visueller Zielauswahl auf dem Foto (danke an ma smith für die Idee).",
       "v168": "Neu: frei einstellbare runde und rechteckige Ziele für Trefferwahrscheinlichkeit (Idee von 6.5SH).",

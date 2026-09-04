@@ -891,6 +891,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v171": "Modifica: in modalità mobile orizzontale, la barra di navigazione ora si aggancia a sinistra (come nel layout desktop) invece che a destra.",
       "v170": "Correzione: il valore della distanza del bersaglio attivo nella tabella della Scheda di tiro poteva apparire più piccolo delle altre righe invece che più grande.",
       "v169": "Novità: vista «Scheda di tiro» nel Calcolatore per il poligono — tutti i bersagli di una postazione sulla stessa schermata, con selettore visivo sulla foto (grazie a ma smith per l'idea).",
       "v168": "Novità: bersagli circolari e rettangolari personalizzabili per Probabilità di colpire (idea di 6.5SH).",
