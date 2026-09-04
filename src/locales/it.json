@@ -891,6 +891,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v175": "Correzione: i bordi dei campi di input e dei pannelli erano quasi invisibili nel tema scuro, e quelli del tema \"alto contrasto chiaro\" non raggiungevano il proprio standard di contrasto; questi, insieme ad alcuni colori di etichette e validazione al limite, ora rispettano livelli di contrasto accessibili (grazie a 6.5SH per la segnalazione).",
       "v174": "Modifica: le etichette dei parametri di simulazione in Probabilità di colpire ora indicano quale misura statistica rappresenta ciascun valore (SD, R50 o errore mediano).",
       "v173": "Novità: bersagli IPSC popper (standard e mini) in Probabilità di colpire. I calcoli di probabilità di colpire con quadratura di Gauss-Legendre sono ora disponibili internamente per bersagli simmetrici di forma qualsiasi.",
       "v172": "Correzione: l'immagine di dettaglio del bersaglio in Probabilità di colpire richiedeva brevemente un file inesistente quando il bersaglio predefinito era uno a dimensione regolabile (Gong circolare).",

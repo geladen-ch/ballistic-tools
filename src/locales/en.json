@@ -891,6 +891,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v175": "Fix: input field and panel borders were barely visible in the dark theme, and high-contrast-light's borders fell short of its own high-contrast standard; both, plus a few marginal label and validation text colors, now meet accessible contrast levels (thanks to 6.5SH for reporting the issue).",
       "v174": "Change: Hit Probability's simulation-parameter labels now show which statistical measure each figure represents (SD, R50, or median error).",
       "v173": "New: IPSC popper targets (standard and mini) in Hit Probability. Gauss-Legendre hit prob calculations are now available under the hood for random-shaped symmetrical targets.",
       "v172": "Fix: Hit Probability's target detail image briefly requested a nonexistent file when the default target was a user-sizeable one (Circle gong).",
