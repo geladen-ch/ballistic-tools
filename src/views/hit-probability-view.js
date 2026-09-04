@@ -399,7 +399,11 @@ export function mount(container) {
   let currentTargetId = initialTargetId;
   const targetButtons = new Map(); // target id -> its picker button, for toggling .active
   const targetPickerGrid = el('div', { class: 'target-picker-grid' });
-  const targetDetailImg = el('img', { src: targetDetailUrl(initialTargetId).href, alt: '', style: 'width:100%;max-width:260px;display:block;margin-bottom:10px;' });
+  // src is left blank here (not eagerly set to targetDetailUrl(initialTargetId)):
+  // the initial target may be a custom one (circle-gong, rect-plate) with no
+  // static -detail.svg file at all — loadCurrentTarget() below sets the right
+  // src (static URL or generated blob:) once it knows the target's shape.
+  const targetDetailImg = el('img', { alt: '', style: 'width:100%;max-width:260px;display:block;margin-bottom:10px;' });
   const targetNameLabel = el('p', { class: 'hint' });
 
   function selectTarget(id) {
