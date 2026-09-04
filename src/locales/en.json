@@ -891,6 +891,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v170": "Fix: the active target's range value in Range Card's table could render smaller than the other rows' instead of larger.",
       "v169": "New: Range Card view in Range Solver — all targets for a given location, on the same screen, with visual on-photo picker (thanks to ma smith for the idea).",
       "v168": "New: user-sizeable circle and rectangle targets for Hit Probability (props to 6.5SH for the idea).",
       "v167": "New: built-in unit conversion tool (again, 6.5SH’s idea, “for the full offline ‘Swiss Army Knife’ experience”). Check it out under “Analysis”.",

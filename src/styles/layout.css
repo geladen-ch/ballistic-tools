@@ -950,7 +950,12 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 }
 .range-card-scrollbar-track:hover .range-card-scrollbar-thumb { background: var(--accent); }
 .range-card-row--active .range-card-row-name { font-size: clamp(14px, 4.5cqw, 18px); }
-.range-card-row--active .range-card-row-range { font-size: clamp(13px, 4cqw, 16px); color: var(--dim); }
+/* Floor above the plain row's own fixed 14px (.range-card-row-range
+   above) — clamp(13px, ...) here used to be able to resolve *below* that
+   on a narrow container, making the active row's range read smaller than
+   every other row's, backwards from this row's whole "more prominent"
+   point (see .range-card-row--active's own comment above). */
+.range-card-row--active .range-card-row-range { font-size: clamp(15px, 4.5cqw, 18px); color: var(--dim); }
 .range-card-row--active .range-card-row-elev,
 .range-card-row--active .range-card-row-wind {
   font-size: clamp(18px, 8.5cqw, 30px);
