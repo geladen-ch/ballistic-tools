@@ -296,7 +296,7 @@ test('Done navigates to the recorded Guns return path, falling back to Trajector
 // mode" idea as Guns, with its own Target/Wind/Atmosphere/Gun/Exit-solver
 // control instead. Reuses .guns-tab/.done-btn as-is (see layout.css). ----
 
-test('while in Range Solver mode, the rail shows Target/Atmosphere/Gun/Exit solver instead of its normal content', () => {
+test('while in Range Solver mode, the rail shows Target/Range Card/Atmosphere/Gun/Exit solver instead of its normal content', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   setRangeSolverMode(true);
@@ -304,8 +304,9 @@ test('while in Range Solver mode, the rail shows Target/Atmosphere/Gun/Exit solv
   assert.equal(container.className, 'app-rail range-solver-mode');
   assert.equal(findByClass(container, 'rail-item').length, 0, 'the normal Home/group/pinned links should be gone');
   const tabs = findByClass(container, 'guns-tab');
-  assert.equal(tabs.length, 3, 'Target, Atmosphere, Gun');
+  assert.equal(tabs.length, 4, 'Target, Range Card, Atmosphere, Gun');
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navTarget'))));
+  assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navRangeCard'))));
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navAtmosphere'))));
   assert.ok(tabs.some((n) => n.textContent.includes(t('nav.guns')) && n.getAttribute('href') === '#/guns/custom'));
   assert.ok(findByClass(container, 'done-btn')[0].textContent.includes(t('rangeSolver.exitSolver')));

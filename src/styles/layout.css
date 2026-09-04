@@ -623,6 +623,403 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
    accent color instead to read as clearly present. */
 .range-solver-location-row .icon-button { color: var(--accent); }
 
+/* ---- Range Card tab (src/ui/range-solver/range-card-panel.js) ----
+   Three zones — table, photo picker, wind strip — arranged with CSS Grid
+   named areas so the same three DOM children just get reassigned areas
+   between orientations, no JS-side restructuring. Table always comes
+   first/top — it's the view's own primary content (every target's dope
+   at a glance), sized to its own content (row-count budget, see
+   .range-card-table-body's own max-height) rather than stretched to fill
+   a flexible track, so it reads as "the important thing up top," not one
+   equal-weight panel among three. Stacked table/picker/wind in portrait.
+   In landscape, table and wind share a left column (table on top, wind
+   filling whatever's left below it — see the media query's own comment
+   for how its size follows that); picker takes the whole right column,
+   full height, rather than sharing a row with wind — it's the control
+   that most benefits from real screen space (zoom/pan a photo), unlike
+   wind's own compact dial. html.range-solver-card-active further down is
+   what makes this whole panel actually get the room to do that — the
+   fixed-height, output-pane-hidden, full-width treatment. */
+.range-card-panel {
+  display: grid;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "locationBar" "table" "picker" "wind";
+}
+@media (orientation: landscape) {
+  .range-card-panel {
+    /* 1:2 — the picker is the control that most benefits from real
+       screen space (zoom/pan a photo); table+wind's own column just
+       needs to stay legible, not match it. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "locationBar locationBar"
+      "table  picker"
+      "wind   picker";
+  }
+}
+
+/* The line above the table — manage-locations icon, active location
+   name, row-count control. Same pieces/roles as the Target tab's own
+   .range-solver-location-row, just without that row's target <select>/
+   photo-picker button (this tab already has its own tap-to-select photo
+   picker below, and a target list isn't this row's job). */
+.range-card-location-bar {
+  grid-area: locationBar;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.range-card-location-bar .icon-button { color: var(--accent); }
+.range-card-location-name {
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* align-self:start (not the grid's own default stretch) keeps this cell
+   from being pulled to match .range-card-picker-host's full row height in
+   landscape (they share row 2) — without it, centering a ~180px dial
+   inside a cell as tall as the picker reads as huge top/bottom margins
+   around the dial, when it's really just unclaimed grid-cell space.
+   align-items:flex-start (not center) does the same job on the strip's
+   own cross axis in portrait, where the "wind" row is already auto-sized
+   to content and would otherwise still center-pad a fully-decoded dial
+   against its own SVG canvas margin (see .wind-control-combo's own
+   comment in wind-control.js for why that canvas is bigger than the
+   drawn face) — starting flush trims that too. */
+.range-card-wind-strip {
+  grid-area: wind;
+  align-self: start;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 0;
+}
+/* windControl()'s own combo is designed down to a 250px floor (see
+   .wind-control-combo) — cap its footprint here so it reads as a strip,
+   not a second full-size dial competing with the table for room. margin-
+   bottom:0 cancels .field's own global 14px trailing margin, which would
+   otherwise still pad the bottom now that centering no longer does. */
+.range-card-wind-strip .wind-control-combo { --dial-d: clamp(130px, 22cqw, 190px); min-width: 0; }
+.range-card-wind-strip .wind-control { margin-bottom: 0; }
+
+/* Landscape only: wind now shares a column with the table instead of a
+   row with the picker (see .range-card-panel's own landscape grid-
+   template-areas above) — its own grid row is whatever the table's auto
+   height doesn't claim underneath it. align-self:stretch (overriding the
+   portrait rule's own start, immediately above) lets this cell actually
+   take that full row height instead of sizing to its own compact
+   content. --rc-wind-dial-d is kept in sync with that resolved height by
+   range-card-panel.js's own ResizeObserver (a plain cqh container-query
+   calc collapsed the dial to 0×0 instead — mixing it with windControl()'s
+   own nested cqw container for button sizing didn't resolve the way the
+   spec suggests it should, across engines tested), so the dial scales up
+   to roughly match the table's own height (up to a sane cap) rather than
+   staying fixed at the portrait strip's small footprint. */
+@media (orientation: landscape) {
+  .range-card-wind-strip {
+    align-self: stretch;
+    align-items: center;
+  }
+  .range-card-wind-strip .wind-control-combo {
+    --dial-d: var(--rc-wind-dial-d, 190px);
+  }
+}
+.range-card-picker-host {
+  grid-area: picker;
+  position: relative; /* anchors .range-card-zoom-controls' own overlay */
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+.range-card-picker-hint { margin: auto; text-align: center; max-width: 32ch; }
+
+/* Desktop/mouse zoom controls — photoViewport()'s own gesture handling is
+   pinch-first (touch); floating bottom-right over the photo itself
+   (rather than a toolbar row) keeps the whole picker area free for the
+   photo, same "controls float over the content" posture location-
+   placement-view.js's full-screen version uses for its own Zoom In/Out,
+   just inline here instead of in the section nav bar. */
+.range-card-zoom-controls {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* Scoped through the parent .range-card-zoom-controls (not just the
+   button's own class) so this beats base.css's button.icon-button —
+   (0,1,1) there outranks a bare .range-card-zoom-btn (0,1,0) regardless
+   of source order, silently reverting these to that base look (26px,
+   transparent, --dim). One extra qualifying class fixes it the same way
+   this file's other card-active/specificity notes do. */
+.range-card-zoom-controls .range-card-zoom-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Half-transparent white rather than the usual var(--panel) — this
+     floats directly over the photo itself (not a solid panel background
+     behind it), and a photo can have light elements right under it that
+     var(--panel) (dark in this app's default theme) would blend into. A
+     fixed white keeps these legible against any photo, in either theme. */
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  /* Fixed dark, not var(--text) — that flips to near-white in this app's
+     dark/high-contrast-dark themes, which would wash out against this
+     button's own always-white background above. */
+  color: #202020;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.range-card-zoom-controls .range-card-zoom-btn:hover { background: rgba(255, 255, 255, 0.7); }
+.range-card-zoom-controls .range-card-zoom-btn:active { background: var(--accent-dim); color: var(--accent-text); }
+
+/* The active pin swaps its plain dot for a crosshair (target-pin-
+   glyphs.js) — sized and colored like every other pin/chip on this photo,
+   just visually distinct so it reads as "this one's dialed" at a glance,
+   matching the Range Card table's own enlarged active row. */
+.range-card-pin--active { color: var(--accent); z-index: 1; }
+.target-photo-overlay-pin.range-card-pin--active .target-photo-overlay-pin-label,
+.target-photo-overlay-chip.range-card-pin--active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+/* The crosshair glyph (target-pin-glyphs.js) is bigger than the plain
+   dot every other pin uses — .target-photo-overlay-pin-label's own
+   top:8px (sized for the dot) would otherwise sit half-overlapping it. */
+.target-photo-overlay-pin.range-card-pin--active .target-photo-overlay-pin-label { top: 16px; }
+/* .target-photo-overlay-pin-dot centers itself on its parent pin's own
+   (0,0) anchor point via left:0;top:0;transform:translate(-50%,-50%) —
+   the crosshair glyph needs the exact same treatment (it's a bare <svg>
+   with no positioning of its own), or it renders anchored at its
+   top-left corner instead of centered on the target's actual coords. */
+.target-photo-overlay-pin-crosshair {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+}
+
+.range-card-table {
+  grid-area: table;
+  align-self: start; /* content-sized (row-count budget), never stretched to fill a taller row track */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.range-card-table-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  padding-right: 14px; /* matches .range-card-table-body's own padding-right, which reserves this strip for .range-card-scrollbar-track — keeps the header's own flex-basis columns the same width as the identically-flexed cells below them */
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+.range-card-col-name { flex: 1.4 1 0; min-width: 0; }
+.range-card-col-range, .range-card-col-elev, .range-card-col-wind { flex: 1 1 0; text-align: right; }
+
+/* Positions .range-card-scrollbar-track along the table body's own right
+   edge, overlaid rather than a separate flex column so it never steals
+   width from the row content itself (see .range-card-table-body's own
+   right padding, which reserves just enough room for it). */
+.range-card-table-body-wrap { position: relative; min-height: 0; }
+
+/* Row count (the drag control in the table header) is now a *visible-
+   height budget*, not a hard cap on how many targets can be listed —
+   --rc-row-budget (set from range-card-panel.js's applyRowBudget()) caps
+   this element's own height; once actual content exceeds it, this
+   scrolls (wireDragToScroll() below, plus native wheel/touch scroll —
+   touch-action:none only hands single-finger vertical drag over to that
+   manual handler, pinch/multi-touch is never attempted here so nothing
+   else needs suppressing) instead of every row being squeezed to fit, as
+   an earlier flex-grow-ratio version of this table did. The native
+   scrollbar is hidden (scrollbar-width/::-webkit-scrollbar) in favor of
+   the fatter custom one in the reserved right-padding strip — a real
+   touch-tablet target, not a sliver a fingertip can't find. */
+.range-card-table-body {
+  max-height: calc(var(--rc-row-budget, 400) * 1px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 14px;
+  touch-action: none;
+  scrollbar-width: none;
+  /* A long-press mid-drag otherwise fires the browser's own text-
+     selection/context-menu handling on top of the gesture — same fix
+     .photo-viewport already needed (see that rule's own comment); its own
+     contextmenu listener in range-card-panel.js's wireDragToScroll() is
+     the other half of this. */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.range-card-table-body::-webkit-scrollbar { display: none; }
+.range-card-table-empty { margin: auto; text-align: center; }
+.range-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  border-bottom: 1px solid var(--line);
+  flex: 0 0 auto;
+  min-height: 34px; /* just enough for one line of 13-14px text plus a little breathing room — range-card-panel.js's own applyRowBudget() measures this rendered height rather than assuming it, so it never has to be kept in sync by hand */
+}
+.range-card-row:last-child { border-bottom: none; }
+.range-card-row-name {
+  flex: 1.4 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 13px;
+}
+.range-card-row-range, .range-card-row-elev, .range-card-row-wind {
+  flex: 1 1 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+/* The one row that matters right now — see this tab's own design brief
+   (docs/plans/range-solver-range-card-view.md): "one target displayed in
+   a prominent manner, larger than all others." container-type lets its
+   own value cells scale off this row's actual box rather than the
+   viewport, same reasoning .range-solver-stat uses for the single-target
+   readout elsewhere in this file. */
+.range-card-row--active {
+  min-height: 64px; /* tall enough for its own larger fonts below — see .range-card-row's own comment on how the table's visible-height budget stays in sync with whatever this actually renders at */
+  background: var(--panel-raised);
+  border-left: 3px solid var(--accent);
+  padding-left: 7px;
+  container-type: inline-size;
+}
+
+/* The custom scrollbar (range-card-panel.js's own tableScrollbar()) —
+   fat and always in the same spot, unlike a native scrollbar's platform-
+   dependent (and often hairline-thin) styling. Hidden entirely via
+   .range-card-scrollbar--hidden whenever the table body doesn't actually
+   overflow. */
+.range-card-scrollbar-track {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  bottom: 2px;
+  width: 10px;
+  border-radius: 5px;
+  background: var(--panel-raised);
+  touch-action: none;
+  cursor: pointer;
+  /* Same long-press-context-menu fix as .range-card-rowcount-track below
+     — see that rule's own comment. */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.range-card-scrollbar--hidden { display: none; }
+.range-card-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: 5px;
+  background: var(--line);
+}
+.range-card-scrollbar-track:hover .range-card-scrollbar-thumb { background: var(--accent); }
+.range-card-row--active .range-card-row-name { font-size: clamp(14px, 4.5cqw, 18px); }
+.range-card-row--active .range-card-row-range { font-size: clamp(13px, 4cqw, 16px); color: var(--dim); }
+.range-card-row--active .range-card-row-elev,
+.range-card-row--active .range-card-row-wind {
+  font-size: clamp(18px, 8.5cqw, 30px);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Row-count drag control — sits inline in the location bar above the
+   table, deliberately its own tiny widget rather than a native
+   <input type=range> (cross-browser track/thumb styling can't be
+   trusted to stay this small — see range-card-panel.js's own
+   rowCountControl()). */
+.range-card-rowcount {
+  margin-left: auto;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  cursor: pointer;
+}
+.range-card-rowcount-caption { white-space: nowrap; }
+.range-card-rowcount-track {
+  position: relative;
+  width: 64px;
+  height: 16px;
+  touch-action: none;
+  /* A long-press mid-drag otherwise fires the browser's own text-
+     selection/context-menu handling on top of the gesture — same fix
+     .photo-viewport already needed (see that rule's own comment); this
+     control's own contextmenu listener in range-card-panel.js's
+     rowCountControl() is the other half of this. */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.range-card-rowcount-track::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  background: var(--line);
+  border-radius: 2px;
+}
+.range-card-rowcount-fill {
+  position: absolute;
+  left: 0; top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  background: var(--accent);
+  border-radius: 2px;
+}
+.range-card-rowcount-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.range-card-rowcount:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.range-card-rowcount-value { min-width: 1.4ch; text-align: right; font-variant-numeric: tabular-nums; }
+
 /* Locations management's Current-location/Known-locations split
    (src/views/locations-view.js) — each is just a heading over a stack of
    .arsenal-row entries, same convention every other list in this app
@@ -724,8 +1121,8 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 
 /* location-placement-view.js's own page shell — fills the space under
    the nav bar (see html.placement-mode below) with the photo viewport,
-   a short instruction line above it, and (placement mode only) a "Clear
-   pin" button below. */
+   a short instruction line above it, (placement mode only) which target
+   this is above that, and a "Clear pin" button below. */
 .location-placement-page {
   display: flex;
   flex-direction: column;
@@ -736,6 +1133,16 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 }
 .location-placement-page > .hint { margin: 0; flex-shrink: 0; }
 .location-placement-page > button { flex-shrink: 0; align-self: flex-start; }
+/* Which target is being placed — name, range, LoS angle — so a shooter
+   with several targets queued up isn't placing a pin blind. Accent color
+   (not the plain .hint text above it) so it reads as "this one" rather
+   than another instruction line. */
+.location-placement-target-info {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--accent);
+}
 
 /* Select-mode's tap-to-select pins/chips (ported from the retired
    target-photo-overlay.js) — reused as-is inside photo-viewport.js's own
@@ -1339,6 +1746,33 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
    centers and sizes itself already (see .wind-control-* above), the same
    everywhere it appears. */
 
+/* ---- Range Card tab: full-screen, no-scroll takeover ----
+   html.range-solver-card-active is toggled from app.js's own
+   onRangeSolverTabChange subscription (not gated to mobile chrome, unlike
+   the block below it) — the tablet widths this tab targets are exactly
+   where the nav-rail ("desktop" chrome) shows, and this tab needs the
+   same fixed-height, no-scroll treatment there too. Hides the single-
+   target output pane (its own enlarged active table row already covers
+   that ground) and lets the input pane claim the full width instead of
+   its usual 50/50 or fixed-sidebar share.
+   Selectors here intentionally carry one extra qualifying class each
+   (repeating .range-solver-card-active, or adding .range-solver-layout as
+   a third) so they're never accidentally out-specificed by the mobile-
+   chrome block immediately below, which reaches the same #view/
+   .range-solver-input-pane through 2-3 classes of its own in some
+   variants — see this file's own specificity notes wherever that
+   matters; source order (this block first) is the deciding factor
+   whenever specificity does end up tied. */
+html.range-solver-card-active #app-shell { height: 100dvh; }
+html.range-solver-mode.range-solver-card-active #view {
+  display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+  max-width: none; padding: 12px;
+}
+html.range-solver-card-active .range-solver-layout { flex: 1; min-height: 0; }
+html.range-solver-card-active .range-solver-output-pane { display: none; }
+html.range-solver-card-active .range-solver-layout .range-solver-input-pane { flex: 1 1 100%; min-height: 0; }
+.range-card-tab-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
 /* ---- Range Solver mobile chrome: establishes a real (not just min-)
    height down through #app-shell/#view/.range-solver-layout so flex:1
    further down this pane's chain actually has something to divide up —
@@ -1557,4 +1991,17 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
   html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 0 1 300px; }
   html.range-solver-mode.force-mobile .range-solver-output-pane { flex: 1 1 auto; }
   html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 0 1 300px; }
+  /* Range Card claims the whole screen even on a short-landscape phone —
+     the 300px cap above exists to leave room for the Target/Atmosphere
+     tabs' own big single-target readout (.range-solver-output-pane), but
+     Range Card hides that pane entirely (html.range-solver-card-active's
+     own display:none on it, further up this file) and needs its table/
+     wind/picker columns to actually have the screen's real width, not a
+     300px sliver with the same 1:2 split squeezed pointlessly inside it.
+     One extra qualifying class (.range-solver-card-active, beyond the
+     two rules above's own three) outweighs them regardless of source
+     order — see this file's own recurring specificity notes wherever a
+     card-active override has to win against an earlier, narrower-purpose
+     rule reaching the same element. */
+  html.range-solver-mode.range-solver-card-active .range-solver-layout .range-solver-input-pane { flex: 1 1 100%; }
 }

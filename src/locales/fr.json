@@ -437,6 +437,7 @@
   },
   "rangeSolver": {
     "navTarget": "Cible",
+    "navRangeCard": "Fiche de tir",
     "navAtmosphere": "Atmosphère",
     "exitSolver": "Quitter le calculateur",
     "elevationLabel": "Élévation",
@@ -444,7 +445,12 @@
     "tofLabel": "Temps de vol",
     "velocityLabel": "Vitesse",
     "energyLabel": "Énergie",
-    "secondsUnit": "s"
+    "secondsUnit": "s",
+    "rangeCardNoLocationHint": "Appuyez sur l'icône d'emplacement ci-dessus pour choisir un emplacement et voir sa fiche de tir.",
+    "rangeCardNoTargetsHint": "Ce lieu n'a pas encore de cibles — ajoutez-en depuis le gestionnaire de lieux.",
+    "rangeCardNoPhotoHint": "Ajoutez une photo à ce lieu pour choisir les cibles visuellement ici.",
+    "rangeCardRangeHeader": "Distance",
+    "rangeCardRowCountLabel": "Lignes"
   },
   "rangeSolverLocations": {
     "title": "Emplacements et cibles",
@@ -885,6 +891,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v169": "Nouveau : vue « Carte de tir » dans le Calculateur de terrain — toutes les cibles d'un lieu sur le même écran, avec sélecteur visuel sur la photo (merci à ma smith pour l'idée).",
       "v168": "Nouveau : cibles circulaires et rectangulaires personnalisables pour Probabilité de toucher (idée de 6.5SH).",
       "v167": "Nouveau : outil de conversion d'unités intégré (encore une idée de 6.5SH, « pour la pleine expérience “couteau suisse” hors ligne »). À découvrir sous « Analyse ».",
       "v166": "Nouveau : ajout du modèle de traînée standard RA4 (Percussion annulaire subsonique), pour les munitions .22 LR et autres charges à percussion annulaire (livraison spéciale pour 6.5SH). Désactivé par défaut — activez-le dans Réglages > Modèles balistiques.",

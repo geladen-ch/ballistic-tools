@@ -79,10 +79,30 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
   // actually changed since (e.g. the device was rotated in between).
   if (initialViewport) applyTransform();
 
+  // A caller wanting to act on the decoded photo (e.g. location-
+  // placement-view.js's own initial centerOn() for a re-placed target —
+  // centerOn() itself is a no-op until naturalWidth is known) has no
+  // other way to know when that's actually happened, short of reaching
+  // into this module's own <img> — onReady() below is that hook instead.
+  let loaded = false;
+  const readyCallbacks = [];
   img.addEventListener('load', () => {
     naturalWidth = img.naturalWidth;
     naturalHeight = img.naturalHeight;
+    loaded = true;
+    readyCallbacks.splice(0).forEach((cb) => cb());
   });
+
+  // Fires `callback` once the photo's natural size is known — immediately
+  // if that's already happened by the time this is called, queued for
+  // the img's own 'load' otherwise. Always safe to call right after
+  // construction: 'load' is dispatched as its own task even for a
+  // same-task/cached src, never synchronously, so it can never have
+  // already fired before this module's own listener above even attaches.
+  function onReady(callback) {
+    if (loaded) callback();
+    else readyCallbacks.push(callback);
+  }
 
   function pointToRelative(clientX, clientY) {
     const rect = widget.getBoundingClientRect();
@@ -113,6 +133,23 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
   }
   function zoomIn() { zoomStep(ZOOM_STEP); }
   function zoomOut() { zoomStep(1 / ZOOM_STEP); }
+
+  // Re-centers the viewport on a relative `{x,y}` point (same 0..1
+  // fraction-of-photo convention every marker here already uses) at
+  // whatever scale is currently set — a caller-driven pan, not a gesture.
+  // Used by range-card-panel.js to bring the newly active target to the
+  // middle of the frame when it's picked from the table (or elsewhere)
+  // rather than tapped directly on the photo, where it's presumably
+  // already near-visible. Clamped through the exact same clampPan() every
+  // pan/zoom already goes through, so this can never scroll past the
+  // photo's own edges even if the point sits near a corner.
+  function centerOn(point) {
+    if (!naturalWidth) return; // photo not decoded yet — nothing to center against
+    const targetTx = widget.clientWidth / 2 - point.x * widget.clientWidth * scale;
+    const targetTy = widget.clientHeight / 2 - point.y * contentHeight() * scale;
+    ({ tx, ty } = clampPan(targetTx, targetTy, scale, widget.clientWidth, widget.clientHeight, contentHeight()));
+    applyTransform();
+  }
 
   // A long-press mid-drag/pan otherwise fires the browser's own
   // right-click-equivalent context menu (Android's "long press" menu,
@@ -205,5 +242,5 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
   widget.addEventListener('pointerup', endPointer);
   widget.addEventListener('pointercancel', endPointer);
 
-  return { node: widget, markersLayer, zoomIn, zoomOut, getViewport: () => ({ scale, tx, ty }) };
+  return { node: widget, markersLayer, zoomIn, zoomOut, centerOn, onReady, getViewport: () => ({ scale, tx, ty }) };
 }

@@ -20,7 +20,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, displayToEngine, roundForDisplay, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
+import { clicksForOffset, engineToDisplay, displayToEngine, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
@@ -37,6 +37,7 @@ import { loadUserLocations } from '../location-library.js';
 import { locationPickerButton } from '../ui/locations/location-picker-button.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
+import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
 
 const DEFAULT_LOS_ANGLE_DEG = 0;
 const DEFAULT_WIND_ANGLE_DEG = 90;
@@ -233,23 +234,6 @@ export function mount(container) {
 
   refreshLocationWidget();
 
-  // A saved target's own rangeM run through the exact same
-  // engine<->display round-trip inlineNumberField() itself applies (see
-  // ui/inline-number-field.js) before comparing — otherwise a target
-  // whose stored value has more precision than the display unit shows
-  // (e.g. distance in yards) would read as "hand-edited" the instant
-  // it's loaded, from display rounding alone, never having been touched.
-  // losAngleDeg has no FIELD_UNITS entry (plain pass-through degrees, see
-  // units.js), so it round-trips exactly with no rounding step at all —
-  // a raw comparison is already exact.
-  function roundTripEngineValue(fieldId, groupName, engineValue) {
-    const group = UNIT_GROUPS[groupName];
-    const unit = getUnit(groupName);
-    const choice = unitChoice(fieldId, unit) || group.choices.find((c) => c.unit === group.defaultUnit);
-    const displayValue = roundForDisplay(fieldId, choice.unit, engineToDisplay(fieldId, engineValue, choice.unit));
-    return displayToEngine(fieldId, displayValue, choice.unit);
-  }
-
   // There's no live "push these edits back up to the library" path
   // anymore — hand-editing a loaded target's range/LoS just detaches from
   // it (dropdown falls back to "Manual entry", see deselectTarget()
@@ -257,12 +241,24 @@ export function mount(container) {
   // regardless of what actually changed (wind/atmosphere edits included)
   // — cheap, and correct either way: once activeTargetId is null there's
   // no target left to diverge from, so this becomes a no-op.
+  //
+  // Each field's own peekRoundTrip() (inline-number-field.js) — not a
+  // hand-rolled copy of its rounding — is what a saved target's raw
+  // rangeM/losAngleDeg has to go through before comparing: otherwise a
+  // target whose stored value has more precision than the field actually
+  // displays (e.g. a LOS angle of 5.5° against losAngleField's whole-
+  // degree `decimals: 0`) reads as "hand-edited" the instant it's loaded,
+  // from the field's own display rounding alone — immediately deselecting
+  // the very target selectTarget() just finished copying in, never having
+  // been touched by hand at all. (This is exactly what a stale, duplicated
+  // round-trip helper here used to get wrong for both fields — silently,
+  // for any target whose LOS angle wasn't a whole number.)
   function detachIfHandEdited() {
     const target = resolvedActiveTarget();
     if (!target) return;
     const diverged = (
-      targetRangeField.getEngineValue() !== roundTripEngineValue('targetRange', 'distance', target.rangeM) ||
-      losAngleField.getEngineValue() !== target.losAngleDeg
+      targetRangeField.getEngineValue() !== targetRangeField.peekRoundTrip(target.rangeM) ||
+      losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(target.losAngleDeg)
     );
     if (diverged) deselectTarget();
   }
@@ -298,6 +294,25 @@ export function mount(container) {
     wind.node
   ]);
 
+  // ---- Range Card tab — every target at the active location solved at
+  // once (src/ui/range-solver/range-card-panel.js). No unit/ballistics
+  // knowledge of its own; buildRangeCardRows()/solveClicks() below feed it
+  // fully-formed rows on every recompute(). Shares the exact same
+  // windControl() instance as the Target tab above (re-parented between
+  // the two tabs' own slots in applyActiveTab(), see windSlotTarget/
+  // rangeCard.windSlot below) rather than a second dial reflecting the
+  // same cookie-backed value — one instance, one place it can go stale. ----
+  const rangeCard = rangeCardPanel({
+    onSelectTarget: (targetId) => selectTarget(targetId),
+    indicatorGlyphs,
+    onManageLocations: () => { location.hash = '#/locations'; }
+  });
+  const rangeCardTab = el('div', { class: 'range-solver-tab-panel range-card-tab-panel' }, [rangeCard.node]);
+  // wind.node's other possible parent — see applyActiveTab()'s reparenting
+  // step; kept as its own named slot (rather than targetTab directly)
+  // purely so both call sites read the same way.
+  const windSlotTarget = targetTab;
+
   // ---- Atmosphere tab — own cookie-backed state (range-solver-state.js),
   // deliberately not shot-state.js's shared session-only one (see
   // atmosphere-section.js's own load/save override). ----
@@ -307,18 +322,31 @@ export function mount(container) {
   });
   const atmosphereTab = el('div', { class: 'range-solver-tab-panel' }, [atmosphere.node]);
 
-  // Which of the two shows is driven by the section nav bar (see
+  // Which of the three shows is driven by the section nav bar (see
   // range-solver-nav.js), not local tab buttons — nav-rail.js/nav-
-  // tabbar.js's own Target/Atmosphere items call setRangeSolverTab().
-  const tabPanels = { target: targetTab, atmosphere: atmosphereTab };
+  // tabbar.js's own Target/Range Card/Atmosphere items call
+  // setRangeSolverTab(). app.js's own onRangeSolverTabChange subscription
+  // toggles html.range-solver-card-active (layout.css keys off it to give
+  // this tab the whole screen, output pane hidden) — kept there rather
+  // than here to match every other cross-cutting mode class in this app.
+  const tabPanels = { target: targetTab, rangeCard: rangeCardTab, atmosphere: atmosphereTab };
   function applyActiveTab() {
     const active = getRangeSolverTab();
     for (const key of Object.keys(tabPanels)) tabPanels[key].style.display = key === active ? '' : 'none';
+    // appendChild() on an already-attached node moves it — no explicit
+    // remove-then-insert dance needed either direction.
+    (active === 'rangeCard' ? rangeCard.windSlot : windSlotTarget).appendChild(wind.node);
+    // Row heights measured while this tab's own display:none (every
+    // recompute() runs regardless of which tab is active — see
+    // refreshRangeCard() below) all come back zero, baking in an empty-
+    // looking table until re-measured for real — see rangeCard's own
+    // remeasure() for why this can't just be skipped while hidden instead.
+    if (active === 'rangeCard') rangeCard.remeasure();
   }
   applyActiveTab();
   const unsubscribeTab = onRangeSolverTabChange(applyActiveTab);
 
-  const inputPane = el('div', { class: 'range-solver-input-pane' }, [targetTab, atmosphereTab]);
+  const inputPane = el('div', { class: 'range-solver-input-pane' }, [targetTab, rangeCardTab, atmosphereTab]);
 
   // ---- Output pane ----
   // A quiet, label-free readout of the current atmospheric conditions —
@@ -535,10 +563,12 @@ export function mount(container) {
     });
   }
 
-  function recompute() {
-    updateConditions();
-    detachIfHandEdited();
-    const nominalState = {
+  // Everything computeImpact() needs except losAngleDeg/targetRangeM —
+  // those two vary per target (the dialed one below, and every other
+  // target's own stored values for the Range Card tab, see
+  // buildRangeCardRows()), everything else is shared "current conditions."
+  function buildNominalStateBase() {
+    return {
       ...cartridge.getValues(),
       ...rifle.getValues(),
       ...atmosphere.getValues(),
@@ -552,22 +582,25 @@ export function mount(container) {
       spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled(),
       windSpeed: wind.getEngineSpeed(),
-      windAngle: wind.getAngle(),
-      losAngleDeg: losAngleField.getEngineValue()
+      windAngle: wind.getAngle()
     };
-    const targetRangeM = targetRangeField.getEngineValue();
+  }
 
+  // The one shot solve, factored out so both the Target tab's own single
+  // readout and the Range Card tab's per-target rows (each with their own
+  // rangeM/losAngleDeg, same shared conditions otherwise) go through the
+  // exact same math — returns null on anything unsolvable (same cases
+  // showPlaceholder() used to catch inline) rather than throwing, so a
+  // Range Card loop over several targets can skip just the bad one.
+  function solveClicks(nominalStateBase, targetRangeM, losAngleDeg) {
+    const nominalState = { ...nominalStateBase, losAngleDeg };
     let result;
     try {
       result = computeImpact(nominalState, targetRangeM);
     } catch {
-      showPlaceholder();
-      return;
+      return null;
     }
-    if (![result.dropCm, result.windageCm, result.velocity, result.tof].every(Number.isFinite)) {
-      showPlaceholder();
-      return;
-    }
+    if (![result.dropCm, result.windageCm, result.velocity, result.tof].every(Number.isFinite)) return null;
 
     let elevValue;
     let windValue;
@@ -586,26 +619,77 @@ export function mount(container) {
       windValue = clicksForOffset(result.windageCm, 1, angularUnit, targetRangeM);
       decimals = 1;
     }
+    if (![elevValue, windValue].every(Number.isFinite)) return null;
+    return { elevValue, windValue, decimals, result };
+  }
+
+  // range/LoS display string for one target's row — same targetRange
+  // field/unit convention every other distance value in this app uses,
+  // but always rounded to a whole number: the row-count budget/font sizes
+  // in the Range Card table are tuned for a compact value column, and
+  // this table is a glance-at overview rather than a precision field.
+  function formatRangeDisplay(rangeM) {
+    const distanceUnit = currentUnit('distance');
+    const choice = unitChoice('targetRange', distanceUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
+    return `${Math.round(engineToDisplay('targetRange', rangeM, choice.unit))} ${choice.label}`;
+  }
+
+  function buildRangeCardRows(nominalStateBase) {
+    if (!activeLocation) return [];
+    return activeLocation.targets
+      .map((target, index) => {
+        const solved = solveClicks(nominalStateBase, target.rangeM, target.losAngleDeg);
+        return {
+          id: target.id,
+          name: target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 }),
+          rangeM: target.rangeM,
+          rangeDisplay: formatRangeDisplay(target.rangeM),
+          elevValue: solved ? solved.elevValue : 0,
+          windValue: solved ? solved.windValue : 0,
+          decimals: solved ? solved.decimals : 0,
+          valid: !!solved
+        };
+      })
+      .sort((a, b) => a.rangeM - b.rangeM);
+  }
+
+  function refreshRangeCard(nominalStateBase) {
+    rangeCard.refresh({ location: activeLocation, rows: buildRangeCardRows(nominalStateBase), activeTargetId });
+  }
+
+  function recompute() {
+    updateConditions();
+    detachIfHandEdited();
+    const nominalStateBase = buildNominalStateBase();
+    const targetRangeM = targetRangeField.getEngineValue();
+    const solved = solveClicks(nominalStateBase, targetRangeM, losAngleField.getEngineValue());
+    if (!solved) {
+      showPlaceholder();
+      refreshRangeCard(nominalStateBase);
+      return;
+    }
 
     const velocityUnit = getUnit('velocity');
     const velocityChoice = unitChoice('muzzleVelocity', velocityUnit);
-    const displayVelocity = engineToDisplay('muzzleVelocity', result.velocity, velocityUnit);
+    const displayVelocity = engineToDisplay('muzzleVelocity', solved.result.velocity, velocityUnit);
 
     const massKg = cartridge.getValues().massKg;
-    const energyJ = 0.5 * massKg * result.velocity * result.velocity;
+    const energyJ = 0.5 * massKg * solved.result.velocity * solved.result.velocity;
     const energyUnit = getUnit('energy');
     const energyChoice = unitChoice('energy', energyUnit);
     const displayEnergy = engineToDisplay('energy', energyJ, energyUnit);
 
-    if (![elevValue, windValue, displayVelocity, displayEnergy].every(Number.isFinite)) {
+    if (![displayVelocity, displayEnergy].every(Number.isFinite)) {
       showPlaceholder();
+      refreshRangeCard(nominalStateBase);
       return;
     }
 
-    renderReadout(elevValue, windValue, decimals);
-    tofValue.textContent = `${result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
+    renderReadout(solved.elevValue, solved.windValue, solved.decimals);
+    tofValue.textContent = `${solved.result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;
     energyValue.textContent = `${displayEnergy.toFixed(0)} ${energyChoice.label}`;
+    refreshRangeCard(nominalStateBase);
   }
 
   recompute();
@@ -634,5 +718,6 @@ export function mount(container) {
     wakeLockSentinel = null;
     wrapResizeObserver?.disconnect();
     if (wrapSyncFrame !== null) cancelAnimationFrame(wrapSyncFrame);
+    rangeCard.dispose();
   };
 }

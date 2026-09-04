@@ -133,6 +133,20 @@ export function losAngleIcon(size = 18) {
   ]);
 }
 
+// A bordered grid — Range Solver's "Range Card" tab (every target at the
+// active location, one row each). Distinct from arsenalIcon's two stacked
+// rects (no shared column divider) and manualIcon's plain horizontal
+// rules (no border/column at all), so it reads as "table," not "list" or
+// "document."
+export function rangeCardIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('rect', { x: '3', y: '3', width: '14', height: '14', rx: '1.5' }),
+    svgEl('line', { x1: '3', y1: '8', x2: '17', y2: '8' }),
+    svgEl('line', { x1: '3', y1: '12.5', x2: '17', y2: '12.5' }),
+    svgEl('line', { x1: '9', y1: '3', x2: '9', y2: '17' })
+  ]);
+}
+
 // A thermometer — Range Solver's "Atmosphere" tab (temperature/pressure/
 // altitude/humidity). Deliberately not the same gauge/dial motif
 // measurementIcon() already uses, to avoid the two reading as the same
