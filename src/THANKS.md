@@ -15,6 +15,10 @@ reporters, and everyone else who helped shape this suite.
 
 **Thomas** (Red Oak Arms, [https://www.redoakarms.com/balcalc/](https://www.redoakarms.com/balcalc/)) for the extremely generous permission to use the wealth of information he compiled on many thousands of different projectiles from a huge number of sources.
 
+## Original Labrabaco (now known as BC Labradar)
+
+- **entoptics** @ longrangehunting.com forums, who has contributed multiple high-quality datasets and data processing ideas, to design, test and fine-tune the algorithms. 
+
 ## Original Taran (now known as Rifle Precision Calculator tool) i18n
 (fully reused in this new version)
 
