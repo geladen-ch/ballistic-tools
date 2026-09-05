@@ -219,6 +219,24 @@ try {
         .then((registration) => {
           logDiagnostic('log', `[boot] service worker registered (scope ${registration.scope})`);
           watchForLiveUpdate(registration);
+          // The browser's own implicit update check (normally run on every
+          // in-scope navigation) isn't reliable for every launch surface —
+          // notably an installed/homescreen PWA on Android, which can stay
+          // on a stale worker indefinitely even across a full device
+          // reboot, because that entry point never triggers the browser's
+          // navigation-driven check the way an ordinary tab does. Calling
+          // update() explicitly here, and again whenever the page regains
+          // foreground, means this app asks instead of only ever waiting
+          // to be told.
+          registration.update().catch((err) => {
+            logDiagnostic('error', '[boot] service worker update() check failed:', err);
+          });
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible') return;
+            registration.update().catch((err) => {
+              logDiagnostic('error', '[foreground] service worker update() check failed:', err);
+            });
+          });
         })
         .catch((err) => {
           // offline support is a nice-to-have, not load-bearing — swallow and

@@ -23,5 +23,7 @@ export const TARGET_IDS = [
   'square-2m',
   'killer-tubby',
   'ipsc-popper',
-  'ipsc-popper-mini'
+  'ipsc-popper-mini',
+  'ipsc-target',
+  'ipsc-target-mini'
 ];

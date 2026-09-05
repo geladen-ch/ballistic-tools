@@ -346,6 +346,9 @@
     "scenarioSingleShot": "Single shot",
     "scenarioSpotterCorrected": "Spotter-corrected shot",
     "targetLabel": "Target",
+    "powerFactorLabel": "Power factor",
+    "powerFactorMajor": "Major",
+    "powerFactorMinor": "Minor",
     "battleZeroToggleLabel": "Battle zero (rifle zeroed at a different range)",
     "totalProbabilityLabel": "Total hit probability",
     "perZoneHeading": "Per-zone probability",
@@ -891,6 +894,9 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v179": "New: IPSC Target and IPSC Mini Target (cardboard, three nested A/C/D scoring zones) added to Hit Probability, with a Major/Minor power-factor toggle for scoring.",
+      "v178": "Fix: pages could silently keep serving an old cached version even on a fresh visit — every request now forces a real network fetch instead of letting the browser's own HTTP cache quietly answer it from disk.",
+      "v177": "Fix: installed/home-screen apps on Android could get stuck on an old version indefinitely — the app now actively checks for updates on launch and whenever it returns to the foreground, instead of relying only on the browser's own update check.",
       "v176": "Fix: on low-height mobile viewports, the fixed bottom tab bar could overlap the last portion of a page's content (e.g. the bottom of Hit Probability's Total Error chart) on devices with an on-screen navigation bar, since the space reserved for it didn't account for that bar's safe-area inset (thanks to 6.5SH for reporting).",
       "v175": "Fix: input field and panel borders were barely visible in the dark theme, and high-contrast-light's borders fell short of its own high-contrast standard; both, plus a few marginal label and validation text colors, now meet accessible contrast levels (thanks to 6.5SH for reporting the issue).",
       "v174": "Change: Hit Probability's simulation-parameter labels now show which statistical measure each figure represents (SD, R50, or median error).",
@@ -1059,6 +1065,18 @@
     "ipscPopperMini": {
       "name": "IPSC Mini Popper",
       "zoneHit": "Hit"
+    },
+    "ipscTarget": {
+      "name": "IPSC Target",
+      "zoneA": "A",
+      "zoneC": "C",
+      "zoneD": "D"
+    },
+    "ipscTargetMini": {
+      "name": "IPSC Mini Target",
+      "zoneA": "A",
+      "zoneC": "C",
+      "zoneD": "D"
     }
   },
   "unitConversion": {

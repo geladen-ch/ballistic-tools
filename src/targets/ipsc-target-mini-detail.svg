@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 280" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
+  <!-- target face: nested A/C/D scoring zones -->
+  <path d="M 174,20 L 222,80 L 222,140 L 174,200 L 126,200 L 78,140 L 78,80 L 126,20 Z" fill="none" stroke="#7c8790" stroke-width="2"/>
+  <path d="M 174,20 L 198,80 L 198,125.6 L 166.8,164 L 133.2,164 L 102,125.6 L 102,80 L 126,20 Z" fill="none" stroke="#7c8790" stroke-width="1.4"/>
+  <path d="M 159.6,27.2 L 174,80 L 174,106.4 L 159.6,130.4 L 140.4,130.4 L 126,106.4 L 126,80 L 140.4,27.2 Z" fill="none" stroke="#7c8790" stroke-width="1.4"/>
+
+  <!-- point of aim: center of the A-zone, not the shape's own bounding-box center -->
+  <line x1="142" y1="78.8" x2="158" y2="78.8" stroke="#e8a33d" stroke-width="1.6"/>
+  <line x1="150" y1="70.8" x2="150" y2="86.8" stroke="#e8a33d" stroke-width="1.6"/>
+
+  <!-- width dimension -->
+  <line x1="78" y1="215" x2="222" y2="215" stroke="#7c8790" stroke-width="1"/>
+  <line x1="78" y1="210" x2="78" y2="220" stroke="#7c8790" stroke-width="1"/>
+  <line x1="222" y1="210" x2="222" y2="220" stroke="#7c8790" stroke-width="1"/>
+
+  <text x="150" y="250" text-anchor="middle" fill="#d9e0e6" font-size="20" font-weight="600">30 &#215; 37.5 cm</text>
+</svg>
