@@ -395,6 +395,32 @@ export function mount(container) {
   rectPlateHeightField.node.style.display = 'none';
   const customDimsFields = el('div', {}, [circleGongDiameterField.node, rectPlateWidthField.node, rectPlateHeightField.node]);
 
+  // Major/Minor power factor — only meaningful for targets whose zones
+  // carry both scoreMajor and scoreMinor instead of a plain score (the two
+  // IPSC cardboard targets, so far). It never touches hitProbability()
+  // itself — A/C/D are the same regions either way — only which point
+  // value each zone's probability gets weighted by for "Score % of
+  // Maximum" (see applyPowerFactorScores(), which resolves each zone's
+  // effective .score in place, the same way refreshCustomTargetArtwork()
+  // overwrites targetData's other derived fields).
+  const powerFactorSelect = persistedSelect(
+    'ipscPowerFactor',
+    ['major', 'minor'].map((k) => el('option', { value: k, i18n: `hitProbability.powerFactor${k[0].toUpperCase()}${k.slice(1)}` })),
+    'minor',
+    () => { applyPowerFactorScores(); recompute(); }
+  );
+  const powerFactorRow = el('div', { class: 'field' }, [el('label', { i18n: 'hitProbability.powerFactorLabel' }), powerFactorSelect]);
+  powerFactorRow.style.display = 'none';
+
+  // Resolves each of the current target's zones' effective .score from the
+  // power-factor select — a no-op for every target whose zones carry a
+  // plain, fixed score (i.e. everything except the two IPSC targets).
+  function applyPowerFactorScores() {
+    if (!targetData || !targetData.zones.length || targetData.zones[0].scoreMajor === undefined) return;
+    const useMajor = powerFactorSelect.value === 'major';
+    for (const zone of targetData.zones) zone.score = useMajor ? zone.scoreMajor : zone.scoreMinor;
+  }
+
   const initialTargetId = persistedValue('targetId', loadTargetCatalog()[0]);
   let currentTargetId = initialTargetId;
   const targetButtons = new Map(); // target id -> its picker button, for toggling .active
@@ -418,6 +444,7 @@ export function mount(container) {
     targetRangeField.node,
     el('div', { class: 'field' }, [el('label', { i18n: 'hitProbability.targetLabel' }), targetPickerGrid, targetDetailImg, targetNameLabel]),
     customDimsFields,
+    powerFactorRow,
     atmosphere.node,
     movingTargetSpeedField.node,
     battleZeroToggleRow,
@@ -698,6 +725,8 @@ export function mount(container) {
       targetData = target;
       targetHitProbability = hitProbabilityFn;
       applyCustomDimsVisibility(target.custom ? target.custom.shape : null);
+      applyPowerFactorScores();
+      powerFactorRow.style.display = targetData.zones[0] && targetData.zones[0].scoreMajor !== undefined ? '' : 'none';
 
       if (target.custom) {
         refreshCustomTargetArtwork();

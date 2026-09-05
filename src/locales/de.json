@@ -346,6 +346,9 @@
     "scenarioSingleShot": "Einzelschuss",
     "scenarioSpotterCorrected": "Beobachterkorrigierter Schuss",
     "targetLabel": "Ziel",
+    "powerFactorLabel": "Kraftfaktor",
+    "powerFactorMajor": "Major",
+    "powerFactorMinor": "Minor",
     "battleZeroToggleLabel": "Gefechtsnull (Waffe auf eine andere Entfernung eingeschossen)",
     "totalProbabilityLabel": "Gesamttrefferwahrscheinlichkeit",
     "perZoneHeading": "Wahrscheinlichkeit nach Zone",
@@ -891,6 +894,9 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v179": "Neu: IPSC Target und IPSC Mini Target (Kartonziele mit drei verschachtelten Wertungszonen A/C/D) in Trefferwahrscheinlichkeit, mit einem Major/Minor-Kraftfaktor-Umschalter für die Wertung.",
+      "v178": "Fix: Seiten konnten selbst bei einem neuen Besuch stillschweigend eine alte, zwischengespeicherte Version weiter ausliefern – jede Anfrage erzwingt jetzt einen echten Netzwerkabruf, statt dass der eigene HTTP-Cache des Browsers sie unbemerkt von der Festplatte beantwortet.",
+      "v177": "Fix: Als App installierte/zum Startbildschirm hinzugefügte Versionen unter Android konnten dauerhaft auf einer alten Version hängen bleiben – die App prüft jetzt beim Start und bei jeder Rückkehr in den Vordergrund aktiv auf Updates, statt sich allein auf die eigene Update-Prüfung des Browsers zu verlassen.",
       "v176": "Fix: Bei niedrigen mobilen Anzeigehöhen konnte die fixierte untere Tableiste den unteren Teil des Seiteninhalts überdecken (z. B. das untere Ende von Trefferwahrscheinlichkeits Gesamtfehler-Diagramm) – auf Geräten mit einer Bildschirm-Navigationsleiste, da der dafür reservierte Platz deren Safe-Area-Inset nicht berücksichtigte (Dank an 6.5SH für die Meldung).",
       "v175": "Fix: Eingabefeld- und Panel-Rahmen waren im dunklen Theme kaum sichtbar, und die Rahmen im Theme „Hoher Kontrast, hell“ erreichten dessen eigenen Kontrastanspruch nicht; beide sowie einige grenzwertige Label- und Validierungsfarben erfüllen jetzt barrierefreie Kontrastwerte (Dank an 6.5SH für die Meldung).",
       "v174": "Änderung: Die Beschriftungen der Simulationsparameter in Trefferwahrscheinlichkeit zeigen jetzt an, welches statistische Maß die jeweilige Zahl darstellt (SD, R50 oder Medianfehler).",
@@ -1059,6 +1065,18 @@
     "ipscPopperMini": {
       "name": "IPSC Mini Popper",
       "zoneHit": "Treffer"
+    },
+    "ipscTarget": {
+      "name": "IPSC Target",
+      "zoneA": "A",
+      "zoneC": "C",
+      "zoneD": "D"
+    },
+    "ipscTargetMini": {
+      "name": "IPSC Mini Target",
+      "zoneA": "A",
+      "zoneC": "C",
+      "zoneD": "D"
     }
   },
   "unitConversion": {

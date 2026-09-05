@@ -1,0 +1,16 @@
+{
+  "id": "ipsc-target-mini",
+  "nameKey": "targets.ipscTargetMini.name",
+  "widthM": 0.3,
+  "heightM": 0.375,
+  "aspectRatio": 1.25,
+  "zones": [
+    { "id": "a", "nameKey": "targets.ipscTargetMini.zoneA", "scoreMajor": 5, "scoreMinor": 5, "score": 5 },
+    { "id": "c", "nameKey": "targets.ipscTargetMini.zoneC", "scoreMajor": 4, "scoreMinor": 3, "score": 3 },
+    { "id": "d", "nameKey": "targets.ipscTargetMini.zoneD", "scoreMajor": 2, "scoreMinor": 1, "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 150, "y": 122.5 },
+    "pxPerMeter": 1000
+  }
+}

@@ -317,6 +317,16 @@ const APP_SHELL_URLS = [
   './src/targets/ipsc-popper-mini-thumb.svg',
   './src/targets/ipsc-popper-mini-detail.svg',
   './src/targets/ipsc-popper-mini-result.svg',
+  './src/targets/ipsc-target.json',
+  './src/targets/ipsc-target.js',
+  './src/targets/ipsc-target-thumb.svg',
+  './src/targets/ipsc-target-detail.svg',
+  './src/targets/ipsc-target-result.svg',
+  './src/targets/ipsc-target-mini.json',
+  './src/targets/ipsc-target-mini.js',
+  './src/targets/ipsc-target-mini-thumb.svg',
+  './src/targets/ipsc-target-mini-detail.svg',
+  './src/targets/ipsc-target-mini-result.svg',
   './src/workers/ballistics-worker.js',
   './src/workers/worker-pool.js',
   './src/vendor/js-quantities/quantities.mjs',
@@ -424,7 +434,16 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(event.request).then((response) => {
+    // { cache: 'reload' } for the same reason precacheOne() above uses it:
+    // a plain fetch(event.request) still obeys ordinary HTTP caching, so a
+    // host that sends a cacheable Cache-Control/Expires header on these
+    // files lets the browser's own HTTP cache silently satisfy this "goes
+    // to network" call from disk — no request ever reaches the server,
+    // and every version bump stays invisible until something else (a
+    // manual "clear browsing data") empties that HTTP cache. This is
+    // "network-first" in fact, not just in the service worker's own belief
+    // about what it just did.
+    fetch(event.request, { cache: 'reload' }).then((response) => {
       if (response.ok) {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));

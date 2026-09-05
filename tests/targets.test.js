@@ -12,7 +12,8 @@ test('loadTargetCatalog resolves a plain list of target ids', () => {
   assert.deepEqual(catalog, [
     'circle-gong', 'rect-plate', 'issf-300m', 'ch-300m-b4', 'ch-300m-b10', 'ussr-4', 'ussr-5', 'ussr-8',
     'ch-campagne-e', 'ch-campagne-f', 'ch-campagne-g', 'ch-campagne-h', 'ch-campagne-k',
-    'ch-nttc-score', 'square-2m', 'killer-tubby', 'ipsc-popper', 'ipsc-popper-mini'
+    'ch-nttc-score', 'square-2m', 'killer-tubby', 'ipsc-popper', 'ipsc-popper-mini',
+    'ipsc-target', 'ipsc-target-mini'
   ]);
   for (const entry of catalog) assert.equal(typeof entry, 'string');
 });
@@ -320,6 +321,65 @@ test('ipsc-popper is bigger than ipsc-popper-mini: same dispersion off both targ
   const full = popper(15, 15, 0, 0)[0].probability;
   const small = mini(15, 15, 0, 0)[0].probability;
   assert.ok(full > small, `expected full popper (${full}) > mini (${small})`);
+});
+
+test('loadTarget resolves the ipsc-target target\'s dimensions, zones (with both scoring standards), and SVG placement', async () => {
+  const target = await loadTarget('ipsc-target');
+  assert.equal(target.id, 'ipsc-target');
+  assert.equal(target.widthM, 0.45);
+  assert.equal(target.heightM, 0.57);
+  assert.ok(Math.abs(target.aspectRatio - 0.57 / 0.45) < 1e-9);
+  assert.deepEqual(target.zones.map((z) => z.id), ['a', 'c', 'd']);
+  assert.deepEqual(target.zones.map((z) => z.scoreMajor), [5, 4, 2]);
+  assert.deepEqual(target.zones.map((z) => z.scoreMinor), [5, 3, 1]);
+  assert.equal(target.resultSvg.pointOfAim.x, 225);
+  assert.equal(target.resultSvg.pointOfAim.y, 187.5);
+  assert.equal(target.resultSvg.pxPerMeter, 1000);
+});
+
+test('ipsc-target\'s hitProbability: with negligible dispersion dead-center (the A-zone\'s own center), essentially all mass is in zone A', async () => {
+  const hitProbability = await loadTargetFunction('ipsc-target');
+  const zones = hitProbability(0.01, 0.01, 0, 0);
+  const byId = Object.fromEntries(zones.map((z) => [z.zoneId, z.probability]));
+  assert.ok(byId.a > 0.999, `expected ~all mass in zone A, got ${byId.a}`);
+  const total = zones.reduce((s, z) => s + z.probability, 0);
+  assert.ok(Math.abs(total - 1) < 1e-6, `zone probabilities should sum to ~1, got ${total}`);
+});
+
+test('ipsc-target\'s hitProbability: no zone ever goes negative (nested A ⊆ C ⊆ D subtraction) across a range of dispersions', async () => {
+  const hitProbability = await loadTargetFunction('ipsc-target');
+  for (const sd of [1, 5, 10, 20, 35, 50]) {
+    const zones = hitProbability(sd, sd, 0, 0);
+    for (const zone of zones) assert.ok(zone.probability >= -1e-9, `zone ${zone.zoneId} went negative (${zone.probability}) at sd=${sd}`);
+  }
+});
+
+test('loadTarget resolves the ipsc-target-mini target\'s dimensions, zones, and SVG placement', async () => {
+  const target = await loadTarget('ipsc-target-mini');
+  assert.equal(target.id, 'ipsc-target-mini');
+  assert.equal(target.widthM, 0.3);
+  assert.equal(target.heightM, 0.375);
+  assert.ok(Math.abs(target.aspectRatio - 0.375 / 0.3) < 1e-9);
+  assert.deepEqual(target.zones.map((z) => z.id), ['a', 'c', 'd']);
+  assert.equal(target.resultSvg.pointOfAim.x, 150);
+  assert.equal(target.resultSvg.pointOfAim.y, 122.5);
+  assert.equal(target.resultSvg.pxPerMeter, 1000);
+});
+
+test('ipsc-target-mini\'s hitProbability: with negligible dispersion dead-center, essentially all mass is in zone A', async () => {
+  const hitProbability = await loadTargetFunction('ipsc-target-mini');
+  const zones = hitProbability(0.01, 0.01, 0, 0);
+  const byId = Object.fromEntries(zones.map((z) => [z.zoneId, z.probability]));
+  assert.ok(byId.a > 0.999, `expected ~all mass in zone A, got ${byId.a}`);
+});
+
+test('ipsc-target is bigger than ipsc-target-mini: same dispersion off both targets\' centers scores strictly higher total hit probability on the full target', async () => {
+  const full = await loadTargetFunction('ipsc-target');
+  const mini = await loadTargetFunction('ipsc-target-mini');
+  const sum = (zones) => zones.reduce((s, z) => s + z.probability, 0);
+  const fullTotal = sum(full(15, 15, 0, 0));
+  const miniTotal = sum(mini(15, 15, 0, 0));
+  assert.ok(fullTotal > miniTotal, `expected full (${fullTotal}) > mini (${miniTotal})`);
 });
 
 test('every catalog target resolves to a well-formed record and a callable scoring function', async () => {

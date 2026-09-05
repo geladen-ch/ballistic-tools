@@ -346,6 +346,9 @@
     "scenarioSingleShot": "Colpo singolo",
     "scenarioSpotterCorrected": "Colpo corretto dall'osservatore",
     "targetLabel": "Bersaglio",
+    "powerFactorLabel": "Fattore di potenza",
+    "powerFactorMajor": "Major",
+    "powerFactorMinor": "Minor",
     "battleZeroToggleLabel": "Zero da combattimento (arma azzerata a una distanza diversa)",
     "totalProbabilityLabel": "Probabilità di colpire totale",
     "perZoneHeading": "Probabilità per zona",
@@ -891,6 +894,9 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v179": "Novità: bersagli IPSC Target e IPSC Mini Target (cartone, tre zone di punteggio A/C/D annidate) aggiunti a Probabilità di colpire, con un selettore del fattore di potenza Major/Minor per il punteggio.",
+      "v178": "Correzione: le pagine potevano continuare a servire silenziosamente una vecchia versione memorizzata nella cache anche durante una visita recente — ogni richiesta ora forza un vero recupero di rete, invece di lasciare che la cache HTTP del browser risponda silenziosamente dal disco.",
+      "v177": "Correzione: le app installate/aggiunte alla schermata Home su Android potevano restare bloccate indefinitamente su una versione precedente — l'app ora controlla attivamente gli aggiornamenti all'avvio e ogni volta che torna in primo piano, invece di affidarsi solo al controllo del browser.",
       "v176": "Correzione: su schermi mobili di altezza ridotta, la barra delle schede fissa in basso poteva sovrapporsi alla parte finale del contenuto di una pagina (ad esempio la parte inferiore del grafico Errore totale in Probabilità di colpire) sui dispositivi con una barra di navigazione a schermo, poiché lo spazio riservato per essa non teneva conto della relativa safe-area (grazie a 6.5SH per la segnalazione).",
       "v175": "Correzione: i bordi dei campi di input e dei pannelli erano quasi invisibili nel tema scuro, e quelli del tema \"alto contrasto chiaro\" non raggiungevano il proprio standard di contrasto; questi, insieme ad alcuni colori di etichette e validazione al limite, ora rispettano livelli di contrasto accessibili (grazie a 6.5SH per la segnalazione).",
       "v174": "Modifica: le etichette dei parametri di simulazione in Probabilità di colpire ora indicano quale misura statistica rappresenta ciascun valore (SD, R50 o errore mediano).",
@@ -1059,6 +1065,18 @@
     "ipscPopperMini": {
       "name": "IPSC Mini Popper",
       "zoneHit": "Colpito"
+    },
+    "ipscTarget": {
+      "name": "IPSC Target",
+      "zoneA": "A",
+      "zoneC": "C",
+      "zoneD": "D"
+    },
+    "ipscTargetMini": {
+      "name": "IPSC Mini Target",
+      "zoneA": "A",
+      "zoneC": "C",
+      "zoneD": "D"
     }
   },
   "unitConversion": {
