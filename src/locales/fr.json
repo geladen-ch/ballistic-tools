@@ -894,6 +894,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v180": "Correction : l'affichage en clics du Solveur de portée s'étiquetait avec l'unité de clic de la carabine (mrad/MOA) — la taille réelle d'un clic étant arbitraire et pouvant différer entre l'élévation et la dérive, cela faussait la valeur ; il est désormais étiqueté « Clics » à la place.",
       "v179": "Nouveau : cibles IPSC Target et IPSC Mini Target (carton, trois zones de score A/C/D imbriquées) dans Probabilité d'impact, avec un sélecteur de facteur de puissance Major/Minor pour le score.",
       "v178": "Correction : les pages pouvaient continuer à servir silencieusement une ancienne version mise en cache, même lors d'une visite récente — chaque requête force désormais une véritable récupération réseau, au lieu de laisser le cache HTTP du navigateur y répondre discrètement depuis le disque.",
       "v177": "Correction : les applications installées / ajoutées à l'écran d'accueil sous Android pouvaient rester bloquées indéfiniment sur une ancienne version — l'application vérifie désormais activement les mises à jour au lancement et à chaque retour au premier plan, au lieu de compter uniquement sur la propre vérification du navigateur.",

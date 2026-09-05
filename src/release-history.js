@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v180',
+    fullVersion: '3.5.7 (HARDASS — High-Accuracy Range and Data Analysis Software Suite)',
+    date: '2026-09-05',
+    descriptionKey: 'releaseHistory.entries.v180'
+  },
+  {
     cacheVersion: 'v179',
     fullVersion: '3.5.6 (HARDASS — High-Accuracy Range and Data Analysis Software Suite)',
     date: '2026-09-05',
