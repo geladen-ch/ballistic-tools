@@ -1105,7 +1105,7 @@
     "rangeCard": "Range Card",
     "rangeCardDesc": "Printable dial chart for one rifle+load, by distance.",
     "unitConversion": "Unit Conversion",
-    "unitConversionDesc": "Convert between metric and imperial units for angle, range, length, speed, mass, temperature, and pressure.",
+    "unitConversionDesc": "Convert between modern and archaic units for angle, range, length, speed, mass, temperature, and pressure.",
     "rangeSolver": "Range Solver",
     "rangeSolverDesc": "Refined \"high speed low drag\" ballistic solver for range use. No. Unnecessary. Information.",
     "statusLive": "Live",
