@@ -891,6 +891,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v176": "Fix: Bei niedrigen mobilen Anzeigehöhen konnte die fixierte untere Tableiste den unteren Teil des Seiteninhalts überdecken (z. B. das untere Ende von Trefferwahrscheinlichkeits Gesamtfehler-Diagramm) – auf Geräten mit einer Bildschirm-Navigationsleiste, da der dafür reservierte Platz deren Safe-Area-Inset nicht berücksichtigte (Dank an 6.5SH für die Meldung).",
       "v175": "Fix: Eingabefeld- und Panel-Rahmen waren im dunklen Theme kaum sichtbar, und die Rahmen im Theme „Hoher Kontrast, hell“ erreichten dessen eigenen Kontrastanspruch nicht; beide sowie einige grenzwertige Label- und Validierungsfarben erfüllen jetzt barrierefreie Kontrastwerte (Dank an 6.5SH für die Meldung).",
       "v174": "Änderung: Die Beschriftungen der Simulationsparameter in Trefferwahrscheinlichkeit zeigen jetzt an, welches statistische Maß die jeweilige Zahl darstellt (SD, R50 oder Medianfehler).",
       "v173": "Neu: IPSC-Popper-Ziele (Standard und Mini) in Trefferwahrscheinlichkeit. Gauss-Legendre-Berechnungen der Trefferwahrscheinlichkeit stehen jetzt intern für beliebig geformte symmetrische Ziele zur Verfügung.",

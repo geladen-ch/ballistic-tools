@@ -410,7 +410,7 @@ button.tab-item { background: none; border: none; font-family: inherit; cursor: 
 @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
   html:not(.force-desktop) #app-rail { display: none; }
   html:not(.force-desktop) #app-tabbar { display: flex; }
-  html:not(.force-desktop) #app-body { padding-bottom: 62px; } /* room for the fixed tab bar below */
+  html:not(.force-desktop) #app-body { padding-bottom: calc(62px + env(safe-area-inset-bottom)); } /* room for the fixed tab bar below */
   /* Range Solver only, mobile only — desktop keeps the topbar. Hiding it
      drives its own offsetHeight to 0, which the ResizeObserver in
      topbar-scroll.js already propagates to --topbar-height, so the
@@ -420,7 +420,7 @@ button.tab-item { background: none; border: none; font-family: inherit; cursor: 
 }
 html.force-mobile #app-rail { display: none; }
 html.force-mobile #app-tabbar { display: flex; }
-html.force-mobile #app-body { padding-bottom: 62px; }
+html.force-mobile #app-body { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
 html.range-solver-mode.force-mobile #app-topbar { display: none; }
 
 /* Placement mode's own full-screen takeover — unlike range-solver-mode

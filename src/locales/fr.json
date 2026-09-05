@@ -891,6 +891,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v176": "Correction : sur les écrans mobiles de faible hauteur, la barre d'onglets fixe en bas pouvait recouvrir la fin du contenu d'une page (par exemple le bas du graphique Erreur totale de Probabilité d'impact) sur les appareils dotés d'une barre de navigation à l'écran, car l'espace qui lui était réservé ne tenait pas compte de sa zone de sécurité (« safe-area ») (merci à 6.5SH d'avoir signalé le problème).",
       "v175": "Correction : les bordures des champs de saisie et des panneaux étaient à peine visibles dans le thème sombre, et celles du thème « contraste élevé clair » n'atteignaient pas son propre niveau de contraste ; celles-ci, ainsi que quelques couleurs de libellés et de validation à la limite, respectent désormais des niveaux de contraste accessibles (merci à 6.5SH d'avoir signalé le problème).",
       "v174": "Modification : les libellés des paramètres de simulation dans Probabilité d'impact indiquent désormais quelle mesure statistique chaque valeur représente (SD, R50 ou erreur médiane).",
       "v173": "Nouveau : cibles IPSC popper (standard et mini) dans Probabilité d'impact. Le calcul de probabilité d'impact par quadrature de Gauss-Legendre est désormais disponible en interne pour des cibles symétriques de forme quelconque.",
