@@ -894,6 +894,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v181": "Fix: Textfelder und Dropdowns (Namen von Gewehr/Patrone/Geschoss, die Patronenauswahl, die Zielauswahl des Entfernungsrechners und weitere) hatten keine eigene Farbe und konnten auf Android-Browsern, die native Formularelemente unabhängig vom eigenen Theme der App automatisch abdunkeln, unsichtbar dunkel auf dunkel erscheinen – jedes Feld und Dropdown erhält jetzt unabhängig vom Typ eine explizite Hintergrund-/Textfarbe (danke an 6.5SH für die Fehlermeldung).",
       "v180": "Fix: Die Klicks-Anzeige des Entfernungsrechners beschriftete sich mit der Klick-Einheit des Gewehrs (mrad/MOA) – da die tatsächliche Klickgröße beliebig ist und sich zwischen Höhe und Seite unterscheiden kann, war das falsch beschriftet; sie zeigt jetzt stattdessen „Klicks\" an.",
       "v179": "Neu: IPSC Target und IPSC Mini Target (Kartonziele mit drei verschachtelten Wertungszonen A/C/D) in Trefferwahrscheinlichkeit, mit einem Major/Minor-Kraftfaktor-Umschalter für die Wertung.",
       "v178": "Fix: Seiten konnten selbst bei einem neuen Besuch stillschweigend eine alte, zwischengespeicherte Version weiter ausliefern – jede Anfrage erzwingt jetzt einen echten Netzwerkabruf, statt dass der eigene HTTP-Cache des Browsers sie unbemerkt von der Festplatte beantwortet.",

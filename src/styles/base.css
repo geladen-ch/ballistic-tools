@@ -20,6 +20,16 @@
    load); app.js always applies exactly one of the three classes below to
    <html> right after, so :root's copy is never the only thing in play. */
 :root {
+  /* Tells the browser this page has its own dark UI, so native form
+     control chrome (an unstyled input's default background/text,
+     autofill, scrollbars, ...) renders to match instead of the
+     browser/OS guessing independently — without this, some browsers
+     apply their own auto-dark heuristics to native controls regardless
+     of this page's actual (equally dark) theme, and can land on a dark
+     background with equally-dark default text. Kept in sync with each
+     .theme-* class's own color-scheme below, same as every other token
+     above. */
+  color-scheme: dark;
   --bg: #14181c;
   --panel: #1b2127;
   --panel-raised: #222a31;
@@ -61,6 +71,7 @@
    comment block above :root for why this duplication is intentional. Keep
    the two in sync by hand. */
 .theme-dark {
+  color-scheme: dark;
   --bg: #14181c;
   --panel: #1b2127;
   --panel-raised: #222a31;
@@ -82,6 +93,7 @@
 /* Light background, dark text — maximum contrast in direct sunlight,
    closer to a printed page than the app's own dark palette. */
 .theme-high-contrast-light {
+  color-scheme: light;
   --bg: #ffffff;
   --panel: #ffffff;
   --panel-raised: #e8e8e8;
@@ -109,6 +121,7 @@
    dark theme's own (which is deliberately soft) so it still reads as
    "high contrast" against pure black, not just "the usual dark theme". */
 .theme-high-contrast-dark {
+  color-scheme: dark;
   --bg: #000000;
   --panel: #000000;
   --panel-raised: #1c1c1c;
@@ -163,8 +176,17 @@ a { color: var(--accent); }
   margin-bottom: 4px;
 }
 .field input[type="range"] { width: 100%; }
-.field input[type="number"],
-.field select {
+/* Every text-entry control, incl. text/password/search/date/... and any
+   input left without an explicit type (defaults to text) — a type left
+   uncovered here gets no app color/background at all and falls back to
+   the browser's own native styling (see color-scheme below for why that
+   goes badly wrong on some Android browsers). One :not() with a
+   selector-list argument, not a chain of them, so specificity stays a
+   single attribute selector like the old input[type="number"] rule and
+   doesn't outrank the dual-input override further down. */
+.field input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"], [type="reset"]),
+.field select,
+.field textarea {
   width: 100%;
   background: var(--panel-raised);
   border: 1px solid var(--line);
@@ -234,14 +256,9 @@ a { color: var(--accent); }
 .field-suggest-item:hover, .field-suggest-item.highlighted { background: var(--panel-raised); }
 /* Pasted-in-full Cd-Mach table (src/ui/arsenal/bullet-form.js) — a
    textarea instead of a single-line input, monospace so pasted columns of
-   numbers stay visually aligned. */
+   numbers stay visually aligned. Sizing/color come from the shared
+   `.field textarea` rule above; this just swaps in the monospace face. */
 .field textarea.cd-table-input {
-  width: 100%;
-  background: var(--panel-raised);
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: var(--radius);
-  padding: 6px 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
   resize: vertical;
@@ -619,6 +636,26 @@ button.icon-button {
   flex-shrink: 0;
 }
 button.icon-button:hover { color: var(--text); background: var(--panel-raised); border-color: var(--line); filter: none; }
+
+/* Baseline for every <select> in the app, not just the ones inside a
+   .field (that rule further down still sets width:100% for those) —
+   a select placed straight in a row of controls with no wrapper of its
+   own (.arsenal-active-cartridge's cartridge picker, the Range Solver's
+   #rangeSolverTargetSelect target picker) previously had no app color/
+   background at all and fell back entirely to the browser's own native
+   dropdown styling, the same bug the .field text-input fix above
+   addresses — see that comment for why that's low-contrast on some
+   Android browsers and not others. No width here: callers size their
+   own select (auto, flex, or .field's 100%). */
+select {
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+}
 
 /* A card's <h2> paired with a small icon-only action (e.g. a chart's own
    download button) on the same line instead of the heading's default
