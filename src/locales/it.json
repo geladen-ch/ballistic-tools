@@ -1105,7 +1105,7 @@
     "rangeCard": "Scheda di tiro",
     "rangeCardDesc": "Tabella di regolazione stampabile per un fucile+carica, per distanza.",
     "unitConversion": "Conversione unità",
-    "unitConversionDesc": "Conversione tra unità metriche e imperiali per angolo, distanza, lunghezza, velocità, massa, temperatura e pressione.",
+    "unitConversionDesc": "Conversione tra unità moderne e arcaiche per angolo, distanza, lunghezza, velocità, massa, temperatura e pressione.",
     "rangeSolver": "Calcolatore per il poligono",
     "rangeSolverDesc": "Calcolatore balistico raffinato e scattante per il tiro. Nessuna informazione superflua.",
     "statusLive": "Disponibile",

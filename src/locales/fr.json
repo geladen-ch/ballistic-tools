@@ -1105,7 +1105,7 @@
     "rangeCard": "Carte de tir",
     "rangeCardDesc": "Tableau de réglage imprimable pour une carabine et une charge, par distance.",
     "unitConversion": "Conversion d'unités",
-    "unitConversionDesc": "Conversion entre unités métriques et impériales pour l'angle, la distance, la longueur, la vitesse, la masse, la température et la pression.",
+    "unitConversionDesc": "Conversion entre unités modernes et archaïques pour l'angle, la distance, la longueur, la vitesse, la masse, la température et la pression.",
     "rangeSolver": "Calculateur de terrain",
     "rangeSolverDesc": "Calculateur balistique affûté pour le tir. Aucune information inutile.",
     "statusLive": "Disponible",

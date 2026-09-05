@@ -1105,7 +1105,7 @@
     "rangeCard": "Distanzkarte",
     "rangeCardDesc": "Druckbare Einstelltabelle für ein Gewehr+Ladung, nach Distanz.",
     "unitConversion": "Einheitenumrechnung",
-    "unitConversionDesc": "Umrechnung zwischen metrischen und imperialen Einheiten für Winkel, Entfernung, Länge, Geschwindigkeit, Masse, Temperatur und Druck.",
+    "unitConversionDesc": "Umrechnung zwischen modernen und archaischen Einheiten für Winkel, Entfernung, Länge, Geschwindigkeit, Masse, Temperatur und Druck.",
     "rangeSolver": "Feldrechner",
     "rangeSolverDesc": "Ausgereifter, windschnittiger Ballistikrechner für den Schießstand. Keine unnötigen Informationen.",
     "statusLive": "Verfügbar",
