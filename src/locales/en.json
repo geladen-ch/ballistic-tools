@@ -891,6 +891,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v176": "Fix: on low-height mobile viewports, the fixed bottom tab bar could overlap the last portion of a page's content (e.g. the bottom of Hit Probability's Total Error chart) on devices with an on-screen navigation bar, since the space reserved for it didn't account for that bar's safe-area inset (thanks to 6.5SH for reporting).",
       "v175": "Fix: input field and panel borders were barely visible in the dark theme, and high-contrast-light's borders fell short of its own high-contrast standard; both, plus a few marginal label and validation text colors, now meet accessible contrast levels (thanks to 6.5SH for reporting the issue).",
       "v174": "Change: Hit Probability's simulation-parameter labels now show which statistical measure each figure represents (SD, R50, or median error).",
       "v173": "New: IPSC popper targets (standard and mini) in Hit Probability. Gauss-Legendre hit prob calculations are now available under the hood for random-shaped symmetrical targets.",
