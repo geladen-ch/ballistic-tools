@@ -361,12 +361,20 @@ export function mount(container) {
   const conditionsBar = el('div', { class: 'range-solver-conditions' });
   const elevationValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   const windageValue = el('div', { class: 'range-solver-click-value' }, ['—']);
-  // Clicks carry no unit suffix (dialing is unit-agnostic, same convention
-  // as Settings' own scopeClick field) — mrad/MOA get one here, on the
-  // small label rather than the huge readout number itself, since the
-  // reading's own font size (up to 210px, see layout.css) would make an
-  // inline " mrad"/" MOA" suffix dominate the screen.
-  const outputUnitSuffix = OUTPUT_UNIT_LABEL[outputUnit] ? ` (${OUTPUT_UNIT_LABEL[outputUnit]})` : '';
+  // The unit suffix goes on the small label rather than the huge readout
+  // number itself, since the reading's own font size (up to 210px, see
+  // layout.css) would make an inline " mrad"/" MOA"/" clicks" suffix
+  // dominate the screen. 'clicks' gets the literal word "clicks", not the
+  // rifle's own click angular unit (mrad/MOA) — a click's *size* is
+  // arbitrary (0.1 mrad by default, but any value, and possibly different
+  // between elevation and windage — see scope-clicks-field.js), so
+  // labeling a "12 clicks" reading as "12 mrad" would misstate it by
+  // whatever factor the click value differs from 1 (10x too large at the
+  // 0.1 mrad default). "clicks" is the only label that's actually always
+  // true regardless of the rifle's click size/unit.
+  const outputUnitSuffix = OUTPUT_UNIT_LABEL[outputUnit]
+    ? ` (${OUTPUT_UNIT_LABEL[outputUnit]})`
+    : outputUnit === 'clicks' ? ` (${t('settings.rangeSolverOutputClicks')})` : '';
   const readout = el('div', { class: 'range-solver-readout' }, [
     el('div', { class: 'range-solver-stat range-solver-elevation' }, [
       elevationValue,

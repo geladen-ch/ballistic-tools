@@ -894,6 +894,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v180": "Correzione: la lettura in clic del Range Solver si etichettava con l'unità di clic del fucile (mrad/MOA) — poiché la dimensione effettiva di un clic è arbitraria e può differire tra elevazione e deriva, questo falsava il valore; ora è etichettata «Clic» invece.",
       "v179": "Novità: bersagli IPSC Target e IPSC Mini Target (cartone, tre zone di punteggio A/C/D annidate) aggiunti a Probabilità di colpire, con un selettore del fattore di potenza Major/Minor per il punteggio.",
       "v178": "Correzione: le pagine potevano continuare a servire silenziosamente una vecchia versione memorizzata nella cache anche durante una visita recente — ogni richiesta ora forza un vero recupero di rete, invece di lasciare che la cache HTTP del browser risponda silenziosamente dal disco.",
       "v177": "Correzione: le app installate/aggiunte alla schermata Home su Android potevano restare bloccate indefinitamente su una versione precedente — l'app ora controlla attivamente gli aggiornamenti all'avvio e ogni volta che torna in primo piano, invece di affidarsi solo al controllo del browser.",

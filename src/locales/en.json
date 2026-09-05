@@ -894,6 +894,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v180": "Fix: Range Solver's clicks-output readout labeled itself with the rifle's own scope click unit (mrad/MOA) — since a click's actual size is arbitrary and can differ between elevation and windage, this misstated the value; it's now labeled \"Clicks\" instead.",
       "v179": "New: IPSC Target and IPSC Mini Target (cardboard, three nested A/C/D scoring zones) added to Hit Probability, with a Major/Minor power-factor toggle for scoring.",
       "v178": "Fix: pages could silently keep serving an old cached version even on a fresh visit — every request now forces a real network fetch instead of letting the browser's own HTTP cache quietly answer it from disk.",
       "v177": "Fix: installed/home-screen apps on Android could get stuck on an old version indefinitely — the app now actively checks for updates on launch and whenever it returns to the foreground, instead of relying only on the browser's own update check.",
