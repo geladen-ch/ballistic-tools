@@ -19,6 +19,7 @@ import {
   circleGongDetailSvg, rectPlateDetailSvg
 } from '../targets/custom-target-render.js';
 import { logDiagnostic } from '../debug-log.js';
+import { getImpactColorHex, onImpactColorChange } from '../hit-probability-prefs.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
@@ -107,6 +108,17 @@ function cssVar(name) {
 // SVG units are millimeters (see pxPerMeter), so this is a literal 10mm
 // bullet-hole diameter drawn to the target's own real-world scale.
 const SAMPLE_IMPACT_DIAMETER_MM = 10;
+// Every impact-color option (hit-probability-prefs.js's IMPACT_COLOR_
+// CHOICES) draws with the same dark/white dual edge around its fill —
+// a hairline outside a slightly thicker ring — so a dot's boundary stays
+// visible however it lands against the target artwork's own colors,
+// regardless of which color is picked. Both ring radii are ratios of the
+// dot's own fill radius rather than fixed sizes, so the edge scales with
+// zoom/"Impacts to scale" exactly like the dot itself (see applyZoom()).
+const IMPACT_DOT_WHITE_RING_RATIO = 1.22;
+const IMPACT_DOT_DARK_RING_RATIO = 1.42;
+const IMPACT_DOT_WHITE_RING_COLOR = '#ffffff';
+const IMPACT_DOT_DARK_RING_COLOR = '#14171a';
 // Fraction of the target's own native extent added as breathing room at
 // 1x zoom, so its edge doesn't sit flush against the viewBox boundary.
 const FIT_MARGIN_RATIO = 0.04;
@@ -661,11 +673,17 @@ export function mount(container) {
   const legendOwnPrecisionItem = el('div', { class: 'legend-item' }, [el('span', { class: 'legend-swatch legend-swatch-own-precision' }), i18nSpan('hitProbability.legendOwnPrecisionError')]);
   legendConditionsItem.style.display = 'none';
   legendOwnPrecisionItem.style.display = 'none';
+  // Both swatches' actual color comes from the user's impact-color pick
+  // (hit-probability-prefs.js), not a fixed CSS token — see applyImpactColor()
+  // below, which sets --hp-impact-color on each directly (base.css's
+  // .legend-swatch-ellipse/-impacts read it with a var(--accent) fallback).
+  const legendEllipseSwatch = el('span', { class: 'legend-swatch legend-swatch-ellipse' });
+  const legendImpactsSwatch = el('span', { class: 'legend-swatch legend-swatch-impacts' });
   const legend = el('div', { class: 'legend' }, [
     el('div', { class: 'legend-item' }, [el('span', { class: 'legend-swatch legend-swatch-poa' }), i18nSpan('hitProbability.legendPOA')]),
     el('div', { class: 'legend-item' }, [el('span', { class: 'legend-swatch legend-swatch-poi' }), i18nSpan('hitProbability.legendMeanPOI')]),
-    el('div', { class: 'legend-item' }, [el('span', { class: 'legend-swatch legend-swatch-ellipse' }), i18nSpan('hitProbability.legendEllipse')]),
-    el('div', { class: 'legend-item' }, [el('span', { class: 'legend-swatch legend-swatch-impacts' }), i18nSpan('hitProbability.legendImpacts')]),
+    el('div', { class: 'legend-item' }, [legendEllipseSwatch, i18nSpan('hitProbability.legendEllipse')]),
+    el('div', { class: 'legend-item' }, [legendImpactsSwatch, i18nSpan('hitProbability.legendImpacts')]),
     legendConditionsItem,
     legendOwnPrecisionItem
   ]);
@@ -736,10 +754,18 @@ export function mount(container) {
   // (scaling with zoom like everything else) or held at a constant
   // on-screen size as the picture behind them zooms — see applyZoom().
   let impactsToScale = true;
-  // The sample-impact <circle> elements from the last renderIllustration()
-  // call, so applyZoom() can resize them in place (toggling "Impacts to
-  // scale" or moving the slider must never regenerate the random scatter).
+  // The sample-impact dots from the last renderIllustration() call — each
+  // entry is its dark/white/fill trio of <circle> elements (see
+  // IMPACT_DOT_*_RING_RATIO above) — so applyZoom() can resize them in
+  // place (toggling "Impacts to scale" or moving the slider must never
+  // regenerate the random scatter) and applyImpactColor() can recolor just
+  // the fill circle when the user picks a different impact color.
   let sampleCircles = [];
+  // The 95%-dispersion ellipse drawn in the impact color (as opposed to
+  // the spotter-corrected scenario's own conditions-/own-precision-error
+  // ellipses, which stay in their own theme colors) — kept so
+  // applyImpactColor() can restroke it without a full re-render.
+  let sampleEllipseEl = null;
 
   // 1x zoom fits the target's own source SVG exactly, regardless of the
   // simulation's results — half-extent from the point of aim out to
@@ -940,28 +966,37 @@ export function mount(container) {
   }
 
   // Draws one 95% ellipse (sdX/sdY at offsetX/offsetY from point of aim)
-  // in the given color; returns the ellipse's own center in SVG units, for
-  // drawImpactsAndMarker() to reuse.
+  // in the given color; returns the ellipse's own center in SVG units plus
+  // the <ellipse> element itself, for drawImpactsAndMarker() to reuse and
+  // applyImpactColor() to restroke in place.
   function drawEllipse(pointOfAim, pxPerCm, sdX, sdY, offsetX, offsetY, color) {
     const cx = pointOfAim.x + offsetX * pxPerCm;
     const cy = pointOfAim.y - offsetY * pxPerCm; // SVG y grows downward, drop is stored as "up positive"
-    overlayGroup.appendChild(svgEl('ellipse', {
+    const ellipseEl = svgEl('ellipse', {
       cx: cx.toFixed(1), cy: cy.toFixed(1),
       rx: (sdX * ELLIPSE_95_FACTOR * pxPerCm).toFixed(1), ry: (sdY * ELLIPSE_95_FACTOR * pxPerCm).toFixed(1),
       fill: 'none', stroke: color, 'stroke-width': '1.6', 'stroke-dasharray': '5 4'
-    }));
-    return { cx, cy };
+    });
+    overlayGroup.appendChild(ellipseEl);
+    return { cx, cy, el: ellipseEl };
   }
 
   // The sample-dot scatter plus the mean-POI marker, both always drawn at
-  // the same true sampleImpactColor regardless of scenario.
+  // the same true sampleImpactColor regardless of scenario. Each dot is a
+  // dark/white/fill trio (outer to inner) rather than a single circle, so
+  // its edge holds up against any target background — see IMPACT_DOT_*_
+  // RING_RATIO above.
   function drawImpactsAndMarker(pxPerCm, sdX, sdY, cx, cy, sampleImpactColor, analysisColor) {
     for (let i = 0; i < SAMPLE_IMPACT_COUNT; i++) {
       const x = cx + sampleGaussian() * sdX * pxPerCm;
       const y = cy + sampleGaussian() * sdY * pxPerCm;
-      const circle = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: sampleImpactColor, opacity: '0.75' });
-      overlayGroup.appendChild(circle);
-      sampleCircles.push(circle);
+      const dark = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: IMPACT_DOT_DARK_RING_COLOR, opacity: '0.85' });
+      const white = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: IMPACT_DOT_WHITE_RING_COLOR, opacity: '0.9' });
+      const fill = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: sampleImpactColor, opacity: '0.92' });
+      overlayGroup.appendChild(dark);
+      overlayGroup.appendChild(white);
+      overlayGroup.appendChild(fill);
+      sampleCircles.push({ dark, white, fill });
     }
     overlayGroup.appendChild(svgEl('circle', { cx: cx.toFixed(1), cy: cy.toFixed(1), r: '4', fill: 'none', stroke: analysisColor, 'stroke-width': '2' }));
   }
@@ -977,7 +1012,10 @@ export function mount(container) {
     // cssVar()'s own comment above.
     const textColor = cssVar('--text');
     const analysisColor = cssVar('--analysis');
-    const sampleImpactColor = cssVar('--accent');
+    // The user's own pick (Settings, hit-probability-prefs.js), not a
+    // theme token — see IMPACT_DOT_*_RING_COLOR above for why every choice
+    // still reads fine regardless of target or theme.
+    const sampleImpactColor = getImpactColorHex();
     const conditionsErrorColor = cssVar('--conditions-error');
     const ownPrecisionErrorColor = cssVar('--own-precision-error');
 
@@ -995,10 +1033,12 @@ export function mount(container) {
       drawEllipse(pointOfAim, pxPerCm, sighting.ownSdX, sighting.ownSdY, 0, 0, ownPrecisionErrorColor);
       // The corrected shot's own ellipse + sample impacts — same
       // presentation as Single Shot's.
-      const { cx, cy } = drawEllipse(pointOfAim, pxPerCm, corrected.sdX, corrected.sdY, corrected.offsetX, corrected.offsetY, sampleImpactColor);
+      const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerCm, corrected.sdX, corrected.sdY, corrected.offsetX, corrected.offsetY, sampleImpactColor);
+      sampleEllipseEl = ellipseEl;
       drawImpactsAndMarker(pxPerCm, corrected.sdX, corrected.sdY, cx, cy, sampleImpactColor, analysisColor);
     } else {
-      const { cx, cy } = drawEllipse(pointOfAim, pxPerCm, scenarioResult.sdX, scenarioResult.sdY, scenarioResult.offsetX, scenarioResult.offsetY, sampleImpactColor);
+      const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerCm, scenarioResult.sdX, scenarioResult.sdY, scenarioResult.offsetX, scenarioResult.offsetY, sampleImpactColor);
+      sampleEllipseEl = ellipseEl;
       drawImpactsAndMarker(pxPerCm, scenarioResult.sdX, scenarioResult.sdY, cx, cy, sampleImpactColor, analysisColor);
     }
 
@@ -1026,9 +1066,33 @@ export function mount(container) {
     );
 
     const dotDiameter = impactsToScale ? SAMPLE_IMPACT_DIAMETER_MM : SAMPLE_IMPACT_DIAMETER_MM / manualZoom;
-    const dotRadius = (dotDiameter / 2).toFixed(2);
-    for (const circle of sampleCircles) circle.setAttribute('r', dotRadius);
+    const dotRadius = dotDiameter / 2;
+    const fillRadius = dotRadius.toFixed(2);
+    const whiteRadius = (dotRadius * IMPACT_DOT_WHITE_RING_RATIO).toFixed(2);
+    const darkRadius = (dotRadius * IMPACT_DOT_DARK_RING_RATIO).toFixed(2);
+    for (const { dark, white, fill } of sampleCircles) {
+      dark.setAttribute('r', darkRadius);
+      white.setAttribute('r', whiteRadius);
+      fill.setAttribute('r', fillRadius);
+    }
   }
+
+  // Recolors the already-drawn impact dots/ellipse and legend swatches in
+  // place when the user picks a different impact color in Settings —
+  // deliberately not a full renderIllustration() call, which would also
+  // reseed a brand-new random scatter (see sampleGaussian()'s own comment);
+  // switching colors shouldn't shuffle the illustrated shot group. Also
+  // called once at mount so the legend swatches show the right color
+  // before the first compute happens.
+  function applyImpactColor() {
+    const hex = getImpactColorHex();
+    legendEllipseSwatch.style.setProperty('--hp-impact-color', hex);
+    legendImpactsSwatch.style.setProperty('--hp-impact-color', hex);
+    for (const { fill } of sampleCircles) fill.setAttribute('fill', hex);
+    if (sampleEllipseEl) sampleEllipseEl.setAttribute('stroke', hex);
+  }
+  applyImpactColor();
+  const unsubscribeImpactColor = onImpactColorChange(applyImpactColor);
 
   // Exports the currently-shown illustration standalone, preserving the
   // target's real-world scale: the live <svg>'s own viewBox and sample
@@ -1232,6 +1296,7 @@ export function mount(container) {
 
   return () => {
     disposed = true;
+    unsubscribeImpactColor();
     if (targetDetailObjectUrl) URL.revokeObjectURL(targetDetailObjectUrl);
   };
 }

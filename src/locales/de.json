@@ -717,6 +717,7 @@
     "themeDark": "Dunkel",
     "themeHighContrastLight": "Kontrastreich hell",
     "themeHighContrastDark": "Kontrastreich dunkel",
+    "impactColorLabel": "Trefferfarbe",
     "rangeSolverIndicatorLabel": "Anzeigesymbole im Feldrechner",
     "rangeSolverIndicatorArrows": "Pfeile",
     "rangeSolverIndicatorSigns": "+ / −",
@@ -915,6 +916,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v186": "Neu: Die Farbe der Trefferpunkte in Trefferwahrscheinlichkeit ist jetzt einstellbar — fünf Farben, jede mit dunkel-weißer Kontur für Sichtbarkeit auf jedem Ziel (Standard: Bordeaux) — Sonderzustellung für Herrn Danilov. Änderung: Die weißen wertungsfreien Ecken der Ziele USSR №4/№5/№8 sind jetzt transparent.",
       "v185": "Neu: Mündungsgeschwindigkeits-Streuung (SD) und eigene Gewehrpräzision (beide optional) sind jetzt Teil der Patronendefinition im Arsenal (und werden automatisch von der Trefferwahrscheinlichkeit übernommen). Die Gewehrpräzision ist jetzt mit den Messungen des Gewehr-Präzisionsrechners verknüpft und kann direkt von dort übernommen werden. (Dank an Yuri Danilov für die Idee)",
       "v184": "Fix: Im Desktop-Modus bleiben die Navigationselemente des Werkzeugs Waffen (Fertig/Manuelle Eingabe/Arsenal) jetzt sichtbar, während die Seiten „Manuelle Eingabe\" und „Arsenal\" gescrollt werden, statt mit der Seite aus dem Sichtbereich zu verschwinden.",
       "v183": "Fix: „Ins Arsenal speichern\" im Cd-Mach-Kurven-Werkzeug scrollt die Arsenal-Seite jetzt zum gerade geöffneten Geschoss-Formular, statt die Seite oben in der Liste zu belassen.",

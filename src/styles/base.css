@@ -506,6 +506,36 @@ a { color: var(--accent); }
 .theme-option-label { font-size: 11px; color: var(--dim); text-align: center; }
 .theme-option.active .theme-option-label { color: var(--text); font-weight: 600; }
 
+/* ---- Impact color picker (src/ui/impact-color-picker.js, Settings) ----
+   Plain colored circles, no caption underneath — see that file's own
+   comment on why there's no per-option label to translate. Each swatch's
+   background is set inline from hit-probability-prefs.js's own hex value,
+   not a CSS variable, since these colors are chosen for contrast against
+   target artwork rather than the app's theme. */
+.impact-color-picker {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.impact-color-option {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  padding: 4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.impact-color-option:hover { background: var(--panel-raised); }
+.impact-color-option.active { border-color: var(--text); }
+.impact-color-swatch {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
 .muzzle-velocity-temp-details {
   margin: 10px 0 0 24px;
   padding-left: 12px;
@@ -1088,8 +1118,12 @@ canvas { display: block; width: 100%; }
 .legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; border: 1.5px solid var(--dim); background: none; }
 .legend-swatch-poa { border-color: var(--text); }
 .legend-swatch-poi { border-color: var(--analysis); }
-.legend-swatch-ellipse { border-style: dashed; border-color: var(--accent); }
-.legend-swatch-impacts { border: none; background: var(--accent); opacity: 0.75; }
+/* --hp-impact-color is set inline by hit-probability-view.js's
+   applyImpactColor() from the user's own impact-color pick (Settings,
+   src/hit-probability-prefs.js) — the var(--accent) fallback only ever
+   shows before that JS runs. */
+.legend-swatch-ellipse { border-style: dashed; border-color: var(--hp-impact-color, var(--accent)); }
+.legend-swatch-impacts { border: none; background: var(--hp-impact-color, var(--accent)); opacity: 0.75; }
 /* Spotter-corrected's two extra ellipses — same --conditions-error/
    --own-precision-error tokens hit-probability-view.js's own cssVar()
    helper reads for the plotted ellipses themselves (SVG attributes can't

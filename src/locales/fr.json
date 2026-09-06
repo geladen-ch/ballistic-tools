@@ -717,6 +717,7 @@
     "themeDark": "Sombre",
     "themeHighContrastLight": "Contraste élevé clair",
     "themeHighContrastDark": "Contraste élevé sombre",
+    "impactColorLabel": "Couleur des impacts",
     "rangeSolverIndicatorLabel": "Indicateurs de sortie du Calculateur de terrain",
     "rangeSolverIndicatorArrows": "Flèches",
     "rangeSolverIndicatorSigns": "+ / −",
@@ -915,6 +916,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v186": "Nouveau : la couleur des points d'impact de Probabilité de toucher est maintenant réglable — cinq couleurs, chacune avec un contour foncé/blanc pour rester visible sur n'importe quelle cible (par défaut : bordeaux) — livraison spéciale pour M. Danilov. Changement : les coins blancs hors zone de score des cibles USSR №4/№5/№8 sont désormais transparents.",
       "v185": "Nouveau : la régularité de vitesse initiale (écart-type) et la précision propre de l'arme (toutes deux facultatives) font désormais partie de la définition de la cartouche dans l'Arsenal (et peuvent être reprises automatiquement par Probabilité de toucher). La précision de l'arme est désormais intégrée aux mesures de la Calculette de précision de tir, et peut être choisie directement depuis celle-ci. (Merci à Yuri Danilov pour l'idée)",
       "v184": "Correction : en mode bureau, les commandes de navigation de l'outil Armes (Terminé/Saisie manuelle/Arsenal) restent désormais visibles pendant le défilement des pages Saisie manuelle et Arsenal, au lieu de disparaître de l'écran avec la page.",
       "v183": "Correction : « Enregistrer dans l'Arsenal » depuis l'outil de courbe Cd-Mach fait maintenant défiler la page Arsenal jusqu'au formulaire de balle qui vient de s'ouvrir, au lieu de laisser la page en haut de la liste.",

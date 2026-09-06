@@ -18,6 +18,7 @@ import { DRAG_MODELS } from '../engine/drag-tables.js';
 import { isDragModelVisible, setDragModelVisible } from '../drag-model-prefs.js';
 import { sectionGroup } from '../ui/section.js';
 import { themePicker } from '../ui/theme-picker.js';
+import { impactColorPicker } from '../ui/impact-color-picker.js';
 
 export function mount(container) {
   clear(container);
@@ -209,6 +210,10 @@ export function mount(container) {
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.themeLabel' }),
       themePicker()
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.impactColorLabel' }),
+      impactColorPicker()
     ]),
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.rangeSolverOutputLabel' }),
