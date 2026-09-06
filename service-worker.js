@@ -61,6 +61,7 @@ const APP_SHELL_URLS = [
   './src/range-solver-prefs.js',
   './src/range-card-row-count-prefs.js',
   './src/hit-probability-prefs.js',
+  './src/hit-probability-state.js',
   './src/version.js',
   './src/debug-log.js',
   './src/svg.js',

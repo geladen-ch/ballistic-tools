@@ -9,7 +9,11 @@ const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const { resetShotStateForTests } = await import('../src/shot-state.js');
 const { setUnit, resetUnits } = await import('../src/prefs.js');
+const { resetHitProbabilityStateForTests } = await import('../src/hit-probability-state.js');
+const { removeCookie } = await import('../src/cookies.js');
 const hitProbabilityView = await import('../src/views/hit-probability-view.js');
+
+const HIT_PROBABILITY_COOKIE_NAME = 'ballistics_hit_probability_state_v1';
 
 // This view's async initialization (fetching the target's result SVG and
 // parsing it via DOMParser) needs real browser APIs the fake-dom test
@@ -21,7 +25,8 @@ const hitProbabilityView = await import('../src/views/hit-probability-view.js');
 // itself is verified by hand in a real browser.
 test.beforeEach(() => {
   resetShotStateForTests();
-  hitProbabilityView.resetHitProbabilityStateForTests();
+  resetHitProbabilityStateForTests();
+  removeCookie(HIT_PROBABILITY_COOKIE_NAME);
   resetUnits();
 });
 
@@ -329,6 +334,29 @@ test('the "Impacts to scale" checkbox is present, on by default, and safe to tog
 
   checkbox.checked = false;
   assert.doesNotThrow(() => fireEvent(checkbox, 'change'));
+});
+
+test('the illustration zoom and "Impacts to scale" survive navigating away and back (unmount/remount)', () => {
+  const container = makeElement('main');
+  const unmount = hitProbabilityView.mount(container);
+  let tabButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn'));
+  fireEvent(tabButtons[1], 'click'); // Simulation
+
+  const slider = findById(container, 'illustrationZoom');
+  slider.value = '2';
+  fireEvent(slider, 'input');
+
+  const checkbox = findById(container, 'impactsToScale');
+  checkbox.checked = false;
+  fireEvent(checkbox, 'change');
+
+  unmount();
+  hitProbabilityView.mount(container); // simulate navigating to another tool and back
+
+  tabButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('tab-btn'));
+  fireEvent(tabButtons[1], 'click');
+  assert.equal(findById(container, 'illustrationZoom').value, '2', 'zoom should survive remount');
+  assert.equal(findById(container, 'impactsToScale').checked, false, '"Impacts to scale" should survive remount');
 });
 
 test('Single shot is the default scenario, with the spotter-corrected-only inputs and secondary result cards all hidden', () => {

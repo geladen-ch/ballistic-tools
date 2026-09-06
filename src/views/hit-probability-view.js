@@ -20,6 +20,7 @@ import {
 } from '../targets/custom-target-render.js';
 import { logDiagnostic } from '../debug-log.js';
 import { getImpactColorHex, onImpactColorChange } from '../hit-probability-prefs.js';
+import { loadHitProbabilityState, saveHitProbabilityState } from '../hit-probability-state.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
@@ -144,19 +145,30 @@ const CUSTOM_PRESET_KEY = '__custom__';
 // value comes from the Arsenal rather than PRESETS[fieldId].
 const RIG_PRESET_KEY = '__rig__';
 
-// Session-only (in-memory, not persisted across a reload — no cookie
-// backing needed) state for the Uncertainty and Simulation panels, so
-// navigating away to another tool and back doesn't reset them to their
-// hardcoded defaults. Module-level rather than in shot-state.js because
-// none of this is shared with any other view (unlike rifle/cartridge/
-// atmosphere, which shot-state.js already covers for this page too — see
-// rifleSection()/cartridgeSection()/atmosphereSection() below). A plain
-// object that mount() reads from once and writes to on every change; the
-// same pattern shot-state.js uses, just scoped to this one view.
-let panelState = {};
+// Cookie-backed (survives navigation and an app restart — see
+// hit-probability-state.js) state for the Uncertainty and Simulation
+// panels. Module-level rather than in shot-state.js because none of this
+// is shared with any other view (unlike rifle/cartridge/atmosphere, which
+// shot-state.js already covers for this page too — see rifleSection()/
+// cartridgeSection()/atmosphereSection() below). A plain object,
+// reassigned from the cookie at the top of every mount() (see there) and
+// written to (in memory + cookie) on every change via setPanelState()
+// below; the module-load-time read here just gives the module-scope
+// helpers below (presetUnitField() etc.) something to close over before
+// the first mount() call exists.
+let panelState = loadHitProbabilityState() || {};
 
 function persistedValue(key, defaultValue) {
   return key in panelState ? panelState[key] : defaultValue;
+}
+
+// The only thing that should ever write to panelState — keeps the
+// in-memory object and the cookie from drifting apart. `patch` is merged
+// into both, same shallow-merge shape saveHitProbabilityState() itself
+// uses.
+function setPanelState(patch) {
+  Object.assign(panelState, patch);
+  saveHitProbabilityState(patch);
 }
 
 // `getRigValue`, if given, resolves RIG_PRESET_KEY's own current value —
@@ -195,8 +207,7 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
   const initialKey = persistedValue(id + 'Preset', DEFAULT_PRESET_KEY[id]);
   const select = presetSelect(id, initialKey, (value) => {
     field.setEngineValue(value);
-    panelState[id] = value;
-    panelState[id + 'Preset'] = select.value;
+    setPanelState({ [id]: value, [id + 'Preset']: select.value });
     onInput();
   }, () => rigValue);
   const defaultValue = PRESETS[id].find((p) => p.key === DEFAULT_PRESET_KEY[id]).value;
@@ -205,8 +216,7 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
     id, min: 0, max, step, value: initialValue, isSpan, before: select,
     onInput: () => {
       select.value = CUSTOM_PRESET_KEY;
-      panelState[id] = field.getEngineValue();
-      panelState[id + 'Preset'] = CUSTOM_PRESET_KEY;
+      setPanelState({ [id]: field.getEngineValue(), [id + 'Preset']: CUSTOM_PRESET_KEY });
       onInput();
     }
   });
@@ -227,8 +237,7 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
       if (select.value === RIG_PRESET_KEY) {
         select.value = DEFAULT_PRESET_KEY[id];
         field.setEngineValue(defaultValue);
-        panelState[id] = defaultValue;
-        panelState[id + 'Preset'] = DEFAULT_PRESET_KEY[id];
+        setPanelState({ [id]: defaultValue, [id + 'Preset']: DEFAULT_PRESET_KEY[id] });
       }
       return;
     }
@@ -239,8 +248,7 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
     if (autoSelect) {
       select.value = RIG_PRESET_KEY;
       field.setEngineValue(value);
-      panelState[id] = value;
-      panelState[id + 'Preset'] = RIG_PRESET_KEY;
+      setPanelState({ [id]: value, [id + 'Preset']: RIG_PRESET_KEY });
     }
   };
 
@@ -270,7 +278,7 @@ function persistedUnitField(id, { onInput, ...rest }) {
   field = unitField({
     ...rest, id, value: initialValue,
     onInput: () => {
-      panelState[id] = field.getEngineValue();
+      setPanelState({ [id]: field.getEngineValue() });
       if (onInput) onInput();
     }
   });
@@ -282,7 +290,7 @@ function persistedCheckbox(id, labelKey, defaultChecked, onChange) {
   checkbox.checked = persistedValue(id, defaultChecked);
   const row = el('label', { class: 'checkbox-field' }, [checkbox, i18nSpan(labelKey)]);
   checkbox.addEventListener('change', () => {
-    panelState[id] = checkbox.checked;
+    setPanelState({ [id]: checkbox.checked });
     onChange();
   });
   return { checkbox, row };
@@ -292,7 +300,7 @@ function persistedSelect(id, options, defaultValue, onChange) {
   const select = el('select', { id }, options);
   select.value = persistedValue(id, defaultValue);
   select.addEventListener('change', () => {
-    panelState[id] = select.value;
+    setPanelState({ [id]: select.value });
     onChange();
   });
   return select;
@@ -301,6 +309,14 @@ function persistedSelect(id, options, defaultValue, onChange) {
 export function mount(container) {
   clear(container);
   let disposed = false;
+
+  // Reloaded fresh from the cookie on every mount (same convention as
+  // trajectory-view.js's own loadTrajectoryInputsState() call) rather than
+  // relying solely on the module-load-time read above — the module-scope
+  // helpers (presetUnitField() etc.) all close over this same `panelState`
+  // binding, so reassigning it here is picked up by every one of them
+  // without needing to move their definitions inside mount().
+  panelState = loadHitProbabilityState() || {};
 
   // ---- Rifle & Bullet (shared active gun configuration with Trajectory —
   // never rendered here, just read for their engine values; see
@@ -349,9 +365,8 @@ export function mount(container) {
   combinedThisRigCheckbox.addEventListener('change', () => {
     if (combinedThisRigCheckbox.checked && activeCombinedRigR50Mrad != null) {
       conventionSelect.value = 'r50';
-      panelState.precisionConvention = 'r50';
       combinedPrecisionField.setEngineValue(activeCombinedRigR50Mrad);
-      panelState.combinedPrecision = activeCombinedRigR50Mrad;
+      setPanelState({ precisionConvention: 'r50', combinedPrecision: activeCombinedRigR50Mrad });
       recompute();
     }
   });
@@ -406,9 +421,8 @@ export function mount(container) {
       }
       combinedThisRigCheckbox.checked = true;
       conventionSelect.value = 'r50';
-      panelState.precisionConvention = 'r50';
       combinedPrecisionField.setEngineValue(precision.r50Mrad);
-      panelState.combinedPrecision = precision.r50Mrad;
+      setPanelState({ precisionConvention: 'r50', combinedPrecision: precision.r50Mrad });
     } else if (precision && precision.mode === 'own') {
       activeCombinedRigR50Mrad = null;
       combinedThisRigRow.style.display = 'none';
@@ -578,11 +592,16 @@ export function mount(container) {
   const targetDetailImg = el('img', { alt: '', style: 'width:100%;max-width:260px;display:block;margin-bottom:10px;' });
   const targetNameLabel = el('p', { class: 'hint' });
 
-  function selectTarget(id) {
+  // `resetZoom` is false only for the initial restore right after mount
+  // (see the catalog-load callback below), so a remount picks the manual
+  // zoom/"Impacts to scale" state back up from panelState instead of
+  // snapping it back to defaults; an explicit picker click still resets
+  // both, since a different target's natural 1x fit differs.
+  function selectTarget(id, { resetZoom = true } = {}) {
     currentTargetId = id;
-    panelState.targetId = id;
+    setPanelState({ targetId: id });
     for (const [btnId, btn] of targetButtons) btn.className = 'target-picker-item' + (btnId === id ? ' active' : '');
-    loadCurrentTarget();
+    loadCurrentTarget(resetZoom);
   }
 
   const simulationPanel = el('div', { class: 'card input-panel' }, [
@@ -687,12 +706,20 @@ export function mount(container) {
     legendConditionsItem,
     legendOwnPrecisionItem
   ]);
-  const zoomValueLabel = el('span', { class: 'range-slider-value', text: `${ZOOM_DEFAULT.toFixed(2)}×` });
+  // Persisted the same way as the Uncertainty/Simulation fields (see
+  // panelState above), but reapplied only on the initial target load after
+  // a remount — switching targets from the picker still resets both to
+  // their defaults (see loadCurrentTarget()'s own resetZoom argument),
+  // since a different target's natural 1x fit differs.
+  let manualZoom = persistedValue('illustrationZoom', ZOOM_DEFAULT);
+  let impactsToScale = persistedValue('impactsToScale', true);
+  const zoomValueLabel = el('span', { class: 'range-slider-value', text: `${manualZoom.toFixed(2)}×` });
   const zoomSlider = el('input', {
-    type: 'range', id: 'illustrationZoom', min: String(ZOOM_MIN), max: String(ZOOM_MAX), step: String(ZOOM_STEP), value: String(ZOOM_DEFAULT)
+    type: 'range', id: 'illustrationZoom', min: String(ZOOM_MIN), max: String(ZOOM_MAX), step: String(ZOOM_STEP), value: String(manualZoom)
   });
   zoomSlider.addEventListener('input', () => {
     manualZoom = parseFloat(zoomSlider.value);
+    setPanelState({ illustrationZoom: manualZoom });
     zoomValueLabel.textContent = `${manualZoom.toFixed(2)}×`;
     applyZoom();
   });
@@ -701,9 +728,10 @@ export function mount(container) {
     zoomSlider
   ]);
   const impactsToScaleCheckbox = el('input', { type: 'checkbox', id: 'impactsToScale' });
-  impactsToScaleCheckbox.checked = true;
+  impactsToScaleCheckbox.checked = impactsToScale;
   impactsToScaleCheckbox.addEventListener('change', () => {
     impactsToScale = impactsToScaleCheckbox.checked;
+    setPanelState({ impactsToScale });
     applyZoom();
   });
   const impactsToScaleRow = el('label', { class: 'checkbox-field' }, [impactsToScaleCheckbox, i18nSpan('hitProbability.impactsToScaleLabel')]);
@@ -749,11 +777,8 @@ export function mount(container) {
   // and is fixed once per target load; never touched by recompute()/the
   // simulation's dispersion. The manual zoom slider scales this.
   let baseHalfExtent = 0;
-  let manualZoom = ZOOM_DEFAULT;
-  // Whether sample-impact dots are drawn at their true real-world size
-  // (scaling with zoom like everything else) or held at a constant
-  // on-screen size as the picture behind them zooms — see applyZoom().
-  let impactsToScale = true;
+  // manualZoom/impactsToScale themselves are declared above, alongside the
+  // zoom slider and "Impacts to scale" checkbox they back.
   // The sample-impact dots from the last renderIllustration() call — each
   // entry is its dark/white/fill trio of <circle> elements (see
   // IMPACT_DOT_*_RING_RATIO above) — so applyZoom() can resize them in
@@ -861,7 +886,7 @@ export function mount(container) {
     illustrationSvgRoot.appendChild(overlayGroup);
   }
 
-  function loadCurrentTarget() {
+  function loadCurrentTarget(resetZoom = true) {
     const id = currentTargetId;
     const generation = ++targetLoadGeneration;
     targetData = null;
@@ -869,11 +894,14 @@ export function mount(container) {
     overlayGroup = null;
     illustrationSvgRoot = null;
     baseHalfExtent = 0;
-    manualZoom = ZOOM_DEFAULT;
-    zoomSlider.value = String(ZOOM_DEFAULT);
-    zoomValueLabel.textContent = `${ZOOM_DEFAULT.toFixed(2)}×`;
-    impactsToScale = true;
-    impactsToScaleCheckbox.checked = true;
+    if (resetZoom) {
+      manualZoom = ZOOM_DEFAULT;
+      zoomSlider.value = String(ZOOM_DEFAULT);
+      zoomValueLabel.textContent = `${ZOOM_DEFAULT.toFixed(2)}×`;
+      impactsToScale = true;
+      impactsToScaleCheckbox.checked = true;
+      setPanelState({ illustrationZoom: ZOOM_DEFAULT, impactsToScale: true });
+    }
     clear(illustrationSvgContainer);
     clear(targetNameLabel);
 
@@ -945,7 +973,7 @@ export function mount(container) {
         targetPickerGrid.appendChild(btn);
       }
       if (targets.length) {
-        selectTarget(currentTargetId);
+        selectTarget(currentTargetId, { resetZoom: false });
       } else {
         applyI18nText(targetNameLabel, 'hitProbability.targetLoadError');
       }
@@ -1019,9 +1047,6 @@ export function mount(container) {
     const conditionsErrorColor = cssVar('--conditions-error');
     const ownPrecisionErrorColor = cssVar('--own-precision-error');
 
-    overlayGroup.appendChild(svgEl('line', { x1: pointOfAim.x - 14, y1: pointOfAim.y, x2: pointOfAim.x + 14, y2: pointOfAim.y, stroke: textColor, 'stroke-width': '2' }));
-    overlayGroup.appendChild(svgEl('line', { x1: pointOfAim.x, y1: pointOfAim.y - 14, x2: pointOfAim.x, y2: pointOfAim.y + 14, stroke: textColor, 'stroke-width': '2' }));
-
     if (currentScenario === 'spotterCorrected') {
       const { sighting, corrected } = scenarioResult;
       // Conditions-error and own-precision-error ellipses isolate the two
@@ -1041,6 +1066,11 @@ export function mount(container) {
       sampleEllipseEl = ellipseEl;
       drawImpactsAndMarker(pxPerCm, scenarioResult.sdX, scenarioResult.sdY, cx, cy, sampleImpactColor, analysisColor);
     }
+
+    // Drawn last (appended after the ellipse and sample-impact dots) so it
+    // stays on top of a dense scatter instead of getting buried under it.
+    overlayGroup.appendChild(svgEl('line', { x1: pointOfAim.x - 14, y1: pointOfAim.y, x2: pointOfAim.x + 14, y2: pointOfAim.y, stroke: textColor, 'stroke-width': '2' }));
+    overlayGroup.appendChild(svgEl('line', { x1: pointOfAim.x, y1: pointOfAim.y - 14, x2: pointOfAim.x, y2: pointOfAim.y + 14, stroke: textColor, 'stroke-width': '2' }));
 
     applyZoom();
   }
@@ -1299,12 +1329,4 @@ export function mount(container) {
     unsubscribeImpactColor();
     if (targetDetailObjectUrl) URL.revokeObjectURL(targetDetailObjectUrl);
   };
-}
-
-// Test-only: resets the Uncertainty/Simulation panel state back to
-// "nothing saved yet", the same purpose resetShotStateForTests() serves
-// for shot-state.js — tests that mount() this view multiple times in one
-// process need a clean slate between cases.
-export function resetHitProbabilityStateForTests() {
-  panelState = {};
 }

@@ -916,6 +916,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v187": "Fix: Hit Probability visual and functional fixes (thanks to Yuri Danilov for bug reports).",
       "v186": "New: Hit Probability's impact-dot color is now a user setting — five choices, each drawn with a dark/white edge so it stays visible on any target (default: berry) — special delivery for Mr. Danilov. Change: USSR №4/№5/№8 targets' white non-scoring corners are now transparent.",
       "v185": "New: muzzle velocity SD and own rifle precision (both optional) are now part of the Arsenal cartridge definition (and can be picked up automatically by Hit Probability). Rifle precision is now integrated with the Rifle Precision tool measurements, and can be picked directly. (Thanks to Yuri Danilov for the idea)",
       "v184": "Fix: in desktop mode, the Guns tool's nav controls (Done/Manual entry/Arsenal) now stay in view while the Manual entry and Arsenal pages scroll, instead of scrolling out of sight with the page.",
