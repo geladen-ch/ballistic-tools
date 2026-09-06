@@ -19,10 +19,14 @@ import { riflePrecisionExportDialog } from '../ui/rifle-precision/export-dialog.
 import { riflePrecisionImportDialog } from '../ui/rifle-precision/import-dialog.js';
 import { buildExportPayload, serializeExport, parseImportPayload, resolveImportItem } from '../rifle-precision-export.js';
 import { downloadFile } from '../download.js';
-import { computeGroupStats, targetUsabilityGaps } from '../engine/rifle-precision-stats.js';
+import { computeGroupStats, targetUsabilityGaps, computeCombinedStats, mmToAngularUnit } from '../engine/rifle-precision-stats.js';
+import { confidenceBadge } from '../ui/rifle-precision/confidence-o-meter.js';
 import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { getActiveProjectId, setActiveProjectId, setPendingMarking } from '../rifle-precision-nav.js';
+import { showDialog } from '../ui/app-dialog.js';
+import { rifleCartridgePickerBody } from '../ui/rifle-cartridge-picker.js';
+import { setPendingCartridgeActivation } from '../arsenal-prefill.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -415,14 +419,47 @@ export function mount(container) {
 
   // ---- projects ----
 
+  // Whether a project has an actually-computable aggregate R50/confidence
+  // (see computeCombinedStats()) — a stricter bar than
+  // projectHasUsableTargets() below, which only checks each target's own
+  // calibration/POA/impact, not whether the *pooled* shot count across
+  // every usable target reaches computeCombinedStats()'s own 3-shot floor
+  // (or stays under its 1000-shot ceiling). Both the Arsenal integration
+  // (row-level "Set as cartridge precision…" button, and the Arsenal
+  // cartridge form's own project picker) and the R50/confidence line below
+  // gate on this, not the looser check, so nothing ever shows a picker
+  // entry or a report line it can't actually back with a number.
+  function combinedStatsIfEligible(proj) {
+    const stats = computeCombinedStats(proj);
+    return stats.status === 'ok' ? stats : null;
+  }
+
+  // R50 in both mrad and MOA — same mmToAngularUnit()/decimals convention
+  // as the analysis view's own resultsUnitMode formatting, just showing
+  // both units at once rather than switching between them, since this is
+  // the one place a shooter compares this number against an Arsenal
+  // cartridge's own precision field (which lets the user pick either).
+  function formatR50Angular(stats, distanceM) {
+    const mrad = mmToAngularUnit(stats.r50, 'mrad', distanceM).toFixed(3);
+    const moa = mmToAngularUnit(stats.r50, 'arcmin', distanceM).toFixed(2);
+    return `${t('riflePrecision.r50Label')}: ${mrad} mrad / ${moa} MOA`;
+  }
+
   function projectInfoChildren(proj) {
     const modifiedLabel = lastModifiedLabel(proj);
+    const stats = combinedStatsIfEligible(proj);
     return [
       el('strong', { text: proj.name }),
       unsavedBadge(proj),
       el('span', { class: 'hint', text: ` — ${formatDistance(proj.distanceM)}, ${formatLengthMm(proj.caliberMm)}` }),
       el('span', { class: 'hint', text: t('riflePrecision.targetCount', { count: proj.targets.length }) }),
       projectUsabilityHint(proj),
+      stats ? el('div', { class: 'hint' }, [
+        document.createTextNode(formatR50Angular(stats, proj.distanceM) + ' — '),
+        el('span', { i18n: 'riflePrecision.confidenceLabel' }),
+        document.createTextNode(' '),
+        confidenceBadge(stats.confidenceLower, stats.confidenceUpper)
+      ]) : null,
       modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
     ];
   }
@@ -495,6 +532,29 @@ export function mount(container) {
         location.hash = '#/rifle-precision/analysis';
       });
       actions.push(viewReportButton);
+    }
+    // Only once this project's own R50 is actually computable (see
+    // combinedStatsIfEligible()) — nothing to hand an Arsenal cartridge
+    // otherwise.
+    const stats = combinedStatsIfEligible(proj);
+    if (stats) {
+      const setCartridgeButton = el('button', { class: 'secondary', i18n: 'riflePrecision.setCartridgePrecisionButton' });
+      setCartridgeButton.addEventListener('click', () => {
+        showDialog({
+          wide: true,
+          bodyNode: rifleCartridgePickerBody({
+            onPick: (rifleId, cartridgeId) => {
+              setPendingCartridgeActivation({
+                rifleId, cartridgeId,
+                precisionR50Mrad: mmToAngularUnit(stats.r50, 'mrad', proj.distanceM)
+              });
+              location.hash = '#/guns/arsenal';
+            }
+          }),
+          buttons: [{ label: t('riflePrecision.cancelButton') }]
+        });
+      });
+      actions.push(setCartridgeButton);
     }
     actions.push(editButton, deleteButton);
 

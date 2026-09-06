@@ -13,11 +13,9 @@
 // systematic offset, regardless of what caused it.
 import { solveZeroAngle, computeImpact } from './trajectory.js';
 import {
-  probableErrorToSD, r50ToSD, r99ToSD, es5ToSD, es10ToSD, angularSDToLinear,
+  probableErrorToSD, r50ToSD, CONVENTION_TO_SD, angularSDToLinear,
   trajectoryPerturbationSD, rangeEstimationSD, movingTargetLeadSD, combineSD
 } from './dispersion-sources.js';
-
-const SIMPLIFIED_CONVERTERS = { r50: r50ToSD, r99: r99ToSD, es5: es5ToSD, es10: es10ToSD };
 
 export function computeSpotterCorrected({
   nominalState, targetRange, battleZeroRange,
@@ -42,7 +40,7 @@ export function computeSpotterCorrected({
   if (ownErrors.precisionMode === 'simplified') {
     const { value, convention } = ownErrors.simplified;
     if (value) {
-      const linear = angularSDToLinear(SIMPLIFIED_CONVERTERS[convention](value), targetRange);
+      const linear = angularSDToLinear(CONVENTION_TO_SD[convention](value), targetRange);
       ownContributions.push({ id: 'combinedPrecision', x: linear, y: linear });
     }
   } else {

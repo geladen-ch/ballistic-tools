@@ -512,6 +512,14 @@ a { color: var(--accent); }
   border-left: 2px solid var(--line);
 }
 
+.cartridge-precision-details {
+  margin: 10px 0 0 24px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+}
+
+.precision-value-row { display: grid; grid-template-columns: 1fr 70px 90px; gap: 6px; }
+
 .column-toggles {
   display: flex;
   flex-wrap: wrap;
@@ -1128,9 +1136,11 @@ canvas { display: block; width: 100%; }
 }
 
 /* The app's one modal overlay (src/ui/app-dialog.js) — update-notifications.js's
-   two dialogs today, generic enough for anything else that needs one later.
-   z-index comfortably above everything else in the app (the previous
-   highest, layout.css's docked mobile chrome, tops out at 20). */
+   two plain message dialogs, plus the Arsenal <-> Rifle Precision picker
+   modals' own richer list bodies (.app-dialog-card-wide, applied via
+   showDialog()'s own `wide` option). z-index comfortably above everything
+   else in the app (the previous highest, layout.css's docked mobile
+   chrome, tops out at 20). */
 .app-dialog-overlay {
   position: fixed;
   inset: 0;
@@ -1149,8 +1159,25 @@ canvas { display: block; width: 100%; }
   max-width: 420px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
+/* A picker's row list can run long — capped and scrollable within the
+   card itself rather than growing the overlay past the viewport. */
+.app-dialog-card-wide { max-width: 560px; width: 100%; }
+.app-dialog-card-wide .app-dialog-body { max-height: 60vh; overflow-y: auto; }
 .app-dialog-message { margin: 0 0 16px; }
+.app-dialog-body { margin: 0 0 16px; }
 .app-dialog-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Compact confidence readout — same LEVEL_COLORS background + fixed dark
+   text convention as the full report's own .rp-confidence-info panel
+   (layout.css), just sized for a single-line badge inside a list row. */
+.confidence-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
 
 /* Boot loader (index.html's #app-boot, removed by app.js once the first
    route has mounted) — the very first thing painted, before app.js has

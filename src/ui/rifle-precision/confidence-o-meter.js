@@ -89,6 +89,19 @@ function bandLabel(band) {
   return node;
 }
 
+// Compact single-line rendering of the same reading the full meter above
+// shows — a project list row or a picker row has no room for the gauge
+// itself, just the rating. Same LEVEL_COLORS background/dark-text
+// convention as update()'s own `info` panel below, and the same
+// URURA-score + quality-text pairing (e.g. "2+ · Above average") so a
+// project reads identically here and in its own full report.
+export function confidenceBadge(confidenceLower, confidenceUpper) {
+  const { color, quality, ururaScore } = computeConfidenceFacts(confidenceLower, confidenceUpper);
+  const badge = el('span', { class: 'confidence-pill', text: `${ururaScore} · ${quality}` });
+  badge.style.background = color;
+  return badge;
+}
+
 export function confidenceOMeter() {
   const node = el('div', { class: 'rp-confidence-meter' });
 

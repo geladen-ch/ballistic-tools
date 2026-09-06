@@ -6,7 +6,7 @@ import {
   generateUserId
 } from '../user-library.js';
 import { loadCaliberDesignations, designationFor, loadBullet } from '../bullets.js';
-import { takePendingBulletPrefill, takePendingRiflePrefill } from '../arsenal-prefill.js';
+import { takePendingBulletPrefill, takePendingRiflePrefill, takePendingCartridgeActivation } from '../arsenal-prefill.js';
 import { loadRifleState, saveRifleState } from '../shot-state.js';
 import { registerArsenalDoneHandler } from '../guns-nav.js';
 import { bulletForm } from '../ui/arsenal/bullet-form.js';
@@ -58,6 +58,17 @@ export function mount(container) {
   // cleared by the very check that decided to open the form.
   let pendingBulletPrefill = takePendingBulletPrefill();
   let pendingRiflePrefill = takePendingRiflePrefill();
+  const pendingCartridgeActivation = takePendingCartridgeActivation();
+  // { cartridgeId, precision } once the pending activation below actually
+  // resolves to a real rifle+cartridge — see there — so a stale/dangling
+  // reference (the cartridge got deleted since the Rifle Precision picker
+  // ran) never lingers to misapply itself to some unrelated cartridge form
+  // opened later in this same session. Kept (not one-shot) for as long as
+  // that same cartridge's own form stays open — see
+  // renderCartridgesSection()'s own comment for why a plain one-shot
+  // consumption doesn't survive this view's routine incidental refreshes —
+  // and cleared once that edit actually ends (its own onSave/onCancel).
+  let pendingPrecisionOverride = null;
 
   // { id: null } while adding a brand new entry (not yet persisted),
   // { id: <string> } while editing an existing one — null (no value at
@@ -1016,8 +1027,24 @@ export function mount(container) {
     clear(cartridgeFormArea);
     if (cartridgeFormState) {
       const editingCartridge = cartridgeFormState.id ? rifle.cartridges.find((c) => c.id === cartridgeFormState.id) : null;
+      // pendingPrecisionOverride is keyed by cartridge id rather than
+      // consumed on first use: renderCartridgesSection() (unlike
+      // renderBulletForm()/renderRifleForm(), whose own form areas are
+      // never touched by a plain refreshLibraryView() refresh) is also
+      // rebuilt by routine, incidental refreshes with nothing to do with
+      // this edit at all (e.g. the caliber-designations fetch resolving
+      // at the bottom of mount()) — a one-shot "consumed on first render"
+      // override would silently vanish the moment one of those fires
+      // before the user has done anything. Staying keyed instead makes it
+      // survive exactly as long as every *other* field here already does
+      // (reconstructed from the stored record on every such refresh) —
+      // cleared below once the edit actually ends (save or cancel), so it
+      // never leaks into some later, unrelated edit of this same cartridge.
+      const precisionOverride = pendingPrecisionOverride && editingCartridge && pendingPrecisionOverride.cartridgeId === editingCartridge.id
+        ? pendingPrecisionOverride.precision
+        : null;
       const form = cartridgeForm({
-        initialValues: editingCartridge || {},
+        initialValues: editingCartridge ? { ...editingCartridge, ...(precisionOverride ? { precision: precisionOverride } : {}) } : {},
         riflingTwistMm: rifleTwistMm(rifle),
         lockedCaliberM: lockedCaliberMForRifle(rifle, userBullets, cartridgeFormState.id),
         siblingNames: rifle.cartridges.filter((c) => c.id !== cartridgeFormState.id).map((c) => c.name),
@@ -1028,6 +1055,7 @@ export function mount(container) {
             : [...rifle.cartridges, { ...data, id }];
           saveUserRifle({ ...rifle, cartridges });
           cartridgeFormState = null;
+          pendingPrecisionOverride = null;
           // A brand-new cartridge is a reasonable default active one for
           // a rifle that previously had none (or none active yet).
           if (!activeCartridgeId) activeCartridgeId = id;
@@ -1040,6 +1068,7 @@ export function mount(container) {
         },
         onCancel: () => {
           cartridgeFormState = null;
+          pendingPrecisionOverride = null;
           renderRifleForm();
         }
       });
@@ -1474,6 +1503,30 @@ export function mount(container) {
     renderRifleForm();
     renderBulletForm();
     scrollRifleFormIntoView();
+  }
+  // Rifle Precision's own "Set as cartridge precision…" picker (see
+  // rifle-cartridge-picker.js) names an *existing* rifle+cartridge —
+  // unlike the two prefills above, there's no "brand new or matched by
+  // name" ambiguity to resolve, just activate it and open its edit form,
+  // with pendingPrecisionOverride (consumed inside
+  // renderCartridgesSection()) supplying the one field this trip is
+  // actually about. A cartridge (or its whole rifle) deleted between the
+  // picker and landing here is simply not found — nothing to activate,
+  // same silent no-op every other stale-reference case in this view gets.
+  if (pendingCartridgeActivation) {
+    const rifle = loadUserRifles().find((r) => r.id === pendingCartridgeActivation.rifleId);
+    const cartridgeExists = rifle && rifle.cartridges.some((c) => c.id === pendingCartridgeActivation.cartridgeId);
+    if (cartridgeExists) {
+      activateRifle(rifle, pendingCartridgeActivation.cartridgeId);
+      closeOtherForms('cartridge');
+      cartridgeFormState = { id: pendingCartridgeActivation.cartridgeId };
+      pendingPrecisionOverride = {
+        cartridgeId: pendingCartridgeActivation.cartridgeId,
+        precision: { mode: 'own', r50Mrad: pendingCartridgeActivation.precisionR50Mrad }
+      };
+      renderRifleForm();
+      renderBulletForm();
+    }
   }
 
   loadCaliberDesignations().then((list) => {

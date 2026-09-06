@@ -26,3 +26,23 @@ export function takePendingRiflePrefill() {
   pendingRifle = null;
   return data;
 }
+
+// One-shot handoff from the Rifle Precision project list's own "Set as
+// cartridge precision…" picker (rifle-cartridge-picker.js) to Arsenal's
+// cartridge edit form: `{ rifleId, cartridgeId, precisionR50Mrad }` names
+// an *existing* rifle+cartridge to jump straight into editing, with its
+// precision field pre-filled from the chosen project — unlike
+// pendingBullet/pendingRifle above, which prefill a brand-new-or-matching
+// entry's whole form, this only ever overrides one field of one already-
+// existing cartridge.
+let pendingCartridgeActivation = null;
+
+export function setPendingCartridgeActivation(data) {
+  pendingCartridgeActivation = data;
+}
+
+export function takePendingCartridgeActivation() {
+  const data = pendingCartridgeActivation;
+  pendingCartridgeActivation = null;
+  return data;
+}

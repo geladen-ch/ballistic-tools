@@ -8,7 +8,7 @@ const { makeElement } = await import('./helpers/fake-dom.js');
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 
-const { confidenceOMeter, computeConfidenceFacts, LEVEL_COLORS, URURA_SCORES } = await import('../src/ui/rifle-precision/confidence-o-meter.js');
+const { confidenceOMeter, computeConfidenceFacts, confidenceBadge, LEVEL_COLORS, URURA_SCORES } = await import('../src/ui/rifle-precision/confidence-o-meter.js');
 const { confidenceLevel, confidenceScaleFraction } = await import('../src/engine/rifle-precision-stats.js');
 
 function findByTag(node, tag, out = []) {
@@ -144,6 +144,14 @@ test('computeConfidenceFacts() falls back to just Line1 (no trailing space) when
   const facts = computeConfidenceFacts(0, 0.65); // level 0 — "Useless", empty Line2
   assert.equal(facts.level, 0);
   assert.equal(facts.quality, 'Useless');
+});
+
+test('confidenceBadge() renders the same URURA score/quality/color as the full meter, compacted into one pill', () => {
+  const badge = confidenceBadge(0.86, 1.20);
+  assert.equal(badge.className, 'confidence-pill');
+  assert.equal(badge.style.background, '#FFD200');
+  assert.ok(badge.textContent.includes('2+'));
+  assert.ok(badge.textContent.includes('Above average'));
 });
 
 test('update() rebuilds content in place — a second call replaces, not appends to, the first', () => {

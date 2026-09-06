@@ -80,7 +80,7 @@ const POSITIONS = [
 ];
 const DEFAULT_POSITION_KEY = 'proneBipod';
 
-const CONVENTIONS = ['r50', 'r99', 'es5', 'es10'];
+const CONVENTIONS = ['r50', 'r95', 'r99', 'es5', 'es10'];
 
 const SCENARIOS = ['singleShot', 'spotterCorrected'];
 const DEFAULT_SCENARIO = 'singleShot';
@@ -125,6 +125,13 @@ const ZOOM_DEFAULT = 1;
 // preset value anymore" rather than offering an action of its own.
 const CUSTOM_PRESET_KEY = '__custom__';
 
+// A synthetic option offered only while the currently active cartridge
+// (the rifle section's own rifle+cartridge picker — see
+// applyActiveCartridgeExtras() below) specifies its own value for this
+// field — picks up that value the same way a real preset does, but its
+// value comes from the Arsenal rather than PRESETS[fieldId].
+const RIG_PRESET_KEY = '__rig__';
+
 // Session-only (in-memory, not persisted across a reload — no cookie
 // backing needed) state for the Uncertainty and Simulation panels, so
 // navigating away to another tool and back doesn't reset them to their
@@ -140,13 +147,19 @@ function persistedValue(key, defaultValue) {
   return key in panelState ? panelState[key] : defaultValue;
 }
 
-function presetSelect(fieldId, initialKey, onPick) {
+// `getRigValue`, if given, resolves RIG_PRESET_KEY's own current value —
+// looked up live rather than baked in at select-creation time, since the
+// active cartridge (and so this value) can change after the select already
+// exists; see presetUnitField()'s own setRigValue() below, the only thing
+// that ever actually adds the option this handles.
+function presetSelect(fieldId, initialKey, onPick, getRigValue) {
   const options = PRESETS[fieldId].map((p) => el('option', { value: p.key, i18n: `hitProbability.presetLabels.${p.key}` }));
   options.push(el('option', { value: CUSTOM_PRESET_KEY, disabled: true, i18n: 'hitProbability.presetLabels.custom' }));
   const select = el('select', {}, options);
   select.value = initialKey;
   select.addEventListener('change', () => {
     if (select.value === CUSTOM_PRESET_KEY) return;
+    if (select.value === RIG_PRESET_KEY) { onPick(getRigValue()); return; }
     onPick(PRESETS[fieldId].find((p) => p.key === select.value).value);
   });
   return select;
@@ -162,13 +175,18 @@ function presetSelect(fieldId, initialKey, onPick) {
 // "mark custom" and "persist" running on the same keystroke.
 function presetUnitField(id, { max, step, isSpan = false, onInput }) {
   let field;
+  // The active cartridge's own value for this field, and the <option> that
+  // exposes it (only present while such a value exists) — both owned by
+  // setRigValue() below, the only thing that ever touches either.
+  let rigValue = null;
+  let rigOption = null;
   const initialKey = persistedValue(id + 'Preset', DEFAULT_PRESET_KEY[id]);
   const select = presetSelect(id, initialKey, (value) => {
     field.setEngineValue(value);
     panelState[id] = value;
     panelState[id + 'Preset'] = select.value;
     onInput();
-  });
+  }, () => rigValue);
   const defaultValue = PRESETS[id].find((p) => p.key === DEFAULT_PRESET_KEY[id]).value;
   const initialValue = persistedValue(id, defaultValue);
   field = unitField({
@@ -180,6 +198,40 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
       onInput();
     }
   });
+
+  // Called by applyActiveCartridgeExtras() whenever the active rifle+
+  // cartridge selection changes — `value` is the cartridge's own value for
+  // this field (engine units), or null once it no longer specifies one
+  // (a different cartridge, or "Other"/no rifle). `autoSelect` additionally
+  // picks it right now, the "default to specified values" behavior; a
+  // caller that only wants to keep the *option* available without forcing
+  // a selection (see benchPrecisionField's own combined-mode case) omits
+  // it. Typing a value by hand still flips back to Custom exactly the way
+  // it already does for any other preset — no special-casing needed there.
+  field.setRigValue = function setRigValue(value, { autoSelect = false } = {}) {
+    rigValue = value;
+    if (value == null) {
+      if (rigOption) { rigOption.remove(); rigOption = null; }
+      if (select.value === RIG_PRESET_KEY) {
+        select.value = DEFAULT_PRESET_KEY[id];
+        field.setEngineValue(defaultValue);
+        panelState[id] = defaultValue;
+        panelState[id + 'Preset'] = DEFAULT_PRESET_KEY[id];
+      }
+      return;
+    }
+    if (!rigOption) {
+      rigOption = el('option', { value: RIG_PRESET_KEY, i18n: 'hitProbability.presetLabels.thisRig' });
+      select.insertBefore(rigOption, select.querySelector(`option[value="${CUSTOM_PRESET_KEY}"]`));
+    }
+    if (autoSelect) {
+      select.value = RIG_PRESET_KEY;
+      field.setEngineValue(value);
+      panelState[id] = value;
+      panelState[id + 'Preset'] = RIG_PRESET_KEY;
+    }
+  };
+
   return field;
 }
 
@@ -242,12 +294,17 @@ export function mount(container) {
   // never rendered here, just read for their engine values; see
   // guns-summary.js for the visible stand-in and guns-view.js for where
   // this configuration is actually edited) ----
-  const rifle = rifleSection({ onInput: () => recompute(), onLibraryCartridgeChange: (c) => cartridge.setLibraryCartridge(c) });
+  const rifle = rifleSection({
+    onInput: () => recompute(),
+    onLibraryCartridgeChange: (c) => { cartridge.setLibraryCartridge(c); applyActiveCartridgeExtras(c); }
+  });
   const cartridge = cartridgeSection({ onInput: () => recompute() });
   const guns = gunsSummary();
 
   // ---- Parameters (rifle/bullet summary + uncertainty inputs) ----
   const muzzleVelocitySDField = presetUnitField('muzzleVelocitySD', { max: 20, step: 0.5, onInput: () => recompute() });
+  const muzzleVelocitySDRigHint = el('p', { class: 'hint', i18n: 'hitProbability.thisRigMuzzleVelocitySDHint' });
+  muzzleVelocitySDRigHint.style.display = 'none';
 
   const { checkbox: simplifiedToggle, row: simplifiedToggleRow } =
     persistedCheckbox('simplifiedPrecisionEnabled', 'hitProbability.simplifiedToggleLabel', false, () => {
@@ -256,24 +313,51 @@ export function mount(container) {
     });
 
   const benchPrecisionField = presetUnitField('benchPrecision', { max: 3, step: 0.01, onInput: () => recompute() });
+  const benchPrecisionRigHint = el('p', { class: 'hint', i18n: 'hitProbability.thisRigPrecisionHint' });
+  benchPrecisionRigHint.style.display = 'none';
   const shooterSkillField = presetUnitField('shooterSkill', { max: 3, step: 0.01, onInput: () => recompute() });
   const positionSelect = persistedSelect(
     'position', POSITIONS.map((p) => el('option', { value: p.key, i18n: `hitProbability.presetLabels.${p.key}` })),
     DEFAULT_POSITION_KEY, () => recompute()
   );
   const detailedPrecisionBlock = el('div', {}, [
+    benchPrecisionRigHint,
     benchPrecisionField.node,
     shooterSkillField.node,
     el('div', { class: 'field' }, [el('label', { i18n: 'fields.position' }), positionSelect])
   ]);
 
+  // The active cartridge's own combined-precision value (R50 mrad), for
+  // the "This rig's" checkbox below — null whenever the active cartridge
+  // doesn't specify one (see applyActiveCartridgeExtras()).
+  let activeCombinedRigR50Mrad = null;
+  const combinedThisRigCheckbox = el('input', { type: 'checkbox', id: 'combinedPrecisionThisRig' });
+  const combinedThisRigRow = el('label', { class: 'checkbox-field' }, [combinedThisRigCheckbox, i18nSpan('hitProbability.thisRigCheckboxLabel')]);
+  combinedThisRigRow.style.display = 'none';
+  combinedThisRigCheckbox.addEventListener('change', () => {
+    if (combinedThisRigCheckbox.checked && activeCombinedRigR50Mrad != null) {
+      conventionSelect.value = 'r50';
+      panelState.precisionConvention = 'r50';
+      combinedPrecisionField.setEngineValue(activeCombinedRigR50Mrad);
+      panelState.combinedPrecision = activeCombinedRigR50Mrad;
+      recompute();
+    }
+  });
+  const combinedPrecisionRigHint = el('p', { class: 'hint', i18n: 'hitProbability.thisRigPrecisionHint' });
+  combinedPrecisionRigHint.style.display = 'none';
+
   const conventionSelect = persistedSelect(
     'precisionConvention', CONVENTIONS.map((c) => el('option', { value: c, i18n: `hitProbability.convention${c[0].toUpperCase()}${c.slice(1)}` })),
-    'r50', () => recompute()
+    'r50', () => { combinedThisRigCheckbox.checked = false; recompute(); }
   );
-  const combinedPrecisionField = persistedUnitField('combinedPrecision', { min: 0, max: 3, step: 0.01, value: 0.14, before: conventionSelect, onInput: () => recompute() });
+  const combinedPrecisionField = persistedUnitField('combinedPrecision', {
+    min: 0, max: 3, step: 0.01, value: 0.14, before: conventionSelect,
+    onInput: () => { combinedThisRigCheckbox.checked = false; recompute(); }
+  });
   const simplifiedPrecisionBlock = el('div', {}, [
     combinedPrecisionField.node,
+    combinedThisRigRow,
+    combinedPrecisionRigHint,
     el('p', { class: 'hint', i18n: 'hitProbability.simplifiedHint' })
   ]);
 
@@ -283,9 +367,59 @@ export function mount(container) {
   }
   applySimplifiedVisibility();
 
+  // Reflects the currently active rifle+cartridge selection's own optional
+  // muzzleVelocitySD/precision (see cartridge-form.js) onto the "This
+  // rig's" affordances above: a preset-select option for muzzle velocity
+  // SD and bench precision, a checkbox for combined precision — see
+  // presetUnitField()'s own setRigValue() for the first two. Called by
+  // rifleSection's onLibraryCartridgeChange, so on every rifle/cartridge
+  // change (including back to "Other", or a cartridge with neither field
+  // set, both of which clear everything below).
+  function applyActiveCartridgeExtras(extras) {
+    const sdValue = extras && extras.muzzleVelocitySD != null ? extras.muzzleVelocitySD : null;
+    muzzleVelocitySDField.setRigValue(sdValue, { autoSelect: sdValue != null });
+    muzzleVelocitySDRigHint.style.display = sdValue != null ? '' : 'none';
+
+    const precision = extras && extras.precision ? extras.precision : null;
+    benchPrecisionRigHint.style.display = precision ? '' : 'none';
+    combinedPrecisionRigHint.style.display = precision ? '' : 'none';
+
+    if (precision && precision.mode === 'combined') {
+      activeCombinedRigR50Mrad = precision.r50Mrad;
+      combinedThisRigRow.style.display = '';
+      benchPrecisionField.setRigValue(null);
+      if (!simplifiedToggle.checked) {
+        simplifiedToggle.checked = true;
+        applySimplifiedVisibility();
+      }
+      combinedThisRigCheckbox.checked = true;
+      conventionSelect.value = 'r50';
+      panelState.precisionConvention = 'r50';
+      combinedPrecisionField.setEngineValue(precision.r50Mrad);
+      panelState.combinedPrecision = precision.r50Mrad;
+    } else if (precision && precision.mode === 'own') {
+      activeCombinedRigR50Mrad = null;
+      combinedThisRigRow.style.display = 'none';
+      combinedThisRigCheckbox.checked = false;
+      if (simplifiedToggle.checked) {
+        simplifiedToggle.checked = false;
+        applySimplifiedVisibility();
+      }
+      benchPrecisionField.setRigValue(precision.r50Mrad, { autoSelect: true });
+    } else {
+      activeCombinedRigR50Mrad = null;
+      combinedThisRigRow.style.display = 'none';
+      combinedThisRigCheckbox.checked = false;
+      benchPrecisionField.setRigValue(null);
+    }
+
+    recompute();
+  }
+
   const ownErrorsSection = el('div', { class: 'input-section' }, [
     el('h3', { i18n: 'hitProbability.ownErrorsHeading' }),
     muzzleVelocitySDField.node,
+    muzzleVelocitySDRigHint,
     simplifiedToggleRow,
     detailedPrecisionBlock,
     simplifiedPrecisionBlock

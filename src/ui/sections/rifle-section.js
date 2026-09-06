@@ -143,7 +143,14 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
         muzzleVelocity: cartridge.muzzleVelocity,
         referenceTempC: cartridge.referenceTempC,
         velocityTempSensitivity: cartridge.velocityTempSensitivity,
-        bulletId: cartridge.bulletId
+        bulletId: cartridge.bulletId,
+        // Optional, Hit Probability-only — see cartridge-form.js's own
+        // muzzleVelocitySD/precision fields. Every other caller of this
+        // callback (Trajectory, Range Solver) ignores these two extra
+        // keys, same as it already ignores anything else it doesn't
+        // destructure out of this object.
+        muzzleVelocitySD: cartridge.muzzleVelocitySD ?? null,
+        precision: cartridge.precision ?? null
       } : null);
     }
   }

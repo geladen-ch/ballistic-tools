@@ -13,14 +13,20 @@ const riflePrecisionView = await import('../src/views/rifle-precision-view.js');
 const {
   loadRiflePrecisionProjects, saveRiflePrecisionProject, resetRiflePrecisionLibraryForTests
 } = await import('../src/rifle-precision-library.js');
-const { generateUserId } = await import('../src/user-library.js');
+const { generateUserId, saveUserRifle } = await import('../src/user-library.js');
 const { getActiveProjectId, takePendingMarking, resetRiflePrecisionNavForTests } = await import('../src/rifle-precision-nav.js');
+const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
+const { takePendingCartridgeActivation } = await import('../src/arsenal-prefill.js');
 
+let dialogRoot;
 test.beforeEach(async () => {
   await resetRiflePrecisionLibraryForTests();
   resetRiflePrecisionNavForTests();
+  localStorage.clear();
   location.hash = '';
   global.confirm = () => true;
+  dialogRoot = makeElement('div');
+  mountDialogRoot(dialogRoot);
 });
 
 function settle(ms = 30) {
@@ -514,6 +520,70 @@ test('"View report" appears on the active project once it has a usable target, a
   fireEvent(reportButton, 'click');
   assert.equal(location.hash, '#/rifle-precision/analysis');
   assert.equal(getActiveProjectId(), project.id);
+});
+
+// === Arsenal integration: R50/confidence line, "Set as cartridge precision…" ===
+
+function makeStatsReadyTarget(overrides = {}) {
+  return makeUsableTarget({
+    // computeCombinedStats() needs >= 3 pooled shots; makeUsableTarget()'s
+    // own default group has just 1 — enough for "usable" (View report) but
+    // not for a real R50/confidence number.
+    groups: [{
+      id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 },
+      shots: [{ x: 0.51, y: 0.49 }, { x: 0.49, y: 0.5 }, { x: 0.5, y: 0.52 }]
+    }],
+    ...overrides
+  });
+}
+
+test('the R50/confidence line and "Set as cartridge precision…" are both absent when a target is usable but too few shots for real stats', () => {
+  const project = saveRiflePrecisionProject(makeTestProject({ targets: [makeUsableTarget({ name: 'Usable' })] }));
+  const container = makeElement('main');
+  riflePrecisionView.mount(container);
+  fireEvent(rowByText(container, project.name), 'click');
+
+  const row = rowByText(container, project.name);
+  assert.equal(buttonByKey(row, 'riflePrecision.setCartridgePrecisionButton'), undefined);
+  assert.ok(!row.textContent.includes(t('riflePrecision.r50Label')));
+});
+
+test('once a project has enough pooled shots, its row shows R50 in mrad and MOA plus a confidence badge, and offers "Set as cartridge precision…"', () => {
+  const project = saveRiflePrecisionProject(makeTestProject({ distanceM: 100, targets: [makeStatsReadyTarget({ name: 'Ready' })] }));
+  const container = makeElement('main');
+  riflePrecisionView.mount(container);
+  fireEvent(rowByText(container, project.name), 'click');
+
+  const row = rowByText(container, project.name);
+  assert.ok(row.textContent.includes(t('riflePrecision.r50Label')));
+  assert.ok(row.textContent.includes('mrad'));
+  assert.ok(row.textContent.includes('MOA'));
+  assert.ok(row.textContent.includes(t('riflePrecision.confidenceLabel')), 'a "Confidence:" label precedes the badge');
+  assert.equal(findByClass(row, 'confidence-pill').length, 1);
+  assert.ok(buttonByKey(row, 'riflePrecision.setCartridgePrecisionButton'));
+});
+
+test('"Set as cartridge precision…" opens a picker; picking a rifle+cartridge stashes the activation and navigates to Arsenal', () => {
+  saveUserRifle({ id: 'r1', name: 'Test Rifle', cartridges: [{ id: 'c1', name: 'Test Cartridge' }] });
+  const project = saveRiflePrecisionProject(makeTestProject({ id: 'p1', distanceM: 100, targets: [makeStatsReadyTarget()] }));
+  const container = makeElement('main');
+  riflePrecisionView.mount(container);
+  fireEvent(rowByText(container, project.name), 'click');
+
+  const setButton = buttonByKey(rowByText(container, project.name), 'riflePrecision.setCartridgePrecisionButton');
+  fireEvent(setButton, 'click');
+
+  // The dialog mounts into its own root (see mountDialogRoot() in
+  // beforeEach above), not this view's own container.
+  const row = findByClass(dialogRoot, 'arsenal-row')[0];
+  assert.ok(row, 'expected one rifle+cartridge row in the picker');
+  fireEvent(row, 'click');
+
+  assert.equal(location.hash, '#/guns/arsenal');
+  const activation = takePendingCartridgeActivation();
+  assert.equal(activation.rifleId, 'r1');
+  assert.equal(activation.cartridgeId, 'c1');
+  assert.ok(activation.precisionR50Mrad > 0);
 });
 
 // === Backup to file / whole-library export & import ===

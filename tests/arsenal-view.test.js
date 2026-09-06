@@ -16,7 +16,7 @@ const trajectoryView = await import('../src/views/trajectory-view.js');
 const gunsView = await import('../src/views/guns-view.js');
 const { makeElement } = await import('./helpers/fake-dom.js');
 const { loadUserBullets, saveUserBullet, loadUserRifles, saveUserRifle, generateUserId } = await import('../src/user-library.js');
-const { setPendingBulletPrefill, setPendingRiflePrefill } = await import('../src/arsenal-prefill.js');
+const { setPendingBulletPrefill, setPendingRiflePrefill, setPendingCartridgeActivation } = await import('../src/arsenal-prefill.js');
 const { resetShotStateForTests, loadRifleState, saveCartridgeState, saveRifleState } = await import('../src/shot-state.js');
 const { resetComparisonForTests, getComparisonSelection } = await import('../src/comparison-state.js');
 const { requestGunsDone, resetGunsNavForTests } = await import('../src/guns-nav.js');
@@ -1713,6 +1713,51 @@ test('a rifle prefill matching an existing Arsenal rifle by name opens it in Edi
   assert.equal(rifles[0].id, 'my-rifle');
   assert.equal(rifles[0].defaultZeroRangeM, 200);
   assert.equal(rifles[0].cartridges.length, 1, 'its existing cartridges must be preserved');
+});
+
+test('a pending cartridge activation from Rifle Precision opens that exact cartridge in Edit mode, with precision pre-filled', async () => {
+  saveUserRifle({
+    id: 'my-rifle', name: 'My Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'c1', name: 'Load 1', muzzleVelocity: 800, bulletId: 'swiss-gp11' },
+      { id: 'c2', name: 'Load 2', muzzleVelocity: 820, bulletId: 'swiss-gp11', precision: { mode: 'combined', r50Mrad: 0.4 } }
+    ]
+  });
+  setPendingCartridgeActivation({ rifleId: 'my-rifle', cartridgeId: 'c2', precisionR50Mrad: 0.21 });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  const nameInput = byId(container, 'arsenalCartridgeName');
+  assert.ok(nameInput, 'expected the cartridge edit form to already be open');
+  assert.equal(nameInput.value, 'Load 2', 'must open the exact cartridge the activation named, not the rifle\'s first one');
+
+  // Precision is overridden to the picked project's value ("own" mode,
+  // R50 mrad) even though this cartridge already had a different
+  // ("combined") precision stored — same "fresh values win" idea as the
+  // bullet/rifle prefills above, just for one field.
+  assert.equal(byId(container, 'cartridgePrecisionEnabled').checked, true);
+  assert.equal(byId(container, 'cartridgePrecisionMode').value, 'own');
+  assert.equal(byId(container, 'cartridgePrecisionValue').value, '0.21');
+
+  const { saveButton } = outerCartridgeFormActions(container);
+  fireEvent(saveButton, 'click');
+
+  const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c2');
+  assert.deepEqual(saved.precision, { mode: 'own', r50Mrad: 0.21 });
+});
+
+test('a pending cartridge activation for a since-deleted cartridge is a silent no-op', async () => {
+  saveUserRifle({ id: 'my-rifle', name: 'My Rifle', cartridges: [] });
+  setPendingCartridgeActivation({ rifleId: 'my-rifle', cartridgeId: 'gone', precisionR50Mrad: 0.21 });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+  assert.equal(byId(container, 'arsenalCartridgeName'), undefined);
 });
 
 test('a prefill is only applied once — remounting Arsenal without a new prefill starts fresh', () => {

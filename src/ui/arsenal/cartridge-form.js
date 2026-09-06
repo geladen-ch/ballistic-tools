@@ -1,6 +1,7 @@
 import { el, clear } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { muzzleVelocityTempField } from '../muzzle-velocity-temp-field.js';
+import { cartridgePrecisionField } from './cartridge-precision-field.js';
 import { stabilityIndicator } from '../stability-indicator.js';
 import { bulletForm } from './bullet-form.js';
 import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
@@ -11,7 +12,10 @@ import { t } from '../../i18n.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
 
-const DEFAULT_VALUES = { name: '', muzzleVelocity: 800, referenceTempC: null, velocityTempSensitivity: null, bulletId: '' };
+const DEFAULT_VALUES = {
+  name: '', muzzleVelocity: 800, referenceTempC: null, velocityTempSensitivity: null, bulletId: '',
+  muzzleVelocitySD: null, precision: null
+};
 const ALL_CALIBERS_VALUE = '__all__';
 const NEW_BULLET_VALUE = '__new__';
 
@@ -73,6 +77,16 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
   if (values.referenceTempC != null) {
     muzzleVelocityTemp.setInitialValues({ referenceTempC: values.referenceTempC, velocityTempSensitivity: values.velocityTempSensitivity });
   }
+
+  // Both optional, used only by the Hit Probability tool — see
+  // cartridge-precision-field.js's own class comment for why rifle
+  // precision keeps its own independent mrad/MOA unit choice rather than
+  // going through unitField's usual Settings-driven one.
+  const muzzleVelocitySDField = unitField({
+    id: 'muzzleVelocitySD', ...FIELD_BOUNDS.muzzleVelocitySD, step: 0.5, optional: true, value: values.muzzleVelocitySD
+  });
+  const precisionField = cartridgePrecisionField({});
+  precisionField.setInitialValues(values.precision);
 
   // Narrows the bullet picker below to one caliber at a time — the same
   // "known designation, or a raw-mm label for anything else" idea
@@ -355,7 +369,9 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
       name: nameInput.value.trim(),
       muzzleVelocity: muzzleVelocityField.getEngineValue(),
       ...muzzleVelocityTemp.getValues(),
-      bulletId: bulletSelect.value
+      bulletId: bulletSelect.value,
+      muzzleVelocitySD: muzzleVelocitySDField.getEngineValue(),
+      precision: precisionField.getValue()
     };
   }
 
@@ -376,7 +392,9 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
       { ok: nameValidity.validate(), node: nameInput },
       { ok: muzzleVelocityField.validate(), node: muzzleVelocityField.node },
       { ok: muzzleVelocityTemp.validate(), node: muzzleVelocityTemp.node },
-      { ok: bulletValidity.validate(), node: bulletSelect }
+      { ok: bulletValidity.validate(), node: bulletSelect },
+      { ok: muzzleVelocitySDField.validate(), node: muzzleVelocitySDField.node },
+      { ok: precisionField.validate(), node: precisionField.node }
     ];
     const firstInvalid = checks.find((c) => !c.ok);
     if (firstInvalid) {
@@ -417,6 +435,9 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
     bulletCopyNotice,
     bulletOverwriteWarning,
     stability.node,
+    muzzleVelocitySDField.node,
+    el('p', { class: 'hint', i18n: 'arsenal.hitProbabilityOnlyHint' }),
+    precisionField.node,
     el('div', { class: 'arsenal-form-actions' }, [saveButton, cancelButton])
   ]);
 

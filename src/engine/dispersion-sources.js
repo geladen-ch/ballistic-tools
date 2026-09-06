@@ -38,6 +38,15 @@ export function r50ToSD(r50) {
   return r50 / 1.1774;
 }
 
+// Same Rayleigh-quantile formula as r50ToSD/r99ToSD above, at p=0.95:
+// sqrt(-2*ln(0.05)) = 2.4477. This is also the exact factor Hit
+// Probability's own illustration uses to draw its "95% ellipse" from a
+// per-axis SD (see ELLIPSE_95_FACTOR in hit-probability-view.js) — the two
+// are the same quantity, just consumed in different directions.
+export function r95ToSD(r95) {
+  return r95 / 2.4477;
+}
+
 export function r99ToSD(r99) {
   return r99 / 3.0349;
 }
@@ -48,6 +57,31 @@ export function es5ToSD(es5) {
 
 export function es10ToSD(es10) {
   return es10 / 3.81158;
+}
+
+// Inverse of r50ToSD — used to normalize a dispersion already expressed as
+// an SD (however it was derived: any of the conventions above) into R50,
+// the one convention this app stores an Arsenal cartridge's own rifle
+// precision as (see conventionValueToR50Mrad below).
+export function sdToR50(sd) {
+  return sd * 1.1774;
+}
+
+// Every precision "convention" this app lets a user express a dispersion
+// in, mapped to its own value->SD converter above. Shared by Hit
+// Probability's simplified-combined-precision convention selector (single-
+// shot.js/spotter-corrected.js) and the Arsenal cartridge form's own
+// precision field (cartridge-precision-field.js) — a single place to add a
+// new convention (see r95's own addition above) rather than three.
+export const CONVENTION_TO_SD = { r50: r50ToSD, r95: r95ToSD, r99: r99ToSD, es5: es5ToSD, es10: es10ToSD };
+
+// Re-expresses a value already in mrad (the caller has already resolved
+// whatever display unit it was entered in) under a chosen convention as
+// R50 mrad — the one form an Arsenal cartridge's own rifle precision is
+// stored in, regardless of which convention the user found easiest to
+// measure/quote it in.
+export function conventionValueToR50Mrad(valueMrad, convention) {
+  return sdToR50(CONVENTION_TO_SD[convention](valueMrad));
 }
 
 // A dispersion already expressed as an angle (mrad) — bench rifle

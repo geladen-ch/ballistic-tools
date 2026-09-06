@@ -8,11 +8,9 @@
 // these engine units first, same as every other tool in this app.
 import { solveZeroAngle, computeImpact } from './trajectory.js';
 import {
-  probableErrorToSD, r50ToSD, r99ToSD, es5ToSD, es10ToSD, angularSDToLinear,
+  probableErrorToSD, r50ToSD, CONVENTION_TO_SD, angularSDToLinear,
   trajectoryPerturbationSD, rangeEstimationSD, movingTargetLeadSD, combineSD
 } from './dispersion-sources.js';
-
-const SIMPLIFIED_CONVERTERS = { r50: r50ToSD, r99: r99ToSD, es5: es5ToSD, es10: es10ToSD };
 
 export function computeSingleShot({
   nominalState, targetRange, battleZeroRange,
@@ -35,7 +33,7 @@ export function computeSingleShot({
   if (ownErrors.precisionMode === 'simplified') {
     const { value, convention } = ownErrors.simplified;
     if (value) {
-      const linear = angularSDToLinear(SIMPLIFIED_CONVERTERS[convention](value), targetRange);
+      const linear = angularSDToLinear(CONVENTION_TO_SD[convention](value), targetRange);
       contributions.push({ id: 'combinedPrecision', x: linear, y: linear });
     }
   } else {

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  probableErrorToSD, r50ToSD, r99ToSD, es5ToSD, es10ToSD,
+  probableErrorToSD, r50ToSD, r95ToSD, r99ToSD, es5ToSD, es10ToSD, sdToR50,
+  CONVENTION_TO_SD, conventionValueToR50Mrad,
   angularSDToLinear, trajectoryPerturbationSD, rangeEstimationSD,
   movingTargetLeadSD, combineSD
 } from '../src/engine/dispersion-sources.js';
@@ -18,11 +19,34 @@ test('probableErrorToSD divides by 0.6745', () => {
   assert.ok(Math.abs(probableErrorToSD(6.745) - 10) < 1e-9);
 });
 
-test('r50ToSD / r99ToSD / es5ToSD / es10ToSD use their confirmed factors', () => {
+test('r50ToSD / r95ToSD / r99ToSD / es5ToSD / es10ToSD use their confirmed factors', () => {
   assert.ok(Math.abs(r50ToSD(1.1774) - 1) < 1e-9);
+  assert.ok(Math.abs(r95ToSD(2.4477) - 1) < 1e-9);
   assert.ok(Math.abs(r99ToSD(3.0349) - 1) < 1e-9);
   assert.ok(Math.abs(es5ToSD(3.06588) - 1) < 1e-9);
   assert.ok(Math.abs(es10ToSD(3.81158) - 1) < 1e-9);
+});
+
+test('sdToR50 is the exact inverse of r50ToSD', () => {
+  assert.ok(Math.abs(sdToR50(r50ToSD(0.42)) - 0.42) < 1e-9);
+});
+
+test('CONVENTION_TO_SD exposes all five conventions, matching their own named converters', () => {
+  assert.equal(CONVENTION_TO_SD.r50, r50ToSD);
+  assert.equal(CONVENTION_TO_SD.r95, r95ToSD);
+  assert.equal(CONVENTION_TO_SD.r99, r99ToSD);
+  assert.equal(CONVENTION_TO_SD.es5, es5ToSD);
+  assert.equal(CONVENTION_TO_SD.es10, es10ToSD);
+});
+
+test('conventionValueToR50Mrad round-trips a value quoted as R50 unchanged', () => {
+  assert.ok(Math.abs(conventionValueToR50Mrad(0.3, 'r50') - 0.3) < 1e-9);
+});
+
+test('conventionValueToR50Mrad re-expresses a non-R50 convention as the equivalent R50', () => {
+  // A group whose R99 is 3.0349 mrad has an SD of 1 mrad, which is also an
+  // R50 of 1.1774 mrad -- same underlying dispersion, different quantile.
+  assert.ok(Math.abs(conventionValueToR50Mrad(3.0349, 'r99') - 1.1774) < 1e-6);
 });
 
 test('the ES factors match the simulation figures they are quoted from', () => {

@@ -137,7 +137,9 @@ test('selecting a library rifle auto-applies its first cartridge via onLibraryCa
     muzzleVelocity: 807.72,
     referenceTempC: undefined,
     velocityTempSensitivity: undefined,
-    bulletId: 'swiss-gp11'
+    bulletId: 'swiss-gp11',
+    muzzleVelocitySD: null,
+    precision: null
   });
 });
 
