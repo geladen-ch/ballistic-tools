@@ -326,11 +326,13 @@ cet appareil (stockage local du navigateur) — rien ici ne quitte jamais
 votre navigateur.
 
 **Bibliothèques intégrées.** L'application est fournie avec une bibliothèque
-intégrée de carabines et trois bibliothèques intégrées de balles — **Geladen's
+intégrée de carabines et quatre bibliothèques intégrées de balles — **Geladen's
 own** (« La collection de l'auteur »), **Lapua Cd** (courbes Cd-Mach mesurées
-au radar par Lapua, telles que publiées par le fabricant) et **Hornady
+au radar par Lapua, telles que publiées par le fabricant), **Hornady
 Reverse Radar** (courbes Cd-Mach personnalisées, obtenues par
-rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF) —
+rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF) et
+**Swiss P** (courbes Cd-Mach et BC G7 supersoniques optimaux, obtenus par
+rétro-ingénierie à partir des tables de trajectoire publiées par Swiss P) —
 affichées à côté de tout ce que vous ajoutez vous-même (vos propres entrées
 sont marquées d'un « * » en préfixe). Chacune peut être **désactivée
 individuellement dans Paramètres** si vous ne voulez pas qu'elle encombre vos

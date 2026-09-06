@@ -888,12 +888,17 @@
     "hornadyReverse": {
       "name": "Hornady Reverse Radar",
       "description": "Custom Cd-Mach curves reverse-engineered from the Hornady 4DOF calculator output"
+    },
+    "swissP": {
+      "name": "Swiss P",
+      "description": "Cd-Mach curves and optimal supersonic G7 BCs reverse-engineered from Swiss P's own published trajectory tables"
     }
   },
   "releaseHistory": {
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v182": "New: Swiss P bullet library, based on the vendor's velocity data. New cool release codename.",
       "v181": "Fix: text fields and dropdowns (rifle/cartridge/bullet names, the cartridge picker, Range Solver's target picker, and more) had no color of their own and could render invisible dark-on-dark on Android browsers that auto-dark native form controls independently of this app's own theme — every field and dropdown now gets an explicit background/text color regardless of type (thanks to 6.5SH for the bug report).",
       "v180": "Fix: Range Solver's clicks-output readout labeled itself with the rifle's own scope click unit (mrad/MOA) — since a click's actual size is arbitrary and can differ between elevation and windage, this misstated the value; it's now labeled \"Clicks\" instead.",
       "v179": "New: IPSC Target and IPSC Mini Target (cardboard, three nested A/C/D scoring zones) added to Hit Probability, with a Major/Minor power-factor toggle for scoring.",

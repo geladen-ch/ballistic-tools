@@ -74,7 +74,30 @@ test('loadBulletCatalog resolves a plain list of bullet ids — no duplicated na
     'russian-762x39-m43',
     'russian-762x54r-7n1',
     'swiss-gp11',
-    'swiss-gp90'
+    'swiss-gp90',
+    'swp-223-ap-63',
+    'swp-223-ball-63',
+    'swp-223-ballsx-55',
+    'swp-223-bondedstyx-55',
+    'swp-223-styxaction-69',
+    'swp-223-target-69',
+    'swp-308-ap-196',
+    'swp-308-ball-176',
+    'swp-308-styxaction-167',
+    'swp-308-tactical-163',
+    'swp-308-target-168',
+    'swp-308-target-175',
+    'swp-338-ap-260',
+    'swp-338-api-263',
+    'swp-338-ball-251',
+    'swp-338-styxaction-247',
+    'swp-338-tactical-250',
+    'swp-338-target-250',
+    'swp-338-target-300',
+    'swp-375-ball-350',
+    'swp-50-hcsx-733',
+    'swp-50-trainingsx-644',
+    'swp-65cm-targetsx-130'
   ]);
   for (const entry of catalog) assert.equal(typeof entry, 'string');
 });
@@ -87,13 +110,15 @@ test('loadBulletCatalog returns the same array instance across repeated calls (i
 
 test('loadBulletLibraries returns every known built-in library with its own id/prefix', () => {
   const libraries = loadBulletLibraries();
-  assert.deepEqual(libraries.map((lib) => lib.id).sort(), ['geladen', 'hornady-reverse', 'lapua-cd']);
+  assert.deepEqual(libraries.map((lib) => lib.id).sort(), ['geladen', 'hornady-reverse', 'lapua-cd', 'swiss-p']);
   const geladen = libraries.find((lib) => lib.id === 'geladen');
   assert.equal(geladen.prefix, 'Gldn');
   const lapuaCd = libraries.find((lib) => lib.id === 'lapua-cd');
   assert.equal(lapuaCd.prefix, 'LCd');
   const hornadyReverse = libraries.find((lib) => lib.id === 'hornady-reverse');
   assert.equal(hornadyReverse.prefix, 'Hrr');
+  const swissP = libraries.find((lib) => lib.id === 'swiss-p');
+  assert.equal(swissP.prefix, 'SwP');
 });
 
 test('no built-in bullet id is claimed by more than one library', () => {
@@ -205,7 +230,12 @@ test('every catalog bullet resolves to a well-formed record', async () => {
     assert.equal(typeof bullet.manufacturer, 'string');
     assert.equal(typeof bullet.caliberM, 'number');
     assert.ok(bullet.caliberM > 0 && bullet.caliberM < 0.02, `implausible caliberM for ${id}: ${bullet.caliberM}`);
-    assert.equal(typeof bullet.lengthM, 'number');
+    // Optional, like every other bullet record (see bullet-form.js's own
+    // readValues()) — every built-in bullet happened to carry one until
+    // the Swiss P library, whose own source PDFs never state a bullet
+    // length, so this only checks the type when present rather than
+    // requiring it.
+    if (bullet.lengthM != null) assert.equal(typeof bullet.lengthM, 'number');
     assert.equal(typeof bullet.massKg, 'number');
     assert.ok(bullet.massKg > 0 && bullet.massKg < 1, `implausible massKg for ${id}: ${bullet.massKg}`);
     assert.equal(typeof bullet.source, 'string');
@@ -237,6 +267,7 @@ test('manufacturer is inferred from the bullet id/name (Hornady, Lapua, RUAG), "
     if (id.startsWith('hrr-')) expected = 'Hornady';
     else if (id.startsWith('lapua-') || id.startsWith('lcd-')) expected = 'Lapua';
     else if (id.startsWith('ruag-')) expected = 'RUAG';
+    else if (id.startsWith('swp-')) expected = 'Swiss P';
     assert.equal(bullet.manufacturer, expected, `${id} should be manufacturer "${expected}"`);
   }
 });

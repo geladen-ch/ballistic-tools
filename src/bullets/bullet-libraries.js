@@ -17,6 +17,7 @@
 import { BULLET_IDS as GELADEN_IDS } from './geladen/catalog.js';
 import { BULLET_IDS as LAPUA_CD_IDS } from './lapua-cd/catalog.js';
 import { BULLET_IDS as HORNADY_REVERSE_IDS } from './hornady-reverse/catalog.js';
+import { BULLET_IDS as SWISS_P_IDS } from './swiss-p/catalog.js';
 
 export const BULLET_LIBRARIES = [
   {
@@ -39,5 +40,12 @@ export const BULLET_LIBRARIES = [
     nameKey: 'bulletLibraries.hornadyReverse.name',
     descriptionKey: 'bulletLibraries.hornadyReverse.description',
     prefix: 'Hrr'
+  },
+  {
+    id: 'swiss-p',
+    ids: SWISS_P_IDS,
+    nameKey: 'bulletLibraries.swissP.name',
+    descriptionKey: 'bulletLibraries.swissP.description',
+    prefix: 'SwP'
   }
 ];

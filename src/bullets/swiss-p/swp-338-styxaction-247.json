@@ -1,0 +1,13 @@
+{
+  "id": "swp-338-styxaction-247",
+  "name": "247gr Styx Action",
+  "manufacturer": "Swiss P",
+  "caliberM": 0.0086,
+  "massKg": 0.016,
+  "source": "Optimal supersonic BC from Swiss P velocities",
+  "profile": {
+    "type": "bc",
+    "bc": 0.2155,
+    "model": "G7"
+  }
+}

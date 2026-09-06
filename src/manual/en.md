@@ -283,13 +283,15 @@ Your own library of rifles and bullets, stored only on this device
 (browser local storage) — nothing here ever leaves your browser.
 
 **Built-in libraries.** The app ships with a built-in rifle library and
-three built-in bullet libraries — **Geladen's own**, **Lapua Cd**
-(radar-measured Cd-Mach curves as published by the vendor), and **Hornady
+four built-in bullet libraries — **Geladen's own**, **Lapua Cd**
+(radar-measured Cd-Mach curves as published by the vendor), **Hornady
 Reverse Radar** (curves reverse-engineered from Hornady's own 4DOF
-calculator output) — shown alongside anything you add yourself (your own
-entries are marked with a leading `*`). Each one can be **turned off
-individually in Settings** if you don't want it cluttering your pickers;
-your own saved entries are unaffected either way.
+calculator output), and **Swiss P** (Cd-Mach curves and optimal supersonic
+G7 BCs reverse-engineered from Swiss P's own published trajectory tables)
+— shown alongside anything you add yourself (your own entries are marked
+with a leading `*`). Each one can be **turned off individually in
+Settings** if you don't want it cluttering your pickers; your own saved
+entries are unaffected either way.
 
 **Adding and managing entries.** Add a bullet either from scratch (name,
 caliber, mass, BC/drag model or a pasted Cd-Mach table) or by copying a

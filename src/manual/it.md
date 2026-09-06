@@ -319,11 +319,13 @@ questo dispositivo (archiviazione locale del browser) — nulla qui lascia
 mai il tuo browser.
 
 **Librerie integrate.** L'app include una libreria integrata di fucili e
-tre librerie integrate di proiettili — **Geladen's own** (la collezione
+quattro librerie integrate di proiettili — **Geladen's own** (la collezione
 dell'autore), **Lapua Cd** (curve Cd-Mach misurate al radar da Lapua, come
-pubblicate dal produttore) e **Hornady Reverse Radar** (curve Cd-Mach
+pubblicate dal produttore), **Hornady Reverse Radar** (curve Cd-Mach
 personalizzate, ricavate tramite reverse engineering dall'output del
-calcolatore Hornady 4DOF) — mostrate accanto a tutto ciò che aggiungi tu
+calcolatore Hornady 4DOF) e **Swiss P** (curve Cd-Mach e BC G7 supersonici
+ottimali, ricavati tramite reverse engineering dalle tabelle di traiettoria
+pubblicate da Swiss P) — mostrate accanto a tutto ciò che aggiungi tu
 stesso (le tue voci personali sono contrassegnate da un "*" iniziale).
 Ciascuna può essere **disattivata singolarmente in Impostazioni** se non
 vuoi che affollino i tuoi elenchi di selezione; le tue voci salvate non ne

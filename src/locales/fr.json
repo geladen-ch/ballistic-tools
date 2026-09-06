@@ -888,12 +888,17 @@
     "hornadyReverse": {
       "name": "Hornady Reverse Radar",
       "description": "Courbes Cd-Mach personnalisées, obtenues par rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF"
+    },
+    "swissP": {
+      "name": "Swiss P",
+      "description": "Courbes Cd-Mach et BC G7 supersoniques optimaux, obtenus par rétro-ingénierie à partir des tables de trajectoire publiées par Swiss P"
     }
   },
   "releaseHistory": {
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v182": "Nouveau : bibliothèque de balles Swiss P, basée sur les données de vitesse du fabricant. Nouveau nom de code de version sympa.",
       "v181": "Correction : les champs de texte et les listes déroulantes (noms de carabine/cartouche/balle, le sélecteur de cartouche, le sélecteur de cible du Solveur de portée, et d'autres) n'avaient pas de couleur propre et pouvaient s'afficher de façon invisible, sombre sur sombre, sur les navigateurs Android qui assombrissent automatiquement les contrôles de formulaire natifs indépendamment du thème de l'application — chaque champ et liste déroulante reçoit désormais une couleur de fond/texte explicite, quel que soit son type (merci à 6.5SH pour le signalement du bug).",
       "v180": "Correction : l'affichage en clics du Solveur de portée s'étiquetait avec l'unité de clic de la carabine (mrad/MOA) — la taille réelle d'un clic étant arbitraire et pouvant différer entre l'élévation et la dérive, cela faussait la valeur ; il est désormais étiqueté « Clics » à la place.",
       "v179": "Nouveau : cibles IPSC Target et IPSC Mini Target (carton, trois zones de score A/C/D imbriquées) dans Probabilité d'impact, avec un sélecteur de facteur de puissance Major/Minor pour le score.",

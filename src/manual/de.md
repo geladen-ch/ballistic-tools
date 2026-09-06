@@ -323,11 +323,13 @@ gespeichert (lokaler Speicher des Browsers) — nichts davon verlässt jemals
 Ihren Browser.
 
 **Integrierte Bibliotheken.** Die App wird mit einer integrierten
-Gewehrbibliothek und drei integrierten Geschossbibliotheken ausgeliefert —
+Gewehrbibliothek und vier integrierten Geschossbibliotheken ausgeliefert —
 **Geladen's own** („Die Sammlung des Autors"), **Lapua Cd** (Radar-gemessene
-Cd-Mach-Kurven, wie vom Hersteller veröffentlicht) und **Hornady Reverse
+Cd-Mach-Kurven, wie vom Hersteller veröffentlicht), **Hornady Reverse
 Radar** (eigene Cd-Mach-Kurven, zurückentwickelt aus der Ausgabe des
-Hornady-4DOF-Rechners) — die alle neben allem angezeigt werden, was Sie
+Hornady-4DOF-Rechners) und **Swiss P** (Cd-Mach-Kurven und optimale
+supersonische G7-BCs, zurückentwickelt aus Swiss Ps eigenen veröffentlichten
+Flugbahntabellen) — die alle neben allem angezeigt werden, was Sie
 selbst hinzufügen (Ihre eigenen Einträge sind mit einem vorangestellten „*"
 gekennzeichnet). Jede davon lässt sich **einzeln in Einstellungen
 abschalten**, falls Sie nicht möchten, dass sie Ihre Auswahllisten

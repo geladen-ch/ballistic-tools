@@ -620,6 +620,7 @@ test('the bullet picker (but not the checkboxes) is hidden when every built-in l
   setBulletLibraryVisible('geladen', false);
   setBulletLibraryVisible('lapua-cd', false);
   setBulletLibraryVisible('hornady-reverse', false);
+  setBulletLibraryVisible('swiss-p', false);
   const bullet = bulletSection();
   await settle();
 
@@ -647,19 +648,24 @@ test('unchecking a library checkbox live-hides only that library\'s bullets, kee
   const geladenCheckbox = byId(bullet.node, 'bullet-library-geladen');
   const lapuaCheckbox = byId(bullet.node, 'bullet-library-lapua-cd');
   const hornadyReverseCheckbox = byId(bullet.node, 'bullet-library-hornady-reverse');
+  const swissPCheckbox = byId(bullet.node, 'bullet-library-swiss-p');
   assert.equal(geladenCheckbox.checked, true);
   assert.equal(lapuaCheckbox.checked, true);
   assert.equal(hornadyReverseCheckbox.checked, true);
+  assert.equal(swissPCheckbox.checked, true);
   geladenCheckbox.checked = false;
   fireEvent(geladenCheckbox, 'change');
   lapuaCheckbox.checked = false;
   fireEvent(lapuaCheckbox, 'change');
   hornadyReverseCheckbox.checked = false;
   fireEvent(hornadyReverseCheckbox, 'change');
+  swissPCheckbox.checked = false;
+  fireEvent(swissPCheckbox, 'change');
 
   assert.equal(isBulletLibraryVisible('geladen'), false);
   assert.equal(isBulletLibraryVisible('lapua-cd'), false);
   assert.equal(isBulletLibraryVisible('hornady-reverse'), false);
+  assert.equal(isBulletLibraryVisible('swiss-p'), false);
   const values = bulletSelect.childNodes.map((o) => o.attributes.value);
   assert.deepEqual(values, ['__other__', 'my-custom-bullet']);
 });
@@ -690,6 +696,7 @@ test('unlock() after a lock restores the toggle-respecting picker (built-ins hid
   setBulletLibraryVisible('geladen', false);
   setBulletLibraryVisible('lapua-cd', false);
   setBulletLibraryVisible('hornady-reverse', false);
+  setBulletLibraryVisible('swiss-p', false);
   const bullet = bulletSection();
   await bullet.lockToBullet('swiss-gp90');
   bullet.unlock();

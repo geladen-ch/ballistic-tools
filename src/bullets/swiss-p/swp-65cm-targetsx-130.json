@@ -1,0 +1,13 @@
+{
+  "id": "swp-65cm-targetsx-130",
+  "name": "130gr Target SX",
+  "manufacturer": "Swiss P",
+  "caliberM": 0.00671,
+  "massKg": 0.0084,
+  "source": "Optimal supersonic BC from Swiss P velocities",
+  "profile": {
+    "type": "bc",
+    "bc": 0.2977,
+    "model": "G7"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "swp-338-target-300",
+  "name": "300gr Target",
+  "manufacturer": "Swiss P",
+  "caliberM": 0.0086,
+  "massKg": 0.0194,
+  "source": "Optimal supersonic BC from Swiss P velocities",
+  "profile": {
+    "type": "bc",
+    "bc": 0.3875,
+    "model": "G7"
+  }
+}
