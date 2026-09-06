@@ -898,6 +898,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v183": "Correzione: \"Salva nell'Arsenale\" dallo strumento curva Cd-Mach ora scorre la pagina Arsenale fino al modulo del proiettile appena aperto, invece di lasciare la pagina in cima all'elenco.",
       "v182": "Novità: libreria di proiettili Swiss P, basata sui dati di velocità del produttore. Nuovo nome in codice della release, davvero cool.",
       "v181": "Correzione: i campi di testo e i menu a tendina (nomi di fucile/cartuccia/proiettile, il selettore di cartuccia, il selettore di bersaglio del Range Solver, e altri) non avevano un colore proprio e potevano apparire invisibili, scuri su sfondo scuro, su browser Android che scuriscono automaticamente i controlli nativi dei moduli indipendentemente dal tema dell'app — ora ogni campo e menu a tendina riceve un colore di sfondo/testo esplicito indipendentemente dal tipo (grazie a 6.5SH per la segnalazione del bug).",
       "v180": "Correzione: la lettura in clic del Range Solver si etichettava con l'unità di clic del fucile (mrad/MOA) — poiché la dimensione effettiva di un clic è arbitraria e può differire tra elevazione e deriva, questo falsava il valore; ora è etichettata «Clic» invece.",

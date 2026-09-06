@@ -898,6 +898,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v183": "Fix: \"Save to Arsenal\" from the Cd-Mach curve tool now scrolls the Arsenal page to the bullet form it just opened, instead of leaving the page at the top of the list.",
       "v182": "New: Swiss P bullet library, based on the vendor's velocity data. New cool release codename.",
       "v181": "Fix: text fields and dropdowns (rifle/cartridge/bullet names, the cartridge picker, Range Solver's target picker, and more) had no color of their own and could render invisible dark-on-dark on Android browsers that auto-dark native form controls independently of this app's own theme — every field and dropdown now gets an explicit background/text color regardless of type (thanks to 6.5SH for the bug report).",
       "v180": "Fix: Range Solver's clicks-output readout labeled itself with the rifle's own scope click unit (mrad/MOA) — since a click's actual size is arbitrary and can differ between elevation and windage, this misstated the value; it's now labeled \"Clicks\" instead.",

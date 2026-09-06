@@ -1461,6 +1461,7 @@ export function mount(container) {
     bulletFormState = { id: existing ? existing.id : null };
     renderBulletForm();
     renderRifleForm();
+    scrollBulletFormIntoView();
   }
   if (pendingRiflePrefill) {
     const existing = pendingRiflePrefill.name ? findUserRifleByName(pendingRiflePrefill.name) : null;
@@ -1472,6 +1473,7 @@ export function mount(container) {
     rifleFormState = { id: existing ? existing.id : null };
     renderRifleForm();
     renderBulletForm();
+    scrollRifleFormIntoView();
   }
 
   loadCaliberDesignations().then((list) => {

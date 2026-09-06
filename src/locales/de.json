@@ -898,6 +898,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v183": "Fix: „Ins Arsenal speichern\" im Cd-Mach-Kurven-Werkzeug scrollt die Arsenal-Seite jetzt zum gerade geöffneten Geschoss-Formular, statt die Seite oben in der Liste zu belassen.",
       "v182": "Neu: Swiss-P-Geschossbibliothek, basierend auf den Geschwindigkeitsdaten des Herstellers. Cooler neuer Release-Codename.",
       "v181": "Fix: Textfelder und Dropdowns (Namen von Gewehr/Patrone/Geschoss, die Patronenauswahl, die Zielauswahl des Entfernungsrechners und weitere) hatten keine eigene Farbe und konnten auf Android-Browsern, die native Formularelemente unabhängig vom eigenen Theme der App automatisch abdunkeln, unsichtbar dunkel auf dunkel erscheinen – jedes Feld und Dropdown erhält jetzt unabhängig vom Typ eine explizite Hintergrund-/Textfarbe (danke an 6.5SH für die Fehlermeldung).",
       "v180": "Fix: Die Klicks-Anzeige des Entfernungsrechners beschriftete sich mit der Klick-Einheit des Gewehrs (mrad/MOA) – da die tatsächliche Klickgröße beliebig ist und sich zwischen Höhe und Seite unterscheiden kann, war das falsch beschriftet; sie zeigt jetzt stattdessen „Klicks\" an.",
