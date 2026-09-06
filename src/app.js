@@ -6,6 +6,7 @@ import { mountLanguageSwitcher } from './ui/language-switcher.js';
 import { mountDisplayModeSwitch } from './ui/display-mode-switch.js';
 import { getDisplayMode, onDisplayModeChange } from './display-mode-prefs.js';
 import { onRangeSolverModeChange, onRangeSolverTabChange } from './range-solver-nav.js';
+import { onGunsModeChange } from './guns-nav.js';
 import { onPlacementModeChange } from './location-placement-nav.js';
 import { onMarkingModeChange } from './rifle-precision-nav.js';
 import { getTheme, onThemeChange } from './range-solver-prefs.js';
@@ -64,6 +65,15 @@ onRangeSolverModeChange((on) => {
 // this never needs its own separate reset here.
 onRangeSolverTabChange((tab) => {
   document.documentElement.classList.toggle('range-solver-card-active', tab === 'rangeCard');
+});
+
+// `guns-mode` gates layout.css's desktop-only rail pinning (see
+// #app-rail's own sticky rule) — Custom/Arsenal's content can run long
+// (manual entry's full field set, a big saved-rifles list), and without
+// this the rail would otherwise scroll away with it since #app-body's
+// height is normally just whichever sibling (rail or #view) is taller.
+onGunsModeChange((on) => {
+  document.documentElement.classList.toggle('guns-mode', on);
 });
 
 // `placement-mode` gates the full-screen photo takeover (topbar hidden,

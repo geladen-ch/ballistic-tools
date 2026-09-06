@@ -207,6 +207,20 @@
    Guns-mode items already reuse the plain .tab-item class rather than a
    dedicated one). ---- */
 .rail-guns-mode, .rail-range-solver-mode, .rail-locations-mode, .rail-placement-mode, .rail-rp-marking-mode { gap: 6px; }
+
+/* Desktop only: pin the rail (Done/Custom/Arsenal) in view while Guns'
+   own content scrolls, instead of it scrolling away with the page like
+   any other #app-body sibling normally would (see topbar-scroll.js's own
+   comment on #app-body's default stretch-to-tallest-sibling height).
+   Mobile needs no equivalent — #app-rail is already display:none there
+   (see the mobile-chrome rules further below) and its own nav (the tab
+   bar) is already position:fixed regardless of scroll. Same
+   --topbar-height var the landscape-mobile tab bar docks under. */
+html.guns-mode #app-rail {
+  position: sticky;
+  top: var(--topbar-height, 58px);
+  height: calc(100vh - var(--topbar-height, 58px));
+}
 .done-btn {
   all: unset;
   box-sizing: border-box;

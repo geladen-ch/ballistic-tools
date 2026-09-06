@@ -898,6 +898,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v184": "Correction : en mode bureau, les commandes de navigation de l'outil Armes (Terminé/Saisie manuelle/Arsenal) restent désormais visibles pendant le défilement des pages Saisie manuelle et Arsenal, au lieu de disparaître de l'écran avec la page.",
       "v183": "Correction : « Enregistrer dans l'Arsenal » depuis l'outil de courbe Cd-Mach fait maintenant défiler la page Arsenal jusqu'au formulaire de balle qui vient de s'ouvrir, au lieu de laisser la page en haut de la liste.",
       "v182": "Nouveau : bibliothèque de balles Swiss P, basée sur les données de vitesse du fabricant. Nouveau nom de code de version sympa.",
       "v181": "Correction : les champs de texte et les listes déroulantes (noms de carabine/cartouche/balle, le sélecteur de cartouche, le sélecteur de cible du Solveur de portée, et d'autres) n'avaient pas de couleur propre et pouvaient s'afficher de façon invisible, sombre sur sombre, sur les navigateurs Android qui assombrissent automatiquement les contrôles de formulaire natifs indépendamment du thème de l'application — chaque champ et liste déroulante reçoit désormais une couleur de fond/texte explicite, quel que soit son type (merci à 6.5SH pour le signalement du bug).",

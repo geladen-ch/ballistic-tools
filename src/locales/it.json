@@ -898,6 +898,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v184": "Correzione: in modalità desktop, i controlli di navigazione dello strumento Armi (Fatto/Inserimento manuale/Arsenale) ora rimangono visibili durante lo scorrimento delle pagine Inserimento manuale e Arsenale, invece di scomparire insieme alla pagina.",
       "v183": "Correzione: \"Salva nell'Arsenale\" dallo strumento curva Cd-Mach ora scorre la pagina Arsenale fino al modulo del proiettile appena aperto, invece di lasciare la pagina in cima all'elenco.",
       "v182": "Novità: libreria di proiettili Swiss P, basata sui dati di velocità del produttore. Nuovo nome in codice della release, davvero cool.",
       "v181": "Correzione: i campi di testo e i menu a tendina (nomi di fucile/cartuccia/proiettile, il selettore di cartuccia, il selettore di bersaglio del Range Solver, e altri) non avevano un colore proprio e potevano apparire invisibili, scuri su sfondo scuro, su browser Android che scuriscono automaticamente i controlli nativi dei moduli indipendentemente dal tema dell'app — ora ogni campo e menu a tendina riceve un colore di sfondo/testo esplicito indipendentemente dal tipo (grazie a 6.5SH per la segnalazione del bug).",
