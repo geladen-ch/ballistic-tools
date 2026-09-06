@@ -7,7 +7,7 @@
   "source": "Optimal supersonic BC from Swiss P velocities",
   "profile": {
     "type": "bc",
-    "bc": 0.3363,
+    "bc": 0.3362,
     "model": "G7"
   }
 }

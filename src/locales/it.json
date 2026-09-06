@@ -916,6 +916,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v188": "Correzione: piccole ottimizzazioni dei profili di resistenza della libreria Swiss P integrata",
       "v187": "Correzione: correzioni visive e funzionali di Probabilità di colpire (grazie a Yuri Danilov per le segnalazioni di bug).",
       "v186": "Nuovo: il colore dei punti d'impatto in Probabilità di colpire è ora impostabile — cinque colori, ciascuno con un bordo scuro/bianco per restare visibile su qualsiasi bersaglio (predefinito: bordeaux) — consegna speciale per il Sig. Danilov. Modifica: gli angoli bianchi non a punteggio dei bersagli USSR №4/№5/№8 sono ora trasparenti.",
       "v185": "Nuovo: la costanza della velocità iniziale (SD) e la precisione propria dell'arma (entrambe facoltative) fanno ora parte della definizione della cartuccia nell'Arsenale (e possono essere riprese automaticamente da Probabilità di colpire). La precisione dell'arma è ora integrata con le misurazioni del Calcolatore di precisione di tiro, e può essere scelta direttamente da lì. (Grazie a Yuri Danilov per l'idea)",

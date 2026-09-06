@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v188',
+    fullVersion: '3.6.6 (SMARTASS — System of Modeling & Analytics for Range, Trajectory, Accuracy & Shot Success)',
+    date: '2026-09-06',
+    descriptionKey: 'releaseHistory.entries.v188'
+  },
+  {
     cacheVersion: 'v187',
     fullVersion: '3.6.5 (SMARTASS — System of Modeling & Analytics for Range, Trajectory, Accuracy & Shot Success)',
     date: '2026-09-06',
