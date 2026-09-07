@@ -21,16 +21,20 @@ Then JBM decided to remove almost all the contents of his Web site from public a
 
 The ballistics suite includes all the tools I have written over the years to scratch my personal itches (hit probability, trajectory analysis, BC from Labradar tracks, Cd-Mach from velocity tables, etc.), plus a few tools that I used at JBM's -- rewritten, plus a range solver app for the field -- all consolidated in a single platform, done right, with my personal definition of "done right".
 
+The engine has meanwhile grown a 4DOF Modified Point Mass (MPM) stepper, and with it spin drift computed from McCoy's own equations rather than from an empirical curve fit: its windage falls out of integrating an actual lift force, so the drift is physically derived instead of being bolted on afterwards. McCoy's transverse moment of inertia constant -- which is, let's be honest, a .308 168gr SMK and nothing else -- has been replaced by a length-to-caliber-dependent function fit, calibrated against Lapua's 6DOF data.
+
+Spin drift is a three-way choice in Settings, and the engine flies accordingly: **Off** (the default -- it's an optional refinement, not something to bake into everybody's windage unasked), **Simple (Litz)** -- the plain 3DOF point-mass run, with Litz's empirical formula added on top afterwards -- or **Advanced (McCoy 4-DOF)**, the full MPM stepper. The difference between the last two is not academic: checked against modern Doppler measurements, the empirical formula is off by tens of percent where the physical model is off by single digits.
+
 ## Tools
 
 | Tool | Status | What it does |
 |---|---|---|
-| Trajectory | Live | Drop, windage, velocity and time of flight vs. range, computed with a point-mass RK4 integrator |
+| Trajectory | Live | Drop, windage, velocity and time of flight vs. range, computed with an RK4 integrator -- 3DOF point-mass, or the full 4DOF Modified Point Mass stepper when Advanced spin drift is selected |
 | Cd–Mach Curve | Live | Build a bullet's own drag curve from a velocity table |
 | Hit Probability | Partial | Hit probability against a target, accounting for wind, range-estimation and dispersion uncertainty |
-| Range Solver | Partial | Quick single-range solve without a full table |
+| Range Solver | Live | The field app: elevation, windage, time of flight, velocity and energy for one range, without a full table -- plus saved shooting locations, targets picked visually off a photo taken from the firing point, and a range card listing every target for the location at once |
 | BC Tools | Partial | Calculate BC from known data, convert between different models, etc. |
-| Group size from photo | Planned | Measure rifle precision using images of targets with impacts |
+| Rifle Precision | Live | Measure your rifle's real precision from photos of targets -- mark the impacts, get the statistics across as many targets and groups as you care to shoot (formerly known as TARAN) |
 
 Plus **Guns** (your saved rifles/bullets, built-in libraries or your own),
 **Settings**, and a full in-app **User Manual**.
