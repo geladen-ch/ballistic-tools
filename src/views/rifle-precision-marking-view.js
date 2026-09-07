@@ -49,7 +49,10 @@ import {
 import { computeGroupStats, computeScale } from '../engine/rifle-precision-stats.js';
 import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../units.js';
 import { getUnit } from '../prefs.js';
-import { COLOR_POOLED_SHOT, COLOR_POA, COLOR_POI, COLOR_CALIBRATION } from '../ui/rifle-precision/marker-style.js';
+import {
+  pooledShotColor, COLOR_POA, COLOR_POI, COLOR_CALIBRATION,
+  IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
+} from '../ui/rifle-precision/marker-style.js';
 import { exportGroupOverviewImage } from '../rifle-precision-photo-export.js';
 
 // The user's currently-preferred small-length unit (mm/cm/in), resolved
@@ -309,13 +312,36 @@ export function mount(container) {
   // independently, which only coincide in pixels when the photo itself is
   // square — using the same % for both would render an ellipse whenever
   // it isn't.
+  // One circle of an impact: the fill (ratio 1, so exactly the marker's
+  // own caliber-sized box) or one ring of the shared white/dark edge
+  // around it (ratio > 1, inset *outward* by exactly the amount that
+  // grows it to `ratio` times the fill). A percentage inset, not a px
+  // border or box-shadow spread, so the edge scales with the photo's own
+  // zoom the way this marker deliberately does — unlike every other
+  // marker here, which counter-scales.
+  function impactCircle(ratio, color) {
+    const circle = el('div', { class: 'rp-impact-marker-layer' });
+    circle.style.inset = `${(-(ratio - 1) / 2) * 100}%`;
+    circle.style.background = color;
+    return circle;
+  }
+
+  // The marker element itself is a transparent box sized to the true
+  // bullet hole (see below); the visible dot is its three stacked
+  // circles, appended outside-in so the fill paints last, on top — the
+  // same order, ratios and colors the report diagram's own dots and the
+  // PNG export both draw. Only the fill takes the user's own
+  // impact-color pick; the edge stays the two contrast colors.
   function renderImpactMarker(point, index, t2) {
     const marker = el('div', {
       class: 'photo-viewport-marker rp-impact-marker',
       'data-point-role': 'shot',
       'data-shot-index': String(index)
-    });
-    marker.style.background = COLOR_POOLED_SHOT;
+    }, [
+      impactCircle(IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_DARK_COLOR),
+      impactCircle(IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_WHITE_COLOR),
+      impactCircle(1, pooledShotColor())
+    ]);
     const scale = computeScale(t2);
     const caliberMm = project.caliberMm;
     if (scale && caliberMm > 0) {
@@ -353,7 +379,7 @@ export function mount(container) {
       svgEl('line', {
         x1: (a.x * 100).toFixed(3), y1: (a.y * 100).toFixed(3),
         x2: (b.x * 100).toFixed(3), y2: (b.y * 100).toFixed(3),
-        stroke: COLOR_POOLED_SHOT
+        stroke: pooledShotColor()
       })
     ]);
     viewport.markersLayer.appendChild(svg);

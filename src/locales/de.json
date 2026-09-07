@@ -920,6 +920,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v195": "Änderung: Der Gewehr-Präzisionsrechner zeichnet jeden Treffer jetzt in der unter Einstellungen gewählten Trefferfarbe, samt Rand.",
       "v194": "Fix: Der Gewehr-Präzisionsrechner versteht jetzt auch archaische Einheiten.",
       "v193": "Neu: Metadaten für Suchmaschinen, KI-Systeme und andere Bots hinzugefügt.",
       "v192": "Änderung: Link zum Quellcode-Repository hinzugefügt.",

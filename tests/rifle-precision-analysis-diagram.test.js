@@ -10,6 +10,12 @@ const {
   analysisDiagram, buildStandaloneDiagramSvg, buildExportSvgWithLegend, wrapText
 } = await import('../src/ui/rifle-precision/analysis-diagram.js');
 const { GAUGE_WIDGET_W } = await import('../src/ui/rifle-precision/confidence-gauge-svg.js');
+const {
+  setImpactColor, getImpactColorHex, resetImpactColorForTests,
+  IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR, IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO
+} = await import('../src/hit-probability-prefs.js');
+
+test.beforeEach(() => resetImpactColorForTests());
 
 function findByAttr(node, attr, value, out = []) {
   if (node.getAttribute && node.getAttribute(attr) === value) out.push(node);
@@ -204,4 +210,35 @@ test('buildExportSvgWithLegend stacks a wrapped row\'s swatch with its first lin
   const firstRowLines = texts.filter((n) => n.textContent !== 'Short row' && n.textContent.length > 0);
   const lastFirstRowY = Math.max(...firstRowLines.map((n) => Number(n.getAttribute('y'))));
   assert.ok(Number(shortRowText.getAttribute('y')) > lastFirstRowY, 'second row starts below every wrapped line of the first');
+});
+
+test('each impact is drawn in the user\'s own Settings impact color, behind the shared white/dark edge', () => {
+  setImpactColor('amber');
+  const stats = makeStats();
+  const svg = buildStandaloneDiagramSvg(stats, { impactsToScale: true, caliberMm: 6 });
+
+  const fills = findByAttr(svg, 'data-role', 'pooled-shot');
+  assert.equal(fills.length, stats.pooledShots.length, 'still exactly one "pooled-shot" node per shot');
+  assert.equal(fills[0].getAttribute('fill'), '#e8a33d', 'the impact color, not a hardcoded blue');
+  assert.equal(Number(fills[0].getAttribute('r')), 3, 'the fill keeps the true bore radius — the edge grows outward from it');
+
+  // dark ring, white ring, fill — outside-in, so the fill lands on top.
+  const dot = findByAttr(svg, 'data-role', 'pooled-shot-dot')[0];
+  const circles = findByTag(dot, 'CIRCLE');
+  assert.equal(circles.length, 3);
+  assert.equal(circles[0].getAttribute('fill'), IMPACT_EDGE_DARK_COLOR);
+  assert.equal(Number(circles[0].getAttribute('r')), 3 * IMPACT_EDGE_DARK_RATIO);
+  assert.equal(circles[1].getAttribute('fill'), IMPACT_EDGE_WHITE_COLOR);
+  assert.equal(Number(circles[1].getAttribute('r')), 3 * IMPACT_EDGE_WHITE_RATIO);
+  assert.equal(circles[2], fills[0]);
+});
+
+test('a fresh diagram picks up an impact-color change without the module holding a stale copy', () => {
+  const stats = makeStats();
+  const before = buildStandaloneDiagramSvg(stats, {});
+  assert.equal(findByAttr(before, 'data-role', 'pooled-shot')[0].getAttribute('fill'), getImpactColorHex());
+
+  setImpactColor('magenta');
+  const after = buildStandaloneDiagramSvg(stats, {});
+  assert.equal(findByAttr(after, 'data-role', 'pooled-shot')[0].getAttribute('fill'), '#ff2f92');
 });

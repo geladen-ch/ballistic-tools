@@ -623,6 +623,14 @@ anche dopo un riavvio dell'app.
   **Alto contrasto scuro** (sfondo nero con testo e colori al massimo
   contrasto — per quando serve alzare la luminosità dello schermo per
   vederlo all'aperto, risparmiando allo stesso tempo la batteria).
+- **Colore degli impatti** — il colore con cui viene disegnato ogni impatto,
+  da scegliere fra cinque campioni. Vale sia per gli impatti simulati della
+  Probabilità di colpire sia per quelli segnati nel Calcolatore di precisione
+  di tiro — sulla foto mentre si segna, nel PNG della panoramica del gruppo e
+  nel diagramma, nella legenda e nell'esportazione SVG del rapporto di
+  precisione. Il bordo bianco e scuro attorno a ogni impatto resta
+  volutamente invariato: è quello che mantiene visibile il contorno del
+  punto, qualunque colore si scelga.
 - **Indicatori di output del Calcolatore per il poligono** — se la lettura
   elevazione/vento del Calcolatore per il poligono mostra una freccia di
   direzione o un segno **+ / −** (vedi **Calcolatore per il poligono**

@@ -920,6 +920,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v195": "Modifica: il Calcolatore di precisione di tiro ora disegna ogni impatto nel colore degli impatti scelto nelle Impostazioni, bordo compreso.",
       "v194": "Correzione: il Calcolatore di precisione di tiro ora capisce anche le unità arcaiche.",
       "v193": "Nuovo: aggiunti metadati per i motori di ricerca, le IA e altri bot.",
       "v192": "Modifica: aggiunto il link al repository del codice sorgente.",

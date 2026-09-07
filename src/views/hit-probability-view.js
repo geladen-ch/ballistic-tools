@@ -19,7 +19,10 @@ import {
   circleGongDetailSvg, rectPlateDetailSvg
 } from '../targets/custom-target-render.js';
 import { logDiagnostic } from '../debug-log.js';
-import { getImpactColorHex, onImpactColorChange } from '../hit-probability-prefs.js';
+import {
+  getImpactColorHex, onImpactColorChange,
+  IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
+} from '../hit-probability-prefs.js';
 import { loadHitProbabilityState, saveHitProbabilityState } from '../hit-probability-state.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
@@ -111,15 +114,14 @@ function cssVar(name) {
 const SAMPLE_IMPACT_DIAMETER_MM = 10;
 // Every impact-color option (hit-probability-prefs.js's IMPACT_COLOR_
 // CHOICES) draws with the same dark/white dual edge around its fill —
-// a hairline outside a slightly thicker ring — so a dot's boundary stays
-// visible however it lands against the target artwork's own colors,
-// regardless of which color is picked. Both ring radii are ratios of the
-// dot's own fill radius rather than fixed sizes, so the edge scales with
-// zoom/"Impacts to scale" exactly like the dot itself (see applyZoom()).
-const IMPACT_DOT_WHITE_RING_RATIO = 1.22;
-const IMPACT_DOT_DARK_RING_RATIO = 1.42;
-const IMPACT_DOT_WHITE_RING_COLOR = '#ffffff';
-const IMPACT_DOT_DARK_RING_COLOR = '#14171a';
+// see IMPACT_EDGE_* there, now shared with the Rifle Precision
+// Calculator's own impacts rather than defined twice. Being ratios of
+// the dot's own fill radius, the edge scales with zoom/"Impacts to
+// scale" exactly like the dot itself (see applyZoom()).
+const IMPACT_DOT_WHITE_RING_RATIO = IMPACT_EDGE_WHITE_RATIO;
+const IMPACT_DOT_DARK_RING_RATIO = IMPACT_EDGE_DARK_RATIO;
+const IMPACT_DOT_WHITE_RING_COLOR = IMPACT_EDGE_WHITE_COLOR;
+const IMPACT_DOT_DARK_RING_COLOR = IMPACT_EDGE_DARK_COLOR;
 // Fraction of the target's own native extent added as breathing room at
 // 1x zoom, so its edge doesn't sit flush against the viewBox boundary.
 const FIT_MARGIN_RATIO = 0.04;

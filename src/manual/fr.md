@@ -625,6 +625,14 @@ l'application.
   **Contraste élevé sombre** (fond noir avec un texte et des couleurs à
   contraste maximal, pour quand vous devez monter la luminosité de l'écran
   pour le voir en extérieur tout en économisant la batterie).
+- **Couleur des impacts** — la couleur de chaque impact dessiné, à choisir
+  parmi cinq échantillons. Elle s'applique aussi bien aux impacts simulés de
+  la Probabilité de toucher qu'à ceux marqués dans la Calculette de précision
+  de tir — sur la photo pendant le marquage, dans le PNG de la vue d'ensemble
+  du groupe, et dans le diagramme, la légende et l'export SVG du rapport de
+  précision. Le liseré blanc et sombre autour de chaque impact reste
+  volontairement fixe : c'est lui qui garde le contour du point visible,
+  quelle que soit la couleur choisie.
 - **Indicateurs de sortie du Calculateur de terrain** — si l'affichage
   élévation/vent du Calculateur de terrain montre une flèche de direction ou
   un signe **+ / −** (voir **Calculateur de terrain** ci-dessus).

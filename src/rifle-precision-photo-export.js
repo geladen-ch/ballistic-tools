@@ -13,7 +13,10 @@
 // canvas.toBlob() result.
 import { computeGroupStats, computeScale } from './engine/rifle-precision-stats.js';
 import { computeVisibleCropRect } from './rifle-precision-overview-geometry.js';
-import { COLOR_POOLED_SHOT, COLOR_POA, COLOR_POI, COLOR_CALIBRATION } from './ui/rifle-precision/marker-style.js';
+import {
+  pooledShotColor, COLOR_POA, COLOR_POI, COLOR_CALIBRATION,
+  IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
+} from './ui/rifle-precision/marker-style.js';
 
 function loadImage(dataUrl) {
   return new Promise((resolve, reject) => {
@@ -149,12 +152,26 @@ export async function exportGroupOverviewImage({
   // the physical radius in native px *is* the radius in canvas px.
   const pxPerMm = computeScale(target);
   const impactRadius = pxPerMm && project.caliberMm > 0 ? (project.caliberMm / 2) * pxPerMm : canvas.width * 0.007;
-  ctx.fillStyle = COLOR_POOLED_SHOT;
+  // Each impact is drawn outside-in — dark ring, white ring, then the
+  // fill in the user's own impact color — so the colored dot itself
+  // stays exactly the bullet hole's true diameter and the shared
+  // white/dark edge (see IMPACT_EDGE_* in hit-probability-prefs.js)
+  // grows outward from it, exactly as the live overlay and the report
+  // diagram both draw it.
+  const impactFill = pooledShotColor();
+  const impactLayers = [
+    { radius: impactRadius * IMPACT_EDGE_DARK_RATIO, color: IMPACT_EDGE_DARK_COLOR },
+    { radius: impactRadius * IMPACT_EDGE_WHITE_RATIO, color: IMPACT_EDGE_WHITE_COLOR },
+    { radius: impactRadius, color: impactFill }
+  ];
   for (const shot of group.shots) {
     const p = toPx(shot);
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, impactRadius, 0, Math.PI * 2);
-    ctx.fill();
+    for (const layer of impactLayers) {
+      ctx.fillStyle = layer.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, layer.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   const stats = computeGroupStats(group, target);
@@ -162,7 +179,7 @@ export async function exportGroupOverviewImage({
     const [i1, i2] = stats.extremePairIndices;
     const a = toPx(group.shots[i1]);
     const b = toPx(group.shots[i2]);
-    ctx.strokeStyle = COLOR_POOLED_SHOT;
+    ctx.strokeStyle = impactFill;
     ctx.lineWidth = lineWidth;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);

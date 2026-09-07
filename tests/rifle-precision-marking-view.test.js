@@ -19,11 +19,16 @@ const {
   resetRiflePrecisionNavForTests
 } = await import('../src/rifle-precision-nav.js');
 const { setUnit, resetUnits } = await import('../src/prefs.js');
+const {
+  setImpactColor, getImpactColorHex, resetImpactColorForTests,
+  IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
+} = await import('../src/hit-probability-prefs.js');
 
 test.beforeEach(async () => {
   await resetRiflePrecisionLibraryForTests();
   resetRiflePrecisionNavForTests();
   resetUnits(); // the calibration tests below switch smallLength away from its mm default
+  resetImpactColorForTests(); // ...and the impact-color tests switch that away from its own default
   location.hash = '';
 });
 
@@ -642,7 +647,47 @@ test('impact markers are sized to the rifle\'s own caliber (not a fixed size), a
   assert.ok((marker.className || '').split(' ').includes('rp-impact-marker'));
   assert.ok(Math.abs(parseFloat(marker.style.width) - 3.048) < 1e-6, marker.style.width);
   assert.ok(Math.abs(parseFloat(marker.style.height) - 3.81) < 1e-6, marker.style.height);
-  assert.equal(marker.style.background, '#3a7bd5', 'matches the diagram\'s own COLOR_POOLED_SHOT');
+  // Dark ring, white ring, then the fill — appended outside-in (source
+  // order is what stacks them), the rings inset outward by
+  // (ratio - 1) / 2 so the colored fill itself keeps the marker's own
+  // caliber-sized box.
+  const layers = findByClass(marker, 'rp-impact-marker-layer');
+  assert.equal(layers.length, 3);
+  assert.equal(layers[0].style.background, IMPACT_EDGE_DARK_COLOR);
+  assert.equal(layers[1].style.background, IMPACT_EDGE_WHITE_COLOR);
+  assert.equal(layers[2].style.background, getImpactColorHex(), 'the user\'s own impact color, same as the diagram\'s own dots');
+  assert.ok(Math.abs(parseFloat(layers[0].style.inset) - -21) < 1e-9, layers[0].style.inset);
+  assert.ok(Math.abs(parseFloat(layers[1].style.inset) - -11) < 1e-9, layers[1].style.inset);
+  assert.equal(parseFloat(layers[2].style.inset), 0);
+
+  cleanup();
+});
+
+test('impacts (and the extreme-spread line between them) follow the user\'s Settings impact color, not a hardcoded one', () => {
+  setImpactColor('blue');
+  const group = {
+    id: generateUserId('rp-group'),
+    poa: { x: 0.5, y: 0.5 },
+    shots: [{ x: 0.51, y: 0.49 }, { x: 0.3, y: 0.3 }]
+  };
+  const target = makeTestTarget({
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    groups: [group]
+  });
+  const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
+  setPendingMarking({ projectId: project.id, targetId: target.id });
+  const container = makeElement('main');
+  const cleanup = markingView.mount(container);
+
+  const layers = findByClass(shotMarker(container, 0), 'rp-impact-marker-layer');
+  assert.equal(layers[2].style.background, '#2979ff', 'the fill follows the Settings pick');
+  const lineSvg = findByAttr(container, 'class', 'rp-extreme-spread-line-svg')[0];
+  assert.equal(findByTag(lineSvg, 'LINE')[0].getAttribute('stroke'), '#2979ff');
+
+  // The edge is deliberately *not* recolored — it's what carries the
+  // contrast against the photo, whatever fill color was picked.
+  assert.equal(layers[0].style.background, IMPACT_EDGE_DARK_COLOR);
+  assert.equal(layers[1].style.background, IMPACT_EDGE_WHITE_COLOR);
 
   cleanup();
 });
@@ -694,7 +739,7 @@ test('the extreme-spread line/label and average-POI marker render live once a gr
 
   const lineSvg = findByAttr(container, 'class', 'rp-extreme-spread-line-svg')[0];
   assert.ok(lineSvg, 'the ES line now renders');
-  assert.equal(findByTag(lineSvg, 'LINE')[0].getAttribute('stroke'), '#3a7bd5', 'matches the diagram\'s own COLOR_POOLED_SHOT (blue)');
+  assert.equal(findByTag(lineSvg, 'LINE')[0].getAttribute('stroke'), getImpactColorHex(), 'drawn in the same impact color as the shots it connects');
 
   const label = findByClass(container, 'rp-extreme-spread-length-label')[0];
   assert.ok(label, 'its length legend renders');

@@ -1260,9 +1260,10 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 .rifle-precision-marking-controls .field { margin: 0; }
 .rifle-precision-marking-controls .section-tabs { flex-basis: 100%; margin-bottom: 0; }
 
-/* One placed bullet hole — a plain circle (same blue-dot glyph the
-   precision-report diagram itself draws its own pooled shots with, see
-   analysis-diagram.js's COLOR_POOLED_SHOT and src/ui/rifle-precision/
+/* One placed bullet hole — a plain circle (same glyph, color and
+   white/dark edge the precision-report diagram itself draws its own
+   pooled shots with: the user's app-wide impact-color pick, see
+   analysis-diagram.js's pooledShotColor() and src/ui/rifle-precision/
    marker-style.js), sized to the rifle's own caliber rather than a fixed
    on-screen size — the opposite of every other marker's own
    var(--marker-scale-compensation) counter-scale (see .photo-viewport-marker
@@ -1280,6 +1281,22 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   border-radius: 50%;
   touch-action: none;
   cursor: grab;
+}
+/* The three circles that actually draw one impact — dark ring, white
+   ring, then the fill — each sized and colored inline per marker (see
+   the marking view's own impactCircle()). The marker box itself is
+   exactly the bullet hole's true diameter and stays transparent: the
+   fill circle sits flush inside it (inset: 0) and the two rings grow
+   *outward* from it via negative percentage insets, so the colored dot
+   never shrinks to make room for its own edge. Plain source order does
+   the stacking (fill appended last, so it paints on top) — a negative
+   z-index would not: it paints below in-flow content but still above
+   its own stacking context's background. pointer-events stay off so a
+   drag always hit-tests as the marker proper. */
+.rp-impact-marker-layer {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
 }
 /* Delete-impact mode's own shot rendering — a real <button> instead of a
    draggable .photo-viewport-marker div (photoViewport.js's own gesture
@@ -1368,7 +1385,7 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   pointer-events: none;
 }
 .rp-extreme-spread-line-svg line {
-  /* stroke color is set inline (COLOR_POOLED_SHOT, marker-style.js) —
+  /* stroke color is set inline (pooledShotColor(), marker-style.js) —
      see .rp-calibration-line-svg line's own comment for why. */
   stroke-width: 2;
   vector-effect: non-scaling-stroke;

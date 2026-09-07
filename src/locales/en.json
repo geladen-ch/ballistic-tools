@@ -920,6 +920,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v195": "Change: the Rifle Precision Calculator now draws every impact in the impact color picked in Settings, edge and all.",
       "v194": "Fix: the Rifle precision calculator tool now understands archaic units.",
       "v193": "New: added metadata for search engines, LLMs, and other bots.",
       "v192": "Change: added link to the source code repository.",

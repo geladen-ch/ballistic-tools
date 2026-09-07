@@ -634,6 +634,14 @@ selbst nach einem Neustart der App.
   kontrastreichem Text und Farben — für wenn die Bildschirmhelligkeit hoch
   gestellt werden muss, um draußen etwas zu erkennen, und dabei Akku
   gespart werden soll).
+- **Trefferfarbe** — die Farbe, in der jeder gezeichnete Treffer dargestellt
+  wird, wählbar aus fünf Farbfeldern. Sie gilt für die simulierten Treffer
+  der Trefferwahrscheinlichkeit ebenso wie für die markierten Treffer des
+  Gewehr-Präzisionsrechners — auf dem Foto beim Markieren, im PNG der
+  Serienübersicht sowie im Diagramm, in der Legende und im SVG-Export des
+  Präzisionsberichts. Der weiß-dunkle Rand um jeden Treffer bleibt bewusst
+  unverändert: Er hält den Umriss des Punktes sichtbar, egal auf welcher
+  Zielscheibe oder welchem Foto er landet und welche Farbe gewählt wurde.
 - **Anzeigesymbole im Feldrechner** — ob die Höhe-/Seite-Anzeige des
   Feldrechners einen Richtungspfeil oder ein **+ / −**-Zeichen zeigt (siehe
   **Feldrechner** oben).

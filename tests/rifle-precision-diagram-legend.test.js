@@ -7,6 +7,9 @@ installFakeDom();
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const { computeLegendRows, diagramLegend } = await import('../src/ui/rifle-precision/diagram-legend.js');
+const { setImpactColor, getImpactColorHex, resetImpactColorForTests } = await import('../src/hit-probability-prefs.js');
+
+test.beforeEach(() => resetImpactColorForTests());
 
 const identity = (mm) => `${mm.toFixed(2)}mm`;
 
@@ -94,4 +97,11 @@ test('diagramLegend().node is a <table> with one row per computeLegendRows() ent
   const expected = computeLegendRows(baseStats(), { showSigma: true }, identity);
   assert.equal(bodyRows.length, expected.length);
   assert.equal(bodyRows[0].childNodes.length, 3, 'swatch, description, value columns');
+});
+
+test('the all-impacts swatch is the user\'s own Settings impact color, read per call rather than captured at import', () => {
+  assert.equal(computeLegendRows(baseStats(), {}, identity)[0].color, getImpactColorHex());
+
+  setImpactColor('red');
+  assert.equal(computeLegendRows(baseStats(), {}, identity)[0].color, '#ff3b30', 'follows what the diagram itself just drew');
 });

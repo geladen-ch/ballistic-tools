@@ -541,6 +541,13 @@ the next time you open this report, even after restarting the app.
   sunlight), and **High contrast dark** (a black background with maximum-
   contrast text and colors, for when you need the screen brightness turned
   up to see it outdoors and want to save battery while doing it).
+- **Impact color** — the color every drawn bullet impact uses, picked from
+  five swatches. It applies to Hit Probability's simulated impacts and to
+  the Rifle Precision Calculator's own marked ones alike — on the photo
+  while marking, in the group overview PNG, and in the precision report's
+  diagram, legend and SVG export. The white/dark edge around each impact
+  is deliberately fixed: it's what keeps the dot's outline visible against
+  target artwork or a photo, whichever color you pick.
 - **Range Solver output indicators** — whether Range Solver's elevation/
   windage readout shows a direction arrow or a **+ / −** sign (see
   **Range Solver** above).

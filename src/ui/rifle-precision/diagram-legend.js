@@ -7,7 +7,7 @@
 import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
 import {
-  COLOR_POOLED_SHOT, COLOR_POA, COLOR_POI, COLOR_SIGMA, COLOR_R50, COLOR_R95, COLOR_R99,
+  pooledShotColor, COLOR_POA, COLOR_POI, COLOR_SIGMA, COLOR_R50, COLOR_R95, COLOR_R99,
   COLOR_ONE_MOA, COLOR_HIT_PROBABILITY, COLOR_GRID, COLOR_ES5X, COLOR_ES10X
 } from './analysis-diagram.js';
 
@@ -32,7 +32,10 @@ export function computeLegendRows(stats, options = {}, formatResultValue) {
 
   const rows = [];
   if (gridSpacingMm > 0) rows.push({ color: COLOR_GRID, shape: 'grid', label: t('riflePrecision.legendGrid'), value: null });
-  rows.push({ color: COLOR_POOLED_SHOT, shape: 'dot', label: t('riflePrecision.legendPooledShot'), value: null });
+  // Read per call, not captured at import time — the impacts' color is
+  // the user's own Settings pick (see pooledShotColor()), so the swatch
+  // has to follow whatever the diagram itself just drew.
+  rows.push({ color: pooledShotColor(), shape: 'dot', label: t('riflePrecision.legendPooledShot'), value: null });
   rows.push({ color: COLOR_POA, shape: 'ring', label: t('riflePrecision.legendPoa'), value: null });
   rows.push({
     color: COLOR_POI, shape: 'dot', label: t('riflePrecision.legendPoi'),

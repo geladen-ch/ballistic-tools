@@ -16,6 +16,10 @@ import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
 import { getUnit } from '../../prefs.js';
 import { UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
+import {
+  getImpactColorHex,
+  IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
+} from '../../hit-probability-prefs.js';
 import { wrapText, estimateTextWidth } from './svg-text-wrap.js';
 import { buildConfidenceGaugeSvg, GAUGE_TITLE_SIZE, GAUGE_BLOCK_H, GAUGE_WIDGET_W } from './confidence-gauge-svg.js';
 
@@ -26,7 +30,6 @@ const DIAGRAM_PX = 600; // fixed pixel size for the exported/standalone file; CS
 
 // Exported so diagram-legend.js can reuse the exact same swatch colors
 // rather than duplicating the hex values in a second file.
-export const COLOR_POOLED_SHOT = '#3a7bd5';
 export const COLOR_POA = '#e0605a';
 export const COLOR_POI = '#e8a33d';
 export const COLOR_SIGMA = '#9a9a9a';
@@ -40,8 +43,38 @@ export const COLOR_SCALE = '#767676';
 export const COLOR_ES5X = '#1f9e9e';
 export const COLOR_ES10X = '#a83279';
 
+// The impacts' own color is the user's app-wide pick (Settings -> Impact
+// color, hit-probability-prefs.js) rather than a constant like every
+// other color in this file — a function, not a const, so it's read at
+// draw time and a change in Settings lands on the next render without
+// this module holding a stale copy. Still a plain hex, so the exported
+// .svg keeps rendering it with no stylesheet of its own (see the file
+// comment above).
+export function pooledShotColor() {
+  return getImpactColorHex();
+}
+
 function mmCircle(cx, cy, r, attrs, role) {
   return svgEl('circle', { cx, cy, r, 'data-role': role, ...attrs });
+}
+
+// One impact: the fill in the user's own impact color, wrapped in the
+// shared dual white/dark edge (see IMPACT_EDGE_* in
+// hit-probability-prefs.js) so a dot stays readable wherever it lands —
+// over the grid, inside a dense group, or on top of another circle. The
+// edge is drawn as two larger circles *behind* the fill rather than as a
+// stroke on it, so the colored fill itself stays exactly `r` wide — the
+// true bore diameter when "impacts to scale" is on.
+// `data-role="pooled-shot"` stays on the fill circle itself (the group
+// around it carries its own role): that's the one node whose radius is
+// the impact's own, so anything looking one up — the SVG export, the
+// tests — still finds exactly one per shot, sized as before.
+function impactDot(cx, cy, r) {
+  return svgEl('g', { 'data-role': 'pooled-shot-dot' }, [
+    svgEl('circle', { cx, cy, r: r * IMPACT_EDGE_DARK_RATIO, fill: IMPACT_EDGE_DARK_COLOR }),
+    svgEl('circle', { cx, cy, r: r * IMPACT_EDGE_WHITE_RATIO, fill: IMPACT_EDGE_WHITE_COLOR }),
+    mmCircle(cx, cy, r, { fill: pooledShotColor() }, 'pooled-shot')
+  ]);
 }
 
 function poaMarker(size) {
@@ -267,7 +300,7 @@ function renderDiagramContent(svg, stats, options = {}) {
   }
 
   for (const shot of stats.pooledShots) {
-    svg.appendChild(mmCircle(shot.xMm, shot.yMm, dotR, { fill: COLOR_POOLED_SHOT }, 'pooled-shot'));
+    svg.appendChild(impactDot(shot.xMm, shot.yMm, dotR));
   }
 
   if (showPoiCi) {
