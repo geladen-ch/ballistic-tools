@@ -916,6 +916,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v189": "Fix: the wind widget's speed value now renders centered in its dial hub, instead of overflowing off-center",
       "v188": "Fix: minor fine-tuning of the built-in Swiss P library drag profiles",
       "v187": "Fix: Hit Probability visual and functional fixes (thanks to Yuri Danilov for bug reports).",
       "v186": "New: Hit Probability's impact-dot color is now a user setting — five choices, each drawn with a dark/white edge so it stays visible on any target (default: berry) — special delivery for Mr. Danilov. Change: USSR №4/№5/№8 targets' white non-scoring corners are now transparent.",

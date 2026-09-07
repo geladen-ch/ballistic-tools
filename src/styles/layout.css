@@ -1937,25 +1937,32 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
   position: absolute; left: 50%; text-align: center; pointer-events: none;
 }
 .wind-control-degrees {
-  top: 36.7%; transform: translate(-50%, -50%);
+  top: 34.5%; transform: translate(-50%, -50%);
   font-size: clamp(9px, 6cqw, 14px); font-weight: 700; letter-spacing: 0.03em;
   color: var(--accent); font-variant-numeric: tabular-nums;
 }
-.wind-control-speed-wrap { top: 52.2%; transform: translate(-50%, -50%); pointer-events: auto; }
-.wind-control-speed-input {
+.wind-control-speed-wrap { top: 50%; width: max-content; transform: translate(-50%, -50%); pointer-events: auto; }
+/* Specificity has to beat .field input:not(...) (width: 100%, border,
+   padding, font-size, background — base.css) or this whole reset is
+   dead: an "input" element type tips (0,2,0) up to the (0,2,1) that rule
+   carries, with layout.css's later position in the cascade winning the
+   tie. Without it the box renders at the generic bordered/padded field
+   size instead of the large borderless underline this hub needs, and
+   overflows its centered wrapper. */
+.wind-control input.wind-control-speed-input {
   all: unset; display: block; width: 4.2ch; text-align: center;
   font-size: clamp(20px, 16cqw, 42px); font-weight: 700; color: var(--text); font-family: var(--font);
   font-variant-numeric: tabular-nums; border-bottom: 2px solid transparent;
   cursor: text; border-radius: 2px;
 }
-.wind-control-speed-input:hover { border-bottom-color: var(--line); }
-.wind-control-speed-input:focus { border-bottom-color: var(--accent); color: var(--text); }
+.wind-control input.wind-control-speed-input:hover { border-bottom-color: var(--line); }
+.wind-control input.wind-control-speed-input:focus { border-bottom-color: var(--accent); color: var(--text); }
 /* Out-of-range/unparseable while typing: red underline only, no message —
    there's no room inside the hub for one (see wind-control.js). Declared
    after :hover/:focus so it wins the tie on equal specificity. */
-.wind-control-speed-input.field-invalid { border-bottom-color: var(--danger); }
+.wind-control input.wind-control-speed-input.field-invalid { border-bottom-color: var(--danger); }
 .wind-control-unit {
-  top: 63.3%; transform: translate(-50%, -50%);
+  top: 61.1%; transform: translate(-50%, -50%);
   font-size: clamp(8px, 4.6cqw, 12px); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--dim);
 }

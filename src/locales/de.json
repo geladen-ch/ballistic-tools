@@ -916,6 +916,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v189": "Fix: Der Geschwindigkeitswert im Wind-Widget wird jetzt korrekt zentriert in der Nabe dargestellt, statt außermittig überzulaufen",
       "v188": "Fix: geringfügige Feinabstimmung der Luftwiderstandsprofile der eingebauten Swiss-P-Bibliothek",
       "v187": "Fehlerbehebung: Visuelle und funktionale Korrekturen bei Trefferwahrscheinlichkeit (Dank an Yuri Danilov für die Fehlermeldungen).",
       "v186": "Neu: Die Farbe der Trefferpunkte in Trefferwahrscheinlichkeit ist jetzt einstellbar — fünf Farben, jede mit dunkel-weißer Kontur für Sichtbarkeit auf jedem Ziel (Standard: Bordeaux) — Sonderzustellung für Herrn Danilov. Änderung: Die weißen wertungsfreien Ecken der Ziele USSR №4/№5/№8 sind jetzt transparent.",
