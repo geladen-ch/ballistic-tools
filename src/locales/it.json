@@ -150,6 +150,7 @@
     "versionRelease": "release",
     "versionCodename": "nome in codice",
     "releaseHistoryLink": "Visualizza la cronologia delle versioni",
+    "sourceCodeLink": "Ottieni il codice sorgente",
     "privacyHeading": "Privacy",
     "privacyPolicy": "Non raccogliamo *alcun* dato. Nulla viene *mai* trasmesso al server.",
     "licenseHeading": "Licenza",
@@ -919,6 +920,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v192": "Modifica: aggiunto il link al repository del codice sorgente.",
       "v191": "Correzione: implementata la ricostruzione automatica della cache offline, per aggirare alcuni glitch del browser che impedivano l'avvio del ServiceWorker (interrompendo la funzionalità offline). Aggiunta un'azione esplicita \"ricostruisci cache\" al pannello Risoluzione dei problemi.",
       "v190": "Correzione: impostato l'incremento corretto per l'inserimento della velocità del vento in km/h (grazie a JerkyFreak per la segnalazione)",
       "v189": "Correzione: il valore di velocità del widget del vento ora viene visualizzato centrato nel mozzo della manopola, invece di traboccare fuori centro",

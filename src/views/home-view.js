@@ -63,6 +63,9 @@ function versionCard() {
     ]),
     el('p', {}, [
       el('a', { href: '#/release-history', i18n: 'home.releaseHistoryLink' })
+    ]),
+    el('p', {}, [
+      el('a', { href: 'https://github.com/geladen-ch/ballistic-tools', target: '_blank', rel: 'noopener', i18n: 'home.sourceCodeLink' })
     ])
   ]);
 }
