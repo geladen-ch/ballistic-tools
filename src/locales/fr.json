@@ -920,6 +920,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v196": "Correction : le décalage vertical du zéro de la Calculette de précision de tir était inversé — un groupement tirant bas s'affichait en positif. Le haut est désormais positif partout, comme sur une tourelle ; les colonnes de tir de l'export CSV sont renommées ShotRight/ShotUp en conséquence.",
       "v195": "Changement : la Calculette de précision de tir dessine désormais chaque impact dans la couleur d'impact choisie dans les Réglages, liseré compris.",
       "v194": "Correction : la Calculette de précision de tir comprend désormais les unités archaïques.",
       "v193": "Nouveau : ajout de métadonnées destinées aux moteurs de recherche, aux IA et aux autres robots.",

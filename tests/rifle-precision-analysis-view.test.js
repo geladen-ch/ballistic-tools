@@ -573,7 +573,7 @@ test('CSV export downloads the right header and one row per pooled shot', async 
 
   const csvText = await captureCsvExport(container);
   const lines = csvText.split('\r\n');
-  assert.equal(lines[0], 'ShotX (mm),ShotY (mm),Target,Group,Distance (m),Description');
+  assert.equal(lines[0], 'ShotRight (mm),ShotUp (mm),Target,Group,Distance (m),Description');
   assert.equal(lines.length, 1 + stats.pooledShots.length, 'header plus one row per pooled shot');
   assert.ok(lines[1].includes('T1'), 'target name column');
   assert.ok(lines[1].includes('Home Range'), 'project name in the description column');
@@ -591,11 +591,42 @@ test('CSV export writes coordinates and distance in the user\'s preferred units,
 
   const csvText = await captureCsvExport(container);
   const lines = csvText.split('\r\n');
-  assert.equal(lines[0], 'ShotX (in),ShotY (in),Target,Group,Distance (yd),Description');
+  assert.equal(lines[0], 'ShotRight (in),ShotUp (in),Target,Group,Distance (yd),Description');
   const cells = lines[1].split(',');
-  assert.equal(cells[0], '1.000', 'x in inches, at the small-length display precision');
-  assert.equal(cells[1], '2.000', 'y in inches, same photo-down-positive sign the raw mm export always used');
+  assert.equal(cells[0], '1.000', 'right in inches, at the small-length display precision');
+  assert.equal(cells[1], '-2.000', 'a shot 2in BELOW its point of aim exports as ShotUp = -2in');
   assert.equal(cells[4], '109.4', '100 m in yards, at the distance unit\'s own precision');
+});
+
+// Regression guard for the *class* of bug, not one instance of it: the
+// engine pools shots in the photo's own frame (y positive downward), while
+// every human-readable vertical has to be positive upward, and those two
+// used to disagree silently. A group shot low must therefore read low
+// everywhere it is written as text, and still be *drawn* low — which in
+// SVG's own downward y means a positive coordinate. Anything that flips
+// one of these paths without flipping the others fails here.
+test('a group shot low reads negative in the Numbers table, the legend and the CSV alike — and is still drawn low', async () => {
+  // Centroid 10mm below the point of aim; H cancels to exactly zero.
+  const project = makeAnalyzableProject({}, [[0, 10], [2, 10], [-2, 10]]);
+  setActiveProjectId(project.id);
+  const container = makeElement('main');
+  analysisView.mount(container);
+
+  const poiCell = numbersRowByDescriptionKey(container, 'riflePrecision.averagePoiLabel').childNodes[2];
+  assert.equal(poiCell.textContent, 'H 0.00 mm, V -10.00 mm', 'Numbers table: 10mm low reads V -10');
+
+  const legendTable = findByClass(container, 'rp-legend-table')[0];
+  const legendPoiRow = findByTag(legendTable, 'TR').find((r) => r.textContent.includes(t('riflePrecision.legendPoi')));
+  assert.ok(legendPoiRow.textContent.includes('V -10.00 mm'), 'legend (and with it the SVG export) agrees');
+
+  const cells = (await captureCsvExport(container)).split('\r\n')[1].split(',');
+  assert.equal(cells[1], '-10.00', 'CSV ShotUp agrees');
+
+  // The renderer deliberately keeps the image frame, so the marker's own
+  // cy stays positive — the picture was never wrong and must not "get
+  // fixed" along with the text.
+  const poiMarker = findByAttr(container, 'data-role', 'poi-marker')[0];
+  assert.equal(Number(poiMarker.getAttribute('cy')), 10, 'diagram still draws the group below the point of aim');
 });
 
 test('the "Export target image" button is gone — its functionality is covered elsewhere; only CSV export remains in the bottom actions row', () => {

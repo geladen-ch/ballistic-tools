@@ -14,7 +14,7 @@ import { el, clear } from '../dom.js';
 import { t } from '../i18n.js';
 import { findRiflePrecisionProjectById } from '../rifle-precision-library.js';
 import { getActiveProjectId } from '../rifle-precision-nav.js';
-import { computeCombinedStats, mmToAngularUnit, oneMoaWidthMm, oneMradWidthMm } from '../engine/rifle-precision-stats.js';
+import { computeCombinedStats, mmToAngularUnit, oneMoaWidthMm, oneMradWidthMm, toShooterFrame } from '../engine/rifle-precision-stats.js';
 import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { analysisDiagram, buildStandaloneDiagramSvg, buildExportSvgWithLegend } from '../ui/rifle-precision/analysis-diagram.js';
@@ -201,12 +201,17 @@ export function mount(container) {
   function buildNumbersRows() {
     const r95CiLowerDelta = formatResultValue(stats.r95 - stats.r95LowerBound);
     const r95CiUpperDelta = formatResultValue(stats.r95UpperBound - stats.r95);
+    const poi = toShooterFrame(stats.poiMm);
     return [
       { descriptionKey: 'riflePrecision.shotCountLabel', value: String(stats.shotCount) },
       { descriptionKey: 'riflePrecision.confidenceIntervalLabel', value: confidenceIntervalText() },
       {
         descriptionKey: 'riflePrecision.averagePoiLabel',
-        value: `H ${formatResultValue(stats.poiMm.x)}, V ${formatResultValue(stats.poiMm.y)}`
+        // Shooter frame, not the image frame stats.poiMm is in — a zero
+        // error is read against a turret, so V has to be positive *up*
+        // (see toShooterFrame()). The diagram keeps drawing from the raw
+        // image-frame value; only this text is converted.
+        value: `H ${formatResultValue(poi.rightMm)}, V ${formatResultValue(poi.upMm)}`
       },
       {
         descriptionKey: 'riflePrecision.legendPoiCi',
@@ -354,9 +359,19 @@ export function mount(container) {
       target.groups.forEach((g, i) => byGroup.set(g.id, i + 1));
       groupIndexByTarget.set(target.id, byGroup);
     }
+    // Columns name their *direction* as well as their unit, and carry
+    // shooter-frame values (see toShooterFrame()) rather than the image
+    // frame the shots are pooled in — a file that is going to be read by a
+    // human or a spreadsheet should agree with what the report on screen
+    // says, not with the photograph's own top-left origin.
+    //
+    // The rename from the older ShotX/ShotY is deliberate: this is a
+    // format change (ShotUp is the negation of the old ShotY), and a
+    // renamed column makes an existing spreadsheet fail loudly instead of
+    // silently ingesting inverted data.
     const header = [
-      `ShotX (${lengthChoice.label})`,
-      `ShotY (${lengthChoice.label})`,
+      `ShotRight (${lengthChoice.label})`,
+      `ShotUp (${lengthChoice.label})`,
       'Target',
       'Group',
       `Distance (${rangeChoice.label})`,
@@ -364,9 +379,10 @@ export function mount(container) {
     ];
     const rows = stats.pooledShots.map((shot) => {
       const groupIndex = groupIndexByTarget.get(shot.targetId)?.get(shot.groupId) ?? shot.groupId;
+      const { rightMm, upMm } = toShooterFrame({ x: shot.xMm, y: shot.yMm });
       return [
-        formatCsvNumber(engineToDisplay('bulletLength', shot.xMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
-        formatCsvNumber(engineToDisplay('bulletLength', shot.yMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
+        formatCsvNumber(engineToDisplay('bulletLength', rightMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
+        formatCsvNumber(engineToDisplay('bulletLength', upMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
         shot.targetName || '',
         String(groupIndex),
         formatCsvNumber(engineToDisplay('targetRange', project.distanceM, rangeChoice.unit), rangeChoice.decimals, decimalSeparator),

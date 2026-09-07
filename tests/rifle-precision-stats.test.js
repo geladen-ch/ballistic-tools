@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const {
   computeScale, computeGroupStats, computeCombinedStats,
   hitProbabilityRadiusMm, confidenceLevel, confidenceScaleFraction, mmToAngularUnit, oneMoaWidthMm, oneMradWidthMm,
-  targetUsabilityGaps
+  targetUsabilityGaps, toShooterFrame
 } = await import('../src/engine/rifle-precision-stats.js');
 const { RAYLEIGH_COEFF, CONF_LOWER, CONF_UPPER, TDIST_QUANTILE } = await import('../src/engine/rifle-precision-constants.js');
 
@@ -64,7 +64,7 @@ test('targetUsabilityGaps: a degenerate (zero-length) calibration ruler still co
   assert.deepEqual(targetUsabilityGaps(target), ['calibration']);
 });
 
-test('computeGroupStats: extreme spread, pair indices, POI, and H/V offset for a hand-computed 3-shot group', () => {
+test('computeGroupStats: extreme spread, pair indices, and POI for a hand-computed 3-shot group', () => {
   // scale = 10 px/mm, photo 1000x1000 -> poa at rel (0.5,0.5) = mm (50,50).
   // shot0 = poa exactly; shot1 = +1mm x; shot2 = -2mm y (up, since rel y grows downward).
   const target = makeTarget();
@@ -82,8 +82,35 @@ test('computeGroupStats: extreme spread, pair indices, POI, and H/V offset for a
   assert.deepEqual(stats.extremePairIndices, [1, 2]);
   closeTo(stats.poiMm.x, 50 + 1 / 3, 1e-9, 'POI x = mean of (0,+1,0) offsets from 50');
   closeTo(stats.poiMm.y, 50 - 2 / 3, 1e-9, 'POI y = mean of (0,0,-2) offsets from 50');
-  closeTo(stats.hOffsetMm, 1 / 3, 1e-9, 'H offset = poi.x - poa.x');
-  closeTo(stats.vOffsetMm, 2 / 3, 1e-9, 'V offset = poa.y - poi.y (up-positive)');
+  // No hOffsetMm/vOffsetMm any more: they were unused, and their
+  // "up is positive" vertical contradicted computeCombinedStats()'s own
+  // image-frame convention. See toShooterFrame() for the one place a
+  // vertical is now flipped.
+  assert.equal(stats.hOffsetMm, undefined);
+  assert.equal(stats.vOffsetMm, undefined);
+});
+
+test('toShooterFrame: negates the vertical, passes the horizontal through', () => {
+  // computeCombinedStats() pools in the photo's own frame, where +y is
+  // *downward*. A shot 14mm below the point of aim is a rifle shooting 14
+  // low, which a shooter reads against a turret as -14.
+  assert.deepEqual(toShooterFrame({ x: 6, y: 14 }), { rightMm: 6, upMm: -14 });
+  assert.deepEqual(toShooterFrame({ x: -6, y: -14 }), { rightMm: -6, upMm: 14 });
+  assert.equal(toShooterFrame({ x: 0, y: 0 }).upMm.toFixed(2), '0.00', 'negating a zero never formats as "-0.00"');
+});
+
+test('toShooterFrame: round-trips the pooled POI of a group shot low', () => {
+  const target = makeTarget({
+    groups: [{
+      id: 'g1',
+      poa: { x: 0.5, y: 0.5 },
+      // All three shots 20px = 2mm below the point of aim (scale 10 px/mm).
+      shots: [{ x: 0.5, y: 0.52 }, { x: 0.51, y: 0.52 }, { x: 0.49, y: 0.52 }]
+    }]
+  });
+  const stats = computeCombinedStats({ targets: [target] });
+  closeTo(stats.poiMm.y, 2, 1e-9, 'image frame: +2mm means 2mm DOWN');
+  closeTo(toShooterFrame(stats.poiMm).upMm, -2, 1e-9, 'shooter frame: the same group reads -2mm');
 });
 
 test('computeGroupStats: returns null with fewer than 2 shots or no scale/POA yet', () => {

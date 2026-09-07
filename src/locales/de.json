@@ -920,6 +920,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v196": "Fix: Der vertikale Nullpunktversatz des Gewehr-Präzisionsrechners war verkehrt herum — eine tief schießende Gruppe wurde als positiver Wert angezeigt. Oben ist jetzt überall positiv, wie am Turm; die Schuss-Spalten des CSV-Exports heißen dazu passend ShotRight/ShotUp.",
       "v195": "Änderung: Der Gewehr-Präzisionsrechner zeichnet jeden Treffer jetzt in der unter Einstellungen gewählten Trefferfarbe, samt Rand.",
       "v194": "Fix: Der Gewehr-Präzisionsrechner versteht jetzt auch archaische Einheiten.",
       "v193": "Neu: Metadaten für Suchmaschinen, KI-Systeme und andere Bots hinzugefügt.",

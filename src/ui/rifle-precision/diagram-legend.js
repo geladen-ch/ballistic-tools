@@ -10,6 +10,7 @@ import {
   pooledShotColor, COLOR_POA, COLOR_POI, COLOR_SIGMA, COLOR_R50, COLOR_R95, COLOR_R99,
   COLOR_ONE_MOA, COLOR_HIT_PROBABILITY, COLOR_GRID, COLOR_ES5X, COLOR_ES10X
 } from './analysis-diagram.js';
+import { toShooterFrame } from '../../engine/rifle-precision-stats.js';
 
 // +sign on a non-negative formatted value, for an absolute coordinate
 // reading (the average PoI's own H/V offset) where the sign itself is the
@@ -37,9 +38,14 @@ export function computeLegendRows(stats, options = {}, formatResultValue) {
   // has to follow whatever the diagram itself just drew.
   rows.push({ color: pooledShotColor(), shape: 'dot', label: t('riflePrecision.legendPooledShot'), value: null });
   rows.push({ color: COLOR_POA, shape: 'ring', label: t('riflePrecision.legendPoa'), value: null });
+  // Converted out of the image frame first — stats.poiMm.y is positive
+  // *downward* (see toShooterFrame()), and this row is read by a human
+  // against a turret. The diagram itself keeps drawing from the raw
+  // image-frame value, which is why only the text goes through here.
+  const poi = toShooterFrame(stats.poiMm);
   rows.push({
     color: COLOR_POI, shape: 'dot', label: t('riflePrecision.legendPoi'),
-    value: `H ${withSign(formatResultValue(stats.poiMm.x))}, V ${withSign(formatResultValue(stats.poiMm.y))}`
+    value: `H ${withSign(formatResultValue(poi.rightMm))}, V ${withSign(formatResultValue(poi.upMm))}`
   });
   if (showPoiCi) {
     rows.push({

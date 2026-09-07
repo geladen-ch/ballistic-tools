@@ -28,7 +28,10 @@ test('computeLegendRows always includes all-impacts/POA/average-POI, in that ord
   assert.equal(rows[1].label, t('riflePrecision.legendPoa'));
   assert.equal(rows[1].value, null);
   assert.equal(rows[2].label, t('riflePrecision.legendPoi'));
-  assert.equal(rows[2].value, 'H +1.00mm, V -2.00mm');
+  // baseStats()'s poiMm is in the engine's image frame (+y downward), so
+  // y:-2 is a group 2mm ABOVE the point of aim and the row — which a human
+  // reads against a turret — reports it as +2. See toShooterFrame().
+  assert.equal(rows[2].value, 'H +1.00mm, V +2.00mm');
 });
 
 test('"All impacts" is the current translated text for the pooled-shot row (renamed from "Pooled shot")', () => {
@@ -77,10 +80,19 @@ test('hit-probability row\'s value leads with the percent, before the radius, ma
 });
 
 test('average-PoI row prepends "+" for zero/positive coordinates and keeps the formatter\'s own "-" for negatives, on each axis independently', () => {
+  // y:+3.5 is image-frame, i.e. 3.5mm BELOW the point of aim — a rifle
+  // shooting low, which the row reports as -3.50 after toShooterFrame().
+  // Zero H and negative V exercise both branches of withSign() at once.
   const stats = { ...baseStats(), poiMm: { x: 0, y: 3.5 } };
   const rows = computeLegendRows(stats, {}, identity);
   const row = rows.find((r) => r.label === t('riflePrecision.legendPoi'));
-  assert.equal(row.value, 'H +0.00mm, V +3.50mm');
+  assert.equal(row.value, 'H +0.00mm, V -3.50mm');
+});
+
+test('average-PoI row never prints a negated zero as "-0.00"', () => {
+  const rows = computeLegendRows({ ...baseStats(), poiMm: { x: 0, y: 0 } }, {}, identity);
+  const row = rows.find((r) => r.label === t('riflePrecision.legendPoi'));
+  assert.equal(row.value, 'H +0.00mm, V +0.00mm');
 });
 
 test('POI-CI row formats its H/V value with a ± prefix through the given formatter', () => {

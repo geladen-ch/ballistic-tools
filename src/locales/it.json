@@ -920,6 +920,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v196": "Correzione: lo scostamento verticale dello zero del Calcolatore di precisione di tiro era invertito — un gruppo che tirava basso risultava positivo. Ora l'alto è positivo ovunque, come su una torretta; le colonne dei colpi nell'esportazione CSV sono rinominate ShotRight/ShotUp di conseguenza.",
       "v195": "Modifica: il Calcolatore di precisione di tiro ora disegna ogni impatto nel colore degli impatti scelto nelle Impostazioni, bordo compreso.",
       "v194": "Correzione: il Calcolatore di precisione di tiro ora capisce anche le unità arcaiche.",
       "v193": "Nuovo: aggiunti metadati per i motori di ricerca, le IA e altri bot.",

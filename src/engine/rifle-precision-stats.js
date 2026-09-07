@@ -57,16 +57,25 @@ function distance(a, b) {
 
 // Per-group stats: extreme spread (max pairwise distance among shots,
 // legacy's own brute-force O(n^2) — groups are small, no need for
-// anything smarter) and point of impact (centroid), both in mm, plus the
-// H/V offset of the POI from the point of aim. Returns null if the target
-// has no scale yet or the group has fewer than 2 shots (nothing to
-// measure an extreme spread from), matching legacy's updateStatsGroup().
+// anything smarter) and point of impact (centroid), both in mm. Returns
+// null if the target has no scale yet or the group has fewer than 2 shots
+// (nothing to measure an extreme spread from), matching legacy's
+// updateStatsGroup().
+//
+// Deliberately does NOT return an H/V offset of the POI from the point of
+// aim. It used to, under the opposite ("up is positive") vertical
+// convention to computeCombinedStats() below, while being consumed by
+// nobody — both callers (rifle-precision-marking-view.js,
+// rifle-precision-photo-export.js) use only extremeSpreadMm/
+// extremePairIndices and recompute the centroid themselves in relative
+// coordinates. Two contradictory conventions in one module is a trap, so
+// the unused half is gone; anything needing a shooter-facing offset
+// should go through toShooterFrame() below, like every other display site.
 export function computeGroupStats(group, target) {
   const scale = computeScale(target);
   if (!scale || !group.poa || group.shots.length < 2) return null;
 
   const shotsMm = group.shots.map((s) => toMm(s, target, scale));
-  const poaMm = toMm(group.poa, target, scale);
 
   let maxDist = 0;
   let m1 = null;
@@ -87,14 +96,30 @@ export function computeGroupStats(group, target) {
   return {
     extremeSpreadMm: maxDist,
     extremePairIndices: [m1, m2],
-    poiMm,
-    // Legacy's own sign convention (image-pane.js): horizontal offset is
-    // POI-minus-POA (positive = right); vertical is POA-minus-POI
-    // (positive = up), because raw pixel y grows downward and this flips
-    // it back to an intuitive "up is positive" reading for the shooter.
-    hOffsetMm: poiMm.x - poaMm.x,
-    vOffsetMm: poaMm.y - poiMm.y
+    poiMm
   };
+}
+
+// Image frame -> shooter frame, the single place this app flips a vertical
+// sign.
+//
+// Every coordinate in this module lives in the *image* frame: impacts are
+// stored as fractions of the target photo, whose origin is top-left with y
+// growing downward, so a positive y means "below the point of aim" — the
+// rifle shooting low. That frame is deliberately kept all the way through
+// computeCombinedStats() because it is also SVG's own frame, which is what
+// lets analysis-diagram.js draw pooled shots, radius circles, the grid and
+// the POI box straight from these millimetres with no transform at all.
+//
+// A human reads the opposite. Turrets, holdovers and every "come up 2 MOA"
+// treat *up* as positive, so a shooter shown "V +14" for a group that is 14
+// low will dial the wrong way and double their error. So every
+// human-readable vertical — the Numbers table's average POI, the legend's
+// point-of-impact row (and with it the SVG export's legend), the CSV's
+// ShotUp column — converts here first, and nothing else in the app negates
+// a y on its own.
+export function toShooterFrame({ x, y }) {
+  return { rightMm: x, upMm: -y };
 }
 
 // Pools every shot across every target/group in the project, each shot
