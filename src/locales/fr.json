@@ -920,6 +920,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v193": "Nouveau : ajout de métadonnées destinées aux moteurs de recherche, aux IA et aux autres robots.",
       "v192": "Changement : ajout d'un lien vers le dépôt du code source.",
       "v191": "Correction : mise en place de la reconstruction automatique du cache hors ligne, pour contourner certains bugs de navigateurs empêchant le démarrage du ServiceWorker (cassant le fonctionnement hors ligne). Ajout d'une action explicite « reconstruire le cache » dans le panneau de dépannage.",
       "v190": "Correction : pas d'incrément correct pour la saisie de la vitesse du vent en km/h (merci à JerkyFreak pour le signalement)",

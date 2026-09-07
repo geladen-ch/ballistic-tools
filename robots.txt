@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /docs/
+Disallow: /tests/
+Disallow: /tools/
+
+Sitemap: https://bc.geladen.ch/sitemap.xml

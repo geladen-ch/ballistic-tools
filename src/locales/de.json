@@ -920,6 +920,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v193": "Neu: Metadaten für Suchmaschinen, KI-Systeme und andere Bots hinzugefügt.",
       "v192": "Änderung: Link zum Quellcode-Repository hinzugefügt.",
       "v191": "Fix: automatischen Neuaufbau des Offline-Cache implementiert, um Browser-Fehler zu umgehen, bei denen der ServiceWorker nicht gestartet werden konnte (was die Offline-Funktion beeinträchtigte). Eine explizite Aktion „Cache neu aufbauen\" wurde dem Fehlerbehebungs-Bereich hinzugefügt.",
       "v190": "Fix: Korrekte Schrittweite für die Windgeschwindigkeitseingabe in km/h festgelegt (danke an JerkyFreak für die Meldung)",

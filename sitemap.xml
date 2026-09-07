@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://bc.geladen.ch/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://bc.geladen.ch/about/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bc.geladen.ch/about/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bc.geladen.ch/about/fr/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://bc.geladen.ch/about/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://bc.geladen.ch/about/it/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bc.geladen.ch/about/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bc.geladen.ch/about/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://bc.geladen.ch/about/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bc.geladen.ch/about/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bc.geladen.ch/about/fr/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://bc.geladen.ch/about/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://bc.geladen.ch/about/it/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bc.geladen.ch/about/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bc.geladen.ch/about/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://bc.geladen.ch/about/de/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bc.geladen.ch/about/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bc.geladen.ch/about/fr/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://bc.geladen.ch/about/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://bc.geladen.ch/about/it/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bc.geladen.ch/about/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bc.geladen.ch/about/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://bc.geladen.ch/about/it/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bc.geladen.ch/about/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bc.geladen.ch/about/fr/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://bc.geladen.ch/about/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://bc.geladen.ch/about/it/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bc.geladen.ch/about/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bc.geladen.ch/about/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://bc.geladen.ch/about/ru/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bc.geladen.ch/about/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bc.geladen.ch/about/fr/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://bc.geladen.ch/about/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://bc.geladen.ch/about/it/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://bc.geladen.ch/about/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bc.geladen.ch/about/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+</urlset>
