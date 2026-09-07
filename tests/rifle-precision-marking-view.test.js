@@ -18,10 +18,12 @@ const {
   setPendingMarking, isInMarkingMode, requestZoomIn, requestZoomOut, requestDone,
   resetRiflePrecisionNavForTests
 } = await import('../src/rifle-precision-nav.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 
 test.beforeEach(async () => {
   await resetRiflePrecisionLibraryForTests();
   resetRiflePrecisionNavForTests();
+  resetUnits(); // the calibration tests below switch smallLength away from its mm default
   location.hash = '';
 });
 
@@ -280,6 +282,55 @@ test('calibration: once both points exist, a connecting line and (once a length 
   assert.ok(doneButton, 'an explicit Done button appears once calibration is complete');
   fireEvent(doneButton, 'click');
   assert.ok(container.textContent.includes(t('riflePrecision.stepPointOfAim')), 'pressing Done advances to the point-of-aim step');
+
+  cleanup();
+});
+
+test('calibration: the real-world length is labeled, typed, shown and stored in the user\'s preferred small-length unit', () => {
+  setUnit('smallLength', 'in');
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: null } });
+  const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
+  setPendingMarking({ projectId: project.id, targetId: target.id });
+  const container = makeElement('main');
+  const cleanup = markingView.mount(container);
+
+  assert.ok(!/mm|мм/.test(t('riflePrecision.calibrationLengthLabel')), 'the translated label no longer hardcodes millimetres');
+  const label = findByTag(container, 'LABEL').find((l) => findByTag(l, 'SPAN')
+    .some((sp) => sp.getAttribute('data-i18n') === 'riflePrecision.calibrationLengthLabel'));
+  assert.ok(label, 'the length field is labeled');
+  assert.ok(label.textContent.includes('(in)'), 'the current display unit is appended to the label');
+
+  // 4 in typed in, 101.6 mm stored — the engine unit every measurement
+  // derived from this scale is computed in never changes.
+  let lengthInput = byId(container, 'riflePrecisionCalibrationLength');
+  lengthInput.value = '4';
+  fireEvent(lengthInput, 'input');
+  assert.equal(findByClass(container, 'rp-calibration-length-label')[0].textContent, '4 in', 'the live legend follows the typed unit too');
+
+  fireEvent(lengthInput, 'change');
+  const stored = findRiflePrecisionProjectById(project.id).targets[0];
+  assert.ok(Math.abs(stored.calibration.realLengthMm - 101.6) < 1e-9, `stored in mm regardless of the display unit (got ${stored.calibration.realLengthMm})`);
+
+  // ...and converts straight back on the re-render, rather than showing
+  // the raw stored millimetres.
+  lengthInput = byId(container, 'riflePrecisionCalibrationLength');
+  assert.equal(lengthInput.value, '4');
+  assert.equal(findByClass(container, 'rp-calibration-length-label')[0].textContent, '4 in');
+
+  cleanup();
+});
+
+test('calibration: an existing millimetre length renders in the preferred unit, trimmed of trailing zeros', () => {
+  setUnit('smallLength', 'cm');
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: 200 } });
+  const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
+  setPendingMarking({ projectId: project.id, targetId: target.id });
+  const container = makeElement('main');
+  const cleanup = markingView.mount(container);
+
+  fireEvent(buttonByKey(container, 'riflePrecision.recalibrateButton'), 'click');
+  assert.equal(byId(container, 'riflePrecisionCalibrationLength').value, '20', '200 mm shown as 20 cm, not "20.000"');
+  assert.equal(findByClass(container, 'rp-calibration-length-label')[0].textContent, '20 cm');
 
   cleanup();
 });

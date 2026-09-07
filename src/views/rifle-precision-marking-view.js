@@ -38,7 +38,7 @@
 // routing — see handleTap().
 import { el, clear } from '../dom.js';
 import { svgEl } from '../svg.js';
-import { t } from '../i18n.js';
+import { t, i18nSpan } from '../i18n.js';
 import { findRiflePrecisionProjectById, saveRiflePrecisionProject } from '../rifle-precision-library.js';
 import { generateUserId } from '../user-library.js';
 import { photoViewport } from '../ui/locations/photo-viewport.js';
@@ -47,23 +47,62 @@ import {
   setMarkingMode, takePendingMarking, registerMarkingHandlers, setActiveProjectId
 } from '../rifle-precision-nav.js';
 import { computeGroupStats, computeScale } from '../engine/rifle-precision-stats.js';
-import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay } from '../units.js';
+import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { COLOR_POOLED_SHOT, COLOR_POA, COLOR_POI, COLOR_CALIBRATION } from '../ui/rifle-precision/marker-style.js';
 import { exportGroupOverviewImage } from '../rifle-precision-photo-export.js';
+
+// The user's currently-preferred small-length unit (mm/cm/in), resolved
+// the same way rifle-precision-view.js's/rifle-precision-analysis-view.js's
+// own copies do — `bulletLength` is borrowed purely for its unit-math
+// (mm engine unit, smallLength group), not because any of this is about a
+// bullet. Falls back to the group default for a stale/unknown pref, same
+// as unitField() itself.
+function smallLengthChoice() {
+  const displayUnit = getUnit('smallLength');
+  return unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
+}
+
+// Decimal places for one small-length display unit — the same tighter
+// per-unit precision the Arsenal bullet-geometry fields use, since a
+// group size or a ruler length needs finer resolution than the
+// smallLength group's own coarser default.
+function smallLengthDecimals(choice) {
+  return SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
+}
 
 // Same formatLengthMm() display-unit conversion pattern as
 // rifle-precision-view.js's/rifle-precision-analysis-view.js's own copies
 // (not imported — small enough pure functions that a third copy here
 // matches this app's existing per-view convention). Used for the extreme-
-// spread line's own legend — the calibration line's legend, by contrast,
-// is always a literal millimetre value (see setCalibrationLabelValue()),
-// since that's exactly what the user typed into the calibration step.
+// spread line's own legend.
 function formatLengthMm(valueMm) {
-  const displayUnit = getUnit('smallLength');
-  const choice = unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
-  const decimals = SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
-  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(decimals)} ${choice.label}`;
+  const choice = smallLengthChoice();
+  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(smallLengthDecimals(choice))} ${choice.label}`;
+}
+
+// The calibration length round-trip: stored on the target in millimetres
+// (the engine unit every measurement downstream of the scale is derived
+// in), typed and shown in whatever small-length unit the user prefers.
+// Rounded to that unit's own display precision on the way out so the
+// input never shows a 3.9370078740157481-style conversion artifact.
+function calibrationLengthToDisplay(valueMm) {
+  const choice = smallLengthChoice();
+  return Number(engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(smallLengthDecimals(choice)));
+}
+function calibrationLengthToMm(displayValue) {
+  return displayToEngine('bulletLength', displayValue, smallLengthChoice().unit);
+}
+
+// Unlike formatLengthMm() above (a computed statistic, always printed to
+// its unit's full precision), this is a number the user typed by hand —
+// trailing zeros are noise there, so a 100 mm ruler stays "100 mm"
+// rather than becoming "100.00 mm". Takes an already-converted display
+// value, since both callers (the live legend under the typing cursor,
+// the full re-render) already have one.
+function formatCalibrationLength(displayValue) {
+  const choice = smallLengthChoice();
+  return `${Number(displayValue.toFixed(smallLengthDecimals(choice)))} ${choice.label}`;
 }
 
 // Same per-photo pan/zoom persistence idea as location-placement-view.js's
@@ -413,12 +452,14 @@ export function mount(container) {
   // Shared by renderCalibrationLine() (full render, e.g. after a drag or
   // after committing a typed length) and the length input's own live
   // 'input' handler (a lightweight in-place update — see renderCalibration()'s
-  // own comment on why that path doesn't call the full render()).
-  function setCalibrationLabelValue(lengthMm) {
+  // own comment on why that path doesn't call the full render()). Takes a
+  // value already in the user's preferred display unit, which is what the
+  // input itself holds — the stored-millimetre caller converts first.
+  function setCalibrationLabelValue(displayLength) {
     if (!calibrationLabelEl) return;
-    if (lengthMm) {
+    if (displayLength) {
       calibrationLabelEl.style.display = '';
-      calibrationLabelEl.textContent = `${lengthMm} mm`;
+      calibrationLabelEl.textContent = formatCalibrationLength(displayLength);
     } else {
       calibrationLabelEl.style.display = 'none';
     }
@@ -445,7 +486,7 @@ export function mount(container) {
     calibrationLabelEl = el('div', { class: 'rp-calibration-length-label' });
     positionCalibrationLabel(calibrationLabelEl, cal);
     viewport.markersLayer.appendChild(calibrationLabelEl);
-    setCalibrationLabelValue(cal.realLengthMm || null);
+    setCalibrationLabelValue(cal.realLengthMm ? calibrationLengthToDisplay(cal.realLengthMm) : null);
   }
 
   function renderCalibration(t2) {
@@ -472,8 +513,15 @@ export function mount(container) {
     // the explicit Done button below once both points and a length are
     // set, so a typo or a not-yet-final length never silently ends the
     // step out from under them.
-    const lengthInput = el('input', { type: 'number', id: 'riflePrecisionCalibrationLength', min: '0.1', step: '0.1' });
-    if (cal.realLengthMm) lengthInput.value = String(cal.realLengthMm);
+    // Typed in — and stepped/bounded in — the user's own preferred
+    // small-length unit, converted back to the stored millimetres on
+    // commit below. The step (and the smallest accepted length) is that
+    // unit's own display precision, so a value can always be typed as
+    // precisely as it can be shown back.
+    const calChoice = smallLengthChoice();
+    const calStep = String(10 ** -smallLengthDecimals(calChoice));
+    const lengthInput = el('input', { type: 'number', id: 'riflePrecisionCalibrationLength', min: calStep, step: calStep });
+    if (cal.realLengthMm) lengthInput.value = String(calibrationLengthToDisplay(cal.realLengthMm));
 
     // Always created (both points already exist by this point in the
     // function), its display toggled live rather than gated by a full
@@ -501,12 +549,19 @@ export function mount(container) {
       if (!(len > 0)) return;
       const fresh = currentTarget();
       if (!fresh) return;
-      persistTarget({ ...fresh, calibration: { ...fresh.calibration, realLengthMm: len } });
+      persistTarget({ ...fresh, calibration: { ...fresh.calibration, realLengthMm: calibrationLengthToMm(len) } });
       render();
     });
 
+    // The unit suffix ("(in)") is a plain sibling text node rather than
+    // part of the translated span — same reasoning as unitField()'s own
+    // label: a language switch shouldn't have to know about unit symbols,
+    // and re-translating the span must never clobber it.
     controls.appendChild(el('div', { class: 'field' }, [
-      el('label', { i18n: 'riflePrecision.calibrationLengthLabel' }),
+      el('label', {}, [
+        i18nSpan('riflePrecision.calibrationLengthLabel'),
+        document.createTextNode(` (${calChoice.label})`)
+      ]),
       lengthInput
     ]));
     controls.appendChild(doneButton);
@@ -550,17 +605,20 @@ export function mount(container) {
   // Exports the *active* group's own overview PNG — calibration line/
   // label, PoA, its shots, extreme-spread line/label, and average POI —
   // cropped to whatever the user currently has zoomed/panned to (see
-  // exportGroupOverviewImage()'s own comment). The extreme-spread label
-  // text is computed here (not inside the export module, which has no
-  // opinion on display units) using the exact same formatLengthMm() the
-  // live renderGroupOverlay() overlay itself uses, so the exported file's
-  // own label always matches what's on screen.
+  // exportGroupOverviewImage()'s own comment). Both label texts are
+  // computed here (not inside the export module, which has no opinion on
+  // display units) using the exact same formatters the live overlay
+  // itself uses, so the exported file's own labels always match what's
+  // on screen.
   function saveGroupOverviewImage(t2) {
     const activeGroup = t2.groups.find((g) => g.id === activeGroupId);
     if (!activeGroup) return;
     const groupIndex = t2.groups.findIndex((g) => g.id === activeGroupId);
     const stats = computeGroupStats(activeGroup, t2);
     const extremeSpreadLabelText = stats ? `${t('riflePrecision.esLabel')} ${formatLengthMm(stats.extremeSpreadMm)}` : null;
+    const calibrationLabelText = t2.calibration && t2.calibration.realLengthMm
+      ? formatCalibrationLength(calibrationLengthToDisplay(t2.calibration.realLengthMm))
+      : null;
 
     const rect = viewport.node.getBoundingClientRect();
     const vp = viewport.getViewport();
@@ -570,7 +628,7 @@ export function mount(container) {
     exportGroupOverviewImage({
       target: t2, group: activeGroup, project,
       viewport: { scale: vp.scale, tx: vp.tx, ty: vp.ty, containerWidth: rect.width, containerHeight: rect.height },
-      extremeSpreadLabelText, filename
+      extremeSpreadLabelText, calibrationLabelText, filename
     }).catch(() => {
       // Best-effort — an image-decode failure here shouldn't break the rest of the marking view.
     });

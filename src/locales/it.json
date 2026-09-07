@@ -581,7 +581,7 @@
     "photoProcessingError": "Impossibile elaborare questa foto. Prova un altro file.",
     "calibrationHint1": "Tocca la foto nel primo punto di calibrazione — un'estremità di un righello o un elemento di lunghezza nota sul bersaglio.",
     "calibrationHint2": "Tocca la foto nel secondo punto di calibrazione, poi inserisci la distanza reale tra i due punti.",
-    "calibrationLengthLabel": "Distanza reale (mm)",
+    "calibrationLengthLabel": "Distanza reale",
     "calibrationDoneButton": "Fine calibrazione",
     "recalibrateButton": "Ricalibra",
     "poaHint": "Tocca la foto per posizionare il punto di mira di questo gruppo.",
@@ -920,6 +920,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v194": "Correzione: il Calcolatore di precisione di tiro ora capisce anche le unità arcaiche.",
       "v193": "Nuovo: aggiunti metadati per i motori di ricerca, le IA e altri bot.",
       "v192": "Modifica: aggiunto il link al repository del codice sorgente.",
       "v191": "Correzione: implementata la ricostruzione automatica della cache offline, per aggirare alcuni glitch del browser che impedivano l'avvio del ServiceWorker (interrompendo la funzionalità offline). Aggiunta un'azione esplicita \"ricostruisci cache\" al pannello Risoluzione dei problemi.",

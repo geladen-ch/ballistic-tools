@@ -581,7 +581,7 @@
     "photoProcessingError": "Das Foto konnte nicht verarbeitet werden. Bitte eine andere Datei versuchen.",
     "calibrationHint1": "Am ersten Kalibrierpunkt auf das Foto tippen – ein Ende eines Lineals oder ein Merkmal bekannter Länge auf der Zielscheibe.",
     "calibrationHint2": "Am zweiten Kalibrierpunkt auf das Foto tippen, dann die tatsächliche Länge zwischen beiden Punkten eingeben.",
-    "calibrationLengthLabel": "Tatsächliche Länge (mm)",
+    "calibrationLengthLabel": "Tatsächliche Länge",
     "calibrationDoneButton": "Kalibrierung abschließen",
     "recalibrateButton": "Neu kalibrieren",
     "poaHint": "Auf das Foto tippen, um den Zielpunkt dieser Gruppe zu setzen.",
@@ -920,6 +920,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v194": "Fix: Der Gewehr-Präzisionsrechner versteht jetzt auch archaische Einheiten.",
       "v193": "Neu: Metadaten für Suchmaschinen, KI-Systeme und andere Bots hinzugefügt.",
       "v192": "Änderung: Link zum Quellcode-Repository hinzugefügt.",
       "v191": "Fix: automatischen Neuaufbau des Offline-Cache implementiert, um Browser-Fehler zu umgehen, bei denen der ServiceWorker nicht gestartet werden konnte (was die Offline-Funktion beeinträchtigte). Eine explizite Aktion „Cache neu aufbauen\" wurde dem Fehlerbehebungs-Bereich hinzugefügt.",

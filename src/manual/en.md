@@ -511,7 +511,8 @@ sheet still combine correctly — into one set of statistics:
   the "bullshit threshold"; enough shots and it climbs toward "Awesome."
   It's baked into the SVG export too, replacing the plain confidence-
   interval text.
-- **Export CSV** downloads every pooled shot's raw coordinates; the small
+- **Export CSV** downloads every pooled shot's raw coordinates, in your own
+  preferred units and with each unit named in its column header; the small
   icon next to Aggregate results **exports the diagram as SVG** — with the
   legend and confidence gauge included if that checkbox is on.
 

@@ -38,16 +38,24 @@ import { downloadButton } from '../ui/download-button.js';
 // global preferences regardless of the page-local "Results display units"
 // selector below — that selector only governs the legend/Numbers-table
 // values, not the page identity or the scale bar.
-function formatDistance(distanceM) {
+function distanceChoice() {
   const displayUnit = getUnit('distance');
-  const choice = unitChoice('targetRange', displayUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
+  return unitChoice('targetRange', displayUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
+}
+function smallLengthChoice() {
+  const displayUnit = getUnit('smallLength');
+  return unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
+}
+function smallLengthDecimals(choice) {
+  return SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
+}
+function formatDistance(distanceM) {
+  const choice = distanceChoice();
   return `${engineToDisplay('targetRange', distanceM, choice.unit).toFixed(choice.decimals)} ${choice.label}`;
 }
 function formatLengthMm(valueMm) {
-  const displayUnit = getUnit('smallLength');
-  const choice = unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
-  const decimals = SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
-  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(decimals)} ${choice.label}`;
+  const choice = smallLengthChoice();
+  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(smallLengthDecimals(choice))} ${choice.label}`;
 }
 
 // The diagram's optional reference grid — each option's real-world
@@ -112,8 +120,7 @@ export function mount(container) {
 
   // ---- results display units ----
   let resultsUnitMode = saved.resultsUnitMode ?? 'absolute';
-  const absoluteChoice = unitChoice('bulletLength', getUnit('smallLength'))
-    || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
+  const absoluteChoice = smallLengthChoice();
 
   function formatResultValue(valueMm) {
     if (resultsUnitMode === 'mrad') return `${mmToAngularUnit(valueMm, 'mrad', project.distanceM).toFixed(3)} mrad`;
@@ -323,24 +330,46 @@ export function mount(container) {
   confMeter.update(stats.confidenceLower, stats.confidenceUpper);
 
   // ---- exports ----
+  // Shot coordinates and the target distance are written in the user's
+  // own preferred units (small lengths, distance) rather than the
+  // engine's raw mm/m, with each unit named in its own column header —
+  // same convention as the trajectory table's own CSV. The column names
+  // themselves stay English (unlike that one, which translates them):
+  // they're identifiers for whatever spreadsheet/analysis tool the file
+  // is headed for, and have never been translated here.
+  //
+  // The page-local "Results display units" selector deliberately doesn't
+  // reach this — it governs the legend/Numbers table's *statistics*,
+  // which can be expressed angularly (mrad/MOA); these are raw
+  // coordinates, which are always a length.
   function exportCsv() {
     const fieldSeparator = getFieldSeparator();
     const decimalSeparator = getDecimalSeparator();
+    const lengthChoice = smallLengthChoice();
+    const lengthDecimals = smallLengthDecimals(lengthChoice);
+    const rangeChoice = distanceChoice();
     const groupIndexByTarget = new Map();
     for (const target of project.targets) {
       const byGroup = new Map();
       target.groups.forEach((g, i) => byGroup.set(g.id, i + 1));
       groupIndexByTarget.set(target.id, byGroup);
     }
-    const header = ['ShotX', 'ShotY', 'Target', 'Group', 'Distance', 'Description'];
+    const header = [
+      `ShotX (${lengthChoice.label})`,
+      `ShotY (${lengthChoice.label})`,
+      'Target',
+      'Group',
+      `Distance (${rangeChoice.label})`,
+      'Description'
+    ];
     const rows = stats.pooledShots.map((shot) => {
       const groupIndex = groupIndexByTarget.get(shot.targetId)?.get(shot.groupId) ?? shot.groupId;
       return [
-        formatCsvNumber(shot.xMm, 2, decimalSeparator),
-        formatCsvNumber(shot.yMm, 2, decimalSeparator),
+        formatCsvNumber(engineToDisplay('bulletLength', shot.xMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
+        formatCsvNumber(engineToDisplay('bulletLength', shot.yMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
         shot.targetName || '',
         String(groupIndex),
-        formatCsvNumber(project.distanceM, 0, decimalSeparator),
+        formatCsvNumber(engineToDisplay('targetRange', project.distanceM, rangeChoice.unit), rangeChoice.decimals, decimalSeparator),
         project.name
       ];
     });

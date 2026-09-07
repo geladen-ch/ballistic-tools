@@ -592,7 +592,8 @@ combinent quand même correctement — en un seul jeu de statistiques :
   de coups et il grimpe vers « Excellent ». Il est aussi intégré à l'export
   SVG, où il remplace le simple texte de l'intervalle de confiance.
 - **Exporter en CSV** télécharge les coordonnées brutes de chaque coup
-  combiné ; la petite icône à côté de Résultats agrégés **exporte le
+  combiné, dans vos unités préférées et avec l'unité indiquée dans chaque
+  en-tête de colonne ; la petite icône à côté de Résultats agrégés **exporte le
   diagramme en SVG** — avec la légende et l'indice de confiance inclus si
   cette case est cochée.
 

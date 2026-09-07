@@ -582,7 +582,7 @@
     "stepCalibration": "Calibrate the scale",
     "calibrationHint1": "Tap the photo at the first calibration point — one end of a ruler or a known-length feature on the target.",
     "calibrationHint2": "Tap the photo at the second calibration point, then enter the real-world distance between the two points.",
-    "calibrationLengthLabel": "Real-world distance (mm)",
+    "calibrationLengthLabel": "Real-world distance",
     "calibrationDoneButton": "Done calibrating",
     "recalibrateButton": "Recalibrate",
     "stepPointOfAim": "Specify the point of aim",
@@ -920,6 +920,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v194": "Fix: the Rifle precision calculator tool now understands archaic units.",
       "v193": "New: added metadata for search engines, LLMs, and other bots.",
       "v192": "Change: added link to the source code repository.",
       "v191": "Fix: implemented offline cache auto-rebuild, to work around some browsers glitches when ServiceWorker could not be started (breaking offline functionality). Added an explicit 'rebuild cache' action to Troubleshooting pane.",

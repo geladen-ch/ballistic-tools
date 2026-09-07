@@ -18,12 +18,14 @@ const { setActiveProjectId, resetRiflePrecisionNavForTests } = await import('../
 const { computeCombinedStats, confidenceLevel } = await import('../src/engine/rifle-precision-stats.js');
 const { resetRiflePrecisionAnalysisStateForTests } = await import('../src/rifle-precision-analysis-state.js');
 const { removeCookie } = await import('../src/cookies.js');
+const { setUnit, resetUnits } = await import('../src/prefs.js');
 
 test.beforeEach(async () => {
   await resetRiflePrecisionLibraryForTests();
   resetRiflePrecisionNavForTests();
   resetRiflePrecisionAnalysisStateForTests();
   removeCookie('ballistics_rifle_precision_analysis_state_v1');
+  resetUnits(); // the CSV-export tests below switch smallLength/distance away from their metric defaults
   location.hash = '';
 });
 
@@ -544,13 +546,9 @@ test('a fresh first-ever visit (nothing saved yet) still gets the hardcoded defa
   assert.equal(checkboxByLabelKey(container, 'riflePrecision.includeLegendCheckboxLabel').checked, true);
 });
 
-test('CSV export downloads the right header and one row per pooled shot', async () => {
-  const project = makeAnalyzableProject();
-  const stats = computeCombinedStats(project);
-  setActiveProjectId(project.id);
-  const container = makeElement('main');
-  analysisView.mount(container);
-
+// Clicks "Export CSV" with URL.createObjectURL stubbed out, and returns
+// the text of the Blob the download path built.
+async function captureCsvExport(container) {
   const originalCreate = URL.createObjectURL;
   const originalRevoke = URL.revokeObjectURL;
   let capturedBlob = null;
@@ -562,14 +560,42 @@ test('CSV export downloads the right header and one row per pooled shot', async 
     URL.createObjectURL = originalCreate;
     URL.revokeObjectURL = originalRevoke;
   }
-
   assert.ok(capturedBlob, 'a Blob was constructed for download');
-  const csvText = await capturedBlob.text();
+  return capturedBlob.text();
+}
+
+test('CSV export downloads the right header and one row per pooled shot', async () => {
+  const project = makeAnalyzableProject();
+  const stats = computeCombinedStats(project);
+  setActiveProjectId(project.id);
+  const container = makeElement('main');
+  analysisView.mount(container);
+
+  const csvText = await captureCsvExport(container);
   const lines = csvText.split('\r\n');
-  assert.equal(lines[0], 'ShotX,ShotY,Target,Group,Distance,Description');
+  assert.equal(lines[0], 'ShotX (mm),ShotY (mm),Target,Group,Distance (m),Description');
   assert.equal(lines.length, 1 + stats.pooledShots.length, 'header plus one row per pooled shot');
   assert.ok(lines[1].includes('T1'), 'target name column');
   assert.ok(lines[1].includes('Home Range'), 'project name in the description column');
+});
+
+test('CSV export writes coordinates and distance in the user\'s preferred units, named in the headers', async () => {
+  setUnit('smallLength', 'in');
+  setUnit('distance', 'yd');
+  // One shot 25.4mm right and 50.8mm down from its own point of aim —
+  // exactly 1in/2in, so the converted cells are checkable by eye.
+  const project = makeAnalyzableProject({}, [[25.4, 50.8], [0, 0], [0, 0]]);
+  setActiveProjectId(project.id);
+  const container = makeElement('main');
+  analysisView.mount(container);
+
+  const csvText = await captureCsvExport(container);
+  const lines = csvText.split('\r\n');
+  assert.equal(lines[0], 'ShotX (in),ShotY (in),Target,Group,Distance (yd),Description');
+  const cells = lines[1].split(',');
+  assert.equal(cells[0], '1.000', 'x in inches, at the small-length display precision');
+  assert.equal(cells[1], '2.000', 'y in inches, same photo-down-positive sign the raw mm export always used');
+  assert.equal(cells[4], '109.4', '100 m in yards, at the distance unit\'s own precision');
 });
 
 test('the "Export target image" button is gone — its functionality is covered elsewhere; only CSV export remains in the bottom actions row', () => {

@@ -72,14 +72,14 @@ function drawLabel(ctx, text, x, y, canvasWidth) {
 // cropped to match it (see that module's own comment) rather than always
 // exporting the whole photo.
 //
-// `extremeSpreadLabelText` is pre-formatted by the caller (e.g.
-// "45.2 mm") — this module has no opinion on the user's own preferred
-// display unit, unlike the calibration length label below, which is
-// always literally the millimetre value the user typed into the
-// calibration step's own input (same hardcoded-mm convention
-// rifle-precision-marking-view.js's own setCalibrationLabelValue() uses).
+// `extremeSpreadLabelText` and `calibrationLabelText` are both
+// pre-formatted by the caller (e.g. "45.2 mm", "1.97 in") — this module
+// has no opinion on the user's own preferred display unit, so both
+// labels are handed in already rendered by whichever formatter the live
+// marking view is using on screen. A null `calibrationLabelText` draws
+// the calibration line without a length legend.
 export async function exportGroupOverviewImage({
-  target, group, project, viewport, extremeSpreadLabelText, filename = 'rifle-precision-group-overview.png'
+  target, group, project, viewport, extremeSpreadLabelText, calibrationLabelText, filename = 'rifle-precision-group-overview.png'
 }) {
   if (!target || !target.photo || !group) return;
 
@@ -123,7 +123,7 @@ export async function exportGroupOverviewImage({
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
-    if (cal.realLengthMm) drawLabel(ctx, `${cal.realLengthMm} mm`, (a.x + b.x) / 2, (a.y + b.y) / 2, canvas.width);
+    if (calibrationLabelText) drawLabel(ctx, calibrationLabelText, (a.x + b.x) / 2, (a.y + b.y) / 2, canvas.width);
   }
 
   if (group.poa) {

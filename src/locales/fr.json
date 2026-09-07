@@ -581,7 +581,7 @@
     "photoProcessingError": "Impossible de traiter cette photo. Veuillez essayer un autre fichier.",
     "calibrationHint1": "Touchez la photo au premier point de calibration – une extrémité d'une règle ou un repère de longueur connue sur la cible.",
     "calibrationHint2": "Touchez la photo au deuxième point de calibration, puis entrez la distance réelle entre les deux points.",
-    "calibrationLengthLabel": "Distance réelle (mm)",
+    "calibrationLengthLabel": "Distance réelle",
     "calibrationDoneButton": "Terminer l'étalonnage",
     "recalibrateButton": "Recalibrer",
     "poaHint": "Touchez la photo pour placer le point de visée de cette série.",
@@ -920,6 +920,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v194": "Correction : la Calculette de précision de tir comprend désormais les unités archaïques.",
       "v193": "Nouveau : ajout de métadonnées destinées aux moteurs de recherche, aux IA et aux autres robots.",
       "v192": "Changement : ajout d'un lien vers le dépôt du code source.",
       "v191": "Correction : mise en place de la reconstruction automatique du cache hors ligne, pour contourner certains bugs de navigateurs empêchant le démarrage du ServiceWorker (cassant le fonctionnement hors ligne). Ajout d'une action explicite « reconstruire le cache » dans le panneau de dépannage.",

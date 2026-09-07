@@ -600,7 +600,8 @@ Statistiken:
   (IDKFA!)". Das fließt auch in den SVG-Export ein, wo es den reinen
   Vertrauensintervall-Text ersetzt.
 - **CSV exportieren** lädt die rohen Koordinaten jedes gebündelten Schusses
-  herunter; das kleine Symbol neben „Aggregierte Ergebnisse"
+  herunter — in den bevorzugten Einheiten, mit der jeweiligen Einheit in der
+  Spaltenüberschrift; das kleine Symbol neben „Aggregierte Ergebnisse"
   **exportiert das Diagramm als SVG** — inklusive Legende und
   Vertrauensmesser, sofern die entsprechende Checkbox aktiv ist.
 

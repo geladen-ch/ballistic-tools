@@ -588,7 +588,9 @@ combinino comunque correttamente — in un unico insieme di statistiche:
   abbastanza colpi e sale verso "Magnifico". È incorporato anche
   nell'esportazione SVG, dove sostituisce il semplice testo dell'intervallo
   di confidenza.
-- **Esporta CSV** scarica le coordinate grezze di ogni colpo raggruppato;
+- **Esporta CSV** scarica le coordinate grezze di ogni colpo raggruppato,
+  nelle tue unità preferite e con l'unità indicata in ogni intestazione di
+  colonna;
   la piccola icona accanto a Risultati aggregati **salva il diagramma come
   immagine** SVG — con legenda e indicatore di confidenza inclusi se quella
   casella è attiva.
