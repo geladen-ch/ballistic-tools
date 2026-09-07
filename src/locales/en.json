@@ -920,6 +920,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v197": "Fix: every release was silently breaking offline mode — the browser's service worker update check doesn't notice a release that only bumps the version number, which could leave the offline cache stuck on the previous release (or empty). The app now detects real version changes itself and proactively rebuilds the service worker and cache instead of relying on the browser to notice.",
       "v196": "Fix: the Rifle Precision Calculator's vertical zero offset was upside down — a group shooting low read as a positive number. Up is now positive everywhere, as on a turret; the CSV export's shot columns are renamed ShotRight/ShotUp to match.",
       "v195": "Change: the Rifle Precision Calculator now draws every impact in the impact color picked in Settings, edge and all.",
       "v194": "Fix: the Rifle precision calculator tool now understands archaic units.",

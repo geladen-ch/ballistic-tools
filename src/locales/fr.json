@@ -920,6 +920,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v197": "Correction : chaque version cassait silencieusement le mode hors ligne — la vérification de mise à jour du service worker par le navigateur ne détecte pas une version qui ne modifie que le numéro de version, ce qui pouvait laisser le cache hors ligne bloqué sur la version précédente (ou vide). L'application détecte désormais elle-même les vrais changements de version et reconstruit proactivement le service worker et le cache, au lieu de compter sur le navigateur pour s'en apercevoir.",
       "v196": "Correction : le décalage vertical du zéro de la Calculette de précision de tir était inversé — un groupement tirant bas s'affichait en positif. Le haut est désormais positif partout, comme sur une tourelle ; les colonnes de tir de l'export CSV sont renommées ShotRight/ShotUp en conséquence.",
       "v195": "Changement : la Calculette de précision de tir dessine désormais chaque impact dans la couleur d'impact choisie dans les Réglages, liseré compris.",
       "v194": "Correction : la Calculette de précision de tir comprend désormais les unités archaïques.",

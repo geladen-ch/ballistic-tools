@@ -175,9 +175,16 @@ export async function downloadDiagnostics() {
 // stuck state (see the "ServiceWorker cannot be started" failures this
 // was added for) needs that state torn down, not asked nicely to refresh
 // itself. IndexedDB (locations, arsenal, rifle precision projects) lives
-// outside both APIs and is untouched. The reload after is what actually
-// re-registers a fresh worker and repopulates the cache, via the normal
-// boot path in app.js.
+// outside both APIs and is untouched. The reload after is not optional —
+// confirmed empirically (see update-notifications.js's own
+// checkBootVersionChange(), which depends on this) that unregistering and
+// re-registering live within an already-loaded page, without an
+// intervening navigation, leaves the new worker "activated" with an
+// empty cache and no error at all: the install/precache pipeline simply
+// doesn't run correctly without a real navigation boundary. The reload is
+// what actually gives the browser a fresh client to install the new
+// worker against, and is what re-registers it and repopulates the cache,
+// via the normal boot path in app.js.
 export async function rebuildOfflineCache() {
   if ('serviceWorker' in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();

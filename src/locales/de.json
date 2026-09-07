@@ -920,6 +920,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v197": "Fix: Jedes Release hat bisher unbemerkt den Offline-Modus beschädigt — die Update-Prüfung des Browsers für Service Worker bemerkt ein Release nicht, das nur die Versionsnummer ändert, wodurch der Offline-Cache auf dem vorherigen Release hängen bleiben (oder leer werden) konnte. Die App erkennt echte Versionswechsel jetzt selbst und baut Service Worker und Cache proaktiv neu auf, statt sich auf die Erkennung durch den Browser zu verlassen.",
       "v196": "Fix: Der vertikale Nullpunktversatz des Gewehr-Präzisionsrechners war verkehrt herum — eine tief schießende Gruppe wurde als positiver Wert angezeigt. Oben ist jetzt überall positiv, wie am Turm; die Schuss-Spalten des CSV-Exports heißen dazu passend ShotRight/ShotUp.",
       "v195": "Änderung: Der Gewehr-Präzisionsrechner zeichnet jeden Treffer jetzt in der unter Einstellungen gewählten Trefferfarbe, samt Rand.",
       "v194": "Fix: Der Gewehr-Präzisionsrechner versteht jetzt auch archaische Einheiten.",

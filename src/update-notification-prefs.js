@@ -43,3 +43,27 @@ export function setLastSeenVersion(version) {
     // best-effort — losing persistence isn't fatal
   }
 }
+
+const SW_REBUILT_VERSION_COOKIE_NAME = 'ballistics_sw_rebuilt_version_v1';
+
+// Tracks which CACHE_VERSION the service worker has already been
+// proactively rebuilt for — separate from getLastSeenVersion() above
+// because checkBootVersionChange() handles a version change in two
+// passes: the rebuild happens silently on the *first* boot that notices
+// the change (before the reload it triggers), while the "what's new"
+// dialog and lastSeen bookkeeping only happen on the *second*
+// (post-reload) boot, once there's nothing left to fix and no reload
+// about to yank the dialog away mid-display. Sharing one tracker between
+// the two would make the second pass either repeat the rebuild (and
+// loop) or skip it (and show the dialog on the wrong pass).
+export function getServiceWorkerRebuiltVersion() {
+  return getCookie(SW_REBUILT_VERSION_COOKIE_NAME);
+}
+
+export function setServiceWorkerRebuiltVersion(version) {
+  try {
+    setCookie(SW_REBUILT_VERSION_COOKIE_NAME, version);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
