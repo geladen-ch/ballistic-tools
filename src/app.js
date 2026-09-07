@@ -2,6 +2,7 @@ import { registerRoute, startRouter, rerender } from './router.js';
 import { initI18n, onLanguageChange } from './i18n.js';
 import { CACHE_VERSION, RELEASE_ID } from './version.js';
 import { logDiagnostic } from './debug-log.js';
+import { attemptAutoRecovery } from './diagnostics.js';
 import { mountLanguageSwitcher } from './ui/language-switcher.js';
 import { mountDisplayModeSwitch } from './ui/display-mode-switch.js';
 import { getDisplayMode, onDisplayModeChange } from './display-mode-prefs.js';
@@ -240,11 +241,13 @@ try {
           // to be told.
           registration.update().catch((err) => {
             logDiagnostic('error', '[boot] service worker update() check failed:', err);
+            attemptAutoRecovery(err);
           });
           document.addEventListener('visibilitychange', () => {
             if (document.visibilityState !== 'visible') return;
             registration.update().catch((err) => {
               logDiagnostic('error', '[foreground] service worker update() check failed:', err);
+              attemptAutoRecovery(err);
             });
           });
         })
@@ -253,6 +256,7 @@ try {
           // move on, but still surface it: a registration failure here means
           // this visit gets zero offline capability, worth knowing about.
           logDiagnostic('error', '[boot] service worker registration failed:', err);
+          attemptAutoRecovery(err);
         });
     };
     // This module's own boot above (locale fetches, two IndexedDB opens) is

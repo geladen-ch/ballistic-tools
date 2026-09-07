@@ -164,7 +164,10 @@
     "thanksLink": "Visualizza l'elenco dei ringraziamenti",
     "troubleshootingHeading": "Risoluzione dei problemi",
     "troubleshootingText": "Scarica informazioni sullo stato di avvio e memorizzazione nella cache di questa app — utile per segnalare un problema.",
-    "troubleshootingLink": "Informazioni diagnostiche"
+    "troubleshootingLink": "Informazioni diagnostiche",
+    "rebuildCacheText": "Se la modalità offline o il controllo degli aggiornamenti smettono di funzionare, cancella i file memorizzati nella cache e la registrazione del service worker di questa app, quindi ricarica per ricostruirli da zero.",
+    "rebuildCacheLink": "Ricostruisci cache offline",
+    "confirmRebuildCache": "Questa azione cancella la cache offline dell'app e ricarica la pagina. Le posizioni, i fucili e gli altri dati salvati non vengono interessati. Continuare?"
   },
   "trajectory": {
     "title": "Traiettoria",
@@ -916,6 +919,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v191": "Correzione: implementata la ricostruzione automatica della cache offline, per aggirare alcuni glitch del browser che impedivano l'avvio del ServiceWorker (interrompendo la funzionalità offline). Aggiunta un'azione esplicita \"ricostruisci cache\" al pannello Risoluzione dei problemi.",
       "v190": "Correzione: impostato l'incremento corretto per l'inserimento della velocità del vento in km/h (grazie a JerkyFreak per la segnalazione)",
       "v189": "Correzione: il valore di velocità del widget del vento ora viene visualizzato centrato nel mozzo della manopola, invece di traboccare fuori centro",
       "v188": "Correzione: piccole ottimizzazioni dei profili di resistenza della libreria Swiss P integrata",

@@ -164,7 +164,10 @@
     "thanksLink": "View the thanks list",
     "troubleshootingHeading": "Troubleshooting",
     "troubleshootingText": "Download information about this app's startup and caching state — useful when reporting a problem.",
-    "troubleshootingLink": "Diagnostics info"
+    "troubleshootingLink": "Diagnostics info",
+    "rebuildCacheText": "If offline mode or update checks stop working, clear this app's cached files and service worker registration, then reload to rebuild them from scratch.",
+    "rebuildCacheLink": "Rebuild offline cache",
+    "confirmRebuildCache": "This clears the app's offline cache and reloads the page. Your saved locations, rifles, and other data are not affected. Continue?"
   },
   "trajectory": {
     "title": "Trajectory",
@@ -916,6 +919,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v191": "Fix: implemented offline cache auto-rebuild, to work around some browsers glitches when ServiceWorker could not be started (breaking offline functionality). Added an explicit 'rebuild cache' action to Troubleshooting pane.",
       "v190": "Fix: set the correct step size for wind speed input in km/h (thanks to JerkyFreak for reporting)",
       "v189": "Fix: the wind widget's speed value now renders centered in its dial hub, instead of overflowing off-center",
       "v188": "Fix: minor fine-tuning of the built-in Swiss P library drag profiles",

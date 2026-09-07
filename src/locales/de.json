@@ -164,7 +164,10 @@
     "thanksLink": "Dankesliste ansehen",
     "troubleshootingHeading": "Fehlerbehebung",
     "troubleshootingText": "Informationen zum Start- und Caching-Status dieser App herunterladen — nützlich beim Melden eines Problems.",
-    "troubleshootingLink": "Diagnoseinformationen"
+    "troubleshootingLink": "Diagnoseinformationen",
+    "rebuildCacheText": "Falls der Offline-Modus oder die Update-Prüfung nicht mehr funktionieren, lösche die zwischengespeicherten Dateien und die Service-Worker-Registrierung dieser App und lade neu, um sie von Grund auf neu aufzubauen.",
+    "rebuildCacheLink": "Offline-Cache neu aufbauen",
+    "confirmRebuildCache": "Dadurch wird der Offline-Cache der App gelöscht und die Seite neu geladen. Deine gespeicherten Standorte, Gewehre und anderen Daten sind davon nicht betroffen. Fortfahren?"
   },
   "trajectory": {
     "title": "Flugbahn",
@@ -916,6 +919,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v191": "Fix: automatischen Neuaufbau des Offline-Cache implementiert, um Browser-Fehler zu umgehen, bei denen der ServiceWorker nicht gestartet werden konnte (was die Offline-Funktion beeinträchtigte). Eine explizite Aktion „Cache neu aufbauen\" wurde dem Fehlerbehebungs-Bereich hinzugefügt.",
       "v190": "Fix: Korrekte Schrittweite für die Windgeschwindigkeitseingabe in km/h festgelegt (danke an JerkyFreak für die Meldung)",
       "v189": "Fix: Der Geschwindigkeitswert im Wind-Widget wird jetzt korrekt zentriert in der Nabe dargestellt, statt außermittig überzulaufen",
       "v188": "Fix: geringfügige Feinabstimmung der Luftwiderstandsprofile der eingebauten Swiss-P-Bibliothek",

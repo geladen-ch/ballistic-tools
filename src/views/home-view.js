@@ -5,7 +5,7 @@ import { gunsIcon, settingsIcon, manualIcon } from '../ui/nav-icons.js';
 import { t } from '../i18n.js';
 import { CACHE_VERSION, RELEASE_ID, CODENAME_SHORT, CODENAME_LONG } from '../version.js';
 import { resolveGunsDestination, goToGuns } from '../guns-nav.js';
-import { downloadDiagnostics } from '../diagnostics.js';
+import { downloadDiagnostics, rebuildOfflineCache } from '../diagnostics.js';
 import { isTroubleshootingPaneEnabled } from '../troubleshooting-prefs.js';
 
 // Guns isn't looked up here — see gunsPinnedLink() below, which routes it
@@ -126,11 +126,27 @@ function troubleshootingLink() {
   return link;
 }
 
+// Same non-navigating <a> pattern as troubleshootingLink() above, gated
+// behind a native confirm() (this repo's standing pattern for destructive
+// actions — see arsenal-view.js/locations-view.js) since it tears down
+// the live service worker registration and Cache Storage before reloading.
+function rebuildCacheLink() {
+  const link = el('a', { href: '#', i18n: 'home.rebuildCacheLink' });
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!confirm(t('home.confirmRebuildCache'))) return;
+    rebuildOfflineCache();
+  });
+  return link;
+}
+
 function troubleshootingCard() {
   return el('div', { class: 'card' }, [
     el('h3', { i18n: 'home.troubleshootingHeading' }),
     el('p', { i18n: 'home.troubleshootingText' }),
-    el('p', {}, [troubleshootingLink()])
+    el('p', {}, [troubleshootingLink()]),
+    el('p', { i18n: 'home.rebuildCacheText' }),
+    el('p', {}, [rebuildCacheLink()])
   ]);
 }
 

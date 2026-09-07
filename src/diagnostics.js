@@ -2,11 +2,14 @@
 // explain "why doesn't this work offline" — app version, live service
 // worker/cache state cross-referenced against what should be cached,
 // storage quota, and this session's own boot/loading log — bundled into
-// one downloadable file a user can attach to a bug report. See
-// home-view.js's Troubleshooting card for the download trigger.
+// one downloadable file a user can attach to a bug report. Also the one
+// self-repair action available here: rebuildOfflineCache() below, for
+// when a stuck registration or stale cache is the actual problem, not
+// just something to report. See home-view.js's Troubleshooting card for
+// both triggers.
 import { CACHE_VERSION, RELEASE_ID, CODENAME_SHORT, CODENAME_LONG } from './version.js';
 import { downloadFile } from './download.js';
-import { getDiagnosticLog } from './debug-log.js';
+import { getDiagnosticLog, logDiagnostic } from './debug-log.js';
 import { loadBulletLibraries, bulletLibraryForBullet } from './bullets.js';
 import { loadRifleCatalog } from './rifles.js';
 import { loadTargetCatalog } from './targets.js';
@@ -156,6 +159,7 @@ export async function collectDiagnostics() {
     storageEstimate,
     indexedDb,
     userData: collectUserDataCounts(),
+    autoRecovery: readAutoRecoveryMarker(),
     log: getDiagnosticLog()
   };
 }
@@ -164,4 +168,75 @@ export async function downloadDiagnostics() {
   const report = await collectDiagnostics();
   const isoStamp = report.generatedAt.replace(/[:.]/g, '-');
   downloadFile(`geladen-diagnostics-${CACHE_VERSION}-${isoStamp}.json`, JSON.stringify(report, null, 2), 'application/json');
+}
+
+// Unregistering rather than just calling update() is the point: a browser
+// that's gotten a service worker registration or Cache Storage into a
+// stuck state (see the "ServiceWorker cannot be started" failures this
+// was added for) needs that state torn down, not asked nicely to refresh
+// itself. IndexedDB (locations, arsenal, rifle precision projects) lives
+// outside both APIs and is untouched. The reload after is what actually
+// re-registers a fresh worker and repopulates the cache, via the normal
+// boot path in app.js.
+export async function rebuildOfflineCache() {
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((reg) => reg.unregister()));
+  }
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map((name) => caches.delete(name)));
+  }
+  location.reload();
+}
+
+const AUTO_REBUILD_GUARD_KEY = 'ballistics_auto_rebuild_attempted_v1';
+
+// Best-effort self-repair for app.js's service worker register()/update()
+// failures — deliberately narrow, since a blanket "reload on any
+// failure" trades one bug for two worse ones:
+// (1) those calls also throw when the browser is plainly offline (no
+// network to fetch service-worker.js), and wiping the very cache an
+// offline user is relying on right before a reload with nothing to
+// repopulate from would strip their offline access instead of fixing
+// anything — so this only ever matches the specific "cannot be started"
+// stuck-registration signature, never a generic failure, and never while
+// navigator.onLine is false.
+// (2) if the underlying cause isn't something a cache/registration wipe
+// can fix, reloading just reproduces the same failure — so this fires at
+// most once per browser session (a sessionStorage marker checked, and
+// set, before rebuildOfflineCache() ever runs); a second failure this
+// session falls through to the normal silent log instead of looping.
+export function attemptAutoRecovery(err) {
+  const message = String((err && err.message) || err || '');
+  if (!/cannot be started/i.test(message)) return false;
+  if (!navigator.onLine) return false;
+  const attemptedAt = new Date().toISOString();
+  try {
+    if (sessionStorage.getItem(AUTO_REBUILD_GUARD_KEY)) return false;
+    // A timestamp rather than a plain flag — rebuildOfflineCache() reloads
+    // the page immediately after, which wipes debug-log.js's in-memory
+    // log along with it, so this sessionStorage marker (which survives
+    // the reload) is the only trace left of an attempt having happened.
+    // readAutoRecoveryMarker() below folds it back into the diagnostics
+    // report so a user who downloads diagnostics *after* the reload still
+    // sees that this fired, not just silence.
+    sessionStorage.setItem(AUTO_REBUILD_GUARD_KEY, attemptedAt);
+  } catch {
+    // Storage unavailable (private browsing etc.) — can't guarantee the
+    // one-shot guard, so don't risk a loop by acting anyway.
+    return false;
+  }
+  logDiagnostic('log', `[boot] stuck service worker detected (${message}), attempting automatic offline-cache rebuild...`);
+  rebuildOfflineCache();
+  return true;
+}
+
+function readAutoRecoveryMarker() {
+  try {
+    const attemptedAt = sessionStorage.getItem(AUTO_REBUILD_GUARD_KEY);
+    return attemptedAt ? { attempted: true, attemptedAt } : { attempted: false };
+  } catch {
+    return { attempted: false };
+  }
 }

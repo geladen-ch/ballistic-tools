@@ -164,7 +164,10 @@
     "thanksLink": "Voir la liste des remerciements",
     "troubleshootingHeading": "Dépannage",
     "troubleshootingText": "Téléchargez des informations sur l'état de démarrage et de mise en cache de cette application — utile pour signaler un problème.",
-    "troubleshootingLink": "Infos de diagnostic"
+    "troubleshootingLink": "Infos de diagnostic",
+    "rebuildCacheText": "Si le mode hors ligne ou la vérification des mises à jour ne fonctionnent plus, effacez les fichiers mis en cache et l'enregistrement du service worker de cette application, puis rechargez pour les reconstruire entièrement.",
+    "rebuildCacheLink": "Reconstruire le cache hors ligne",
+    "confirmRebuildCache": "Cette action efface le cache hors ligne de l'application et recharge la page. Vos emplacements, armes et autres données enregistrées ne sont pas affectés. Continuer ?"
   },
   "trajectory": {
     "title": "Trajectoire",
@@ -916,6 +919,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v191": "Correction : mise en place de la reconstruction automatique du cache hors ligne, pour contourner certains bugs de navigateurs empêchant le démarrage du ServiceWorker (cassant le fonctionnement hors ligne). Ajout d'une action explicite « reconstruire le cache » dans le panneau de dépannage.",
       "v190": "Correction : pas d'incrément correct pour la saisie de la vitesse du vent en km/h (merci à JerkyFreak pour le signalement)",
       "v189": "Correction : la valeur de vitesse du widget de vent s'affiche désormais centrée dans le moyeu du cadran, au lieu de déborder hors du centre",
       "v188": "Correction : réglages mineurs des profils de traînée de la bibliothèque Swiss P intégrée",
