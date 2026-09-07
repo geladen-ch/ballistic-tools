@@ -14,6 +14,7 @@ import {
 } from '../csv-prefs.js';
 import { WIND_DIAL_APPEARANCE_CHOICES, getWindDialAppearance, setWindDialAppearance } from '../wind-dial-prefs.js';
 import { INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit } from '../range-solver-prefs.js';
+import { UI_SCALE_CHOICES, getUiScale, setUiScale } from '../ui-scale-prefs.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
 import { isDragModelVisible, setDragModelVisible } from '../drag-model-prefs.js';
 import { sectionGroup } from '../ui/section.js';
@@ -158,6 +159,23 @@ export function mount(container) {
   indicatorStyleSelect.value = getIndicatorStyle();
   indicatorStyleSelect.addEventListener('change', () => setIndicatorStyle(indicatorStyleSelect.value));
 
+  // A row of plain radio buttons rather than a <input type="range">: a
+  // slider re-applies `zoom` (see app.js) on every 'input' event fired
+  // mid-drag, and since `zoom` reflows the whole page (see ui-scale-
+  // prefs.js's own comment on why it's `zoom` and not `transform`), each
+  // of those intermediate values repaints the entire interface — a slider
+  // dragged from 100 to 200 visibly flickers through 125/150/175 along
+  // the way. Radios only ever commit on a discrete selection, so the
+  // interface repaints exactly once, to the value actually chosen.
+  const uiScaleOptions = UI_SCALE_CHOICES.map((value) => {
+    const id = `settings-ui-scale-${value}`;
+    const radio = el('input', { type: 'radio', name: 'settings-ui-scale', id, value });
+    radio.checked = value === getUiScale();
+    radio.addEventListener('change', () => setUiScale(value));
+    return el('label', { for: id, class: 'ui-scale-option' }, [radio, el('span', { text: `${value}%` })]);
+  });
+  const uiScalePicker = el('div', { class: 'ui-scale-picker' }, uiScaleOptions);
+
   const outputUnitSelect = el(
     'select',
     { id: 'settings-range-solver-output-unit' },
@@ -210,6 +228,10 @@ export function mount(container) {
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.themeLabel' }),
       themePicker()
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.uiScaleLabel' }),
+      uiScalePicker
     ]),
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.impactColorLabel' }),

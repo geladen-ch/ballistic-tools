@@ -721,6 +721,7 @@
     "themeDark": "Scuro",
     "themeHighContrastLight": "Alto contrasto chiaro",
     "themeHighContrastDark": "Alto contrasto scuro",
+    "uiScaleLabel": "Scala dell'interfaccia",
     "impactColorLabel": "Colore degli impatti",
     "rangeSolverIndicatorLabel": "Indicatori di output del Calcolatore per il poligono",
     "rangeSolverIndicatorArrows": "Frecce",
@@ -920,6 +921,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v198": "Nuovo: le Impostazioni offrono ora una scala dell'interfaccia (100-200%, in passi del 25%) per un'interfaccia più grande e più leggibile (grazie a Snuby642 per la segnalazione).",
       "v197": "Correzione: ogni versione rompeva silenziosamente la modalità offline — il controllo degli aggiornamenti del service worker da parte del browser non rileva una versione che modifica solo il numero di versione, il che poteva lasciare la cache offline bloccata sulla versione precedente (o vuota). L'app ora rileva autonomamente i veri cambi di versione e ricostruisce proattivamente il service worker e la cache, invece di affidarsi al browser per accorgersene.",
       "v196": "Correzione: lo scostamento verticale dello zero del Calcolatore di precisione di tiro era invertito — un gruppo che tirava basso risultava positivo. Ora l'alto è positivo ovunque, come su una torretta; le colonne dei colpi nell'esportazione CSV sono rinominate ShotRight/ShotUp di conseguenza.",
       "v195": "Modifica: il Calcolatore di precisione di tiro ora disegna ogni impatto nel colore degli impatti scelto nelle Impostazioni, bordo compreso.",

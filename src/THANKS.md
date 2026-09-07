@@ -31,7 +31,7 @@ reporters, and everyone else who helped shape this suite.
 ## Bug reports, feature requests, moral support
 
 - 6.5SH @ sh forums, for thorough testing, valuable bug reports, and meaningful feature proposals (check the release history for credits)
-- and all the SH crowd: Edsel, ForgeValley, ma smith, lash, JerkyFreak
+- and all the SH crowd: Edsel, ForgeValley, ma smith, lash, JerkyFreak, Snuby642
 
 ---
 

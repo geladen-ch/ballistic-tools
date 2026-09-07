@@ -11,6 +11,7 @@ import { onGunsModeChange } from './guns-nav.js';
 import { onPlacementModeChange } from './location-placement-nav.js';
 import { onMarkingModeChange } from './rifle-precision-nav.js';
 import { getTheme, onThemeChange } from './range-solver-prefs.js';
+import { getUiScale, onUiScaleChange } from './ui-scale-prefs.js';
 import { mountNavRail } from './ui/nav-rail.js';
 import { mountNavTabbar } from './ui/nav-tabbar.js';
 import { mountTopbarScroll } from './ui/topbar-scroll.js';
@@ -104,6 +105,15 @@ function applyThemeClass(nextTheme) {
 }
 applyThemeClass(getTheme());
 onThemeChange(applyThemeClass);
+
+// Interface scale (see ui-scale-prefs.js) — `zoom` on <html> so it
+// reaches #app-dialog too (a sibling of #app-shell, not a child), unlike
+// a transform scoped to #app-shell which would leave dialogs at 100%.
+function applyUiScale(nextScale) {
+  document.documentElement.style.zoom = Number(nextScale) / 100;
+}
+applyUiScale(getUiScale());
+onUiScaleChange(applyUiScale);
 
 const views = {
   '/': homeView,

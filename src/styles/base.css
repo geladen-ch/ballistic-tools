@@ -438,6 +438,22 @@ a { color: var(--accent); }
 }
 .checkbox-field input[type="checkbox"] { width: auto; margin: 0; }
 
+/* Interface-scale picker (src/ui-scale-prefs.js, Settings) — plain radio
+   buttons instead of theme-picker's/impact-color-picker's boxed swatch
+   buttons: there's no artwork to preview here, just five percentages, so
+   a transparent row (no per-option background/border) reads as one
+   control rather than five little cards. */
+.ui-scale-picker { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.ui-scale-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+.ui-scale-option input[type="radio"] { width: auto; margin: 0; }
+
 /* Location photo thumbnail (src/ui/locations/location-photo-field.js) */
 .location-photo-thumb {
   display: block;

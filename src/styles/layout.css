@@ -369,8 +369,23 @@ button.tab-item { background: none; border: none; font-family: inherit; cursor: 
    overflow-wrap a long word pushes past its own tab into the next.
    hyphens:auto (paired with the `lang` attribute nav-tabbar.js's own
    labelSpan() sets on every label) lets the browser pick a real
-   syllable-boundary break instead, when a 2nd line is unavoidable. */
-.tab-item span { max-width: 100%; overflow-wrap: break-word; text-align: center; hyphens: auto; }
+   syllable-boundary break instead, when a 2nd line is unavoidable.
+   line-clamp caps it at that 2nd line: at a large interface-scale setting
+   (see ui-scale-prefs.js, applied as `zoom` on <html>) #app-tabbar's own
+   position:fixed box stays pinned to the real, unzoomed viewport width
+   while its icons/text render at the zoomed size, so a label with no cap
+   here would hyphenate across a 3rd or 4th line instead of just the one
+   extra line this was designed for. */
+.tab-item span {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  text-align: center;
+  hyphens: auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .tab-item.active { color: var(--accent); }
 .tab-item-measurement.active { color: var(--accent); }
 .tab-item-analysis.active { color: var(--analysis); }
