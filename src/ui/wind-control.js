@@ -42,14 +42,13 @@ import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine,
 import { getUnit } from '../prefs.js';
 
 // One round step per display unit — a shooter thinking in mph wants ±1
-// mph, not whatever a flat 0.5 m/s happens to convert to. km/h has no
-// user-specified round step of its own, so it falls back to converting
-// the same flat 0.5 m/s step every unit used before this table existed
-// (matches the fallback large-stepper-field.js's own callers already
-// relied on for it). Always applied — every windControl() caller gets
-// the same unit-aware stepping and forced 1-decimal display, not just
-// Range Solver's own instance.
-const WIND_SPEED_STEPS = { 'm/s': 0.5, mph: 1, 'ft/s': 1 };
+// mph, not whatever a flat 0.5 m/s happens to convert to. Units without
+// a table entry fall back to converting the same flat 0.5 m/s step every
+// unit used before this table existed (matches the fallback
+// large-stepper-field.js's own callers already relied on for it). Always
+// applied — every windControl() caller gets the same unit-aware stepping
+// and forced 1-decimal display, not just Range Solver's own instance.
+const WIND_SPEED_STEPS = { 'm/s': 0.5, mph: 1, 'ft/s': 1, 'km/h': 1 };
 const FALLBACK_WIND_SPEED_STEP_MS = 0.5;
 const DECIMALS = 1;
 

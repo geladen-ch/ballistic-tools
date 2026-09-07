@@ -916,6 +916,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v190": "Fix: Korrekte Schrittweite für die Windgeschwindigkeitseingabe in km/h festgelegt (danke an JerkyFreak für die Meldung)",
       "v189": "Fix: Der Geschwindigkeitswert im Wind-Widget wird jetzt korrekt zentriert in der Nabe dargestellt, statt außermittig überzulaufen",
       "v188": "Fix: geringfügige Feinabstimmung der Luftwiderstandsprofile der eingebauten Swiss-P-Bibliothek",
       "v187": "Fehlerbehebung: Visuelle und funktionale Korrekturen bei Trefferwahrscheinlichkeit (Dank an Yuri Danilov für die Fehlermeldungen).",

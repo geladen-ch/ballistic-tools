@@ -916,6 +916,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v190": "Fix: set the correct step size for wind speed input in km/h (thanks to JerkyFreak for reporting)",
       "v189": "Fix: the wind widget's speed value now renders centered in its dial hub, instead of overflowing off-center",
       "v188": "Fix: minor fine-tuning of the built-in Swiss P library drag profiles",
       "v187": "Fix: Hit Probability visual and functional fixes (thanks to Yuri Danilov for bug reports).",

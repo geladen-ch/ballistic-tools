@@ -916,6 +916,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v190": "Correction : pas d'incrément correct pour la saisie de la vitesse du vent en km/h (merci à JerkyFreak pour le signalement)",
       "v189": "Correction : la valeur de vitesse du widget de vent s'affiche désormais centrée dans le moyeu du cadran, au lieu de déborder hors du centre",
       "v188": "Correction : réglages mineurs des profils de traînée de la bibliothèque Swiss P intégrée",
       "v187": "Correction : corrections visuelles et fonctionnelles de Probabilité de toucher (merci à Yuri Danilov pour les signalements de bugs).",

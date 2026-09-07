@@ -296,8 +296,8 @@ test('wind speed always defaults to 0, regardless of the wind-speed unit', async
   }
 });
 
-test('wind speed stepper is 0.5 m/s, 1 mph, or 1 ft/s depending on the wind-speed unit', async () => {
-  for (const [unit, expected] of [['m/s', 0.5], ['mph', 1], ['ft/s', 1]]) {
+test('wind speed stepper is 0.5 m/s, 1 mph, 1 ft/s, or 1 km/h depending on the wind-speed unit', async () => {
+  for (const [unit, expected] of [['m/s', 0.5], ['mph', 1], ['ft/s', 1], ['km/h', 1]]) {
     setUnit('windSpeed', unit);
     const container = makeElement('main');
     const cleanup = rangeSolverView.mount(container);
