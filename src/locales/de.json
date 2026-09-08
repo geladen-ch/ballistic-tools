@@ -926,6 +926,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v202": "Fix: Einige Begriffe in der russischen Übersetzung korrigiert.",
       "v201": "Neu: Der Foto-Zielwähler des Range Solvers hat jetzt eine Einstellung zur Sichtbarkeit der Zielbeschriftungen (Einstellungen) — Beschriftungen immer anzeigen, in Mauszeigernähe ausblenden oder erst bei Antippen anzeigen.",
       "v200": "Neu: Ausführliches Benutzerhandbuch für den Gewehr-Präzisionsrechner. Weitere folgen.",
       "v199": "Neu: Ein vollwertiger Markdown-Parser (Temml) wurde integriert, um mathematische Formeln in den kommenden Erweiterungen des Benutzerhandbuchs darzustellen. (Ja, manche Teile des Handbuchs werden es in sich haben.) Und ein schöner neuer Codename.",

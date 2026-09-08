@@ -926,6 +926,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v202": "Correction : correction de certains termes dans la traduction russe.",
       "v201": "Nouveau : le sélecteur de cible sur photo du Range Solver dispose désormais d'un réglage de visibilité des étiquettes de cible (Réglages) — toujours afficher les étiquettes, les masquer près du pointeur, ou les afficher seulement au toucher.",
       "v200": "Nouveau : manuel utilisateur détaillé pour la Calculette de précision de tir. D'autres suivront.",
       "v199": "Nouveau : un analyseur Markdown complet (Temml) a été intégré afin d'afficher des formules mathématiques dans les futures extensions du manuel utilisateur. (Oui, certaines parties du manuel vont devenir corsées.) Et un joli nouveau nom de code.",
