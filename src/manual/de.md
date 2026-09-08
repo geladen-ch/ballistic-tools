@@ -25,6 +25,20 @@ aber noch aktiv weiterentwickelt wird.
 
 ---
 
+## Über dieses Handbuch
+
+Dies ist ein kurzer Überblick — ein Abschnitt pro Werkzeug, der beschreibt,
+was es tut und welches seine wichtigsten Bedienelemente sind. Einige
+Werkzeuge haben zusätzlich ein eigenes, ausführliches Handbuch, das tiefer
+auf die Methode, Sonderfälle und, wo zutreffend, die Statistik hinter den
+Zahlen eingeht:
+
+- [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
+
+Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
+
+---
+
 ## Installation der App
 
 ### Android (Chrome)
@@ -520,6 +534,9 @@ als Quelle neben der Schaltfläche. Erst aktiviert, sobald ein Ergebnis
 vorliegt.
 
 ## Gewehr-Präzisionsrechner
+
+Siehe das [ausführliche Handbuch](#/manual/rifle-precision) für
+die vollständige Methode, Sonderfälle und die Statistik hinter den Zahlen.
 
 Misst die tatsächliche Präzision eines Gewehrs anhand von Fotos beschossener
 Papierscheiben — kein Laser-Entfernungsmesser, keine besondere Ausrüstung

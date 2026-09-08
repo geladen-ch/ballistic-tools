@@ -24,6 +24,19 @@ en développement actif.
 
 ---
 
+## À propos de ce manuel
+
+Ceci est un aperçu succinct — une section par outil, décrivant ce qu'il fait
+et ses principales commandes. Certains outils disposent aussi de leur propre
+manuel détaillé, qui va plus loin dans la méthode, les cas particuliers et,
+le cas échéant, les statistiques derrière les chiffres :
+
+- [Calculette de précision de tir](#/manual/rifle-precision)
+
+D'autres manuels détaillés pour les autres outils sont prévus.
+
+---
+
 ## Installer l'application
 
 ### Android (Chrome)
@@ -518,6 +531,10 @@ pré-remplis — choisissez **Calculé (brut, par segment)** ou **Interpolé
 résultat obtenu.
 
 ## Calculette de précision de tir
+
+Voir le [manuel détaillé](#/manual/rifle-precision) pour la
+méthode complète, les cas particuliers et les statistiques derrière les
+chiffres.
 
 Mesure la précision réelle d'une carabine à partir de photos de cibles
 papier — pas besoin de télémètre laser ni de matériel sophistiqué, juste une

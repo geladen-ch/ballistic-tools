@@ -25,6 +25,19 @@ ancora in sviluppo attivo.
 
 ---
 
+## Informazioni su questo manuale
+
+Questo è una panoramica sintetica — una sezione per strumento, che descrive
+cosa fa e i suoi comandi principali. Alcuni strumenti hanno anche un proprio
+manuale dettagliato, che approfondisce il metodo, i casi particolari e, dove
+applicabile, le statistiche dietro i numeri:
+
+- [Calcolatore di precisione di tiro](#/manual/rifle-precision)
+
+Altri manuali dettagliati per gli altri strumenti sono previsti.
+
+---
+
 ## Installazione dell'app
 
 ### Android (Chrome)
@@ -509,6 +522,9 @@ sorgente accanto al pulsante. Attivo solo quando è disponibile un
 risultato.
 
 ## Calcolatore di precisione di tiro
+
+Vedi il [manuale dettagliato](#/manual/rifle-precision) per il
+metodo completo, i casi particolari e le statistiche dietro i numeri.
 
 Misura la precisione reale del fucile a partire da foto di bersagli di
 carta — niente telemetro laser né attrezzatura sofisticata, solo la foto di

@@ -921,6 +921,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v200": "Nouveau : manuel utilisateur détaillé pour la Calculette de précision de tir. D'autres suivront.",
       "v199": "Nouveau : un analyseur Markdown complet (Temml) a été intégré afin d'afficher des formules mathématiques dans les futures extensions du manuel utilisateur. (Oui, certaines parties du manuel vont devenir corsées.) Et un joli nouveau nom de code.",
       "v198": "Nouveau : les Réglages proposent désormais une échelle de l'interface (100-200 %, par paliers de 25 %) pour une interface plus grande et plus lisible (merci à Snuby642 pour le signalement).",
       "v197": "Correction : chaque version cassait silencieusement le mode hors ligne — la vérification de mise à jour du service worker par le navigateur ne détecte pas une version qui ne modifie que le numéro de version, ce qui pouvait laisser le cache hors ligne bloqué sur la version précédente (ou vide). L'application détecte désormais elle-même les vrais changements de version et reconstruit proactivement le service worker et le cache, au lieu de compter sur le navigateur pour s'en apercevoir.",

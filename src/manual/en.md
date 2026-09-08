@@ -22,6 +22,19 @@ current scenarios but still under active development.
 
 ---
 
+## About this manual
+
+This is a short overview — one section per tool, covering what it does and
+its main controls. Some tools also have their own detailed manual, going
+deeper into method, edge cases, and, where it applies, the statistics behind
+the numbers:
+
+- [Rifle Precision Calculator](#/manual/rifle-precision)
+
+More detailed manuals for the other tools are planned.
+
+---
+
 ## Installing the app
 
 ### Android (Chrome)
@@ -447,6 +460,9 @@ per-segment)** or **Interpolated (smoothed)** as the source next to the
 button. Enabled only once a result exists.
 
 ## Rifle Precision Calculator
+
+See the [detailed manual](#/manual/rifle-precision) for the full
+method, edge cases, and the statistics behind the numbers.
 
 Measures real rifle precision from photos of paper targets — no laser
 rangefinder or fancy gear, just a phone photo of a ruler and your bullet
