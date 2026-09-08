@@ -2,6 +2,8 @@ import { el, clear } from '../dom.js';
 import { getLanguage } from '../i18n.js';
 import { renderMarkdown } from '../manual-markdown.js';
 
+const AUTO_TRANSLATED_LANGS = new Set(['de', 'it']);
+
 function manualUrl(lang) {
   return new URL(`../manual/arsenal/${lang}.md`, import.meta.url);
 }
@@ -26,7 +28,12 @@ export function mount(container) {
   loadManualText(lang).then((text) => {
     if (cancelled) return;
     clear(container);
-    container.appendChild(renderMarkdown(text));
+    const wrapper = el('div', {}, []);
+    if (AUTO_TRANSLATED_LANGS.has(lang)) {
+      wrapper.appendChild(el('div', { class: 'manual-auto-translated-notice', i18n: 'manual.autoTranslatedNotice' }));
+    }
+    wrapper.appendChild(renderMarkdown(text));
+    container.appendChild(wrapper);
   }).catch(() => {
     if (cancelled) return;
     clear(container);
