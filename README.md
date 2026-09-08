@@ -80,6 +80,7 @@ Vendored locally under [src/vendor/](src/vendor/) (each with its own
 | [fflate](https://github.com/101arrowz/fflate) | [Arjun Barrett](https://github.com/101arrowz) | MIT |
 | [i18next](https://www.i18next.com/) | [i18next](https://github.com/i18next) | MIT |
 | [js-quantities](https://github.com/gentooboontoo/js-quantities) | Kevin C. Olbrich and contributors | MIT |
+| [Temml](https://temml.org/) | [Ron Kok](https://github.com/ronkok) | MIT |
 
 ## License
 

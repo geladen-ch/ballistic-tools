@@ -1,4 +1,13 @@
 import { el } from './dom.js';
+import temml from './vendor/temml/temml.mjs';
+
+function renderMath(latex, displayMode) {
+  try {
+    return temml.renderToString(latex, { displayMode, throwOnError: false });
+  } catch {
+    return el('code', {}, [latex]).outerHTML;
+  }
+}
 
 function slugify(text) {
   return text
@@ -10,7 +19,7 @@ function slugify(text) {
 
 function inline(text) {
   const nodes = [];
-  const re = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[(.+?)\]\((.+?)\)/g;
+  const re = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[(.+?)\]\((.+?)\)|\$(.+?)\$/g;
   let last = 0;
   let match;
   while ((match = re.exec(text))) {
@@ -21,6 +30,8 @@ function inline(text) {
       nodes.push(el('em', {}, [match[2]]));
     } else if (match[3] !== undefined) {
       nodes.push(el('code', {}, [match[3]]));
+    } else if (match[6] !== undefined) {
+      nodes.push(el('span', { class: 'manual-math-inline', html: renderMath(match[6], false) }, []));
     } else {
       nodes.push(el('a', { href: match[5], target: '_blank', rel: 'noopener' }, [match[4]]));
     }
@@ -56,6 +67,29 @@ export function renderMarkdown(text) {
       closeList();
       root.appendChild(el('hr', {}, []));
       i++;
+      continue;
+    }
+
+    const singleLineBlockMath = /^\$\$(.+)\$\$$/.exec(line.trim());
+    if (singleLineBlockMath || line.trim() === '$$') {
+      closeList();
+      let latex;
+      let j;
+      if (singleLineBlockMath) {
+        latex = singleLineBlockMath[1];
+        j = i + 1;
+      } else {
+        const contentLines = [];
+        j = i + 1;
+        while (j < lines.length && lines[j].trim() !== '$$') {
+          contentLines.push(lines[j]);
+          j++;
+        }
+        latex = contentLines.join('\n');
+        j++;
+      }
+      root.appendChild(el('div', { class: 'manual-math-block', html: renderMath(latex, true) }, []));
+      i = j;
       continue;
     }
 

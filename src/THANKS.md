@@ -74,3 +74,5 @@ software:
   [i18next](https://www.i18next.com/)
 - Kevin C. Olbrich and contributors —
   [js-quantities](https://github.com/gentooboontoo/js-quantities)
+- [Ron Kok](https://github.com/ronkok) and contributors —
+  [Temml](https://temml.org/)

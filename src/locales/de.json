@@ -921,6 +921,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v199": "Neu: Ein vollwertiger Markdown-Parser (Temml) wurde integriert, um mathematische Formeln in den kommenden Erweiterungen des Benutzerhandbuchs darzustellen. (Ja, manche Teile des Handbuchs werden es in sich haben.) Und ein schöner neuer Codename.",
       "v198": "Neu: Die Einstellungen bieten jetzt eine Oberflächenskalierung (100-200 %, in 25-%-Schritten) für eine größere, besser lesbare Oberfläche (Dank an Snuby642 für den Hinweis).",
       "v197": "Fix: Jedes Release hat bisher unbemerkt den Offline-Modus beschädigt — die Update-Prüfung des Browsers für Service Worker bemerkt ein Release nicht, das nur die Versionsnummer ändert, wodurch der Offline-Cache auf dem vorherigen Release hängen bleiben (oder leer werden) konnte. Die App erkennt echte Versionswechsel jetzt selbst und baut Service Worker und Cache proaktiv neu auf, statt sich auf die Erkennung durch den Browser zu verlassen.",
       "v196": "Fix: Der vertikale Nullpunktversatz des Gewehr-Präzisionsrechners war verkehrt herum — eine tief schießende Gruppe wurde als positiver Wert angezeigt. Oben ist jetzt überall positiv, wie am Turm; die Schuss-Spalten des CSV-Exports heißen dazu passend ShotRight/ShotUp.",

@@ -1078,6 +1078,7 @@ th { color: var(--dim); font-weight: 500; }
 .manual-body ul { margin: 0 0 10px; padding-left: 20px; }
 .manual-body li { margin-bottom: 6px; line-height: 1.5; }
 .manual-body code { background: var(--panel-raised); border-radius: 3px; padding: 1px 5px; font-size: 0.9em; }
+.manual-body .manual-math-block { overflow-x: auto; margin: 16px 0; text-align: center; }
 .manual-auto-translated-notice {
   background: rgba(232, 163, 61, 0.14);
   border: 1px solid var(--accent-dim);

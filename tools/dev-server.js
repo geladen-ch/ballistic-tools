@@ -19,7 +19,8 @@ const MIME_TYPES = {
   '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
-  '.md': 'text/markdown; charset=utf-8'
+  '.md': 'text/markdown; charset=utf-8',
+  '.woff2': 'font/woff2'
 };
 
 const server = http.createServer((req, res) => {
