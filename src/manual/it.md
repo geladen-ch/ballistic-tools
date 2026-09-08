@@ -32,6 +32,7 @@ cosa fa e i suoi comandi principali. Alcuni strumenti hanno anche un proprio
 manuale dettagliato, che approfondisce il metodo, i casi particolari e, dove
 applicabile, le statistiche dietro i numeri:
 
+- [Arsenale](#/manual/arsenal)
 - [Calcolatore di precisione di tiro](#/manual/rifle-precision)
 
 Altri manuali dettagliati per gli altri strumenti sono previsti.
@@ -326,6 +327,10 @@ accanto ai rispettivi campi, salvano la voce corrente nella tua libreria
 Arsenale (sotto) per il riutilizzo.
 
 ### Arsenale
+
+Vedi il [manuale dettagliato](#/manual/arsenal) per il riferimento completo
+— ogni campo, le regole delle unità e l'integrazione con il Calcolatore di
+precisione di tiro.
 
 La tua libreria personale di fucili e proiettili, memorizzata solo su
 questo dispositivo (archiviazione locale del browser) — nulla qui lascia

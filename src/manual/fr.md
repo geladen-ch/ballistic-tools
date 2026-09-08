@@ -31,6 +31,7 @@ et ses principales commandes. Certains outils disposent aussi de leur propre
 manuel détaillé, qui va plus loin dans la méthode, les cas particuliers et,
 le cas échéant, les statistiques derrière les chiffres :
 
+- [Arsenal](#/manual/arsenal)
 - [Calculette de précision de tir](#/manual/rifle-precision)
 
 D'autres manuels détaillés pour les autres outils sont prévus.
@@ -333,6 +334,10 @@ côté des champs correspondants, enregistrent l'entrée actuelle dans votre
 propre bibliothèque Arsenal (ci-dessous) pour réutilisation.
 
 ### Arsenal
+
+Voir le [manuel détaillé](#/manual/arsenal) pour la référence complète —
+chaque champ, les règles d'unités et l'intégration avec la Calculette de
+précision de tir.
 
 Votre propre bibliothèque de carabines et de balles, stockée uniquement sur
 cet appareil (stockage local du navigateur) — rien ici ne quitte jamais

@@ -926,6 +926,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v203": "Nouveau : manuel utilisateur détaillé de l'Arsenal, dans l'application, dans les cinq langues.",
       "v202": "Correction : correction de certains termes dans la traduction russe.",
       "v201": "Nouveau : le sélecteur de cible sur photo du Range Solver dispose désormais d'un réglage de visibilité des étiquettes de cible (Réglages) — toujours afficher les étiquettes, les masquer près du pointeur, ou les afficher seulement au toucher.",
       "v200": "Nouveau : manuel utilisateur détaillé pour la Calculette de précision de tir. D'autres suivront.",

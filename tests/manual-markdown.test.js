@@ -174,6 +174,32 @@ test('every language of the detailed rifle-precision manual renders without thro
   }
 });
 
+test('every language of the detailed arsenal manual renders without throwing, with matching structure', async () => {
+  const dir = new URL('../src/manual/arsenal/', import.meta.url);
+  const files = (await readdir(dir)).filter((f) => f.endsWith('.md'));
+  assert.ok(files.length >= 5);
+  const summaries = {};
+  for (const file of files) {
+    const text = await readFile(new URL(file, dir), 'utf8');
+    const root = renderMarkdown(text);
+    summaries[file] = {
+      ol: findByTag(root, 'OL').length,
+      olItems: findByTag(root, 'OL').reduce((n, ol) => n + findByTag(ol, 'LI').length, 0),
+      ulItems: findByTag(root, 'UL').reduce((n, ul) => n + findByTag(ul, 'LI').length, 0),
+      table: findByTag(root, 'TABLE').length,
+      pre: findByTag(root, 'PRE').length,
+      blockquote: findByTag(root, 'BLOCKQUOTE').length,
+      h3: findByTag(root, 'H3').length
+    };
+  }
+  const reference = summaries['en.md'];
+  for (const [file, summary] of Object.entries(summaries)) {
+    for (const key of ['ol', 'olItems', 'ulItems', 'table', 'pre', 'blockquote', 'h3']) {
+      assert.equal(summary[key], reference[key], `${file}: ${key} count should match en.md`);
+    }
+  }
+});
+
 test('the top-level manual (all languages) still renders without throwing', async () => {
   const dir = new URL('../src/manual/', import.meta.url);
   const files = (await readdir(dir)).filter((f) => f.endsWith('.md'));

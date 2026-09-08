@@ -29,6 +29,7 @@ its main controls. Some tools also have their own detailed manual, going
 deeper into method, edge cases, and, where it applies, the statistics behind
 the numbers:
 
+- [Arsenal](#/manual/arsenal)
 - [Rifle Precision Calculator](#/manual/rifle-precision)
 
 More detailed manuals for the other tools are planned.
@@ -291,6 +292,9 @@ bullet fields, save the current entry into your own Arsenal library (below)
 for reuse.
 
 ### Arsenal
+
+See the [detailed manual](#/manual/arsenal) for the full reference — every
+field, the unit rules, and the Rifle Precision integration.
 
 Your own library of rifles and bullets, stored only on this device
 (browser local storage) — nothing here ever leaves your browser.

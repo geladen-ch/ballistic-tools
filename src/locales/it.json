@@ -926,6 +926,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v203": "Nuovo: manuale utente dettagliato dell'Arsenale, nell'app, in tutte e cinque le lingue.",
       "v202": "Correzione: corretti alcuni termini nella traduzione russa.",
       "v201": "Nuovo: il selettore di bersagli su foto del Range Solver ha ora un'impostazione per la visibilità delle etichette bersaglio (Impostazioni) — mostra sempre le etichette, nascondile vicino al puntatore, oppure nascondile finché non si tocca.",
       "v200": "Nuovo: manuale utente dettagliato per il Calcolatore di precisione di tiro. Altri seguiranno.",

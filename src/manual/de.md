@@ -33,6 +33,7 @@ Werkzeuge haben zusätzlich ein eigenes, ausführliches Handbuch, das tiefer
 auf die Methode, Sonderfälle und, wo zutreffend, die Statistik hinter den
 Zahlen eingeht:
 
+- [Arsenal](#/manual/arsenal)
 - [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
 
 Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
@@ -331,6 +332,10 @@ neben den jeweiligen Feldern, speichern den aktuellen Eintrag in Ihrer
 eigenen Arsenal-Bibliothek (unten) zur Wiederverwendung.
 
 ### Arsenal
+
+Siehe das [ausführliche Handbuch](#/manual/arsenal) für die vollständige
+Referenz — jedes Feld, die Einheitenregeln und die Integration mit dem
+Gewehr-Präzisionsrechner.
 
 Ihre eigene Bibliothek aus Gewehren und Geschossen, nur auf diesem Gerät
 gespeichert (lokaler Speicher des Browsers) — nichts davon verlässt jemals

@@ -926,6 +926,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v203": "New: detailed Arsenal user manual, in-app, in all five languages.",
       "v202": "Fix: corrected some terms in Russian.",
       "v201": "New: Range Solver's photo target picker gets a Target label visibility setting (Settings) — always show labels, declutter them near the mouse pointer, or hide until tapped.",
       "v200": "New: detailed user manual for the Rifle Precision Calculator tool. More of these are coming.",

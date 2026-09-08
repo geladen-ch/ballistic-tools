@@ -35,6 +35,7 @@ import * as riflePrecisionAnalysisView from './views/rifle-precision-analysis-vi
 import * as settingsView from './views/settings-view.js';
 import * as manualView from './views/manual-view.js';
 import * as riflePrecisionManualView from './views/rifle-precision-manual-view.js';
+import * as arsenalManualView from './views/arsenal-manual-view.js';
 import * as thanksView from './views/thanks-view.js';
 import * as releaseHistoryView from './views/release-history-view.js';
 import * as categoryView from './views/category-view.js';
@@ -129,6 +130,7 @@ const views = {
   '/settings': settingsView,
   '/manual': manualView,
   '/manual/rifle-precision': riflePrecisionManualView,
+  '/manual/arsenal': arsenalManualView,
   '/thanks': thanksView,
   '/release-history': releaseHistoryView
 };
