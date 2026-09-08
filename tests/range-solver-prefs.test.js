@@ -8,7 +8,8 @@ installFakeDom();
 const {
   THEME_CHOICES, getTheme, setTheme, onThemeChange, resetThemeForTests,
   INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle,
-  OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit
+  OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit,
+  TARGET_LABEL_VISIBILITY_CHOICES, getTargetLabelVisibility, setTargetLabelVisibility
 } = await import('../src/range-solver-prefs.js');
 const { getCookie, setCookie, removeCookie } = await import('../src/cookies.js');
 
@@ -16,6 +17,7 @@ const THEME_COOKIE_NAME = 'ballistics_theme_v1';
 const LEGACY_HIGH_CONTRAST_COOKIE_NAME = 'ballistics_range_solver_high_contrast_v1';
 const INDICATOR_COOKIE_NAME = 'ballistics_range_solver_indicator_style_v1';
 const OUTPUT_UNIT_COOKIE_NAME = 'ballistics_range_solver_output_unit_v1';
+const LABEL_VISIBILITY_COOKIE_NAME = 'ballistics_range_solver_label_visibility_v1';
 
 test.beforeEach(() => {
   resetThemeForTests();
@@ -23,6 +25,7 @@ test.beforeEach(() => {
   removeCookie(LEGACY_HIGH_CONTRAST_COOKIE_NAME);
   removeCookie(INDICATOR_COOKIE_NAME);
   removeCookie(OUTPUT_UNIT_COOKIE_NAME);
+  removeCookie(LABEL_VISIBILITY_COOKIE_NAME);
 });
 
 test('THEME_CHOICES covers exactly what get/set accept, "dark" first (the default)', () => {
@@ -162,4 +165,35 @@ test('setOutputUnit ignores an unrecognized value', () => {
   setOutputUnit('mrad');
   setOutputUnit('bogus');
   assert.equal(getOutputUnit(), 'mrad');
+});
+
+test('TARGET_LABEL_VISIBILITY_CHOICES covers exactly what get/set accept, "always" first (the default)', () => {
+  assert.deepEqual(TARGET_LABEL_VISIBILITY_CHOICES.map((c) => c.value), ['always', 'declutter', 'tap']);
+});
+
+test('target label visibility defaults to "always"', () => {
+  assert.equal(getTargetLabelVisibility(), 'always');
+});
+
+test('setTargetLabelVisibility updates the read value and persists to a cookie', () => {
+  setTargetLabelVisibility('declutter');
+  assert.equal(getTargetLabelVisibility(), 'declutter');
+  assert.equal(getCookie(LABEL_VISIBILITY_COOKIE_NAME), 'declutter');
+});
+
+test('setTargetLabelVisibility accepts "tap"', () => {
+  setTargetLabelVisibility('tap');
+  assert.equal(getTargetLabelVisibility(), 'tap');
+  assert.equal(getCookie(LABEL_VISIBILITY_COOKIE_NAME), 'tap');
+});
+
+test('a garbage/tampered cookie value falls back to "always" rather than being trusted verbatim', () => {
+  setCookie(LABEL_VISIBILITY_COOKIE_NAME, 'not-a-real-mode');
+  assert.equal(getTargetLabelVisibility(), 'always');
+});
+
+test('setTargetLabelVisibility ignores an unrecognized value', () => {
+  setTargetLabelVisibility('declutter');
+  setTargetLabelVisibility('bogus');
+  assert.equal(getTargetLabelVisibility(), 'declutter');
 });

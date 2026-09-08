@@ -175,6 +175,7 @@ const APP_SHELL_URLS = [
   './src/ui/locations/photo-pin-geometry.js',
   './src/ui/locations/photo-viewport.js',
   './src/ui/locations/target-form.js',
+  './src/ui/locations/target-label-visibility.js',
   './src/ui/locations/target-summary.js',
   './src/ui/locations/target-pin-glyphs.js',
   './src/ui/range-solver/range-card-panel.js',

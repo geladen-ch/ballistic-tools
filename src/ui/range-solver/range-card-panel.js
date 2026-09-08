@@ -17,6 +17,7 @@
 import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
 import { photoViewport } from '../locations/photo-viewport.js';
+import { createTargetLabelVisibility } from '../locations/target-label-visibility.js';
 import { crosshairGlyph, placedDot } from '../locations/target-pin-glyphs.js';
 import { formatTargetSummary } from '../locations/target-summary.js';
 import { locationPickerButton } from '../locations/location-picker-button.js';
@@ -259,6 +260,7 @@ export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocati
   let viewportInstance = null;
   let viewportLocationId = null;
   const viewportCache = new Map();
+  const labelVisibility = createTargetLabelVisibility();
 
   const windSlot = el('div', { class: 'range-card-wind-slot' });
   const windStrip = el('div', { class: 'range-card-wind-strip' }, [windSlot]);
@@ -446,6 +448,7 @@ export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocati
   function renderPins(location) {
     if (!viewportInstance) return;
     clear(viewportInstance.markersLayer);
+    labelVisibility.beginRender();
     for (const target of location.targets) {
       if (!target.coords) continue;
       const active = target.id === latestActiveId;
@@ -456,12 +459,13 @@ export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocati
       const glyph = active
         ? el('span', { class: 'target-photo-overlay-pin-crosshair' }, [crosshairGlyph(22)])
         : placedDot();
+      const label = el('span', { class: 'target-photo-overlay-pin-label' }, pinLabelParts(target));
       const pin = el('button', {
         type: 'button',
         class: 'target-photo-overlay-pin' + (active ? ' range-card-pin--active' : '')
-      }, [glyph, el('span', { class: 'target-photo-overlay-pin-label' }, pinLabelParts(target))]);
+      }, [glyph, label]);
       positionAt(pin, target.coords);
-      pin.addEventListener('click', () => onSelectTarget(target.id));
+      pin.addEventListener('click', labelVisibility.bindPin(target.id, label, () => onSelectTarget(target.id)));
       viewportInstance.markersLayer.appendChild(pin);
     }
     const unplaced = location.targets.filter((target) => !target.coords);
@@ -501,7 +505,12 @@ export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocati
       pickerHost.appendChild(el('p', { class: 'hint range-card-picker-hint', i18n: 'rangeSolver.rangeCardNoPhotoHint' }));
       return;
     }
-    viewportInstance = photoViewport({ photo: location.photo, initialViewport: viewportCache.get(location.id) });
+    viewportInstance = photoViewport({
+      photo: location.photo,
+      initialViewport: viewportCache.get(location.id),
+      onMarkerMove: () => labelVisibility.clearRevealed()
+    });
+    labelVisibility.wire(viewportInstance.node);
     viewportLocationId = location.id;
     pickerHost.appendChild(viewportInstance.node);
     pickerHost.appendChild(pickerZoomControls(viewportInstance));

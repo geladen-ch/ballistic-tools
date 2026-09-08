@@ -13,7 +13,10 @@ import {
   getFieldSeparator, setFieldSeparator, getDecimalSeparator, setDecimalSeparator
 } from '../csv-prefs.js';
 import { WIND_DIAL_APPEARANCE_CHOICES, getWindDialAppearance, setWindDialAppearance } from '../wind-dial-prefs.js';
-import { INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit } from '../range-solver-prefs.js';
+import {
+  INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit,
+  TARGET_LABEL_VISIBILITY_CHOICES, getTargetLabelVisibility, setTargetLabelVisibility
+} from '../range-solver-prefs.js';
 import { UI_SCALE_CHOICES, getUiScale, setUiScale } from '../ui-scale-prefs.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
 import { isDragModelVisible, setDragModelVisible } from '../drag-model-prefs.js';
@@ -184,6 +187,14 @@ export function mount(container) {
   outputUnitSelect.value = getOutputUnit();
   outputUnitSelect.addEventListener('change', () => setOutputUnit(outputUnitSelect.value));
 
+  const labelVisibilitySelect = el(
+    'select',
+    { id: 'settings-range-solver-label-visibility' },
+    TARGET_LABEL_VISIBILITY_CHOICES.map((c) => el('option', { value: c.value, i18n: c.labelKey }))
+  );
+  labelVisibilitySelect.value = getTargetLabelVisibility();
+  labelVisibilitySelect.addEventListener('change', () => setTargetLabelVisibility(labelVisibilitySelect.value));
+
   // One checkbox per known standard drag model (see engine/drag-tables.js's
   // DRAG_MODELS) — data-driven so a future model added there gets a
   // checkbox here for free. At least one must always stay checked (every
@@ -244,6 +255,11 @@ export function mount(container) {
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.rangeSolverIndicatorLabel' }),
       indicatorStyleSelect
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.rangeSolverLabelVisibilityLabel' }),
+      labelVisibilitySelect,
+      el('p', { class: 'hint', i18n: 'settings.rangeSolverLabelVisibilityHint' })
     ])
   ]);
 

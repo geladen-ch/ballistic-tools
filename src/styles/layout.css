@@ -1216,6 +1216,15 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   white-space: nowrap;
   color: var(--text);
 }
+/* settings.rangeSolverLabelVisibilityLabel's "declutter"/"tap" modes
+   (see target-label-visibility.js) — visibility:hidden rather than
+   display:none so a hidden label stays measurable (declutter mode reads
+   its rendered width every pointermove to size the hide radius) and
+   still occupies no layout space anyone else cares about, since it's
+   position:absolute either way. */
+.target-photo-overlay-pin-label--hidden {
+  visibility: hidden;
+}
 .target-photo-overlay-stack {
   position: absolute;
   top: 8px;

@@ -16,6 +16,7 @@ import { t } from '../i18n.js';
 import { loadUserLocations, saveUserLocation } from '../location-library.js';
 import { saveRangeSolverLocationState, saveRangeSolverTargetState } from '../range-solver-state.js';
 import { photoViewport } from '../ui/locations/photo-viewport.js';
+import { createTargetLabelVisibility } from '../ui/locations/target-label-visibility.js';
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
 import { crosshairGlyph, placedDot } from '../ui/locations/target-pin-glyphs.js';
 import {
@@ -92,12 +93,18 @@ export function mount(container) {
   let clearButton = null;
   let marker = null;
   let targetInfo = null; // placement mode only — see below
+  // select mode only — see the settings.rangeSolverLabelVisibilityLabel
+  // options this drives.
+  const labelVisibility = pending.selectMode ? createTargetLabelVisibility() : null;
 
   const viewport = photoViewport({
     photo: loc.photo,
     initialViewport: savedViewports.get(loc.id),
-    onMarkerMove: pending.selectMode ? undefined : (point) => { coords = point; renderMarker(); }
+    onMarkerMove: pending.selectMode
+      ? () => labelVisibility.clearRevealed()
+      : (point) => { coords = point; renderMarker(); }
   });
+  if (labelVisibility) labelVisibility.wire(viewport.node);
 
   function renderMarker() {
     if (!marker) return;
@@ -117,11 +124,13 @@ export function mount(container) {
   });
 
   if (pending.selectMode) {
+    labelVisibility.beginRender();
     for (const target of loc.targets) {
       if (!target.coords) continue;
-      const pin = el('button', { type: 'button', class: 'target-photo-overlay-pin' }, [placedDot(), targetLabel(target)]);
+      const label = targetLabel(target);
+      const pin = el('button', { type: 'button', class: 'target-photo-overlay-pin' }, [placedDot(), label]);
       positionAt(pin, target.coords);
-      pin.addEventListener('click', () => selectTarget(target));
+      pin.addEventListener('click', labelVisibility.bindPin(target.id, label, () => selectTarget(target)));
       viewport.markersLayer.appendChild(pin);
     }
     const unplaced = loc.targets.filter((target) => !target.coords);

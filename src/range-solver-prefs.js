@@ -121,3 +121,32 @@ export function setOutputUnit(value) {
     // best-effort — losing persistence isn't fatal
   }
 }
+
+const LABEL_VISIBILITY_COOKIE_NAME = 'ballistics_range_solver_label_visibility_v1';
+const DEFAULT_LABEL_VISIBILITY = 'always';
+
+// How target labels behave on Range Solver's own "pick target on image"
+// photo (both location-placement-view.js's select mode and range-card-
+// panel.js) — see target-label-visibility.js for what each mode actually
+// does. "always" (the default) is today's original unconditional-label
+// behavior; "declutter" and "tap" both exist to reduce label clutter once
+// several targets are placed close together on the same photo.
+export const TARGET_LABEL_VISIBILITY_CHOICES = [
+  { value: 'always', labelKey: 'settings.rangeSolverLabelVisibilityAlways' },
+  { value: 'declutter', labelKey: 'settings.rangeSolverLabelVisibilityDeclutter' },
+  { value: 'tap', labelKey: 'settings.rangeSolverLabelVisibilityTap' }
+];
+
+export function getTargetLabelVisibility() {
+  const raw = getCookie(LABEL_VISIBILITY_COOKIE_NAME);
+  return TARGET_LABEL_VISIBILITY_CHOICES.some((c) => c.value === raw) ? raw : DEFAULT_LABEL_VISIBILITY;
+}
+
+export function setTargetLabelVisibility(value) {
+  if (!TARGET_LABEL_VISIBILITY_CHOICES.some((c) => c.value === value)) return;
+  try {
+    setCookie(LABEL_VISIBILITY_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
