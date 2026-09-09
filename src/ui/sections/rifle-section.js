@@ -9,6 +9,7 @@ import { logDiagnostic } from '../../debug-log.js';
 import { loadUserRifles } from '../../user-library.js';
 import { loadRifleState, saveRifleState } from '../../shot-state.js';
 import { i18nSpan } from '../../i18n.js';
+import { resolveZeroDonorBallistics } from '../../zero-donor.js';
 
 const OTHER_VALUE = '__other__';
 // Sight height/twist match the built-in K31 entry's own specs — the same
@@ -153,6 +154,35 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
         precision: cartridge.precision ?? null
       } : null);
     }
+    applyZeroDonor(cartridge);
+  }
+
+  // "Zeroed with a different cartridge" (zero-donor.js) — resolved
+  // separately from onLibraryCartridgeChange's payload above since it needs
+  // a full bullet lookup (async) rather than just the picked cartridge's own
+  // already-known fields. Guarded by a monotonic request id so a fast
+  // rifle/cartridge switch can't let a stale resolution land after a newer
+  // one; re-fires onInput once resolved (the same "resolve then refire"
+  // idea the built-in rifle catalog's own async load already uses below),
+  // so every tool's own state-builder picks up the change even though it
+  // arrives a tick after the picker's own onInput already fired.
+  let zeroDonorBallistics = null;
+  let zeroDonorRequestId = 0;
+
+  function clearZeroDonor() {
+    zeroDonorRequestId++;
+    zeroDonorBallistics = null;
+  }
+
+  function applyZeroDonor(cartridge) {
+    const requestId = ++zeroDonorRequestId;
+    zeroDonorBallistics = null;
+    if (!selectedRifle || !cartridge || !cartridge.zeroedWithCartridgeId) return;
+    resolveZeroDonorBallistics(selectedRifle, cartridge).then((resolved) => {
+      if (requestId !== zeroDonorRequestId) return; // superseded by a newer selection
+      zeroDonorBallistics = resolved;
+      if (onInput) onInput();
+    });
   }
 
   // A rifleSelect value can name either a built-in rifle (needs a fetch,
@@ -176,6 +206,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
       selectedRifle = null;
       cartridgeField.style.display = 'none';
       if (onLibraryCartridgeChange) onLibraryCartridgeChange(null);
+      clearZeroDonor();
       saveLibrarySelection();
       if (onInput) onInput();
       return;
@@ -309,5 +340,8 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     return { riflingTwistMm: twistField.getEngineValue(), twistDirection: twistDirectionSelect.value };
   }
 
-  return { node, getValues, getClickSettings: clicks.getSettings, getArsenalPrefill, getStabilityValues };
+  return {
+    node, getValues, getClickSettings: clicks.getSettings, getArsenalPrefill, getStabilityValues,
+    getZeroDonorBallistics: () => zeroDonorBallistics
+  };
 }

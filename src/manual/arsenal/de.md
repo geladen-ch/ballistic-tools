@@ -155,6 +155,23 @@ Das Ankreuzen von **„Gewehrpräzision für diese Patrone angeben"** öffnet:
 
 **Der umgekehrte Weg — vom Gewehr-Präzisionsrechner ins Arsenal — ist vollständig in §10.1 beschrieben.**
 
+### 5.7 Eine Patrone mit einer anderen Patrone einschießen
+
+Der *physische* Nullpunkt eines Gewehrs ist eine einzelne, mechanische Tatsache über das Gewehr und seine Optik — wo auch immer die Türme gerade eingestellt sind —, keine Eigenschaft einer bestimmten Laborierung. In der Praxis wurde dieser Nullpunkt jedoch durch das Abfeuern *einer bestimmten* Patrone auf Nullentfernung hergestellt, und wenn Sie danach eine andere Laborierung durch denselben, unveränderten Nullpunkt schießen, weicht deren Flugbahn von dem ab, was die Berechnung des eigenen Nullpunkts dieser Laborierung vorhersagen würde — genau in dem Maß, in dem sich die Ballistik der beiden Laborierungen tatsächlich unterscheidet. Der klassische Fall: Sie schießen mit billiger Übungs- oder Surplus-Munition ein, tragen dann aber eine hochwertige Jagd- oder Dienstlaborierung, deren tatsächlicher Treffpunkt auf jeder Entfernung gegenüber dem verschoben ist, den ihr eigener unabhängiger Nullpunkt ergeben hätte.
+
+Die extreme Version desselben Problems ist ein Gewehr, das sowohl eine überschallschnelle Laborierung als auch eine unterschallschnelle, unterdrückte schießt, ohne je dazwischen neu eingeschossen zu werden — ein üblicher Aufbau für leises Arbeiten auf kurze Distanz. Die Flugbahnen der beiden Laborierungen weichen jenseits einer kurzen Distanz enorm voneinander ab (ein Unterschallgeschoss fällt um ein Vielfaches schneller), sodass es hier keine bloße Ordnungsfrage ist, die Unterschall-Patrone mit der Überschall-Patrone einzuschießen — es ist der einzige Weg, auf dem die eigene Falltabelle beider Laborierungen tatsächlich wiedergibt, was das physisch unveränderte Gewehr wirklich tut.
+
+**Eingeschossen mit**, ein Feld im Patronenformular, teilt Arsenal mit, welche Patrone tatsächlich den physischen Nullpunkt hergestellt hat, sodass jedes Werkzeug, das die Erhöhung für diese Patrone berechnet, den Unterschied berücksichtigen kann, statt stillschweigend anzunehmen, dass diese Patrone sich selbst eingeschossen hat.
+
+- Das Feld erscheint erst, wenn das Gewehr **mindestens eine weitere Patrone** hat, auf die verwiesen werden kann, und nur bei einer Patrone, die nicht **selbst** bereits als Geber für eine andere Patrone dient (siehe unten).
+- Die Wahl einer Patrone aus der Auswahlliste macht diese zum **Geber**; diese Patrone wird deren **Empfänger**. Die Erhöhung für den Empfänger wird dann berechnet, indem gefragt wird: „Welcher Abschusswinkel würde die Ballistik des *Gebers* an dieser Nullentfernung des Gewehrs durch die Ziellinie schicken", und dann fliegt die *eigene* Mündungsgeschwindigkeit und das Geschoss des Empfängers von diesem geliehenen Winkel aus — nicht durch unabhängiges Einschießen des Empfängers.
+- **Keine Verkettung.** Eine Patrone, die bereits als Geber für eine andere dient, bietet selbst nie das Feld „Eingeschossen mit" an — sie kann nicht ihrerseits einen Nullpunkt von einer dritten Patrone entlehnen. Die Beziehung bleibt ein einfaches Paar, niemals eine beliebig tiefe Kette.
+- **Mehrfachnutzung ist erlaubt.** Mehrere Patronen können alle mit demselben Geber eingeschossen sein — der übliche Fall, wenn Sie eine Übungslaborierung vor mehreren verschiedenen hochwertigen Laborierungen durch dasselbe Gewehr schießen.
+- Nur die **Erhöhung** wird entlehnt. Seitenverschiebung/Drall-Nullpunktbestimmung (§9.3, separat in den Einstellungen aktiviert) wird immer aus der eigenen Ballistik des Empfängers berechnet.
+- **Welche Werkzeuge dies berücksichtigen:** Flugbahn, Feldrechner und der Vergleichs-Chart (§7) berechnen die Erhöhung des Empfängers alle von seinem Geber, sobald einer festgelegt ist. **Trefferwahrscheinlichkeit tut dies nicht** — sie berechnet die Erhöhung immer aus der eigenen Ballistik der Patrone, unabhängig von einem an ihr festgelegten Geber. Siehe §9.5 für den Grund.
+
+Die Patronenliste des Arsenals kennzeichnet beide Seiten dieser Beziehung — siehe §6.4. Das Löschen eines Gebers löscht sofort den Verweis bei jeder Patrone, die auf ihn zeigte, statt ihn ins Leere zeigen zu lassen; solche Empfänger berechnen dann einfach wieder ihren eigenen Nullpunkt.
+
 ---
 
 ## 6. Die Arsenal-Seite: Listen, Filter, Aktivierung
@@ -190,6 +207,8 @@ Ein Gewehr ohne Patronen zeigt anstelle der Liste eine Warnung: *„Für dieses 
 - **Nicht gesichert** — dieses Geschoss oder Gewehr wurde erstellt, bearbeitet oder importiert, seit es zuletzt in eine Sicherungsdatei geschrieben wurde. Wird nie bei einem integrierten Eintrag angezeigt, da diese keine Sicherung benötigen.
 - **Unbrauchbar** — ein Gewehr mit null Patronen. Titeltext beim Überfahren mit der Maus: *„Keine Patronen definiert — dieses Gewehr kann nicht aktiviert werden."* Ein solches Gewehr bleibt anklickbar, damit Sie es erreichen können, um seine erste Patrone hinzuzufügen.
 - **Aktiv** — die derzeit am aktiven Gewehr gewählte Patrone.
+- **Nullpunkt-Geber** — die eigene Nullpunkt-Erhöhung dieser Patrone wird derzeit von einer oder mehreren anderen Patronen des Gewehrs entliehen (§5.7).
+- **Nullpunkt-Empfänger** — diese Patrone ist mit einer anderen Patrone eingeschossen; das Überfahren mit der Maus nennt welche.
 
 ### 6.5 Filter
 
@@ -267,6 +286,16 @@ Dieselben fünf Eingaben — Masse, Kaliber, Länge, Mündungsgeschwindigkeit, D
 
 Ausführlich behandelt in §5.6 und, aus der umgekehrten Richtung, in §10.1. Kurz gefasst: die gespeicherte `precision` einer Patrone — Modus (`own` oder `combined`) plus ein R50 in mrad — wird von Trefferwahrscheinlichkeit genau in dem Moment gelesen, in dem diese Gewehr-Patrone-Kombination dort zur aktiven Konfiguration wird. Ein Wert vom Typ **„own"** befüllt Trefferwahrscheinlichkeits Eingabe für die Bank-Präzision und lässt das Schützenkönnen als separate, unabhängige Eingabe stehen, die damit kombiniert wird. Ein Wert vom Typ **„combined"** befüllt stattdessen die vereinfachte, bereits kombinierte Eingabe und schaltet den vereinfachten Modus dieses Werkzeugs ein, da eine kombinierte Zahl das Schützenkönnen bereits eingebacken hat und nicht ein zweites Mal damit kombiniert werden sollte.
 
+### 9.5 Nullpunkt-Geber → Flugbahn, Feldrechner, Vergleich
+
+Der Geber einer Patrone (§5.7) ändert, sobald festgelegt, genau einen Schritt der Flugbahnberechnung: statt den Abschusswinkel zu finden, der die *eigene* Ballistik dieser Patrone an der Nullentfernung des Gewehrs durch die Ziellinie schickt, findet die Engine den Winkel, der dasselbe für die Mündungsgeschwindigkeit, Temperaturempfindlichkeit und das Geschossprofil des **Gebers** täte — alles andere (Nullentfernung, Visierhöhe, Ziellinienwinkel, Atmosphäre, Wind) bleibt auf den eigenen Werten des Empfängers fixiert —, und lässt dann die **eigene** Ballistik des Empfängers von diesem geliehenen Winkel aus fliegen. Das Ergebnis ist genau das, was tatsächlich auf der Strecke passiert, wenn aus einem mit einer Laborierung eingeschossenen Gewehr mit einer anderen geschossen wird.
+
+Diese Substitution geschieht genau an dem Punkt, an dem in dieser Engine bereits jede andere Nullpunkt-Winkelberechnung geschieht, sodass sie sich kostenlos mit allem verbindet, was die Flugbahn-Engine für eine normale Patrone ohnehin tut — Atmosphäre, Wind, Seitenabweichung, der 4-DOF-Integrator —, keines davon muss wissen, dass ein Geber beteiligt ist.
+
+Seitenverschiebungs-/Drall-Nullpunktbestimmung (§9.3) bleibt von einem Geber unberührt: sie wird immer aus der eigenen Ballistik des Empfängers berechnet, da es sich um ein eigenständiges, separat aktiviertes Feature handelt.
+
+**Trefferwahrscheinlichkeit ist absichtlich ausgenommen.** Ihr eigenes Streuungsmodell berechnet die Erhöhung unabhängig, auf der *Zielentfernung selbst* (oder einem separat festgelegten Gefechtsnullpunkt) statt auf der eingestellten Nullentfernung des Gewehrs, und liest den Geber einer Patrone überhaupt nie — eine bewusste Designentscheidung, kein Versehen: Trefferwahrscheinlichkeit schätzt, wie ein Schuss tatsächlich um einen Zielpunkt streut, den Sie für diesen Schuss einstellen — eine andere Frage als die, wohin ein fester, bereits hergestellter physischer Nullpunkt eine Ersatzlaborierung setzt.
+
 ---
 
 ## 10. Anwendung in der Praxis
@@ -295,11 +324,17 @@ Angenommen, Sie entscheiden zwischen zwei Geschossen für dasselbe Gewehr, oder 
 
 Besitzen Sie mehr als zwei oder drei Gewehre derselben allgemeinen Kaliberfamilie, ist die Filterkarte (§6.5) das, was die Seite navigierbar hält — filtern Sie nach Kaliber, um nur die Gewehre zu sehen, die für das passen, woran Sie gerade arbeiten, oder nach Hersteller, wenn Sie mehrere Gewehre anhand der Geschosse desselben Herstellers vergleichen. Das Abzeichen **Nicht gesichert** (§6.4) dient zugleich als laufende Aufgabenliste: sehen Sie am Ende einer Sitzung, in der Sie mehrere Einträge hinzugefügt oder bearbeitet haben, die Seite nach diesem Abzeichen durch, statt sich zu merken, was Sie angefasst haben, und führen Sie **Bibliothek in Datei sichern…** aus, um sie alle auf einmal zu löschen.
 
+### 10.5 Mit einer Ersatzpatrone einschießen
+
+Angenommen, Sie schießen ein Gewehr mit günstiger Surplus- oder Stahlhülsenmunition ein — billiger, um sie bei einer Einschießsitzung zu verbrauchen und den Nullpunkt regelmäßig zu prüfen —, tragen aber tatsächlich eine hochwertige Fabrik- oder Wiederladelaborierung. Speichern Sie beide als separate Patronen am selben Gewehr, öffnen Sie das eigene Formular **Patrone bearbeiten** der hochwertigen Laborierung, und setzen Sie **Eingeschossen mit** auf die Übungslaborierung. Von da an zeigen Flugbahn, Feldrechner und der Vergleichs-Chart alle die Flugbahn der hochwertigen Laborierung genau so, wie sie tatsächlich auftreffen wird, statt der (falschen, falls Sie tatsächlich mit der billigen Munition eingeschossen haben) Annahme, sie sei mit sich selbst eingeschossen.
+
+Schießen Sie das Gewehr später direkt mit der hochwertigen Laborierung neu ein, gehen Sie zurück und löschen Sie **Eingeschossen mit** bei dieser Patrone — sie ist jetzt wieder ihr eigener Nullpunkt, und nichts sonst im Arsenal erledigt das automatisch für Sie.
+
 ---
 
 ## 11. Herkunft
 
-Das Arsenal ist seit dem ersten Commit Teil der Suite und ist schrittweise gewachsen: mehrere integrierte Geschossbibliotheken und Hersteller-Autovervollständigung; Korrekturen der Einheitenpräferenz über die Patronenliste und die Geschosslänge hinweg; die aktuelle 4-DOF-Flugbahn-Engine mit den von ihr verwendeten Feldern für Seitenabweichung und Drallrichtung; und, zuletzt, Mündungsgeschwindigkeitsstreuung und Gewehrpräzision an Patronen, zusammen mit der direkten Übergabe aus dem Gewehr-Präzisionsrechner aus §10.1 — der Integration, die aus zwei vormals getrennten Werkzeugen eine gemessene Pipeline macht.
+Das Arsenal ist seit dem ersten Commit Teil der Suite und ist schrittweise gewachsen: mehrere integrierte Geschossbibliotheken und Hersteller-Autovervollständigung; Korrekturen der Einheitenpräferenz über die Patronenliste und die Geschosslänge hinweg; die aktuelle 4-DOF-Flugbahn-Engine mit den von ihr verwendeten Feldern für Seitenabweichung und Drallrichtung; und, zuletzt, Mündungsgeschwindigkeitsstreuung und Gewehrpräzision an Patronen, zusammen mit der direkten Übergabe aus dem Gewehr-Präzisionsrechner aus §10.1 — der Integration, die aus zwei vormals getrennten Werkzeugen eine gemessene Pipeline macht; und, noch jüngeren Datums, dass eine Patrone den physischen Nullpunkt einer anderen entleihen kann (§5.7), für den üblichen Fall, mit einer Laborierung einzuschießen und eine andere zu tragen.
 
 Die Suite steht unter der Lizenz **AGPL-3.0-or-later**.
 

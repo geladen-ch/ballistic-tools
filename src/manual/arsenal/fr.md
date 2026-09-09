@@ -155,6 +155,23 @@ Cocher **« Indiquer la précision de l'arme pour cette cartouche »** révèle 
 
 **Le chemin inverse — de la Calculette de précision de tir vers l'Arsenal — est documenté en intégralité au §10.1.**
 
+### 5.7 Régler une cartouche avec une cartouche différente
+
+Le zéro *physique* d'une carabine est un fait mécanique unique concernant la carabine et son optique — où que soient actuellement réglées les tourelles — et non une propriété d'une charge en particulier. En pratique, pourtant, ce zéro a été établi en tirant *une cartouche précise* à la distance de réglage, et si vous tirez ensuite une charge différente à travers ce même zéro inchangé, sa trajectoire s'écarte de ce que prédirait le calcul du zéro propre à cette charge, exactement dans la mesure où les balistiques des deux charges diffèrent. Le cas classique : vous réglez le zéro avec des munitions bon marché ou d'entraînement, puis vous emportez une charge de chasse ou de service haut de gamme dont le point d'impact réel, à n'importe quelle distance, est décalé par rapport à celui que lui aurait donné son propre zéro indépendant.
+
+La version extrême du même problème est une carabine qui tire à la fois une charge supersonique et une charge subsonique suppressée, sans jamais être réglée à nouveau entre les deux — une configuration courante pour un travail discret à courte distance. Les trajectoires des deux charges divergent énormément au-delà d'une courte distance (une balle subsonique chute bien plus vite), si bien que déclarer la cartouche subsonique réglée avec la supersonique n'est pas ici une simple question d'ordre — c'est la seule façon pour que le tableau de chute de l'une ou l'autre charge reflète ce que la carabine, physiquement inchangée, fait réellement.
+
+**Réglée avec**, un champ du formulaire de cartouche, permet d'indiquer à l'Arsenal quelle cartouche a réellement établi le zéro physique, afin que tout outil qui calcule la hausse pour celle-ci puisse tenir compte de la différence, au lieu de supposer silencieusement que cette cartouche a établi son propre zéro.
+
+- Le champ n'apparaît qu'une fois que la carabine possède **au moins une autre cartouche** à désigner, et seulement sur une cartouche qui n'est pas **elle-même** déjà donneuse du zéro d'une autre cartouche (voir ci-dessous).
+- Choisir une cartouche dans la liste déroulante en fait la **donneuse** ; celle-ci devient sa **receveuse**. La hausse de la receveuse est alors calculée en cherchant « quel angle de tir enverrait la balistique de la *donneuse* à travers la ligne de mire à la distance de réglage de cette carabine », puis en faisant voler la vitesse initiale et la balle *propres à la receveuse* depuis cet angle emprunté — et non en réglant la receveuse indépendamment.
+- **Pas de chaînage.** Une cartouche déjà donneuse pour une autre n'offre jamais elle-même le champ « Réglée avec » — elle ne peut pas, à son tour, emprunter le zéro d'une troisième cartouche. La relation reste une paire simple, jamais une chaîne arbitrairement profonde.
+- **Le partage est permis.** Plusieurs cartouches peuvent toutes être réglées avec la même donneuse — le cas courant si vous tirez une charge d'entraînement avant plusieurs charges haut de gamme différentes sur la même carabine.
+- Seule la **hausse** est empruntée. Le réglage du zéro en dérive (vent/dérive gyroscopique, §9.3, activé séparément dans les Réglages) se calcule toujours depuis la balistique propre de la receveuse.
+- **Outils concernés :** Trajectoire, Résolveur de distance et le graphique de Comparaison (§7) calculent tous la hausse de la receveuse à partir de sa donneuse dès qu'une donneuse est définie. **Probabilité de toucher ne le fait pas** — il calcule toujours la hausse depuis la balistique propre de la cartouche, quelle que soit la donneuse qui lui est assignée. Voir §9.5 pour la raison.
+
+La liste des cartouches de l'Arsenal signale les deux moitiés de la relation — voir §6.4. Supprimer une donneuse efface la référence sur toutes les cartouches qui la désignaient, immédiatement, plutôt que de la laisser pointer dans le vide ; ces receveuses reviennent alors simplement à calculer leur propre zéro.
+
 ---
 
 ## 6. La page Arsenal : listes, filtres, activation
@@ -190,6 +207,8 @@ Une carabine sans cartouche affiche un avertissement à la place de la liste : *
 - **Sans sauvegarde** — cette balle ou cette carabine a été créée, modifiée ou importée depuis sa dernière écriture dans un fichier de sauvegarde. Jamais affichée sur une entrée intégrée, puisque celles-ci n'ont besoin d'aucune sauvegarde.
 - **Inutilisable** — une carabine sans aucune cartouche. Texte d'infobulle au survol : *« Aucune cartouche définie — cette carabine ne peut pas être activée. »* Une telle carabine reste cliquable, afin que vous puissiez l'atteindre pour lui ajouter une première cartouche.
 - **Active** — la cartouche actuellement choisie sur la carabine active.
+- **Donneur de zéro** — le zéro en hausse propre à cette cartouche est actuellement emprunté par une ou plusieurs autres cartouches de la carabine (§5.7).
+- **Receveur de zéro** — cette cartouche est réglée avec une cartouche différente ; le survol indique laquelle.
 
 ### 6.5 Filtres
 
@@ -267,6 +286,16 @@ Ces mêmes cinq entrées — masse, calibre, longueur, vitesse initiale, pas de 
 
 Traité en détail au §5.6 et, dans l'autre sens, au §10.1. En bref : la `precision` stockée d'une cartouche — mode (`own` ou `combined`) plus un R50 en mrad — est lue par Probabilité de toucher au moment précis où cette combinaison carabine+cartouche y devient la configuration active. Une valeur **« own »** préremplit l'entrée de précision au banc de Probabilité de toucher et laisse l'habileté du tireur comme entrée séparée, indépendante, à combiner avec elle. Une valeur **« combined »** préremplit à la place l'entrée simplifiée, déjà combinée, et active le mode simplifié de cet outil, puisqu'un chiffre combiné a déjà l'habileté du tireur incorporée et ne devrait pas y être combiné une seconde fois.
 
+### 9.5 Donneur de zéro → Trajectoire, Résolveur de distance, Comparaison
+
+Le donneur d'une cartouche (§5.7), lorsqu'il est défini, modifie exactement une étape du calcul de trajectoire : au lieu de chercher l'angle de tir qui envoie la balistique *propre* à cette cartouche à travers la ligne de mire à la distance de réglage de la carabine, le moteur cherche l'angle qui ferait de même pour la vitesse initiale, la sensibilité à la température et le profil de balle **du donneur** — tout le reste (distance de réglage, hauteur de visée, angle de ligne de mire, atmosphère, vent) restant fixé aux valeurs propres de la receveuse — puis fait voler la balistique **propre à la receveuse** depuis cet angle emprunté. Le résultat est exactement ce qui se produit réellement en aval quand une carabine réglée avec une charge est tirée avec une autre.
+
+Cette substitution intervient exactement au point où tout autre calcul d'angle de zéro de ce moteur intervient déjà, si bien qu'elle se compose gratuitement avec tout ce que le moteur de trajectoire fait déjà pour une cartouche normale — atmosphère, vent, dérive gyroscopique, l'intégrateur 4-DOF — rien de tout cela n'a besoin de savoir qu'un donneur est impliqué.
+
+Le réglage du zéro en dérive (§9.3) n'est pas affecté par un donneur : il se calcule toujours depuis la balistique propre de la receveuse, puisqu'il s'agit d'une fonctionnalité distincte et séparément activée.
+
+**Probabilité de toucher est délibérément exclu.** Son propre modèle de dispersion calcule la hausse indépendamment, à la *distance de la cible elle-même* (ou à un zéro de combat défini séparément) plutôt qu'à la distance de réglage configurée de la carabine, et ne lit jamais le donneur d'une cartouche — un choix de conception, pas un oubli : Probabilité de toucher estime comment un tir groupe réellement autour d'un point de visée que vous réglez pour ce tir, une question différente de celle de savoir où un zéro physique fixe, déjà établi, place une charge de substitution.
+
 ---
 
 ## 10. Mise en pratique
@@ -295,11 +324,17 @@ Supposons que vous hésitiez entre deux balles pour la même carabine, ou entre 
 
 Une fois que vous possédez plus de deux ou trois carabines de la même famille de calibre générale, la carte de filtres (§6.5) est ce qui garde la page navigable — filtrez par calibre pour ne voir que les carabines chambrées pour ce sur quoi vous travaillez en ce moment, ou par fabricant si vous comparez plusieurs carabines à partir des balles du même fabricant. La pastille **Sans sauvegarde** (§6.4) sert aussi de liste de tâches courante : à la fin d'une session où vous avez ajouté ou modifié plusieurs entrées, parcourez la page du regard à la recherche de cette pastille plutôt que d'essayer de vous souvenir de ce que vous avez touché, et lancez **Sauvegarder la bibliothèque dans un fichier…** pour les effacer toutes d'un coup.
 
+### 10.5 Régler le zéro avec une cartouche de substitution
+
+Supposons que vous régliez le zéro d'une carabine avec des munitions bon marché, surplus ou à étui acier — moins coûteuses à consommer pendant une séance de réglage et pour vérifier le zéro périodiquement — mais que vous emportiez ou chassiez réellement avec une charge premium, du commerce ou rechargée. Enregistrez les deux comme cartouches séparées sur la même carabine, ouvrez le formulaire **Modifier la cartouche** de la charge premium, et réglez **Réglée avec** sur la charge d'entraînement. Dès lors, Trajectoire, Résolveur de distance et le graphique de Comparaison affichent tous la trajectoire de la charge premium telle qu'elle s'imprimera réellement, plutôt que l'hypothèse (fausse, si votre réglage a réellement été fait avec la charge bon marché) qu'elle a été réglée avec elle-même.
+
+Si vous réglez ensuite à nouveau le zéro de la carabine directement avec la charge premium, retournez effacer **Réglée avec** sur cette cartouche — elle redevient son propre zéro, et rien d'autre dans l'Arsenal ne le fait automatiquement pour vous.
+
 ---
 
 ## 11. Origine
 
-L'Arsenal fait partie de la suite depuis son tout premier commit, et a grandi progressivement : plusieurs bibliothèques de balles intégrées et l'autocomplétion de fabricant ; des corrections de préférence d'unité à travers la liste de cartouches et la longueur de balle ; le moteur de trajectoire à 4 degrés de liberté actuel et les champs de dérive gyroscopique/sens de rayure qu'il utilise ; et, plus récemment, la régularité de vitesse initiale et la précision d'arme sur les cartouches, avec la transmission directe depuis la Calculette de précision de tir décrite au §10.1 — l'intégration qui transforme deux outils autrefois séparés en un seul pipeline mesuré.
+L'Arsenal fait partie de la suite depuis son tout premier commit, et a grandi progressivement : plusieurs bibliothèques de balles intégrées et l'autocomplétion de fabricant ; des corrections de préférence d'unité à travers la liste de cartouches et la longueur de balle ; le moteur de trajectoire à 4 degrés de liberté actuel et les champs de dérive gyroscopique/sens de rayure qu'il utilise ; et, plus récemment, la régularité de vitesse initiale et la précision d'arme sur les cartouches, avec la transmission directe depuis la Calculette de précision de tir décrite au §10.1 — l'intégration qui transforme deux outils autrefois séparés en un seul pipeline mesuré ; et, plus récemment encore, la possibilité pour une cartouche d'emprunter le zéro physique d'une autre (§5.7), pour le cas courant où l'on règle le zéro avec une charge et où l'on emporte une autre.
 
 La suite est sous licence **AGPL-3.0-or-later**.
 

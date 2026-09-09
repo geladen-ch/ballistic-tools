@@ -310,6 +310,31 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
   return theta1;
 }
 
+// The single place that decides how a launch angle is actually obtained for
+// a shot, so integrate()/computeImpact() (below) don't each reimplement the
+// same precedence. Three cases:
+//  - state.launchAngle already set: some caller (dispersion-sources.js's
+//    perturbation helpers, or a second computeImpact() call reusing a first
+//    one's solve) already did this work — reuse it verbatim rather than
+//    re-solving.
+//  - state.zeroDonorBallistics set: this shot is a "zeroed with a different
+//    cartridge" recipient (see arsenal-view.js's cartridge form) — solve as
+//    if the donor's own muzzle velocity/temperature-sensitivity/bullet
+//    profile were being fired, holding everything else (zeroRange,
+//    sightHeight, losAngleDeg, atmosphere, wind) fixed at the recipient's
+//    own values, then fly the *recipient's* actual ballistics from that
+//    borrowed angle. Deliberately vertical-only — solveHorizontalZeroAngle()
+//    is never called with the donor swapped in, so windage/spin-drift
+//    zeroing (a separate, opt-in feature) keeps solving from the recipient's
+//    own ballistics.
+//  - neither: the plain, original behavior — solve this cartridge's own
+//    zero angle from its own ballistics.
+export function resolveLaunchAngle(state) {
+  if (state.launchAngle !== undefined) return state.launchAngle;
+  const donor = state.zeroDonorBallistics;
+  return solveZeroAngle(donor ? { ...state, ...donor } : state);
+}
+
 // Secant-method solve for the launch yaw (radians, sign whatever
 // self-consistently nulls windageCm — see windageErrorAt() below) that
 // sends the bullet through zero windage *at zeroRange*, canceling out
@@ -556,7 +581,7 @@ export function integrate(state) {
   // null there so toTablePoint()'s `spinDrift ? spinDriftCm(...) : 0`
   // adds nothing on top of it.
   const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
-  const launchAngle = solveZeroAngle(state); // radians above the line of sight
+  const launchAngle = resolveLaunchAngle(state); // radians above the line of sight
   const horizontalZeroAngle = solveHorizontalZeroAngle(state); // radians, bore yaw that nulls spin drift at zeroRange
   const { step: stepFn, initialExtra } = stepperForMode(state, mode);
   const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
@@ -630,7 +655,7 @@ export function integrate(state) {
 // to the sight line) at one target range, no sample array — designed to be
 // cheap to call many times in a tight loop (e.g. a Monte Carlo batch).
 export function computeImpact(state, targetRange) {
-  const { sightHeight, launchAngle, losAngleDeg = 0 } = state;
+  const { sightHeight, losAngleDeg = 0 } = state;
   const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const rangeOf = (pt) => rangeAlongLOS(pt, cosL, sinL);
@@ -644,7 +669,7 @@ export function computeImpact(state, targetRange) {
   // exactly as it always has, never the 4-DOF one.
   const mode = resolveSpinDriftMode(state, muzzleVelocity);
   const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
-  const theta = launchAngle !== undefined ? launchAngle : solveZeroAngle(state); // radians above the line of sight
+  const theta = resolveLaunchAngle(state); // radians above the line of sight
   const horizontalZeroAngle = solveHorizontalZeroAngle(state); // radians, bore yaw that nulls spin drift at zeroRange
   const { step, initialExtra } = stepperForMode(state, mode);
   const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);

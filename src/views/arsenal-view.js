@@ -23,6 +23,7 @@ import {
   addToComparison, removeFromComparison, removeRifleFromComparison
 } from '../comparison-state.js';
 import { getPool } from '../pool.js';
+import { resolveZeroDonorBallistics } from '../zero-donor.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { unitField } from '../ui/unit-field.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
@@ -483,7 +484,7 @@ export function mount(container) {
   // incline input here — the Comparison section doesn't offer one, so
   // every comparison is a flat (losAngleDeg: 0) shot, the same engine
   // default used anywhere else that field isn't shown.
-  function buildComparisonState(rifle, cartridge, bullet, shared) {
+  function buildComparisonState(rifle, cartridge, bullet, shared, zeroDonorBallistics) {
     return {
       ...shared,
       sightHeight: rifle.defaultSightHeightM * 1000, // stored in m; sightHeight's engine unit is mm
@@ -505,7 +506,11 @@ export function mount(container) {
       riflingTwistMm: rifleTwistMm(rifle),
       twistDirection: rifle.defaultTwistDirection,
       spinDriftMode: getSpinDriftMode(),
-      zeroForSpinDrift: isZeroForSpinDriftEnabled()
+      zeroForSpinDrift: isZeroForSpinDriftEnabled(),
+      // "Zeroed with a different cartridge" — see zero-donor.js. Resolved
+      // by the caller (recomputeComparisonChart()) alongside this config's
+      // own bullet, since it's an async lookup too.
+      zeroDonorBallistics
     };
   }
 
@@ -703,10 +708,13 @@ export function mount(container) {
       const id = ++latestRequestId;
       const shared = { maxRange: maxRangeField.getEngineValue(), rangeStep: CHART_DENSE_RANGE_STEP_M, ...atmosphere.getValues() };
       try {
-        const [bulletA, bulletB] = await Promise.all(configs.map((c) => resolveComparisonBullet(c.cartridge)));
+        const [[bulletA, bulletB], [zeroDonorA, zeroDonorB]] = await Promise.all([
+          Promise.all(configs.map((c) => resolveComparisonBullet(c.cartridge))),
+          Promise.all(configs.map((c) => resolveZeroDonorBallistics(c.rifle, c.cartridge)))
+        ]);
         if (id !== latestRequestId) return; // superseded by a newer input
-        const stateA = buildComparisonState(configs[0].rifle, configs[0].cartridge, bulletA, shared);
-        const stateB = buildComparisonState(configs[1].rifle, configs[1].cartridge, bulletB, shared);
+        const stateA = buildComparisonState(configs[0].rifle, configs[0].cartridge, bulletA, shared, zeroDonorA);
+        const stateB = buildComparisonState(configs[1].rifle, configs[1].cartridge, bulletB, shared, zeroDonorB);
         const [resultA, resultB] = await Promise.all([pool.run('trajectory', stateA), pool.run('trajectory', stateB)]);
         if (id !== latestRequestId) return;
         denseA = resultA.points;
@@ -970,7 +978,12 @@ export function mount(container) {
       deleteButton.addEventListener('click', (e) => {
         e.stopPropagation?.();
         if (!confirm(t('arsenal.confirmDeleteCartridge', { name: cartridge.name }))) return;
-        const remaining = rifle.cartridges.filter((c) => c.id !== cartridge.id);
+        // Clear a stale "zeroed with" reference on any sibling that
+        // borrowed this cartridge's own zero (see zero-donor.js) — it no
+        // longer exists to borrow from.
+        const remaining = rifle.cartridges
+          .filter((c) => c.id !== cartridge.id)
+          .map((c) => (c.zeroedWithCartridgeId === cartridge.id ? { ...c, zeroedWithCartridgeId: null } : c));
         saveUserRifle({ ...rifle, cartridges: remaining });
         if (cartridgeFormState && cartridgeFormState.id === cartridge.id) cartridgeFormState = null;
         if (activeCartridgeId === cartridge.id) activeCartridgeId = remaining[0] ? remaining[0].id : null;
@@ -986,10 +999,24 @@ export function mount(container) {
       const isActiveCartridge = cartridge.id === activeCartridgeId;
       const cartridgeStability = stabilityIndicator();
       cartridgeStability.update(stabilityValuesFor(rifle, cartridge, userBullets));
+      // "Zeroed with a different cartridge" (zero-donor.js) — the two
+      // badges are mutually exclusive by construction (no chaining: a
+      // donor for others can never itself have a donor), but checked
+      // independently rather than assumed.
+      const zeroDonor = cartridge.zeroedWithCartridgeId
+        ? rifle.cartridges.find((c) => c.id === cartridge.zeroedWithCartridgeId)
+        : null;
+      const isZeroDonorForOthers = rifle.cartridges.some((c) => c.zeroedWithCartridgeId === cartridge.id);
       const row = el('div', { class: 'arsenal-row row-clickable' }, [
         el('div', { class: 'arsenal-row-info' }, [
           el('strong', { text: cartridge.name }),
           isActiveCartridge ? el('span', { class: 'active-badge', text: t('arsenal.activeCartridgeBadge') }) : null,
+          zeroDonor
+            ? el('span', { class: 'zero-recipient-badge', title: t('arsenal.zeroRecipientBadgeTitle', { name: zeroDonor.name }), text: t('arsenal.zeroRecipientBadge') })
+            : null,
+          isZeroDonorForOthers
+            ? el('span', { class: 'zero-donor-badge', title: t('arsenal.zeroDonorBadgeTitle'), text: t('arsenal.zeroDonorBadge') })
+            : null,
           el('span', { class: 'hint', text: ` — ${engineToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}` }),
           cartridgeStability.node
         ]),
@@ -1048,6 +1075,14 @@ export function mount(container) {
         riflingTwistMm: rifleTwistMm(rifle),
         lockedCaliberM: lockedCaliberMForRifle(rifle, userBullets, cartridgeFormState.id),
         siblingNames: rifle.cartridges.filter((c) => c.id !== cartridgeFormState.id).map((c) => c.name),
+        // "Zeroed with a different cartridge" (zero-donor.js) — every other
+        // cartridge on this rifle, to populate the "Zeroed with" picker
+        // (which excludes any sibling that's itself already a recipient —
+        // no chaining), and whether this cartridge is currently a donor for
+        // one of them (a brand-new cartridge, cartridgeFormState.id === null,
+        // can never be — nothing yet points at it).
+        siblingCartridges: rifle.cartridges.filter((c) => c.id !== cartridgeFormState.id),
+        isZeroDonorForOthers: !!cartridgeFormState.id && rifle.cartridges.some((c) => c.zeroedWithCartridgeId === cartridgeFormState.id),
         onSave: (data) => {
           const id = cartridgeFormState.id || generateUserId('user-cartridge');
           const cartridges = cartridgeFormState.id

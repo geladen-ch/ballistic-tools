@@ -182,6 +182,82 @@ test('switching back to "Other" hides the cartridge picker and reports null', as
   assert.equal(cartridgeSelect.parentNode.style.display, 'none');
 });
 
+// ---- "Zeroed with a different cartridge" (zero-donor.js) ----
+
+const TEST_ZERO_DONOR_RIFLE_ID = 'test-zero-donor-rifle';
+function saveZeroDonorTestRifle() {
+  saveUserRifle({
+    id: TEST_ZERO_DONOR_RIFLE_ID, name: 'Zero Donor Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'donor-cart', name: 'Practice', muzzleVelocity: 800, bulletId: 'swiss-gp11' },
+      { id: 'recipient-cart', name: 'Duty', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'donor-cart' }
+    ]
+  });
+}
+
+test('getZeroDonorBallistics() is null while the selected cartridge has no donor', async () => {
+  saveZeroDonorTestRifle();
+  const rifle = rifleSection();
+  await settle();
+
+  const rifleSelect = byId(rifle.node, 'rifleSelect');
+  rifleSelect.value = TEST_ZERO_DONOR_RIFLE_ID;
+  fireEvent(rifleSelect, 'change'); // defaults to the first cartridge, "Practice" — no donor
+  await settle();
+
+  assert.equal(rifle.getZeroDonorBallistics(), null);
+});
+
+test('selecting a cartridge with a donor resolves the donor\'s own ballistic profile and re-fires onInput once ready', async () => {
+  saveZeroDonorTestRifle();
+  let onInputCalls = 0;
+  const rifle = rifleSection({ onInput: () => { onInputCalls++; } });
+  await settle();
+
+  const rifleSelect = byId(rifle.node, 'rifleSelect');
+  rifleSelect.value = TEST_ZERO_DONOR_RIFLE_ID;
+  fireEvent(rifleSelect, 'change');
+  await settle();
+
+  const cartridgeSelect = byId(rifle.node, 'rifleCartridgeSelect');
+  const callsBeforeSwitch = onInputCalls;
+  cartridgeSelect.value = 'recipient-cart';
+  fireEvent(cartridgeSelect, 'change'); // "Duty" — zeroed with "Practice"
+
+  // Resolution is async (a bullet lookup) — nothing yet, synchronously.
+  assert.equal(rifle.getZeroDonorBallistics(), null);
+  await settle();
+
+  assert.deepEqual(rifle.getZeroDonorBallistics(), {
+    muzzleVelocity: 800, referenceTempC: undefined, velocityTempSensitivity: undefined,
+    bc: 0.274, dragModel: 'G7', massKg: 0.0113, caliberM: 0.00778
+  });
+  assert.ok(onInputCalls > callsBeforeSwitch, 'onInput must fire again once the donor resolves, so callers recompute');
+});
+
+test('switching back to "Other" also clears a previously-resolved zero donor', async () => {
+  saveZeroDonorTestRifle();
+  const rifle = rifleSection();
+  await settle();
+
+  const rifleSelect = byId(rifle.node, 'rifleSelect');
+  rifleSelect.value = TEST_ZERO_DONOR_RIFLE_ID;
+  fireEvent(rifleSelect, 'change');
+  await settle();
+
+  const cartridgeSelect = byId(rifle.node, 'rifleCartridgeSelect');
+  cartridgeSelect.value = 'recipient-cart';
+  fireEvent(cartridgeSelect, 'change');
+  await settle();
+  assert.notEqual(rifle.getZeroDonorBallistics(), null);
+
+  rifleSelect.value = '__other__';
+  fireEvent(rifleSelect, 'change');
+  assert.equal(rifle.getZeroDonorBallistics(), null);
+});
+
 test('a rifle+cartridge selected in one rifleSection instance is restored (and re-reported) in the next one', async () => {
   saveTestRifle();
   const first = rifleSection();

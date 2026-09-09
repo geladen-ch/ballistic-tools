@@ -151,6 +151,29 @@ test('planImportBatch: new items save under fresh ids with no conflicts', () => 
   assert.equal(result.rifleResults[0].resolved.record.cartridges[0].bulletId, newBulletId);
 });
 
+test('planImportBatch preserves a cartridge\'s "zeroed with" reference to a sibling cartridge unchanged', () => {
+  // Unlike bulletId (remapped through bulletIdMap above), cartridge ids are
+  // never touched by import — so a same-rifle zeroedWithCartridgeId (see
+  // zero-donor.js) needs no remapping of its own to keep resolving.
+  const result = planImportBatch({
+    bullets: [{ id: 'file-b1', name: 'Bullet One' }],
+    rifles: [{
+      id: 'file-r1', name: 'Rifle One',
+      cartridges: [
+        { id: 'c1', bulletId: 'file-b1' },
+        { id: 'c2', bulletId: 'file-b1', zeroedWithCartridgeId: 'c1' }
+      ]
+    }],
+    mode: 'overwrite',
+    existingBullets: [], existingRifles: [],
+    generateBulletId: makeIds('user-bullet'), generateRifleId: makeIds('user-rifle')
+  });
+
+  const cartridges = result.rifleResults[0].resolved.record.cartridges;
+  assert.equal(cartridges[0].id, 'c1');
+  assert.equal(cartridges[1].zeroedWithCartridgeId, 'c1', 'the intra-rifle donor reference must still resolve after import');
+});
+
 test('planImportBatch remaps a renamed bullet\'s new id into its rifle\'s cartridges', () => {
   const existingBullet = { id: 'local-b1', name: 'Bullet One', modifiedAt: '2020-01-01T00:00:00.000Z' };
   const result = planImportBatch({

@@ -73,6 +73,30 @@ function rifleEditButton(container, rifleName) {
   return findByTag(row, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
 }
 
+// One cartridge's own row in the active rifle's Cartridges list, matched
+// by its <strong> name label exactly rather than a substring search over
+// the whole row's textContent — the active-rifle summary row above the
+// list (renderActiveRifle()) embeds the very same names again inside its
+// own cartridge picker <select>'s options (whose textContent a plain
+// substring search would also match), and, for names that happen to
+// collide with a button label (e.g. "Backup" inside "Backup to file"),
+// even the rifle's own Edit/Delete buttons live in that same summary row.
+// Scoped to the cartridges list itself (arsenal-add-cartridge's own
+// parent, same anchor the delete-cartridge tests already use) so neither
+// ambiguity can arise.
+function cartridgeRow(container, cartridgeName) {
+  const cartridgesList = findAnyById(container, 'arsenal-add-cartridge').parentNode;
+  return findByClass(cartridgesList, 'arsenal-row').find((r) => {
+    const strong = findByTag(r, 'STRONG')[0];
+    return strong && strong.textContent === cartridgeName;
+  });
+}
+
+function cartridgeEditButton(container, cartridgeName) {
+  const row = cartridgeRow(container, cartridgeName);
+  return findByTag(row, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.editButton');
+}
+
 // Clicks an "Other rifles" row to make it the active rifle — the
 // click-to-activate replacement for the old "Set active" button.
 // row-clickable is shared with the active rifle's own Cartridges list
@@ -1454,6 +1478,101 @@ test('deleting a cartridge removes only that cartridge from its rifle', async ()
   const rifles = loadUserRifles();
   assert.equal(rifles[0].cartridges.length, 1);
   assert.equal(rifles[0].cartridges[0].id, 'c2');
+});
+
+// ---- "Zeroed with a different cartridge" (zero-donor.js) ----
+
+test('deleting a zero donor clears the "zeroed with" reference on any recipient', () => {
+  saveUserRifle({
+    id: 'my-rifle', name: 'My Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'c1', name: 'Practice', muzzleVelocity: 800, bulletId: 'swiss-gp11' },
+      { id: 'c2', name: 'Duty', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'c1' }
+    ]
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'My Rifle');
+
+  const cartridgesList = findAnyById(container, 'arsenal-add-cartridge').parentNode;
+  const deleteButtons = findByTag(cartridgesList, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.deleteButton');
+  global.confirm = () => true;
+  fireEvent(deleteButtons[0], 'click'); // deletes "Practice", the donor
+
+  const rifles = loadUserRifles();
+  assert.equal(rifles[0].cartridges.length, 1);
+  assert.equal(rifles[0].cartridges[0].id, 'c2');
+  assert.equal(rifles[0].cartridges[0].zeroedWithCartridgeId, null, 'the recipient\'s stale donor reference must be cleared, not left dangling');
+});
+
+test('the cartridge list badges a zero donor and its zero recipient, mutually exclusively', () => {
+  saveUserRifle({
+    id: 'my-rifle', name: 'Badge Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'c1', name: 'Practice', muzzleVelocity: 800, bulletId: 'swiss-gp11' },
+      { id: 'c2', name: 'Duty', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'c1' }
+    ]
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Badge Rifle');
+
+  const donorRow = cartridgeRow(container, 'Practice');
+  const recipientRow = cartridgeRow(container, 'Duty');
+
+  assert.equal(findByClass(donorRow, 'zero-donor-badge').length, 1, 'expected "Practice" to show a zero-donor badge');
+  assert.equal(findByClass(recipientRow, 'zero-recipient-badge').length, 1, 'expected "Duty" to show a zero-recipient badge');
+  assert.equal(findByClass(donorRow, 'zero-recipient-badge').length, 0, 'a donor is never also a recipient');
+  assert.equal(findByClass(recipientRow, 'zero-donor-badge').length, 0, 'a recipient is never also a donor');
+});
+
+test('"Zeroed with" is offered per cartridge, pre-filled when set, excludes an already-recipient sibling, and is hidden once a cartridge is itself a donor', () => {
+  saveUserRifle({
+    id: 'my-rifle', name: 'Chain Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'c1', name: 'Practice', muzzleVelocity: 800, bulletId: 'swiss-gp11' },
+      { id: 'c2', name: 'Duty', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'c1' },
+      { id: 'c3', name: 'Backup', muzzleVelocity: 810, bulletId: 'swiss-gp11' }
+    ]
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Chain Rifle');
+
+  // "Backup" has no donor of its own yet: offered, defaults to "None", and
+  // must NOT offer "Duty" — Duty already has its own donor, so picking it
+  // here would create a 2-hop chain (no chaining allowed).
+  fireEvent(cartridgeEditButton(container, 'Backup'), 'click');
+  let zeroDonorSelect = byId(container, 'arsenalCartridgeZeroedWith');
+  assert.ok(zeroDonorSelect, 'expected the "Zeroed with" picker to be offered');
+  assert.equal(zeroDonorSelect.parentNode.style.display, '');
+  assert.equal(zeroDonorSelect.value, '');
+  let optionNames = [...zeroDonorSelect.childNodes].map((o) => o.textContent);
+  assert.ok(optionNames.includes('Practice'));
+  assert.ok(!optionNames.includes('Duty'), 'a cartridge that already has its own donor must not be offered as one');
+
+  // "Duty" already points at "Practice": pre-filled, and "Backup" is
+  // offered too (fan-out — several cartridges may share one donor).
+  fireEvent(cartridgeEditButton(container, 'Duty'), 'click');
+  zeroDonorSelect = byId(container, 'arsenalCartridgeZeroedWith');
+  assert.equal(zeroDonorSelect.value, 'c1');
+  optionNames = [...zeroDonorSelect.childNodes].map((o) => o.textContent);
+  assert.ok(optionNames.includes('Backup'));
+
+  // "Practice" is already a donor for "Duty": its own picker is hidden
+  // entirely — a donor can't in turn pick a donor of its own.
+  fireEvent(cartridgeEditButton(container, 'Practice'), 'click');
+  const hiddenSelect = byId(container, 'arsenalCartridgeZeroedWith');
+  assert.equal(hiddenSelect.parentNode.style.display, 'none');
 });
 
 test('activating a rifle+cartridge and pressing Done stores it as the shared session selection and navigates to Trajectory Table', () => {

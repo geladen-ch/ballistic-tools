@@ -91,6 +91,7 @@ const APP_SHELL_URLS = [
   './src/user-library.js',
   './src/arsenal-prefill.js',
   './src/arsenal-export.js',
+  './src/zero-donor.js',
   './src/db.js',
   './src/db-schema.js',
   './src/location-library.js',

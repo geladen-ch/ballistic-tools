@@ -14,7 +14,7 @@ import { fieldValidity } from '../field-validity.js';
 
 const DEFAULT_VALUES = {
   name: '', muzzleVelocity: 800, referenceTempC: null, velocityTempSensitivity: null, bulletId: '',
-  muzzleVelocitySD: null, precision: null
+  muzzleVelocitySD: null, precision: null, zeroedWithCartridgeId: null
 };
 const ALL_CALIBERS_VALUE = '__all__';
 const NEW_BULLET_VALUE = '__new__';
@@ -56,7 +56,10 @@ const NEW_BULLET_VALUE = '__new__';
 // form.js's/rifle-form.js's own (unlike the built-in-bullet copy-
 // overwrite warning further down, which really does describe a save-time
 // overwrite).
-export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, lockedCaliberM = null, siblingNames = [], onSave, onCancel } = {}) {
+export function cartridgeForm({
+  initialValues = {}, riflingTwistMm = null, lockedCaliberM = null, siblingNames = [],
+  siblingCartridges = [], isZeroDonorForOthers = false, onSave, onCancel
+} = {}) {
   const values = { ...DEFAULT_VALUES, ...initialValues };
 
   const nameInput = el('input', { type: 'text', id: 'arsenalCartridgeName', value: values.name });
@@ -87,6 +90,32 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
   });
   const precisionField = cartridgePrecisionField({});
   precisionField.setInitialValues(values.precision);
+
+  // "Zeroed with a different cartridge" — see zero-donor.js and
+  // docs/plans/arsenal-zero-with-different-cartridge.md. Only offered when
+  // there's another cartridge on this rifle to borrow from, and only when
+  // this cartridge isn't already a donor for one of its own siblings — a
+  // donor can't in turn pick a donor (no chaining, see arsenal-view.js's
+  // own isZeroDonorForOthers). The picker itself also excludes any sibling
+  // that's already a recipient of someone else's zero, for the same reason
+  // — fan-out (several cartridges sharing one donor) is fine, a 2-hop chain
+  // is not.
+  const canPickZeroDonor = !isZeroDonorForOthers && siblingCartridges.length > 0;
+  const zeroDonorSelect = el('select', { id: 'arsenalCartridgeZeroedWith' });
+  zeroDonorSelect.appendChild(el('option', { value: '', i18n: 'arsenal.cartridgeZeroedWithNone' }));
+  for (const sibling of siblingCartridges) {
+    if (sibling.zeroedWithCartridgeId) continue;
+    zeroDonorSelect.appendChild(el('option', { value: sibling.id, text: sibling.name }));
+  }
+  zeroDonorSelect.value = [...zeroDonorSelect.childNodes].some((o) => o.value === values.zeroedWithCartridgeId)
+    ? values.zeroedWithCartridgeId
+    : '';
+  const zeroDonorField = el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.cartridgeZeroedWith' }), zeroDonorSelect]);
+  const zeroDonorHint = el('p', { class: 'hint', i18n: 'arsenal.cartridgeZeroedWithHint' });
+  const zeroDonorDisabledHint = el('p', { class: 'hint', i18n: 'arsenal.cartridgeZeroedWithDisabledHint' });
+  zeroDonorField.style.display = canPickZeroDonor ? '' : 'none';
+  zeroDonorHint.style.display = canPickZeroDonor ? '' : 'none';
+  zeroDonorDisabledHint.style.display = isZeroDonorForOthers ? '' : 'none';
 
   // Narrows the bullet picker below to one caliber at a time — the same
   // "known designation, or a raw-mm label for anything else" idea
@@ -371,7 +400,13 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
       ...muzzleVelocityTemp.getValues(),
       bulletId: bulletSelect.value,
       muzzleVelocitySD: muzzleVelocitySDField.getEngineValue(),
-      precision: precisionField.getValue()
+      precision: precisionField.getValue(),
+      // Defensive against stale form state: a cartridge that became a
+      // donor for a sibling *during* this edit (shouldn't happen — the
+      // picker is only reachable from a fully re-rendered form — but the
+      // field itself is hidden, not disabled, so its value must still be
+      // ignored whenever it isn't actually offered) always saves null.
+      zeroedWithCartridgeId: canPickZeroDonor ? (zeroDonorSelect.value || null) : null
     };
   }
 
@@ -435,6 +470,9 @@ export function cartridgeForm({ initialValues = {}, riflingTwistMm = null, locke
     bulletCopyNotice,
     bulletOverwriteWarning,
     stability.node,
+    zeroDonorField,
+    zeroDonorHint,
+    zeroDonorDisabledHint,
     muzzleVelocitySDField.node,
     el('p', { class: 'hint', i18n: 'arsenal.hitProbabilityOnlyHint' }),
     precisionField.node,

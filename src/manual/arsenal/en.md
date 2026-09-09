@@ -155,6 +155,23 @@ Checking **"Specify rifle precision for this cartridge"** reveals:
 
 **The reverse path — from Rifle Precision into Arsenal — is documented in full in §10.1.**
 
+### 5.7 Zeroing a cartridge with a different cartridge
+
+A rifle's *physical* zero is a single, mechanical fact about the rifle and its optic — wherever the turrets are currently dialed — not a property of any one load. In practice, though, that zero was established by firing *some specific* cartridge at the zero range, and if you then shoot a different load through the same, unchanged zero, its trajectory departs from what solving that load's own zero angle would predict, exactly to the degree the two loads' ballistics differ. The classic case: you zero with cheap surplus or practice ammunition, then carry a premium hunting or duty load whose actual point of impact, at any given range, is offset from where its own independent zero would have put it.
+
+The extreme version of the same problem is a rifle that runs both a supersonic load and a suppressed subsonic one without ever being re-zeroed between them — a common setup for quiet, close-range work. The two loads' trajectories diverge enormously past a short distance (a subsonic round drops many times faster), so declaring the subsonic cartridge zeroed with the supersonic one isn't just tidy bookkeeping here — it's the only way either load's own drop chart reflects what the rifle, physically unchanged, actually does.
+
+**Zeroed with**, a field on the cartridge form, lets you tell Arsenal which cartridge actually established the physical zero, so every tool that solves elevation for this one can account for the difference instead of silently assuming this cartridge zeroed itself.
+
+- The field only appears once the rifle has **at least one other cartridge** to point at, and only on a cartridge that is not **itself** already serving as another cartridge's donor (see below).
+- Picking a cartridge from the dropdown makes *that* cartridge the **donor**; this one becomes its **recipient**. Elevation for the recipient is then solved by asking "what launch angle would send the *donor's* ballistics through the sight line at this rifle's zero range," and flying the *recipient's own* muzzle velocity and bullet from that borrowed angle — not by independently zeroing the recipient.
+- **No chaining.** A cartridge that is already serving as someone else's donor never itself offers the "Zeroed with" field — it cannot, in turn, borrow a zero from a third cartridge. The relationship stays a flat pair, never an arbitrarily deep chain.
+- **Fan-out is fine.** Several cartridges may all be zeroed with the same donor — the common case if you shoot one practice load ahead of several different premium loads through the same rifle.
+- Only **elevation** is borrowed. Windage/spin-drift zeroing (§9.3, opted into separately in Settings) always solves from the recipient's own ballistics.
+- **Which tools honor it:** Trajectory, Range Solver, and the Comparison chart (§7) all solve the recipient's elevation from its donor whenever one is set. **Hit Probability does not** — it always solves elevation from the cartridge's own ballistics, regardless of any donor set on it. See §9.5 for why.
+
+The Arsenal cartridge list marks both halves of the relationship — see §6.4. Deleting a donor clears the reference on every cartridge that pointed at it, immediately, rather than leaving it dangling; those recipients simply go back to solving their own zero.
+
 ---
 
 ## 6. The Arsenal page: lists, filters, activation
@@ -190,6 +207,8 @@ A rifle with no cartridges shows a warning in place of the list: *"This rifle ha
 - **Not backed up** — this bullet or rifle has been created, edited or imported since it was last written to a backup file. Never shown on a built-in entry, since those need no backup.
 - **Unusable** — a rifle with zero cartridges. Title text on hover: *"No cartridges defined — this rifle cannot be made active."* Such a rifle is still clickable, so you can reach it to add its first cartridge.
 - **Active** — the cartridge currently picked on the active rifle.
+- **Zero donor** — this cartridge's own elevation zero is currently being borrowed by one or more other cartridges on the rifle (§5.7).
+- **Zero recipient** — this cartridge is zeroed with a different cartridge; hovering names which one.
 
 ### 6.5 Filters
 
@@ -267,6 +286,16 @@ The same five inputs — mass, caliber, length, muzzle velocity, twist rate — 
 
 Covered in depth in §5.6 and, from the other direction, in §10.1. In short: a cartridge's stored `precision` — mode (`own` or `combined`) plus an R50 in mrad — is read by Hit Probability the moment this rifle+cartridge becomes the active configuration there. An **"own"** value pre-fills Hit Probability's bench-precision input and leaves shooter skill as a separate, independent input to be combined with it. A **"combined"** value instead pre-fills the simplified, already-combined input and switches that tool's simplified mode on, since a combined figure has shooter skill baked in already and should not be combined with it a second time.
 
+### 9.5 Zero donor → Trajectory, Range Solver, Comparison
+
+A cartridge's donor (§5.7), when set, changes exactly one step of the trajectory solve: instead of finding the launch angle that sends *this* cartridge's own ballistics through the sight line at the rifle's zero range, the engine finds the angle that would do so for the **donor's** muzzle velocity, temperature sensitivity and bullet profile — everything else (zero range, sight height, line-of-sight angle, atmosphere, wind) held at the recipient's own values — and then flies the **recipient's own** ballistics from that borrowed angle. The result is exactly what actually happens downrange when a rifle zeroed with one load is fired with another.
+
+This substitution happens at exactly the point every other zero-angle solve in this engine already happens, so it composes for free with everything else the trajectory engine does for a normal cartridge — atmosphere, wind, spin drift, the 4-DOF stepper — none of it needs to know a donor is involved.
+
+Windage/spin-drift zeroing (§9.3) is untouched by a donor: it always solves from the recipient's own ballistics, since it is a materially different, separately opted-into feature.
+
+**Hit Probability is deliberately excluded.** Its own dispersion model solves elevation independently, at the *target range itself* (or a separately-set battle zero) rather than the rifle's own configured zero range, and never reads a cartridge's donor at all — a design choice, not an oversight: Hit Probability estimates how a shot actually groups around a point of aim you dial in for that shot, a different question from where a fixed, previously-established physical zero puts a substitute load.
+
 ---
 
 ## 10. Putting it to work
@@ -295,11 +324,17 @@ Suppose you are deciding between two bullets for the same rifle, or the same bul
 
 Once you own more than two or three rifles in the same general caliber family, the filter card (§6.5) is what keeps the page navigable — filter by caliber to see only the rifles chambered for what you are working on right now, or by manufacturer if you are comparing several rifles' worth of the same maker's bullets. The **Not backed up** badge (§6.4) doubles as a running to-do list: at the end of a session where you added or edited several entries, glance down the page for that badge rather than trying to remember what you touched, and run **Backup library to file…** to clear them all at once.
 
+### 10.5 Zeroing with a substitute cartridge
+
+Say you zero a rifle with inexpensive surplus or steel-case ammunition — cheaper to burn through a zeroing session and to check zero periodically — but actually carry or hunt with a premium factory or hand-loaded round. Save both as separate cartridges on the same rifle, open the premium load's own **Edit cartridge** form, and set **Zeroed with** to the practice load. From then on, Trajectory, Range Solver and the Comparison chart all show the premium load's trajectory exactly as it will actually print, rather than the (wrong, if you did your zeroing with the cheap stuff) assumption that it was zeroed with itself.
+
+If you later re-zero the rifle with the premium load directly, go back and clear **Zeroed with** on that cartridge — it is now its own zero again, and nothing else in Arsenal changes that for you automatically.
+
 ---
 
 ## 11. Provenance
 
-Arsenal has been part of the suite from its first commit, growing incrementally: multiple built-in bullet libraries and manufacturer autocomplete; unit-preference fixes across the cartridge list and bullet length; the current 4-DOF trajectory engine and the spin-drift/twist-direction fields it uses; and, most recently, muzzle velocity consistency and rifle precision on cartridges, together with the direct hand-off from the Rifle Precision Calculator described in §10.1 — the integration that turns two previously separate tools into one measured pipeline.
+Arsenal has been part of the suite from its first commit, growing incrementally: multiple built-in bullet libraries and manufacturer autocomplete; unit-preference fixes across the cartridge list and bullet length; the current 4-DOF trajectory engine and the spin-drift/twist-direction fields it uses; and, most recently, muzzle velocity consistency and rifle precision on cartridges, together with the direct hand-off from the Rifle Precision Calculator described in §10.1 — the integration that turns two previously separate tools into one measured pipeline; and, more recently still, letting one cartridge borrow another's physical zero (§5.7), for the common case of zeroing with one load and carrying another.
 
 The suite is licensed **AGPL-3.0-or-later**.
 

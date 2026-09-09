@@ -590,7 +590,11 @@ export function mount(container) {
       spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled(),
       windSpeed: wind.getEngineSpeed(),
-      windAngle: wind.getAngle()
+      windAngle: wind.getAngle(),
+      // "Zeroed with a different cartridge" — see zero-donor.js and
+      // rifle-section.js's own getZeroDonorBallistics(). null whenever the
+      // selected cartridge doesn't borrow a sibling's zero.
+      zeroDonorBallistics: rifle.getZeroDonorBallistics()
     };
   }
 

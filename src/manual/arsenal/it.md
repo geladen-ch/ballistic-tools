@@ -155,6 +155,23 @@ Spuntare **«Specifica la precisione dell'arma per questa cartuccia»** rivela:
 
 **Il percorso inverso — dal Calcolatore di precisione di tiro all'Arsenale — è documentato per intero al §10.1.**
 
+### 5.7 Azzerare una cartuccia con una cartuccia diversa
+
+Lo zero *fisico* di un fucile è un unico fatto meccanico riguardante il fucile e la sua ottica — ovunque siano attualmente regolate le torrette — non una proprietà di una particolare carica. In pratica, però, quello zero è stato stabilito sparando *una cartuccia specifica* alla distanza di azzeramento, e se poi spari una carica diversa attraverso lo stesso zero invariato, la sua traiettoria si discosta da ciò che predirebbe il calcolo dello zero proprio di quella carica — esattamente nella misura in cui la balistica delle due cariche differisce realmente. Il caso classico: azzeri con munizioni surplus o da allenamento economiche, poi porti con te una carica premium da caccia o di servizio il cui punto d'impatto reale, a qualunque distanza, è spostato rispetto a quello che avrebbe dato il suo proprio zero indipendente.
+
+La versione estrema dello stesso problema è un fucile che spara sia una carica supersonica sia una subsonica soppressa, senza mai essere riazzerato tra l'una e l'altra — una configurazione comune per un lavoro silenzioso a corta distanza. Le traiettorie delle due cariche divergono enormemente oltre una breve distanza (un proiettile subsonico cade molte volte più velocemente), quindi dichiarare la cartuccia subsonica azzerata con quella supersonica non è qui una semplice questione di ordine — è l'unico modo perché la tabella di caduta propria di entrambe le cariche rifletta ciò che il fucile, fisicamente invariato, fa realmente.
+
+**Azzerata con**, un campo del modulo cartuccia, permette di indicare all'Arsenale quale cartuccia ha effettivamente stabilito lo zero fisico, così che ogni strumento che calcola l'alzo per questa cartuccia possa tenere conto della differenza, invece di presumere silenziosamente che questa cartuccia si sia azzerata da sé.
+
+- Il campo compare solo quando il fucile ha **almeno un'altra cartuccia** a cui puntare, e solo su una cartuccia che non è **essa stessa** già donatrice per un'altra cartuccia (vedi sotto).
+- Scegliere una cartuccia dal menu a tendina la rende la **donatrice**; questa cartuccia ne diventa la **ricevente**. L'alzo della ricevente viene allora calcolato chiedendo «quale angolo di lancio manderebbe la balistica della *donatrice* attraverso la linea di mira alla distanza di azzeramento di questo fucile», e poi facendo volare la velocità alla volata e il proiettile *propri della ricevente* da quell'angolo preso in prestito — non azzerando la ricevente in modo indipendente.
+- **Nessuna catena.** Una cartuccia già donatrice per un'altra non offre mai essa stessa il campo «Azzerata con» — non può, a sua volta, prendere in prestito uno zero da una terza cartuccia. La relazione resta una coppia semplice, mai una catena arbitrariamente profonda.
+- **La condivisione va bene.** Più cartucce possono essere tutte azzerate con la stessa donatrice — il caso comune se spari una carica da allenamento prima di diverse cariche premium diverse dallo stesso fucile.
+- Viene preso in prestito solo l'**alzo**. L'azzeramento della deriva laterale/giroscopica (§9.3, attivato separatamente nelle Impostazioni) si calcola sempre dalla balistica propria della ricevente.
+- **Quali strumenti ne tengono conto:** Traiettoria, Calcolatore per il poligono e il grafico di Confronto (§7) calcolano tutti l'alzo della ricevente dalla sua donatrice ogni volta che ne è impostata una. **Probabilità di colpire no** — calcola sempre l'alzo dalla balistica propria della cartuccia, indipendentemente da qualunque donatrice le sia assegnata. Vedi §9.5 per il motivo.
+
+La lista delle cartucce dell'Arsenale segnala entrambi i lati di questa relazione — vedi §6.4. Eliminare una donatrice cancella immediatamente il riferimento su ogni cartuccia che puntava a essa, invece di lasciarlo pendente; tali riceventi tornano semplicemente a calcolare il proprio zero.
+
 ---
 
 ## 6. La pagina Arsenale: liste, filtri, attivazione
@@ -190,6 +207,8 @@ Un fucile senza cartucce mostra un avviso al posto della lista: *«Per questo fu
 - **Senza backup** — questo proiettile o fucile è stato creato, modificato o importato dall'ultima volta che è stato scritto in un file di backup. Non compare mai su una voce integrata, dato che quelle non necessitano di backup.
 - **Inutilizzabile** — un fucile con zero cartucce. Testo al passaggio del mouse: *«Nessuna cartuccia definita — questo fucile non può essere attivato.»* Un fucile del genere resta cliccabile, così puoi raggiungerlo per aggiungergli la prima cartuccia.
 - **Attiva** — la cartuccia attualmente scelta sul fucile attivo.
+- **Donatore di zero** — l'alzo di zero proprio di questa cartuccia è attualmente preso in prestito da una o più altre cartucce del fucile (§5.7).
+- **Ricevente di zero** — questa cartuccia è azzerata con una cartuccia diversa; il passaggio del mouse indica quale.
 
 ### 6.5 Filtri
 
@@ -267,6 +286,16 @@ Gli stessi cinque input — massa, calibro, lunghezza, velocità alla volata, pa
 
 Trattato in dettaglio al §5.6 e, dalla direzione opposta, al §10.1. In breve: la `precision` memorizzata di una cartuccia — modalità (`own` o `combined`) più un R50 in mrad — viene letta da Probabilità di colpire nel momento esatto in cui questa combinazione fucile+cartuccia diventa lì la configurazione attiva. Un valore **«own»** precompila l'input di precisione al banco di Probabilità di colpire e lascia l'abilità del tiratore come input separato e indipendente da combinare con esso. Un valore **«combined»** precompila invece l'input semplificato, già combinato, e attiva la modalità semplificata di quello strumento, poiché una cifra combinata ha già l'abilità del tiratore incorporata e non dovrebbe esservi combinata una seconda volta.
 
+### 9.5 Donatore di zero → Traiettoria, Calcolatore per il poligono, Confronto
+
+La donatrice di una cartuccia (§5.7), quando impostata, cambia esattamente un passaggio del calcolo di traiettoria: invece di trovare l'angolo di lancio che manda la balistica *propria* di questa cartuccia attraverso la linea di mira alla distanza di azzeramento del fucile, il motore trova l'angolo che farebbe lo stesso per la velocità alla volata, la sensibilità alla temperatura e il profilo del proiettile **della donatrice** — tutto il resto (distanza di azzeramento, altezza ottica, angolo della linea di mira, atmosfera, vento) resta fissato ai valori propri della ricevente — e poi fa volare la balistica **propria della ricevente** da quell'angolo preso in prestito. Il risultato è esattamente ciò che accade realmente a valle quando da un fucile azzerato con una carica si spara con un'altra.
+
+Questa sostituzione avviene esattamente nel punto in cui in questo motore avviene già ogni altro calcolo dell'angolo di zero, così si combina gratuitamente con tutto ciò che il motore di traiettoria fa già per una cartuccia normale — atmosfera, vento, deriva giroscopica, l'integratore 4-DOF — nessuno di questi ha bisogno di sapere che è coinvolta una donatrice.
+
+L'azzeramento della deriva laterale/giroscopica (§9.3) non è toccato da una donatrice: si calcola sempre dalla balistica propria della ricevente, trattandosi di una funzionalità distinta, attivata separatamente.
+
+**Probabilità di colpire è deliberatamente escluso.** Il suo proprio modello di dispersione calcola l'alzo in modo indipendente, alla *distanza del bersaglio stesso* (o a uno zero da combattimento impostato separatamente) invece che alla distanza di azzeramento configurata del fucile, e non legge mai la donatrice di una cartuccia — una scelta di progettazione, non una svista: Probabilità di colpire stima come un colpo raggruppa realmente attorno a un punto di mira che imposti per quel colpo, una domanda diversa da dove un zero fisico fisso, già stabilito, colloca una carica sostitutiva.
+
 ---
 
 ## 10. Metterlo in pratica
@@ -295,11 +324,17 @@ Supponi di dover decidere tra due proiettili per lo stesso fucile, o tra lo stes
 
 Una volta che possiedi più di due o tre fucili della stessa famiglia generale di calibro, la scheda filtri (§6.5) è ciò che mantiene la pagina navigabile — filtra per calibro per vedere solo i fucili camerati per ciò su cui stai lavorando in questo momento, o per produttore se stai confrontando diversi fucili in base ai proiettili dello stesso produttore. L'etichetta **Senza backup** (§6.4) funge anche da lista di cose da fare in corso: alla fine di una sessione in cui hai aggiunto o modificato diverse voci, scorri la pagina con lo sguardo cercando quell'etichetta invece di cercare di ricordare cosa hai toccato, ed esegui **Backup della libreria su file…** per cancellarle tutte in una volta.
 
+### 10.5 Azzerare con una cartuccia sostitutiva
+
+Supponi di azzerare un fucile con munizioni surplus o a bossolo d'acciaio economiche — più economiche da consumare durante una sessione di azzeramento e per verificare periodicamente lo zero — ma di portare con te o cacciare effettivamente con una carica premium di fabbrica o ricaricata. Salva entrambe come cartucce separate sullo stesso fucile, apri il modulo **Modifica cartuccia** proprio della carica premium, e imposta **Azzerata con** sulla carica da allenamento. Da quel momento, Traiettoria, Calcolatore per il poligono e il grafico di Confronto mostrano tutti la traiettoria della carica premium esattamente come stamperà realmente, invece dell'assunzione (sbagliata, se il tuo azzeramento è stato effettivamente fatto con quella economica) che sia azzerata con se stessa.
+
+Se in seguito riazzeri il fucile direttamente con la carica premium, torna indietro e cancella **Azzerata con** su quella cartuccia — ora è di nuovo il proprio zero, e nient'altro nell'Arsenale lo fa automaticamente per te.
+
 ---
 
 ## 11. Provenienza
 
-L'Arsenale fa parte della suite fin dal suo primo commit, crescendo in modo incrementale: più librerie di proiettili integrate e completamento automatico del produttore; correzioni delle preferenze di unità nella lista delle cartucce e nella lunghezza del proiettile; l'attuale motore di traiettoria a 4 gradi di libertà e i campi di deriva giroscopica/direzione di rigatura che usa; e, più di recente, regolarità della velocità iniziale e precisione dell'arma sulle cartucce, insieme al passaggio di consegna diretto dal Calcolatore di precisione di tiro descritto al §10.1 — l'integrazione che trasforma due strumenti prima separati in un'unica pipeline misurata.
+L'Arsenale fa parte della suite fin dal suo primo commit, crescendo in modo incrementale: più librerie di proiettili integrate e completamento automatico del produttore; correzioni delle preferenze di unità nella lista delle cartucce e nella lunghezza del proiettile; l'attuale motore di traiettoria a 4 gradi di libertà e i campi di deriva giroscopica/direzione di rigatura che usa; e, più di recente, regolarità della velocità iniziale e precisione dell'arma sulle cartucce, insieme al passaggio di consegna diretto dal Calcolatore di precisione di tiro descritto al §10.1 — l'integrazione che trasforma due strumenti prima separati in un'unica pipeline misurata; e, più recentemente ancora, la possibilità per una cartuccia di prendere in prestito lo zero fisico di un'altra (§5.7), per il caso comune di azzerare con una carica e portarne un'altra.
 
 La suite è rilasciata sotto licenza **AGPL-3.0-or-later**.
 

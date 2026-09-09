@@ -327,6 +327,38 @@ a { color: var(--accent); }
   border-radius: 999px;
 }
 
+/* Arsenal's cartridge list (src/views/arsenal-view.js) — "zeroed with a
+   different cartridge" (zero-donor.js): same pill shape again, distinct
+   from .active-badge's --ok so the two never blend on a row that happens
+   to be both. --accent for the donor itself (the one lending its zero,
+   same informational tone as .unsaved-badge), --analysis for the
+   recipient (the one borrowing it) — two different hues so a glance at
+   the list tells which cartridge is which without reading the tooltip. */
+.zero-donor-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 999px;
+}
+.zero-recipient-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--analysis);
+  border: 1px solid var(--analysis-dim);
+  border-radius: 999px;
+}
+
 /* Arsenal (src/views/arsenal-view.js): one row per saved bullet/rifle/
    cartridge, with its Edit/Delete buttons pinned to the right.
    The active rifle's own row packs up to five controls into

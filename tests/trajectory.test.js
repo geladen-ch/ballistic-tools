@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { integrate, computeImpact, solveZeroAngle, solveHorizontalZeroAngle, makeStepper } from '../src/engine/trajectory.js';
+import { integrate, computeImpact, solveZeroAngle, solveHorizontalZeroAngle, resolveLaunchAngle, makeStepper } from '../src/engine/trajectory.js';
 import { displayToEngine, engineToDisplay } from '../src/units.js';
 import { G7_TABLE } from '../src/engine/drag-tables.js';
 import { LBIN2_TO_KGM2 } from '../src/engine/constants.js';
@@ -140,6 +140,40 @@ test('computeImpact with zeroRange 0 in state (no explicit launchAngle) stays fi
   const impact = computeImpact({ ...baseState, zeroRange: 0 }, 200);
   assert.ok(Number.isFinite(impact.dropCm));
   assert.ok(Number.isFinite(impact.velocity));
+});
+
+test('resolveLaunchAngle: a pre-set state.launchAngle wins over everything else', () => {
+  assert.equal(resolveLaunchAngle({ ...baseState, launchAngle: 0.01234, zeroDonorBallistics: { bc: 0.9 } }), 0.01234);
+});
+
+test('resolveLaunchAngle: no launchAngle and no donor solves the state\'s own zero angle', () => {
+  assert.equal(resolveLaunchAngle(baseState), solveZeroAngle(baseState));
+});
+
+test('resolveLaunchAngle: zeroDonorBallistics solves as if the donor\'s own ballistics were fired', () => {
+  // A markedly different (much higher-BC) donor ought to produce a
+  // noticeably different zero angle than this cartridge's own — not just
+  // a rounding-level difference — confirming the donor's fields actually
+  // overrode the recipient's for the solve.
+  const donor = { muzzleVelocity: 900, bc: 0.9, dragModel: 'G7' };
+  const withDonor = resolveLaunchAngle({ ...baseState, zeroDonorBallistics: donor });
+  const donorOwnAngle = solveZeroAngle({ ...baseState, ...donor });
+  const recipientOwnAngle = solveZeroAngle(baseState);
+  assert.equal(withDonor, donorOwnAngle);
+  assert.ok(Math.abs(withDonor - recipientOwnAngle) > 1e-5);
+});
+
+test('integrate() flies the recipient\'s own ballistics from a donor-solved launch angle', () => {
+  const donor = { muzzleVelocity: 900, bc: 0.9, dragModel: 'G7' };
+  const withDonor = integrate({ ...baseState, maxRange: 300, rangeStep: 100, zeroDonorBallistics: donor });
+  const donorLaunchAngleDeg = (solveZeroAngle({ ...baseState, ...donor }) * 180) / Math.PI;
+  assert.ok(Math.abs(withDonor.launchAngleDeg - donorLaunchAngleDeg) < 1e-9);
+  // Flown at the donor's angle but with this cartridge's own (lower-BC,
+  // slower) ballistics, it should NOT land on the sight line at zeroRange
+  // the way solving its own zero would — that's the whole point of the
+  // feature (this cartridge is no longer independently zeroed).
+  const ownZero = integrate({ ...baseState, maxRange: 300, rangeStep: 100 });
+  assert.notEqual(withDonor.launchAngleDeg, ownZero.launchAngleDeg);
 });
 
 test('a library bullet\'s cdTable produces a finite, monotonically-decaying trajectory', () => {
