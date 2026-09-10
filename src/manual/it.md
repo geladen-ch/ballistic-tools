@@ -34,6 +34,7 @@ applicabile, le statistiche dietro i numeri:
 
 - [Arsenale](#/manual/arsenal)
 - [Calcolatore di precisione di tiro](#/manual/rifle-precision)
+- [BC Labradar](#/manual/bc-labradar)
 
 Altri manuali dettagliati per gli altri strumenti sono previsti.
 
@@ -427,7 +428,9 @@ ottimale" per modello, sulla gamma supersonica propria del proiettile.
 **BC Labradar** calcola un BC per ogni colpo a partire da un'esportazione
 del cronografo Labradar — uno **.zip** di file di traccia che il
 dispositivo scrive sulla sua scheda SD, uno per colpo, registrando la
-velocità circa ogni millisecondo durante il volo. Scegli un modello di
+velocità circa ogni millisecondo durante il volo. Vedi il [manuale
+dettagliato](#/manual/bc-labradar) per il metodo completo, i casi
+particolari e le statistiche dietro i numeri. Scegli un modello di
 resistenza e l'atmosfera (qui non ci sono preimpostazioni — inserisci
 direttamente la tua pressione di stazione/temperatura/umidità), poi scegli
 lo zip; ogni traccia viene analizzata, ripulita dai punti rumorosi/errati e
@@ -443,7 +446,10 @@ segnale scadente. Fai clic sulla riga di una traccia per vedere il suo
 grafico velocità-tempo, con i punti mantenuti e quelli scartati mostrati
 separatamente, e deseleziona la casella di una traccia per escluderla
 manualmente dal risultato medio (o riseleziona una traccia scartata dai
-filtri automatici).
+filtri automatici). La pulizia dei punti e l'adattamento del BC
+alla base di tutto questo sono stati calibrati su un corpus di **1.297
+tracce Labradar reali**: il rumore così corretto è stato misurato, non
+ipotizzato.
 
 **Ricorda:** garbage in = garbage out (spazzatura in entrata, spazzatura
 in uscita). L'atmosfera è *molto* importante. Se non conosci l'umidità,

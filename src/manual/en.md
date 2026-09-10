@@ -31,6 +31,7 @@ the numbers:
 
 - [Arsenal](#/manual/arsenal)
 - [Rifle Precision Calculator](#/manual/rifle-precision)
+- [BC Labradar](#/manual/bc-labradar)
 
 More detailed manuals for the other tools are planned.
 
@@ -377,7 +378,9 @@ saved straight to Arsenal, downloaded/copied as CSV, or read as a single
 
 **BC Labradar** fits a BC per shot from a Labradar chronograph export — a
 **.zip** of track files the device writes to its SD card, one per shot,
-recording velocity roughly every millisecond during flight. Choose a drag
+recording velocity roughly every millisecond during flight. See the
+[detailed manual](#/manual/bc-labradar) for the full method, edge cases,
+and the statistics behind the numbers. Choose a drag
 model and atmosphere (no presets here — enter your own station
 pressure/temperature/humidity directly), then pick the zip; each track is
 parsed, cleaned of noisy/erroneous points, and fit for a BC automatically.
@@ -390,7 +393,10 @@ from the others') — useful for excluding a track picked up from a nearby
 shooting lane, or one the radar simply had a bad read on. Click a track's
 row to see its own velocity-vs-time chart, with kept and discarded points
 shown separately, and untick a track's checkbox to manually exclude it (or
-re-tick one the automatic filters rejected) from the averaged result.
+re-tick one the automatic filters rejected) from the averaged result. The
+point-cleaning and BC-fitting behind all this were calibrated against a
+corpus of **1,297 real Labradar tracks**, so the noise being corrected for
+was measured, not assumed.
 
 **Remember:** garbage in = garbage out. Atmosphere is *very* important. If
 you don't know humidity, put 50%. A Kestrel is good enough (although I

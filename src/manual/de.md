@@ -35,6 +35,7 @@ Zahlen eingeht:
 
 - [Arsenal](#/manual/arsenal)
 - [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
+- [BC Labradar](#/manual/bc-labradar)
 
 Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
 
@@ -438,7 +439,9 @@ einzelner „optimaler Kompromiss"-BC pro Modell über den eigenen
 **BC-Labradar** ermittelt pro Schuss einen BC aus einem
 Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das
 Gerät pro Schuss auf seiner SD-Karte ablegt und die die Geschwindigkeit
-etwa jede Millisekunde während des Flugs aufzeichnen. Wählen Sie ein
+etwa jede Millisekunde während des Flugs aufzeichnen. Siehe das
+[ausführliche Handbuch](#/manual/bc-labradar) für die vollständige
+Methode, Sonderfälle und die Statistik hinter den Zahlen. Wählen Sie ein
 Luftwiderstandsmodell und die Atmosphäre (hier keine Voreinstellungen —
 Stationsdruck/Temperatur/Feuchtigkeit werden direkt eingegeben), dann
 wählen Sie das Zip; jeder Track wird automatisch geparst, von
@@ -455,7 +458,10 @@ auf die Zeile eines Tracks, um dessen eigenes Geschwindigkeit-Zeit-Diagramm
 zu sehen, mit behaltenen und verworfenen Punkten getrennt dargestellt, und
 deaktivieren Sie die Checkbox eines Tracks, um ihn manuell aus dem
 gemittelten Ergebnis auszuschließen (oder aktivieren Sie einen von den
-automatischen Filtern abgelehnten Track wieder).
+automatischen Filtern abgelehnten Track wieder). Die dahinterliegende
+Punktbereinigung und BC-Anpassung wurden an einem Korpus von **1.297 echten
+Labradar-Tracks** kalibriert — das Rauschen, das dabei korrigiert wird,
+wurde also gemessen und nicht angenommen.
 
 **Merken Sie sich:** Müll rein = Müll raus. Die Atmosphäre ist *sehr*
 wichtig. Wenn Sie die Luftfeuchtigkeit nicht kennen, setzen Sie 50 %. Ein

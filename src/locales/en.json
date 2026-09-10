@@ -959,6 +959,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v206": "New: detailed manual for the BC Labradar tool.",
       "v205": "New: trajectory height, max point blank, and danger zone calculations.",
       "v204": "New: zero with a different cartridge feature.",
       "v203": "New: detailed Arsenal user manual, in-app, in all five languages.",

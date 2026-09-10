@@ -959,6 +959,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v206": "Nuovo: manuale dettagliato per lo strumento BC Labradar.",
       "v205": "Nuovo: calcoli dell'altezza della traiettoria, del punto in bianco massimo e della zona pericolosa.",
       "v204": "Nuovo: funzione per azzerare una cartuccia con una cartuccia diversa.",
       "v203": "Nuovo: manuale utente dettagliato dell'Arsenale, nell'app, in tutte e cinque le lingue.",

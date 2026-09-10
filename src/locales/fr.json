@@ -959,6 +959,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v206": "Nouveau : manuel détaillé pour l'outil BC Labradar.",
       "v205": "Nouveau : calculs de la hauteur de trajectoire, du tir tendu maximal et de la zone dangereuse.",
       "v204": "Nouveau : fonctionnalité de réglage d'une cartouche avec une cartouche différente.",
       "v203": "Nouveau : manuel utilisateur détaillé de l'Arsenal, dans l'application, dans les cinq langues.",

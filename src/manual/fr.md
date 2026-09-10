@@ -33,6 +33,7 @@ le cas échéant, les statistiques derrière les chiffres :
 
 - [Arsenal](#/manual/arsenal)
 - [Calculette de précision de tir](#/manual/rifle-precision)
+- [BC Labradar](#/manual/bc-labradar)
 
 D'autres manuels détaillés pour les autres outils sont prévus.
 
@@ -437,7 +438,9 @@ supersonique propre à la balle.
 **BC Labradar** ajuste un BC par coup à partir d'un export du chronographe
 Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur
 sa carte SD, un par coup, enregistrant la vitesse environ toutes les
-millisecondes pendant le vol. Choisissez un modèle de traînée et
+millisecondes pendant le vol. Voir le [manuel détaillé](#/manual/bc-labradar)
+pour la méthode complète, les cas particuliers et les statistiques derrière
+les chiffres. Choisissez un modèle de traînée et
 l'atmosphère (pas de préréglages ici — saisissez directement votre propre
 pression station/température/humidité), puis sélectionnez le zip ; chaque
 trajectoire est analysée, débarrassée des points bruités/erronés, et
@@ -453,7 +456,10 @@ simplement mal capté le signal. Cliquez sur la ligne d'une trajectoire pour
 voir son propre graphique vitesse/temps, avec les points conservés et
 écartés affichés séparément, et décochez la case d'une trajectoire pour
 l'exclure manuellement du résultat moyenné (ou recochez-en une que les
-filtres automatiques avaient rejetée).
+filtres automatiques avaient rejetée). Le nettoyage des points et
+l'ajustement du BC qui sous-tendent tout cela ont été calibrés sur un corpus
+de **1 297 trajectoires Labradar réelles** : le bruit ainsi corrigé a été
+mesuré, et non supposé.
 
 **À retenir :** garbage in = garbage out (des données pourries donnent
 des résultats pourris). L'atmosphère est *très* importante. Si vous ne
