@@ -10,13 +10,13 @@ Le coefficient balistique est le seul nombre de tout le calcul de trajectoire qu
 
 C'est aussi le nombre auquel la trajectoire est la plus sensible à distance, et celui qui a le plus de chances d'être flatteur. Les BC publiés sont aussi souvent des chiffres marketing que des mesures.
 
-**BC Labradar mesure le vôtre.** Il lit les fichiers de piste qu'un chronographe Labradar écrit sur sa propre carte SD — un enregistrement complet vitesse/temps de chaque coup, échantillonné environ toutes les millisecondes sur la centaine de mètres initiale du vol — et ajuste un coefficient balistique coup par coup, contre la même physique de traînée que le reste de la suite utilise pour calculer les trajectoires. Il nettoie ensuite les pistes que le radar a ratées, écarte les coups qui ne s'accordent pas avec les autres, et fait la moyenne de ce qui survit.
+**BC Labradar mesure le vôtre.** Il lit les fichiers de piste qu'un chronographe Labradar écrit sur sa propre carte SD : un enregistrement complet vitesse/temps de chaque coup, échantillonné environ toutes les millisecondes sur la centaine de mètres initiale du vol. Il ajuste un coefficient balistique coup par coup, avec la même physique de traînée que le reste de la suite utilise pour les trajectoires. Puis il nettoie les pistes ratées, écarte les coups qui ne s'accordent pas avec les autres, et fait la moyenne de ce qui survit.
 
 Ce qui en sort est un BC pour **votre** balle, sortie de **votre** canon, dans **votre** air. Reportez-le dans l'Arsenal et tous les autres outils de la suite travaillent alors sur une mesure au lieu d'une affirmation.
 
-Rien de ce nettoyage ni de cet ajustement n'a été conçu sur le papier puis lâché en espérant. L'ensemble a été calibré sur un corpus de **1 297 pistes Labradar réelles**, à partir duquel le bruit propre du radar — sa croissance le long de la piste, et l'ampleur de ses écarts d'une séance à l'autre — a été mesuré et non supposé. Le §12 expose ce que cette mesure a révélé, et ce qui a été bâti dessus.
+Rien de ce nettoyage ni de cet ajustement n'a été conçu sur le papier puis lâché en espérant — l'ensemble a été calibré sur un corpus de **1 297 pistes Labradar réelles**. Le bruit propre du radar (sa croissance le long de la piste, et l'ampleur de ses écarts d'une séance à l'autre) a été mesuré et non supposé. Le §12 en donne le détail.
 
-Ce que cette méthode a de remarquable, c'est qu'elle ne demande aucun équipement en aval. Pas de second chronographe à 300 m, pas de cible acoustique, pas de radar Doppler de la taille d'une voiture. L'appareil enregistre déjà les données — il ne vous dit simplement pas ce qu'elles valent.
+Chose remarquable, cette méthode ne demande aucun équipement en aval : pas de second chronographe à 300 m, pas de cible acoustique, pas de radar Doppler de la taille d'une voiture. L'appareil enregistre déjà les données — il ne vous dit simplement pas ce qu'elles valent.
 
 ### Ce qu'il n'est pas
 
@@ -24,9 +24,9 @@ Ce que cette méthode a de remarquable, c'est qu'elle ne demande aucun équipeme
 
 **Il ne fonctionne qu'avec le Labradar v1** — la grande boîte orange, celle qui écrit des fichiers `Shot0001 Track.csv`. Les appareils ultérieurs, et toutes les autres marques de chronographe, soit n'enregistrent aucune piste, soit ne l'écrivent pas dans ce format. Il n'existe pas de voie d'import pour eux.
 
-**Ce n'est pas un solveur de courbe Cd.** Il ajuste un seul nombre contre un modèle de traînée standard. Si la forme de traînée réelle de votre balle n'est pas celle de ce modèle, l'ajustement vous donne le meilleur BC unique pour ce modèle sur la bande de vitesse mesurée, et non la vérité sur la balle. C'est l'outil **Courbe Cd–Mach** qui remonte à la courbe de traînée propre d'une balle, et il réclame un type de mesure entièrement différent.
+**Ce n'est pas un solveur de courbe Cd.** Il ajuste un seul nombre contre un modèle de traînée standard — le meilleur BC unique pour ce modèle, non la vérité sur la forme de traînée propre de la balle. C'est l'outil **Courbe Cd–Mach** qui remonte à la courbe de traînée propre d'une balle, et il réclame un type de mesure différent.
 
-**Il vous dit à quel point il est sûr des coups, et de rien d'autre.** À côté de la moyenne il donne un intervalle de confiance à 95 % sur cette moyenne, en pourcentage de celle-ci, calculé à partir de la dispersion des BC coup par coup qu'il a retenus. Cet intervalle est honnête quant aux chiffres qu'on lui a donnés et à l'échantillonnage, et muet sur tout le reste — une atmosphère mal saisie décale la moyenne et l'intervalle ensemble, et aucune statistique calculée sur les pistes ne peut le voir. §10.3.
+**Il vous dit à quel point il est sûr des coups, et de rien d'autre.** À côté de la moyenne il donne un intervalle de confiance à 95 %, exprimé en pourcentage de la moyenne et calculé à partir de la dispersion des BC coup par coup qu'il a retenus. Cet intervalle reflète les chiffres qu'on lui a donnés et le bruit d'échantillonnage qui s'y ajoute, rien d'autre — une atmosphère mal saisie décale la moyenne et l'intervalle ensemble, et aucune statistique calculée sur les pistes ne peut le voir. §10.3.
 
 ---
 
@@ -34,9 +34,9 @@ Ce que cette méthode a de remarquable, c'est qu'elle ne demande aucun équipeme
 
 **Rien de ce que vous confiez à cet outil ne quitte votre appareil.** Le fichier zip que vous choisissez n'est jamais téléversé. Il est décompressé dans votre navigateur, analysé dans votre navigateur et ajusté dans votre navigateur, par du JavaScript qui tourne sur votre propre machine. Pas de compte, pas de serveur, pas de télémétrie.
 
-**Rien n'est stocké non plus.** Contrairement à l'Arsenal ou à la Calculette de précision de tir, cet outil ne tient aucune bibliothèque. Votre lot chargé, vos choix de filtres, votre modèle de traînée et votre atmosphère survivent à un aller-retour vers un autre outil — ils vivent en mémoire le temps de la session — mais ne survivent pas à un rechargement de page. Rechargez, et vous rechoisissez le zip. C'est délibéré : un lot de pistes est un intermédiaire, pas un document. Ce qui mérite d'être conservé, c'est le BC obtenu, et sa place est dans l'Arsenal (§11.1).
+**Rien n'est stocké non plus.** Contrairement à l'Arsenal ou à la Calculette de précision de tir, cet outil ne tient aucune bibliothèque. Votre lot chargé, vos choix de filtres, votre modèle de traînée et votre atmosphère survivent à un aller-retour vers un autre outil (ils vivent en mémoire le temps de la session), mais pas à un rechargement de page. Rechargez, et vous rechoisissez le zip. C'est délibéré : un lot de pistes est un intermédiaire, pas un document. Ce qui mérite d'être conservé, c'est le BC obtenu, et sa place est dans l'Arsenal (§11.1).
 
-**Prérequis.** N'importe quel navigateur raisonnablement récent. L'ajustement est réellement gourmand — une intégration de traînée complète est lancée quelques centaines de fois par piste — il est donc réparti sur un pool de workers d'arrière-plan, une tâche par piste, et les lignes se remplissent au fur et à mesure. Un lot de trente pistes se résout en quelques secondes sur un ordinateur de bureau et prend nettement plus longtemps sur un téléphone. L'application s'installe en PWA et cet outil fonctionne entièrement hors ligne une fois chargé — ce qui compte, car l'endroit où vous voudrez le plus le faire tourner est un stand sans réseau.
+**Prérequis.** N'importe quel navigateur raisonnablement récent. L'ajustement est gourmand en calcul — une intégration de traînée complète tourne quelques centaines de fois par piste — il est donc réparti sur un pool de workers d'arrière-plan (§6.7). Un lot de trente pistes se résout en quelques secondes sur un ordinateur de bureau et prend nettement plus longtemps sur un téléphone. L'application s'installe en PWA, et cet outil fonctionne entièrement hors ligne une fois chargé. Cela compte : l'endroit où vous voudrez le plus le faire tourner est un stand sans réseau.
 
 ---
 
@@ -83,7 +83,7 @@ Trois choses valent d'être sues sur ce tableau, car l'outil les traite toutes d
 
 ### 3.1 Note sur les unités
 
-C'est le seul outil de la suite où les unités interviennent à peine, car un coefficient balistique n'en a aucune que vous reconnaîtriez. Il se cite traditionnellement en livres par pouce carré de charge en section, ce qui s'écrit depuis toujours comme un nombre nu, et cet outil l'écrit comme un nombre nu à quatre décimales.
+C'est le seul outil de la suite où les unités interviennent à peine, car les unités d'un coefficient balistique sont tout à fait troubles. En principe il se mesure en livres par pouce carré de charge en section, mais en pratique personne ne l'écrit ainsi — un simple nombre nu, à trois ou quatre décimales.
 
 Les unités apparaissent tout de même à trois endroits :
 
@@ -116,23 +116,23 @@ Ne faites pas confiance à un résultat issu de moins de dix coups, et lisez le 
 
 L'outil ne sait que nettoyer du bruit. Il ne peut pas inventer une mesure qui n'a jamais eu lieu, et il ne peut pas détecter une erreur systématique dans les conditions que vous avez saisies. Tout ce qui figure dans cette section se joue avant l'ouverture de l'application, et chacune de ces fautes est invisible ensuite.
 
-**Commencez par le manuel de l'appareil**, ou au minimum par son guide de mise en route. Il y a des images. Chaque recommandation qu'il contient a sa raison d'être, et les raisons ci-dessous en sont pour l'essentiel le développement. Ce qui suit est la partie qui pèse de façon disproportionnée quand l'objectif est un coefficient balistique plutôt qu'une vitesse initiale — car une installation qui produit d'excellentes lectures de V0 peut tout de même produire des pistes inexploitables au-delà de trente mètres, et l'appareil ne vous dira pas laquelle des deux séances vous venez de faire.
+**Commencez par le manuel de l'appareil**, ou au minimum par son guide de mise en route. Il y a des images. Chaque recommandation qu'il contient a sa raison d'être, et les raisons ci-dessous en sont pour l'essentiel le développement. Ce qui suit est la partie qui pèse de façon disproportionnée quand l'objectif est un coefficient balistique plutôt qu'une vitesse initiale. Une installation qui produit d'excellentes lectures de V0 peut tout de même produire des pistes inexploitables au-delà de trente mètres — et l'appareil ne vous dira pas laquelle des deux séances vous venez de faire.
 
 ### 5.1 Viser avec le radar
 
 **Pointez-le sur la cible que vous visez réellement**, pas sur la carabine, ni vaguement dans l'axe du stand. L'appareil suit la balle le long de son propre axe de faisceau, et plus la trajectoire longe cet axe, plus chaque écho est fort et propre.
 
-Il ne s'agit pas d'un ou deux mètres de piste en plus. L'alignement du faisceau détermine jusqu'où l'appareil tient la balle tout court, et la longueur de piste est le plus grand levier dont vous disposiez sur la qualité d'un ajustement de BC : une piste plus longue, c'est plus de décroissance de vitesse à mesurer, plus de points sur lesquels ajuster, et proportionnellement moins d'influence du bruit de fin de course.
+Il ne s'agit pas seulement d'un ou deux mètres de piste en plus. L'alignement du faisceau détermine jusqu'où l'appareil tient la balle tout court. Et la longueur de piste est le plus grand levier sur la qualité d'un ajustement de BC : une piste plus longue, c'est plus de décroissance à mesurer, plus de points sur lesquels ajuster, et moins d'influence relative du bruit de fin de course.
 
 ### 5.2 Le décalage projectile
 
 L'appareil possède un réglage nommé *proj. offset*, qui lui indique à quelle distance du radar passe la balle. Le fausser rend fausse chaque vitesse de chaque piste, de façon cohérente et parfaitement plausible à l'œil.
 
-**Pourquoi il existe.** Le radar ne peut mesurer que la vitesse *radiale* — le rythme auquel la balle s'éloigne de l'appareil — qui n'est pas la vitesse réelle dans l'axe du tir, car l'axe du faisceau et la trajectoire ne sont pas la même droite. Passer de l'une à l'autre relève de la trigonométrie élémentaire, et c'est ce que fait l'appareil avant d'afficher quoi que ce soit. Mais cette trigonométrie a besoin de savoir de combien les deux droites sont écartées, et c'est ce nombre que vous réglez.
+**Pourquoi il existe.** Le radar ne mesure que la vitesse *radiale* : le rythme auquel la balle s'éloigne de l'appareil. Ce n'est pas la vitesse réelle dans l'axe du tir, car l'axe du faisceau et la trajectoire ne sont pas la même droite. Passer de l'une à l'autre est de la trigonométrie élémentaire — c'est exactement ce que fait l'appareil avant d'afficher quoi que ce soit — mais il faut savoir de combien les deux droites sont écartées. C'est ce nombre que vous réglez.
 
 **Respectez-le.** Si le réglage indique 30 cm, placez le canon à 25–30 cm du radar. Mettez-le à un mètre et l'appareil enregistrera encore quelque chose, mais chaque lecture portera une erreur importante.
 
-**C'est la distance à l'axe du canon, mesurée sur le côté du radar.** Pas la distance de la bouche à l'appareil, qui est une oblique plus longue. Si votre bouche se trouve un peu en avant ou un peu en arrière du boîtier, ce n'est pas un problème en soi — pourvu que l'écart latéral au canon soit juste, l'erreur sur la vitesse initiale affichée est négligeable et l'erreur sur le BC calculé ici est nulle.
+**C'est la distance à l'axe du canon, mesurée sur le côté du radar.** Pas la distance de la bouche à l'appareil, qui est une oblique plus longue. Si votre bouche se trouve un peu en avant, ou en arrière, du boîtier, ce n'est pas un problème en soi. Pourvu que l'écart latéral au canon soit juste, l'erreur sur la vitesse initiale affichée est négligeable, et l'erreur sur le BC calculé ici est nulle.
 
 **Et cela compte davantage ici que sur l'afficheur de l'appareil.** Une erreur de décalage perturbe modérément la V0. Elle perturbe bien plus un BC tiré de la *forme* de la piste. Si vous tolérez d'habitude un décalage approximatif parce que vos chiffres de chronographe restent crédibles, cette tolérance ne se transporte pas jusqu'à cet outil. Le §12.1 explique pourquoi.
 
@@ -155,7 +155,7 @@ Le radar Doppler se réjouit de tout ce qui réfléchit, et chaque réflexion pa
 
 **Réglez la distance d'affichage maximale sur 200 m, ou 200 yd.**
 
-La piste n'ira très probablement pas jusque-là — en pratique, seuls de très gros calibres à trajectoire tendue s'en approchent. Ce que fait ce réglage, c'est dire à l'appareil de continuer d'essayer tant que le signal tient, plutôt que de s'arrêter à une limite configurée plus courte. Piste plus longue, plus de décroissance, meilleur ajustement. Il n'y a pas d'inconvénient, puisque l'appareil coupe de toute façon le faisceau radar dès qu'il perd la balle.
+La piste n'ira très probablement pas jusque-là — en pratique, seuls de très gros calibres à trajectoire tendue s'en approchent. Ce réglage dit simplement à l'appareil de continuer d'essayer tant que le signal tient, au lieu de s'arrêter à une limite plus courte. Piste plus longue, plus de décroissance, meilleur ajustement. Il n'y a pas d'inconvénient : l'appareil coupe de toute façon le faisceau radar dès qu'il perd la balle.
 
 ### 5.6 L'atmosphère : la donnée qui vous mordra vraiment
 
@@ -179,7 +179,7 @@ Un coup, c'est un coup. Il ne dit à peu près rien, et l'outil en calculera vol
 
 Plus, c'est toujours mieux, et le coût marginal est d'une cartouche.
 
-Tirez-les toutes dans les mêmes conditions, avec la même carabine, avec la même balle. Cet outil fait la moyenne sur le lot. Moyenner deux balles différentes ne donne le BC ni de l'une ni de l'autre. Notez que les vitesses initiales n'ont pas à être identiques, ni même voisines ; mesurer un BC sur une série de mise au point de charge est parfaitement acceptable.
+Tirez-les toutes dans les mêmes conditions, avec la même carabine, avec la même balle. Cet outil fait la moyenne sur le lot. Moyenner deux balles différentes ne donne le BC ni de l'une ni de l'autre. Les vitesses initiales n'ont pas à être identiques, ni même voisines — mesurer un BC sur une série de mise au point de charge est parfaitement acceptable.
 
 ### 5.8 Sortir le zip de l'appareil
 
@@ -200,11 +200,11 @@ Le modèle de traînée standard contre lequel le BC est exprimé. Par défaut *
 Le choix pèse davantage ici qu'ailleurs, car l'ajustement se fait contre la forme réelle de la courbe du modèle sur la bande de vitesse réelle de votre balle, et non par une conversion :
 
 - **G7** pour les balles boat-tail modernes — ogive longue, culot rétreint. En pratique, toute balle match ou de chasse conçue ces trente dernières années.
-- **G1** pour les culots plats, les ogives rondes et la plupart des dessins anciens ou émoussés. C'est aussi ce que citent la plupart des fabricants, ce qui est une raison distincte de l'employer.
+- **G1** pour les culots plats, les ogives rondes et la plupart des dessins anciens ou émoussés. C'est aussi ce que citent la plupart des fabricants, alors pourquoi pas.
 
 Le modèle choisi est figé dans chaque ajustement de piste ; le changer après coup impose un nouveau **Calculer** (§6.7). Il n'a aucun effet sur l'étape de nettoyage.
 
-Rien n'interdit de passer le même lot deux fois, une fois par modèle, et de garder les deux nombres. Pour les calculs de trajectoire, utilisez le modèle qui correspond le mieux à la forme de votre balle.
+Vous pouvez passer le même lot deux fois, une fois par modèle, et garder les deux nombres.
 
 ### 6.2 Atmosphère
 
@@ -230,7 +230,7 @@ Trois réglages :
 
 Le R² affiché dans la liste des pistes est le nombre auquel ce seuil est comparé. Le §12.8 explique ce qu'il mesure réellement, et pourquoi une droite est la bonne référence pour un contrôle de *qualité* alors qu'elle est la mauvaise référence pour un *ajustement*.
 
-Changer ce réglage redécide quelles pistes sont retenues et met à jour la moyenne **immédiatement**. Aucun recalcul n'est nécessaire, car aucun BC ne change — seul change le verdict porté sur chacun.
+Changer ce réglage redécide quelles pistes sont retenues et met à jour la moyenne **immédiatement** — aucun recalcul nécessaire, puisqu'aucun BC ne change, seul change le verdict porté sur chacun.
 
 ### 6.4 Rejeter les valeurs aberrantes
 
@@ -319,7 +319,7 @@ Cliquer n'importe où sur une ligne sauf sur sa case sélectionne cette piste et
 | **exclu** | Vous avez décoché la case à la main |
 | **erreur** | L'ajustement a échoué. Voir §10.4 |
 
-***Pas une trajectoire*** est l'état normal de plusieurs entrées dans tout export réel, et ce n'est pas un problème. Le `Report.csv` de l'appareil l'obtient, car c'est un récapitulatif et non une piste. De même tout ce qui se termine par hasard en `.csv` — y compris les fichiers compagnons invisibles en `._` que macOS sème dans les archives qu'il a touchées. L'outil tranche d'après le contenu et non d'après le nom : un fichier est une piste s'il contient un en-tête de piste Labradar avec une unité de vitesse déclarée, et s'il livre au moins quatre lignes de données exploitables.
+***Pas une trajectoire*** est l'état normal de plusieurs entrées dans tout export réel, et ce n'est pas un problème. Le `Report.csv` de l'appareil obtient ce statut, car c'est un récapitulatif et non une piste — de même tout ce qui se termine par hasard en `.csv` — y compris les fichiers compagnons invisibles en `._` que macOS sème dans les archives qu'il a touchées. L'outil tranche d'après le contenu et non d'après le nom : un fichier est une piste s'il contient un en-tête de piste Labradar avec une unité de vitesse déclarée, et s'il livre au moins quatre lignes de données exploitables.
 
 ### 7.3 La case « Inclure »
 
@@ -352,7 +352,7 @@ La courbe est prolongée jusqu'au temps le plus tardif de **n'importe quel** poi
 
 **Télécharger le graphique en SVG** l'exporte, comme les autres graphiques de la suite.
 
-Sélectionner une piste en erreur trace tout de même quelque chose : puisqu'il n'y a ni ajustement ni partage conservé/écarté, chaque point brut hormis le point de bouche fabriqué par l'appareil est dessiné comme rejeté, de sorte que vous puissiez au moins voir ce que le radar a enregistré et vous faire votre propre idée sur ce qui a empêché tout ajustement.
+Sélectionner une piste en erreur trace tout de même quelque chose. Puisqu'il n'y a ni ajustement ni partage conservé/écarté, chaque point brut hormis le point de bouche fabriqué par l'appareil est dessiné comme rejeté — de sorte que vous puissiez au moins voir ce que le radar a enregistré, et juger vous-même de ce qui a empêché tout ajustement.
 
 L'axe horizontal est en millisecondes et l'axe vertical en mètres par seconde, toujours. Voir §3.1.
 
@@ -362,7 +362,7 @@ L'axe horizontal est en millisecondes et l'axe vertical en mètres par seconde, 
 
 Trois lignes, au-dessus du graphique.
 
-- **Trajectoires valides** — l'étiquette de l'interface ; comprenez « pistes valides ». Combien, sur le total, entrent actuellement dans la moyenne. `24 / 31` signifie que trente et un coups ont produit un coefficient balistique et que vingt-quatre d'entre eux sont moyennés. Le dénominateur ne compte que les pistes réellement ajustées ; les entrées qui n'ont jamais été des pistes, et celles en erreur, sont absentes des deux moitiés. Si ce dénominateur est inférieur au nombre de coups que vous avez tirés, parcourez la liste à la recherche d'erreurs.
+- **Trajectoires valides** — l'étiquette de l'interface ; comprenez « pistes valides ». Combien, sur le total, entrent actuellement dans la moyenne. `24 / 31` signifie que trente et un coups ont produit un coefficient balistique et que vingt-quatre d'entre eux sont moyennés. Le dénominateur ne compte que les pistes réellement ajustées ; les entrées qui n'ont jamais été des pistes, ou qui ont échoué, sont exclues des deux nombres. Si ce dénominateur est inférieur au nombre de coups que vous avez tirés, parcourez la liste à la recherche d'erreurs.
 - **Écart-type du BC** — la dispersion des BC individuels, coup par coup, entrés dans la moyenne, à cinq décimales. C'est le nombre qui vous dit s'il faut croire celui d'en dessous. Voir §10.3.
 - **Le BC lui-même** — en grand, dans la couleur d'accent, à quatre décimales. La simple moyenne arithmétique non pondérée des BC de toutes les pistes retenues. À côté, plus discret, l'intervalle de confiance à 95 % sur cette moyenne, écrit en pourcentage de celle-ci : `0.2812 (± 1.6%)`. Avec une seule piste valide, aucun intervalle n'apparaît, un coup unique n'ayant aucune dispersion d'où le tirer. Voir §10.3.
 
@@ -374,13 +374,13 @@ Les trois se mettent à jour à l'instant où vous changez un filtre ou cochez u
 
 ### 10.1 Ce que vous avez réellement mesuré
 
-Ce nombre est le meilleur BC unique, contre le modèle de traînée que vous avez choisi, qui reproduise la décélération que votre balle a réellement montrée sur la centaine de mètres initiale de son vol, dans l'air que vous avez déclaré à l'outil.
+Ce nombre est le meilleur BC unique contre le modèle de traînée que vous avez choisi. Il reproduit la décélération que votre balle a réellement montrée sur la centaine de mètres initiale de son vol, dans l'air que vous avez déclaré à l'outil.
 
 Trois réserves à cela, toutes bien réelles :
 
-**C'est une mesure de la balle, telle qu'elle sort de votre canon et traverse votre air.** Pas de la charge de poudre. La vitesse initiale ne fait pas partie de ce qui est mesuré — l'ajustement lit la *forme* de la décroissance, et une balle qui part à 780 m/s décélère selon la même courbe de traînée qu'une balle partie à 700 m/s. C'est pourquoi le §5.7 peut dire qu'un lot n'a pas à être homogène en vitesse. Ce que le canon apporte, en revanche, est bien réel : l'encrassement, l'usure du cône de forcement et tout ce qui perturbe la balle à la sortie peuvent changer sa manière de voler, et cela se verra ici.
+**C'est une mesure de la balle, telle qu'elle sort de votre canon et traverse votre air.** Pas de la charge de poudre. La vitesse initiale ne fait pas partie de ce qui est mesuré. L'ajustement lit la *forme* de la décroissance : une balle qui part à 780 m/s décélère selon la même courbe de traînée qu'une balle partie à 700 m/s. C'est pourquoi le §5.7 peut dire qu'un lot n'a pas à être homogène en vitesse. Ce que le canon apporte, en revanche, est bien réel : l'encrassement, l'usure du cône de forcement et tout ce qui perturbe la balle à la sortie peuvent changer sa manière de voler, et cela se verra ici.
 
-**Il est ajusté sur une bande de vitesse limitée.** La balle n'est dans le champ du radar que sur une fraction de son vol, et elle y est rapide tout du long. Un BC unique contre un modèle standard est un compromis sur la bande où il a été ajusté — plus la courbe de traînée réelle de votre balle épouse la forme du modèle, mieux ce compromis s'extrapole vers le domaine transsonique, là où il compte le plus. Mais le segment proche que le radar enregistre réellement ne permet pas de dire quel modèle extrapole le mieux à longue distance. C'est une propriété de la balle, pas de l'outil, et c'est pourquoi les deux modèles de traînée peuvent tous deux bien s'ajuster ici et pourtant se contredire à distance.
+**Il est ajusté sur une bande de vitesse limitée.** La balle n'est dans le champ du radar que sur une fraction de son vol, et elle y est rapide tout du long. Un BC unique contre un modèle standard est un compromis sur la bande où il a été ajusté. Plus la courbe de traînée réelle de votre balle épouse la forme du modèle, mieux ce compromis s'extrapole vers le domaine transsonique — là où il compte le plus. Mais le segment proche que le radar enregistre réellement ne permet pas de dire quel modèle extrapole le mieux à longue distance. C'est une propriété de la balle, pas de l'outil, et c'est pourquoi les deux modèles de traînée peuvent tous deux bien s'ajuster ici et pourtant se contredire à distance.
 
 **Il ne vaut que ce que vaut votre atmosphère.** Encore une fois. Voir §5.6.
 
@@ -400,7 +400,7 @@ Les deux nombres répondent à des questions différentes, et toute la question 
 
 **L'écart-type** est la dispersion des BC individuels, coup par coup. C'est une propriété de votre tir, de votre munition et de la journée qu'a passée votre radar, et tirer davantage ne le réduira pas nécessairement.
 
-**L'intervalle de confiance** dit à quel point ces coups ont cerné la moyenne. Contrairement à la dispersion, celui-ci se resserre bel et bien à mesure que vous tirez — mais lentement. Quatre fois plus de coups pour la moitié de l'intervalle. Il s'élargit quand vos coups se contredisent davantage, et il est délibérément généreux sur les petits lots, parce qu'une poignée de coups ne peut sincèrement pas dire grand-chose. Le §12.9 donne la formule.
+**L'intervalle de confiance** dit à quel point ces coups ont cerné la moyenne. Contrairement à la dispersion, celui-ci se resserre bel et bien à mesure que vous tirez — mais lentement. Quatre fois plus de coups pour la moitié de l'intervalle. Il s'élargit quand vos coups se contredisent davantage. Et il est délibérément généreux sur les petits lots, parce qu'une poignée de coups ne peut tout simplement pas dire grand-chose. Le §12.9 donne la formule.
 
 Ainsi un lot de 25 pistes valides avec un écart-type de BC de 0,010 donne un intervalle d'environ ±0,004 autour de la moyenne. Contre un BC de 0,250, cela se lit ±1,6 %, ce qui est une mesure réellement utile.
 
@@ -411,7 +411,7 @@ Le même écart-type sur seulement 4 pistes valides donne environ ±0,016, soit 
 Deux règles empiriques en découlent directement, et elles sont la raison d'être de ce que dit le §5.7 :
 
 - **La dispersion est une propriété de vos données ; la précision est une propriété de la taille de votre échantillon.** Des pistes bruitées se soignent en en tirant davantage.
-- **Une dispersion est large relativement à ce que la cartouche et la fenêtre rendent normal.** Dans les campagnes de validation derrière cet outil (§12.6) — des pistes synthétiques portant du bruit copié d'enregistrements Labradar réels, nettoyées et ajustées exactement comme le fait l'outil livré — la dispersion par piste allait d'environ 1,5 % à 5 % du coefficient, la plus large pour des cartouches lourdes et lentes à décélérer sur une fenêtre courte, la plus étroite pour des rapides sur une fenêtre longue. Une valeur dans cette bande ne dit rien de particulier. Nettement au-dessus, parcourez les lignes et regardez les graphiques avant de moyenner par-dessus : le radar peinait, le couloir était encombré, le décalage était faux, ou votre munition est réellement aussi irrégulière. Notez que ces campagnes mesuraient le bruit radar contre une vérité connue ; un lot réel porte la véritable variation d'une balle à l'autre par-dessus cette bande, et non dedans.
+- **Une dispersion est large relativement à ce que la cartouche et la fenêtre rendent normal.** Les campagnes de validation derrière cet outil (§12.6) ont utilisé des pistes synthétiques portant du bruit copié d'enregistrements Labradar réels, nettoyées et ajustées exactement comme le fait l'outil livré. La dispersion par piste allait d'environ 1,5 % à 5 % du coefficient — la plus large pour des cartouches lourdes et lentes à décélérer sur une fenêtre courte, la plus étroite pour des rapides sur une fenêtre longue. Une valeur dans cette bande ne dit rien de particulier. Nettement au-dessus, parcourez les lignes et regardez les graphiques avant de moyenner par-dessus : le radar peinait, le couloir était encombré, le décalage était faux, ou votre munition est réellement aussi irrégulière. Ces campagnes mesuraient le bruit radar contre une vérité connue, si bien qu'un lot réel porte la véritable variation d'une balle à l'autre par-dessus cette bande, pas dedans.
 
 ### 10.4 Quand une piste est en erreur
 
@@ -429,7 +429,7 @@ Une ou deux erreurs dans un grand lot n'ont rien de remarquable. Un lot où la p
 
 C'est le but de l'exercice. Ouvrez **Armes → Arsenal**, modifiez la balle que vous venez de mesurer et remplacez le BC publié par le vôtre, contre le modèle de traînée avec lequel vous l'avez ajusté.
 
-Il n'y a pas de transfert automatique — vous saisissez le nombre. Ce sont quatre chiffres, et la lenteur en vaut la peine : c'est vous qui décidez que votre mesure supplante l'affirmation du fabricant, et cette décision mérite d'être consciente.
+Il n'y a pas de transfert automatique — vous saisissez le nombre. Ce sont quatre chiffres, et c'est le but : c'est vous qui décidez que votre mesure supplante l'affirmation du fabricant, et cette décision doit être consciente.
 
 Dès cet instant, tous les outils de la suite — Trajectoire, Probabilité de touche, Calculateur de terrain, le graphique de comparaison — travaillent sur une valeur de traînée mesurée. L'amélioration est invisible à cent mètres et très visible au-delà de six cents.
 
@@ -439,7 +439,7 @@ Parce que l'outil rapporte un écart-type coup par coup en plus d'une moyenne, c
 
 - **Deux lots de la même balle.** Tirez-en vingt de chaque et traitez-les comme deux lots séparés. Un BC moyen sensiblement différent signifie que les lots diffèrent réellement, le plus probablement par la régularité de l'ogive ou du culot.
 - **L'effet d'une matrice à pointer, ou d'un tri sur la cote culot-ogive.** Même traitement. Le nombre intéressant est ici l'*écart-type*, pas la moyenne : des balles régulières donnent des BC réguliers.
-- **Enduit contre non enduit, moly, ou quel que soit l'engouement du moment.** La mesure est honnête et l'effet est d'ordinaire plus petit que le discours commercial.
+- **Enduit contre non enduit, moly, ou quel que soit l'engouement du moment.** La mesure se moque du marketing, et l'effet est d'ordinaire plus petit que ce que prétend le discours commercial.
 
 Gardez l'atmosphère honnête d'une comparaison à l'autre, sans quoi vous mesurerez la météo.
 
@@ -461,7 +461,7 @@ Deux conséquences façonnent tout le reste :
 
 **Le décalage projectile est une vraie correction géométrique, pas une coquetterie.** Ce que voit le faisceau est la composante radiale de la vitesse. La convertir en vitesse réelle dans l'axe du tir réclame l'angle entre le faisceau et la trajectoire, lequel se déduit du décalage que vous avez réglé. Une erreur de décalage est une erreur en cosinus, et les erreurs en cosinus sont les pires : petites, systématiques et entièrement invisibles en sortie.
 
-Cela explique aussi l'asymétrie affirmée au §5.2 — pourquoi un décalage négligé coûte plus cher à une mesure de BC qu'à une vitesse initiale. L'angle entre le faisceau et la trajectoire n'est pas constant : il est le plus ouvert juste à la bouche et se referme vers zéro à mesure que la balle s'éloigne. Le facteur de correction est donc une *fonction de la distance*, et se tromper de décalage ne met pas toute la piste à une mauvaise échelle constante. Cela la cintre. Les points initiaux sont corrigés davantage que les derniers, ou moins, et il en sort une courbe de décroissance de vitesse de la mauvaise forme.
+Cela explique aussi l'asymétrie affirmée au §5.2 — pourquoi un décalage négligé coûte plus cher à une mesure de BC qu'à une vitesse initiale. L'angle entre le faisceau et la trajectoire n'est pas constant : il est le plus ouvert juste à la bouche et se referme vers zéro à mesure que la balle s'éloigne. Le facteur de correction est donc une *fonction de la distance*. Se tromper de décalage ne met pas toute la piste à une mauvaise échelle constante — cela la cintre. Les points initiaux sont corrigés davantage que les derniers, ou moins, et il en sort une courbe de décroissance de vitesse de la mauvaise forme.
 
 Une vitesse initiale est un point unique sur cette courbe et absorbe l'erreur comme un décalage modéré. Un coefficient balistique est ajusté à la forme de la courbe et l'absorbe comme un biais. Le même laisser-aller qui laisse vos lectures de chronographe parfaitement raisonnables peut déplacer un BC de plusieurs pour cent.
 
@@ -491,7 +491,7 @@ Deux autres faits issus du même corpus, tous deux porteurs pour la conception :
 - **55 % des pistes réelles n'ont besoin d'aucun élagage de points.** Le nettoyage n'est pas une passe de lissage de routine ; c'est un traitement d'exception.
 - **La sévérité varie énormément d'une séance à l'autre et n'est pas prévisible depuis l'intérieur d'une piste.** Le nombre de points écartés va de 0 à 73 sur le corpus. Le calibre (le pouvoir réfléchissant du culot), l'encombrement près de la ligne de vol, l'alignement du faisceau et la stabilité de la boîte sous le souffle contribuent tous indépendamment.
 
-Ce dernier point a tué deux conceptions distinctes de seuil adaptatif par piste, qui toutes deux tentaient de calibrer la vigueur du nettoyage sur la partie initiale de chaque piste. Cela ne peut pas marcher : la sévérité réelle loge presque entièrement dans la queue, et un signal calibré sur la tête est structurellement incapable de la voir. L'une des deux a été écartée sur une piste synthétique *sans bruit*, où elle jetait 18 à 26 points parfaitement bons ; l'autre a passé ce contrôle mais n'a jamais différé, pas une fois, d'un seuil fixe sur des pistes réelles à sévérité véritable. Toutes deux sont documentées dans le rapport d'expérience sur le nettoyage du dépôt, et le seuil fixe qui les a remplacées a fait mieux que les deux.
+Ce dernier point a tué deux conceptions de seuil qui s'adaptait par piste, toutes deux tentant de calibrer la vigueur du nettoyage sur la partie initiale de chaque piste. Cela ne peut pas marcher : la sévérité réelle loge presque entièrement dans la queue, et un signal calibré sur la tête ne peut pas la voir. L'une des deux a été écartée sur une piste synthétique *sans bruit*, où elle jetait 18 à 26 points parfaitement bons. L'autre a passé ce contrôle, mais n'a jamais battu un seuil fixe sur des pistes réelles à sévérité véritable. Toutes deux sont documentées dans le rapport du dépôt sur l'expérience de nettoyage ; le seuil fixe qui les a remplacées a fait mieux que les deux.
 
 ### 12.3 Nettoyage : retrait glouton du pire point avec barrière de restauration sur R²
 
@@ -508,7 +508,7 @@ Trois asymétries d'indice dans cette routine ressemblent à des bugs et n'en so
 
 - **Le point synthétique t = 0 de l'appareil est exclu de l'ajustement, du R² et de la recherche du pire point.** Ce n'est pas une mesure (§3), et son champ SNR est littéralement un tiret. Il ne peut pas être autorisé à influencer un ajustement et ne peut pas non plus être « retiré » de manière sensée.
 - **Le dernier point est exclu de l'ajustement et du R², mais reste éligible au retrait.** L'appareil est le plus bruité précisément en fin de piste, donc un mauvais dernier point ne doit pas corrompre l'indicateur de qualité — tout en restant un candidat légitime à l'élagage. La conséquence est un comportement précis et vérifiable : une piste dont le *seul* problème est un mauvais dernier point a déjà son meilleur R² possible au pas zéro, donc la première vérification de restauration passe et ce point revient. Il ne reste élagué que s'il coïncide avec un vrai problème à l'intérieur de la plage d'ajustement.
-- **Deux plages d'ajustement différentes** servent à ce qui est mathématiquement la même régression linéaire pondérée : l'une excluant le dernier point (pour le R² et la recherche du pire point), l'autre l'incluant (pour y lire des vitesses, dans l'ancien estimateur à deux points). Les confondre est une faute facile et réellement dommageable — les deux plages produisent des vitesses qui ne s'accordent qu'à trois chiffres significatifs, ce qui est invisible au R² et vaut sourdement environ un demi pour cent de BC.
+- **Deux plages d'ajustement différentes** servent à ce qui est mathématiquement la même régression linéaire pondérée : l'une excluant le dernier point (pour le R² et la recherche du pire point), l'autre l'incluant (pour y lire des vitesses, dans l'ancien estimateur à deux points). Les confondre est une faute facile et coûteuse : les deux plages produisent des vitesses qui ne s'accordent qu'à trois chiffres significatifs — invisible au R², mais valant sourdement environ un demi pour cent de BC.
 
 Il subsiste un accident honnête hérité de l'original : la condition d'arrêt est vérifiée *après* le retrait, si bien que la boucle peut retirer, et retire typiquement, un point de plus que le plancher, s'arrêtant à neuf plutôt qu'à dix. Aucune justification métier n'en a été trouvée dans le code d'origine. Il est conservé parce que le portage a été validé dans son ensemble sur des pistes réelles, et que le modifier invaliderait cette validation sans gain connu.
 
@@ -518,7 +518,7 @@ La colonne SNR est en décibels. Le poids de chaque point est cette valeur recon
 
 $$w_i = 10^{\,\text{SNR}_i/10}$$
 
-ce qui n'est pas une transformation cosmétique. Un point à 40 dB pèse 10 000 ; un point à 10 dB pèse 10. Sur une piste réelle, cela fait un facteur mille entre les échos initiaux, sûrs, et les derniers, douteux — exactement la forme qu'exige le tableau de bruit du §12.2. L'ajustement est dominé par la portion de piste dont le radar était réellement sûr, et la queue bruitée n'y contribue presque rien — tout en restant *présente*, de sorte qu'une queue qui contredit réellement le modèle apparaît encore dans les résidus et se fait encore attraper par le nettoyage.
+ce qui n'est pas une transformation cosmétique. Un point à 40 dB pèse 10 000 ; un point à 10 dB pèse 10. Sur une piste réelle, cela fait un facteur mille entre les échos initiaux, sûrs, et les derniers, douteux, ce qui correspond à la forme que prédit le tableau de bruit du §12.2. L'ajustement est dominé par la portion de piste dont le radar était réellement sûr ; la queue bruitée n'y contribue presque rien — mais reste *présente*, si bien qu'une queue qui contredit vraiment le modèle apparaît encore dans les résidus et se fait attraper par le nettoyage.
 
 Le point synthétique t = 0 n'a aucun SNR et se voit attribuer un poids nul — mais en pratique il n'atteint jamais une pondération, puisque chaque ajustement de l'outil l'exclut structurellement par son indice avant même que la pondération n'intervienne.
 
@@ -547,7 +547,7 @@ Trois choix de conception méritent d'être énoncés :
 
 **La forme de la courbe n'est jamais présupposée.** C'est ce que le modèle de traînée produit réellement à ces vitesses dans cet air, et c'est tout l'enjeu.
 
-L'intégration emploie le pas de calcul RK4 partagé de la suite, à pas fixe de 20 ms hors de la bande transsonique et de 3 ms à l'intérieur, l'atmosphère étant réévaluée à chaque pas depuis l'altitude courante de la balle. Atteindre exactement un temps cible passe par la même interpolation quadratique à trois points que le reste du moteur emploie pour atteindre une distance cible — lire le pas brut qui dépasse ferait une erreur bien réelle à ces vitesses, de l'ordre de plusieurs dizaines de mètres.
+L'intégration emploie le pas de calcul RK4 partagé de la suite, à pas fixe de 20 ms hors de la bande transsonique et de 3 ms à l'intérieur, l'atmosphère étant réévaluée à chaque pas depuis l'altitude courante de la balle. Atteindre exactement un temps cible passe par la même interpolation quadratique à trois points que le reste du moteur emploie pour une distance cible. Lire le pas brut qui dépasse ferait une erreur bien réelle à ces vitesses — de l'ordre de plusieurs dizaines de mètres.
 
 ### 12.6 Pourquoi pas une droite, et pourquoi pas une parabole
 
@@ -565,7 +565,7 @@ Cela isole ce que les essais bruités ne peuvent pas isoler seuls : **une droite
 
 Avec du vrai bruit ajouté, sur toutes les configurations et longueurs de fenêtre éprouvées :
 
-- **La quadratique surestime le BC dans chaque cellule sans exception**, de +4 % à +9 %. Elle épouse trop bien la queue bruitée — et puisque le §12.2 a établi que les erreurs de queue sont unilatérales vers le haut, bien les épouser signifie être tiré vers le haut. Cela reproduit exactement l'échec que l'auteur de l'outil précédent avait déjà trouvé à la main.
+- **La quadratique surestime le BC dans chaque cellule sans exception**, de +4 % à +9 %. Elle épouse trop bien la queue bruitée, et puisque les erreurs de queue sont unilatérales vers le haut (§12.2), bien les épouser tire aussi le résultat vers le haut. Cela reproduit exactement l'échec que l'auteur de l'outil précédent avait déjà trouvé à la main.
 - **Le biais du linéaire dépend de la configuration et croît avec la longueur de fenêtre.** Presque plat pour un .338 lourd et décélérant doucement ; un biais négatif fort et croissant pour un 5,56 rapide à faible BC — de -3,4 % à 120 m jusqu'à -8,4 % à 200 m. C'est le biais de forme ci-dessus, cumulé à la sensibilité au bruit.
 - **L'ajustement physique a eu la plus petite erreur dans chaque cellule sans exception**, typiquement trois à neuf fois plus petite que l'une ou l'autre solution, et la dispersion la plus serrée par-dessus le marché.
 
@@ -599,7 +599,7 @@ Toutes deux opèrent sur des résultats de piste déjà obtenus, et aucune ne r�
 
 **La barrière de qualité du signal** compare le R² de chaque piste — le coefficient de détermination de la droite pondérée par le SNR passant par ses points *nettoyés* — à 0,95 (Normal) ou 0,90 (Bruit élevé), ou saute le test entièrement (Aucun).
 
-Il y a ici une contradiction apparente qu'il vaut la peine de lever : le §12.6 vient d'établir qu'une droite est le mauvais modèle pour ajuster un BC. Elle est néanmoins la bonne référence pour un contrôle de *qualité*, pour deux raisons. L'écart d'une piste à la linéarité sur une fenêtre de 100 m est dominé par le bruit et non par la courbure réelle — la courbure vaut quelques pour cent, les mauvais points valent des dizaines de mètres par seconde. Et employer la même référence que le nettoyage lui-même rend le R² rapporté directement lisible comme « le nettoyage s'est-il bien passé », qui est précisément ce sur quoi on demande à l'utilisateur de juger.
+Il y a ici une contradiction apparente : le §12.6 vient d'établir qu'une droite est le mauvais modèle pour ajuster un BC. Elle est néanmoins la bonne référence pour un contrôle de *qualité*, pour deux raisons. L'écart d'une piste à la linéarité sur une fenêtre de 100 m est dominé par le bruit, pas par la courbure réelle — la courbure coûte quelques pour cent, les mauvais points coûtent des dizaines de mètres par seconde. Et employer la même référence que le nettoyage lui-même rend le R² rapporté directement lisible comme « le nettoyage s'est-il bien passé » — exactement ce sur quoi l'utilisateur est censé juger.
 
 **L'écrêtage des aberrantes** calcule la moyenne et l'écart-type de population sur ce qui reste valide après la barrière de qualité, puis rejette toute piste à plus de $k\sigma$ de cette moyenne, avec $k = 2,0$ (Conservateur) ou $k = 1,644854$ (Agressif). Cette seconde constante n'est pas arbitraire : c'est le 95e centile de la loi normale centrée réduite, de sorte qu'un écrêtage bilatéral de cette largeur conserve les 90 % centraux d'une population normale. C'est le seuil classique « rejeter les 10 % les pires », écrit exactement.
 
@@ -611,13 +611,13 @@ Les barrières s'exécutent dans cet ordre, et uniquement dans cet ordre : la qu
 
 Une simple moyenne arithmétique non pondérée des BC survivants, et leur écart-type de population — divisé par $n$, non par $n-1$.
 
-L'intervalle de confiance rapporté est un calcul distinct sur ce même ensemble de survivants, et lui utilise bel et bien $n-1$ : demi-largeur $= t_{0,975,\,n-1} \cdot s / \sqrt{n}$, avec $s$ l'écart-type d'échantillon, divisée par la moyenne pour donner le pourcentage affiché. Les deux dénominateurs sont délibérés. La forme population est celle contre laquelle l'ancien écrêtage a été calibré et elle reste intacte ; la forme échantillon est la bonne pour un intervalle sur une moyenne. Le multiplicateur est le quantile de Student bilatéral à 95 %, tabulé pour $n$ jusqu'à 31 et repris d'un développement de Cornish-Fisher au-delà, ce qui compte plus qu'il n'y paraît — à cinq pistes il vaut 2,776, et à quatre 3,182, contre le 1,96 qu'emploierait une approximation normale dans les deux cas : un intervalle plus large de 42 % et de 62 %, et considérablement plus honnête.
+L'intervalle de confiance rapporté est un calcul distinct sur ce même ensemble de survivants, et lui utilise bel et bien $n-1$ : demi-largeur $= t_{0,975,\,n-1} \cdot s / \sqrt{n}$, avec $s$ l'écart-type d'échantillon, divisée par la moyenne pour donner le pourcentage affiché. Les deux dénominateurs sont délibérés. La forme population est celle contre laquelle l'ancien écrêtage a été calibré et elle reste intacte ; la forme échantillon est la bonne pour un intervalle sur une moyenne. Le multiplicateur est le quantile de Student bilatéral à 95 %, tabulé pour $n$ jusqu'à 31 et repris d'un développement de Cornish-Fisher au-delà. Ce choix compte plus qu'il n'y paraît : à cinq pistes il vaut 2,776, et à quatre 3,182, contre le 1,96 qu'emploierait une approximation normale dans les deux cas — un intervalle plus large de 42 % et de 62 %, et nettement plus crédible.
 
 Ce n'est expressément *pas* la table `TDIST_QUANTILE` que porte la Calculette de précision de tir. Ce sont des quantiles à 0,9875, répartis à la Bonferroni pour donner un 95 % conjoint sur les deux coordonnées du point d'impact d'un groupe à la fois. Une moyenne de BC est un scalaire unique, et emprunter cette table donnerait un intervalle jusqu'à deux fois plus large que les 95 % qu'il prétend.
 
 En dessous de deux pistes valides, aucun intervalle n'est rapporté, plutôt qu'un intervalle de largeur nulle.
 
-La moyenne non pondérée est un choix délibéré, pas un oubli. Les points à l'intérieur d'une piste sont pondérés par le SNR, parce que le SNR est une véritable mesure de qualité point par point. Les pistes à l'intérieur d'un lot ne sont pas pondérées du tout, parce que chaque coup du lot est un tirage dans la même population de coups, et qu'il n'y a aucune raison défendable de laisser une piste plus propre parler plus fort qu'une piste plus bruitée sur ce que fait la *balle*. Pondérer par la qualité de piste surreprésenterait systématiquement les coups qui ont plu au radar, et ce n'est pas la même population que les coups que vous avez tirés.
+La moyenne non pondérée est un choix délibéré, pas un oubli. Les points à l'intérieur d'une piste sont pondérés par le SNR, parce que le SNR est une véritable mesure de qualité point par point. Les pistes à l'intérieur d'un lot ne sont pas pondérées du tout. Chaque coup du lot est un tirage dans la même population de coups, et il n'y a aucune raison défendable de laisser une piste plus propre parler plus fort qu'une piste plus bruitée sur ce que fait la *balle*. Pondérer par la qualité de piste surreprésenterait systématiquement les coups qui ont plu au radar — pas la même population que les coups que vous avez tirés.
 
 ### 12.10 Ce que l'ajustement ignore, et ce qu'il n'ignore pas
 
@@ -634,7 +634,7 @@ La moyenne non pondérée est un choix délibéré, pas un oubli. Les points à 
 - **Les entrées du zip sont filtrées par extension avant décompression**, non après. Tout ce qui n'est pas un `.csv` — le fichier projet `.lbr`, les entrées de dossier, tout le reste de l'archive — est ignoré sans jamais être décompressé. L'examen du contenu se fait une couche au-dessus et ne connaît rien aux fichiers zip, d'où la frontière de module exactement à cet endroit.
 - **L'analyse est synchrone et immédiate ; l'ajustement, non.** Analyser un CSV de cent lignes prend des microsecondes, cela se fait donc à l'instant où le fichier est choisi et la liste s'affiche aussitôt. L'ajustement représente des centaines d'intégrations de trajectoire complètes par piste et part au pool de workers.
 - **Les tâches sont distribuées une à une plutôt qu'en une promesse groupée**, précisément pour que chaque ligne se mette à jour dès que son propre ajustement aboutit. Attendre toutes les autres avant d'afficher quoi que ce soit serait plus simple et moins bon.
-- **Le solveur signale la saturation en bord de plage comme un échec.** Les deux encadrements de recherche sont ceux que nomme le §12.5 : le BC confiné à [0,05, 1,5], et la vitesse de référence à 15 % près de la lecture d'ancrage propre à la piste. Une recherche par nombre d'or renvoie toujours *un* point intérieur, même quand le vrai minimum est hors de son encadrement — elle sature alors silencieusement contre le bord où ça continue de s'améliorer, ce qui a exactement l'air d'une convergence sans en être une. C'était un vrai bug, attrapé en pleine validation. Un résultat qui atterrit à moins de 0,1 % de l'un des deux bords est désormais traité comme un ajustement échoué, à l'image des autres solveurs de BC de la suite qui refusent déjà de renvoyer une valeur de bord pour une cible inatteignable. C'est tout ce que signifie une ligne en *erreur* au §10.4.
+- **Le solveur signale la saturation en bord de plage comme un échec.** Les deux encadrements de recherche sont ceux que nomme le §12.5 : le BC confiné à [0,05, 1,5], et la vitesse de référence à 15 % près de la lecture d'ancrage propre à la piste. Une recherche par nombre d'or renvoie toujours *un* point intérieur, même quand le vrai minimum est hors de son encadrement. Elle sature alors silencieusement contre le bord où ça continue de s'améliorer — ce qui a exactement l'air d'une convergence, sans en être une. C'était un vrai bug, attrapé en pleine validation. Un résultat qui atterrit à moins de 0,1 % de l'un des deux bords est désormais traité comme un ajustement échoué, à l'image des autres solveurs de BC de la suite qui refusent déjà de renvoyer une valeur de bord pour une cible inatteignable. C'est tout ce que signifie une ligne en *erreur* au §10.4.
 - **Le modèle de traînée et l'atmosphère sont rangés à côté du résultat de chaque piste**, au lieu d'être relus en direct au moment de tracer le graphique. La courbe ajustée superposée reflète donc toujours ce avec quoi cette piste-là a réellement été calculée, même si vous avez changé depuis les réglages du panneau sans relancer le calcul.
 - **Une piste a besoin d'au moins quatre lignes analysables** pour être considérée comme une piste. Les lignes où manque le temps, la vitesse ou la distance sont écartées en silence ; de même toute ligne après la première où manque le SNR. Seule la première ligne a droit à un SNR non numérique, parce que seule la première ligne est le point synthétique de l'appareil.
 - **Le plafond de 20 000 pas d'intégration** est une sécurité du pas de calcul partagé, et non une contrainte ici — une piste de 0,15 s demande quelques dizaines de pas.
@@ -651,11 +651,11 @@ La moyenne non pondérée est un choix délibéré, pas un oubli. Les points à 
 
 ## 13. Origine
 
-BC Labradar est le successeur de **Labrabaco**, un outil autonome du même auteur. La chaîne d'ingestion — la reconnaissance des pistes, les règles de tolérance ligne par ligne, l'algorithme de nettoyage des points et ses deux barrières de rejet portant sur la piste entière — en est portée fidèlement, tracée site d'appel par site d'appel et validée sur des pistes d'exemple réelles, y compris les plusieurs asymétries d'indice documentées au §12.3 qui ressemblent à des bugs et n'en sont pas.
+BC Labradar est le successeur de **Labrabaco**, un outil autonome du même auteur. La chaîne d'ingestion (la reconnaissance des pistes, les règles de tolérance ligne par ligne, l'algorithme de nettoyage des points et ses deux barrières de rejet portant sur la piste entière) en est portée fidèlement, tracée site d'appel par site d'appel et validée sur des pistes d'exemple réelles. Cela inclut les asymétries d'indice documentées au §12.3 qui ressemblent à des bugs et n'en sont pas.
 
-Ce qui est nouveau, c'est l'ajustement. L'outil d'origine passait une droite par les points nettoyés et dichotomisait sur le BC correspondant à ses extrémités ; celui-ci ajuste la physique de traînée propre à l'application contre tous les points conservés à la fois, conjointement avec une vitesse de référence. Ce changement, et le changement associé du seuil de nettoyage de 0,97 à 0,99, ont été validés sur des pistes synthétiques à bruit réel avant que l'un ou l'autre ne soit livré, et les rapports de validation — y compris les résultats négatifs, les deux conceptions écartées et le seul mécanisme fonctionnel construit puis laissé de côté faute de mériter son coût — se trouvent dans le dépôt à côté du code.
+Ce qui est nouveau, c'est l'ajustement. L'outil d'origine passait une droite par les points nettoyés et dichotomisait sur le BC correspondant à ses extrémités ; celui-ci ajuste la physique de traînée propre à l'application contre tous les points conservés à la fois, conjointement avec une vitesse de référence. Ce changement, et le changement associé du seuil de nettoyage, de 0,97 à 0,99, ont été validés sur des pistes synthétiques à bruit réel avant que l'un ou l'autre ne soit livré. Les rapports de validation se trouvent dans le dépôt à côté du code, y compris les résultats négatifs, les deux conceptions écartées, et le seul mécanisme fonctionnel construit puis laissé de côté faute de mériter son coût.
 
-Également nouveau : le graphique par piste avec son partage conservé/écarté et sa courbe ajustée superposée, dont l'outil d'origine n'avait aucun équivalent ; une carte de résultat structurée à la place d'un pavé de texte concaténé ; l'ajustement parallèle sur un pool de workers ; et une atmosphère pleinement consciente des unités avec une altitude réellement déduite, à la place d'un niveau de la mer supposé.
+Également nouveau : le graphique par piste avec son partage conservé/écarté et sa courbe ajustée superposée (l'outil d'origine n'en avait aucun), une carte de résultat structurée à la place d'un pavé de texte concaténé, l'ajustement parallèle sur un pool de workers, et une atmosphère pleinement consciente des unités avec une altitude réellement déduite, à la place d'un niveau de la mer supposé.
 
 La suite est distribuée sous licence **AGPL-3.0-or-later**.
 

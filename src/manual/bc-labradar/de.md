@@ -10,11 +10,11 @@ Der ballistische Koeffizient ist die eine Zahl in der ganzen Flugbahnrechnung, d
 
 Es ist zugleich die Zahl, auf die die Flugbahn auf Distanz am empfindlichsten reagiert, und die mit der größten Neigung zur Schmeichelei. Veröffentlichte BCs sind ebenso oft Marketingzahlen wie Messwerte.
 
-**BC-Labradar misst Ihren.** Es liest die Track-Dateien, die ein Labradar-Chronograph auf seine eigene SD-Karte schreibt — eine vollständige Aufzeichnung von Geschwindigkeit über Zeit für jeden Schuss, etwa jede Millisekunde abgetastet, über die ersten rund hundert Meter des Fluges — und passt für jeden Schuss einzeln einen ballistischen Koeffizienten an, gegen dieselbe Widerstandsphysik, mit der der Rest dieser Suite Flugbahnen rechnet. Anschließend bereinigt es die Tracks, die das Radar verpatzt hat, wirft die Schüsse hinaus, die mit den übrigen nicht zusammenpassen, und mittelt, was übrig bleibt.
+**BC-Labradar misst Ihren.** Es liest die Track-Dateien, die ein Labradar-Chronograph auf seine eigene SD-Karte schreibt: eine vollständige Aufzeichnung von Geschwindigkeit über Zeit für jeden Schuss, etwa jede Millisekunde abgetastet, über die ersten rund hundert Meter des Fluges. Es passt für jeden Schuss einzeln einen ballistischen Koeffizienten an, mit derselben Widerstandsphysik, mit der der Rest der Suite Flugbahnen rechnet. Dann bereinigt es die verpatzten Tracks, wirft die Schüsse hinaus, die mit den übrigen nicht zusammenpassen, und mittelt, was übrig bleibt.
 
 Heraus kommt ein BC für **Ihr** Geschoss, aus **Ihrem** Lauf, in **Ihrer** Luft. Tragen Sie ihn ins Arsenal ein, und jedes andere Werkzeug der Suite rechnet mit einer Messung statt mit einer Behauptung.
 
-Nichts an dieser Bereinigung und Anpassung wurde am grünen Tisch entworfen und dann auf gut Glück eingebaut. Sie wurde an einem Korpus von **1.297 echten Labradar-Tracks** kalibriert, an dem das Rauschen des Radars — wie es im Verlauf des Tracks anwächst und wie wild es zwischen Sitzungen schwankt — gemessen statt angenommen wurde. §12 legt dar, was diese Messung ergab und was darauf aufgebaut wurde.
+Nichts an dieser Bereinigung und Anpassung wurde am grünen Tisch entworfen und dann auf gut Glück eingebaut — sie wurde an einem Korpus von **1.297 echten Labradar-Tracks** kalibriert. Das Rauschen des Radars (wie es im Verlauf des Tracks anwächst und wie wild es zwischen Sitzungen schwankt) wurde gemessen statt angenommen. §12 nennt die Einzelheiten.
 
 Das Bemerkenswerte an diesem Verfahren: Es braucht überhaupt keine Ausrüstung auf der Bahn. Keinen zweiten Chronographen auf 300 m, keine akustische Scheibe, kein Doppler-Radar von der Größe eines Autos. Das Gerät zeichnet die Daten ohnehin auf — es sagt Ihnen nur nicht, was sie wert sind.
 
@@ -24,9 +24,9 @@ Das Bemerkenswerte an diesem Verfahren: Es braucht überhaupt keine Ausrüstung 
 
 **Es funktioniert nur mit dem Labradar v1** — der großen orangefarbenen Box, die `Shot0001 Track.csv`-Dateien schreibt. Spätere Geräte und alle anderen Chronographen-Marken zeichnen entweder gar keinen Track auf oder schreiben ihn nicht in diesem Format. Für sie gibt es keinen Importweg.
 
-**Es ist kein Cd-Kurven-Löser.** Es passt eine Zahl gegen ein Standard-Widerstandsmodell an. Wenn die tatsächliche Widerstandsform Ihres Geschosses nicht die Form dieses Modells ist, sagt Ihnen die Anpassung den besten Einzel-BC für dieses Modell über das gemessene Geschwindigkeitsband — nicht die Wahrheit über das Geschoss. Das Werkzeug **Cd–Mach-Kurve** ermittelt die eigene Widerstandskurve eines Geschosses, und es will eine völlig andere Art von Messung.
+**Es ist kein Cd-Kurven-Löser.** Es passt eine Zahl gegen ein Standard-Widerstandsmodell an — den besten Einzel-BC für dieses Modell, nicht die Wahrheit über die tatsächliche Widerstandsform des Geschosses. Das Werkzeug **Cd–Mach-Kurve** ermittelt die eigene Widerstandskurve eines Geschosses, und es will eine andere Art von Messung.
 
-**Es sagt Ihnen, wie sicher es sich bei den Schüssen ist — und nur bei den Schüssen.** Neben dem Mittelwert weist es ein 95-%-Konfidenzintervall auf diesen Mittelwert aus, als Prozentsatz davon, berechnet aus der Streuung der akzeptierten Einzelschuss-BCs. Dieses Intervall ist ehrlich, was die eingegebenen Zahlen und die Stichprobe angeht, und schweigt zu allem anderen — eine falsch eingetippte Atmosphäre verschiebt Mittelwert und Intervall gemeinsam, und keine aus den Tracks berechnete Kennzahl kann das sehen. §10.3.
+**Es sagt Ihnen, wie sicher es sich bei den Schüssen ist — und nur bei den Schüssen.** Neben dem Mittelwert weist es ein 95-%-Konfidenzintervall auf diesen Mittelwert aus, als Prozentsatz davon, berechnet aus der Streuung der akzeptierten Einzelschuss-BCs. Dieses Intervall spiegelt die eingegebenen Zahlen und das Stichprobenrauschen obendrauf, sonst nichts — eine falsch eingetippte Atmosphäre verschiebt Mittelwert und Intervall gemeinsam, und keine aus den Tracks berechnete Kennzahl kann das sehen. §10.3.
 
 ---
 
@@ -34,9 +34,9 @@ Das Bemerkenswerte an diesem Verfahren: Es braucht überhaupt keine Ausrüstung 
 
 **Nichts, was Sie in dieses Werkzeug geben, verlässt Ihr Gerät.** Die gewählte Zip-Datei wird nie hochgeladen. Sie wird in Ihrem Browser entpackt, in Ihrem Browser geparst und in Ihrem Browser angepasst, von JavaScript auf Ihrer eigenen Maschine. Kein Konto, kein Server, keine Telemetrie.
 
-**Gespeichert wird ebenfalls nichts.** Anders als Arsenal oder der Gewehr-Präzisionsrechner führt dieses Werkzeug keine Bibliothek. Ihr geladener Stapel, Ihre Filterwahl, Ihr Widerstandsmodell und Ihre Atmosphäre überleben den Wechsel zu einem anderen Werkzeug und zurück — sie liegen für die Sitzung im Speicher —, aber sie überleben kein Neuladen der Seite. Nach einem Reload wählen Sie das Zip erneut. Das ist Absicht: ein Track-Stapel ist ein Zwischenergebnis, kein Dokument. Aufhebenswert ist der resultierende BC, und der gehört ins Arsenal (§11.1).
+**Gespeichert wird ebenfalls nichts.** Anders als Arsenal oder der Gewehr-Präzisionsrechner führt dieses Werkzeug keine Bibliothek. Ihr geladener Stapel, Ihre Filterwahl, Ihr Widerstandsmodell und Ihre Atmosphäre überleben den Wechsel zu einem anderen Werkzeug und zurück (sie liegen für die Sitzung im Speicher), aber nicht ein Neuladen der Seite. Nach einem Reload wählen Sie das Zip erneut. Das ist Absicht: ein Track-Stapel ist ein Zwischenergebnis, kein Dokument. Aufhebenswert ist der resultierende BC, und der gehört ins Arsenal (§11.1).
 
-**Voraussetzungen.** Ein halbwegs aktueller Browser. Die Anpassung ist wirklich rechenintensiv — pro Track wird eine vollständige Widerstandsintegration einige hundert Mal durchgeführt —, deshalb verteilt sie sich auf einen Pool von Hintergrund-Workern, ein Auftrag je Track, und die Zeilen füllen sich, sobald sie fertig sind. Ein Stapel von dreißig Tracks ist auf einem Desktop in ein paar Sekunden durch und braucht auf einem Telefon merklich länger. Die App installiert sich als PWA, und dieses Werkzeug funktioniert nach dem ersten Laden vollständig offline — was zählt, denn der Ort, an dem Sie es am ehesten laufen lassen wollen, ist ein Schießstand ohne Empfang.
+**Voraussetzungen.** Ein halbwegs aktueller Browser. Die Anpassung ist rechenintensiv — pro Track läuft eine vollständige Widerstandsintegration einige hundert Mal —, deshalb verteilt sie sich auf einen Pool von Hintergrund-Workern (§6.7). Ein Stapel von dreißig Tracks ist auf einem Desktop in ein paar Sekunden durch und braucht auf einem Telefon merklich länger. Die App installiert sich als PWA, und dieses Werkzeug funktioniert nach dem ersten Laden vollständig offline. Das zählt: der Ort, an dem Sie es am ehesten laufen lassen wollen, ist ein Schießstand ohne Empfang.
 
 ---
 
@@ -81,7 +81,7 @@ Drei Dinge über diese Tabelle sind wissenswert, weil das Werkzeug sie alle unte
 
 ### 3.1 Anmerkung zu den Einheiten
 
-Dies ist das eine Werkzeug der Suite, bei dem Einheiten kaum eine Rolle spielen, denn ein ballistischer Koeffizient hat keine, die Sie wiedererkennen würden. Er wird üblicherweise in Pfund je Quadratzoll Querschnittsbelastung angegeben, was seit jeher als nackte Zahl geschrieben wird, und dieses Werkzeug schreibt ihn als nackte Zahl mit vier Nachkommastellen.
+Dies ist das eine Werkzeug der Suite, bei dem Einheiten kaum eine Rolle spielen, denn die Einheiten eines ballistischen Koeffizienten sind ziemlich undurchsichtig. Im Prinzip wird er in Pfund je Quadratzoll Querschnittsbelastung gemessen, aber in der Praxis schreibt das niemand so — einfach eine nackte Zahl, mit drei oder vier Nachkommastellen.
 
 An drei Stellen tauchen Einheiten doch auf:
 
@@ -114,23 +114,23 @@ Trauen Sie keinem Ergebnis aus weniger als zehn Schuss, und lesen Sie §10.3, be
 
 Das Werkzeug kann nur Rauschen wegputzen. Es kann keine Messung erfinden, die nie stattgefunden hat, und es kann keinen systematischen Fehler in den von Ihnen eingetippten Bedingungen erkennen. Alles in diesem Abschnitt geschieht, bevor Sie die App öffnen, und jeder dieser Fehler ist hinterher unsichtbar.
 
-**Beginnen Sie mit dem Handbuch des Geräts**, zumindest mit der Kurzanleitung. Da sind Bilder drin. Jede Empfehlung darin hat ihren Grund, und die Gründe unten sind größtenteils Ausführungen dazu. Was folgt, ist der Teil, der überproportional wichtig wird, wenn das Ziel ein ballistischer Koeffizient ist und nicht eine Mündungsgeschwindigkeit — denn ein Aufbau, der einwandfreie V0-Werte liefert, kann trotzdem Tracks liefern, die jenseits von dreißig Metern wertlos sind, und das Gerät sagt Ihnen nicht, welche Art Sitzung Sie gerade hatten.
+**Beginnen Sie mit dem Handbuch des Geräts**, zumindest mit der Kurzanleitung. Da sind Bilder drin. Jede Empfehlung darin hat ihren Grund, und die Gründe unten sind größtenteils Ausführungen dazu. Was folgt, ist der Teil, der überproportional wichtig wird, wenn das Ziel ein ballistischer Koeffizient ist und nicht eine Mündungsgeschwindigkeit. Ein Aufbau, der einwandfreie V0-Werte liefert, kann trotzdem Tracks liefern, die jenseits von dreißig Metern wertlos sind — und das Gerät sagt Ihnen nicht, welche Art Sitzung Sie gerade hatten.
 
 ### 5.1 Das Radar ausrichten
 
 **Richten Sie es auf das Ziel, auf das Sie tatsächlich schießen**, nicht auf das Gewehr und nicht ungefähr die Bahn hinunter. Das Gerät verfolgt das Geschoss entlang seiner eigenen Strahlachse, und je näher die Flugbahn an dieser Achse verläuft, desto stärker und sauberer ist jede Rückgabe.
 
-Es geht hier nicht um ein, zwei Meter Trackverlängerung. Die Strahlausrichtung entscheidet darüber, wie weit hinaus das Gerät das Geschoss überhaupt hält, und die Tracklänge ist der größte einzelne Hebel für die Qualität einer BC-Anpassung: ein längerer Track bedeutet mehr messbaren Geschwindigkeitsabfall, mehr Punkte zum Anpassen und entsprechend weniger Einfluss des Rauschens am Ende.
+Es geht hier nicht nur um ein, zwei Meter Trackverlängerung. Die Strahlausrichtung entscheidet darüber, wie weit hinaus das Gerät das Geschoss überhaupt hält. Und die Tracklänge ist der größte einzelne Hebel für die Qualität einer BC-Anpassung: ein längerer Track bedeutet mehr messbaren Abfall, mehr Punkte zum Anpassen und weniger relativen Einfluss des Rauschens am Ende.
 
 ### 5.2 Der Geschossversatz
 
 Das Gerät hat eine Einstellung namens *proj. offset*, die ihm sagt, wie weit die Geschossbahn am Radar vorbeiläuft. Ist sie falsch, ist jede Geschwindigkeit in jedem Track falsch — konsistent und auf eine Weise, die völlig plausibel aussieht.
 
-**Warum es sie gibt.** Das Radar kann nur die *radiale* Geschwindigkeit messen — die Rate, mit der sich das Geschoss vom Gerät entfernt —, und das ist nicht dasselbe wie die tatsächliche Geschwindigkeit in Schussrichtung, weil Strahlachse und Flugbahn nicht dieselbe Gerade sind. Das eine ins andere umzurechnen ist schlichte Trigonometrie, und genau das tut das Gerät, bevor es irgendetwas anzeigt. Aber die Trigonometrie muss wissen, wie weit die beiden Geraden auseinanderliegen, und das ist die Zahl, die Sie einstellen.
+**Warum es sie gibt.** Das Radar misst nur die *radiale* Geschwindigkeit: die Rate, mit der sich das Geschoss vom Gerät entfernt. Das ist nicht dasselbe wie die tatsächliche Geschwindigkeit in Schussrichtung, weil Strahlachse und Flugbahn nicht dieselbe Gerade sind. Das eine ins andere umzurechnen ist schlichte Trigonometrie — genau das tut das Gerät, bevor es irgendetwas anzeigt —, aber sie muss wissen, wie weit die beiden Geraden auseinanderliegen. Das ist die Zahl, die Sie einstellen.
 
 **Halten Sie sie ein.** Sagt die Einstellung 30 cm, dann bringen Sie den Lauf 25 bis 30 cm vom Radar entfernt in Stellung. Stellen Sie ihn einen Meter weg, zeichnet das Gerät zwar weiter auf, aber jeder Wert trägt einen erheblichen Fehler.
 
-**Es ist der Abstand zur Laufachse, seitlich zum Radar gemessen.** Nicht der Abstand von der Mündung zum Gerät, der eine längere, schräge Strecke ist. Wenn Ihre Mündung ein Stück vor oder hinter dem Radargehäuse sitzt, ist das für sich genommen kein Problem — solange der seitliche Abstand zum Lauf stimmt, ist der Fehler der angezeigten Mündungsgeschwindigkeit vernachlässigbar und der Fehler des hier berechneten BC gleich null.
+**Es ist der Abstand zur Laufachse, seitlich zum Radar gemessen.** Nicht der Abstand von der Mündung zum Gerät, der eine längere, schräge Strecke ist. Wenn Ihre Mündung ein Stück vor, oder hinter, dem Radargehäuse sitzt, ist das für sich genommen kein Problem. Solange der seitliche Abstand zum Lauf stimmt, ist der Fehler der angezeigten Mündungsgeschwindigkeit vernachlässigbar, und der Fehler des hier berechneten BC ist gleich null.
 
 **Und hier zählt es mehr als auf der Anzeige des Geräts.** Ein Versatzfehler stört den V0-Wert mäßig. Einen BC, der aus der *Form* des Tracks gewonnen wird, stört er erheblich mehr. Wenn Sie einen ungefähren Versatz gewohnheitsmäßig durchgehen lassen, weil Ihre Chronographenzahlen weiterhin vernünftig aussehen: diese Nachsicht überträgt sich nicht auf dieses Werkzeug. §12.1 erklärt, warum.
 
@@ -153,7 +153,7 @@ Doppler-Radar erfreut sich an allem Reflektierenden, und jede Störreflexion ist
 
 **Stellen Sie die maximale Anzeigedistanz auf 200 m bzw. 200 yd.**
 
-Bis dorthin wird der Track aller Voraussicht nach ohnehin nicht reichen — in der Praxis kommt das höchstens bei sehr großen Kalibern mit flacher Flugbahn vor. Die Einstellung bewirkt, dass das Gerät weiterversucht, solange das Signal trägt, statt an einer kürzer eingestellten Grenze aufzuhören. Längerer Track, mehr Abfall, bessere Anpassung. Einen Nachteil gibt es nicht, denn das Gerät schaltet den Radarstrahl ohnehin ab, sobald es das Geschoss verliert.
+Bis dorthin wird der Track aller Voraussicht nach ohnehin nicht reichen — in der Praxis kommt das höchstens bei sehr großen Kalibern mit flacher Flugbahn vor. Diese Einstellung sagt dem Gerät einfach, weiterzuversuchen, solange das Signal trägt, statt an einer kürzeren Grenze aufzuhören. Längerer Track, mehr Abfall, bessere Anpassung. Einen Nachteil gibt es nicht: das Gerät schaltet den Radarstrahl ohnehin ab, sobald es das Geschoss verliert.
 
 ### 5.6 Atmosphäre: die Eingabe, die Ihnen wirklich in die Hand beißt
 
@@ -177,7 +177,7 @@ Ein Schuss ist ein Schuss. Er sagt so gut wie nichts, und das Werkzeug wird dara
 
 Mehr ist immer besser, und die Grenzkosten betragen eine Patrone.
 
-Schießen Sie alle unter denselben Bedingungen, aus demselben Gewehr, mit demselben Geschoss. Dieses Werkzeug mittelt über den Stapel. Zwei verschiedene Geschosse zu mitteln liefert den BC von keinem von beiden. Beachten Sie, dass die Mündungsgeschwindigkeiten nicht gleich oder auch nur ähnlich sein müssen; einen BC an einer Ladeentwicklungsserie zu messen ist völlig in Ordnung.
+Schießen Sie alle unter denselben Bedingungen, aus demselben Gewehr, mit demselben Geschoss. Dieses Werkzeug mittelt über den Stapel. Zwei verschiedene Geschosse zu mitteln liefert den BC von keinem von beiden. Die Mündungsgeschwindigkeiten müssen nicht gleich oder auch nur ähnlich sein — einen BC an einer Ladeentwicklungsserie zu messen ist völlig in Ordnung.
 
 ### 5.8 Das Zip aus dem Gerät holen
 
@@ -198,11 +198,11 @@ Gegen welches Standard-Widerstandsmodell der BC ausgedrückt wird. Voreingestell
 Die Wahl wiegt hier schwerer als an den meisten Stellen, weil die Anpassung gegen die tatsächliche Kurvenform des Modells über das tatsächliche Geschwindigkeitsband Ihres Geschosses erfolgt und nicht über eine Umrechnung:
 
 - **G7** für moderne Boat-Tail-Geschosse — lange Ogive, verjüngter Boden. Praktisch jedes Match- und Jagdgeschoss der letzten dreißig Jahre.
-- **G1** für Flachboden, Rundkopf und die meisten älteren oder stumpfen Konstruktionen. Es ist außerdem das, was die meisten Hersteller angeben, was für sich schon ein Grund ist, es zu verwenden.
+- **G1** für Flachboden, Rundkopf und die meisten älteren oder stumpfen Konstruktionen. Es ist außerdem das, was die meisten Hersteller angeben, also warum nicht.
 
 Das gewählte Modell steckt fest in jeder Track-Anpassung; es nach dem Rechnen zu ändern verlangt ein erneutes **Berechnen** (§6.7). Auf den Bereinigungsschritt hat es überhaupt keinen Einfluss.
 
-Es spricht nichts dagegen, denselben Stapel zweimal laufen zu lassen, einmal je Modell, und beide Zahlen aufzuheben. Für Flugbahnrechnungen verwenden Sie das Modell, das der Form Ihres Geschosses am nächsten kommt.
+Sie können denselben Stapel zweimal laufen lassen, einmal je Modell, und beide Zahlen aufheben.
 
 ### 6.2 Atmosphäre
 
@@ -228,7 +228,7 @@ Drei Einstellungen:
 
 Das in der Track-Liste gezeigte R² ist die Zahl, gegen die diese Schwelle prüft. §12.8 erklärt, was es tatsächlich misst und warum eine Gerade die richtige Referenz für eine *Qualitäts*prüfung ist, obwohl sie die falsche Referenz für eine *Anpassung* ist.
 
-Diese Einstellung zu ändern entscheidet neu, welche Tracks einbezogen werden, und aktualisiert den Mittelwert **sofort**. Neu gerechnet werden muss nichts, denn kein BC ändert sich — nur das Urteil über jeden einzelnen.
+Diese Einstellung zu ändern entscheidet neu, welche Tracks einbezogen werden, und aktualisiert den Mittelwert **sofort** — neu gerechnet werden muss nichts, denn kein BC ändert sich, nur das Urteil über jeden einzelnen.
 
 ### 6.4 Ausreißer verwerfen
 
@@ -317,7 +317,7 @@ Ein Klick irgendwo auf eine Zeile außer auf ihr Häkchen wählt diesen Track au
 | **ausgeschlossen** | Sie haben das Häkchen von Hand entfernt |
 | **Fehler** | Die Anpassung ist gescheitert. Siehe §10.4 |
 
-***Kein Track*** ist der normale Zustand mehrerer Einträge in jedem echten Export und kein Problem. Die geräteeigene `Report.csv` bekommt ihn, weil sie eine Zusammenfassung ist und kein Track. Ebenso alles andere, was zufällig auf `.csv` endet — einschließlich der unsichtbaren `._`-Begleitdateien, die macOS in angefasste Archive streut. Das Werkzeug entscheidet nach dem Inhalt, nicht nach dem Namen: eine Datei ist ein Track, wenn sie einen Labradar-Trackkopf mit deklarierter Geschwindigkeitseinheit enthält und mindestens vier brauchbare Datenzeilen liefert.
+***Kein Track*** ist der normale Zustand mehrerer Einträge in jedem echten Export und kein Problem. Die geräteeigene `Report.csv` bekommt diesen Status, weil sie eine Zusammenfassung ist und kein Track — ebenso alles andere, was zufällig auf `.csv` endet — einschließlich der unsichtbaren `._`-Begleitdateien, die macOS in angefasste Archive streut. Das Werkzeug entscheidet nach dem Inhalt, nicht nach dem Namen: eine Datei ist ein Track, wenn sie einen Labradar-Trackkopf mit deklarierter Geschwindigkeitseinheit enthält und mindestens vier brauchbare Datenzeilen liefert.
 
 ### 7.3 Das Häkchen „Einschließen"
 
@@ -350,7 +350,7 @@ Die Kurve reicht bis zur spätesten Zeit **irgendeines** gezeichneten Punktes, b
 
 **Diagramm als SVG herunterladen** exportiert es, wie bei den anderen Diagrammen der Suite.
 
-Auch ein fehlerhafter Track wird beim Anklicken gezeichnet: Da es keine Anpassung und keine Trennung in behalten/verworfen gibt, wird jeder Rohpunkt außer dem geräteeigenen, errechneten Mündungspunkt als verworfen dargestellt, sodass Sie wenigstens sehen, was das Radar aufgezeichnet hat, und sich eine eigene Meinung bilden können, warum sich nichts daran anpassen ließ.
+Auch ein fehlerhafter Track wird beim Anklicken gezeichnet. Da es keine Anpassung und keine Trennung in behalten/verworfen gibt, wird jeder Rohpunkt außer dem geräteeigenen, errechneten Mündungspunkt als verworfen dargestellt — sodass Sie wenigstens sehen, was das Radar aufgezeichnet hat, und selbst beurteilen können, warum sich nichts daran anpassen ließ.
 
 Die Waagerechte ist in Millisekunden, die Senkrechte in Metern pro Sekunde, immer. Siehe §3.1.
 
@@ -360,7 +360,7 @@ Die Waagerechte ist in Millisekunden, die Senkrechte in Metern pro Sekunde, imme
 
 Drei Zeilen, über dem Diagramm.
 
-- **Gültige Tracks** — wie viele der Gesamtzahl derzeit im Mittelwert stecken. `24 / 31` heißt, dass einunddreißig Schüsse einen ballistischen Koeffizienten ergeben haben und vierundzwanzig davon gemittelt werden. Der Nenner zählt nur Tracks, die tatsächlich angepasst wurden; Einträge, die nie Tracks waren, und solche mit Fehler fehlen daher in beiden Hälften. Ist dieser Nenner kleiner als die Zahl Ihrer Schüsse, suchen Sie die Liste nach Fehlern ab.
+- **Gültige Tracks** — wie viele der Gesamtzahl derzeit im Mittelwert stecken. `24 / 31` heißt, dass einunddreißig Schüsse einen ballistischen Koeffizienten ergeben haben und vierundzwanzig davon gemittelt werden. Der Nenner zählt nur Tracks, die tatsächlich angepasst wurden; Einträge, die nie Tracks waren, oder die gescheitert sind, fehlen in beiden Zahlen. Ist dieser Nenner kleiner als die Zahl Ihrer Schüsse, suchen Sie die Liste nach Fehlern ab.
 - **BC-Standardabweichung** — die Streuung der einzelnen Schuss-BCs, die in den Mittelwert eingegangen sind, auf fünf Nachkommastellen. Das ist die Zahl, die Ihnen sagt, ob Sie der darunter glauben dürfen. Siehe §10.3.
 - **Der BC selbst** — groß, in der Akzentfarbe, auf vier Nachkommastellen. Das schlichte ungewichtete arithmetische Mittel der BCs aller einbezogenen Tracks. Daneben, leiser, das 95-%-Konfidenzintervall auf diesen Mittelwert, als Prozentsatz davon geschrieben: `0.2812 (± 1.6%)`. Bei einem einzigen gültigen Track erscheint gar kein Intervall, denn ein Schuss hat keine Streuung, aus der man eines rechnen könnte. Siehe §10.3.
 
@@ -372,13 +372,13 @@ Alle drei aktualisieren sich in dem Augenblick, in dem Sie einen Filter ändern 
 
 ### 10.1 Was Sie tatsächlich gemessen haben
 
-Die Zahl ist der beste Einzel-BC gegen das von Ihnen gewählte Widerstandsmodell, der die Verzögerung reproduziert, die Ihr Geschoss über die ersten rund hundert Meter seines Fluges tatsächlich gezeigt hat, in der Luft, die Sie dem Werkzeug genannt haben.
+Die Zahl ist der beste Einzel-BC gegen das von Ihnen gewählte Widerstandsmodell. Sie reproduziert die Verzögerung, die Ihr Geschoss über die ersten rund hundert Meter seines Fluges tatsächlich gezeigt hat, in der Luft, die Sie dem Werkzeug genannt haben.
 
 Drei Einschränkungen dazu, alle real:
 
-**Es ist eine Messung des Geschosses, wie es aus Ihrem Lauf und durch Ihre Luft fliegt.** Nicht der Pulverladung. Die Mündungsgeschwindigkeit ist nicht Teil dessen, was gemessen wird — die Anpassung liest die *Form* des Abfalls, und ein Geschoss, das mit 780 m/s startet, verzögert nach derselben Widerstandskurve wie eines mit 700 m/s. Deshalb kann §5.7 sagen, dass ein Stapel nicht geschwindigkeitseinheitlich sein muss. Was der Lauf sehr wohl beiträgt, ist echt: Verschmutzung, Übergangskegelverschleiß und alles, was das Geschoss beim Verlassen stört, kann sein tatsächliches Flugverhalten ändern, und das schlägt hier durch.
+**Es ist eine Messung des Geschosses, wie es aus Ihrem Lauf und durch Ihre Luft fliegt.** Nicht der Pulverladung. Die Mündungsgeschwindigkeit ist nicht Teil dessen, was gemessen wird. Die Anpassung liest die *Form* des Abfalls: ein Geschoss, das mit 780 m/s startet, verzögert nach derselben Widerstandskurve wie eines mit 700 m/s. Deshalb kann §5.7 sagen, dass ein Stapel nicht geschwindigkeitseinheitlich sein muss. Was der Lauf sehr wohl beiträgt, ist echt: Verschmutzung, Übergangskegelverschleiß und alles, was das Geschoss beim Verlassen stört, kann sein tatsächliches Flugverhalten ändern, und das schlägt hier durch.
 
-**Sie ist über ein begrenztes Geschwindigkeitsband angepasst.** Das Geschoss ist nur für einen Bruchteil seines Fluges im Blick des Radars, und dabei die ganze Zeit schnell. Ein einzelner BC gegen ein Standardmodell ist ein Kompromiss über das Band, über das er angepasst wurde — je enger die tatsächliche Widerstandskurve Ihres Geschosses der Form des Modells folgt, desto besser lässt sich dieser Kompromiss in den transsonischen Bereich extrapolieren, wo er am meisten zählt. Doch aus dem Nahbereich, den das Radar tatsächlich aufzeichnet, lässt sich nicht ablesen, welches Modell auf große Entfernung besser extrapoliert. Das ist eine Eigenschaft des Geschosses, nicht des Werkzeugs, und deshalb können beide Widerstandsmodelle gut passen und sich auf Distanz trotzdem widersprechen.
+**Sie ist über ein begrenztes Geschwindigkeitsband angepasst.** Das Geschoss ist nur für einen Bruchteil seines Fluges im Blick des Radars, und dabei die ganze Zeit schnell. Ein einzelner BC gegen ein Standardmodell ist ein Kompromiss über das Band, über das er angepasst wurde. Je enger die tatsächliche Widerstandskurve Ihres Geschosses der Form des Modells folgt, desto besser lässt sich dieser Kompromiss in den transsonischen Bereich extrapolieren — wo er am meisten zählt. Doch aus dem Nahbereich, den das Radar tatsächlich aufzeichnet, lässt sich nicht ablesen, welches Modell auf große Entfernung besser extrapoliert. Das ist eine Eigenschaft des Geschosses, nicht des Werkzeugs, und deshalb können beide Widerstandsmodelle gut passen und sich auf Distanz trotzdem widersprechen.
 
 **Sie ist nur so gut wie Ihre Atmosphäre.** Nochmals. Siehe §5.6.
 
@@ -398,7 +398,7 @@ Die beiden Zahlen beantworten verschiedene Fragen, und genau darin liegt der Sin
 
 **Die Standardabweichung** ist die Streuung der einzelnen Schuss-BCs. Sie ist eine Eigenschaft Ihres Schießens, Ihrer Munition und des Tages, den Ihr Radar hatte, und mehr Schuss verkleinern sie nicht unbedingt.
 
-**Das Konfidenzintervall** sagt, wie gut diese Schüsse den Mittelwert festgenagelt haben. Anders als die Streuung wird dieses mit mehr Schuss tatsächlich enger — aber langsam. Viermal so viele Schuss bringen das halbe Intervall. Es wird breiter, wenn Ihre Schüsse stärker voneinander abweichen, und es ist bei kleinen Stapeln bewusst großzügig, weil eine Handvoll Schüsse schlicht nicht viel sagen kann. §12.9 nennt die Formel.
+**Das Konfidenzintervall** sagt, wie gut diese Schüsse den Mittelwert festgenagelt haben. Anders als die Streuung wird dieses mit mehr Schuss tatsächlich enger — aber langsam. Viermal so viele Schuss bringen das halbe Intervall. Es wird breiter, wenn Ihre Schüsse stärker voneinander abweichen. Und es ist bei kleinen Stapeln bewusst großzügig, weil eine Handvoll Schüsse schlicht nicht viel sagen kann. §12.9 nennt die Formel.
 
 Ein Stapel von 25 gültigen Tracks mit einer BC-Standardabweichung von 0,010 ergibt also ein Intervall von etwa ±0,004 um den Mittelwert. Gegen einen BC von 0,250 liest sich das als ±1,6 %, was eine wirklich brauchbare Messung ist.
 
@@ -409,7 +409,7 @@ Dieselbe Standardabweichung über nur 4 gültige Tracks ergibt etwa ±0,016 oder
 Daraus folgen unmittelbar zwei Faustregeln, und sie sind der Grund, warum §5.7 sagt, was es sagt:
 
 - **Die Streuung ist eine Eigenschaft Ihrer Daten; die Genauigkeit ist eine Eigenschaft Ihres Stichprobenumfangs.** Verrauschte Tracks behebt man, indem man mehr davon schießt.
-- **Breit ist eine Streuung immer relativ zu dem, was Patrone und Fenster normal machen.** In den Validierungsläufen hinter diesem Werkzeug (§12.6) — synthetische Tracks mit Rauschen, das echten Labradar-Aufzeichnungen entnommen wurde, bereinigt und angepasst genau so, wie es das ausgelieferte Werkzeug tut — lag die Streuung je Track zwischen etwa 1,5 % und 5 % des Koeffizienten, am breitesten bei schweren, langsam verzögernden Patronen über ein kurzes Fenster und am engsten bei schnellen über ein langes. Ein Wert innerhalb dieses Bandes sagt nichts Besonderes. Deutlich darüber: klicken Sie die Zeilen durch und sehen Sie sich die Diagramme an, bevor Sie darüber hinwegmitteln — das Radar hatte zu kämpfen, die Bahn war vollgestellt, der Versatz stimmte nicht, oder Ihre Munition ist wirklich so uneinheitlich. Beachten Sie, dass diese Läufe Radarrauschen gegen eine bekannte Wahrheit gemessen haben; ein echter Stapel trägt die echte Streuung von Geschoss zu Geschoss noch obendrauf, nicht darin.
+- **Breit ist eine Streuung immer relativ zu dem, was Patrone und Fenster normal machen.** Die Validierungsläufe hinter diesem Werkzeug (§12.6) verwendeten synthetische Tracks mit Rauschen, das echten Labradar-Aufzeichnungen entnommen wurde, bereinigt und angepasst genau so, wie es das ausgelieferte Werkzeug tut. Die Streuung je Track lag zwischen etwa 1,5 % und 5 % des Koeffizienten — am breitesten bei schweren, langsam verzögernden Patronen über ein kurzes Fenster, am engsten bei schnellen über ein langes. Ein Wert innerhalb dieses Bandes sagt nichts Besonderes. Deutlich darüber: klicken Sie die Zeilen durch und sehen Sie sich die Diagramme an, bevor Sie darüber hinwegmitteln — das Radar hatte zu kämpfen, die Bahn war vollgestellt, der Versatz stimmte nicht, oder Ihre Munition ist wirklich so uneinheitlich. Diese Läufe maßen Radarrauschen gegen eine bekannte Wahrheit, sodass ein echter Stapel die echte Streuung von Geschoss zu Geschoss noch obendrauf trägt, nicht darin.
 
 ### 10.4 Wenn ein Track einen Fehler meldet
 
@@ -427,7 +427,7 @@ Ein oder zwei Fehler in einem großen Stapel sind unauffällig. Ein Stapel, in d
 
 Das ist der Sinn der Übung. Öffnen Sie **Waffen → Arsenal**, bearbeiten Sie das gerade gemessene Geschoss und ersetzen Sie den veröffentlichten BC durch Ihren, gegen das Widerstandsmodell, mit dem Sie ihn angepasst haben.
 
-Es gibt keine automatische Übergabe — Sie tippen die Zahl ein. Es sind vier Ziffern, und die Bedächtigkeit ist es wert: Hier entscheiden Sie, dass Ihre Messung die Behauptung des Herstellers ablöst, und diese Entscheidung sollte bewusst fallen.
+Es gibt keine automatische Übergabe — Sie tippen die Zahl ein. Es sind vier Ziffern, und genau darum geht es: Hier entscheiden Sie, dass Ihre Messung die Behauptung des Herstellers ablöst, und diese Entscheidung sollte bewusst fallen.
 
 Von diesem Moment an rechnet jedes Werkzeug der Suite — Flugbahn, Trefferwahrscheinlichkeit, Geländerechner, das Vergleichsdiagramm — mit einem gemessenen Widerstandswert. Auf hundert Meter sieht man die Verbesserung nicht; jenseits von sechshundert sieht man sie sehr deutlich.
 
@@ -437,7 +437,7 @@ Weil das Werkzeug neben dem Mittelwert auch eine Standardabweichung je Schuss au
 
 - **Zwei Lose desselben Geschosses.** Schießen Sie zwanzig von jedem und rechnen Sie sie als getrennte Stapel. Ein bedeutsam unterschiedlicher Mittel-BC heißt, dass sich die Lose tatsächlich unterscheiden, am ehesten in der Gleichmäßigkeit von Ogive oder Boden.
 - **Die Wirkung einer Spitzenrichtmatrize oder des Sortierens nach Boden-Ogive-Maß.** Dieselbe Behandlung. Die interessante Zahl ist hier die *Standardabweichung*, nicht der Mittelwert: gleichmäßige Geschosse liefern gleichmäßige BCs.
-- **Beschichtet gegen unbeschichtet, Moly, oder welche Begeisterung gerade umgeht.** Die Messung ist ehrlich, und der Effekt ist meist kleiner als das Marketing.
+- **Beschichtet gegen unbeschichtet, Moly, oder welche Begeisterung gerade umgeht.** Die Messung kümmert sich nicht um Marketing, und der Effekt ist meist kleiner, als das Marketing behauptet.
 
 Halten Sie die Atmosphäre zwischen den Vergleichen ehrlich, sonst messen Sie das Wetter.
 
@@ -459,7 +459,7 @@ Zwei Folgerungen prägen alles Weitere:
 
 **Der Geschossversatz ist eine echte geometrische Korrektur, keine Feinheit.** Was der Strahl sieht, ist die radiale Geschwindigkeitskomponente. Sie in die wahre Geschwindigkeit in Schussrichtung umzurechnen braucht den Winkel zwischen Strahl und Flugbahn, der aus dem eingestellten Versatz folgt. Ein Versatzfehler ist ein Kosinusfehler, und Kosinusfehler sind die schlimmste Sorte: klein, systematisch und in der Ausgabe vollkommen unsichtbar.
 
-Das erklärt auch die in §5.2 behauptete Asymmetrie — warum ein schlampiger Versatz eine BC-Messung mehr kostet als eine Mündungsgeschwindigkeit. Der Winkel zwischen Strahl und Flugbahn ist nicht konstant: Er ist direkt an der Mündung am größten und geht gegen null, während das Geschoss die Bahn hinunterfliegt. Der Korrekturfaktor ist also eine *Funktion der Entfernung*, und ein falscher Versatz skaliert nicht den ganzen Track mit einer falschen Konstanten. Er verbiegt ihn. Die frühen Punkte werden stärker korrigiert als die späten, oder schwächer, und heraus kommt eine Geschwindigkeitsabfallkurve der falschen Form.
+Das erklärt auch die in §5.2 behauptete Asymmetrie — warum ein schlampiger Versatz eine BC-Messung mehr kostet als eine Mündungsgeschwindigkeit. Der Winkel zwischen Strahl und Flugbahn ist nicht konstant: Er ist direkt an der Mündung am größten und geht gegen null, während das Geschoss die Bahn hinunterfliegt. Der Korrekturfaktor ist also eine *Funktion der Entfernung*. Ein falscher Versatz skaliert nicht den ganzen Track mit einer falschen Konstanten — er verbiegt ihn. Die frühen Punkte werden stärker korrigiert als die späten, oder schwächer, und heraus kommt eine Geschwindigkeitsabfallkurve der falschen Form.
 
 Eine Mündungsgeschwindigkeit ist ein einzelner Punkt auf dieser Kurve und schluckt den Fehler als mäßigen Versatz. Ein ballistischer Koeffizient ist an die Form der Kurve angepasst und schluckt ihn als systematische Abweichung. Dieselbe Schlamperei, bei der Ihre Chronographenwerte völlig vernünftig aussehen, kann einen BC um mehrere Prozent verschieben.
 
@@ -489,7 +489,7 @@ Zwei weitere Tatsachen aus demselben Korpus, beide tragend für den Entwurf:
 - **55 % der echten Tracks brauchen überhaupt kein Punktetrimmen.** Die Bereinigung ist kein routinemäßiger Glättungsdurchgang; sie ist eine Ausnahmebehandlung.
 - **Die Schwere schwankt zwischen Sitzungen enorm und ist aus dem Track heraus nicht vorhersagbar.** Die Zahl der Verwerfungen reicht im Korpus von 0 bis 73. Kaliber (wie reflektiv der Geschossboden ist), Gerümpel nahe der Flugbahn, Strahlausrichtung und die Standfestigkeit der Box unter dem Mündungsknall tragen unabhängig voneinander bei.
 
-Dieser letzte Punkt hat zwei getrennte Entwürfe für eine trackweise adaptive Schwelle erledigt, die beide versuchten, die Schärfe der Bereinigung aus dem frühen Teil jedes Tracks zu kalibrieren. Das kann nicht funktionieren: die echte Schwere sitzt fast vollständig im Schwanz, und ein aus dem Kopf kalibriertes Signal kann sie strukturell nicht sehen. Einer der beiden scheiterte an einem *rauschfreien* synthetischen Track, auf dem er 18 bis 26 völlig einwandfreie Punkte verwarf; der andere bestand diese Prüfung, unterschied sich aber an echten Tracks mit echter Schwere kein einziges Mal von einer festen Schwelle. Beide sind im Bereinigungsexperiment-Bericht des Repositorys dokumentiert, und die feste Schwelle, die an ihre Stelle trat, übertraf beide.
+Dieser letzte Punkt hat zwei Entwürfe für eine Schwelle erledigt, die sich pro Track anpasste, beide versuchten, die Schärfe der Bereinigung aus dem frühen Teil jedes Tracks zu kalibrieren. Das kann nicht funktionieren: die echte Schwere sitzt fast vollständig im Schwanz, und ein aus dem Kopf kalibriertes Signal kann sie nicht sehen. Einer der beiden scheiterte an einem *rauschfreien* synthetischen Track, auf dem er 18 bis 26 völlig einwandfreie Punkte verwarf. Der andere bestand diese Prüfung, konnte sich aber an echten Tracks mit echter Schwere kein einziges Mal gegen eine feste Schwelle durchsetzen. Beide sind im Bericht des Repositorys zum Bereinigungsexperiment dokumentiert; die feste Schwelle, die an ihre Stelle trat, übertraf beide.
 
 ### 12.3 Bereinigung: gieriges Entfernen des schlechtesten Punktes mit R²-Rückgabeschranke
 
@@ -506,7 +506,7 @@ Drei Index-Asymmetrien in dieser Routine sehen wie Fehler aus und sind keine:
 
 - **Der synthetische t = 0-Punkt des Geräts ist von der Anpassung, vom R² und von der Suche nach dem schlechtesten Punkt ausgeschlossen.** Er ist keine Messung (§3), und sein SNR-Feld ist buchstäblich ein Strich. Er darf keine Anpassung beeinflussen und kann sinnvollerweise auch nicht „entfernt" werden.
 - **Der letzte Punkt ist von Anpassung und R² ausgeschlossen, bleibt aber zum Entfernen berechtigt.** Das Gerät rauscht genau am Schwanz am stärksten, also darf ein schlechter letzter Punkt die Qualitätskennzahl nicht verderben — und bleibt trotzdem ein legitimer Trimmkandidat. Die Folge ist ein bestimmtes, prüfbares Verhalten: Ein Track, dessen *einziges* Problem ein schlechter letzter Punkt ist, hat bei Schritt null bereits sein bestmögliches R², sodass die erste Rückgabeprüfung greift und dieser Punkt zurückkommt. Getrimmt bleibt er nur, wenn er mit einem echten Problem innerhalb des Anpassungsbereichs zusammenfällt.
-- **Zwei verschiedene Anpassungsbereiche** werden für das benutzt, was mathematisch dieselbe gewichtete lineare Regression ist: einer ohne den letzten Punkt (für R² und die Suche nach dem schlechtesten Punkt) und einer mit ihm (zum Ablesen von Geschwindigkeiten im älteren Zweipunkt-Schätzer). Sie zu verwechseln ist ein leichter und wirklich schädlicher Fehler — die beiden Bereiche liefern Geschwindigkeiten, die nur auf etwa drei signifikante Stellen übereinstimmen, was im R² unsichtbar ist und stillschweigend etwa ein halbes Prozent BC wert ist.
+- **Zwei verschiedene Anpassungsbereiche** werden für das benutzt, was mathematisch dieselbe gewichtete lineare Regression ist: einer ohne den letzten Punkt (für R² und die Suche nach dem schlechtesten Punkt) und einer mit ihm (zum Ablesen von Geschwindigkeiten im älteren Zweipunkt-Schätzer). Sie zu verwechseln ist ein leichter, teurer Fehler: die beiden Bereiche liefern Geschwindigkeiten, die nur auf etwa drei signifikante Stellen übereinstimmen — im R² unsichtbar, aber stillschweigend etwa ein halbes Prozent BC wert.
 
 Es gibt einen ehrlichen Unfall, der aus dem Original erhalten blieb: Die Abbruchbedingung wird *nach* dem Herausschneiden geprüft, sodass die Schleife einen Punkt über den Boden hinaus entfernen kann und typischerweise auch tut und bei neun statt bei zehn landet. Eine fachliche Rechtfertigung dafür ließ sich im Altcode nicht finden. Sie bleibt, weil die Portierung als Ganzes an echten Tracks validiert wurde und eine Änderung diese Validierung ohne bekannten Gewinn entwerten würde.
 
@@ -516,7 +516,7 @@ Die SNR-Spalte ist in Dezibel. Das Gewicht jedes Punktes ist dieser Wert, zurüc
 
 $$w_i = 10^{\,\text{SNR}_i/10}$$
 
-was keine kosmetische Umformung ist. Ein 40-dB-Punkt wiegt 10.000; ein 10-dB-Punkt wiegt 10. Über einen echten Track hinweg ist das ein Faktor von tausend zwischen den zuverlässigen frühen und den zweifelhaften späten Rückgaben — genau die Form, die die Rauschtabelle in §12.2 verlangt. Die Anpassung wird von dem Teil des Tracks beherrscht, bei dem das Radar sich tatsächlich sicher war, und der verrauschte Schwanz trägt fast nichts bei — bleibt dabei aber *anwesend*, sodass ein Schwanz, der dem Modell wirklich widerspricht, weiterhin in den Residuen auftaucht und weiterhin von der Bereinigung erwischt wird.
+was keine kosmetische Umformung ist. Ein 40-dB-Punkt wiegt 10.000; ein 10-dB-Punkt wiegt 10. Über einen echten Track hinweg ist das ein Faktor von tausend zwischen den zuverlässigen frühen und den zweifelhaften späten Rückgaben, was genau der Form entspricht, die die Rauschtabelle in §12.2 vorhersagt. Die Anpassung wird von dem Teil des Tracks beherrscht, bei dem das Radar sich tatsächlich sicher war; der verrauschte Schwanz trägt fast nichts bei — bleibt aber *anwesend*, sodass ein Schwanz, der dem Modell wirklich widerspricht, weiterhin in den Residuen auftaucht und von der Bereinigung erwischt wird.
 
 Der synthetische t = 0-Punkt hat überhaupt kein SNR und bekommt das Gewicht null zugewiesen — wobei er in der Praxis nie zu einem Gewicht kommt, da jede Anpassung im Werkzeug ihn strukturell schon über den Index ausschließt, bevor überhaupt gewichtet wird.
 
@@ -545,7 +545,7 @@ Drei Entwurfsentscheidungen sind es wert, ausgesprochen zu werden:
 
 **Die Kurvenform wird nie unterstellt.** Sie ist das, was das Widerstandsmodell bei diesen Geschwindigkeiten in dieser Luft tatsächlich hergibt, und genau darum geht es.
 
-Die Integration nutzt den gemeinsamen RK4-Schrittrechner der Suite, mit fester Schrittweite von 20 ms außerhalb des transsonischen Bandes und 3 ms darin, wobei die Atmosphäre bei jedem Schritt aus der aktuellen Höhe des Geschosses neu bestimmt wird. Das exakte Treffen einer Zielzeit nutzt dieselbe quadratische Dreipunkt-Interpolation, mit der der Rest der Engine eine Zielentfernung trifft — einfach den Rohschritt abzulesen, der gerade darüber hinausschießt, wäre bei diesen Geschwindigkeiten ein echter Fehler, im Wert von Dutzenden Metern.
+Die Integration nutzt den gemeinsamen RK4-Schrittrechner der Suite, mit fester Schrittweite von 20 ms außerhalb des transsonischen Bandes und 3 ms darin, wobei die Atmosphäre bei jedem Schritt aus der aktuellen Höhe des Geschosses neu bestimmt wird. Das exakte Treffen einer Zielzeit nutzt dieselbe quadratische Dreipunkt-Interpolation, mit der der Rest der Engine eine Zielentfernung trifft. Einfach den Rohschritt abzulesen, der gerade darüber hinausschießt, wäre bei diesen Geschwindigkeiten ein echter Fehler — im Wert von Dutzenden Metern.
 
 ### 12.6 Warum keine Gerade und warum keine Parabel
 
@@ -563,7 +563,7 @@ Das isoliert etwas, was die verrauschten Versuche für sich nicht können: **ein
 
 Mit echtem Rauschen, über jede geprüfte Konfiguration und Fensterlänge:
 
-- **Quadratisch überschätzt den BC in jeder einzelnen Zelle**, um +4 % bis +9 %. Es passt sich dem verrauschten Schwanz zu gut an — und da §12.2 gezeigt hat, dass Schwanzfehler einseitig nach oben gehen, heißt gut anpassen: nach oben gezogen werden. Das reproduziert genau den Fehlschlag, den der Autor des Vorgängerwerkzeugs schon von Hand gefunden hatte.
+- **Quadratisch überschätzt den BC in jeder einzelnen Zelle**, um +4 % bis +9 %. Es passt sich dem verrauschten Schwanz zu gut an, und da Schwanzfehler einseitig nach oben gehen (§12.2), zieht ein guter Fit das Ergebnis ebenfalls nach oben. Das reproduziert genau den Fehlschlag, den der Autor des Vorgängerwerkzeugs schon von Hand gefunden hatte.
 - **Die Verzerrung des linearen Verfahrens hängt von der Konfiguration ab und wächst mit der Fensterlänge.** Nahezu flach bei einer schweren, sanft verzögernden .338; eine starke und sich verschlimmernde negative Verzerrung bei einer schnellen 5,56 mit niedrigem BC — von -3,4 % auf 120 m bis -8,4 % auf 200 m. Das ist die obige Kurvenformverzerrung, die sich mit der Rauschempfindlichkeit überlagert.
 - **Die Physik-Anpassung hatte in jeder einzelnen Zelle den kleinsten Fehler**, typischerweise drei- bis neunmal kleiner als jede Alternative, und dazu die engste Streuung.
 
@@ -597,7 +597,7 @@ Beide arbeiten auf fertigen Track-Ergebnissen, und keine passt etwas neu an — 
 
 **Die Signalqualitätsschranke** vergleicht das R² jedes Tracks — das Bestimmtheitsmaß der SNR-gewichteten Geraden durch seine *bereinigten* Punkte — gegen 0,95 (Normal) oder 0,90 (Hohes Rauschen), oder überspringt die Prüfung ganz (Keine).
 
-Hier liegt ein scheinbarer Widerspruch, den man auflösen sollte: §12.6 hat gerade festgestellt, dass eine Gerade das falsche Modell zum Anpassen eines BC ist. Als Referenz für eine *Qualitäts*prüfung ist sie dennoch die richtige, aus zwei Gründen. Die Abweichung eines Tracks von der Linearität über ein 100-m-Fenster wird vom Rauschen beherrscht und nicht von der echten Krümmung — die Krümmung sind ein paar Prozent, die schlechten Punkte sind zig Meter pro Sekunde. Und dieselbe Referenz zu verwenden, die auch die Bereinigung nutzt, macht das ausgewiesene R² direkt als „wie gut ist die Bereinigung gelaufen" lesbar — genau das, worüber der Benutzer urteilen soll.
+Hier liegt ein scheinbarer Widerspruch: §12.6 hat gerade festgestellt, dass eine Gerade das falsche Modell zum Anpassen eines BC ist. Als Referenz für eine *Qualitäts*prüfung ist sie dennoch die richtige, aus zwei Gründen. Die Abweichung eines Tracks von der Linearität über ein 100-m-Fenster wird vom Rauschen beherrscht, nicht von der echten Krümmung — die Krümmung kostet ein paar Prozent, die schlechten Punkte kosten zig Meter pro Sekunde. Und dieselbe Referenz zu verwenden, die auch die Bereinigung nutzt, macht das ausgewiesene R² direkt als „wie gut ist die Bereinigung gelaufen" lesbar — genau das, worüber der Benutzer urteilen soll.
 
 **Die Ausreißerkappung** berechnet Mittelwert und Populations-Standardabweichung über alles, was nach der Qualitätsschranke noch gültig ist, und verwirft dann jeden Track, der weiter als $k\sigma$ von diesem Mittel entfernt liegt, mit $k = 2,0$ (Konservativ) oder $k = 1,644854$ (Aggressiv). Diese zweite Konstante ist nicht willkürlich: Sie ist das 95. Perzentil der Standardnormalverteilung, sodass eine beidseitige Kappung dieser Breite die mittleren 90 % einer normalverteilten Grundgesamtheit behält. Es ist die übliche Schwelle „verwirf die schlechtesten 10 %", exakt geschrieben.
 
@@ -609,13 +609,13 @@ Die Schranken laufen in dieser Reihenfolge und nur in dieser: erst Qualität, da
 
 Ein schlichtes ungewichtetes arithmetisches Mittel der überlebenden BCs und deren Populations-Standardabweichung — geteilt durch $n$, nicht durch $n-1$.
 
-Das ausgewiesene Konfidenzintervall ist eine eigene Rechnung über dieselbe Überlebendenmenge, und sie verwendet sehr wohl $n-1$: Halbbreite $= t_{0,975,\,n-1} \cdot s / \sqrt{n}$, mit $s$ als Stichproben-Standardabweichung, geteilt durch den Mittelwert für den gezeigten Prozentsatz. Die beiden Nenner sind Absicht. Die Populationsform ist das, wogegen die alte Ausreißerkappung kalibriert wurde, und sie bleibt unangetastet; die Stichprobenform ist die richtige für ein Intervall auf einen Mittelwert. Der Multiplikator ist das zweiseitige 95-%-Quantil der Student-t-Verteilung, für $n$ bis 31 tabelliert und darüber hinaus aus einer Cornish-Fisher-Entwicklung genommen, was mehr zählt, als es scheinen mag — bei fünf Tracks sind es 2,776 und bei vier 3,182 gegen die 1,96, die eine Normalapproximation in beiden Fällen ansetzen würde: ein um 42 % bzw. 62 % breiteres und erheblich ehrlicheres Intervall.
+Das ausgewiesene Konfidenzintervall ist eine eigene Rechnung über dieselbe Überlebendenmenge, und sie verwendet sehr wohl $n-1$: Halbbreite $= t_{0,975,\,n-1} \cdot s / \sqrt{n}$, mit $s$ als Stichproben-Standardabweichung, geteilt durch den Mittelwert für den gezeigten Prozentsatz. Die beiden Nenner sind Absicht. Die Populationsform ist das, wogegen die alte Ausreißerkappung kalibriert wurde, und sie bleibt unangetastet; die Stichprobenform ist die richtige für ein Intervall auf einen Mittelwert. Der Multiplikator ist das zweiseitige 95-%-Quantil der Student-t-Verteilung, für $n$ bis 31 tabelliert und darüber hinaus aus einer Cornish-Fisher-Entwicklung genommen. Diese Wahl zählt mehr, als es scheinen mag: bei fünf Tracks sind es 2,776, bei vier 3,182, gegen die 1,96, die eine Normalapproximation in beiden Fällen ansetzen würde — ein um 42 % bzw. 62 % breiteres und deutlich glaubwürdigeres Intervall.
 
 Es ist ausdrücklich *nicht* die Tabelle `TDIST_QUANTILE`, die der Gewehr-Präzisionsrechner mitführt. Das sind 0,9875-Quantile, Bonferroni-aufgeteilt für eine gemeinsame 95-%-Aussage über die beiden Treffpunktkoordinaten einer Schussgruppe zugleich. Ein BC-Mittelwert ist ein einzelner Skalar, und diese Tabelle zu borgen ergäbe ein Intervall, das bis zu doppelt so breit ist wie die 95 %, die es zu sein behauptet.
 
 Bei weniger als zwei gültigen Tracks wird kein Intervall ausgewiesen statt eines mit Breite null.
 
-Das ungewichtete Mittel ist eine bewusste Wahl, kein Versehen. Punkte innerhalb eines Tracks werden SNR-gewichtet, weil SNR ein echtes Qualitätsmaß je Punkt ist. Tracks innerhalb eines Stapels werden überhaupt nicht gewichtet, denn jeder Schuss im Stapel ist eine Ziehung aus derselben Grundgesamtheit von Schüssen, und es gibt keinen vertretbaren Grund, einen saubereren Track lauter darüber reden zu lassen, was das *Geschoss* tut, als einen verrauschteren. Nach Trackqualität zu gewichten würde systematisch die Schüsse übergewichten, die dem Radar gefielen — und das ist nicht dieselbe Grundgesamtheit wie die Schüsse, die Sie abgegeben haben.
+Das ungewichtete Mittel ist eine bewusste Wahl, kein Versehen. Punkte innerhalb eines Tracks werden SNR-gewichtet, weil SNR ein echtes Qualitätsmaß je Punkt ist. Tracks innerhalb eines Stapels werden überhaupt nicht gewichtet. Jeder Schuss im Stapel ist eine Ziehung aus derselben Grundgesamtheit von Schüssen, und es gibt keinen vertretbaren Grund, einen saubereren Track lauter darüber reden zu lassen, was das *Geschoss* tut, als einen verrauschteren. Nach Trackqualität zu gewichten würde systematisch die Schüsse übergewichten, die dem Radar gefielen — nicht dieselbe Grundgesamtheit wie die Schüsse, die Sie abgegeben haben.
 
 ### 12.10 Was die Anpassung ignoriert und was nicht
 
@@ -632,7 +632,7 @@ Das ungewichtete Mittel ist eine bewusste Wahl, kein Versehen. Punkte innerhalb 
 - **Zip-Einträge werden vor dem Entpacken nach Endung gefiltert**, nicht danach. Alles, was kein `.csv` ist — die `.lbr`-Projektdatei, Ordnereinträge, was sonst im Archiv liegt —, wird übersprungen, ohne je entpackt zu werden. Die Inhaltsprüfung sitzt eine Schicht darüber und weiß nichts von Zip-Dateien, weshalb die Modulgrenze genau dort verläuft.
 - **Das Parsen ist synchron und sofort; die Anpassung nicht.** Eine CSV mit hundert Zeilen zu parsen dauert Mikrosekunden, das geschieht also im Moment der Dateiauswahl, und die Liste steht sofort. Die Anpassung sind Hunderte vollständiger Flugbahnintegrationen je Track und geht an den Worker-Pool.
 - **Die Aufträge werden einzeln verteilt statt als ein Sammelversprechen**, gerade damit sich jede Zeile aktualisiert, sobald ihre eigene Anpassung steht. Auf alle zu warten, bevor irgendetwas erscheint, wäre einfacher und schlechter.
-- **Der Löser meldet Sättigung am Rand als Fehlschlag.** Die beiden Suchklammern sind die aus §12.5: BC auf [0,05, 1,5] beschränkt und die Referenzgeschwindigkeit auf 15 % um den eigenen Ankerwert des Tracks. Eine Goldene-Schnitt-Suche liefert immer *irgendeinen* inneren Punkt zurück, auch wenn das wahre Minimum außerhalb ihrer Klammer liegt — sie sättigt dann stillschweigend an demjenigen Rand, an dem es weiter besser wird, was genau wie Konvergenz aussieht und keine ist. Das war ein echter Fehler, mitten in der Validierung gefunden. Ein Ergebnis, das innerhalb von 0,1 % an einem der beiden Klammerränder landet, gilt jetzt als gescheiterte Anpassung — so, wie die anderen BC-Löser der Suite sich schon jetzt weigern, für ein unerreichbares Ziel einen Randwert zu melden. Das ist alles, was eine *Fehler*-Zeile in §10.4 bedeutet.
+- **Der Löser meldet Sättigung am Rand als Fehlschlag.** Die beiden Suchklammern sind die aus §12.5: BC auf [0,05, 1,5] beschränkt und die Referenzgeschwindigkeit auf 15 % um den eigenen Ankerwert des Tracks. Eine Goldene-Schnitt-Suche liefert immer *irgendeinen* inneren Punkt zurück, auch wenn das wahre Minimum außerhalb ihrer Klammer liegt. Sie sättigt dann stillschweigend an demjenigen Rand, an dem es weiter besser wird — was genau wie Konvergenz aussieht, es aber nicht ist. Das war ein echter Fehler, mitten in der Validierung gefunden. Ein Ergebnis, das innerhalb von 0,1 % an einem der beiden Klammerränder landet, gilt jetzt als gescheiterte Anpassung — so, wie die anderen BC-Löser der Suite sich schon jetzt weigern, für ein unerreichbares Ziel einen Randwert zu melden. Das ist alles, was eine *Fehler*-Zeile in §10.4 bedeutet.
 - **Widerstandsmodell und Atmosphäre werden beim Ergebnis jedes Tracks mit abgelegt**, statt beim Zeichnen des Diagramms live gelesen zu werden. Die eingeblendete Anpassungskurve spiegelt daher immer das, womit dieser bestimmte Track tatsächlich gerechnet wurde, auch wenn Sie die Einstellungen des Panels seither ohne Neuberechnung geändert haben.
 - **Ein Track braucht mindestens vier parsbare Zeilen**, um überhaupt als Track zu gelten. Zeilen, denen Zeit, Geschwindigkeit oder Entfernung fehlt, werden stillschweigend verworfen; ebenso jede Zeile nach der ersten, der das SNR fehlt. Nur der ersten Zeile ist ein nichtnumerisches SNR erlaubt, weil nur die erste Zeile der geräteeigene synthetische Punkt ist.
 - **Die Obergrenze von 20.000 Integrationsschritten** ist eine Sicherung des gemeinsamen Schrittrechners und hier keine Beschränkung — ein 0,15-s-Track braucht ein paar Dutzend Schritte.
@@ -649,11 +649,11 @@ Das ungewichtete Mittel ist eine bewusste Wahl, kein Versehen. Punkte innerhalb 
 
 ## 13. Herkunft
 
-BC-Labradar ist der Nachfolger von **Labrabaco**, einem eigenständigen Werkzeug desselben Autors. Der Einleseweg — das Erkennen von Tracks, die Toleranzregeln je Zeile, der Punktbereinigungsalgorithmus und seine beiden Ganz-Track-Schranken — ist getreu von dort portiert, Aufrufstelle für Aufrufstelle nachverfolgt und an echten Beispiel-Tracks validiert, einschließlich der mehreren in §12.3 dokumentierten Index-Asymmetrien, die wie Fehler aussehen und keine sind.
+BC-Labradar ist der Nachfolger von **Labrabaco**, einem eigenständigen Werkzeug desselben Autors. Der Einleseweg (das Erkennen von Tracks, die Toleranzregeln je Zeile, der Punktbereinigungsalgorithmus und seine beiden Ganz-Track-Schranken) ist getreu von dort portiert, Aufrufstelle für Aufrufstelle nachverfolgt und an echten Beispiel-Tracks validiert. Das schließt die in §12.3 dokumentierten Index-Asymmetrien ein, die wie Fehler aussehen und keine sind.
 
-Neu ist die Anpassung. Das Altwerkzeug legte eine Gerade durch die bereinigten Punkte und halbierte nach dem BC, der zu deren Endpunkten passte; dieses passt die eigene Widerstandsphysik der App gegen jeden behaltenen Punkt auf einmal an, gemeinsam mit einer Referenzgeschwindigkeit. Diese Änderung und die damit gepaarte Änderung der Bereinigungsschwelle von 0,97 auf 0,99 wurden an synthetischen Tracks mit echtem Rauschen validiert, bevor eine von beiden ausgeliefert wurde, und die Validierungsberichte — samt der negativen Ergebnisse, der beiden verworfenen Entwürfe und des einen funktionierenden Mechanismus, der gebaut und dann weggelassen wurde, weil er seinen Preis nicht wert war — liegen im Repository neben dem Code.
+Neu ist die Anpassung. Das Altwerkzeug legte eine Gerade durch die bereinigten Punkte und halbierte nach dem BC, der zu deren Endpunkten passte; dieses passt die eigene Widerstandsphysik der App gegen jeden behaltenen Punkt auf einmal an, gemeinsam mit einer Referenzgeschwindigkeit. Diese Änderung, und die damit gepaarte Änderung der Bereinigungsschwelle von 0,97 auf 0,99, wurden an synthetischen Tracks mit echtem Rauschen validiert, bevor eine von beiden ausgeliefert wurde. Die Validierungsberichte liegen im Repository neben dem Code, samt der negativen Ergebnisse, der beiden verworfenen Entwürfe und des einen funktionierenden Mechanismus, der gebaut und dann weggelassen wurde, weil er seinen Preis nicht wert war.
 
-Ebenfalls neu: das Diagramm je Track mit seiner Trennung behalten/verworfen und der eingeblendeten Anpassungskurve, wofür das Altwerkzeug überhaupt keine Entsprechung hatte; eine strukturierte Ergebniskarte statt eines zusammengeklebten Textblocks; parallele Anpassung über einen Worker-Pool; und eine vollständig einheitenbewusste Atmosphäre mit echter abgeleiteter Höhe statt angenommener Meereshöhe.
+Ebenfalls neu: das Diagramm je Track mit seiner Trennung behalten/verworfen und der eingeblendeten Anpassungskurve (das Altwerkzeug hatte keine Entsprechung dafür), eine strukturierte Ergebniskarte statt eines zusammengeklebten Textblocks, parallele Anpassung über einen Worker-Pool, und eine vollständig einheitenbewusste Atmosphäre mit echter abgeleiteter Höhe statt angenommener Meereshöhe.
 
 Die Suite steht unter **AGPL-3.0-or-later**.
 

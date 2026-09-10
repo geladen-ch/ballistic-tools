@@ -10,13 +10,13 @@ Il coefficiente balistico è l'unico numero di tutto il calcolo di traiettoria c
 
 È anche il numero a cui la traiettoria è più sensibile a distanza, e quello che più facilmente lusinga. I BC pubblicati sono cifre di marketing tanto spesso quanto sono misure.
 
-**BC Labradar misura il tuo.** Legge i file di traccia che un cronografo Labradar scrive sulla propria scheda SD — una registrazione completa di velocità nel tempo per ogni colpo, campionata all'incirca ogni millisecondo sul primo centinaio di metri di volo — e adatta un coefficiente balistico a ciascun colpo separatamente, contro la stessa fisica della resistenza che il resto della suite usa per calcolare le traiettorie. Poi ripulisce le tracce che il radar ha sbagliato, butta via i colpi che non concordano con gli altri e fa la media di ciò che sopravvive.
+**BC Labradar misura il tuo.** Legge i file di traccia che un cronografo Labradar scrive sulla propria scheda SD: una registrazione completa di velocità nel tempo per ogni colpo, campionata all'incirca ogni millisecondo sul primo centinaio di metri di volo. Adatta un coefficiente balistico a ciascun colpo separatamente, con la stessa fisica della resistenza che il resto della suite usa per le traiettorie. Poi ripulisce le tracce sbagliate, butta via i colpi che non concordano con gli altri e fa la media di ciò che sopravvive.
 
 Ne esce un BC per la **tua** palla, dalla **tua** canna, nella **tua** aria. Riportalo nell'Arsenale e ogni altro strumento della suite lavora su una misura invece che su un'affermazione.
 
-Nulla di questa pulizia e di questo adattamento è stato progettato a tavolino e poi lasciato andare sperando bene. È stato calibrato su un corpus di **1.297 tracce Labradar reali**, dal quale il rumore proprio del radar — come cresce lungo la traccia e quanto selvaggiamente varia da sessione a sessione — è stato misurato e non ipotizzato. Il §12 espone che cosa quella misura ha trovato e che cosa vi è stato costruito sopra.
+Nulla di questa pulizia e di questo adattamento è stato progettato a tavolino e poi lasciato andare sperando bene — è stato calibrato su un corpus di **1.297 tracce Labradar reali**. Il rumore proprio del radar (come cresce lungo la traccia e quanto selvaggiamente varia da sessione a sessione) è stato misurato e non ipotizzato. Il §12 ne dà i dettagli.
 
-La cosa notevole di questo metodo è che non richiede alcuna attrezzatura a valle. Nessun secondo cronografo a 300 m, nessun bersaglio acustico, nessun radar Doppler grande come un'auto. Il dispositivo sta già registrando i dati — semplicemente non ti dice quanto valgono.
+Notevolmente, questo metodo non richiede alcuna attrezzatura a valle: nessun secondo cronografo a 300 m, nessun bersaglio acustico, nessun radar Doppler grande come un'auto. Il dispositivo sta già registrando i dati — semplicemente non ti dice quanto valgono.
 
 ### Che cosa non è
 
@@ -24,9 +24,9 @@ La cosa notevole di questo metodo è che non richiede alcuna attrezzatura a vall
 
 **Funziona solo con il Labradar v1** — la grande scatola arancione, quella che scrive file `Shot0001 Track.csv`. I dispositivi successivi, e ogni altra marca di cronografo, o non registrano alcuna traccia o non la scrivono in questo formato. Per loro non esiste una via di importazione.
 
-**Non è un risolutore di curve Cd.** Adatta un solo numero contro un modello di resistenza standard. Se la forma di resistenza reale della tua palla non è quella del modello, l'adattamento ti dà il miglior BC singolo per quel modello sulla banda di velocità misurata, non la verità sulla palla. È lo strumento **Curva Cd–Mach** che ricava la curva di resistenza propria di una palla, e vuole un tipo di misura completamente diverso.
+**Non è un risolutore di curve Cd.** Adatta un solo numero contro un modello di resistenza standard — il miglior BC singolo per quel modello, non la verità sulla forma di resistenza reale della palla. È lo strumento **Curva Cd–Mach** che ricava la curva di resistenza propria di una palla, e vuole un tipo di misura diverso.
 
-**Ti dice quanto è sicuro riguardo ai colpi, e soltanto riguardo ai colpi.** Accanto alla media riporta un intervallo di confidenza al 95 % su quella media, in percentuale di essa, calcolato dalla dispersione dei BC colpo per colpo che ha accettato. Quell'intervallo è onesto sui numeri che gli hai dato e sul campionamento, e muto su tutto il resto — un'atmosfera digitata male sposta media e intervallo insieme, e nessuna statistica calcolata sulle tracce può accorgersene. §10.3.
+**Ti dice quanto è sicuro riguardo ai colpi, e soltanto riguardo ai colpi.** Accanto alla media riporta un intervallo di confidenza al 95 % su quella media, in percentuale di essa, calcolato dalla dispersione dei BC colpo per colpo che ha accettato. Quell'intervallo riflette i numeri che gli hai dato e il rumore di campionamento sopra di essi, nient'altro — un'atmosfera digitata male sposta media e intervallo insieme, e nessuna statistica calcolata sulle tracce può accorgersene. §10.3.
 
 ---
 
@@ -34,9 +34,9 @@ La cosa notevole di questo metodo è che non richiede alcuna attrezzatura a vall
 
 **Nulla di ciò che dai a questo strumento lascia il tuo dispositivo.** Il file zip che scegli non viene mai caricato. Viene decompresso nel tuo browser, analizzato nel tuo browser e adattato nel tuo browser, da JavaScript che gira sulla tua macchina. Nessun account, nessun server, nessuna telemetria.
 
-**Nemmeno viene memorizzato alcunché.** A differenza dell'Arsenale o del Calcolatore di precisione di tiro, questo strumento non tiene alcuna libreria. Il lotto caricato, le scelte dei filtri, il modello di resistenza e l'atmosfera sopravvivono a un giro verso un altro strumento e ritorno — vivono in memoria per la sessione — ma non sopravvivono a un ricaricamento della pagina. Ricarica, e riscegli lo zip. È voluto: un lotto di tracce è un intermedio, non un documento. Ciò che vale la pena conservare è il BC risultante, e il suo posto è nell'Arsenale (§11.1).
+**Nemmeno viene memorizzato alcunché.** A differenza dell'Arsenale o del Calcolatore di precisione di tiro, questo strumento non tiene alcuna libreria. Il lotto caricato, le scelte dei filtri, il modello di resistenza e l'atmosfera sopravvivono a un giro verso un altro strumento e ritorno (vivono in memoria per la sessione), ma non a un ricaricamento della pagina. Ricarica, e riscegli lo zip. È voluto: un lotto di tracce è un intermedio, non un documento. Ciò che vale la pena conservare è il BC risultante, e il suo posto è nell'Arsenale (§11.1).
 
-**Requisiti.** Un browser ragionevolmente recente. L'adattamento è davvero pesante — una integrazione completa della resistenza viene eseguita alcune centinaia di volte per traccia — perciò è distribuito su un pool di worker in background, un incarico per traccia, e le righe si riempiono man mano che finiscono. Un lotto di trenta tracce si risolve in un paio di secondi su un computer da scrivania e richiede sensibilmente di più su un telefono. L'app si installa come PWA e questo strumento funziona del tutto offline una volta caricato — il che conta, perché il posto in cui più vorrai usarlo è un poligono senza campo.
+**Requisiti.** Un browser ragionevolmente recente. L'adattamento è pesante dal punto di vista computazionale — una integrazione completa della resistenza gira alcune centinaia di volte per traccia — perciò è distribuito su un pool di worker in background (§6.7). Un lotto di trenta tracce si risolve in un paio di secondi su un computer da scrivania e richiede sensibilmente di più su un telefono. L'app si installa come PWA, e questo strumento funziona del tutto offline una volta caricato. Questo conta: il posto in cui più vorrai usarlo è un poligono senza campo.
 
 ---
 
@@ -81,7 +81,7 @@ Tre cose su quella tabella vale la pena saperle, perché lo strumento le tratta 
 
 ### 3.1 Una nota sulle unità
 
-Questo è l'unico strumento della suite in cui le unità quasi non compaiono, perché un coefficiente balistico non ne ha di riconoscibili. Si cita per tradizione in libbre per pollice quadrato di carico sezionale, il che da sempre si scrive come numero nudo, e questo strumento lo scrive come numero nudo a quattro decimali.
+Questo è l'unico strumento della suite in cui le unità quasi non compaiono, perché le unità di un coefficiente balistico sono piuttosto torbide. In linea di principio si misura in libbre per pollice quadrato di carico sezionale, ma in pratica nessuno lo scrive così — un semplice numero nudo, a tre o quattro decimali.
 
 Tre punti in cui le unità compaiono comunque:
 
@@ -114,23 +114,23 @@ Non fidarti di un risultato ottenuto da meno di dieci colpi, e leggi il §10.3 p
 
 Lo strumento sa solo ripulire il rumore. Non può inventare una misura che non è mai stata fatta, e non può accorgersi di un errore sistematico nelle condizioni che hai digitato. Tutto ciò che sta in questa sezione avviene prima che tu apra l'app, e ognuno di questi errori è poi invisibile.
 
-**Comincia dal manuale del dispositivo**, o quantomeno dalla sua guida rapida. Ci sono le figure. Ogni raccomandazione che contiene ha la sua ragione, e le ragioni qui sotto ne sono in gran parte lo sviluppo. Quel che segue è la parte che pesa in modo sproporzionato quando l'obiettivo è un coefficiente balistico anziché una velocità alla volata — perché un allestimento che produce ottime letture di V0 può comunque produrre tracce inutilizzabili oltre i trenta metri, e il dispositivo non ti dirà quale delle due sessioni hai appena fatto.
+**Comincia dal manuale del dispositivo**, o quantomeno dalla sua guida rapida. Ci sono le figure. Ogni raccomandazione che contiene ha la sua ragione, e le ragioni qui sotto ne sono in gran parte lo sviluppo. Quel che segue è la parte che pesa in modo sproporzionato quando l'obiettivo è un coefficiente balistico anziché una velocità alla volata. Un allestimento che produce ottime letture di V0 può comunque produrre tracce inutilizzabili oltre i trenta metri — e il dispositivo non ti dirà quale delle due sessioni hai appena fatto.
 
 ### 5.1 Puntare il radar
 
 **Puntalo sul bersaglio su cui stai davvero sparando**, non sulla carabina, né genericamente lungo il poligono. Il dispositivo insegue la palla lungo il proprio asse di fascio, e più la traiettoria corre vicina a quell'asse, più ogni eco è forte e pulito.
 
-Non si tratta di un metro o due di traccia in più. L'allineamento del fascio decide fin dove il dispositivo tiene la palla, punto e basta, e la lunghezza della traccia è la leva più grande che hai sulla qualità di un adattamento di BC: una traccia più lunga significa più decadimento di velocità da misurare, più punti su cui adattare e proporzionalmente meno influenza del rumore finale.
+Non si tratta solo di un metro o due di traccia in più. L'allineamento del fascio decide fin dove il dispositivo tiene la palla, punto e basta. E la lunghezza della traccia è la leva più grande sulla qualità di un adattamento di BC: una traccia più lunga significa più decadimento da misurare, più punti su cui adattare e meno influenza relativa del rumore finale.
 
 ### 5.2 L'offset del proiettile
 
 Il dispositivo ha un'impostazione chiamata *proj. offset*, che gli dice quanto lontano dal radar passa la palla. Sbagliarla rende sbagliata ogni velocità di ogni traccia, in modo coerente e con un aspetto del tutto plausibile.
 
-**Perché esiste.** Il radar può misurare solo la velocità *radiale* — il ritmo con cui la palla si allontana dal dispositivo — che non è la velocità reale nella direzione del tiro, perché l'asse del fascio e la traiettoria non sono la stessa retta. Passare dall'una all'altra è trigonometria elementare, ed è ciò che il dispositivo fa prima di mostrare qualunque cosa. Ma quella trigonometria deve sapere quanto distano le due rette, e quel numero è quello che imposti tu.
+**Perché esiste.** Il radar misura solo la velocità *radiale*: il ritmo con cui la palla si allontana dal dispositivo. Non è la velocità reale nella direzione del tiro, perché l'asse del fascio e la traiettoria non sono la stessa retta. Passare dall'una all'altra è trigonometria elementare — è esattamente ciò che il dispositivo fa prima di mostrare qualunque cosa — ma deve sapere quanto distano le due rette. Quel numero è quello che imposti tu.
 
 **Rispettalo.** Se l'impostazione dice 30 cm, metti la canna a 25–30 cm dal radar. Mettila a un metro e il dispositivo registrerà comunque qualcosa, ma ogni lettura porterà un errore significativo.
 
-**È la distanza dall'asse della canna, misurata al fianco del radar.** Non la distanza dalla volata al dispositivo, che è un'obliqua più lunga. Se la tua volata si trova un po' più avanti o un po' più indietro del corpo del radar, non è di per sé un problema — purché la distanza laterale dalla canna sia giusta, l'errore sulla velocità alla volata mostrata è trascurabile e l'errore sul BC calcolato qui è nullo.
+**È la distanza dall'asse della canna, misurata al fianco del radar.** Non la distanza dalla volata al dispositivo, che è un'obliqua più lunga. Se la tua volata si trova un po' più avanti, o più indietro, del corpo del radar, non è di per sé un problema. Purché la distanza laterale dalla canna sia giusta, l'errore sulla velocità alla volata mostrata è trascurabile, e l'errore sul BC calcolato qui è nullo.
 
 **E qui pesa più che sul display del dispositivo.** Un errore di offset perturba moderatamente il valore di V0. Perturba assai di più un BC ricavato dalla *forma* della traccia. Se di solito tolleri un offset approssimativo perché i numeri del cronografo continuano a sembrare sensati, quella tolleranza non si trasferisce a questo strumento. Il §12.1 spiega perché.
 
@@ -153,7 +153,7 @@ Il radar Doppler si entusiasma per tutto ciò che riflette, e ogni riflessione s
 
 **Imposta la distanza massima di visualizzazione a 200 m, o 200 yd.**
 
-La traccia molto probabilmente non arriverà fin lì — in pratica, solo calibri molto grandi con traiettoria tesa ci si avvicinano. Quello che l'impostazione fa è dire al dispositivo di continuare a provarci finché il segnale regge, invece di fermarsi a un limite configurato più corto. Traccia più lunga, più decadimento, adattamento migliore. Non c'è alcun rovescio della medaglia, dato che il dispositivo spegne comunque il fascio radar non appena perde la palla.
+La traccia molto probabilmente non arriverà fin lì — in pratica, solo calibri molto grandi con traiettoria tesa ci si avvicinano. Questa impostazione dice semplicemente al dispositivo di continuare a provarci finché il segnale regge, invece di fermarsi a un limite più corto. Traccia più lunga, più decadimento, adattamento migliore. Non c'è alcun rovescio della medaglia: il dispositivo spegne comunque il fascio radar non appena perde la palla.
 
 ### 5.6 L'atmosfera: il dato che ti morderà davvero
 
@@ -177,7 +177,7 @@ Un colpo è un colpo. Non dice quasi nulla, e lo strumento ne calcolerà volenti
 
 Di più è sempre meglio, e il costo marginale è una cartuccia.
 
-Sparali tutti nelle stesse condizioni, dalla stessa carabina, con la stessa palla. Questo strumento fa la media sul lotto. Mediare due palle diverse non dà il BC né dell'una né dell'altra. Nota che le velocità alla volata non devono essere uguali, e nemmeno simili; misurare un BC su una serie di messa a punto della carica è perfettamente lecito.
+Sparali tutti nelle stesse condizioni, dalla stessa carabina, con la stessa palla. Questo strumento fa la media sul lotto. Mediare due palle diverse non dà il BC né dell'una né dell'altra. Le velocità alla volata non devono essere uguali, e nemmeno simili — misurare un BC su una serie di messa a punto della carica è perfettamente lecito.
 
 ### 5.8 Tirare fuori lo zip dal dispositivo
 
@@ -198,11 +198,11 @@ Contro quale modello di resistenza standard viene espresso il BC. Il valore pred
 Qui la scelta pesa più che nella maggior parte dei casi, perché l'adattamento avviene contro la forma reale della curva del modello sulla banda di velocità reale della tua palla, e non tramite una conversione:
 
 - **G7** per le palle boat-tail moderne — ogiva lunga, base rastremata. In pratica ogni palla match o da caccia progettata negli ultimi trent'anni.
-- **G1** per basi piatte, ogive tonde e la maggior parte dei disegni più vecchi o smussati. È anche quello che cita la maggior parte dei produttori, il che è una ragione a sé per usarlo.
+- **G1** per basi piatte, ogive tonde e la maggior parte dei disegni più vecchi o smussati. È anche quello che cita la maggior parte dei produttori, quindi perché no.
 
 Il modello che scegli è fissato dentro ogni adattamento di traccia, perciò cambiarlo dopo il calcolo richiede un nuovo **Calcola** (§6.7). Sul passo di pulizia non ha alcun effetto.
 
-Non c'è nulla di male nel passare lo stesso lotto due volte, una per modello, e tenere entrambi i numeri. Per i calcoli di traiettoria, usa il modello che meglio corrisponde alla forma della tua palla.
+Puoi far girare lo stesso lotto due volte, una per modello, e tenere entrambi i numeri.
 
 ### 6.2 Atmosfera
 
@@ -228,7 +228,7 @@ Tre impostazioni:
 
 L'R² mostrato nella lista delle tracce è il numero con cui questa soglia si confronta. Il §12.8 spiega che cosa misuri davvero, e perché una retta sia il riferimento giusto per un controllo di *qualità* pur essendo il riferimento sbagliato per un *adattamento*.
 
-Cambiare questa impostazione ridecide quali tracce siano incluse e aggiorna la media **immediatamente**. Nessun ricalcolo è necessario, perché nessun BC cambia — cambia solo il verdetto su ciascuno.
+Cambiare questa impostazione ridecide quali tracce siano incluse e aggiorna la media **immediatamente** — nessun ricalcolo necessario, perché nessun BC cambia, cambia solo il verdetto su ciascuno.
 
 ### 6.4 Scarta valori anomali
 
@@ -317,7 +317,7 @@ Cliccare ovunque su una riga tranne che sulla sua casella seleziona quella tracc
 | **esclusa** | L'hai deselezionata a mano |
 | **errore** | L'adattamento è fallito. Vedi §10.4 |
 
-***Non è una traccia*** è lo stato normale di diverse voci in ogni export reale, e non è un problema. Lo riceve il `Report.csv` del dispositivo, perché è un riepilogo e non una traccia. Così pure qualunque altra cosa finisca per caso in `.csv` — inclusi gli invisibili file compagni `._` che macOS sparge negli archivi che ha toccato. Lo strumento decide guardando il contenuto e non il nome: un file è una traccia se contiene un'intestazione di traccia Labradar con un'unità di velocità dichiarata e produce almeno quattro righe di dati utilizzabili.
+***Non è una traccia*** è lo stato normale di diverse voci in ogni export reale, e non è un problema. Riceve questo stato il `Report.csv` del dispositivo, perché è un riepilogo e non una traccia — così pure qualunque altra cosa finisca per caso in `.csv` — inclusi gli invisibili file compagni `._` che macOS sparge negli archivi che ha toccato. Lo strumento decide guardando il contenuto e non il nome: un file è una traccia se contiene un'intestazione di traccia Labradar con un'unità di velocità dichiarata e produce almeno quattro righe di dati utilizzabili.
 
 ### 7.3 La casella «Includi»
 
@@ -350,7 +350,7 @@ La curva è estesa fino al tempo più tardo di **qualunque** punto tracciato, ma
 
 **Scarica il grafico come SVG** lo esporta, come gli altri grafici della suite.
 
-Selezionare una traccia in errore disegna comunque qualcosa: poiché non c'è adattamento né divisione tra mantenuti e scartati, ogni punto grezzo tranne il punto di volata inventato dal dispositivo è disegnato come respinto, così puoi almeno vedere che cosa il radar ha registrato e farti un'idea tua sul perché non ci si sia potuto adattare nulla.
+Selezionare una traccia in errore disegna comunque qualcosa. Poiché non c'è adattamento né divisione tra mantenuti e scartati, ogni punto grezzo tranne il punto di volata inventato dal dispositivo è disegnato come respinto — così puoi almeno vedere che cosa il radar ha registrato, e giudicare da solo perché non ci si sia potuto adattare nulla.
 
 L'asse orizzontale è in millisecondi e quello verticale in metri al secondo, sempre. Vedi §3.1.
 
@@ -360,7 +360,7 @@ L'asse orizzontale è in millisecondi e quello verticale in metri al secondo, se
 
 Tre righe, sopra il grafico.
 
-- **Tracce valide** — quante, sul totale, entrano attualmente nella media. `24 / 31` significa che trentuno colpi hanno prodotto un coefficiente balistico e ventiquattro di essi vengono mediati. Il denominatore conta solo le tracce effettivamente adattate, perciò le voci che non sono mai state tracce, e quelle andate in errore, mancano da entrambe le metà. Se quel denominatore è minore del numero di colpi che hai sparato, scorri la lista in cerca di errori.
+- **Tracce valide** — quante, sul totale, entrano attualmente nella media. `24 / 31` significa che trentuno colpi hanno prodotto un coefficiente balistico e ventiquattro di essi vengono mediati. Il denominatore conta solo le tracce effettivamente adattate, perciò le voci che non sono mai state tracce, o che sono andate in errore, mancano da entrambi i numeri. Se quel denominatore è minore del numero di colpi che hai sparato, scorri la lista in cerca di errori.
 - **Deviazione standard del BC** — la dispersione dei singoli BC colpo per colpo entrati nella media, a cinque decimali. È il numero che ti dice se credere a quello sotto. Vedi §10.3.
 - **Il BC stesso** — grande, nel colore d'accento, a quattro decimali. La semplice media aritmetica non pesata dei BC di tutte le tracce incluse. Accanto, più sommesso, l'intervallo di confidenza al 95 % su quella media, scritto in percentuale di essa: `0.2812 (± 1.6%)`. Con una sola traccia valida non compare alcun intervallo, dato che un colpo solo non ha dispersione da cui ricavarlo. Vedi §10.3.
 
@@ -372,13 +372,13 @@ Tutte e tre si aggiornano nell'istante in cui cambi un filtro o spunti una casel
 
 ### 10.1 Che cosa hai davvero misurato
 
-Il numero è il miglior BC singolo, contro il modello di resistenza che hai scelto, che riproduca la decelerazione che la tua palla ha davvero mostrato sul primo centinaio di metri del suo volo, nell'aria che hai dichiarato allo strumento.
+Il numero è il miglior BC singolo contro il modello di resistenza che hai scelto. Riproduce la decelerazione che la tua palla ha davvero mostrato sul primo centinaio di metri del suo volo, nell'aria che hai dichiarato allo strumento.
 
 Tre riserve al riguardo, tutte reali:
 
-**È una misura della palla, così come esce dalla tua canna e attraversa la tua aria.** Non della carica di polvere. La velocità alla volata non fa parte di ciò che viene misurato — l'adattamento legge la *forma* del decadimento, e una palla che parte a 780 m/s decelera secondo la stessa curva di resistenza di una che parte a 700 m/s. È per questo che il §5.7 può dire che un lotto non deve essere omogeneo in velocità. Ciò che la canna invece contribuisce è reale: l'incrostazione, l'usura del cono di forzamento e tutto ciò che disturba la palla in uscita possono cambiare come vola davvero, e qui si vedrà.
+**È una misura della palla, così come esce dalla tua canna e attraversa la tua aria.** Non della carica di polvere. La velocità alla volata non fa parte di ciò che viene misurato. L'adattamento legge la *forma* del decadimento: una palla che parte a 780 m/s decelera secondo la stessa curva di resistenza di una che parte a 700 m/s. È per questo che il §5.7 può dire che un lotto non deve essere omogeneo in velocità. Ciò che la canna invece contribuisce è reale: l'incrostazione, l'usura del cono di forzamento e tutto ciò che disturba la palla in uscita possono cambiare come vola davvero, e qui si vedrà.
 
-**È adattato su una banda di velocità limitata.** La palla è nel campo del radar solo per una frazione del suo volo, e per tutto quel tempo è veloce. Un BC singolo contro un modello standard è un compromesso sulla banda su cui è stato adattato — quanto più la curva di resistenza reale della tua palla segue la forma del modello, tanto meglio quel compromesso si estrapola verso il regime transonico, dove conta di più. Ma dal tratto ravvicinato che il radar registra davvero non si può dedurre quale modello estrapoli meglio a lunga distanza. È una proprietà della palla, non dello strumento, ed è per questo che i due modelli di resistenza possono adattarsi bene qui e comunque contraddirsi a distanza.
+**È adattato su una banda di velocità limitata.** La palla è nel campo del radar solo per una frazione del suo volo, e per tutto quel tempo è veloce. Un BC singolo contro un modello standard è un compromesso sulla banda su cui è stato adattato. Quanto più la curva di resistenza reale della tua palla segue la forma del modello, tanto meglio quel compromesso si estrapola verso il regime transonico — dove conta di più. Ma dal tratto ravvicinato che il radar registra davvero non si può dedurre quale modello estrapoli meglio a lunga distanza. È una proprietà della palla, non dello strumento, ed è per questo che i due modelli di resistenza possono adattarsi bene qui e comunque contraddirsi a distanza.
 
 **Vale solo quanto vale la tua atmosfera.** Di nuovo. Vedi §5.6.
 
@@ -398,7 +398,7 @@ I due numeri rispondono a domande diverse, e tutta la questione sta lì.
 
 **La deviazione standard** è la dispersione dei singoli BC colpo per colpo. È una proprietà del tuo tiro, della tua munizione e della giornata che ha avuto il tuo radar, e sparare di più non necessariamente la riduce.
 
-**L'intervallo di confidenza** dice quanto bene quei colpi abbiano inchiodato la media. A differenza della dispersione, questo si stringe davvero man mano che spari — ma lentamente. Quattro volte i colpi per metà intervallo. Si allarga quando i tuoi colpi si contraddicono di più, ed è deliberatamente generoso sui lotti piccoli, perché una manciata di colpi davvero non può dire molto. Il §12.9 dà la formula.
+**L'intervallo di confidenza** dice quanto bene quei colpi abbiano inchiodato la media. A differenza della dispersione, questo si stringe davvero man mano che spari — ma lentamente. Quattro volte i colpi per metà intervallo. Si allarga quando i tuoi colpi si contraddicono di più. Ed è deliberatamente generoso sui lotti piccoli, perché una manciata di colpi semplicemente non può dire molto. Il §12.9 dà la formula.
 
 Così un lotto di 25 tracce valide con una deviazione standard del BC di 0,010 dà un intervallo di circa ±0,004 attorno alla media. Contro un BC di 0,250 si legge come ±1,6 %, che è una misura davvero utile.
 
@@ -409,7 +409,7 @@ La stessa deviazione standard su sole 4 tracce valide dà circa ±0,016, ossia �
 Ne discendono direttamente due regole pratiche, e sono la ragione di ciò che dice il §5.7:
 
 - **La dispersione è una proprietà dei tuoi dati; la precisione è una proprietà della dimensione del tuo campione.** Le tracce rumorose si curano sparandone di più.
-- **Una dispersione è ampia rispetto a ciò che la cartuccia e la finestra rendono normale.** Nelle campagne di validazione dietro questo strumento (§12.6) — tracce sintetiche che portano rumore copiato da registrazioni Labradar reali, ripulite e adattate esattamente come fa lo strumento pubblicato — la dispersione per traccia andava da circa l'1,5 % al 5 % del coefficiente, la più ampia per cartucce pesanti e lente a decelerare su una finestra corta, la più stretta per quelle veloci su una finestra lunga. Un valore dentro quella fascia non dice nulla di particolare. Ben sopra, scorri le righe e guarda i grafici prima di mediarci sopra: il radar faticava, la corsia era ingombra, l'offset era sbagliato, oppure la tua munizione è davvero così irregolare. Nota che quelle campagne misuravano il rumore radar contro una verità nota, per cui un lotto reale porta la vera variazione da palla a palla sopra quella fascia, non dentro.
+- **Una dispersione è ampia rispetto a ciò che la cartuccia e la finestra rendono normale.** Le campagne di validazione dietro questo strumento (§12.6) hanno usato tracce sintetiche che portano rumore copiato da registrazioni Labradar reali, ripulite e adattate esattamente come fa lo strumento pubblicato. La dispersione per traccia andava da circa l'1,5 % al 5 % del coefficiente — la più ampia per cartucce pesanti e lente a decelerare su una finestra corta, la più stretta per quelle veloci su una finestra lunga. Un valore dentro quella fascia non dice nulla di particolare. Ben sopra, scorri le righe e guarda i grafici prima di mediarci sopra: il radar faticava, la corsia era ingombra, l'offset era sbagliato, oppure la tua munizione è davvero così irregolare. Quelle campagne misuravano il rumore radar contro una verità nota, per cui un lotto reale porta la vera variazione da palla a palla sopra quella fascia, non dentro.
 
 ### 10.4 Quando una traccia va in errore
 
@@ -427,7 +427,7 @@ Uno o due errori in un lotto grande non hanno nulla di notevole. Un lotto in cui
 
 È lo scopo dell'esercizio. Apri **Armi → Arsenale**, modifica la palla che hai appena misurato e sostituisci il BC pubblicato con il tuo, contro il modello di resistenza con cui l'hai adattato.
 
-Non c'è alcun passaggio automatico — il numero lo digiti tu. Sono quattro cifre, e la deliberatezza vale la pena: qui sei tu a decidere che la tua misura sostituisce l'affermazione del produttore, e quella decisione merita di essere consapevole.
+Non c'è alcun passaggio automatico — il numero lo digiti tu. Sono quattro cifre, ed è proprio questo il punto: qui sei tu a decidere che la tua misura sostituisce l'affermazione del produttore, e quella decisione deve essere consapevole.
 
 Da quel momento ogni strumento della suite — Traiettoria, Probabilità di colpire, Calcolatore di campo, il grafico di confronto — lavora su un valore di resistenza misurato. Il miglioramento non si vede a cento metri e si vede benissimo oltre i seicento.
 
@@ -437,7 +437,7 @@ Poiché lo strumento riporta una deviazione standard colpo per colpo oltre a una
 
 - **Due lotti della stessa palla.** Sparane venti per ciascuno ed elaborali come lotti separati. Un BC medio sensibilmente diverso significa che i lotti differiscono davvero, molto probabilmente nell'uniformità dell'ogiva o della base.
 - **L'effetto di una matrice per punte, o della selezione sulla quota base-ogiva.** Stesso trattamento. Qui il numero interessante è la *deviazione standard*, non la media: palle regolari danno BC regolari.
-- **Rivestita contro non rivestita, moly, o qualunque sia l'entusiasmo del momento.** La misura è onesta e l'effetto è di solito più piccolo del marketing.
+- **Rivestita contro non rivestita, moly, o qualunque sia l'entusiasmo del momento.** Alla misura il marketing non interessa, e l'effetto è di solito più piccolo di quanto sostenga.
 
 Tieni onesta l'atmosfera tra un confronto e l'altro, altrimenti misurerai il tempo che fa.
 
@@ -459,7 +459,7 @@ Due conseguenze plasmano tutto il resto:
 
 **L'offset del proiettile è una vera correzione geometrica, non una finezza.** Ciò che il fascio vede è la componente radiale della velocità. Convertirla nella vera velocità nella direzione del tiro richiede l'angolo tra fascio e traiettoria, che si ricava dall'offset che hai impostato. Un errore di offset è un errore in coseno, e gli errori in coseno sono i peggiori: piccoli, sistematici e del tutto invisibili in uscita.
 
-Spiega anche l'asimmetria affermata nel §5.2 — perché un offset sciatto costi a una misura di BC più di quanto costi a una velocità alla volata. L'angolo tra fascio e traiettoria non è costante: è più aperto proprio alla volata e si chiude verso zero man mano che la palla si allontana. Il fattore di correzione è dunque una *funzione della distanza*, e sbagliare l'offset non riscala l'intera traccia con un'unica costante sbagliata. La incurva. I punti iniziali vengono corretti più di quelli finali, o meno, e ne esce una curva di decadimento della velocità dalla forma sbagliata.
+Spiega anche l'asimmetria affermata nel §5.2 — perché un offset sciatto costi a una misura di BC più di quanto costi a una velocità alla volata. L'angolo tra fascio e traiettoria non è costante: è più aperto proprio alla volata e si chiude verso zero man mano che la palla si allontana. Il fattore di correzione è dunque una *funzione della distanza*. Sbagliare l'offset non riscala l'intera traccia con un'unica costante sbagliata — la incurva. I punti iniziali vengono corretti più di quelli finali, o meno, e ne esce una curva di decadimento della velocità dalla forma sbagliata.
 
 Una velocità alla volata è un punto singolo su quella curva e assorbe l'errore come un modesto scostamento. Un coefficiente balistico è adattato alla forma della curva e lo assorbe come una distorsione sistematica. La stessa sciatteria che lascia le tue letture di cronografo perfettamente ragionevoli può spostare un BC di diversi punti percentuali.
 
@@ -489,7 +489,7 @@ Altri due fatti dallo stesso corpus, entrambi portanti per il progetto:
 - **Il 55 % delle tracce reali non ha bisogno di alcuna potatura di punti.** La pulizia non è una passata di lisciatura di routine; è una gestione di eccezioni.
 - **La gravità del problema varia enormemente da sessione a sessione e non è prevedibile dall'interno di una traccia.** Il numero di punti scartati sul corpus va da 0 a 73. Il calibro (quanto è riflettente la base della palla), l'ingombro vicino alla linea di volo, l'allineamento del fascio e la stabilità della scatola sotto il soffio contribuiscono tutti indipendentemente.
 
-Quest'ultimo punto ha ucciso due distinti progetti di soglia adattativa per traccia, che entrambi tentavano di calibrare l'aggressività della pulizia sulla parte iniziale di ciascuna traccia. Non può funzionare: la gravità reale abita quasi interamente nella coda, e un segnale calibrato sulla testa non può strutturalmente vederla. Uno dei due è stato scartato su una traccia sintetica *senza rumore*, dove buttava via da 18 a 26 punti perfettamente buoni; l'altro ha superato quel controllo ma poi non ha mai, nemmeno una volta, differito da una soglia fissa su tracce reali con gravità autentica. Entrambi sono documentati nel rapporto sull'esperimento di pulizia del repository, e la soglia fissa che li ha rimpiazzati ha battuto tutti e due.
+Quest'ultimo punto ha ucciso due progetti di soglia che si adattava per traccia, entrambi tentando di calibrare l'aggressività della pulizia sulla parte iniziale di ciascuna traccia. Non può funzionare: la gravità reale abita quasi interamente nella coda, e un segnale calibrato sulla testa non può vederla. Uno dei due è stato scartato su una traccia sintetica *senza rumore*, dove buttava via da 18 a 26 punti perfettamente buoni. L'altro ha superato quel controllo, ma non è mai riuscito, nemmeno una volta, a battere una soglia fissa su tracce reali con gravità autentica. Entrambi sono documentati nel rapporto del repository sull'esperimento di pulizia; la soglia fissa che li ha rimpiazzati ha battuto tutti e due.
 
 ### 12.3 Pulizia: rimozione golosa del punto peggiore con barriera di ripristino su R²
 
@@ -506,7 +506,7 @@ Tre asimmetrie d'indice in questa routine sembrano bug e non lo sono:
 
 - **Il punto sintetico t = 0 del dispositivo è escluso dall'adattamento, dall'R² e dalla ricerca del punto peggiore.** Non è una misura (§3), e il suo campo SNR è letteralmente un trattino. Non può influenzare un adattamento e non può nemmeno essere «rimosso» in modo sensato.
 - **L'ultimo punto è escluso dall'adattamento e dall'R², ma resta eleggibile alla rimozione.** Il dispositivo è più rumoroso proprio in coda, perciò un ultimo punto cattivo non deve corrompere l'indicatore di qualità — pur restando un legittimo candidato alla potatura. La conseguenza è un comportamento preciso e verificabile: una traccia il cui *unico* problema sia un ultimo punto cattivo ha già il suo miglior R² possibile al passo zero, cosicché il primo controllo di ripristino passa e quel punto torna. Resta potato solo se coincide con un problema autentico dentro l'intervallo di adattamento.
-- **Due diversi intervalli di adattamento** servono per quella che è matematicamente la stessa regressione lineare pesata: uno che esclude l'ultimo punto (per l'R² e la ricerca del punto peggiore) e uno che lo include (per leggervi velocità, nel vecchio stimatore a due punti). Confonderli è un errore facile e davvero dannoso — i due intervalli producono velocità che concordano solo a circa tre cifre significative, il che è invisibile nell'R² e vale in sordina circa mezzo punto percentuale di BC.
+- **Due diversi intervalli di adattamento** servono per quella che è matematicamente la stessa regressione lineare pesata: uno che esclude l'ultimo punto (per l'R² e la ricerca del punto peggiore) e uno che lo include (per leggervi velocità, nel vecchio stimatore a due punti). Confonderli è un errore facile e costoso: i due intervalli producono velocità che concordano solo a circa tre cifre significative — invisibile nell'R², ma vale in sordina circa mezzo punto percentuale di BC.
 
 C'è un onesto incidente conservato dall'originale: la condizione di arresto è verificata *dopo* la rimozione, cosicché il ciclo può rimuovere, e tipicamente rimuove, un punto oltre il pavimento, fermandosi a nove invece che a dieci. Nel codice d'origine non si è trovata alcuna giustificazione di dominio. È conservato perché il porting è stato validato nel suo insieme su tracce reali, e cambiarlo invaliderebbe quella validazione senza guadagno noto.
 
@@ -516,7 +516,7 @@ La colonna SNR è in decibel. Il peso di ciascun punto è quel valore riconverti
 
 $$w_i = 10^{\,\text{SNR}_i/10}$$
 
-il che non è una trasformazione cosmetica. Un punto a 40 dB pesa 10.000; un punto a 10 dB pesa 10. Lungo una traccia reale è un fattore mille tra gli echi iniziali, affidabili, e quelli finali, dubbi — esattamente la forma che la tabella del rumore del §12.2 richiede. L'adattamento è dominato dalla porzione di traccia di cui il radar era davvero sicuro, e la coda rumorosa non vi contribuisce quasi nulla — pur restando *presente*, cosicché una coda che davvero contraddice il modello compare ancora nei residui e viene ancora intercettata dalla pulizia.
+il che non è una trasformazione cosmetica. Un punto a 40 dB pesa 10.000; un punto a 10 dB pesa 10. Lungo una traccia reale è un fattore mille tra gli echi iniziali, affidabili, e quelli finali, dubbi, il che corrisponde esattamente alla forma che la tabella del rumore del §12.2 prevede. L'adattamento è dominato dalla porzione di traccia di cui il radar era davvero sicuro; la coda rumorosa non vi contribuisce quasi nulla — ma resta *presente*, cosicché una coda che davvero contraddice il modello compare ancora nei residui e viene intercettata dalla pulizia.
 
 Il punto sintetico t = 0 non ha alcun SNR e gli viene assegnato peso zero — anche se in pratica non arriva mai a una pesatura, dato che ogni adattamento dello strumento lo esclude strutturalmente per indice prima ancora che la pesatura entri in gioco.
 
@@ -545,7 +545,7 @@ Tre scelte di progetto meritano di essere dette apertamente:
 
 **La forma della curva non è mai presupposta.** È quella che il modello di resistenza produce davvero a quelle velocità in quell'aria, ed è tutto il punto.
 
-L'integrazione usa il passo RK4 condiviso della suite, a passo fisso di 20 ms fuori dalla banda transonica e di 3 ms dentro, con l'atmosfera rivalutata a ogni passo dalla quota corrente della palla. Centrare esattamente un tempo obiettivo usa la stessa interpolazione quadratica a tre punti che il resto del motore usa per centrare una distanza obiettivo — leggere il passo grezzo che per caso la supera sarebbe un errore reale a queste velocità, di parecchie decine di metri.
+L'integrazione usa il passo RK4 condiviso della suite, a passo fisso di 20 ms fuori dalla banda transonica e di 3 ms dentro, con l'atmosfera rivalutata a ogni passo dalla quota corrente della palla. Centrare esattamente un tempo obiettivo usa la stessa interpolazione quadratica a tre punti che il resto del motore usa per centrare una distanza obiettivo. Leggere il passo grezzo che per caso la supera sarebbe un errore reale a queste velocità — di parecchie decine di metri.
 
 ### 12.6 Perché non una retta, e perché non una parabola
 
@@ -563,7 +563,7 @@ Questo isola qualcosa che le prove rumorose da sole non possono isolare: **una r
 
 Con rumore reale aggiunto, su ogni configurazione e lunghezza di finestra provata:
 
-- **Il quadratico sovrastima il BC in ogni singola cella**, dal +4 % al +9 %. Segue troppo bene la coda rumorosa — e poiché il §12.2 ha stabilito che gli errori di coda sono unilaterali verso l'alto, seguirli bene significa essere tirati verso l'alto. Riproduce esattamente il fallimento che l'autore dello strumento precedente aveva già trovato a mano.
+- **Il quadratico sovrastima il BC in ogni singola cella**, dal +4 % al +9 %. Segue troppo bene la coda rumorosa, e poiché gli errori di coda sono unilaterali verso l'alto (§12.2), seguirli bene tira verso l'alto anche il risultato. Riproduce esattamente il fallimento che l'autore dello strumento precedente aveva già trovato a mano.
 - **La distorsione del lineare dipende dalla configurazione e cresce con la lunghezza della finestra.** Quasi piatta per un .338 pesante che decelera dolcemente; una distorsione negativa forte e crescente per un 5,56 veloce a BC basso — da -3,4 % a 120 m fino a -8,4 % a 200 m. È la distorsione di forma di cui sopra, sommata alla sensibilità al rumore.
 - **L'adattamento fisico ha avuto l'errore minore in ogni singola cella**, tipicamente da tre a nove volte minore di entrambe le alternative, e per giunta con la dispersione più stretta.
 
@@ -597,7 +597,7 @@ Entrambe operano su risultati di traccia già ottenuti, e nessuna delle due riad
 
 **La barriera di qualità del segnale** confronta l'R² di ciascuna traccia — il coefficiente di determinazione della retta pesata sull'SNR passante per i suoi punti *ripuliti* — con 0,95 (Normale) o 0,90 (Rumore alto), oppure salta del tutto la prova (Nessuna).
 
-C'è qui una contraddizione apparente che conviene sciogliere: il §12.6 ha appena stabilito che una retta è il modello sbagliato per adattare un BC. È nondimeno il riferimento giusto per un controllo di *qualità*, per due ragioni. Lo scostamento di una traccia dalla linearità su una finestra di 100 m è dominato dal rumore e non dalla curvatura reale — la curvatura vale qualche punto percentuale, i punti cattivi valgono decine di metri al secondo. E usare lo stesso riferimento che la pulizia stessa usa rende l'R² riportato direttamente leggibile come «quanto è andata bene la pulizia», che è esattamente ciò su cui si chiede all'utente di giudicare.
+C'è qui una contraddizione apparente: il §12.6 ha appena stabilito che una retta è il modello sbagliato per adattare un BC. È nondimeno il riferimento giusto per un controllo di *qualità*, per due ragioni. Lo scostamento di una traccia dalla linearità su una finestra di 100 m è dominato dal rumore, non dalla curvatura reale — la curvatura costa qualche punto percentuale, i punti cattivi costano decine di metri al secondo. E usare lo stesso riferimento che la pulizia stessa usa rende l'R² riportato direttamente leggibile come «quanto è andata bene la pulizia», che è esattamente ciò su cui si chiede all'utente di giudicare.
 
 **Lo scarto degli anomali** calcola media e deviazione standard di popolazione su ciò che resta valido dopo la barriera di qualità, poi respinge ogni traccia a più di $k\sigma$ da quella media, con $k = 2,0$ (Conservativo) o $k = 1,644854$ (Aggressivo). Quella seconda costante non è arbitraria: è il 95º percentile della normale standard, cosicché uno scarto bilaterale di quella ampiezza conserva il 90 % centrale di una popolazione normale. È la classica soglia «respingi il 10 % peggiore», scritta esattamente.
 
@@ -609,13 +609,13 @@ Le barriere girano in quest'ordine, e solo in quest'ordine: prima la qualità, p
 
 Una semplice media aritmetica non pesata dei BC sopravvissuti, e la loro deviazione standard di popolazione — divisa per $n$, non per $n-1$.
 
-L'intervallo di confidenza riportato è un calcolo distinto sullo stesso insieme di sopravvissute, e quello sì usa $n-1$: semiampiezza $= t_{0,975,\,n-1} \cdot s / \sqrt{n}$, con $s$ la deviazione standard campionaria, divisa per la media per dare la percentuale mostrata. I due denominatori sono voluti. La forma di popolazione è quella su cui il vecchio scarto degli anomali è stato calibrato e resta intatta; la forma campionaria è quella corretta per un intervallo su una media. Il moltiplicatore è il quantile di Student bilaterale al 95 %, tabulato per $n$ fino a 31 e ripreso da uno sviluppo di Cornish-Fisher oltre, il che conta più di quanto sembri — a cinque tracce vale 2,776, e a quattro 3,182, contro l'1,96 che un'approssimazione normale userebbe in entrambi i casi: un intervallo più ampio del 42 % e del 62 %, e considerevolmente più onesto.
+L'intervallo di confidenza riportato è un calcolo distinto sullo stesso insieme di sopravvissute, e quello sì usa $n-1$: semiampiezza $= t_{0,975,\,n-1} \cdot s / \sqrt{n}$, con $s$ la deviazione standard campionaria, divisa per la media per dare la percentuale mostrata. I due denominatori sono voluti. La forma di popolazione è quella su cui il vecchio scarto degli anomali è stato calibrato e resta intatta; la forma campionaria è quella corretta per un intervallo su una media. Il moltiplicatore è il quantile di Student bilaterale al 95 %, tabulato per $n$ fino a 31 e ripreso da uno sviluppo di Cornish-Fisher oltre. Questa scelta conta più di quanto sembri: a cinque tracce vale 2,776, e a quattro 3,182, contro l'1,96 che un'approssimazione normale userebbe in entrambi i casi — un intervallo più ampio del 42 % e del 62 %, e decisamente più credibile.
 
 Non è espressamente la tabella `TDIST_QUANTILE` che il Calcolatore di precisione di tiro porta con sé. Quelli sono quantili a 0,9875, ripartiti alla Bonferroni per dare un 95 % congiunto sulle due coordinate del punto d'impatto di una rosata insieme. Una media di BC è un singolo scalare, e prendere in prestito quella tabella darebbe un intervallo fino al doppio più ampio del 95 % che dichiara.
 
 Con meno di due tracce valide non viene riportato alcun intervallo, invece di uno di ampiezza nulla.
 
-La media non pesata è una scelta deliberata, non una svista. I punti dentro una traccia sono pesati sull'SNR, perché l'SNR è una misura autentica di qualità punto per punto. Le tracce dentro un lotto non sono pesate affatto, perché ogni colpo del lotto è un'estrazione dalla stessa popolazione di colpi, e non c'è ragione difendibile per lasciare che una traccia più pulita parli più forte, su ciò che fa la *palla*, di una più rumorosa. Pesare sulla qualità della traccia sovrarappresenterebbe sistematicamente i colpi graditi al radar, e quella non è la stessa popolazione dei colpi che hai sparato.
+La media non pesata è una scelta deliberata, non una svista. I punti dentro una traccia sono pesati sull'SNR, perché l'SNR è una misura autentica di qualità punto per punto. Le tracce dentro un lotto non sono pesate affatto. Ogni colpo del lotto è un'estrazione dalla stessa popolazione di colpi, e non c'è ragione difendibile per lasciare che una traccia più pulita parli più forte, su ciò che fa la *palla*, di una più rumorosa. Pesare sulla qualità della traccia sovrarappresenterebbe sistematicamente i colpi graditi al radar — non la stessa popolazione dei colpi che hai sparato.
 
 ### 12.10 Che cosa l'adattamento ignora, e che cosa no
 
@@ -632,7 +632,7 @@ La media non pesata è una scelta deliberata, non una svista. I punti dentro una
 - **Le voci dello zip sono filtrate per estensione prima della decompressione**, non dopo. Tutto ciò che non è un `.csv` — il file di progetto `.lbr`, le voci di cartella, qualunque altra cosa nell'archivio — viene saltato senza mai essere decompresso. L'esame del contenuto avviene uno strato più sopra e non sa nulla di file zip, ed è per questo che il confine di modulo sta esattamente lì.
 - **L'analisi è sincrona e immediata; l'adattamento no.** Analizzare un CSV di cento righe richiede microsecondi, perciò avviene nell'istante in cui il file viene scelto e la lista compare subito. L'adattamento sono centinaia di integrazioni di traiettoria complete per traccia e va al pool di worker.
 - **Gli incarichi sono distribuiti uno a uno anziché come un'unica promessa collettiva**, proprio perché ogni riga si aggiorni appena il suo adattamento si risolve. Aspettare tutti prima di mostrare qualcosa sarebbe più semplice e peggiore.
-- **Il risolutore segnala la saturazione al bordo come un fallimento.** I due intervalli di ricerca sono quelli che il §12.5 nomina: il BC confinato in [0,05, 1,5] e la velocità di riferimento entro il 15 % dalla lettura d'ancoraggio propria della traccia. Una ricerca per sezione aurea restituisce sempre *un* punto interno, anche quando il vero minimo sta fuori dal suo intervallo — allora satura in silenzio contro il bordo in cui continua a migliorare, il che ha esattamente l'aria di una convergenza senza esserlo. Era un bug vero, colto in piena validazione. Un risultato che atterra entro lo 0,1 % da uno dei due bordi è ora trattato come adattamento fallito, allo stesso modo in cui gli altri risolutori di BC della suite già rifiutano di restituire un valore di bordo per un obiettivo irraggiungibile. È tutto ciò che una riga in *errore* del §10.4 significa.
+- **Il risolutore segnala la saturazione al bordo come un fallimento.** I due intervalli di ricerca sono quelli che il §12.5 nomina: il BC confinato in [0,05, 1,5] e la velocità di riferimento entro il 15 % dalla lettura d'ancoraggio propria della traccia. Una ricerca per sezione aurea restituisce sempre *un* punto interno, anche quando il vero minimo sta fuori dal suo intervallo. Allora satura in silenzio contro il bordo in cui continua a migliorare — il che ha esattamente l'aria di una convergenza, ma non lo è. Era un bug vero, colto in piena validazione. Un risultato che atterra entro lo 0,1 % da uno dei due bordi è ora trattato come adattamento fallito, allo stesso modo in cui gli altri risolutori di BC della suite già rifiutano di restituire un valore di bordo per un obiettivo irraggiungibile. È tutto ciò che una riga in *errore* del §10.4 significa.
 - **Modello di resistenza e atmosfera sono riposti accanto al risultato di ciascuna traccia**, invece di essere riletti dal vivo quando il grafico viene disegnato. La curva adattata sovrapposta rispecchia perciò sempre ciò con cui quella specifica traccia è stata davvero calcolata, anche se nel frattempo hai cambiato le impostazioni del pannello senza ricalcolare.
 - **Una traccia ha bisogno di almeno quattro righe analizzabili** per essere considerata una traccia. Le righe cui manchi tempo, velocità o distanza vengono scartate in silenzio; così pure qualunque riga dopo la prima cui manchi l'SNR. Solo alla prima riga è concesso un SNR non numerico, perché solo la prima riga è il punto sintetico del dispositivo.
 - **Il tetto di 20.000 passi d'integrazione** è una sicurezza del passo condiviso, non un vincolo qui — una traccia da 0,15 s richiede qualche decina di passi.
@@ -649,11 +649,11 @@ La media non pesata è una scelta deliberata, non una svista. I punti dentro una
 
 ## 13. Provenienza
 
-BC Labradar è il successore di **Labrabaco**, uno strumento autonomo dello stesso autore. La catena di ingestione — il riconoscimento delle tracce, le regole di tolleranza riga per riga, l'algoritmo di pulizia dei punti e le sue due barriere di rifiuto sulla traccia intera — ne è portata fedelmente, tracciata sito di chiamata per sito di chiamata e validata su tracce d'esempio reali, comprese le diverse asimmetrie d'indice documentate nel §12.3 che sembrano bug e non lo sono.
+BC Labradar è il successore di **Labrabaco**, uno strumento autonomo dello stesso autore. La catena di ingestione (il riconoscimento delle tracce, le regole di tolleranza riga per riga, l'algoritmo di pulizia dei punti e le sue due barriere di rifiuto sulla traccia intera) ne è portata fedelmente, tracciata sito di chiamata per sito di chiamata e validata su tracce d'esempio reali. Questo include le asimmetrie d'indice documentate nel §12.3 che sembrano bug e non lo sono.
 
-La novità è l'adattamento. Lo strumento originale passava una retta per i punti ripuliti e cercava per bisezione il BC corrispondente ai suoi estremi; questo adatta la fisica della resistenza propria dell'app contro tutti i punti mantenuti in una volta, congiuntamente a una velocità di riferimento. Quel cambiamento, e l'abbinato passaggio della soglia di pulizia da 0,97 a 0,99, sono stati validati su tracce sintetiche a rumore reale prima che l'uno o l'altro fosse pubblicato, e i rapporti di validazione — compresi i risultati negativi, i due progetti scartati e l'unico meccanismo funzionante costruito e poi lasciato fuori per non valere il proprio costo — stanno nel repository accanto al codice.
+La novità è l'adattamento. Lo strumento originale passava una retta per i punti ripuliti e cercava per bisezione il BC corrispondente ai suoi estremi; questo adatta la fisica della resistenza propria dell'app contro tutti i punti mantenuti in una volta, congiuntamente a una velocità di riferimento. Quel cambiamento, e l'abbinato passaggio della soglia di pulizia, da 0,97 a 0,99, sono stati validati su tracce sintetiche a rumore reale prima che l'uno o l'altro fosse pubblicato. I rapporti di validazione stanno nel repository accanto al codice, compresi i risultati negativi, i due progetti scartati e l'unico meccanismo funzionante costruito e poi lasciato fuori per non valere il proprio costo.
 
-Ugualmente nuovi: il grafico per traccia con la sua divisione tra mantenuti e scartati e la curva adattata sovrapposta, di cui lo strumento originale non aveva alcun equivalente; una scheda di risultato strutturata al posto di un blocco di testo concatenato; l'adattamento in parallelo su un pool di worker; e un'atmosfera pienamente consapevole delle unità con una quota realmente ricavata, al posto di un livello del mare presunto.
+Ugualmente nuovi: il grafico per traccia con la sua divisione tra mantenuti e scartati e la curva adattata sovrapposta (lo strumento originale non ne aveva alcun equivalente), una scheda di risultato strutturata al posto di un blocco di testo concatenato, l'adattamento in parallelo su un pool di worker, e un'atmosfera pienamente consapevole delle unità con una quota realmente ricavata, al posto di un livello del mare presunto.
 
 La suite è distribuita con licenza **AGPL-3.0-or-later**.
 
