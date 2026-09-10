@@ -65,7 +65,7 @@ English, Français, Русский, Deutsch, Italiano — switchable from Settin
 Most of the code logic is inherited from various ballistic tools I have written over the years, and hosted first on ptosis.ch, then on geladen.ch. Now it's being refactored and consolidated into one single package, with a nice GUI.
 
 Here's my statement to the World: I **fucking hate** writing GUIs. It takes 10x more time than the actual substance, and, coming from me, it invariably looks ugly.
-And here's another statement: I **fucking hate** the whole concept and paradigm of DOM/CSS, it was hate at the first sight, and to day I wish the people who invented this monstrosity had dicks grow on their foreheads.
+And here's another statement: I **fucking hate** the whole concept and paradigm of DOM/CSS, it was hate at the first sight, and to this day I wish the people who invented this monstrosity had dicks growing on their foreheads.
 
 But ~~Now I have a machine gun, hohoho~~ then came AI. Practically all of the UI code was written by AI, and the machine is pretty good at it. Otherwise, I would never have gotten around to this whole exercise. To conclude, God bless robots -- they take care of stupid shit, while humans can consecrate themselves to Knowledge and Creation.
 
