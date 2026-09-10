@@ -12,7 +12,10 @@ import { t } from '../i18n.js';
 // instead of the usual `i18n` prop live-binding.
 export function chartColumnSelect(columns, { id, energyChoice, velocityChoice, smallLengthChoice, defaultColumnId } = {}) {
   const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
-  const select = el('select', { id }, columns.map((col) => (unitChoiceById[col.id]
+  // `chartable: false` (trajectory-columns.js's own dangerZone column) —
+  // a combined, already-formatted string, not a number a line chart can
+  // plot, so it never belongs in this picker at all.
+  const select = el('select', { id }, columns.filter((col) => col.chartable !== false).map((col) => (unitChoiceById[col.id]
     ? el('option', { value: col.id, text: `${t(col.headerKey)} (${unitChoiceById[col.id].label})` })
     : el('option', { value: col.id, i18n: col.headerKey }))));
   if (defaultColumnId) select.value = defaultColumnId;

@@ -139,6 +139,11 @@ export const FIELD_UNITS = {
   // the step the user specified.
   range: { group: 'distance', engineUnit: 'm' },
   zeroRange: { group: 'distance', engineUnit: 'm' },
+  // Trajectory's own optional "for this tool only" stand-in for zeroRange
+  // above — same quantity, same engine unit, its own field id only so it
+  // can have its own (blank-by-default) value independent of the rifle's
+  // actual configured zero range.
+  zeroRangeOverride: { group: 'distance', engineUnit: 'm' },
   r1: { group: 'distance', engineUnit: 'm' },
   r2: { group: 'distance', engineUnit: 'm' },
   targetRange: { group: 'distance', engineUnit: 'm' },
@@ -155,6 +160,9 @@ export const FIELD_UNITS = {
   circleGongDiameter: { group: 'smallLength', engineUnit: 'cm' },
   rectPlateWidth: { group: 'smallLength', engineUnit: 'cm' },
   rectPlateHeight: { group: 'smallLength', engineUnit: 'cm' },
+  // Trajectory's own Target section (direct-hit distance) — same
+  // "how big is this thing, in cm-ish terms" shape as the two above.
+  targetHeight: { group: 'smallLength', engineUnit: 'cm' },
   // Not form fields — the trajectory table/chart's own drop and windage
   // columns (dropCm/windageCm on each engine point) convert through these
   // for display the same way `energy`/`velocity` do below. The engine
@@ -327,6 +335,7 @@ export const FIELD_BOUNDS = {
   aimOffsetX: { min: -100, max: 100 }, // cm
   aimOffsetY: { min: -100, max: 100 }, // cm
   circleGongDiameter: { min: 1, max: 200 }, // cm
+  targetHeight: { min: 1, max: 300 }, // cm — matches rectPlateHeight, same kind of quantity
   rectPlateWidth: { min: 1, max: 300 }, // cm
   rectPlateHeight: { min: 1, max: 300 } // cm
 };

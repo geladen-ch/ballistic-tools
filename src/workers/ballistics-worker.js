@@ -1,12 +1,14 @@
 // Thin message-protocol shell. All math lives in src/engine/ — pure
 // modules importable here, from the main thread, or from a Node test
 // runner without pulling in worker/DOM globals.
-import { integrate } from '../engine/trajectory.js';
+import { integrate, solveDirectHit, solveDangerZone } from '../engine/trajectory.js';
 import { estimateBC, estimateBCFromTof } from '../engine/bc-estimate.js';
 import { estimateTrackBCWholeWindow } from '../engine/labradar-bc.js';
 
 const HANDLERS = {
   trajectory: integrate,
+  directHit: solveDirectHit,
+  dangerZone: solveDangerZone,
   bcEstimate: estimateBC,
   bcEstimateTof: estimateBCFromTof,
   labradarTrackBc: estimateTrackBCWholeWindow

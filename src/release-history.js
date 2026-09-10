@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v205',
+    fullVersion: '3.7.6 (BEAVIS — Ballistic Evaluation, Analytics & Visualization Intelligence Suite)',
+    date: '2026-09-10',
+    descriptionKey: 'releaseHistory.entries.v205'
+  },
+  {
     cacheVersion: 'v204',
     fullVersion: '3.7.5 (BEAVIS — Ballistic Evaluation, Analytics & Visualization Intelligence Suite)',
     date: '2026-09-09',

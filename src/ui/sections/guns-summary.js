@@ -25,11 +25,12 @@ const BULLET_OTHER = '__other__';
 // otherwise (built-in library or fully manual entry). The bullet's own
 // source doesn't affect this, only the rifle's.
 //
-// `bare: true` (Range Solver only — see that view) skips the "Guns"
-// heading and its own outer .input-section card, returning just the
-// .guns-summary box itself: that pane's other readouts (conditions bar,
-// elevation/windage, footer) are already label-free, so the boxed
-// heading read as one card too many stacked above them.
+// `bare: true` (Range Solver and Trajectory — see those views) skips the
+// "Guns" heading and its own outer .input-section card, returning just
+// the .guns-summary box itself: Range Solver's other readouts (conditions
+// bar, elevation/windage, footer) are already label-free, so the boxed
+// heading read as one card too many stacked above them; Trajectory drops
+// it the same way once the gun pane moved to the top of Inputs.
 export function gunsSummary({ bare = false } = {}) {
   const rifleLine = el('div', { class: 'rifle-line' });
   const bulletLine = el('div', { class: 'bullet-line' });

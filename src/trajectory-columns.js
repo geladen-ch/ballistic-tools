@@ -12,6 +12,13 @@ import { getUnit } from './prefs.js';
 // displayed text from it; a chart plots it directly) given the engine
 // point plus a small per-call context ({ clickSettings, massKg }) for the
 // columns that depend on the scope's click value or the bullet's mass.
+// `dangerZone` (below) is the one exception — it's a combined, already-
+// formatted string (three figures needing their own async, per-row solve
+// — see trajectory-view.js's recomputeDangerZone() — not a plain
+// synchronous function of the point), so it carries `chartable: false`
+// (excluded from chart-column-select.js's plot picker, which expects a
+// plottable number) and `formatText: true` (the table renders its
+// `value()` result as-is, skipping the usual `.toFixed(decimals)`).
 // The mrad/MOA columns reuse clicksForOffset() with a click value of 1:
 // dividing an offset by "1 unit's worth of cm at this range" is exactly
 // the angular correction in that unit, independent of whatever click
@@ -52,7 +59,22 @@ export const COLUMNS = [
   // `range` converts through the distance preference. getUnit() is read
   // fresh on every call rather than closed over, since this is a
   // module-level array shared across every view that imports it.
-  { id: 'energy', headerKey: 'trajectory.colEnergy', default: false, decimals: 0, value: (p, ctx) => engineToDisplay('energy', 0.5 * ctx.massKg * p.velocity * p.velocity, getUnit('energy')) }
+  { id: 'energy', headerKey: 'trajectory.colEnergy', default: false, decimals: 0, value: (p, ctx) => engineToDisplay('energy', 0.5 * ctx.massKg * p.velocity * p.velocity, getUnit('energy')) },
+  // ctx.dangerZoneText: Map<range, string> — populated by
+  // trajectory-view.js's recomputeDangerZone(), keyed by the exact same
+  // p.range values this table's own points carry. A missing entry (not
+  // yet computed, or that row had no solution — see solveDangerZone()'s
+  // own NO_SOLUTION case) throws, same as any other column whose value()
+  // can't be produced — renderRows()/buildTableCsvText() already fall
+  // back to their own placeholder for that.
+  {
+    id: 'dangerZone', headerKey: 'trajectory.colDangerZone', default: false, decimals: 0, chartable: false, formatText: true,
+    value: (p, ctx) => {
+      const text = ctx.dangerZoneText && ctx.dangerZoneText.get(p.range);
+      if (!text) throw new Error('danger zone not available for this row');
+      return text;
+    }
+  }
 ];
 
 // A narrower zoom always buys back resolution (see recomputeChart() in

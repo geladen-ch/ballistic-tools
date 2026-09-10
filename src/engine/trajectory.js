@@ -710,3 +710,235 @@ export function computeImpact(state, targetRange) {
     tof: raw.t
   };
 }
+
+// Maximum point-blank ("direct hit") range: the one launch angle whose
+// trajectory peak exactly touches the top of the target's allowed
+// vertical band, aimed per `state.aimingPoint` —
+//  - 'center': the point of aim is the target's vertical middle, so the
+//    band is [-targetHeightCm/2, +targetHeightCm/2] around it.
+//  - anything else ('bottomEdge'): the point of aim is the target's own
+//    bottom edge, so the band is [0, +targetHeightCm] above it.
+// Any smaller angle peaks below the band's top, giving up range for no
+// reason (the trajectory would fall out through the band's bottom
+// sooner); any larger angle peaks above it, opening a "miss high" gap
+// partway out even though closer and farther shots would both connect.
+// Touching the top exactly is what maximizes the range at which every
+// shot from the muzzle out to that range still lands in the band.
+//
+// Golden-section search for a fixed launch angle's peak drop — unimodal
+// (rises once, falls once) over any angle small enough to be a real
+// zero, including the degenerate flat-or-falling case (theta <= 0, e.g.
+// a zeroRange of 0 — see solveZeroAngle's own "no elevation correction"
+// early return), where the "peak" correctly converges to searchMaxM's
+// own lower bound instead. Shared by solveDirectHit() and
+// solveDangerZone() below — both need "where does this one trajectory
+// crest, and how high" before doing anything else.
+function findPeak(state, theta, searchMaxM) {
+  const dropAt = (rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropCm;
+  let lo = 0, hi = searchMaxM;
+  const gr = (Math.sqrt(5) - 1) / 2;
+  let x1 = hi - gr * (hi - lo), x2 = lo + gr * (hi - lo);
+  let f1 = dropAt(x1), f2 = dropAt(x2);
+  for (let i = 0; i < 60 && hi - lo > 0.25; i++) {
+    if (f1 < f2) { lo = x1; x1 = x2; f1 = f2; x2 = lo + gr * (hi - lo); f2 = dropAt(x2); }
+    else { hi = x2; x2 = x1; f2 = f1; x1 = hi - gr * (hi - lo); f1 = dropAt(x1); }
+  }
+  return f1 > f2 ? { rangeM: x1, dropCm: f1 } : { rangeM: x2, dropCm: f2 };
+}
+
+// Built entirely on computeImpact()'s cheap single-point solve (no
+// sample array) — the same API Hit Probability's Monte Carlo loop already
+// calls thousands of times per shot group — for both the inner peak
+// search (golden-section on range, for one candidate launch angle) and
+// the outer secant solve (on the launch angle itself, so its peak lands
+// on the band's top). `state.launchAngle` being set short-circuits
+// resolveLaunchAngle() (see its own comment above) — zeroRange/donor
+// ballistics play no part here, this always solves fresh for whatever
+// cartridge is actually being fired.
+export function solveDirectHit(state, { maxIter = 30, tolCm = 0.01 } = {}) {
+  const { targetHeightCm, aimingPoint, maxRange } = state;
+  const NO_SOLUTION = { launchAngleDeg: null, zeroDistanceM: null, maxDirectHitDistanceM: null };
+  if (!(targetHeightCm > 0)) return NO_SOLUTION;
+
+  const bandTop = aimingPoint === 'bottomEdge' ? targetHeightCm : targetHeightCm / 2;
+  const bandBottom = aimingPoint === 'bottomEdge' ? 0 : -targetHeightCm / 2;
+  // Generous relative to any realistic MPBR — just needs to comfortably
+  // bracket the true peak/fall-through ranges, never to be tight. Unlike
+  // solveDangerZone() below, there's no single row range to scale this
+  // to — the whole point here is finding the (a priori unknown) angle
+  // that maximizes it.
+  const searchMaxM = Math.max(maxRange || 0, 500) * 3;
+
+  const dropAt = (theta, rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropCm;
+
+  let theta0 = 0, theta1 = 0.001;
+  let f0 = findPeak(state, theta0, searchMaxM).dropCm - bandTop;
+  let f1 = findPeak(state, theta1, searchMaxM).dropCm - bandTop;
+  for (let i = 0; i < maxIter && Math.abs(f1) >= tolCm; i++) {
+    const denom = (f1 - f0) || 1e-12;
+    let theta2 = theta1 - (f1 * (theta1 - theta0)) / denom;
+    // Keeps a diverging secant step from feeding an absurd angle into the
+    // next computeImpact() call — real zeros never need more than a few
+    // degrees either way.
+    theta2 = Math.max(-0.5, Math.min(0.5, theta2));
+    theta0 = theta1; f0 = f1;
+    theta1 = theta2; f1 = findPeak(state, theta1, searchMaxM).dropCm - bandTop;
+  }
+  if (!Number.isFinite(theta1) || Math.abs(f1) >= 1) return NO_SOLUTION; // didn't converge — target height unreachable at this angle range
+
+  const peak = findPeak(state, theta1, searchMaxM);
+
+  // Beyond the peak, drop(range) falls monotonically — bisection alone
+  // (no derivative, can't overshoot into the still-rising side) finds
+  // exactly where it crosses any given target height.
+  function solveFallThrough(targetCm) {
+    let lo = peak.rangeM, hi = searchMaxM;
+    if (dropAt(theta1, hi) > targetCm) return null; // never falls that far within the search bound
+    for (let i = 0; i < 60 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      if (dropAt(theta1, mid) > targetCm) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  return {
+    launchAngleDeg: (theta1 * 180) / Math.PI,
+    zeroDistanceM: solveFallThrough(0),
+    maxDirectHitDistanceM: solveFallThrough(bandBottom)
+  };
+}
+
+// Per-row "danger zone" (danger space): with the rifle re-zeroed exactly
+// at state.zeroRange — not necessarily the rifle's actual configured
+// zero; this simulates "if I zeroed at this one distance" for whatever
+// row is asking — the range interval over which the trajectory stays
+// within the target's allowed vertical band (see solveDirectHit's own
+// doc comment for how aimingPoint shapes that band), specifically
+// whichever such interval actually contains zeroRange itself (there can
+// be two — see below). At or before this target's own direct-hit (MPBR)
+// distance, that's the ordinary single interval from the muzzle (or the
+// first point the trajectory climbs into the band) out to where it
+// falls back out through the bottom. Zeroed *beyond* that MPBR distance,
+// the trajectory has already crested above the band's top and fallen
+// back through it again before reaching zeroRange — the short interval
+// near the muzzle isn't the useful one there (a shooter zeroed at that
+// distance would never rely on it), so that case instead reports the
+// second interval, straddling the zero distance itself: from where the
+// trajectory drops back through the top to where it finally falls out
+// through the bottom, beyond zeroRange.
+//
+// Unlike solveDirectHit(), the launch angle here is a given (whatever
+// resolveLaunchAngle() resolves for state.zeroRange — donor ballistics
+// and all, same precedence the table's own single configured zero
+// already follows), so there's no outer secant solve — just the one
+// findPeak() call plus up to two bisections, each bounded relative to
+// zeroRange itself rather than the whole table's maxRange. That
+// tightening matters here specifically: this runs once per table row,
+// so keeping each row's own search net small is what keeps a few hundred
+// rows affordable.
+export function solveDangerZone(state) {
+  const { targetHeightCm, aimingPoint, zeroRange, maxRange } = state;
+  const NO_SOLUTION = { enterM: null, leaveM: null, lengthM: null };
+  if (!(targetHeightCm > 0) || !(zeroRange >= 0)) return NO_SOLUTION;
+
+  const bandTop = aimingPoint === 'bottomEdge' ? targetHeightCm : targetHeightCm / 2;
+  const bandBottom = aimingPoint === 'bottomEdge' ? 0 : -targetHeightCm / 2;
+
+  const theta = resolveLaunchAngle(state);
+  const dropAt = (rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropCm;
+
+  // zeroRange is *a* crossing of the sight line, but solveZeroAngle() (via
+  // resolveLaunchAngle()) has no reason to prefer the far one over the
+  // near one — for a small enough zeroRange, the angle it solves for can
+  // still be climbing right through that crossing, with the true crest
+  // (and the far crossing beyond it) much farther out than zeroRange
+  // itself. A short forward probe at zeroRange tells which case this row
+  // is: still rising there means the tight, zeroRange-scaled search below
+  // would clip the real peak entirely, so it falls back to a
+  // solveDirectHit()-style wide net instead. Already falling there is
+  // the ordinary case (the overwhelming majority of real zero ranges,
+  // where the peak sits *before* zeroRange) — that's what actually keeps
+  // a few-hundred-row table's worth of these affordable, so it's kept as
+  // the fast path.
+  const probeEps = Math.max(zeroRange * 0.02, 0.5);
+  const stillRisingAtZero = zeroRange > 0 && dropAt(zeroRange + probeEps) > dropAt(Math.max(zeroRange - probeEps, 0));
+  const wideSearchMaxM = Math.max(maxRange || 0, zeroRange, 500) * 3;
+  const peakSearchMaxM = stillRisingAtZero ? wideSearchMaxM : Math.max(zeroRange, 1);
+
+  const peak = findPeak(state, theta, peakSearchMaxM);
+  if (peak.dropCm < bandBottom) return NO_SOLUTION; // never reaches the band at all
+
+  // Zeroed beyond this target's own direct-hit (MPBR) distance: the
+  // trajectory crests above the band's top and has already fallen back
+  // through it again *before* ever reaching zeroRange (peak.rangeM comes
+  // before zeroRange whenever it isn't the rare still-rising-at-zero case
+  // handled below). The short interval near the muzzle that a shooter
+  // would fall out of long before getting anywhere near zeroRange isn't
+  // the useful one — the interval that actually matters, the one
+  // straddling the zero distance they're actually using, is the
+  // *second* one: from where the trajectory drops back through the top
+  // (after the peak, before zeroRange) to where it finally falls out
+  // through the bottom (beyond zeroRange).
+  if (peak.dropCm > bandTop && zeroRange > peak.rangeM) {
+    let lo = peak.rangeM, hi = zeroRange;
+    for (let i = 0; i < 50 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      if (dropAt(mid) > bandTop) lo = mid; else hi = mid;
+    }
+    const enterM = (lo + hi) / 2;
+
+    const farSearchMaxM = Math.max(zeroRange, 100) * 4;
+    let lo2 = zeroRange, hi2 = farSearchMaxM;
+    if (dropAt(hi2) > bandBottom) return NO_SOLUTION; // never falls that far within the search bound
+    for (let i = 0; i < 50 && hi2 - lo2 > 0.01; i++) {
+      const mid = (lo2 + hi2) / 2;
+      if (dropAt(mid) > bandBottom) lo2 = mid; else hi2 = mid;
+    }
+    const leaveM = (lo2 + hi2) / 2;
+    return { enterM, leaveM, lengthM: leaveM - enterM };
+  }
+
+  const drop0 = dropAt(0);
+  let enterM;
+  if (drop0 >= bandBottom) {
+    enterM = 0; // already inside (or above) the band right at the muzzle
+  } else {
+    let lo = 0, hi = peak.rangeM;
+    for (let i = 0; i < 50 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      if (dropAt(mid) < bandBottom) lo = mid; else hi = mid;
+    }
+    enterM = (lo + hi) / 2;
+  }
+
+  let leaveM;
+  if (peak.dropCm > bandTop) {
+    // Only reachable here for the still-rising-at-zero anomaly (the
+    // ordinary case was already handled above) — zeroRange <= peak.rangeM,
+    // so the ascending interval already contains it, making it the right
+    // one to report as-is.
+    let lo = enterM, hi = peak.rangeM;
+    for (let i = 0; i < 50 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      if (dropAt(mid) < bandTop) lo = mid; else hi = mid;
+    }
+    leaveM = (lo + hi) / 2;
+  } else {
+    // Falls back through the band's bottom somewhere beyond the peak —
+    // generous relative to zeroRange itself in the ordinary case (real
+    // trajectories rarely need more than a few multiples of it to fall a
+    // target's own half-height further); the rare still-rising-at-zero
+    // case instead reuses the same wide net the peak search itself
+    // needed, since zeroRange is a poor proxy for scale there.
+    const farSearchMaxM = stillRisingAtZero ? wideSearchMaxM : Math.max(zeroRange, 100) * 4;
+    let lo = peak.rangeM, hi = farSearchMaxM;
+    if (dropAt(hi) > bandBottom) return NO_SOLUTION; // never falls that far within the search bound
+    for (let i = 0; i < 50 && hi - lo > 0.01; i++) {
+      const mid = (lo + hi) / 2;
+      if (dropAt(mid) > bandBottom) lo = mid; else hi = mid;
+    }
+    leaveM = (lo + hi) / 2;
+  }
+
+  return { enterM, leaveM, lengthM: leaveM - enterM };
+}

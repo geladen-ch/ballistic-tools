@@ -804,6 +804,17 @@ th { color: var(--dim); font-weight: 500; }
    reference line). Thinner and dimmer than a real data line since it's
    just a reference, not a plotted value. */
 .chart-container .ct-series-zero-line .ct-line { stroke: var(--dim); stroke-width: 1px; }
+/* Danger zone envelope chart's own two series (trajectory-view.js's
+   renderDangerZoneChart()) — "exit minus zero" (above 0) and "entry
+   minus zero" (below 0), each filled to the shared 0 baseline via
+   Chartist's own showArea/areaBase. Same fill color/opacity on both, so
+   the two adjacent areas read as one continuous shaded band rather than
+   two visually distinct halves. */
+.chart-container .ct-series-danger-upper .ct-line,
+.chart-container .ct-series-danger-lower .ct-line { stroke: var(--danger); }
+.chart-container .ct-series-danger-upper .ct-area,
+.chart-container .ct-series-danger-lower .ct-area { fill: var(--danger); opacity: 0.18; }
+.chart-legend-danger .chart-legend-swatch { background: var(--danger); }
 
 /* Cd-Mach Curve chart (src/views/cd-mach-curve-view.js) — its "Calculated"
    series is points-only (showLine:false), the first chart in this app to
@@ -1025,6 +1036,14 @@ th { color: var(--dim); font-weight: 500; }
    Comparison table's own summary rows use. */
 .labradar-summary-row { display: flex; justify-content: space-between; padding: 4px 0; }
 .labradar-summary-value { font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* Trajectory Info pane (src/views/trajectory-view.js) — same label/value
+   "label left, value right" shape as .labradar-summary-row above; its own
+   class since this pane's rows sit inside a nested .input-section (the
+   Direct hit sub-group), where .labradar-summary-row's 4px padding is
+   applied by an unrelated feature. */
+.info-pane-row { display: flex; justify-content: space-between; padding: 4px 0; }
+.info-pane-value { font-variant-numeric: tabular-nums; color: var(--text); }
 
 /* Labradar track list rows (src/ui/labradar/track-list.js) — clickable
    rows (a track that resolved far enough to have a chart) get a pointer
