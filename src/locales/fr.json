@@ -295,6 +295,8 @@
     "validCountLabel": "Trajectoires valides",
     "validCountValue": "{{valid}} / {{total}}",
     "stdevLabel": "Écart-type du BC",
+    "ci95Value": "(± {{pct}} %)",
+    "ci95Title": "Intervalle de confiance à 95 % du BC moyen, en pourcentage de ce BC. Plus large avec moins de tirs ou une plus grande dispersion d'un tir à l'autre.",
     "emptyBatchError": "Aucun fichier de trajectoire n'a été trouvé dans ce zip.",
     "zipOpenError": "Impossible d'ouvrir ce fichier : {{message}}"
   },

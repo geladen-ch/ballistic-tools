@@ -295,6 +295,8 @@
     "validCountLabel": "Tracce valide",
     "validCountValue": "{{valid}} / {{total}}",
     "stdevLabel": "Deviazione standard del BC",
+    "ci95Value": "(± {{pct}}%)",
+    "ci95Title": "Intervallo di confidenza al 95% del BC medio, in percentuale di tale BC. Più ampio con meno colpi o con una maggiore dispersione tra un colpo e l'altro.",
     "emptyBatchError": "Nessun file di traccia trovato in questo zip.",
     "zipOpenError": "Impossibile aprire questo file: {{message}}"
   },

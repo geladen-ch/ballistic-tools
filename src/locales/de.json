@@ -295,6 +295,8 @@
     "validCountLabel": "Gültige Tracks",
     "validCountValue": "{{valid}} / {{total}}",
     "stdevLabel": "BC-Standardabweichung",
+    "ci95Value": "(± {{pct}} %)",
+    "ci95Title": "95%-Konfidenzintervall des gemittelten BC, als Prozentsatz dieses BC. Breiter bei weniger Schüssen oder größerer Streuung von Schuss zu Schuss.",
     "emptyBatchError": "In diesem Zip wurden keine Track-Dateien gefunden.",
     "zipOpenError": "Datei konnte nicht geöffnet werden: {{message}}"
   },

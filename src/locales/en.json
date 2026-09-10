@@ -295,6 +295,8 @@
     "validCountLabel": "Valid tracks",
     "validCountValue": "{{valid}} / {{total}}",
     "stdevLabel": "BC standard deviation",
+    "ci95Value": "(± {{pct}}%)",
+    "ci95Title": "95% confidence interval of the averaged BC, as a percentage of that BC. Wider with fewer shots or more shot-to-shot spread.",
     "emptyBatchError": "No track files were found in that zip.",
     "zipOpenError": "Couldn't open that file: {{message}}"
   },

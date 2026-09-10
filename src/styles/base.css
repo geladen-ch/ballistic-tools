@@ -955,6 +955,20 @@ th { color: var(--dim); font-weight: 500; }
 .labradar-track-chart-legend .chart-legend-c .chart-legend-swatch { background: var(--analysis); }
 .labradar-track-chart .ct-series-c .ct-line { stroke: var(--analysis); stroke-width: 1.5px; stroke-dasharray: none; }
 
+/* Discarded points need their own color again here, specifically in
+   the light high-contrast theme: that theme's --accent (#b34700, a
+   burnt orange) and --danger (#b30000) sit only 24° apart on the hue
+   wheel at the exact same saturation and lightness, so "kept" and
+   "discarded" points read as nearly the same color at scatter-point
+   size — the failure the app's other three themes don't have, since
+   each pairs the two with enough of a lightness/saturation gap to
+   stay distinct even at a similar hue. Hardcoded, not a token, the
+   same way .chart-legend-c/-d's own gold/amber pair above is — this
+   magenta exists only to sit far in hue from both this chart's orange
+   "kept" and its blue "fitted" curve, not to mean anything elsewhere. */
+.theme-high-contrast-light .labradar-track-chart-legend .chart-legend-b .chart-legend-swatch { background: #b200b2; }
+.theme-high-contrast-light .labradar-track-chart .ct-series-b .ct-point { stroke: #b200b2; }
+
 /* The zoom/pan sliders' live value readout (src/ui/zoom-range-slider.js)
    — same treatment as unit-field.js's own .val-input, just a read-only
    <span> instead of an editable number box. */
@@ -1036,6 +1050,17 @@ th { color: var(--dim); font-weight: 500; }
    Comparison table's own summary rows use. */
 .labradar-summary-row { display: flex; justify-content: space-between; padding: 4px 0; }
 .labradar-summary-value { font-variant-numeric: tabular-nums; color: var(--text); }
+
+/* The 95% confidence interval appended to the big averaged-BC number
+   (src/ui/labradar/results-summary.js) — deliberately quieter than the
+   BC itself, so the headline value still reads as the headline. */
+.labradar-bc-ci {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--dim);
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Trajectory Info pane (src/views/trajectory-view.js) — same label/value
    "label left, value right" shape as .labradar-summary-row above; its own

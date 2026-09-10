@@ -206,3 +206,68 @@ test('aggregateTracks: an empty valid set reports a null mean/stdev rather than 
   assert.equal(agg.meanBc, null);
   assert.equal(agg.stdevBc, null);
 });
+
+test('aggregateTracks: the 95% confidence interval uses the sample stdev and a Student-t multiplier', () => {
+  const results = [
+    fixture('a', 0.300, 0.99), fixture('b', 0.310, 0.99), fixture('c', 0.290, 0.99),
+    fixture('d', 0.305, 0.99), fixture('e', 0.295, 0.99)
+  ];
+  const agg = aggregateTracks(results);
+  // mean 0.300, sample (n-1) stdev = sqrt(0.000250/4) = 0.0079057;
+  // t(0.975, 4) = 2.7764451 -> half-width 2.7764451 * 0.0079057 / sqrt(5).
+  const expected = 2.7764451052 * Math.sqrt(0.00025 / 4) / Math.sqrt(5);
+  assert.ok(Math.abs(agg.ci95Bc - expected) < 1e-12, `got ${agg.ci95Bc}, expected ${expected}`);
+  assert.ok(Math.abs(agg.ci95PctBc - (100 * expected / 0.3)) < 1e-9);
+});
+
+test('aggregateTracks: the confidence interval is computed over the surviving tracks only', () => {
+  const results = [
+    fixture('a', 0.300, 0.99), fixture('b', 0.310, 0.99), fixture('c', 0.290, 0.99),
+    fixture('d', 0.305, 0.99), fixture('e', 0.295, 0.99), fixture('f', 0.80, 0.20)
+  ];
+  const gated = aggregateTracks(results, { r2GateThreshold: 0.95 });
+  const clean = aggregateTracks(results.slice(0, 5));
+  assert.equal(gated.validCount, 5);
+  assert.ok(Math.abs(gated.ci95Bc - clean.ci95Bc) < 1e-12, 'the rejected track must not widen the interval');
+});
+
+test('aggregateTracks: a wider spread of the same mean gives a proportionally wider interval', () => {
+  const tight = aggregateTracks([fixture('a', 0.299, 0.99), fixture('b', 0.301, 0.99), fixture('c', 0.300, 0.99)]);
+  const loose = aggregateTracks([fixture('a', 0.290, 0.99), fixture('b', 0.310, 0.99), fixture('c', 0.300, 0.99)]);
+  assert.ok(Math.abs(tight.meanBc - loose.meanBc) < 1e-12);
+  assert.ok(Math.abs(loose.ci95PctBc - 10 * tight.ci95PctBc) < 1e-9, 'a 10x spread should give a 10x interval');
+});
+
+test('aggregateTracks: fewer tracks give a wider interval for the same spread', () => {
+  const bcs = [0.290, 0.295, 0.300, 0.305, 0.310, 0.290, 0.295, 0.300, 0.305, 0.310];
+  const few = aggregateTracks(bcs.slice(0, 5).map((bc, i) => fixture(`t${i}`, bc, 0.99)));
+  const many = aggregateTracks(bcs.map((bc, i) => fixture(`t${i}`, bc, 0.99)));
+  assert.ok(few.ci95PctBc > many.ci95PctBc);
+});
+
+test('aggregateTracks: a single valid track reports no confidence interval rather than a zero-width one', () => {
+  const agg = aggregateTracks([fixture('a', 0.30, 0.99), fixture('b', 0.31, 0.20)], { r2GateThreshold: 0.95 });
+  assert.equal(agg.validCount, 1);
+  assert.equal(agg.meanBc, 0.30);
+  assert.equal(agg.ci95Bc, null);
+  assert.equal(agg.ci95PctBc, null);
+});
+
+test('aggregateTracks: an empty valid set reports a null confidence interval rather than NaN', () => {
+  const agg = aggregateTracks([fixture('a', 0.30, 0.20)], { r2GateThreshold: 0.95 });
+  assert.equal(agg.ci95Bc, null);
+  assert.equal(agg.ci95PctBc, null);
+});
+
+test('aggregateTracks: past its table, the interval multiplier stays close to the true Student-t quantile', () => {
+  // 40 tracks (df = 39, past the tabulated n) with a known sample stdev:
+  // 20 at -0.01 and 20 at +0.01 around 0.30, so s = 0.01 exactly.
+  const results = [];
+  for (let i = 0; i < 20; i++) results.push(fixture(`lo${i}`, 0.29, 0.99));
+  for (let i = 0; i < 20; i++) results.push(fixture(`hi${i}`, 0.31, 0.99));
+  const agg = aggregateTracks(results);
+  const n = 40;
+  const s = Math.sqrt((40 * 0.0001) / (n - 1));
+  const tUsed = agg.ci95Bc * Math.sqrt(n) / s;
+  assert.ok(Math.abs(tUsed - 2.0226909) < 1e-3, `multiplier ${tUsed} should approximate t(0.975, 39) = 2.0226909`);
+});
