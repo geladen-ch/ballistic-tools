@@ -4,7 +4,7 @@ import { muzzleVelocityTempField } from '../muzzle-velocity-temp-field.js';
 import { cartridgePrecisionField } from './cartridge-precision-field.js';
 import { stabilityIndicator } from '../stability-indicator.js';
 import { bulletForm } from './bullet-form.js';
-import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
+import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor, compareBulletsForPicker } from '../../bullets.js';
 import { logDiagnostic } from '../../debug-log.js';
 import { loadUserBullets, saveUserBullet, findUserBulletByName, generateUserId } from '../../user-library.js';
 import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
@@ -197,7 +197,8 @@ export function cartridgeForm({
   function populateBulletOptions() {
     const offered = computeOfferedBullets();
     const caliber = caliberSelect.value || ALL_CALIBERS_VALUE;
-    const filtered = caliber === ALL_CALIBERS_VALUE ? offered : offered.filter((b) => caliberLabelFor(b) === caliber);
+    const filtered = (caliber === ALL_CALIBERS_VALUE ? offered : offered.filter((b) => caliberLabelFor(b) === caliber))
+      .sort((a, b) => compareBulletsForPicker(a, b, designations));
     const wasAddingNew = bulletSelect.value === NEW_BULLET_VALUE;
 
     clear(bulletSelect);

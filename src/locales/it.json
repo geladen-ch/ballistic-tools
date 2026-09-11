@@ -975,6 +975,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v208": "Nuovo: dato che l'elenco dei proiettili è cresciuto, ora è ordinato per calibro, poi per libreria, poi per produttore + nome.",
       "v207": "Nuovo: tante nuove librerie di proiettili — curve Cd-Mach per Hornady, Berger, Sierra e Lapua, ricavate tramite reverse engineering dalle tabelle di velocità di Hornady. Inoltre, ora sono disponibili come libreria anche i BC pubblicati da Berger.",
       "v206": "Nuovo: manuale dettagliato per lo strumento BC Labradar.",
       "v205": "Nuovo: calcoli dell'altezza della traiettoria, del punto in bianco massimo e della zona pericolosa.",

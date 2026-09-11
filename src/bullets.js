@@ -113,3 +113,37 @@ export function designationFor(caliberM, designations) {
   const match = matchCaliberDesignation(caliberM, designations);
   return match ? match.designation : `${(caliberM * 1000).toFixed(2)}mm`;
 }
+
+// Registry declaration order doubles as the picker's own library
+// tie-break order — there's no separate "library order" concept anywhere
+// else in the app, this is already how bullet-library-checkboxes.js lists
+// them.
+const LIBRARY_INDEX = new Map(BULLET_LIBRARIES.map((lib, i) => [lib.id, i]));
+
+// The real caliber to sort by — the matched caliber-designations.json
+// bucket's own caliberM, not each bullet's own slightly-varying raw
+// diameter, so every bullet snapped to the same designation always sorts
+// together. Falls back to the bullet's raw caliberM for one the table
+// doesn't recognize (same case designationFor()'s raw-mm label covers).
+function caliberSortKey(bullet, designations) {
+  const match = matchCaliberDesignation(bullet.caliberM, designations);
+  return match ? match.caliberM : bullet.caliberM;
+}
+
+// The user's own Arsenal bullets sort ahead of every built-in library;
+// built-in libraries then sort in their registry declaration order.
+function librarySortKey(bullet) {
+  if (bullet.isUser) return -1;
+  return LIBRARY_INDEX.has(bullet.libraryId) ? LIBRARY_INDEX.get(bullet.libraryId) : Infinity;
+}
+
+// Shared ordering for every merged bullet picker (bullet-section.js,
+// cartridge-form.js): real caliber, then library (user's own first), then
+// alphabetically by manufacturer + name.
+export function compareBulletsForPicker(a, b, designations) {
+  const caliberDiff = caliberSortKey(a, designations) - caliberSortKey(b, designations);
+  if (caliberDiff !== 0) return caliberDiff;
+  const libraryDiff = librarySortKey(a) - librarySortKey(b);
+  if (libraryDiff !== 0) return libraryDiff;
+  return a.manufacturer.localeCompare(b.manufacturer) || a.name.localeCompare(b.name);
+}

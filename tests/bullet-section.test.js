@@ -70,10 +70,13 @@ function optionValues(select) {
 // instead of a hand-maintained literal list that goes stale (and silently
 // stops testing anything real) every time a bullet is added or removed.
 async function resolvedCatalog() {
-  const { loadBulletCatalog, loadBullet, loadCaliberDesignations, designationFor } = await import('../src/bullets.js');
+  const { loadBulletCatalog, loadBullet, loadCaliberDesignations, designationFor, bulletLibraryForBullet } = await import('../src/bullets.js');
   const designations = await loadCaliberDesignations();
   const bullets = await Promise.all(loadBulletCatalog().map((id) => loadBullet(id)));
-  return bullets.map((b) => ({ ...b, designation: designationFor(b.caliberM, designations) }));
+  return bullets.map((b) => {
+    const lib = bulletLibraryForBullet(b.id);
+    return { ...b, designation: designationFor(b.caliberM, designations), libraryId: lib ? lib.id : null };
+  });
 }
 
 test('defaults to "Other" with manual bc/dragModel fields, before the catalog even loads', () => {
@@ -328,7 +331,12 @@ test('the caliber filter narrows the picker to matching bullets (by looked-up de
   caliberFilter.value = targetDesignation;
   fireEvent(caliberFilter, 'change');
 
-  const expectedIds = catalog.filter((b) => b.designation === targetDesignation).map((b) => b.id);
+  const { loadCaliberDesignations, compareBulletsForPicker } = await import('../src/bullets.js');
+  const designations = await loadCaliberDesignations();
+  const expectedIds = catalog
+    .filter((b) => b.designation === targetDesignation)
+    .sort((a, b) => compareBulletsForPicker(a, b, designations))
+    .map((b) => b.id);
   const bulletSelect = byId(bullet.node, 'bulletSelect');
   assert.deepEqual(optionValues(bulletSelect), ['__other__', ...expectedIds]);
 });

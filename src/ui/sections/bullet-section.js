@@ -5,7 +5,7 @@ import { sectionGroup } from '../section.js';
 import { massDualField } from '../arsenal/mass-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
 import { bulletLengthField } from '../arsenal/bullet-length-field.js';
-import { loadBulletCatalog, loadBullet, loadBulletLibraries, bulletLibraryForBullet, loadCaliberDesignations, designationFor } from '../../bullets.js';
+import { loadBulletCatalog, loadBullet, loadBulletLibraries, bulletLibraryForBullet, loadCaliberDesignations, designationFor, compareBulletsForPicker } from '../../bullets.js';
 import { logDiagnostic } from '../../debug-log.js';
 import { loadUserBullets } from '../../user-library.js';
 import { t } from '../../i18n.js';
@@ -278,7 +278,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
     const filtered = catalog.filter((b) =>
       (caliber === ALL_VALUE || b.designation === caliber) &&
       (manufacturer === ALL_VALUE || b.manufacturer === manufacturer)
-    );
+    ).sort((a, b) => compareBulletsForPicker(a, b, cachedDesignations));
     for (const b of filtered) {
       const grains = Math.round(b.massKg * KG_TO_GRAIN);
       // "* " marks a user's own Arsenal entry; a built-in bullet instead
