@@ -1,0 +1,14 @@
+{
+  "id": "bpb-25-elitehunter-133",
+  "name": "133gr Elite Hunter",
+  "manufacturer": "Berger",
+  "caliberM": 0.0065278,
+  "lengthM": 0.0357378,
+  "massKg": 0.008618255029999999,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.315,
+    "model": "G7"
+  }
+}

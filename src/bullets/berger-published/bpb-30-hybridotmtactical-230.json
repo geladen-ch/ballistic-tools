@@ -1,0 +1,14 @@
+{
+  "id": "bpb-30-hybridotmtactical-230",
+  "name": "230gr Hybrid OTM Tactical",
+  "manufacturer": "Berger",
+  "caliberM": 0.007823199999999999,
+  "lengthM": 0.0408432,
+  "massKg": 0.0149037493,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.364,
+    "model": "G7"
+  }
+}

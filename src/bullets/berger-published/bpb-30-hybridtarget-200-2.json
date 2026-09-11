@@ -1,0 +1,14 @@
+{
+  "id": "bpb-30-hybridtarget-200-2",
+  "name": "200gr Hybrid Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.007823199999999999,
+  "lengthM": 0.0378206,
+  "massKg": 0.012959782,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.316,
+    "model": "G7"
+  }
+}

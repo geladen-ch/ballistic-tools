@@ -1,0 +1,14 @@
+{
+  "id": "bpb-223-fbvarmint-60",
+  "name": "60gr FB Varmint",
+  "manufacturer": "Berger",
+  "caliberM": 0.0056895999999999995,
+  "lengthM": 0.020574000000000002,
+  "massKg": 0.0038879345999999998,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.271,
+    "model": "G1"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "bpb-65-classichunter-135",
+  "name": "135gr Classic Hunter",
+  "manufacturer": "Berger",
+  "caliberM": 0.0067056,
+  "lengthM": 0.033655,
+  "massKg": 0.00874785285,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.303,
+    "model": "G7"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "bpb-6-bttarget-90",
+  "name": "90gr BT Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.006172199999999999,
+  "lengthM": 0.02667,
+  "massKg": 0.0058319018999999995,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.21,
+    "model": "G7"
+  }
+}

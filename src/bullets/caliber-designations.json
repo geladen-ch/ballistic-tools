@@ -4,6 +4,7 @@
   { "caliberM": 0.00566, "designation": ".22 LR" },
   { "caliberM": 0.0057, "designation": "5.56 / .223" },
   { "caliberM": 0.00617, "designation": "6 / .243" },
+  { "caliberM": 0.0065278, "designation": ".25 cal" },
   { "caliberM": 0.00671, "designation": "6.5 / .264" },
   { "caliberM": 0.00704, "designation": "6.8 / .270" },
   { "caliberM": 0.007214, "designation": "7 / .284" },
@@ -19,6 +20,7 @@
   { "caliberM": 0.0093, "designation": "9.3 / .366" },
   { "caliberM": 0.00955, "designation": "9.5 / .375" },
   { "caliberM": 0.0102, "designation": "10 / .40" },
+  { "caliberM": 0.0106, "designation": "10.6 / .416" },
   { "caliberM": 0.0109, "designation": "10.9 / .44" },
   { "caliberM": 0.0115, "designation": "11.5 / .45" },
   { "caliberM": 0.01295, "designation": "12.7 / .50" }

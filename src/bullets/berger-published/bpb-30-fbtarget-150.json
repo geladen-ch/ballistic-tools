@@ -1,0 +1,14 @@
+{
+  "id": "bpb-30-fbtarget-150",
+  "name": "150gr FB Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.007823199999999999,
+  "lengthM": 0.029337,
+  "massKg": 0.009719836499999999,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.393,
+    "model": "G1"
+  }
+}

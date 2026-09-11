@@ -621,6 +621,10 @@ test('the bullet picker (but not the checkboxes) is hidden when every built-in l
   setBulletLibraryVisible('lapua-cd', false);
   setBulletLibraryVisible('hornady-reverse', false);
   setBulletLibraryVisible('swiss-p', false);
+  setBulletLibraryVisible('berger-reverse', false);
+  setBulletLibraryVisible('sierra-reverse', false);
+  setBulletLibraryVisible('berger-published', false);
+  setBulletLibraryVisible('lapua-reverse', false);
   const bullet = bulletSection();
   await settle();
 
@@ -649,10 +653,18 @@ test('unchecking a library checkbox live-hides only that library\'s bullets, kee
   const lapuaCheckbox = byId(bullet.node, 'bullet-library-lapua-cd');
   const hornadyReverseCheckbox = byId(bullet.node, 'bullet-library-hornady-reverse');
   const swissPCheckbox = byId(bullet.node, 'bullet-library-swiss-p');
+  const bergerReverseCheckbox = byId(bullet.node, 'bullet-library-berger-reverse');
+  const sierraReverseCheckbox = byId(bullet.node, 'bullet-library-sierra-reverse');
+  const bergerPublishedCheckbox = byId(bullet.node, 'bullet-library-berger-published');
+  const lapuaReverseCheckbox = byId(bullet.node, 'bullet-library-lapua-reverse');
   assert.equal(geladenCheckbox.checked, true);
   assert.equal(lapuaCheckbox.checked, true);
   assert.equal(hornadyReverseCheckbox.checked, true);
   assert.equal(swissPCheckbox.checked, true);
+  assert.equal(bergerReverseCheckbox.checked, true);
+  assert.equal(sierraReverseCheckbox.checked, true);
+  assert.equal(bergerPublishedCheckbox.checked, true);
+  assert.equal(lapuaReverseCheckbox.checked, true);
   geladenCheckbox.checked = false;
   fireEvent(geladenCheckbox, 'change');
   lapuaCheckbox.checked = false;
@@ -661,11 +673,23 @@ test('unchecking a library checkbox live-hides only that library\'s bullets, kee
   fireEvent(hornadyReverseCheckbox, 'change');
   swissPCheckbox.checked = false;
   fireEvent(swissPCheckbox, 'change');
+  bergerReverseCheckbox.checked = false;
+  fireEvent(bergerReverseCheckbox, 'change');
+  sierraReverseCheckbox.checked = false;
+  fireEvent(sierraReverseCheckbox, 'change');
+  bergerPublishedCheckbox.checked = false;
+  fireEvent(bergerPublishedCheckbox, 'change');
+  lapuaReverseCheckbox.checked = false;
+  fireEvent(lapuaReverseCheckbox, 'change');
 
   assert.equal(isBulletLibraryVisible('geladen'), false);
   assert.equal(isBulletLibraryVisible('lapua-cd'), false);
   assert.equal(isBulletLibraryVisible('hornady-reverse'), false);
   assert.equal(isBulletLibraryVisible('swiss-p'), false);
+  assert.equal(isBulletLibraryVisible('berger-reverse'), false);
+  assert.equal(isBulletLibraryVisible('sierra-reverse'), false);
+  assert.equal(isBulletLibraryVisible('berger-published'), false);
+  assert.equal(isBulletLibraryVisible('lapua-reverse'), false);
   const values = bulletSelect.childNodes.map((o) => o.attributes.value);
   assert.deepEqual(values, ['__other__', 'my-custom-bullet']);
 });
@@ -697,6 +721,10 @@ test('unlock() after a lock restores the toggle-respecting picker (built-ins hid
   setBulletLibraryVisible('lapua-cd', false);
   setBulletLibraryVisible('hornady-reverse', false);
   setBulletLibraryVisible('swiss-p', false);
+  setBulletLibraryVisible('berger-reverse', false);
+  setBulletLibraryVisible('sierra-reverse', false);
+  setBulletLibraryVisible('berger-published', false);
+  setBulletLibraryVisible('lapua-reverse', false);
   const bullet = bulletSection();
   await bullet.lockToBullet('swiss-gp90');
   bullet.unlock();

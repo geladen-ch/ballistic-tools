@@ -81,7 +81,12 @@ test('focusing an empty field lists every known manufacturer, built-ins and Arse
 });
 
 test('a hidden library\'s manufacturers are excluded from the suggestion list', async () => {
+  // Both Lapua-manufacturer libraries need hiding now — lapua-reverse
+  // (Hornady-4DOF-derived) also tags its bullets "Lapua", same as
+  // lapua-cd (Lapua's own published curves), so either one alone
+  // wouldn't actually remove "Lapua" from the suggestion list.
   setBulletLibraryVisible('lapua-cd', false);
+  setBulletLibraryVisible('lapua-reverse', false);
   const field = manufacturerField();
   await settle();
   const input = findInput(field.node);

@@ -1,0 +1,14 @@
+{
+  "id": "bpb-30-verylowdragvldhunting-185",
+  "name": "185gr Very Low Drag (VLD) Hunting",
+  "manufacturer": "Berger",
+  "caliberM": 0.007823199999999999,
+  "lengthM": 0.0346964,
+  "massKg": 0.011987798349999999,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.286,
+    "model": "G7"
+  }
+}

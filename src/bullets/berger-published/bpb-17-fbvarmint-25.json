@@ -1,0 +1,14 @@
+{
+  "id": "bpb-17-fbvarmint-25",
+  "name": "25gr FB Varmint",
+  "manufacturer": "Berger",
+  "caliberM": 0.004368799999999999,
+  "lengthM": 0.014350999999999997,
+  "massKg": 0.00161997275,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.152,
+    "model": "G1"
+  }
+}

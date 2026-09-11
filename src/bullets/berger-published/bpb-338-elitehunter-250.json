@@ -1,0 +1,14 @@
+{
+  "id": "bpb-338-elitehunter-250",
+  "name": "250gr Elite Hunter",
+  "manufacturer": "Berger",
+  "caliberM": 0.0085852,
+  "lengthM": 0.041325799999999996,
+  "massKg": 0.0161997275,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.351,
+    "model": "G7"
+  }
+}

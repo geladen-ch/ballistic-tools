@@ -1,0 +1,14 @@
+{
+  "id": "bpb-223-fbtarget-52",
+  "name": "52gr FB Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.0056895999999999995,
+  "lengthM": 0.018135599999999998,
+  "massKg": 0.0033695433199999996,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.235,
+    "model": "G1"
+  }
+}

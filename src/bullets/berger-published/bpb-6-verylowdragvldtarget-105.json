@@ -1,0 +1,14 @@
+{
+  "id": "bpb-6-verylowdragvldtarget-105",
+  "name": "105gr Very Low Drag (VLD) Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.006172199999999999,
+  "lengthM": 0.0310388,
+  "massKg": 0.0068038855499999995,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.265,
+    "model": "G7"
+  }
+}

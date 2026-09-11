@@ -953,12 +953,29 @@
     "swissP": {
       "name": "Swiss P",
       "description": "Courbes Cd-Mach et BC G7 supersoniques optimaux, obtenus par rétro-ingénierie à partir des tables de trajectoire publiées par Swiss P"
+    },
+    "bergerReverse": {
+      "name": "Berger, reversed from Hornady radar",
+      "description": "Courbes Cd-Mach personnalisées pour les ogives Berger, obtenues par rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF"
+    },
+    "sierraReverse": {
+      "name": "Sierra, reversed from Hornady radar",
+      "description": "Courbes Cd-Mach personnalisées pour les ogives Sierra, obtenues par rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF"
+    },
+    "bergerPublished": {
+      "name": "Berger published BC",
+      "description": "Poids, diamètre, OAL et coefficient balistique G7 (ou G1, lorsque Berger ne publie pas de G7), tels que publiés sur le site officiel de Berger"
+    },
+    "lapuaReverse": {
+      "name": "Lapua, reversed from Hornady radar",
+      "description": "Courbes Cd-Mach personnalisées pour les ogives Lapua, obtenues par rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF"
     }
   },
   "releaseHistory": {
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v207": "Nouveau : tout un tas de nouvelles bibliothèques de balles — courbes Cd-Mach pour Hornady, Berger, Sierra et Lapua, obtenues par rétro-ingénierie à partir des tables de vitesse de Hornady. De plus, les BC publiés par Berger sont désormais aussi disponibles sous forme de bibliothèque.",
       "v206": "Nouveau : manuel détaillé pour l'outil BC Labradar.",
       "v205": "Nouveau : calculs de la hauteur de trajectoire, du tir tendu maximal et de la zone dangereuse.",
       "v204": "Nouveau : fonctionnalité de réglage d'une cartouche avec une cartouche différente.",

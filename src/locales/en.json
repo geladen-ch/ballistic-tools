@@ -953,12 +953,29 @@
     "swissP": {
       "name": "Swiss P",
       "description": "Cd-Mach curves and optimal supersonic G7 BCs reverse-engineered from Swiss P's own published trajectory tables"
+    },
+    "bergerReverse": {
+      "name": "Berger, reversed from Hornady radar",
+      "description": "Custom Cd-Mach curves for Berger bullets, reverse-engineered from the Hornady 4DOF calculator output"
+    },
+    "sierraReverse": {
+      "name": "Sierra, reversed from Hornady radar",
+      "description": "Custom Cd-Mach curves for Sierra bullets, reverse-engineered from the Hornady 4DOF calculator output"
+    },
+    "bergerPublished": {
+      "name": "Berger published BC",
+      "description": "Weight, diameter, OAL, and G7 (or G1, where Berger publishes no G7) ballistic coefficient, as published on Berger's own website"
+    },
+    "lapuaReverse": {
+      "name": "Lapua, reversed from Hornady radar",
+      "description": "Custom Cd-Mach curves for Lapua bullets, reverse-engineered from the Hornady 4DOF calculator output"
     }
   },
   "releaseHistory": {
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v207": "New: a bunch of new bullet libraries — Hornady, Berger, Sierra, and Lapua Cd-Mach curves reverse-engineered from Hornady's velocity tables. Plus, Berger bullets published BCs are now available as a library too.",
       "v206": "New: detailed manual for the BC Labradar tool.",
       "v205": "New: trajectory height, max point blank, and danger zone calculations.",
       "v204": "New: zero with a different cartridge feature.",

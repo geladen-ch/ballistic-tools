@@ -1,0 +1,14 @@
+{
+  "id": "bpb-270-verylowdragvldhunting-130",
+  "name": "130gr Very Low Drag (VLD) Hunting (.270)",
+  "manufacturer": "Berger",
+  "caliberM": 0.0070358,
+  "lengthM": 0.0297942,
+  "massKg": 0.0084238583,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.236,
+    "model": "G7"
+  }
+}

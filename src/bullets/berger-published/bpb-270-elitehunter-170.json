@@ -1,0 +1,14 @@
+{
+  "id": "bpb-270-elitehunter-170",
+  "name": "170gr Elite Hunter",
+  "manufacturer": "Berger",
+  "caliberM": 0.0070358,
+  "lengthM": 0.037846,
+  "massKg": 0.0110158147,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.339,
+    "model": "G7"
+  }
+}

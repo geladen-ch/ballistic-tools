@@ -1,0 +1,14 @@
+{
+  "id": "bpb-223-fullboretarget-81",
+  "name": "80.5gr FULLBORE Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.0056895999999999995,
+  "lengthM": 0.027711399999999997,
+  "massKg": 0.005216312254999999,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.226,
+    "model": "G7"
+  }
+}

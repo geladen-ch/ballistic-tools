@@ -18,6 +18,10 @@ import { BULLET_IDS as GELADEN_IDS } from './geladen/catalog.js';
 import { BULLET_IDS as LAPUA_CD_IDS } from './lapua-cd/catalog.js';
 import { BULLET_IDS as HORNADY_REVERSE_IDS } from './hornady-reverse/catalog.js';
 import { BULLET_IDS as SWISS_P_IDS } from './swiss-p/catalog.js';
+import { BULLET_IDS as BERGER_REVERSE_IDS } from './berger-reverse/catalog.js';
+import { BULLET_IDS as SIERRA_REVERSE_IDS } from './sierra-reverse/catalog.js';
+import { BULLET_IDS as BERGER_PUBLISHED_IDS } from './berger-published/catalog.js';
+import { BULLET_IDS as LAPUA_REVERSE_IDS } from './lapua-reverse/catalog.js';
 
 export const BULLET_LIBRARIES = [
   {
@@ -47,5 +51,33 @@ export const BULLET_LIBRARIES = [
     nameKey: 'bulletLibraries.swissP.name',
     descriptionKey: 'bulletLibraries.swissP.description',
     prefix: 'SwP'
+  },
+  {
+    id: 'berger-reverse',
+    ids: BERGER_REVERSE_IDS,
+    nameKey: 'bulletLibraries.bergerReverse.name',
+    descriptionKey: 'bulletLibraries.bergerReverse.description',
+    prefix: 'HrB'
+  },
+  {
+    id: 'sierra-reverse',
+    ids: SIERRA_REVERSE_IDS,
+    nameKey: 'bulletLibraries.sierraReverse.name',
+    descriptionKey: 'bulletLibraries.sierraReverse.description',
+    prefix: 'HrS'
+  },
+  {
+    id: 'berger-published',
+    ids: BERGER_PUBLISHED_IDS,
+    nameKey: 'bulletLibraries.bergerPublished.name',
+    descriptionKey: 'bulletLibraries.bergerPublished.description',
+    prefix: 'BpB'
+  },
+  {
+    id: 'lapua-reverse',
+    ids: LAPUA_REVERSE_IDS,
+    nameKey: 'bulletLibraries.lapuaReverse.name',
+    descriptionKey: 'bulletLibraries.lapuaReverse.description',
+    prefix: 'HrL'
   }
 ];

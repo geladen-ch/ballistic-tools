@@ -953,12 +953,29 @@
     "swissP": {
       "name": "Swiss P",
       "description": "Cd-Mach-Kurven und optimale supersonische G7-BCs, zurückentwickelt aus Swiss Ps eigenen veröffentlichten Flugbahntabellen"
+    },
+    "bergerReverse": {
+      "name": "Berger, reversed from Hornady radar",
+      "description": "Eigene Cd-Mach-Kurven für Berger-Geschosse, zurückentwickelt aus der Ausgabe des Hornady-4DOF-Rechners"
+    },
+    "sierraReverse": {
+      "name": "Sierra, reversed from Hornady radar",
+      "description": "Eigene Cd-Mach-Kurven für Sierra-Geschosse, zurückentwickelt aus der Ausgabe des Hornady-4DOF-Rechners"
+    },
+    "bergerPublished": {
+      "name": "Berger published BC",
+      "description": "Gewicht, Durchmesser, OAL und G7-(bzw. G1-, wenn Berger kein G7 veröffentlicht) ballistischer Koeffizient, wie auf Bergers eigener Website veröffentlicht"
+    },
+    "lapuaReverse": {
+      "name": "Lapua, reversed from Hornady radar",
+      "description": "Eigene Cd-Mach-Kurven für Lapua-Geschosse, zurückentwickelt aus der Ausgabe des Hornady-4DOF-Rechners"
     }
   },
   "releaseHistory": {
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v207": "Neu: jede Menge neue Geschossbibliotheken — Cd-Mach-Kurven für Hornady, Berger, Sierra und Lapua, zurückentwickelt aus Hornadys Geschwindigkeitstabellen. Außerdem sind jetzt auch Bergers veröffentlichte BCs als eigene Bibliothek verfügbar.",
       "v206": "Neu: ausführliches Handbuch für das Werkzeug BC-Labradar.",
       "v205": "Neu: Berechnungen für Gipfelhöhe, maximalen Direktschuss und Gefahrenbereich.",
       "v204": "Neu: Funktion zum Einschießen einer Patrone mit einer anderen Patrone.",

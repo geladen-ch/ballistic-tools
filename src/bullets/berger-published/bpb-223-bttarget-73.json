@@ -1,0 +1,14 @@
+{
+  "id": "bpb-223-bttarget-73",
+  "name": "73gr BT Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.0056895999999999995,
+  "lengthM": 0.024460199999999998,
+  "massKg": 0.00473032043,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.178,
+    "model": "G7"
+  }
+}

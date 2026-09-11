@@ -953,12 +953,29 @@
     "swissP": {
       "name": "Swiss P",
       "description": "Curve Cd-Mach e BC G7 supersonici ottimali, ricavati tramite reverse engineering dalle tabelle di traiettoria pubblicate da Swiss P"
+    },
+    "bergerReverse": {
+      "name": "Berger, reversed from Hornady radar",
+      "description": "Curve Cd-Mach personalizzate per proiettili Berger, ricavate tramite reverse engineering dall'output del calcolatore Hornady 4DOF"
+    },
+    "sierraReverse": {
+      "name": "Sierra, reversed from Hornady radar",
+      "description": "Curve Cd-Mach personalizzate per proiettili Sierra, ricavate tramite reverse engineering dall'output del calcolatore Hornady 4DOF"
+    },
+    "bergerPublished": {
+      "name": "Berger published BC",
+      "description": "Peso, diametro, OAL e coefficiente balistico G7 (o G1, quando Berger non pubblica un valore G7), come pubblicati sul sito ufficiale di Berger"
+    },
+    "lapuaReverse": {
+      "name": "Lapua, reversed from Hornady radar",
+      "description": "Curve Cd-Mach personalizzate per proiettili Lapua, ricavate tramite reverse engineering dall'output del calcolatore Hornady 4DOF"
     }
   },
   "releaseHistory": {
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v207": "Nuovo: tante nuove librerie di proiettili — curve Cd-Mach per Hornady, Berger, Sierra e Lapua, ricavate tramite reverse engineering dalle tabelle di velocità di Hornady. Inoltre, ora sono disponibili come libreria anche i BC pubblicati da Berger.",
       "v206": "Nuovo: manuale dettagliato per lo strumento BC Labradar.",
       "v205": "Nuovo: calcoli dell'altezza della traiettoria, del punto in bianco massimo e della zona pericolosa.",
       "v204": "Nuovo: funzione per azzerare una cartuccia con una cartuccia diversa.",

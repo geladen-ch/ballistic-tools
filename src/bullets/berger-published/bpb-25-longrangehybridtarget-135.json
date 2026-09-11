@@ -1,0 +1,14 @@
+{
+  "id": "bpb-25-longrangehybridtarget-135",
+  "name": "135gr Long Range Hybrid Target",
+  "manufacturer": "Berger",
+  "caliberM": 0.0065278,
+  "lengthM": 0.035966399999999996,
+  "massKg": 0.00874785285,
+  "source": "Berger published BC",
+  "profile": {
+    "type": "bc",
+    "bc": 0.334,
+    "model": "G7"
+  }
+}
