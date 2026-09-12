@@ -21,7 +21,12 @@ const LIBRARY_BY_ID = new Map(BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id)
 const ALL_IDS = [...LIBRARY_BY_ID.keys()];
 
 let designationsPromise = null;
-const bulletPromises = new Map();
+// One fetch per library (not per bullet) — see bullets/<lib.id>/bullets.json,
+// a single JSON array covering every bullet the library owns. Keyed by
+// library id, resolving to a Map of that library's records keyed by
+// bullet id, so loadBullet() below is a fetch-once, look-up-many op
+// shared by every id in the same library.
+const libraryPromises = new Map();
 
 // The registry itself is a real ES module (see bullets/bullet-libraries.js),
 // not a fetch — it's code-shaped metadata, imported once as part of the
@@ -46,26 +51,33 @@ export function bulletLibraryForBullet(id) {
   return LIBRARY_BY_ID.get(id) || null;
 }
 
-export function loadBullet(id) {
-  if (!bulletPromises.has(id)) {
-    const lib = LIBRARY_BY_ID.get(id);
-    const url = lib
-      ? new URL(`./bullets/${lib.id}/${id}.json`, import.meta.url)
-      : new URL(`./bullets/${id}.json`, import.meta.url);
-    bulletPromises.set(id, fetch(url).then((res) => {
-      if (!res.ok) throw new Error(`failed to load bullet "${id}": ${res.status}`);
+function loadLibraryRecords(lib) {
+  if (!libraryPromises.has(lib.id)) {
+    const url = new URL(`./bullets/${lib.id}/bullets.json`, import.meta.url);
+    libraryPromises.set(lib.id, fetch(url).then((res) => {
+      if (!res.ok) throw new Error(`failed to load bullet library "${lib.id}": ${res.status}`);
       return res.json();
-    }).catch((err) => {
+    }).then((records) => new Map(records.map((record) => [record.id, record]))).catch((err) => {
       // Don't let a transient failure (offline for a moment, a cache gap
-      // right after install) poison every future attempt at this bullet
+      // right after install) poison every future attempt at this library
       // for the rest of the tab's session — evict so the next call
       // re-fetches instead of replaying the same stale rejection forever.
-      bulletPromises.delete(id);
-      logDiagnostic('warn', `[bullets] failed to load "${id}":`, err);
+      libraryPromises.delete(lib.id);
+      logDiagnostic('warn', `[bullets] failed to load library "${lib.id}":`, err);
       throw err;
     }));
   }
-  return bulletPromises.get(id);
+  return libraryPromises.get(lib.id);
+}
+
+export function loadBullet(id) {
+  const lib = LIBRARY_BY_ID.get(id);
+  if (!lib) return Promise.reject(new Error(`failed to load bullet "${id}": not a known bullet`));
+  return loadLibraryRecords(lib).then((records) => {
+    const record = records.get(id);
+    if (!record) throw new Error(`failed to load bullet "${id}": not found in library "${lib.id}"`);
+    return record;
+  });
 }
 
 export function loadCaliberDesignations() {

@@ -975,6 +975,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v209": "Changement : les bibliothèques de balles se chargent désormais sous forme d'un seul fichier par bibliothèque au lieu d'un fichier par balle, ce qui rend le cache hors ligne plus fiable sur les connexions instables.",
       "v208": "Nouveau : la liste des balles s'étant allongée, elle est désormais triée par calibre, puis par bibliothèque, puis par fabricant + nom.",
       "v207": "Nouveau : tout un tas de nouvelles bibliothèques de balles — courbes Cd-Mach pour Hornady, Berger, Sierra et Lapua, obtenues par rétro-ingénierie à partir des tables de vitesse de Hornady. De plus, les BC publiés par Berger sont désormais aussi disponibles sous forme de bibliothèque.",
       "v206": "Nouveau : manuel détaillé pour l'outil BC Labradar.",

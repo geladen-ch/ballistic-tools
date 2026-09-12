@@ -1,0 +1,1584 @@
+[
+  {
+    "id": "bpb-17-fbvarmint-25",
+    "name": "25gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.004368799999999999,
+    "lengthM": 0.014350999999999997,
+    "massKg": 0.00161997275,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.152,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-20-btvarmint-40",
+    "name": "40gr BT Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.0051816,
+    "lengthM": 0.017272,
+    "massKg": 0.0025919564,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.116,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-20-fbvarmint-35",
+    "name": "35gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.0051816,
+    "lengthM": 0.015138399999999998,
+    "massKg": 0.00226796185,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.179,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-bttarget-69",
+    "name": "69gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0241808,
+    "massKg": 0.004471124789999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.167,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-bttarget-73",
+    "name": "73gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.024460199999999998,
+    "massKg": 0.00473032043,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.178,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-fbtarget-52",
+    "name": "52gr FB Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.018135599999999998,
+    "massKg": 0.0033695433199999996,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.235,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-fbtarget-55",
+    "name": "55gr FB Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0190246,
+    "massKg": 0.0035639400499999996,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.254,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-fbvarmint-40",
+    "name": "40gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.015468599999999999,
+    "massKg": 0.0025919564,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.151,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-fbvarmint-52",
+    "name": "52gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0182118,
+    "massKg": 0.0033695433199999996,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.201,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-fbvarmint-55",
+    "name": "55gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0191262,
+    "massKg": 0.0035639400499999996,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.209,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-fbvarmint-60",
+    "name": "60gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.020574000000000002,
+    "massKg": 0.0038879345999999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.271,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-223-fullboretarget-81",
+    "name": "80.5gr FULLBORE Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.027711399999999997,
+    "massKg": 0.005216312254999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.226,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-longrangehybridtarget-86",
+    "name": "85.5gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0296418,
+    "massKg": 0.005540306805,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.268,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-otmtactical-77",
+    "name": "77gr OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.025780999999999995,
+    "massKg": 0.00498951607,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.192,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-verylowdragvldtarget-70",
+    "name": "70gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.024409399999999998,
+    "massKg": 0.0045359237,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.191,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-verylowdragvldtarget-75",
+    "name": "75gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.026695399999999998,
+    "massKg": 0.004859918249999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.216,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-verylowdragvldtarget-80",
+    "name": "80gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0280924,
+    "massKg": 0.0051839128,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.233,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-223-verylowdragvldtarget-90",
+    "name": "90gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0056895999999999995,
+    "lengthM": 0.0318516,
+    "massKg": 0.0058319018999999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.274,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-25-elitehunter-133",
+    "name": "133gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0065278,
+    "lengthM": 0.0357378,
+    "massKg": 0.008618255029999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.315,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-25-longrangehybridtarget-135",
+    "name": "135gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0065278,
+    "lengthM": 0.035966399999999996,
+    "massKg": 0.00874785285,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.334,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-25-verylowdragvldhunting-115",
+    "name": "115gr Very Low Drag (VLD) Hunting (.25)",
+    "manufacturer": "Berger",
+    "caliberM": 0.0065278,
+    "lengthM": 0.030175199999999996,
+    "massKg": 0.00745187465,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.247,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-classichunter-130",
+    "name": "130gr Classic Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.030733999999999997,
+    "massKg": 0.0084238583,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.251,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-classichunter-140",
+    "name": "140gr Classic Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.0323596,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.271,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-elitehunter-170",
+    "name": "170gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.037846,
+    "massKg": 0.0110158147,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.339,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-hybridtarget-150",
+    "name": "150gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.0340614,
+    "massKg": 0.009719836499999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.283,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-verylowdragvldhunting-130",
+    "name": "130gr Very Low Drag (VLD) Hunting (.270)",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.0297942,
+    "massKg": 0.0084238583,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.236,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-verylowdragvldhunting-140",
+    "name": "140gr Very Low Drag (VLD) Hunting (.270)",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.0318262,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.258,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-270-verylowdragvldhunting-150",
+    "name": "150gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.0070358,
+    "lengthM": 0.0328676,
+    "massKg": 0.009719836499999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.265,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-classichunter-168",
+    "name": "168gr Classic Hunter (.30)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0311912,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.251,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-classichunter-185",
+    "name": "185gr Classic Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0333756,
+    "massKg": 0.011987798349999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.273,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-elitehunter-180",
+    "name": "180gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.034925,
+    "massKg": 0.011663803799999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.295,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-elitehunter-205",
+    "name": "205gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0377698,
+    "massKg": 0.01328377655,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.324,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-elitehunter-217",
+    "name": "217gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0406146,
+    "massKg": 0.01406136347,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.356,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-elitehunter-245",
+    "name": "245gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.04508499999999999,
+    "massKg": 0.01587573295,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.413,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-fbtarget-115",
+    "name": "115gr FB Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.023875999999999998,
+    "massKg": 0.00745187465,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.289,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-30-fbtarget-150",
+    "name": "150gr FB Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.029337,
+    "massKg": 0.009719836499999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.393,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-30-fullboretarget-156",
+    "name": "155.5gr FULLBORE Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0311404,
+    "massKg": 0.010076230504999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.242,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridotmtactical-230",
+    "name": "230gr Hybrid OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0408432,
+    "massKg": 0.0149037493,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.364,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-155",
+    "name": "155gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0322834,
+    "massKg": 0.010043831049999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.245,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-168",
+    "name": "168gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0326898,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.264,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-185",
+    "name": "185gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0360172,
+    "massKg": 0.011987798349999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.295,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-200-1",
+    "name": "200.2gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.038303199999999996,
+    "massKg": 0.012972741781999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.328,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-200-2",
+    "name": "200gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0378206,
+    "massKg": 0.012959782,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.316,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-215",
+    "name": "215gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0405892,
+    "massKg": 0.013931765649999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.354,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-hybridtarget-230",
+    "name": "230gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.042367199999999994,
+    "massKg": 0.0149037493,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.368,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-juggernautotmtactical-185",
+    "name": "185gr Juggernaut OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.034416999999999996,
+    "massKg": 0.011987798349999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.283,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-juggernauttarget-185",
+    "name": "185gr Juggernaut Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.034137600000000004,
+    "massKg": 0.011987798349999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.284,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-longrangebttarget-175",
+    "name": "175gr Long Range BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0333756,
+    "massKg": 0.01133980925,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.262,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-longrangehybridtarget-208",
+    "name": "208gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.040005,
+    "massKg": 0.013478173279999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.354,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-longrangehybridtarget-220",
+    "name": "220gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0405638,
+    "massKg": 0.014255760199999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.369,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-longrangehybridtarget-245",
+    "name": "245gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.04508499999999999,
+    "massKg": 0.01587573295,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.433,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-otmtactical-175",
+    "name": "175gr OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0320294,
+    "massKg": 0.01133980925,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.263,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldhunting-155",
+    "name": "155gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0310642,
+    "massKg": 0.010043831049999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.238,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldhunting-168",
+    "name": "168gr Very Low Drag (VLD) Hunting (.30)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0320294,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.255,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldhunting-175",
+    "name": "175gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0337312,
+    "massKg": 0.01133980925,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.265,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldhunting-185",
+    "name": "185gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0346964,
+    "massKg": 0.011987798349999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.286,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldhunting-190",
+    "name": "190gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0348234,
+    "massKg": 0.012311792899999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.29,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldhunting-210",
+    "name": "210gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.037337999999999996,
+    "massKg": 0.013607771099999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.32,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldtarget-168",
+    "name": "168gr Very Low Drag (VLD) Target (.30)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.031775399999999995,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.26,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldtarget-185",
+    "name": "185gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.0351282,
+    "massKg": 0.011987798349999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.278,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-30-verylowdragvldtarget-210",
+    "name": "210gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007823199999999999,
+    "lengthM": 0.037084,
+    "massKg": 0.013607771099999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.318,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-338-elitehunter-250",
+    "name": "250gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0085852,
+    "lengthM": 0.041325799999999996,
+    "massKg": 0.0161997275,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.351,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-338-elitehunter-300",
+    "name": "300gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0085852,
+    "lengthM": 0.0461264,
+    "massKg": 0.019439672999999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.417,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-338-hybridotmtactical-250",
+    "name": "250gr Hybrid OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.0085852,
+    "lengthM": 0.041528999999999996,
+    "massKg": 0.0161997275,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.349,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-338-hybridotmtactical-300",
+    "name": "300gr Hybrid OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.0085852,
+    "lengthM": 0.046202599999999996,
+    "massKg": 0.019439672999999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.421,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-375-elrmatchsolidbullets-379",
+    "name": "379gr ELR Match Solid Bullets",
+    "manufacturer": "Berger",
+    "caliberM": 0.009524999999999999,
+    "lengthM": 0.0567944,
+    "massKg": 0.02455878689,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.487,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-375-elrmatchsolidbullets-407",
+    "name": "407gr ELR Match Solid Bullets",
+    "manufacturer": "Berger",
+    "caliberM": 0.009524999999999999,
+    "lengthM": 0.059613799999999995,
+    "massKg": 0.026373156369999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.523,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-375-hybridtarget-410",
+    "name": "410gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.009524999999999999,
+    "lengthM": 0.051739799999999996,
+    "massKg": 0.0265675531,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.475,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-brcolumntarget-64",
+    "name": "64gr BR COLUMN Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.020574000000000002,
+    "massKg": 0.00414713024,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.231,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-6-bttarget-105",
+    "name": "105gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0302006,
+    "massKg": 0.0068038855499999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.253,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-bttarget-108",
+    "name": "108gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0309118,
+    "massKg": 0.0069982822799999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.268,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-bttarget-65",
+    "name": "65gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0211582,
+    "massKg": 0.00421192915,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.144,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-bttarget-90",
+    "name": "90gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.02667,
+    "massKg": 0.0058319018999999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.21,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-classichunter-95",
+    "name": "95gr Classic Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0271526,
+    "massKg": 0.006155896449999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.223,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-elitehunter-108",
+    "name": "108gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.032004,
+    "massKg": 0.0069982822799999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.287,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-fbtarget-68",
+    "name": "68gr FB Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0211582,
+    "massKg": 0.00440632588,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.255,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-6-fbvarmint-80",
+    "name": "80gr FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0231902,
+    "massKg": 0.0051839128,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.3,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-6-highbcfbvarmint-88",
+    "name": "88gr High BC FB Varmint",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.026898599999999998,
+    "massKg": 0.00570230408,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.38,
+      "model": "G1"
+    }
+  },
+  {
+    "id": "bpb-6-hybridtarget-105",
+    "name": "105gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0319024,
+    "massKg": 0.0068038855499999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.275,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-longrangehybridtarget-109",
+    "name": "109gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.032435799999999994,
+    "massKg": 0.00706308119,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.292,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-longrangehybridtarget-120",
+    "name": "120gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0351282,
+    "massKg": 0.0077758691999999996,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.328,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldhunting-105",
+    "name": "105gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0310642,
+    "massKg": 0.0068038855499999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.278,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldhunting-115",
+    "name": "115gr Very Low Drag (VLD) Hunting (6mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0342392,
+    "massKg": 0.00745187465,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.291,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldhunting-87",
+    "name": "87gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0264668,
+    "massKg": 0.0056375051699999994,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.219,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldhunting-95",
+    "name": "95gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.028701999999999995,
+    "massKg": 0.006155896449999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.239,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldtarget-105",
+    "name": "105gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0310388,
+    "massKg": 0.0068038855499999995,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.265,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldtarget-115",
+    "name": "115gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.0338328,
+    "massKg": 0.00745187465,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.289,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-6-verylowdragvldtarget-95",
+    "name": "95gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.006172199999999999,
+    "lengthM": 0.028701999999999995,
+    "massKg": 0.006155896449999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.24,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-arhybridotmtactical-130",
+    "name": "130gr AR Hybrid OTM Tactical",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.032893,
+    "massKg": 0.0084238583,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.287,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-bttarget-120",
+    "name": "120gr BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0309626,
+    "massKg": 0.0077758691999999996,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.24,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-classichunter-135",
+    "name": "135gr Classic Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.033655,
+    "massKg": 0.00874785285,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.303,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-elitehunter-140",
+    "name": "140gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0356362,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.31,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-elitehunter-156",
+    "name": "156gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.038404799999999996,
+    "massKg": 0.010108629959999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.347,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-hybridtarget-140",
+    "name": "140gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0357378,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.311,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-longrangebttarget-140",
+    "name": "140gr Long Range BT Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.035483799999999996,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.304,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-longrangehybridtarget-144",
+    "name": "144gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0358902,
+    "massKg": 0.009331043039999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.336,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-longrangehybridtarget-154",
+    "name": "153.5gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0384556,
+    "massKg": 0.009946632685,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.356,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-verylowdragvldhunting-130",
+    "name": "130gr Very Low Drag (VLD) Hunting (6.5mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0336296,
+    "massKg": 0.0084238583,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.288,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-verylowdragvldhunting-140",
+    "name": "140gr Very Low Drag (VLD) Hunting (6.5mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.035306,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.307,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-verylowdragvldtarget-130",
+    "name": "130gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.033274,
+    "massKg": 0.0084238583,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.288,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-65-verylowdragvldtarget-140",
+    "name": "140gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.0067056,
+    "lengthM": 0.0352298,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.304,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-classichunter-150",
+    "name": "150gr Classic Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0318262,
+    "massKg": 0.009719836499999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.258,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-classichunter-168",
+    "name": "168gr Classic Hunter (7mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0348488,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.29,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-elitehunter-175",
+    "name": "175gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0381508,
+    "massKg": 0.01133980925,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.336,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-elitehunter-195",
+    "name": "195gr Elite Hunter",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0418592,
+    "massKg": 0.01263578745,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.387,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-fopenhybridtarget-184",
+    "name": "184gr F-Open Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.040005,
+    "massKg": 0.011922999439999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.356,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-hybridtarget-180",
+    "name": "180gr Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.038785799999999995,
+    "massKg": 0.011663803799999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.349,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-longrangehybridtarget-190",
+    "name": "190gr Long Range Hybrid Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0406654,
+    "massKg": 0.012311792899999998,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.384,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-verylowdragvldhunting-140",
+    "name": "140gr Very Low Drag (VLD) Hunting (7mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.032181799999999997,
+    "massKg": 0.0090718474,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.256,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-verylowdragvldhunting-168",
+    "name": "168gr Very Low Drag (VLD) Hunting (7mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0363982,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.316,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-verylowdragvldhunting-180",
+    "name": "180gr Very Low Drag (VLD) Hunting",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0382524,
+    "massKg": 0.011663803799999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.345,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-verylowdragvldtarget-168",
+    "name": "168gr Very Low Drag (VLD) Target (7mm)",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.0363474,
+    "massKg": 0.010886216879999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.322,
+      "model": "G7"
+    }
+  },
+  {
+    "id": "bpb-7-verylowdragvldtarget-180",
+    "name": "180gr Very Low Drag (VLD) Target",
+    "manufacturer": "Berger",
+    "caliberM": 0.007213599999999999,
+    "lengthM": 0.038607999999999996,
+    "massKg": 0.011663803799999999,
+    "source": "Berger published BC",
+    "profile": {
+      "type": "bc",
+      "bc": 0.35,
+      "model": "G7"
+    }
+  }
+]

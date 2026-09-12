@@ -975,6 +975,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v209": "Änderung: Geschossbibliotheken werden jetzt als eine einzige Datei pro Bibliothek geladen statt als eine Datei pro Geschoss, was den Offline-Cache bei instabilen Verbindungen zuverlässiger macht.",
       "v208": "Neu: Da die Geschossliste immer größer wird, ist sie jetzt nach Kaliber, dann nach Bibliothek, dann nach Hersteller + Name sortiert.",
       "v207": "Neu: jede Menge neue Geschossbibliotheken — Cd-Mach-Kurven für Hornady, Berger, Sierra und Lapua, zurückentwickelt aus Hornadys Geschwindigkeitstabellen. Außerdem sind jetzt auch Bergers veröffentlichte BCs als eigene Bibliothek verfügbar.",
       "v206": "Neu: ausführliches Handbuch für das Werkzeug BC-Labradar.",

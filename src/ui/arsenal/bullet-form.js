@@ -24,8 +24,9 @@ const DEFAULT_VALUES = { name: '', manufacturer: '', caliberM: null, lengthM: nu
 // Drag data comes from one of two sources, the user's choice: the classic
 // BC + standard drag model, or a bullet-specific Cd-Mach table pasted in
 // directly — the same shape a handful of built-in library bullets already
-// carry (see e.g. src/bullets/ruag-338-swissp-ball-252.json), just typed
-// in by hand instead of imported.
+// carry (see e.g. the "ruag-338-swissp-ball-252" record in
+// src/bullets/swiss-p/bullets.json), just typed in by hand instead of
+// imported.
 // `caliberLocked`, when true, disables the caliber field entirely (both
 // the designation picker and the free-typed mm number) — used when this
 // form is embedded inside cartridge-form.js's own "Add new bullet" flow

@@ -975,6 +975,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v209": "Change: bullet libraries now load as a single file per library instead of one file per bullet, making the offline cache more reliable on flaky connections.",
       "v208": "New: as the bullets list grew, it's now sorted by caliber, then by library, then by manufacturer + name.",
       "v207": "New: a bunch of new bullet libraries — Hornady, Berger, Sierra, and Lapua Cd-Mach curves reverse-engineered from Hornady's velocity tables. Plus, Berger bullets published BCs are now available as a library too.",
       "v206": "New: detailed manual for the BC Labradar tool.",

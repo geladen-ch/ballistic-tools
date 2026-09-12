@@ -374,13 +374,13 @@ const APP_SHELL_URLS = [
   './src/bullets/caliber-designations.json' // one shared lookup file, not one-per-bullet — fine to list by hand
 ];
 
-// One entry per bullet/rifle, derived from the imported catalogs rather
-// than enumerated here — this is the whole point of the module-worker
-// switch, and is what keeps this file's size independent of how large
-// either library grows. Each bullet library keeps its own ids in its own
-// directory (see bullets/bullet-libraries.js), so this flat-maps across
-// all of them rather than reading a single ids array.
-const BULLET_URLS = BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id) => `./src/bullets/${lib.id}/${id}.json`));
+// One entry per bullet library (each library ships one consolidated
+// bullets.json, not one file per bullet — see bullets.js's loadBullet())
+// and one per rifle, derived from the imported catalogs rather than
+// enumerated here — this is the whole point of the module-worker switch,
+// and is what keeps this file's size independent of how large either
+// library grows.
+const BULLET_URLS = BULLET_LIBRARIES.map((lib) => `./src/bullets/${lib.id}/bullets.json`);
 const RIFLE_URLS = RIFLE_IDS.map((id) => `./src/rifles/${id}.json`);
 
 const PRECACHE_URLS = [...APP_SHELL_URLS, ...BULLET_URLS, ...RIFLE_URLS];
@@ -420,7 +420,7 @@ self.addEventListener('install', (event) => {
         //
         // Each fetch catches its own failure (after retries, see
         // precacheOne above) rather than letting it propagate: this list
-        // runs to ~370 concurrent requests, and Promise.all fails the
+        // runs to ~360 concurrent requests, and Promise.all fails the
         // *entire* install the moment any single one rejects — with
         // nothing cached at all, silently, since app.js's register()
         // swallows the rejection. Losing one file to a failure retries

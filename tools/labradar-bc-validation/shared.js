@@ -16,11 +16,21 @@ export const ATMO = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct
 export const EXTRAPOLATION_RANGE_M = 300;
 
 const LIBRARY_BY_ID = new Map(BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id) => [id, lib])));
+// One JSON array per library now (see src/bullets.js's own loadLibraryRecords()) —
+// cached per library id so re-loading several bullets from the same
+// library doesn't re-read/re-parse the file each time.
+const libraryRecordsById = new Map();
 
 function loadBullet(id) {
   const lib = LIBRARY_BY_ID.get(id);
-  const relativePath = lib ? `src/bullets/${lib.id}/${id}.json` : `src/bullets/${id}.json`;
-  return JSON.parse(fs.readFileSync(path.join(REPO_ROOT, relativePath), 'utf8'));
+  if (!lib) throw new Error(`not a known bullet: "${id}"`);
+  if (!libraryRecordsById.has(lib.id)) {
+    const records = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, `src/bullets/${lib.id}/bullets.json`), 'utf8'));
+    libraryRecordsById.set(lib.id, new Map(records.map((record) => [record.id, record])));
+  }
+  const record = libraryRecordsById.get(lib.id).get(id);
+  if (!record) throw new Error(`bullet "${id}" not found in library "${lib.id}"`);
+  return record;
 }
 
 // See docs/plans/labradar-cleaning-experiment.md / docs/labradar-bc-validation.md

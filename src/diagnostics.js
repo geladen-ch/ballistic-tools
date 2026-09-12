@@ -10,7 +10,7 @@
 import { CACHE_VERSION, RELEASE_ID, CODENAME_SHORT, CODENAME_LONG } from './version.js';
 import { downloadFile } from './download.js';
 import { getDiagnosticLog, logDiagnostic } from './debug-log.js';
-import { loadBulletLibraries, bulletLibraryForBullet } from './bullets.js';
+import { loadBulletLibraries } from './bullets.js';
 import { loadRifleCatalog } from './rifles.js';
 import { loadTargetCatalog } from './targets.js';
 import { loadUserBullets, loadUserRifles } from './user-library.js';
@@ -27,11 +27,11 @@ export function missingIds(catalogIds, cachedUrlSet, urlForId) {
   return catalogIds.filter((id) => !cachedUrlSet.has(urlForId(id)));
 }
 
-function bulletUrl(id) {
-  const lib = bulletLibraryForBullet(id);
-  return lib
-    ? new URL(`./bullets/${lib.id}/${id}.json`, import.meta.url).href
-    : new URL(`./bullets/${id}.json`, import.meta.url).href;
+// One cache entry covers a whole library now (see bullets.js's
+// loadLibraryRecords()), so coverage is checked per library id, not per
+// bullet id — see its call site below.
+function bulletLibraryUrl(libId) {
+  return new URL(`./bullets/${libId}/bullets.json`, import.meta.url).href;
 }
 
 function rifleUrl(id) {
@@ -93,7 +93,7 @@ async function collectServiceWorkerAndCache() {
     const cache = await caches.open(expectedCacheName);
     const cachedUrls = new Set((await cache.keys()).map((req) => req.url));
     currentCacheGaps = {
-      missingBullets: missingIds(loadBulletLibraries().flatMap((lib) => lib.ids), cachedUrls, bulletUrl),
+      missingBulletLibraries: missingIds(loadBulletLibraries().map((lib) => lib.id), cachedUrls, bulletLibraryUrl),
       missingRifles: missingIds(loadRifleCatalog(), cachedUrls, rifleUrl),
       missingTargets: missingIds(loadTargetCatalog(), cachedUrls, targetUrl)
     };

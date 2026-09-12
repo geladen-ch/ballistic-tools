@@ -975,6 +975,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v209": "Modifica: le librerie di proiettili ora vengono caricate come un unico file per libreria anziché un file per proiettile, rendendo la cache offline più affidabile su connessioni instabili.",
       "v208": "Nuovo: dato che l'elenco dei proiettili è cresciuto, ora è ordinato per calibro, poi per libreria, poi per produttore + nome.",
       "v207": "Nuovo: tante nuove librerie di proiettili — curve Cd-Mach per Hornady, Berger, Sierra e Lapua, ricavate tramite reverse engineering dalle tabelle di velocità di Hornady. Inoltre, ora sono disponibili come libreria anche i BC pubblicati da Berger.",
       "v206": "Nuovo: manuale dettagliato per lo strumento BC Labradar.",
