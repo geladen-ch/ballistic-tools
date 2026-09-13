@@ -390,6 +390,32 @@ test('the review dialog shows both sides\' timestamps and the conflict reason, p
   assert.ok(dialogRoot.textContent.includes(t('settings.backupSync.review.reasonDiverged')));
 });
 
+test('the review dialog states which library a conflicting item belongs to, since two libraries can share a name', () => {
+  // Reproduces the real "K31" field report: a built-in arsenal rifle and
+  // a rifle-precision project can be named identically, with nothing
+  // else in the dialog (name, peer, timestamps) able to tell a user which
+  // one a given conflict is actually about.
+  setBackupSyncEnabled(true);
+  addPendingReview({
+    recordType: 'rifle', recordId: 'r1', reason: 'unresolvable-timestamp',
+    peerDeviceId: 'peer-1', remoteVersion: { id: 'r1', name: 'K31' }
+  });
+  addPendingReview({
+    recordType: 'rifle-precision-project', recordId: 'p1', reason: 'unresolvable-timestamp',
+    peerDeviceId: 'peer-1', remoteVersion: { id: 'p1', name: 'K31' }
+  });
+
+  const container = mount();
+  fireEvent(byKey(container, 'BUTTON', 'settings.backupSync.reviewButton'), 'click');
+
+  assert.ok(dialogRoot.textContent.includes(
+    t('settings.backupSync.review.libraryLine', { library: t('settings.changeHistory.recordTypeRifle') })
+  ), 'expected the arsenal rifle conflict to be labeled as such');
+  assert.ok(dialogRoot.textContent.includes(
+    t('settings.backupSync.review.libraryLine', { library: t('settings.changeHistory.recordTypeRifleProject') })
+  ), 'expected the rifle-precision project conflict to be labeled as such');
+});
+
 test('the review dialog marks whichever side is actually a deletion, not just an edit', () => {
   setBackupSyncEnabled(true);
   const id = generateUserId('user-bullet');

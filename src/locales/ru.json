@@ -848,6 +848,7 @@
       "reviewButton": "Проверить…",
       "review": {
         "emptyHint": "Сейчас проверять нечего.",
+        "libraryLine": "Библиотека: {{library}}",
         "fromPeer": "Конфликтующая версия от {{peer}}",
         "yours": "Моя",
         "theirs": "Их",

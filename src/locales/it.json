@@ -848,6 +848,7 @@
       "reviewButton": "Verifica…",
       "review": {
         "emptyHint": "Al momento non c'è nulla da verificare.",
+        "libraryLine": "Libreria: {{library}}",
         "fromPeer": "Versione in conflitto da {{peer}}",
         "yours": "La mia",
         "theirs": "La loro",

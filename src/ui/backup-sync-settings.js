@@ -23,6 +23,7 @@ import { isVerboseSyncLoggingEnabled, setVerboseSyncLoggingEnabled, getSyncLog }
 import { isIphoneSyncSupportEnabled, setIphoneSyncSupportEnabled } from '../sync/photo-storage-prefs.js';
 import { getDeviceLabel } from '../sync/device-registry.js';
 import { SYNCED_LIBRARIES } from '../sync/synced-libraries.js';
+import { recordTypeLabel } from '../sync/record-type-labels.js';
 import { loadUserBullets, loadUserRifles } from '../user-library.js';
 import { loadUserLocations } from '../location-library.js';
 import { loadRiflePrecisionProjects } from '../rifle-precision-library.js';
@@ -158,6 +159,13 @@ function openReviewDialog(onResolved) {
     return el('div', { class: 'field' }, [
       el('p', {}, [
         el('strong', { text: name }),
+        el('br'),
+        // Which of the four synced libraries this is — a bare name alone
+        // doesn't say it (see docs/plans/backup-sync.md's own "K31" bug:
+        // a built-in library rifle and a rifle-precision project can
+        // share a name with nothing else in this dialog to tell them
+        // apart).
+        el('span', { class: 'hint', text: t('settings.backupSync.review.libraryLine', { library: recordTypeLabel(item.recordType) }) }),
         el('br'),
         el('span', { class: 'hint', text: t('settings.backupSync.review.fromPeer', { peer: peerLabel }) }),
         el('br'),

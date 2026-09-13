@@ -848,6 +848,7 @@
       "reviewButton": "Review…",
       "review": {
         "emptyHint": "Nothing needs review right now.",
+        "libraryLine": "Library: {{library}}",
         "fromPeer": "Conflicting version from {{peer}}",
         "yours": "Yours",
         "theirs": "Theirs",

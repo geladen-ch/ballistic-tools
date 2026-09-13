@@ -848,6 +848,7 @@
       "reviewButton": "Überprüfen…",
       "review": {
         "emptyHint": "Derzeit muss nichts überprüft werden.",
+        "libraryLine": "Bibliothek: {{library}}",
         "fromPeer": "Widersprüchliche Version von {{peer}}",
         "yours": "Meine",
         "theirs": "Deren",

@@ -116,6 +116,7 @@ const APP_SHELL_URLS = [
   './src/sync/manual-sync.js',
   './src/sync/last-sync-status.js',
   './src/sync/change-history.js',
+  './src/sync/record-type-labels.js',
   './src/sync/photo-storage-prefs.js',
   './src/sync/photo-assets.js',
   './src/location-library.js',

@@ -11,19 +11,9 @@ import { showDialog } from './app-dialog.js';
 import { listRecentHistory, listRecentlyDeleted, listHistoryFor, revertToSnapshot } from '../sync/change-history.js';
 import { getDeviceId } from '../sync/device-id.js';
 import { getDeviceLabel } from '../sync/device-registry.js';
-
-const RECORD_TYPE_LABEL_KEYS = {
-  bullet: 'settings.changeHistory.recordTypeBullet',
-  rifle: 'settings.changeHistory.recordTypeRifle',
-  location: 'settings.changeHistory.recordTypeLocation',
-  'rifle-precision-project': 'settings.changeHistory.recordTypeRifleProject'
-};
+import { recordTypeLabel } from '../sync/record-type-labels.js';
 
 const VISIBLE_COUNT = 20;
-
-function typeLabelFor(recordType) {
-  return t(RECORD_TYPE_LABEL_KEYS[recordType] || recordType);
-}
 
 // "Who made this change" (Phase 9's UI spec), falling back to a generic
 // label when it's this device's own id (never shown by its own device
@@ -47,7 +37,7 @@ function summaryFor(entry) {
     ? t('settings.changeHistory.deletedStatus')
     : t('settings.changeHistory.editedStatus');
   return t('settings.changeHistory.entrySummary', {
-    type: typeLabelFor(entry.recordType),
+    type: recordTypeLabel(entry.recordType),
     status,
     when: new Date(entry.capturedAt).toLocaleString(),
     who: whoLabel(entry.supersededBy)
@@ -59,7 +49,7 @@ function summaryFor(entry) {
 // so their attribution is the tombstone's own deletedBy/deletedAt.
 function deletedSummaryFor(row) {
   return t('settings.changeHistory.entrySummary', {
-    type: typeLabelFor(row.recordType),
+    type: recordTypeLabel(row.recordType),
     status: t('settings.changeHistory.deletedStatus'),
     when: new Date(row.deletedAt).toLocaleString(),
     who: whoLabel(row.deletedBy)
