@@ -12,9 +12,18 @@
 // releases the way service-worker.js's CACHE_VERSION is (this is durable
 // user data, not an ephemeral asset cache).
 export const DB_NAME = 'ballistics-tools';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
+// Version 3 adds all three of docs/plans/backup-sync.md's new stores in a
+// single bump rather than one bump each — see that plan's "One schema
+// bump, not three" for why (a DB_VERSION bump is a one-way door: an older
+// build can never open a newer on-disk database, so collapsing three
+// planned bumps into one means a rollback strands users on exactly one
+// version instead of three different ones).
 export const STORES = [
   { name: 'locations', keyPath: 'id' },
   { name: 'rifle-precision-projects', keyPath: 'id' },
+  { name: 'sync-folder-handle', keyPath: 'id' },
+  { name: 'change-history', keyPath: 'id' },
+  { name: 'pending-review', keyPath: 'id' },
 ];

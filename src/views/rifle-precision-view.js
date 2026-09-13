@@ -27,6 +27,7 @@ import { getActiveProjectId, setActiveProjectId, setPendingMarking } from '../ri
 import { showDialog } from '../ui/app-dialog.js';
 import { rifleCartridgePickerBody } from '../ui/rifle-cartridge-picker.js';
 import { setPendingCartridgeActivation } from '../arsenal-prefill.js';
+import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -445,11 +446,11 @@ export function mount(container) {
     return `${t('riflePrecision.r50Label')}: ${mrad} mrad / ${moa} MOA`;
   }
 
-  function projectInfoChildren(proj) {
+  function projectInfoChildren(proj, labels) {
     const modifiedLabel = lastModifiedLabel(proj);
     const stats = combinedStatsIfEligible(proj);
     return [
-      el('strong', { text: proj.name }),
+      el('strong', { text: (labels && labels.get(proj.id)) || proj.name }),
       unsavedBadge(proj),
       el('span', { class: 'hint', text: ` — ${formatDistance(proj.distanceM)}, ${formatLengthMm(proj.caliberMm)}` }),
       el('span', { class: 'hint', text: t('riflePrecision.targetCount', { count: proj.targets.length }) }),
@@ -493,9 +494,9 @@ export function mount(container) {
   // locations"/"Other rifles" convention as locations-view.js and
   // arsenal-view.js, just within a single reordered list rather than a
   // separately-headed section (see renderProjects()'s own comment).
-  function renderInactiveProjectRow(proj) {
+  function renderInactiveProjectRow(proj, labels) {
     const row = el('div', { class: 'arsenal-row row-clickable' }, [
-      el('div', { class: 'arsenal-row-info' }, projectInfoChildren(proj))
+      el('div', { class: 'arsenal-row-info' }, projectInfoChildren(proj, labels))
     ]);
     row.addEventListener('click', () => activateProject(proj.id));
     return row;
@@ -505,7 +506,7 @@ export function mount(container) {
   // it has at least one usable target), and its full target list. Not
   // clickable itself (it's already active) — same as arsenal-view.js's
   // own "Active rifle" row.
-  function renderActiveProjectRow(proj) {
+  function renderActiveProjectRow(proj, labels) {
     const saveToFileButton = el('button', { class: 'secondary', i18n: 'riflePrecision.saveToFileButton' });
     saveToFileButton.addEventListener('click', () => exportSingleProject(proj));
     const editButton = el('button', { class: 'secondary', i18n: 'riflePrecision.editButton' });
@@ -559,7 +560,7 @@ export function mount(container) {
     actions.push(editButton, deleteButton);
 
     const row = el('div', { class: 'arsenal-row' }, [
-      el('div', { class: 'arsenal-row-info' }, projectInfoChildren(proj)),
+      el('div', { class: 'arsenal-row-info' }, projectInfoChildren(proj, labels)),
       el('div', { class: 'arsenal-row-actions' }, actions)
     ]);
 
@@ -597,6 +598,11 @@ export function mount(container) {
   function renderProjects() {
     clear(projectsListEl);
     const projects = loadRiflePrecisionProjects();
+    // See arsenal-view.js's renderBullets() for the full Phase 4b
+    // rationale. dateFallbackField: 'createdAt' since a project has that
+    // field where bullets/rifles/locations don't (see
+    // disambiguate-by-name.js's own comment on why it matters).
+    const labels = disambiguateByName(projects, { dateFallbackField: 'createdAt' });
     const activeId = getActiveProjectId();
     const activeProject = activeId ? projects.find((p) => p.id === activeId) : null;
     // Inactive projects, latest-modified first — the active project (if
@@ -609,10 +615,10 @@ export function mount(container) {
 
     activeProjectRowEl = null;
     if (activeProject) {
-      activeProjectRowEl = renderActiveProjectRow(activeProject);
+      activeProjectRowEl = renderActiveProjectRow(activeProject, labels);
       projectsListEl.appendChild(activeProjectRowEl);
     }
-    for (const proj of inactiveProjects) projectsListEl.appendChild(renderInactiveProjectRow(proj));
+    for (const proj of inactiveProjects) projectsListEl.appendChild(renderInactiveProjectRow(proj, labels));
     if (projects.length === 0) projectsListEl.appendChild(el('p', { class: 'hint', i18n: 'riflePrecision.noProjects' }));
 
     // Hidden while any form is open — same "one open form at a time" rule

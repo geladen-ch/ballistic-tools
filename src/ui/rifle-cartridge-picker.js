@@ -11,6 +11,7 @@
 import { el } from '../dom.js';
 import { loadUserRifles } from '../user-library.js';
 import { hideDialog } from './app-dialog.js';
+import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 
 // `onPick(rifleId, cartridgeId)` fires after the dialog is already hidden
 // — same ordering as every other "row picks, closes overlay" flow in this
@@ -22,6 +23,9 @@ export function rifleCartridgePickerBody({ onPick }) {
     return el('p', { class: 'hint', i18n: 'riflePrecision.noArsenalCartridgesHint' });
   }
 
+  // See arsenal-view.js's renderBullets() for the full Phase 4b rationale.
+  const labels = disambiguateByName(rifles);
+
   const list = el('div', {});
   for (const rifle of rifles) {
     const select = el('select', {}, rifle.cartridges.map((c) => el('option', { value: c.id, text: c.name })));
@@ -31,7 +35,7 @@ export function rifleCartridgePickerBody({ onPick }) {
     select.addEventListener('click', (e) => e.stopPropagation?.());
 
     const row = el('div', { class: 'arsenal-row row-clickable' }, [
-      el('div', { class: 'arsenal-row-info' }, [el('strong', { text: rifle.name })]),
+      el('div', { class: 'arsenal-row-info' }, [el('strong', { text: labels.get(rifle.id) || rifle.name })]),
       el('div', { class: 'arsenal-row-actions' }, [select])
     ]);
     row.addEventListener('click', () => {

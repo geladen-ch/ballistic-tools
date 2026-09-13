@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v209';
-export const RELEASE_ID = '3.7.10';
-export const CODENAME_SHORT = 'BEAVIS';
-export const CODENAME_LONG = 'Ballistic Evaluation, Analytics & Visualization Intelligence Suite';
+export const CACHE_VERSION = 'v210';
+export const RELEASE_ID = '4.0.0';
+export const CODENAME_SHORT = 'BUTT-HEAD';
+export const CODENAME_LONG = 'Ballistics Unified Toolkit for Targeting, Hit Evaluation, Analytics & Data';

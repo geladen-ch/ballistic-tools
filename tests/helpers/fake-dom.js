@@ -5,6 +5,7 @@
 // replacement.
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { webcrypto } from 'node:crypto';
 
 const canvasContext = {
   clearRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
@@ -146,6 +147,29 @@ export function installFakeDom() {
   // Defaults to "confirmed" — tests that need to exercise the cancel path
   // override this per-test (e.g. `global.confirm = () => false;`).
   global.confirm = () => true;
+  // Real browsers expose crypto.subtle globally; under `node --test` (this
+  // Node version, without --experimental-global-webcrypto) it isn't there
+  // at all — see sync/device-id.js's own comment on why that module avoids
+  // crypto.randomUUID() for the same reason. sync/photo-assets.js's
+  // SHA-256 hashing has no such workaround (there's no non-cryptographic
+  // substitute for a content hash), so the fake supplies Node's own
+  // webcrypto here instead — it's a real, spec-compliant SubtleCrypto,
+  // not a stub, so hashes computed under test match a real browser's.
+  if (!global.crypto) global.crypto = webcrypto;
+  // Real browsers expose a global File (a named Blob subclass); Node 18
+  // has global Blob but not File. sync/manual-sync.js's share-sheet export
+  // (Phase 8b) needs to construct one for navigator.share({files:[...]}),
+  // so the fake supplies a minimal, real-Blob-backed subclass — actual
+  // Blob behavior (text()/arrayBuffer()/size/type), just with a name.
+  if (typeof global.File === 'undefined') {
+    global.File = class File extends Blob {
+      constructor(bits, name, options = {}) {
+        super(bits, options);
+        this.name = name;
+        this.lastModified = options.lastModified ?? Date.now();
+      }
+    };
+  }
   const cookieJar = new Map();
   global.document = {
     createElement: makeElement,

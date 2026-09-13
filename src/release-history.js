@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v210',
+    fullVersion: '4.0.0 (BUTT-HEAD — Ballistics Unified Toolkit for Targeting, Hit Evaluation, Analytics & Data)',
+    date: '2026-09-13',
+    descriptionKey: 'releaseHistory.entries.v210'
+  },
+  {
     cacheVersion: 'v209',
     fullVersion: '3.7.10 (BEAVIS — Ballistic Evaluation, Analytics & Visualization Intelligence Suite)',
     date: '2026-09-12',

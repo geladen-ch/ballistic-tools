@@ -6,7 +6,7 @@ installFakeDom();
 installFakeIndexedDb();
 
 const {
-  loadUserLocations, saveUserLocation, deleteUserLocation, findUserLocationByName,
+  loadUserLocations, loadUserLocationsWithTombstones, saveUserLocation, deleteUserLocation, findUserLocationByName,
   importUserLocation, markUserLocationsSaved,
   resetLocationLibraryForTests, reloadLocationLibraryForTests, flushLocationLibraryWritesForTests
 } = await import('../src/location-library.js');
@@ -27,7 +27,7 @@ test('saveUserLocation adds a new entry, findable afterward', () => {
   saveUserLocation(location);
   const stored = loadUserLocations();
   assert.equal(stored.length, 1);
-  const { modifiedAt, unsaved, ...rest } = stored[0];
+  const { modifiedAt, modifiedBy, revision, unsaved, ...rest } = stored[0];
   assert.deepEqual(rest, location);
   assert.ok(typeof modifiedAt === 'string');
   assert.equal(unsaved, true);
@@ -54,6 +54,60 @@ test('deleteUserLocation removes only the matching id', () => {
   const remaining = loadUserLocations();
   assert.equal(remaining.length, 1);
   assert.equal(remaining[0].id, b.id);
+});
+
+test('deleteUserLocation writes a tombstone with an empty targets array (shape-preserving)', async () => {
+  const location = makeLocation({ name: 'My Range', targets: [{ id: 't1', name: 'Target 1' }] });
+  saveUserLocation(location);
+  deleteUserLocation(location.id);
+
+  assert.deepEqual(loadUserLocations(), []); // live reads never see it
+
+  const withTombstones = loadUserLocationsWithTombstones();
+  assert.equal(withTombstones.length, 1);
+  const tomb = withTombstones[0];
+  assert.equal(tomb.id, location.id);
+  assert.equal(tomb.name, 'My Range');
+  assert.deepEqual(tomb.targets, []);
+  assert.ok(typeof tomb.deletedAt === 'string');
+  assert.ok(typeof tomb.deletedBy === 'string');
+  assert.equal(tomb.unsaved, true);
+
+  await flushLocationLibraryWritesForTests();
+  await reloadLocationLibraryForTests();
+  const reloaded = loadUserLocationsWithTombstones()[0];
+  assert.deepEqual(reloaded.targets, []); // survives an IndexedDB round-trip too
+});
+
+test('deleteUserLocation on an already-deleted or never-existing id is a no-op', () => {
+  deleteUserLocation('does-not-exist');
+  assert.deepEqual(loadUserLocationsWithTombstones(), []);
+});
+
+test('saveUserLocation increments revision from whatever was previously stored, starting at 1 for a new record', () => {
+  const location = makeLocation({ name: 'V1' });
+  const first = saveUserLocation(location);
+  assert.equal(first.revision, 1);
+  const second = saveUserLocation({ ...location, name: 'V2' });
+  assert.equal(second.revision, 2);
+});
+
+test('deleteUserLocation bumps revision, treating the deletion as its own local write', () => {
+  const location = makeLocation();
+  saveUserLocation(location);
+  deleteUserLocation(location.id);
+  const tomb = loadUserLocationsWithTombstones().find((e) => e.id === location.id);
+  assert.equal(tomb.revision, 2);
+});
+
+test('deleting and recreating a location under the same name does not falsely collide', () => {
+  const location = makeLocation({ name: 'My Range' });
+  saveUserLocation(location);
+  deleteUserLocation(location.id);
+
+  assert.equal(findUserLocationByName('My Range'), undefined);
+  saveUserLocation(makeLocation({ name: 'My Range' }));
+  assert.equal(loadUserLocations().length, 1);
 });
 
 test('findUserLocationByName matches case/whitespace-insensitively and can exclude an id', () => {
@@ -97,6 +151,12 @@ test('importUserLocation preserves the given modifiedAt (unlike saveUserLocation
   assert.equal(loadUserLocations()[0].modifiedAt, importedAt);
 });
 
+test('importUserLocation preserves the incoming revision verbatim, deliberately not bumping it', () => {
+  const location = makeLocation({ modifiedAt: '2020-01-01T00:00:00.000Z', revision: 7 });
+  const result = importUserLocation(location);
+  assert.equal(result.revision, 7);
+});
+
 test('a saved location and its photo survive a reload from the store (not just from memory)', async () => {
   const location = makeLocation({
     photo: 'data:image/jpeg;base64,AAAA',
@@ -120,4 +180,28 @@ test('a deleted location does not resurrect after a reload from the store', asyn
   await reloadLocationLibraryForTests();
 
   assert.deepEqual(loadUserLocations(), []);
+});
+
+test('regression: a tombstone is shape-preserving across the IndexedDB round-trip, photo included', async () => {
+  // toStorable()/fromStorable() normalize an absent photo to `photo: null`,
+  // so a tombstone written without that key silently grows one on reload.
+  // Two devices either side of that reload would then hold byte-identical
+  // deletions differing by one key, which merge.js reads as "same
+  // timestamp, diverged content" — pinning every deleted location to the
+  // review list permanently. Same reasoning as `targets: []`.
+  const location = makeLocation({ name: 'Range' });
+  saveUserLocation(location);
+  deleteUserLocation(location.id);
+
+  const beforeReload = loadUserLocationsWithTombstones().find((e) => e.id === location.id);
+  await flushLocationLibraryWritesForTests();
+  await reloadLocationLibraryForTests();
+  const afterReload = loadUserLocationsWithTombstones().find((e) => e.id === location.id);
+
+  assert.deepEqual(Object.keys(beforeReload).sort(), Object.keys(afterReload).sort());
+  assert.equal(beforeReload.photo, null);
+  assert.deepEqual(beforeReload.targets, []);
+
+  const { equivalent } = await import('../src/sync/merge.js');
+  assert.equal(equivalent(beforeReload, afterReload), true);
 });

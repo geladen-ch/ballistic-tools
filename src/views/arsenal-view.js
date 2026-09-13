@@ -35,6 +35,7 @@ import { LineChart } from '../vendor/chartist/index.js';
 import { downloadButton } from '../ui/download-button.js';
 import { exportChartSvg } from '../chart-svg-export.js';
 import { downloadFile } from '../download.js';
+import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 
 const KG_TO_GRAIN = 15432.358352941432;
 const ALL_VALUE = '__all__';
@@ -766,6 +767,11 @@ export function mount(container) {
   function renderBullets() {
     clear(bulletsListEl);
     const allBullets = loadUserBullets();
+    // Two independently-created bullets (e.g. merged in from another
+    // device) can coincidentally share a name — see
+    // docs/plans/backup-sync.md Phase 4b. This is a pure, unstored display
+    // label: never touches the record itself, just what's shown here.
+    const bulletLabels = disambiguateByName(allBullets);
     const caliber = caliberFilter.value;
     const manufacturer = manufacturerFilter.value;
     const bullets = allBullets.filter((b) =>
@@ -831,7 +837,7 @@ export function mount(container) {
       saveToFileButton.addEventListener('click', () => exportSingleBullet(bullet));
       bulletsListEl.appendChild(el('div', { class: 'arsenal-row' }, [
         el('div', { class: 'arsenal-row-info' }, [
-          el('strong', { text: bullet.name }),
+          el('strong', { text: bulletLabels.get(bullet.id) || bullet.name }),
           unsavedBadge(bullet),
           el('span', { class: 'hint', text: ` — ${bullet.manufacturer}, ${bulletCaliberLabel(bullet)}, ${grains}gr` }),
           modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
@@ -1149,7 +1155,8 @@ export function mount(container) {
   // filters below, same as Locations' own Current-location pane.
   function renderActiveRifle() {
     clear(activeRifleListEl);
-    const rifle = activeRifleId ? loadUserRifles().find((r) => r.id === activeRifleId) : null;
+    const allRifles = loadUserRifles();
+    const rifle = activeRifleId ? allRifles.find((r) => r.id === activeRifleId) : null;
 
     if (!rifle) {
       activeRifleListEl.appendChild(el('div', { class: 'arsenal-row' }, [
@@ -1159,6 +1166,10 @@ export function mount(container) {
     }
 
     const userBullets = loadUserBullets();
+    // See renderBullets()'s own comment — Phase 4b display-only
+    // disambiguation, computed over every rifle so this pane's label
+    // matches whatever renderRifles() would show for the same rifle.
+    const rifleLabels = disambiguateByName(allRifles);
     const modifiedLabel = lastModifiedLabel(rifle);
 
     const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
@@ -1196,7 +1207,7 @@ export function mount(container) {
 
     activeRifleListEl.appendChild(el('div', { class: 'arsenal-row' }, [
       el('div', { class: 'arsenal-row-info' }, [
-        el('strong', { text: rifle.name }),
+        el('strong', { text: rifleLabels.get(rifle.id) || rifle.name }),
         unsavedBadge(rifle),
         unusableBadge(rifle),
         el('span', { class: 'hint', text: t('arsenal.cartridgeCount', { count: rifle.cartridges.length }) }),
@@ -1222,6 +1233,11 @@ export function mount(container) {
     clear(riflesListEl);
     const allRifles = loadUserRifles();
     const userBullets = loadUserBullets();
+    // See renderBullets()'s own comment on why — same Phase 4b display-only
+    // disambiguation, computed over every rifle including the active one
+    // (excluded from this list further below) so its label stays
+    // consistent with renderActiveRifle()'s own copy of the same map.
+    const rifleLabels = disambiguateByName(allRifles);
     const caliber = caliberFilter.value;
     const manufacturer = manufacturerFilter.value;
     const rifles = allRifles.filter((r) =>
@@ -1262,7 +1278,7 @@ export function mount(container) {
 
       const row = el('div', { class: 'arsenal-row row-clickable' }, [
         el('div', { class: 'arsenal-row-info' }, [
-          el('strong', { text: rifle.name }),
+          el('strong', { text: rifleLabels.get(rifle.id) || rifle.name }),
           unsavedBadge(rifle),
           unusableBadge(rifle),
           el('span', { class: 'hint', text: t('arsenal.cartridgeCount', { count: rifle.cartridges.length }) }),

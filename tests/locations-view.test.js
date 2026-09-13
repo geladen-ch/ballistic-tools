@@ -110,6 +110,20 @@ test('adding a location via the form saves it and shows it in Known locations, n
   assert.ok(!currentSection(container).textContent.includes('Local Range'));
 });
 
+test('two independently-created locations sharing a name get disambiguated in Known locations', async () => {
+  saveUserLocation(makeTestLocation({ name: 'Same Range' }));
+  saveUserLocation(makeTestLocation({ name: 'Same Range' }));
+
+  const container = makeElement('main');
+  locationsView.mount(container);
+
+  const rows = findByClass(container, 'arsenal-row').filter((r) => r.textContent.includes('Same Range'));
+  assert.equal(rows.length, 2);
+  const labels = rows.map((r) => findByTag(r, 'STRONG')[0].textContent);
+  assert.notEqual(labels[0], labels[1]);
+  assert.ok(labels.every((l) => l.startsWith('Same Range (')));
+});
+
 test('a location name is required', async () => {
   const container = makeElement('main');
   locationsView.mount(container);

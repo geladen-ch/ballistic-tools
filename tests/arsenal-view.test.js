@@ -429,6 +429,28 @@ test('the bullet list shows each bullet\'s last-modified timestamp', () => {
   assert.ok(row.textContent.includes(t('arsenal.lastModified', { date: expectedDate })));
 });
 
+test('two independently-created bullets sharing a name get disambiguated in the list, not shown as identical', () => {
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'Same Name', manufacturer: 'Acme', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedBy: 'device-a' });
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'Same Name', manufacturer: 'Acme', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedBy: 'device-b' });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  const rows = findByClass(container, 'arsenal-row').filter((r) => r.textContent.includes('Same Name'));
+  assert.equal(rows.length, 2);
+  const labels = rows.map((r) => findByTag(r, 'STRONG')[0].textContent);
+  assert.notEqual(labels[0], labels[1]);
+  assert.ok(labels.every((l) => l.startsWith('Same Name (')));
+});
+
+test('a single bullet with a unique name shows its plain name, unaffected by disambiguation', () => {
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'Unique Bullet', manufacturer: 'Acme', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  const row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('Unique Bullet'));
+  assert.equal(findByTag(row, 'STRONG')[0].textContent, 'Unique Bullet');
+});
+
 test('editing an existing bullet pre-fills the form and updates it in place', async () => {
   const id = generateUserId('user-bullet');
   saveUserBullet({ id, name: 'Original', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
@@ -703,6 +725,28 @@ test('the rifle list shows each rifle\'s last-modified timestamp', () => {
 
   const row = findByClass(container, 'arsenal-row').find((r) => r.textContent.includes('My Rifle'));
   assert.ok(row.textContent.includes(t('arsenal.lastModified', { date: expectedDate })));
+});
+
+test('two independently-created rifles sharing a name get disambiguated in the list', () => {
+  saveUserRifle({
+    id: generateUserId('user-rifle'), name: 'Same Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
+  });
+  saveUserRifle({
+    id: generateUserId('user-rifle'), name: 'Same Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
+  });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  const rows = findByClass(container, 'arsenal-row').filter((r) => r.textContent.includes('Same Rifle'));
+  assert.equal(rows.length, 2);
+  const labels = rows.map((r) => findByTag(r, 'STRONG')[0].textContent);
+  assert.notEqual(labels[0], labels[1]);
+  assert.ok(labels.every((l) => l.startsWith('Same Rifle (')));
 });
 
 test('the bullet, rifle and cartridge forms each show their own explicit Save label, not a generic "Save"', async () => {
@@ -981,6 +1025,22 @@ test('the cartridge form\'s caliber filter defaults to "All" and offers every ca
   const bulletOptionTexts = findInputs(container).find((n) => n.id === 'arsenalCartridgeBullet').childNodes.map((o) => o.textContent);
   assert.ok(bulletOptionTexts.some((t2) => t2.includes('174gr GP11')), 'the 7.5mm (CH) bullet should be offered');
   assert.ok(bulletOptionTexts.some((t2) => t2.includes('208gr ELD-M')), 'the .308 bullet should be offered too — nothing filtered yet');
+});
+
+test('two independently-created user bullets sharing a name are disambiguated in the cartridge bullet picker', async () => {
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'Same Name', manufacturer: 'Acme', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedBy: 'device-a' });
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'Same Name', manufacturer: 'Acme', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedBy: 'device-b' });
+
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await openNewCartridgeForm(container);
+
+  const bulletOptionTexts = byId(container, 'arsenalCartridgeBullet').childNodes
+    .map((o) => o.textContent)
+    .filter((text) => text.includes('Same Name'));
+  assert.equal(bulletOptionTexts.length, 2);
+  assert.notEqual(bulletOptionTexts[0], bulletOptionTexts[1]);
+  assert.ok(bulletOptionTexts.every((text) => /Same Name \(/.test(text)));
 });
 
 test('choosing a caliber in the cartridge form filters the bullet picker to that caliber', async () => {
@@ -2051,8 +2111,9 @@ test('importing a new bullet and rifle (no conflicts) adds them to the library, 
   assert.equal(bullets[0].name, 'Imported Bullet');
   assert.equal(bullets[0].modifiedAt, importedAt, 'import must preserve the file\'s own modifiedAt');
   assert.equal(bullets[0].unsaved, true, 'an import is a local modification with no export of its own yet');
-  // The rifle's cartridge must point at the bullet's *new local* id, not the file's original one.
-  assert.notEqual(rifles[0].cartridges[0].bulletId, 'file-b1');
+  // The imported bullet keeps its file id verbatim (Prerequisite fix #1),
+  // so the cartridge's bulletId reference still resolves unchanged.
+  assert.equal(bullets[0].id, 'file-b1');
   assert.equal(rifles[0].cartridges[0].bulletId, bullets[0].id);
 
   assert.ok(container.textContent.includes(t('arsenal.importSummary', { saved: 2, skipped: 0 })));

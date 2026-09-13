@@ -49,6 +49,17 @@ test('renders one row per rifle, each with a cartridge select defaulting to the 
   assert.ok(body.textContent.includes('Rifle Two'));
 });
 
+test('two independently-created rifles sharing a name are disambiguated by row', () => {
+  saveUserRifle({ id: generateUserId('user-rifle'), name: 'Same Rifle', cartridges: [{ id: 'c1', name: 'Cartridge A' }], modifiedBy: 'device-a' });
+  saveUserRifle({ id: generateUserId('user-rifle'), name: 'Same Rifle', cartridges: [{ id: 'c2', name: 'Cartridge B' }], modifiedBy: 'device-b' });
+
+  const body = rifleCartridgePickerBody({ onPick: () => {} });
+  const labels = findByTag(body, 'STRONG').map((n) => n.textContent);
+  assert.equal(labels.length, 2);
+  assert.notEqual(labels[0], labels[1]);
+  assert.ok(labels.every((l) => l.startsWith('Same Rifle (')));
+});
+
 test('clicking a row hides the dialog and reports that row\'s currently-selected cartridge', () => {
   saveUserRifle({
     id: 'r1', name: 'Rifle One',

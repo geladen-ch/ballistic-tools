@@ -18,6 +18,9 @@ import { mountTopbarScroll } from './ui/topbar-scroll.js';
 import { mountDialogRoot } from './ui/app-dialog.js';
 import { checkBootVersionChange, watchForLiveUpdate } from './update-notifications.js';
 import { initLocationLibrary } from './location-library.js';
+import { initSyncTriggers } from './sync/auto-sync.js';
+import { initChangeHistory } from './sync/change-history.js';
+import { initPendingReview } from './sync/pending-review.js';
 import { migrateLegacyLocationStorage } from './location-storage-migration.js';
 import { initRiflePrecisionLibrary } from './rifle-precision-library.js';
 import * as homeView from './views/home-view.js';
@@ -155,7 +158,15 @@ const views = {
 const bootStartedAt = performance.now();
 logDiagnostic('log', `[boot] starting (${CACHE_VERSION}, ${RELEASE_ID})`);
 try {
-  await Promise.all([initI18n(), initLocationLibrary(), initRiflePrecisionLibrary()]);
+  // initPendingReview() belongs here for the same reason as the libraries
+  // either side of it: its store is read synchronously afterwards (Phase
+  // 6's "N items need review" badge), so without this the badge silently
+  // reads zero on every load no matter what is actually outstanding, and
+  // new conflicts get written against an empty mirror — the whole reason
+  // Phase 4 persists them rather than keeping them in memory.
+  await Promise.all([
+    initI18n(), initLocationLibrary(), initRiflePrecisionLibrary(), initChangeHistory(), initPendingReview()
+  ]);
   // One-time import of any pre-v2.9 localStorage location data left behind
   // by the IndexedDB migration — must run after initLocationLibrary() above,
   // since it needs the mirror populated for id-collision checks. See
@@ -171,6 +182,10 @@ try {
   mountNavTabbar(document.getElementById('app-tabbar'));
   mountTopbarScroll(document.getElementById('app-topbar'));
   mountDialogRoot(document.getElementById('app-dialog'));
+  // Resumes automatic backup/sync across a reload if the user had both the
+  // master toggle and automatic mode on — a no-op otherwise (see
+  // sync/auto-sync.js's own comment on why it checks both).
+  initSyncTriggers();
 
   for (const [path, mod] of Object.entries(views)) {
     registerRoute(path, () => mod.mount(view));

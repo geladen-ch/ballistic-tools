@@ -6,8 +6,8 @@ installFakeDom();
 installFakeIndexedDb();
 
 const {
-  loadRiflePrecisionProjects, saveRiflePrecisionProject, deleteRiflePrecisionProject,
-  findRiflePrecisionProjectById, findRiflePrecisionProjectByName,
+  loadRiflePrecisionProjects, loadRiflePrecisionProjectsWithTombstones, saveRiflePrecisionProject,
+  deleteRiflePrecisionProject, findRiflePrecisionProjectById, findRiflePrecisionProjectByName,
   importRiflePrecisionProject, markRiflePrecisionProjectsSaved,
   resetRiflePrecisionLibraryForTests, reloadRiflePrecisionLibraryForTests,
   flushRiflePrecisionLibraryWritesForTests
@@ -52,7 +52,7 @@ test('saveRiflePrecisionProject adds a new entry, findable afterward, and marks 
   saveRiflePrecisionProject(project);
   const stored = loadRiflePrecisionProjects();
   assert.equal(stored.length, 1);
-  const { modifiedAt, unsaved, ...rest } = stored[0];
+  const { modifiedAt, modifiedBy, revision, unsaved, ...rest } = stored[0];
   assert.deepEqual(rest, project);
   assert.ok(typeof modifiedAt === 'string');
   assert.equal(unsaved, true);
@@ -90,6 +90,62 @@ test('findRiflePrecisionProjectById finds an existing project and returns null f
   const project = saveRiflePrecisionProject(makeProject());
   assert.equal(findRiflePrecisionProjectById(project.id).id, project.id);
   assert.equal(findRiflePrecisionProjectById('nope'), null);
+});
+
+test('deleteRiflePrecisionProject writes a tombstone with an empty targets array (shape-preserving)', async () => {
+  const project = makeProject({ name: 'My Project', targets: [makeTarget()] });
+  saveRiflePrecisionProject(project);
+  deleteRiflePrecisionProject(project.id);
+
+  assert.deepEqual(loadRiflePrecisionProjects(), []); // live reads never see it
+  // A deleted project 404s by id, same as one that never existed.
+  assert.equal(findRiflePrecisionProjectById(project.id), null);
+
+  const withTombstones = loadRiflePrecisionProjectsWithTombstones();
+  assert.equal(withTombstones.length, 1);
+  const tomb = withTombstones[0];
+  assert.equal(tomb.id, project.id);
+  assert.equal(tomb.name, 'My Project');
+  assert.deepEqual(tomb.targets, []);
+  assert.ok(typeof tomb.deletedAt === 'string');
+  assert.ok(typeof tomb.deletedBy === 'string');
+  assert.equal(tomb.unsaved, true);
+
+  await flushRiflePrecisionLibraryWritesForTests();
+  await reloadRiflePrecisionLibraryForTests();
+  const reloaded = loadRiflePrecisionProjectsWithTombstones()[0];
+  assert.deepEqual(reloaded.targets, []); // survives an IndexedDB round-trip too (toStorable/fromStorable both map over targets unconditionally)
+});
+
+test('deleteRiflePrecisionProject on an already-deleted or never-existing id is a no-op', () => {
+  deleteRiflePrecisionProject('does-not-exist');
+  assert.deepEqual(loadRiflePrecisionProjectsWithTombstones(), []);
+});
+
+test('saveRiflePrecisionProject increments revision from whatever was previously stored, starting at 1 for a new record', () => {
+  const project = makeProject({ name: 'V1' });
+  const first = saveRiflePrecisionProject(project);
+  assert.equal(first.revision, 1);
+  const second = saveRiflePrecisionProject({ ...project, name: 'V2' });
+  assert.equal(second.revision, 2);
+});
+
+test('deleteRiflePrecisionProject bumps revision, treating the deletion as its own local write', () => {
+  const project = makeProject();
+  saveRiflePrecisionProject(project);
+  deleteRiflePrecisionProject(project.id);
+  const tomb = loadRiflePrecisionProjectsWithTombstones().find((p) => p.id === project.id);
+  assert.equal(tomb.revision, 2);
+});
+
+test('deleting and recreating a project under the same name does not falsely collide', () => {
+  const project = makeProject({ name: 'My Project' });
+  saveRiflePrecisionProject(project);
+  deleteRiflePrecisionProject(project.id);
+
+  assert.equal(findRiflePrecisionProjectByName('My Project'), undefined);
+  saveRiflePrecisionProject(makeProject({ name: 'My Project' }));
+  assert.equal(loadRiflePrecisionProjects().length, 1);
 });
 
 test('a target photo and calibration/group/shot coords round-trip through save/load untouched', () => {
@@ -152,6 +208,12 @@ test('importRiflePrecisionProject preserves the given modifiedAt and createdAt (
   assert.equal(result.unsaved, true);
   assert.equal(loadRiflePrecisionProjects()[0].modifiedAt, importedAt);
   assert.equal(loadRiflePrecisionProjects()[0].createdAt, createdAt);
+});
+
+test('importRiflePrecisionProject preserves the incoming revision verbatim, deliberately not bumping it', () => {
+  const project = makeProject({ modifiedAt: '2020-01-01T00:00:00.000Z', revision: 7 });
+  const result = importRiflePrecisionProject(project);
+  assert.equal(result.revision, 7);
 });
 
 test('markRiflePrecisionProjectsSaved clears unsaved without touching modifiedAt, only for the given ids', () => {

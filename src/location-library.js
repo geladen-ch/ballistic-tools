@@ -25,8 +25,19 @@
 // app.js), to populate `mirror` from whatever's already stored.
 import { openDatabase, getAll, put, deleteRecord } from './db.js';
 import { DB_NAME, DB_VERSION, STORES } from './db-schema.js';
+import { getDeviceId } from './sync/device-id.js';
+import { notifyLibraryWrite } from './sync/write-hooks.js';
+import { dataUrlToBlob, blobToDataUrl } from './data-url.js';
+import { nextLocalRevision } from './sync/revision.js';
 
 const STORE_NAME = 'locations';
+
+// See user-library.js's identical constant for why this errs long.
+const TOMBSTONE_RETENTION_MS = 400 * 24 * 60 * 60 * 1000; // ~13 months
+
+function isLive(entry) {
+  return !entry.deletedAt;
+}
 
 let mirror = [];
 let dbPromise = null;
@@ -45,29 +56,6 @@ function getDb() {
     dbPromise = openDatabase({ name: DB_NAME, version: DB_VERSION, stores: STORES });
   }
   return dbPromise;
-}
-
-// data-URL string -> Blob, at the IndexedDB write boundary. Deliberately
-// not `fetch(dataUrl).then(r => r.blob())` (fails under node --test: the
-// test suite's fetch stub only serves file:// URLs) — atob/btoa are real
-// globals in both Node 18+ and every browser, so this one implementation
-// works identically in prod and tests.
-function dataUrlToBlob(dataUrl) {
-  const commaIdx = dataUrl.indexOf(',');
-  const mime = dataUrl.slice(5, commaIdx).split(';')[0] || 'application/octet-stream';
-  const binary = atob(dataUrl.slice(commaIdx + 1));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return new Blob([bytes], { type: mime });
-}
-
-// Blob -> data-URL string, on the one-time boot read. Not FileReader
-// (isn't a Node global) for the same reason as above.
-async function blobToDataUrl(blob) {
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return `data:${blob.type || 'application/octet-stream'};base64,${btoa(binary)}`;
 }
 
 // Converts a mirror-shaped entry (photo as a data-URL string, or null)
@@ -111,6 +99,20 @@ function removePersisted(id) {
   });
 }
 
+// Prunes tombstones older than the retention window — run once per boot,
+// from initLocationLibrary() below, right after mirror is populated. See
+// docs/plans/backup-sync.md's "retention window is a correctness
+// parameter": too short and a long-dormant device's still-live copy gets
+// resurrected mesh-wide once every peer has already pruned the deletion.
+function sweepTombstones() {
+  const cutoff = Date.now() - TOMBSTONE_RETENTION_MS;
+  const staleIds = mirror.filter((e) => e.deletedAt && Date.parse(e.deletedAt) <= cutoff).map((e) => e.id);
+  if (staleIds.length === 0) return;
+  const staleSet = new Set(staleIds);
+  mirror = mirror.filter((e) => !staleSet.has(e.id));
+  for (const id of staleIds) removePersisted(id);
+}
+
 // Must be awaited once, before any of the synchronous functions below are
 // relied on for real data — see app.js's boot sequence. Safe to call
 // multiple times (returns the same in-flight/settled promise). On any
@@ -125,6 +127,7 @@ export function initLocationLibrary() {
         const db = await getDb();
         const stored = await getAll(db, STORE_NAME);
         mirror = await Promise.all(stored.map(fromStorable));
+        sweepTombstones();
       } catch {
         mirror = [];
       }
@@ -136,25 +139,42 @@ export function initLocationLibrary() {
 // See user-library.js's own upsert() for why this stamping lives here
 // rather than at each call site.
 function upsert(entry) {
-  const stamped = { ...entry, modifiedAt: new Date().toISOString(), unsaved: true };
   const idx = mirror.findIndex((e) => e.id === entry.id);
+  const previous = idx === -1 ? null : mirror[idx];
+  const stamped = {
+    ...entry, modifiedAt: new Date().toISOString(), modifiedBy: getDeviceId(),
+    revision: nextLocalRevision(previous), unsaved: true
+  };
   mirror = idx === -1 ? [...mirror, stamped] : mirror.map((e, i) => (i === idx ? stamped : e));
   persist(stamped);
+  notifyLibraryWrite({ recordType: 'location', record: stamped, previous });
   return stamped;
 }
 
 // Used only by import (see location-export.js) — preserves the file's own
-// modifiedAt rather than restamping "now", same reasoning as
-// user-library.js's own upsertRaw().
+// modifiedAt (and modifiedBy) rather than restamping "now"/this device,
+// same reasoning as user-library.js's own upsertRaw(). `revision` is
+// preserved verbatim too, via the same spread, deliberately never bumped
+// here — see user-library.js's own upsertRaw() for why.
 function upsertRaw(entry) {
   const stamped = { ...entry, unsaved: true };
   const idx = mirror.findIndex((e) => e.id === entry.id);
+  const previous = idx === -1 ? null : mirror[idx];
   mirror = idx === -1 ? [...mirror, stamped] : mirror.map((e, i) => (i === idx ? stamped : e));
   persist(stamped);
+  notifyLibraryWrite({ recordType: 'location', record: stamped, previous });
   return stamped;
 }
 
+// Live records only — tombstones are filtered out here so every existing
+// read site keeps its current meaning with no edit. Use
+// loadUserLocationsWithTombstones() for the few callers that need
+// deletions too (the sync bundle builder, the merge engine).
 export function loadUserLocations() {
+  return mirror.filter(isLive);
+}
+
+export function loadUserLocationsWithTombstones() {
   return mirror;
 }
 
@@ -166,19 +186,50 @@ export function importUserLocation(location) {
   return upsertRaw(location);
 }
 
+// Soft-delete: replaces the record with a tombstone — keeping an empty
+// `targets` array so it stays the shape every existing location-reading
+// call site expects — rather than removing it outright, so the deletion
+// can propagate through sync (Phase 1 of docs/plans/backup-sync.md)
+// instead of a stale remote copy silently resurrecting it on a future
+// merge.
 export function deleteUserLocation(id) {
-  mirror = mirror.filter((e) => e.id !== id);
-  removePersisted(id);
+  const idx = mirror.findIndex((e) => e.id === id);
+  if (idx === -1) return; // already gone / never existed
+  const existing = mirror[idx];
+  const tomb = {
+    id,
+    name: existing.name,
+    deletedAt: new Date().toISOString(),
+    deletedBy: getDeviceId(),
+    revision: nextLocalRevision(existing),
+    unsaved: true,
+    // `photo: null` is as load-bearing as `targets: []` above, and for a
+    // subtler reason than the crash-avoidance one the plan gives for child
+    // arrays: toStorable()/fromStorable() normalize an absent photo to
+    // `photo: null` on the IndexedDB round-trip, so a tombstone written
+    // without this key would silently grow one on the next reload. Two
+    // devices either side of that reload then hold byte-identical
+    // deletions that differ by one key, which merge.js's equivalent()
+    // reads as "same timestamp, diverged content" — turning every deleted
+    // location into a permanent, unresolvable review item.
+    photo: null,
+    targets: []
+  };
+  mirror = mirror.map((e, i) => (i === idx ? tomb : e));
+  persist(tomb);
+  notifyLibraryWrite({ recordType: 'location', record: tomb, previous: existing });
 }
 
 // Case/whitespace-insensitive — same convention as user-library.js's own
-// findByName. A plain scan over `mirror`, not an IndexedDB query — every
-// read in this module goes through the in-memory mirror; IndexedDB itself
-// is only ever touched by initLocationLibrary()'s one-time read and by
+// findByName. Excludes tombstones: deleting something and recreating it
+// under the same name must keep working. A plain scan over `mirror`, not
+// an IndexedDB query — every read in this module goes through the
+// in-memory mirror; IndexedDB itself is only ever touched by
+// initLocationLibrary()'s one-time read and by
 // persist()/removePersisted()'s background writes.
 export function findUserLocationByName(name, { excludeId } = {}) {
   const normalized = name.trim().toLowerCase();
-  return mirror.find((e) => e.id !== excludeId && e.name.trim().toLowerCase() === normalized);
+  return mirror.find((e) => e.id !== excludeId && isLive(e) && e.name.trim().toLowerCase() === normalized);
 }
 
 export function markUserLocationsSaved(ids) {

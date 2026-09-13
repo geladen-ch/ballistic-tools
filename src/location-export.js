@@ -62,12 +62,27 @@ export function compareModifiedAt(importedAt, existingAt) {
   return 'same';
 }
 
+// Matches an imported location against the current library by id first,
+// falling back to case/whitespace-insensitive name matching only when the
+// item has no id or it doesn't resolve locally — see arsenal-export.js's
+// own findExisting for why (repeated automatic merging needs id as the
+// stable key).
+function findExisting(item, existingList) {
+  // Manual-import matching: id first, name as a fallback — see
+  // arsenal-export.js's own findExisting for the full reasoning (this
+  // keeps the existing single-file import dialog working; Phase 4's
+  // automatic merge is the id-only, no-name-fallback path).
+  if (item.id) {
+    const byId = existingList.find((e) => e.id === item.id);
+    if (byId) return byId;
+  }
+  return existingList.find((e) => normalizedName(e.name) === normalizedName(item.name));
+}
+
 // Classifies one imported location against the current library, for the
-// import dialog's conflict list — matched by name, same
-// case/whitespace-insensitive convention as location-library.js's own
-// findUserLocationByName.
+// import dialog's conflict list.
 export function classifyImportItem(item, existingList) {
-  const existing = existingList.find((e) => normalizedName(e.name) === normalizedName(item.name));
+  const existing = findExisting(item, existingList);
   if (!existing) return { conflict: false };
   return { conflict: true, existing, comparison: compareModifiedAt(item.modifiedAt, existing.modifiedAt) };
 }
@@ -88,12 +103,16 @@ export function generateCopyName(baseName, nameTaken) {
 
 // Resolves what to actually write for one imported location under the
 // chosen conflict mode — same rules as arsenal-export.js's own
-// resolveImportItem, just for one list instead of two.
+// resolveImportItem, just for one list instead of two (including
+// preserving the imported id verbatim on a genuine no-match, see there for
+// why).
 export function resolveImportItem(item, { existingList, mode, generateId, nameTaken }) {
-  const existing = existingList.find((e) => normalizedName(e.name) === normalizedName(item.name));
+  const existing = findExisting(item, existingList);
 
   if (!existing) {
-    return { action: 'save', record: { ...item, id: generateId() } };
+    const idCollides = item.id && existingList.some((e) => e.id === item.id);
+    const id = idCollides || !item.id ? generateId() : item.id;
+    return { action: 'save', record: { ...item, id } };
   }
   if (mode === 'overwrite') {
     return { action: 'save', record: { ...item, id: existing.id } };

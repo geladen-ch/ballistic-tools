@@ -88,12 +88,32 @@ export function compareModifiedAt(importedAt, existingAt) {
   return 'same';
 }
 
+// Matches an imported item against the current library by id first —
+// required for repeated automatic merging to recognize the same record
+// across cycles (see docs/plans/backup-sync.md's Prerequisite fix #2) —
+// falling back to case/whitespace-insensitive name matching only when the
+// item has no id or it doesn't resolve locally (covers old hand-edited
+// files predating this field's use as a merge key).
+function findExisting(item, existingList) {
+  // Manual-import matching: id first, name as a fallback — this keeps the
+  // existing single-file "overwrite this same-named item" dialog behavior
+  // working (a re-imported/hand-edited file's id often won't equal the
+  // local record's own id at all), while still preferring an id match when
+  // one resolves (Prerequisite fix #2). Phase 4's automatic merge
+  // (merge.js) is the one that matches by id only, with no name fallback —
+  // that's where "two independently created same-named records never
+  // conflict" (Phase 4b) actually lives, not here.
+  if (item.id) {
+    const byId = existingList.find((e) => e.id === item.id);
+    if (byId) return byId;
+  }
+  return existingList.find((e) => normalizedName(e.name) === normalizedName(item.name));
+}
+
 // Classifies one imported item against the current library, for the
-// import dialog's conflict list — matched by name, case/whitespace-
-// insensitively, the same convention user-library.js's own findByName
-// uses for the equivalent "same name" check elsewhere in the app.
+// import dialog's conflict list.
 export function classifyImportItem(item, existingList) {
-  const existing = existingList.find((e) => normalizedName(e.name) === normalizedName(item.name));
+  const existing = findExisting(item, existingList);
   if (!existing) return { conflict: false };
   return { conflict: true, existing, comparison: compareModifiedAt(item.modifiedAt, existing.modifiedAt) };
 }
@@ -118,17 +138,21 @@ export function generateCopyName(baseName, nameTaken) {
 }
 
 // Resolves what to actually write for one imported item under the chosen
-// conflict mode — never reuses the file's own id for a genuinely new
-// item (generateId() mints a fresh, locally-unique one instead; the
-// file's id only ever survives as a *key* other imported items reference,
-// see planImportBatch's bulletIdMap), but does reuse the existing
-// record's id for an intentional overwrite, preserving referential
-// integrity for anything already pointing at it.
+// conflict mode. A genuinely new item (no match by id or name) keeps its
+// own id verbatim rather than minting a fresh one — required so a repeated
+// automatic merge (docs/plans/backup-sync.md) recognizes it as the same
+// record on every future cycle instead of re-inserting a duplicate; a
+// fresh id is only minted as a defensive fallback if the imported id
+// happens to collide with a *different* existing record's id. An
+// intentional overwrite reuses the existing record's id, preserving
+// referential integrity for anything already pointing at it.
 export function resolveImportItem(item, { existingList, mode, generateId, nameTaken }) {
-  const existing = existingList.find((e) => normalizedName(e.name) === normalizedName(item.name));
+  const existing = findExisting(item, existingList);
 
   if (!existing) {
-    return { action: 'save', record: { ...item, id: generateId() } };
+    const idCollides = item.id && existingList.some((e) => e.id === item.id);
+    const id = idCollides || !item.id ? generateId() : item.id;
+    return { action: 'save', record: { ...item, id } };
   }
   if (mode === 'overwrite') {
     return { action: 'save', record: { ...item, id: existing.id } };

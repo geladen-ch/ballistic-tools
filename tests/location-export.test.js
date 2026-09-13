@@ -65,14 +65,46 @@ test('generateCopyName finds the first free "- copy (N)" suffix', () => {
 
 const genId = (prefix) => () => `${prefix}-generated`;
 
-test('resolveImportItem with no conflict always saves under a freshly generated id, regardless of mode', () => {
+test('resolveImportItem with no conflict preserves the imported id verbatim, regardless of mode', () => {
   for (const mode of ['overwrite', 'overwriteIfNewer', 'rename']) {
     const result = resolveImportItem(
       { id: 'file-id', name: 'New One' },
       { existingList: [], mode, generateId: genId('location'), nameTaken: () => false }
     );
-    assert.deepEqual(result, { action: 'save', record: { id: 'location-generated', name: 'New One' } });
+    assert.deepEqual(result, { action: 'save', record: { id: 'file-id', name: 'New One' } });
   }
+});
+
+test('resolveImportItem with no conflict, no id, mints a fresh id', () => {
+  const result = resolveImportItem(
+    { name: 'New One' },
+    { existingList: [], mode: 'overwrite', generateId: genId('location'), nameTaken: () => false }
+  );
+  assert.deepEqual(result, { action: 'save', record: { name: 'New One', id: 'location-generated' } });
+});
+
+test('resolveImportItem matches an existing location by id even when names differ', () => {
+  const existing = { id: 'shared-id', name: 'Old Name', modifiedAt: '2020-01-01T00:00:00.000Z' };
+  const result = resolveImportItem(
+    { id: 'shared-id', name: 'New Name', modifiedAt: '2021-01-01T00:00:00.000Z' },
+    { existingList: [existing], mode: 'overwrite', generateId: genId('location'), nameTaken: () => false }
+  );
+  assert.deepEqual(result, {
+    action: 'save',
+    record: { id: 'shared-id', name: 'New Name', modifiedAt: '2021-01-01T00:00:00.000Z' }
+  });
+});
+
+test('resolveImportItem falls back to name matching when the imported id does not resolve locally', () => {
+  const existing = { id: 'existing-id', name: 'My Location', modifiedAt: '2020-01-01T00:00:00.000Z' };
+  const result = resolveImportItem(
+    { id: 'other-id', name: 'My Location', modifiedAt: '2021-01-01T00:00:00.000Z' },
+    { existingList: [existing], mode: 'overwrite', generateId: genId('location'), nameTaken: () => false }
+  );
+  assert.deepEqual(result, {
+    action: 'save',
+    record: { id: 'existing-id', name: 'My Location', modifiedAt: '2021-01-01T00:00:00.000Z' }
+  });
 });
 
 test('resolveImportItem "overwrite" always saves, reusing the existing record\'s id', () => {

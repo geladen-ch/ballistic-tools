@@ -23,6 +23,8 @@ import { isDragModelVisible, setDragModelVisible } from '../drag-model-prefs.js'
 import { sectionGroup } from '../ui/section.js';
 import { themePicker } from '../ui/theme-picker.js';
 import { impactColorPicker } from '../ui/impact-color-picker.js';
+import { backupSyncSection } from '../ui/backup-sync-settings.js';
+import { changeHistorySection } from '../ui/change-history-settings.js';
 
 export function mount(container) {
   clear(container);
@@ -312,6 +314,13 @@ export function mount(container) {
     el('p', { class: 'hint', i18n: 'settings.csvSeparatorHint' })
   ]);
 
+  // A sync cycle, a manual import, or a resolved conflict — all handled
+  // inside backupSyncSection() — can add change-history entries just like
+  // any local edit; wiring its refresh() in as backupSyncSection()'s
+  // onSyncApplied is what makes those show up immediately in this same
+  // page, rather than only after Settings is next reopened.
+  const { node: changeHistoryNode, refresh: refreshChangeHistory } = changeHistorySection();
+
   container.appendChild(el('div', {}, [
     el('h1', { i18n: 'settings.title' }),
     el('p', { i18n: 'settings.intro' }),
@@ -321,7 +330,9 @@ export function mount(container) {
       rifleLibrarySection,
       bulletLibrariesSection,
       dragModelsSection,
-      csvSection
+      csvSection,
+      changeHistoryNode,
+      backupSyncSection(refreshChangeHistory)
     ])
   ]));
 }

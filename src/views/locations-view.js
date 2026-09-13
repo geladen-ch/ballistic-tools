@@ -22,6 +22,7 @@ import { getUnit } from '../prefs.js';
 import { setLocationsMode } from '../locations-nav.js';
 import { shouldClearTargetCoords } from '../location-photo.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
+import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -267,13 +268,13 @@ export function mount(container) {
     if (targetFormArea.firstChild) targetFormArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function locationInfoChildren(location) {
+  function locationInfoChildren(location, labels) {
     const altitudeLabel = location.altitudeM != null
       ? el('span', { class: 'hint', text: ` — ${formatWithUnit('altitudeM', 'altitude', location.altitudeM)}` })
       : null;
     const modifiedLabel = lastModifiedLabel(location);
     return [
-      el('strong', { text: location.name }),
+      el('strong', { text: (labels && labels.get(location.id)) || location.name }),
       unsavedBadge(location),
       altitudeLabel,
       el('span', { class: 'hint', text: t('rangeSolverLocations.targetCount', { count: location.targets.length }) }),
@@ -283,7 +284,7 @@ export function mount(container) {
 
   // ---- Current location pane ----
 
-  function renderCurrentRealLocation(location) {
+  function renderCurrentRealLocation(location, labels) {
     const editButton = el('button', { class: 'secondary', i18n: 'rangeSolverLocations.editButton' });
     editButton.addEventListener('click', () => {
       locationFormState = { id: location.id };
@@ -306,7 +307,7 @@ export function mount(container) {
     saveToFileButton.addEventListener('click', () => exportSingleLocation(location));
 
     const rowEl = el('div', { class: 'arsenal-row' }, [
-      el('div', { class: 'arsenal-row-info' }, locationInfoChildren(location)),
+      el('div', { class: 'arsenal-row-info' }, locationInfoChildren(location, labels)),
       el('div', { class: 'arsenal-row-actions' }, [saveToFileButton, editButton, deleteButton])
     ]);
 
@@ -328,7 +329,7 @@ export function mount(container) {
 
   // ---- Known locations ----
 
-  function renderKnownRealLocation(location) {
+  function renderKnownRealLocation(location, labels) {
     const saveToFileButton = el('button', { class: 'secondary', i18n: 'rangeSolverLocations.saveToFileButton' });
     saveToFileButton.addEventListener('click', (e) => { e.stopPropagation?.(); exportSingleLocation(location); });
     const deleteButton = el('button', { class: 'secondary', i18n: 'rangeSolverLocations.deleteButton' });
@@ -339,7 +340,7 @@ export function mount(container) {
       refreshLibraryView();
     });
     const row = el('div', { class: 'arsenal-row row-clickable' }, [
-      el('div', { class: 'arsenal-row-info' }, locationInfoChildren(location)),
+      el('div', { class: 'arsenal-row-info' }, locationInfoChildren(location, labels)),
       el('div', { class: 'arsenal-row-actions' }, [saveToFileButton, deleteButton])
     ]);
     row.addEventListener('click', () => activateLocation(location));
@@ -357,12 +358,16 @@ export function mount(container) {
   function renderLocations() {
     clear(locationsListEl);
     const locations = loadUserLocations();
+    // See arsenal-view.js's renderBullets() for the full Phase 4b
+    // rationale — a pure, unstored display label for two independently-
+    // created locations that happen to share a name.
+    const labels = disambiguateByName(locations);
     const activeState = loadRangeSolverLocationState() || {};
     const currentLocation = activeState.locationId ? locations.find((l) => l.id === activeState.locationId) : null;
 
     const currentSection = el('div', { class: 'locations-current', id: 'locations-current-section' }, [
       el('h3', { i18n: 'rangeSolverLocations.currentLocationHeading' }),
-      currentLocation ? renderCurrentRealLocation(currentLocation) : renderCurrentNoLocation()
+      currentLocation ? renderCurrentRealLocation(currentLocation, labels) : renderCurrentNoLocation()
     ]);
     currentLocationSectionEl = currentSection;
 
@@ -370,7 +375,7 @@ export function mount(container) {
     if (currentLocation) knownRows.push(renderKnownNoLocation());
     for (const location of locations) {
       if (currentLocation && location.id === currentLocation.id) continue;
-      knownRows.push(renderKnownRealLocation(location));
+      knownRows.push(renderKnownRealLocation(location, labels));
     }
     const knownSection = el('div', { class: 'locations-known' }, [
       el('h3', { i18n: 'rangeSolverLocations.knownLocationsHeading' }),

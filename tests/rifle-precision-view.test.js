@@ -129,6 +129,20 @@ test('adding a project via the form saves it and shows it in the list', () => {
   assert.ok(container.textContent.includes('My Range'));
 });
 
+test('two independently-created projects sharing a name get disambiguated in the list', () => {
+  saveRiflePrecisionProject(makeTestProject({ name: 'Same Project' }));
+  saveRiflePrecisionProject(makeTestProject({ name: 'Same Project' }));
+
+  const container = makeElement('main');
+  riflePrecisionView.mount(container);
+
+  const rows = findByClass(container, 'arsenal-row').filter((r) => r.textContent.includes('Same Project'));
+  assert.equal(rows.length, 2);
+  const labels = rows.map((r) => findByTag(r, 'STRONG')[0].textContent);
+  assert.notEqual(labels[0], labels[1]);
+  assert.ok(labels.every((l) => l.startsWith('Same Project (')));
+});
+
 test('a project name is required — saving a blank name does nothing', () => {
   const container = makeElement('main');
   riflePrecisionView.mount(container);

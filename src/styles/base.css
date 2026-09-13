@@ -1015,6 +1015,13 @@ th { color: var(--dim); font-weight: 500; }
 .status-chip-partial { color: var(--accent); background: rgba(232, 163, 61, 0.14); border: 1px solid var(--accent-dim); }
 .status-chip-planned { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
 
+/* Backup & Sync's pending-review dialog (src/ui/backup-sync-settings.js)
+   — marks a conflict row as decided, reusing the same ok/green role as
+   .status-chip-live/-valid/-stable above, paired with its own Cancel
+   button rather than a bare .hint line so a resolved row visibly differs
+   from an undecided one at a glance. */
+.status-chip-resolved { color: var(--ok); background: rgba(95, 184, 122, 0.14); border: 1px solid rgba(95, 184, 122, 0.4); }
+
 /* Bullet stability traffic light (src/ui/stability-indicator.js) — reuses
    the same .status-chip base, its own color set: red/amber/green for
    unstable/marginal/stable, plus a "planned"-style dashed chip for
@@ -1302,6 +1309,12 @@ canvas { display: block; width: 100%; }
 .app-dialog-message { margin: 0 0 16px; }
 .app-dialog-body { margin: 0 0 16px; }
 .app-dialog-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+/* A row of buttons inside a dialog's own body (bodyNode) — as opposed to
+   .app-dialog-actions above, which is the dialog shell's bottom bar of
+   primary/secondary choices. Used by the Backup & Sync settings section's
+   safety-net export buttons and its pending-review Keep mine/Take theirs
+   pair. */
+.app-dialog-button-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
 
 /* Compact confidence readout — same LEVEL_COLORS background + fixed dark
    text convention as the full report's own .rp-confidence-info panel

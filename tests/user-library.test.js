@@ -5,9 +5,10 @@ import { installFakeDom } from './helpers/fake-dom.js';
 installFakeDom();
 
 const {
-  loadUserBullets, saveUserBullet, deleteUserBullet, findUserBulletByName, importUserBullet, markUserBulletsSaved,
-  loadUserRifles, saveUserRifle, deleteUserRifle, findUserRifleByName, importUserRifle, markUserRiflesSaved,
-  generateUserId
+  loadUserBullets, loadUserBulletsWithTombstones, saveUserBullet, deleteUserBullet, findUserBulletByName,
+  importUserBullet, markUserBulletsSaved,
+  loadUserRifles, loadUserRiflesWithTombstones, saveUserRifle, deleteUserRifle, findUserRifleByName, importUserRifle,
+  markUserRiflesSaved, generateUserId
 } = await import('../src/user-library.js');
 
 test.beforeEach(() => localStorage.clear());
@@ -21,7 +22,7 @@ test('saveUserBullet adds a new entry, findable by id afterward', () => {
   saveUserBullet(bullet);
   const stored = loadUserBullets();
   assert.equal(stored.length, 1);
-  const { modifiedAt, unsaved, ...rest } = stored[0];
+  const { modifiedAt, modifiedBy, revision, unsaved, ...rest } = stored[0];
   assert.deepEqual(rest, bullet);
   assert.ok(typeof modifiedAt === 'string');
   assert.equal(unsaved, true);
@@ -92,6 +93,98 @@ test('deleteUserBullet removes only the matching id', () => {
   assert.equal(bullets[0].id, b);
 });
 
+test('deleteUserBullet writes a tombstone rather than a hard delete', () => {
+  const id = generateUserId('user-bullet');
+  saveUserBullet({ id, name: 'My Bullet', manufacturer: 'Custom', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  deleteUserBullet(id);
+
+  assert.deepEqual(loadUserBullets(), []); // live reads never see it
+
+  const withTombstones = loadUserBulletsWithTombstones();
+  assert.equal(withTombstones.length, 1);
+  const tomb = withTombstones[0];
+  assert.equal(tomb.id, id);
+  assert.equal(tomb.name, 'My Bullet');
+  assert.ok(typeof tomb.deletedAt === 'string');
+  assert.ok(typeof tomb.deletedBy === 'string');
+  assert.equal(tomb.unsaved, true);
+  // Dropped entirely, not carried as null/undefined — a bullet has no
+  // child array of its own to preserve.
+  assert.equal('manufacturer' in tomb, false);
+  assert.equal('profile' in tomb, false);
+});
+
+test('deleteUserBullet on an already-deleted or never-existing id is a no-op', () => {
+  deleteUserBullet('does-not-exist');
+  assert.deepEqual(loadUserBulletsWithTombstones(), []);
+});
+
+test('saveUserBullet increments revision from whatever was previously stored, starting at 1 for a new record', () => {
+  const id = generateUserId('user-bullet');
+  const first = saveUserBullet({ id, name: 'V1', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  assert.equal(first.revision, 1);
+  const second = saveUserBullet({ id, name: 'V2', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  assert.equal(second.revision, 2);
+});
+
+test('importUserBullet preserves the incoming revision verbatim, deliberately not bumping it', () => {
+  // See revision.js's own comment: bumping on merge-apply too causes an
+  // unbounded climb once two devices exchange the same unchanged record
+  // back and forth (this app's actual sync topology). Merge-applied
+  // writes adopt verbatim, exactly like modifiedAt/modifiedBy already do.
+  const bullet = {
+    id: generateUserId('user-bullet'), name: 'Imported', manufacturer: 'Custom', caliberM: 0.007, massKg: 0.01,
+    profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedAt: '2020-01-01T00:00:00.000Z', revision: 7
+  };
+  const result = importUserBullet(bullet);
+  assert.equal(result.revision, 7);
+  assert.equal(loadUserBullets()[0].revision, 7);
+});
+
+test('importUserBullet on a record with no revision at all leaves it absent (reads as 0 downstream)', () => {
+  const bullet = {
+    id: generateUserId('user-bullet'), name: 'Legacy', manufacturer: 'Custom', caliberM: 0.007, massKg: 0.01,
+    profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedAt: '2020-01-01T00:00:00.000Z'
+  };
+  const result = importUserBullet(bullet);
+  assert.equal(result.revision, undefined);
+});
+
+test('deleteUserBullet bumps revision, treating the deletion as its own local write', () => {
+  const id = generateUserId('user-bullet');
+  saveUserBullet({ id, name: 'Gone', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  deleteUserBullet(id);
+  const tomb = loadUserBulletsWithTombstones().find((b) => b.id === id);
+  assert.equal(tomb.revision, 2);
+});
+
+test('deleteUserRifle writes a tombstone with an empty cartridges array (shape-preserving)', () => {
+  const id = generateUserId('user-rifle');
+  saveUserRifle({
+    id, name: 'My Rifle', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [{ id: 'c1', name: 'Load 1', muzzleVelocity: 800, bulletId: 'b1' }]
+  });
+  deleteUserRifle(id);
+
+  assert.deepEqual(loadUserRifles(), []);
+  const tomb = loadUserRiflesWithTombstones()[0];
+  assert.equal(tomb.id, id);
+  assert.deepEqual(tomb.cartridges, []);
+  assert.ok(typeof tomb.deletedAt === 'string');
+});
+
+test('deleting and recreating a bullet under the same name does not falsely collide', () => {
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'My Bullet', manufacturer: 'Custom', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  const toDelete = findUserBulletByName('My Bullet');
+  deleteUserBullet(toDelete.id);
+
+  // findByName must not report a collision against the tombstone.
+  assert.equal(findUserBulletByName('My Bullet'), undefined);
+  saveUserBullet({ id: generateUserId('user-bullet'), name: 'My Bullet', manufacturer: 'Custom', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  assert.equal(loadUserBullets().length, 1);
+});
+
 test('findUserBulletByName matches case/whitespace-insensitively', () => {
   saveUserBullet({ id: generateUserId('user-bullet'), name: 'My Custom Bullet', manufacturer: 'Custom', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
   assert.ok(findUserBulletByName('  my custom bullet  '));
@@ -122,7 +215,7 @@ test('rifle CRUD mirrors the bullet CRUD (independent storage)', () => {
   saveUserRifle(rifle);
   const stored = loadUserRifles();
   assert.equal(stored.length, 1);
-  const { modifiedAt, unsaved, ...rest } = stored[0];
+  const { modifiedAt, modifiedBy, revision, unsaved, ...rest } = stored[0];
   assert.deepEqual(rest, rifle);
   assert.ok(typeof modifiedAt === 'string');
   assert.equal(unsaved, true);

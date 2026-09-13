@@ -11,6 +11,7 @@ import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
 import { t } from '../../i18n.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
+import { disambiguateByName } from '../../sync/disambiguate-by-name.js';
 
 const DEFAULT_VALUES = {
   name: '', muzzleVelocity: 800, referenceTempC: null, velocityTempSensitivity: null, bulletId: '',
@@ -139,6 +140,12 @@ export function cartridgeForm({
   // resolve whatever bulletSelect.value currently is to its full record.
   let builtIns = [];
   const userBullets = loadUserBullets().map((b) => ({ ...b, isUser: true }));
+  // Two independently-created user bullets (e.g. merged in from another
+  // device) can coincidentally share a name — see
+  // docs/plans/backup-sync.md Phase 4b. Built-in bullets never collide
+  // this way (a single canonical source), so this only ever needs to
+  // cover the user's own list.
+  const userBulletLabels = disambiguateByName(userBullets);
 
   function findOfferedBullet(id) {
     return userBullets.find((b) => b.id === id) || builtIns.find((b) => b.id === id) || null;
@@ -204,7 +211,8 @@ export function cartridgeForm({
     clear(bulletSelect);
     for (const b of filtered) {
       const prefix = b.isUser ? '* ' : (b.libraryPrefix ? `[${b.libraryPrefix}] ` : '');
-      bulletSelect.appendChild(el('option', { value: b.id, text: prefix + `${b.manufacturer} ${b.name}` }));
+      const name = b.isUser ? (userBulletLabels.get(b.id) || b.name) : b.name;
+      bulletSelect.appendChild(el('option', { value: b.id, text: prefix + `${b.manufacturer} ${name}` }));
     }
     bulletSelect.appendChild(el('option', { value: NEW_BULLET_VALUE, i18n: 'arsenal.cartridgeAddNewBulletOption' }));
 
