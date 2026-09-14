@@ -1,4 +1,4 @@
-# geladen.ch ballistics — features as of 2026-09-14 11:14 CEST
+# geladen.ch ballistics — features as of 2026-09-14 11:14 CEST, v212 release 4.0.2
 (updated from time to time, check the [release history](#/release-history) for the very latests and greatest)
 
 geladen.ch ballistics is a client-side external ballistics suite — trajectory integration, hit-probability analysis, BC and drag-curve tools, a field range solver, and a photo-based rifle precision calculator, plus your saved rifles, bullets, and locations, all running entirely in the browser with nothing ever sent to a server. Below is a quick bullet-point inventory of what each tool does. Items marked **★** are things you don't typically get in commodity ballistic solvers.
