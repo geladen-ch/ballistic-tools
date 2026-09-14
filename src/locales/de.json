@@ -1068,6 +1068,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v214": "Fehlerbehebung: Kreisförmige Zielzonen (Ringe, Gongs) berechnen die Trefferwahrscheinlichkeit jetzt exakt durch numerische Integration, statt den Kreis als flächengleiches Quadrat anzunähern – diese Näherung konnte bei einer engen Streuung nahe einem Ringrand stark danebenliegen.",
       "v213": "Neu: Hornady-Bibliotheksdaten mit JBMs Geschosslängenliste abgeglichen. Länge für 69 Einträge gefunden, Bibliothek aktualisiert (42 fehlen noch).",
       "v212": "Neu: Seite „Aktuelle Funktionen“.",
       "v211": "Neu: Das Benutzerhandbuch für die Funktion „Sicherung & Synchronisierung“ ist jetzt verfügbar.",

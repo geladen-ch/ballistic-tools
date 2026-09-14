@@ -42,19 +42,6 @@ export function rectangleHitProbability(x0, y0, width, height, sdX, sdY, offsetX
   return probX * probY;
 }
 
-const SQRT_PI = Math.sqrt(Math.PI);
-
-// Hit probability of a circle, approximated as the axis-aligned square of
-// equal area (side r*sqrt(pi), so side^2 = pi*r^2) centered on the same
-// point, then handed to rectangleHitProbability — reference algorithm
-// supplied directly. `cx`/`cy` is the circle's own center in the same
-// frame `offsetX`/`offsetY` (where the dispersion is actually centered)
-// is expressed in.
-export function circleHitProbability(cx, cy, r, sdX, sdY, offsetX = 0, offsetY = 0) {
-  const side = r * SQRT_PI;
-  return rectangleHitProbability(cx - side / 2, cy - side / 2, side, side, sdX, sdY, offsetX, offsetY);
-}
-
 // --- Generic profile-based hit probability (vertically symmetric shapes) ---
 //
 // Shapes that don't reduce to a rectangle or circle — a tapered popper body
@@ -154,11 +141,11 @@ const SQRT_2PI = Math.sqrt(2 * Math.PI);
 //    tiny AND offsetX happens to place the X-probability curve's own
 //    transition inside that panel (nothing to split on — the transition's
 //    location depends on offsetX, not the shape). 48 nodes (vs. this
-//    module's earlier 24) keeps that residual error well under
-//    circleHitProbability's own ~2%-tolerance approximation error even in
-//    adversarial cases (sdX below ~1% of the shape's size); it isn't zero
-//    for arbitrarily tiny sdX, but no fixed node count makes it exactly
-//    zero, and this module's realistic callers (group dispersion in cm on
+//    module's earlier 24) keeps that residual error well under this
+//    module's usual ~1e-7 (erf's own precision floor) even in adversarial
+//    cases (sdX below ~1% of the shape's size); it isn't zero for
+//    arbitrarily tiny sdX, but no fixed node count makes it exactly zero,
+//    and this module's realistic callers (group dispersion in cm on
 //    targets tens of cm across) sit nowhere near that regime.
 export function profileHitProbability(halfWidthAt, yMin, yMax, sdX, sdY, offsetX = 0, offsetY = 0, centerX = 0, nodeCount = 48) {
   const yLo = Math.max(yMin, offsetY - 8 * sdY);
@@ -221,6 +208,30 @@ export function circularArcHalfWidth(cy, r) {
   };
   fn.breakpoints = [cy - r, cy + r];
   return fn;
+}
+
+// Hit probability of a circle, via its exact profile (`circularArcHalfWidth`)
+// run through the same Gauss-Legendre quadrature every other non-rectangular
+// shape in this module uses — not an approximation of the circle's shape,
+// just of the integral, and converged well past the precision anything here
+// cares about (48 nodes vs. 192 agree to ~1e-10 or better; see
+// docs/reports/circle-hit-probability-precision.md). `cx`/`cy` is the
+// circle's own center in the same frame `offsetX`/`offsetY` (where the
+// dispersion is actually centered) is expressed in.
+//
+// An earlier version of this function replaced the circle with the
+// axis-aligned square of equal area and solved that in closed form —
+// ~29x cheaper per call, but the square's boundary sits inside the true
+// circle along the axes and outside it on the diagonals, so a tight group
+// aimed near a ring edge (a normal shot scenario, not a contrived one)
+// could be off by the entire true probability (e.g. scoring ~0.01 what
+// should be ~0.49). See the report above for the full sweep. This module's
+// actual call pattern (a handful of single-shot solves per user input
+// change, not a Monte Carlo hot loop) makes the ~2us/call quadrature cost
+// immaterial, so there's no reason to keep the cheaper, occasionally very
+// wrong, approximation.
+export function circleHitProbability(cx, cy, r, sdX, sdY, offsetX = 0, offsetY = 0) {
+  return profileHitProbability(circularArcHalfWidth(cy, r), cy - r, cy + r, sdX, sdY, offsetX, offsetY, cx);
 }
 
 // Combines several half-width profiles into their union (the pointwise

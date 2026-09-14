@@ -55,17 +55,16 @@ test('rectangleHitProbability is symmetric between X and Y when the inputs are',
   assert.ok(Math.abs(p1 - p2) < 1e-12);
 });
 
-test('circleHitProbability (equal-SD, no offset) is close to the exact Rayleigh CDF', () => {
-  // circleHitProbability approximates the circle as an equal-area square,
-  // so it isn't exact — but for the equal-SD, zero-offset case there's an
-  // exact closed form to check it against: P(within R) = 1 - exp(-R^2 /
-  // (2*sd^2)) (the Rayleigh CDF). This catches a transcription slip (wrong
-  // factor of 2, r vs r/2, missing sqrt(pi), ...) while still tolerating
-  // the approximation's own inherent error.
+test('circleHitProbability (equal-SD, no offset) matches the exact Rayleigh CDF', () => {
+  // For the equal-SD, zero-offset case there's an exact closed form to
+  // check the quadrature against: P(within R) = 1 - exp(-R^2 / (2*sd^2))
+  // (the Rayleigh CDF). This catches a transcription slip (wrong factor of
+  // 2, r vs r/2, ...) while still tolerating the quadrature's own tiny
+  // residual error.
   for (const [r, sd] of [[1, 1], [2, 1], [0.5, 1], [3, 2]]) {
     const approx = circleHitProbability(0, 0, r, sd, sd);
     const exact = 1 - Math.exp(-(r * r) / (2 * sd * sd));
-    assert.ok(Math.abs(approx - exact) < 0.02, `r=${r} sd=${sd}: expected ~${exact}, got ${approx}`);
+    assert.ok(Math.abs(approx - exact) < 1e-5, `r=${r} sd=${sd}: expected ~${exact}, got ${approx}`);
   }
 });
 
@@ -86,9 +85,13 @@ test('circleHitProbability: offsetX/offsetY shift the dispersion mean, not the c
 });
 
 test('circleHitProbability is symmetric under swapping X and Y', () => {
+  // Exactly symmetric mathematically (a circle is rotationally symmetric),
+  // but the two swapped calls integrate over differently-shaped quadrature
+  // windows (sdY differs between them), so they don't land bit-for-bit
+  // equal — only to the quadrature's own residual precision.
   const p1 = circleHitProbability(3, -2, 5, 1.5, 2, 0.3, -0.4);
   const p2 = circleHitProbability(-2, 3, 5, 2, 1.5, -0.4, 0.3);
-  assert.ok(Math.abs(p1 - p2) < 1e-12);
+  assert.ok(Math.abs(p1 - p2) < 1e-5);
 });
 
 test('gaussLegendreNodes: weights sum to 2 (the length of [-1,1])', () => {
