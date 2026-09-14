@@ -34,6 +34,7 @@ le cas échéant, les statistiques derrière les chiffres :
 - [Arsenal](#/manual/arsenal)
 - [Calculette de précision de tir](#/manual/rifle-precision)
 - [BC Labradar](#/manual/bc-labradar)
+- [Sauvegarde et synchronisation](#/manual/backup-sync)
 
 D'autres manuels détaillés pour les autres outils sont prévus.
 
@@ -685,3 +686,10 @@ l'application.
   tabulation) et le séparateur décimal (point/virgule) utilisés par le
   téléchargement et la copie CSV de Trajectoire. Choisissez la paire
   attendue par votre tableur.
+- **Sauvegarde et synchronisation** — expérimental, désactivé par défaut.
+  Garde vos bibliothèques Arsenal, Emplacements et Précision de tir
+  synchronisées entre vos propres appareils via un dossier déjà synchronisé
+  par votre service cloud (OneDrive, Google Drive, NextCloud, ...) — pas de
+  compte auprès de cette appli, rien envoyé vers un quelconque serveur qui
+  m'appartiendrait. Voir le [manuel détaillé](#/manual/backup-sync) pour la
+  mise en place, et ses limitations bien réelles côté Chrome.

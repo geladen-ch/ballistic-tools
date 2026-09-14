@@ -1066,6 +1066,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v211": "Nouveau : le manuel utilisateur de la fonctionnalité « Sauvegarde et synchronisation » est maintenant disponible.",
       "v210": "Nouveau : c'est majeur ! La fonctionnalité « Sauvegarde et synchronisation » a été mise en œuvre, pour répliquer les données entre appareils.",
       "v209": "Changement : les bibliothèques de balles se chargent désormais sous forme d'un seul fichier par bibliothèque au lieu d'un fichier par balle, ce qui rend le cache hors ligne plus fiable sur les connexions instables.",
       "v208": "Nouveau : la liste des balles s'étant allongée, elle est désormais triée par calibre, puis par bibliothèque, puis par fabricant + nom.",

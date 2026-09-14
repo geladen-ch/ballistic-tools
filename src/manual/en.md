@@ -32,6 +32,7 @@ the numbers:
 - [Arsenal](#/manual/arsenal)
 - [Rifle Precision Calculator](#/manual/rifle-precision)
 - [BC Labradar](#/manual/bc-labradar)
+- [Backup & Sync](#/manual/backup-sync)
 
 More detailed manuals for the other tools are planned.
 
@@ -595,3 +596,9 @@ the next time you open this report, even after restarting the app.
 - **CSV export** — the field separator (comma/semicolon/tab) and decimal
   separator (dot/comma) used by Trajectory's CSV download and clipboard copy.
   Pick whichever pair your spreadsheet software expects.
+- **Backup & Sync** — experimental, off by default. Keeps your Arsenal,
+  Locations, and Rifle Precision libraries in sync across your own devices
+  through a cloud-synced folder you already have (OneDrive, Google Drive,
+  NextCloud, ...) — no account with this app, nothing sent to any server of
+  mine. See the [detailed manual](#/manual/backup-sync) for how to set it
+  up, and its very real Chrome-only limitations.

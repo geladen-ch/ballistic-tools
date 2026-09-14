@@ -40,6 +40,7 @@ import * as manualView from './views/manual-view.js';
 import * as riflePrecisionManualView from './views/rifle-precision-manual-view.js';
 import * as arsenalManualView from './views/arsenal-manual-view.js';
 import * as bcLabradarManualView from './views/bc-labradar-manual-view.js';
+import * as backupSyncManualView from './views/backup-sync-manual-view.js';
 import * as thanksView from './views/thanks-view.js';
 import * as releaseHistoryView from './views/release-history-view.js';
 import * as categoryView from './views/category-view.js';
@@ -136,6 +137,7 @@ const views = {
   '/manual/rifle-precision': riflePrecisionManualView,
   '/manual/arsenal': arsenalManualView,
   '/manual/bc-labradar': bcLabradarManualView,
+  '/manual/backup-sync': backupSyncManualView,
   '/thanks': thanksView,
   '/release-history': releaseHistoryView
 };

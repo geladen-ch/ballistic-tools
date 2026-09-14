@@ -1066,6 +1066,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v211": "New: user manual for the 'Backup & Sync' feature is now available.",
       "v210": "New: this is major! Backup & Sync feature implemented, to replicate data between devices.",
       "v209": "Change: bullet libraries now load as a single file per library instead of one file per bullet, making the offline cache more reliable on flaky connections.",
       "v208": "New: as the bullets list grew, it's now sorted by caliber, then by library, then by manufacturer + name.",

@@ -36,6 +36,7 @@ Zahlen eingeht:
 - [Arsenal](#/manual/arsenal)
 - [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
 - [BC Labradar](#/manual/bc-labradar)
+- [Sicherung & Synchronisierung](#/manual/backup-sync)
 
 Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
 
@@ -693,3 +694,11 @@ selbst nach einem Neustart der App.
 - **CSV-Export** — das Feldtrennzeichen (Komma/Semikolon/Tabulator) und das
   Dezimaltrennzeichen (Punkt/Komma) für den CSV-Download und das Kopieren in
   der Flugbahn. Wählen Sie das Paar, das Ihre Tabellenkalkulation erwartet.
+- **Sicherung & Synchronisierung** — experimentell, standardmäßig
+  ausgeschaltet. Hält Ihre Arsenal-, Standort- und
+  Präzisionsprojekt-Bibliotheken über Ihre eigenen Geräte hinweg
+  synchron, über einen Ordner, den Ihr Cloud-Dienst bereits synchronisiert
+  (OneDrive, Google Drive, NextCloud, ...) — kein Konto bei dieser App,
+  nichts wird an irgendeinen Server von mir gesendet. Siehe das
+  [ausführliche Handbuch](#/manual/backup-sync) für die Einrichtung und
+  seine sehr realen, auf Chrome beschränkten Grenzen.

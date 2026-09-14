@@ -35,6 +35,7 @@ applicabile, le statistiche dietro i numeri:
 - [Arsenale](#/manual/arsenal)
 - [Calcolatore di precisione di tiro](#/manual/rifle-precision)
 - [BC Labradar](#/manual/bc-labradar)
+- [Backup e sincronizzazione](#/manual/backup-sync)
 
 Altri manuali dettagliati per gli altri strumenti sono previsti.
 
@@ -683,3 +684,10 @@ anche dopo un riavvio dell'app.
   virgola/tabulazione) e il separatore decimale (punto/virgola) usati dal
   download e dalla copia CSV di Traiettoria. Scegli la coppia attesa dal
   tuo foglio di calcolo.
+- **Backup e sincronizzazione** — sperimentale, disattivato per default.
+  Mantiene sincronizzate le tue librerie Arsenale, Località e Precisione
+  fucile tra i tuoi dispositivi, attraverso una cartella che il tuo
+  servizio cloud sincronizza già (OneDrive, Google Drive, NextCloud, ...)
+  — nessun account presso questa app, nulla inviato a un server mio. Vedi
+  il [manuale dettagliato](#/manual/backup-sync) per la configurazione, e
+  i suoi limiti molto reali legati a Chrome.

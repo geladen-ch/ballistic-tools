@@ -1066,6 +1066,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v211": "Neu: Das Benutzerhandbuch für die Funktion „Sicherung & Synchronisierung“ ist jetzt verfügbar.",
       "v210": "Neu: Das ist ein großer Wurf! Die Funktion „Sicherung & Synchronisierung“ wurde implementiert, um Daten zwischen Geräten abzugleichen.",
       "v209": "Änderung: Geschossbibliotheken werden jetzt als eine einzige Datei pro Bibliothek geladen statt als eine Datei pro Geschoss, was den Offline-Cache bei instabilen Verbindungen zuverlässiger macht.",
       "v208": "Neu: Da die Geschossliste immer größer wird, ist sie jetzt nach Kaliber, dann nach Bibliothek, dann nach Hersteller + Name sortiert.",
