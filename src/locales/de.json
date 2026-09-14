@@ -1068,6 +1068,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v213": "Neu: Hornady-Bibliotheksdaten mit JBMs Geschosslängenliste abgeglichen. Länge für 69 Einträge gefunden, Bibliothek aktualisiert (42 fehlen noch).",
       "v212": "Neu: Seite „Aktuelle Funktionen“.",
       "v211": "Neu: Das Benutzerhandbuch für die Funktion „Sicherung & Synchronisierung“ ist jetzt verfügbar.",
       "v210": "Neu: Das ist ein großer Wurf! Die Funktion „Sicherung & Synchronisierung“ wurde implementiert, um Daten zwischen Geräten abzugleichen.",

@@ -996,7 +996,7 @@
     "name": "75gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.0057,
-    "lengthM": null,
+    "lengthM": 0.0249174,
     "massKg": 0.004859918249999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -2012,7 +2012,7 @@
     "name": "73gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.0057,
-    "lengthM": null,
+    "lengthM": 0.0265684,
     "massKg": 0.00473032043,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -2262,7 +2262,7 @@
     "name": "75gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.0057,
-    "lengthM": null,
+    "lengthM": 0.0284734,
     "massKg": 0.004859918249999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -2504,7 +2504,7 @@
     "name": "80gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.0057,
-    "lengthM": null,
+    "lengthM": 0.029463999999999997,
     "massKg": 0.0051839128,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -2754,7 +2754,7 @@
     "name": "88gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.0057,
-    "lengthM": null,
+    "lengthM": 0.031495999999999996,
     "massKg": 0.00570230408,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -2992,7 +2992,7 @@
     "name": "62gr ELD-VT",
     "manufacturer": "Hornady",
     "caliberM": 0.0057,
-    "lengthM": null,
+    "lengthM": 0.0265684,
     "massKg": 0.00401753242,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -5178,7 +5178,7 @@
     "name": "110gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.0065278,
-    "lengthM": null,
+    "lengthM": 0.0310896,
     "massKg": 0.007127880099999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -5650,7 +5650,7 @@
     "name": "100gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.00704,
-    "lengthM": null,
+    "lengthM": 0.028194,
     "massKg": 0.006479891,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -6158,7 +6158,7 @@
     "name": "145gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00704,
-    "lengthM": null,
+    "lengthM": 0.0347218,
     "massKg": 0.009395841949999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -6896,7 +6896,7 @@
     "name": "176gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.035814,
     "massKg": 0.01140460816,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -7134,7 +7134,7 @@
     "name": "177gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.035814,
     "massKg": 0.01146940707,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -7372,7 +7372,7 @@
     "name": "230gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.0447548,
     "massKg": 0.0149037493,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -7602,7 +7602,7 @@
     "name": "250gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.047650399999999996,
     "massKg": 0.0161997275,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -7832,7 +7832,7 @@
     "name": "168gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.031292799999999996,
     "massKg": 0.010886216879999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -8082,7 +8082,7 @@
     "name": "178gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.034163,
     "massKg": 0.011534205979999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -9022,7 +9022,7 @@
     "name": "225gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.0395732,
     "massKg": 0.014579754749999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -9264,7 +9264,7 @@
     "name": "110gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.030225999999999996,
     "massKg": 0.007127880099999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -10288,7 +10288,7 @@
     "name": "180gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.038506399999999996,
     "massKg": 0.011663803799999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -10534,7 +10534,7 @@
     "name": "190gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.0419862,
     "massKg": 0.012311792899999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -10772,7 +10772,7 @@
     "name": "155gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.030353,
     "massKg": 0.010043831049999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -11022,7 +11022,7 @@
     "name": "168gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.0323088,
     "massKg": 0.010886216879999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -11264,7 +11264,7 @@
     "name": "178gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.033528,
     "massKg": 0.011534205979999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -11502,7 +11502,7 @@
     "name": "195gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.036957000000000004,
     "massKg": 0.01263578745,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -11736,7 +11736,7 @@
     "name": "208gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.0078232,
-    "lengthM": 0.038989,
+    "lengthM": 0.038988999999999996,
     "massKg": 0.01348,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -11970,7 +11970,7 @@
     "name": "225gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.0426466,
     "massKg": 0.014579754749999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -12196,7 +12196,7 @@
     "name": "174gr ELD-VT",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.036067999999999996,
     "massKg": 0.011275010339999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -12430,7 +12430,7 @@
     "name": "178gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.036067999999999996,
     "massKg": 0.011534205979999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -12672,7 +12672,7 @@
     "name": "200gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.038862,
     "massKg": 0.012959782,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -12910,7 +12910,7 @@
     "name": "212gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.04064,
     "massKg": 0.01373736892,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -13144,7 +13144,7 @@
     "name": "220gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.041401999999999994,
     "massKg": 0.014255760199999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -13378,7 +13378,7 @@
     "name": "190gr Sub-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00782,
-    "lengthM": null,
+    "lengthM": 0.0329946,
     "massKg": 0.012311792899999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -13874,7 +13874,7 @@
     "name": "300gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.0086,
-    "lengthM": 0.0475,
+    "lengthM": 0.047498,
     "massKg": 0.01944,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -14080,7 +14080,7 @@
     "name": "250gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.0086,
-    "lengthM": null,
+    "lengthM": 0.0398018,
     "massKg": 0.0161997275,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -14314,7 +14314,7 @@
     "name": "285gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.0086,
-    "lengthM": null,
+    "lengthM": 0.0437642,
     "massKg": 0.01846768935,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -15496,7 +15496,7 @@
     "name": "230gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.0086,
-    "lengthM": null,
+    "lengthM": 0.038480999999999994,
     "massKg": 0.0149037493,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -15726,7 +15726,7 @@
     "name": "270gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.0086,
-    "lengthM": null,
+    "lengthM": 0.0431038,
     "massKg": 0.0174957057,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -17562,7 +17562,7 @@
     "name": "110gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.0331978,
     "massKg": 0.007127880099999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -18026,7 +18026,7 @@
     "name": "105gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.030987999999999998,
     "massKg": 0.0068038855499999995,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -18268,7 +18268,7 @@
     "name": "80gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.028016199999999998,
     "massKg": 0.0051839128,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -18526,7 +18526,7 @@
     "name": "90gr CX (6mm)",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.032004,
     "massKg": 0.0058319018999999995,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -19006,7 +19006,7 @@
     "name": "108gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.0322072,
     "massKg": 0.0069982822799999995,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -19478,7 +19478,7 @@
     "name": "80gr ELD-VT",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.0299974,
     "massKg": 0.0051839128,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -19724,7 +19724,7 @@
     "name": "103gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.0319532,
     "massKg": 0.00667428773,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -19962,7 +19962,7 @@
     "name": "90gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00617,
-    "lengthM": null,
+    "lengthM": 0.0280416,
     "massKg": 0.0058319018999999995,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -20680,7 +20680,7 @@
     "name": "135gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.0351282,
     "massKg": 0.00874785285,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -20922,7 +20922,7 @@
     "name": "153gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.038099999999999995,
     "massKg": 0.00991423323,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -21156,7 +21156,7 @@
     "name": "140gr BTHP",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.0339852,
     "massKg": 0.0090718474,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -21402,7 +21402,7 @@
     "name": "120gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.035763199999999995,
     "massKg": 0.0077758691999999996,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -21652,7 +21652,7 @@
     "name": "130gr CX (6.5mm)",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.0379222,
     "massKg": 0.0084238583,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -22148,7 +22148,7 @@
     "name": "100gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.026796999999999998,
     "massKg": 0.006479891,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -22398,7 +22398,7 @@
     "name": "120gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.030556200000000002,
     "massKg": 0.0077758691999999996,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -22648,7 +22648,7 @@
     "name": "123gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.031394399999999996,
     "massKg": 0.00797026593,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -22894,7 +22894,7 @@
     "name": "130gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.033274,
     "massKg": 0.0084238583,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -23132,7 +23132,7 @@
     "name": "140gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.0348996,
     "massKg": 0.0090718474,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -23604,7 +23604,7 @@
     "name": "100gr ELD-VT",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.031495999999999996,
     "massKg": 0.006479891,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -23854,7 +23854,7 @@
     "name": "143gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.00671,
-    "lengthM": null,
+    "lengthM": 0.036576,
     "massKg": 0.009266244129999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -24096,7 +24096,7 @@
     "name": "166gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.037973,
     "massKg": 0.01075661906,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -24326,7 +24326,7 @@
     "name": "190gr A-TIP",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.04216399999999999,
     "massKg": 0.012311792899999998,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -24794,7 +24794,7 @@
     "name": "139gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.035966399999999996,
     "massKg": 0.009007048489999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -25044,7 +25044,7 @@
     "name": "150gr CX (7mm)",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.0379222,
     "massKg": 0.009719836499999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -25294,7 +25294,7 @@
     "name": "160gr CX",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.0409448,
     "massKg": 0.0103678256,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -25528,7 +25528,7 @@
     "name": "162gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.036169599999999996,
     "massKg": 0.010497423419999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -25762,7 +25762,7 @@
     "name": "180gr ELD-M",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.0390652,
     "massKg": 0.011663803799999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -25992,7 +25992,7 @@
     "name": "150gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.0355092,
     "massKg": 0.009719836499999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -26230,7 +26230,7 @@
     "name": "162gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.0375412,
     "massKg": 0.010497423419999999,
     "source": "Reverse Hornady radar",
     "profile": {
@@ -26464,7 +26464,7 @@
     "name": "175gr ELD-X",
     "manufacturer": "Hornady",
     "caliberM": 0.007214,
-    "lengthM": null,
+    "lengthM": 0.0398018,
     "massKg": 0.01133980925,
     "source": "Reverse Hornady radar",
     "profile": {

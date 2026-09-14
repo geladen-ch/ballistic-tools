@@ -1068,6 +1068,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v213": "Nuovo: dati della libreria Hornady incrociati con l'elenco delle lunghezze dei proiettili di JBM. Lunghezza trovata per 69 voci, libreria aggiornata (42 ancora mancanti).",
       "v212": "Nuovo: pagina \"Funzionalità attuali\".",
       "v211": "Nuovo: è ora disponibile il manuale utente della funzione \"Backup e sincronizzazione\".",
       "v210": "Nuovo: è un grande passo avanti! È stata implementata la funzione \"Backup e sincronizzazione\", per replicare i dati tra i dispositivi.",
