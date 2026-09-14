@@ -156,6 +156,7 @@
     "versionRelease": "édition",
     "versionCodename": "nom de code",
     "releaseHistoryLink": "Voir l'historique des versions",
+    "featuresLink": "Fonctionnalités actuelles",
     "sourceCodeLink": "Obtenir le code source",
     "privacyHeading": "Confidentialité",
     "privacyPolicy": "Nous ne collectons *aucune* donnée. Rien n'est *jamais* transmis au serveur.",
@@ -1067,6 +1068,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v212": "Nouveau : page « Fonctionnalités actuelles ».",
       "v211": "Nouveau : le manuel utilisateur de la fonctionnalité « Sauvegarde et synchronisation » est maintenant disponible.",
       "v210": "Nouveau : c'est majeur ! La fonctionnalité « Sauvegarde et synchronisation » a été mise en œuvre, pour répliquer les données entre appareils.",
       "v209": "Changement : les bibliothèques de balles se chargent désormais sous forme d'un seul fichier par bibliothèque au lieu d'un fichier par balle, ce qui rend le cache hors ligne plus fiable sur les connexions instables.",
@@ -1171,6 +1173,9 @@
   },
   "thanks": {
     "loadError": "Impossible de charger la liste des remerciements."
+  },
+  "features": {
+    "loadError": "Impossible de charger la liste des fonctionnalités."
   },
   "targets": {
     "circleGong": {

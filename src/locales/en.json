@@ -156,6 +156,7 @@
     "versionRelease": "release",
     "versionCodename": "codename",
     "releaseHistoryLink": "View release history",
+    "featuresLink": "Current features",
     "sourceCodeLink": "Get the source code",
     "privacyHeading": "Privacy",
     "privacyPolicy": "We do not collect *any* data. Nothing is *ever* transmitted to the server.",
@@ -1067,6 +1068,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v212": "New: 'Current features' page.",
       "v211": "New: user manual for the 'Backup & Sync' feature is now available.",
       "v210": "New: this is major! Backup & Sync feature implemented, to replicate data between devices.",
       "v209": "Change: bullet libraries now load as a single file per library instead of one file per bullet, making the offline cache more reliable on flaky connections.",
@@ -1171,6 +1173,9 @@
   },
   "thanks": {
     "loadError": "Could not load the thanks list."
+  },
+  "features": {
+    "loadError": "Could not load the features list."
   },
   "targets": {
     "circleGong": {

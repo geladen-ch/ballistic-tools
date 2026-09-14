@@ -156,6 +156,7 @@
     "versionRelease": "release",
     "versionCodename": "nome in codice",
     "releaseHistoryLink": "Visualizza la cronologia delle versioni",
+    "featuresLink": "Funzionalità attuali",
     "sourceCodeLink": "Ottieni il codice sorgente",
     "privacyHeading": "Privacy",
     "privacyPolicy": "Non raccogliamo *alcun* dato. Nulla viene *mai* trasmesso al server.",
@@ -1067,6 +1068,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v212": "Nuovo: pagina \"Funzionalità attuali\".",
       "v211": "Nuovo: è ora disponibile il manuale utente della funzione \"Backup e sincronizzazione\".",
       "v210": "Nuovo: è un grande passo avanti! È stata implementata la funzione \"Backup e sincronizzazione\", per replicare i dati tra i dispositivi.",
       "v209": "Modifica: le librerie di proiettili ora vengono caricate come un unico file per libreria anziché un file per proiettile, rendendo la cache offline più affidabile su connessioni instabili.",
@@ -1171,6 +1173,9 @@
   },
   "thanks": {
     "loadError": "Impossibile caricare l'elenco dei ringraziamenti."
+  },
+  "features": {
+    "loadError": "Impossibile caricare l'elenco delle funzionalità."
   },
   "targets": {
     "circleGong": {

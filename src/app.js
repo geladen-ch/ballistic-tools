@@ -43,6 +43,7 @@ import * as bcLabradarManualView from './views/bc-labradar-manual-view.js';
 import * as backupSyncManualView from './views/backup-sync-manual-view.js';
 import * as thanksView from './views/thanks-view.js';
 import * as releaseHistoryView from './views/release-history-view.js';
+import * as featuresView from './views/features-view.js';
 import * as categoryView from './views/category-view.js';
 import * as gunsView from './views/guns-view.js';
 
@@ -139,7 +140,8 @@ const views = {
   '/manual/bc-labradar': bcLabradarManualView,
   '/manual/backup-sync': backupSyncManualView,
   '/thanks': thanksView,
-  '/release-history': releaseHistoryView
+  '/release-history': releaseHistoryView,
+  '/features': featuresView
 };
 
 // Every view calls t() while building its DOM, so translations must be
