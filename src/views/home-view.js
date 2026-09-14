@@ -85,7 +85,7 @@ function privacyCard() {
 function licenseCard() {
   return el('div', { class: 'card' }, [
     el('h3', { i18n: 'home.licenseHeading' }),
-    el('p', { text: t('home.copyrightNotice', { app: t('app.title'), year: '2018 - present', name: 'Alexandre Trofimov' }) }),
+    el('p', { text: t('home.copyrightNotice', { app: t('app.title'), year: '2015 - present', name: 'Alexandre Trofimov' }) }),
     el('p', { class: 'hint', i18n: 'home.licenseNoWarranty' }),
     el('p', {}, [
       el('a', { href: './LICENSE', target: '_blank', rel: 'noopener', i18n: 'home.viewLicenseLink' })
