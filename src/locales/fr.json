@@ -821,6 +821,7 @@
       "deviceNameLabel": "Nom de l'appareil",
       "deviceNameHint": "Donnez à cet appareil un nom que vous reconnaîtrez — particulièrement important si vous avez plusieurs appareils similaires.",
       "folderLabel": "Dossier de sauvegarde",
+      "folderHint": "Choisissez un dossier que votre fournisseur cloud (iCloud Drive, OneDrive, Google Drive, Dropbox, etc.) synchronise déjà entre vos appareils — cette application ne communique elle-même avec aucun service cloud, elle se contente d'y lire et d'y écrire un petit fichier de sauvegarde.",
       "folderChosen": "Synchronisation en cours avec le dossier sélectionné.",
       "folderChosenNamed": "Synchronisation en cours avec {{name}}.",
       "folderNotChosen": "Aucun dossier de synchronisation sélectionné.",

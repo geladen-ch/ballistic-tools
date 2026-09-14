@@ -466,6 +466,14 @@ export function backupSyncSection(onSyncApplied = () => {}) {
     return el('div', {}, [
       el('div', { class: 'field' }, [
         el('label', { i18n: 'settings.backupSync.folderLabel' }),
+        // This app has no cloud feature of its own (see the manual's own
+        // "Why there's no Cloud button") — the folder picked here only
+        // ever gets carried to another device if something *else* is
+        // already keeping it in sync, which the picker itself gives no
+        // hint of. Shown before the button, not after, so it's read
+        // before the choice is made rather than as an afterthought once
+        // the wrong (unsynced) folder is already selected.
+        el('p', { class: 'hint', i18n: 'settings.backupSync.folderHint' }),
         chooseButton,
         folderStatusLine
       ]),

@@ -821,6 +821,7 @@
       "deviceNameLabel": "Gerätename",
       "deviceNameHint": "Geben Sie diesem Gerät einen Namen, den Sie wiedererkennen — besonders wichtig, wenn Sie mehrere ähnliche Geräte haben.",
       "folderLabel": "Sicherungsordner",
+      "folderHint": "Wählen Sie einen Ordner, den Ihr Cloud-Anbieter (iCloud Drive, OneDrive, Google Drive, Dropbox usw.) bereits zwischen Ihren Geräten synchronisiert — diese App spricht selbst mit keinem Cloud-Dienst, sie liest und schreibt dort nur eine kleine Sicherungsdatei.",
       "folderChosen": "Synchronisiert derzeit mit dem ausgewählten Ordner.",
       "folderChosenNamed": "Synchronisiert derzeit mit {{name}}.",
       "folderNotChosen": "Kein Sync-Ordner ausgewählt.",

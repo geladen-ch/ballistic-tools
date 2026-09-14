@@ -821,6 +821,7 @@
       "deviceNameLabel": "Device name",
       "deviceNameHint": "Give this device a name you'll recognize — especially important if you have more than one similar device.",
       "folderLabel": "Backup folder",
+      "folderHint": "Pick a folder that your cloud provider (iCloud Drive, OneDrive, Google Drive, Dropbox, etc.) already keeps in sync across your devices — this app doesn't talk to any cloud service itself, it just reads and writes a small backup file there.",
       "folderChosen": "Currently synchronizing to the selected folder.",
       "folderChosenNamed": "Currently synchronizing to {{name}}.",
       "folderNotChosen": "No sync folder selected.",

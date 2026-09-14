@@ -821,6 +821,7 @@
       "deviceNameLabel": "Nome dispositivo",
       "deviceNameHint": "Dai a questo dispositivo un nome che riconoscerai — particolarmente importante se hai più dispositivi simili.",
       "folderLabel": "Cartella di backup",
+      "folderHint": "Scegli una cartella che il tuo provider cloud (iCloud Drive, OneDrive, Google Drive, Dropbox, ecc.) sincronizza già tra i tuoi dispositivi — questa app non comunica direttamente con alcun servizio cloud, si limita a leggere e scrivere lì un piccolo file di backup.",
       "folderChosen": "Sincronizzazione in corso con la cartella selezionata.",
       "folderChosenNamed": "Sincronizzazione in corso con {{name}}.",
       "folderNotChosen": "Nessuna cartella di sincronizzazione selezionata.",

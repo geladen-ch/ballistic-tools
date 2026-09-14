@@ -218,6 +218,25 @@ test('with File System Access support, the folder-based controls render instead'
   assert.equal(findByTag(container, 'INPUT').find((i) => i.type === 'file'), undefined);
 });
 
+test('the folder picker is preceded by a hint to pick a folder a cloud provider already syncs', () => {
+  // The picker itself gives no indication that the folder chosen here
+  // needs to already be kept in sync by something else (iCloud Drive,
+  // OneDrive, Google Drive, Dropbox, ...) — nothing here does that on its
+  // own. Shown before the "Choose Folder…" button, not after, so it's
+  // read before the choice is made.
+  global.window.showDirectoryPicker = async () => ({});
+  setBackupSyncEnabled(true);
+  const container = mount();
+
+  const hint = byKey(container, 'P', 'settings.backupSync.folderHint');
+  assert.ok(hint, 'expected a hint explaining what kind of folder to pick');
+  const chooseButton = byKey(container, 'BUTTON', 'settings.backupSync.chooseFolderButton');
+
+  const field = findByTag(container, 'DIV').find((d) => d.childNodes && d.childNodes.includes(chooseButton));
+  const order = field.childNodes.indexOf(hint) - field.childNodes.indexOf(chooseButton);
+  assert.ok(order < 0, 'expected the hint before the button, not after');
+});
+
 test('Sync Now starts disabled until a folder is actually chosen', async () => {
   const fakeHandle = {
     kind: 'directory',
