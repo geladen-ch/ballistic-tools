@@ -998,9 +998,10 @@ th { color: var(--dim); font-weight: 500; }
   white-space: nowrap;
 }
 
-/* Live/Partial/Planned indicator (src/ui/status-chip.js) — shared by the
-   nav rail, the tab bar's category screens (src/views/category-view.js)
-   and Home. */
+/* Planned indicator (src/ui/status-chip.js) — shared by the nav rail,
+   the tab bar's category screens (src/views/category-view.js) and Home.
+   Only a tool with status 'planned' gets a chip; 'live'/'partial' tools
+   show none. */
 .status-chip {
   flex-shrink: 0;
   font-size: 10px;
@@ -1011,15 +1012,13 @@ th { color: var(--dim); font-weight: 500; }
   border-radius: 999px;
   line-height: 1.6;
 }
-.status-chip-live { color: var(--ok); background: rgba(95, 184, 122, 0.14); border: 1px solid rgba(95, 184, 122, 0.4); }
-.status-chip-partial { color: var(--accent); background: rgba(232, 163, 61, 0.14); border: 1px solid var(--accent-dim); }
 .status-chip-planned { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
 
 /* Backup & Sync's pending-review dialog (src/ui/backup-sync-settings.js)
    — marks a conflict row as decided, reusing the same ok/green role as
-   .status-chip-live/-valid/-stable above, paired with its own Cancel
-   button rather than a bare .hint line so a resolved row visibly differs
-   from an undecided one at a glance. */
+   .status-chip-valid/-stable above, paired with its own Cancel button
+   rather than a bare .hint line so a resolved row visibly differs from
+   an undecided one at a glance. */
 .status-chip-resolved { color: var(--ok); background: rgba(95, 184, 122, 0.14); border: 1px solid rgba(95, 184, 122, 0.4); }
 
 /* Bullet stability traffic light (src/ui/stability-indicator.js) — reuses

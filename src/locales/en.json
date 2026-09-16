@@ -1068,6 +1068,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v216": "Change: dropped the 'Live'/'Partial' status badges from tool listings (nav rail, category pages, Home) — nearly every tool is live now, so the badge was just noise; a not-yet-built tool still shows 'Planned'.",
       "v215": "Change: renamed 'BC Labradar' to 'Labrabaco NG' (we did not have enough confusion as it were).",
       "v214": "Fix: circular target zones (rings, gongs) now compute hit probability exactly via numerical integration, instead of approximating the circle as an equal-area square — that approximation could be badly wrong for a tight group aimed near a ring edge.",
       "v213": "New: Hornady library data x-referenced with JBM's bullet length list. Length found for 69 entries, library updated (42 still missing).",
@@ -1320,8 +1321,6 @@
     "unitConversionDesc": "Convert between modern and archaic units for angle, range, length, speed, mass, temperature, and pressure.",
     "rangeSolver": "Range Solver",
     "rangeSolverDesc": "Refined \"high speed low drag\" ballistic solver for range use. No. Unnecessary. Information.",
-    "statusLive": "Live",
-    "statusPartial": "Partial",
     "statusPlanned": "Planned"
   }
 }

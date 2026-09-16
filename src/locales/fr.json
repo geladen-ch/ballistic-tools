@@ -1068,6 +1068,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v216": "Changement : suppression des badges de statut « Disponible »/« Partiel » dans les listes d'outils (barre de navigation, pages de catégorie, Accueil) – presque tous les outils sont désormais disponibles, le badge n'apportait plus rien ; un outil pas encore réalisé affiche toujours « Prévu ».",
       "v215": "Changement : renommage de « BC Labradar » en « Labrabaco NG » (comme si on n'avait pas déjà assez de confusion comme ça).",
       "v214": "Correction : les zones de cible circulaires (anneaux, gongs) calculent désormais la probabilité de coup exactement par intégration numérique, au lieu d'approximer le cercle par un carré de surface équivalente — cette approximation pouvait être fortement erronée pour un groupement serré visant près du bord d'un anneau.",
       "v213": "Nouveau : données de la bibliothèque Hornady recoupées avec la liste des longueurs d'ogives de JBM. Longueur trouvée pour 69 entrées, bibliothèque mise à jour (42 encore manquantes).",
@@ -1320,8 +1321,6 @@
     "unitConversionDesc": "Conversion entre unités modernes et archaïques pour l'angle, la distance, la longueur, la vitesse, la masse, la température et la pression.",
     "rangeSolver": "Calculateur de terrain",
     "rangeSolverDesc": "Calculateur balistique affûté pour le tir. Aucune information inutile.",
-    "statusLive": "Disponible",
-    "statusPartial": "Partiel",
     "statusPlanned": "Prévu"
   }
 }

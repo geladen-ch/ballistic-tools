@@ -60,13 +60,13 @@ test('Shooting is a flat direct link (like Guns/Settings), not an accordion grou
   assert.ok(link.textContent.includes(t('nav.rangeSolver')));
 });
 
-test('every tool row shows its name, a status chip, and a description', () => {
+test('every tool row shows its name and a description; live tools show no status chip', () => {
   const container = makeElement('nav');
   mountNavRail(container);
 
   const bcRow = findByClass(container, 'rail-tool').find((row) => row.textContent.includes(t('catalog.bcTools')));
   assert.ok(bcRow, 'expected a rail row for BC Tools');
-  assert.ok(bcRow.textContent.includes(t('catalog.statusLive')), 'BC Tools is fully live (Calculation, Conversion, and Labradar all usable)');
+  assert.equal(findByClass(bcRow, 'status-chip').length, 0, 'a live tool should not show a status chip');
   assert.ok(bcRow.textContent.includes(t('catalog.bcToolsDesc')));
 });
 

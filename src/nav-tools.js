@@ -6,10 +6,12 @@
 // one array.
 //
 // `path` is the tool's real route (registered in app.js) — null for a
-// tool that doesn't exist yet. `status` drives the Live/Partial/Planned
-// indicator (src/ui/status-chip.js): a null path always means 'planned'
+// tool that doesn't exist yet. `status` drives the Planned indicator
+// (src/ui/status-chip.js, which only renders a chip for 'planned' —
+// 'live'/'partial' show nothing): a null path always means 'planned'
 // (there's nothing to link to yet); a real path is 'live' unless listed
-// in PARTIAL_IDS below.
+// in PARTIAL_IDS below. 'live' vs 'partial' still distinguishes tools in
+// nav-tools.test.js even though neither renders a chip.
 const PARTIAL_IDS = new Set(['hit-probability']);
 
 // Tools kept in TOOL_DEFS (definition, locale keys, status all intact) but
