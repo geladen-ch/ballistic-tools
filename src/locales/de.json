@@ -240,7 +240,7 @@
     "tabCalculation": "BC-Berechnung",
     "tabConversion": "BC-Umrechnung",
     "tabMultiBc": "Mehrere BC",
-    "tabLabradar": "BC-Labradar",
+    "tabLabradar": "Labrabaco NG",
     "invalidTof": "Geben Sie eine gültige Flugzeit ein (eine positive Anzahl Sekunden)."
   },
   "bcConversion": {
@@ -1068,6 +1068,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v215": "Änderung: „BC-Labradar“ in „Labrabaco NG“ umbenannt (als hätten wir nicht schon genug Verwirrung gehabt).",
       "v214": "Fehlerbehebung: Kreisförmige Zielzonen (Ringe, Gongs) berechnen die Trefferwahrscheinlichkeit jetzt exakt durch numerische Integration, statt den Kreis als flächengleiches Quadrat anzunähern – diese Näherung konnte bei einer engen Streuung nahe einem Ringrand stark danebenliegen.",
       "v213": "Neu: Hornady-Bibliotheksdaten mit JBMs Geschosslängenliste abgeglichen. Länge für 69 Einträge gefunden, Bibliothek aktualisiert (42 fehlen noch).",
       "v212": "Neu: Seite „Aktuelle Funktionen“.",

@@ -1,4 +1,4 @@
-# geladen.ch ballistics User Manual — BC Labradar
+# geladen.ch ballistics User Manual — Labrabaco NG
 
 *Part of the* [geladen.ch ballistics suite](https://bc.geladen.ch)*. One of the four tabs of the BC Tools page. Successor to the standalone Labrabaco tool.*
 
@@ -10,7 +10,7 @@ A ballistic coefficient is the one number in the whole trajectory calculation th
 
 It is also the number the trajectory is most sensitive to at distance, and the one most likely to be flattering. Published BCs are marketing numbers as often as they are measurements.
 
-**BC Labradar measures yours.** It reads the track files a Labradar chronograph writes to its own SD card: a full velocity-versus-time record of every shot, sampled roughly every millisecond for the first hundred metres of flight. It fits a ballistic coefficient to each shot individually, using the same drag physics the rest of this suite uses for trajectories. Then it cleans up bad tracks, drops the shots that disagree with the rest, and averages what survives.
+**Labrabaco NG measures yours.** It reads the track files a Labradar chronograph writes to its own SD card: a full velocity-versus-time record of every shot, sampled roughly every millisecond for the first hundred metres of flight. It fits a ballistic coefficient to each shot individually, using the same drag physics the rest of this suite uses for trajectories. Then it cleans up bad tracks, drops the shots that disagree with the rest, and averages what survives.
 
 What comes out is a BC for **your** bullet, from **your** barrel, in **your** air. Feed it back into Arsenal and every other tool in the suite is working from a measurement instead of a claim.
 
@@ -98,7 +98,7 @@ For the impatient. Details follow in §5–§10.
 1. Shoot a session with the Labradar, minding the aim, the projectile offset and the rest of §5.1–§5.5. Twenty rounds or more, all the same bullet.
 2. Write down the temperature, the **station** pressure and the humidity **at the firing point** (§5.6). Not the forecast.
 3. Copy the session folder off the device's SD card and zip it, nested folders and all.
-4. **BC Tools** from the tool menu → the **BC Labradar** tab.
+4. **BC Tools** from the tool menu → the **Labrabaco NG** tab.
 5. Set the **drag model** — G7 for a modern boat-tail, G1 for a flat-base or a round-nose (§6.1).
 6. Fill in the **atmosphere** from your notes.
 7. **Choose Labradar .zip…** and pick the file. The track list appears immediately.
@@ -649,7 +649,7 @@ The unweighted mean is a deliberate choice, not an oversight. Points within a tr
 
 ## 13. Provenance
 
-BC Labradar is the successor to **Labrabaco**, a standalone tool by the same author. The ingestion path (the track sniffing, the row tolerance rules, the point-cleaning algorithm and its two whole-track rejection gates) is ported from it faithfully, traced call site by call site and validated against real sample tracks. That includes the index asymmetries documented in §12.3 that look like bugs and aren't.
+Labrabaco NG is the successor to **Labrabaco**, a standalone tool by the same author. The ingestion path (the track sniffing, the row tolerance rules, the point-cleaning algorithm and its two whole-track rejection gates) is ported from it faithfully, traced call site by call site and validated against real sample tracks. That includes the index asymmetries documented in §12.3 that look like bugs and aren't.
 
 What is new is the fitting. The legacy tool fitted a straight line through the cleaned points and bisected for the BC that matched its endpoints; this one fits the app's own drag physics against every kept point at once, jointly with a reference velocity. That change, and the paired change to the cleaning threshold, from 0.97 to 0.99, were validated against synthetic tracks carrying real noise before either shipped. The validation reports are in the repository alongside the code, including the negative results, the two rejected designs, and the one working mechanism that was built and then left out for failing to earn its cost.
 

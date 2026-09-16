@@ -1,4 +1,4 @@
-# geladen.ch ballistics Manuel de l'utilisateur — BC Labradar
+# geladen.ch ballistics Manuel de l'utilisateur — Labrabaco NG
 
 *Fait partie de la* [suite balistique geladen.ch](https://bc.geladen.ch)*. L'un des quatre onglets de la page Outils BC. Successeur de l'outil autonome Labrabaco.*
 
@@ -10,7 +10,7 @@ Le coefficient balistique est le seul nombre de tout le calcul de trajectoire qu
 
 C'est aussi le nombre auquel la trajectoire est la plus sensible à distance, et celui qui a le plus de chances d'être flatteur. Les BC publiés sont aussi souvent des chiffres marketing que des mesures.
 
-**BC Labradar mesure le vôtre.** Il lit les fichiers de piste qu'un chronographe Labradar écrit sur sa propre carte SD : un enregistrement complet vitesse/temps de chaque coup, échantillonné environ toutes les millisecondes sur la centaine de mètres initiale du vol. Il ajuste un coefficient balistique coup par coup, avec la même physique de traînée que le reste de la suite utilise pour les trajectoires. Puis il nettoie les pistes ratées, écarte les coups qui ne s'accordent pas avec les autres, et fait la moyenne de ce qui survit.
+**Labrabaco NG mesure le vôtre.** Il lit les fichiers de piste qu'un chronographe Labradar écrit sur sa propre carte SD : un enregistrement complet vitesse/temps de chaque coup, échantillonné environ toutes les millisecondes sur la centaine de mètres initiale du vol. Il ajuste un coefficient balistique coup par coup, avec la même physique de traînée que le reste de la suite utilise pour les trajectoires. Puis il nettoie les pistes ratées, écarte les coups qui ne s'accordent pas avec les autres, et fait la moyenne de ce qui survit.
 
 Ce qui en sort est un BC pour **votre** balle, sortie de **votre** canon, dans **votre** air. Reportez-le dans l'Arsenal et tous les autres outils de la suite travaillent alors sur une mesure au lieu d'une affirmation.
 
@@ -100,7 +100,7 @@ Pour les impatients. Les détails suivent au §5–§10.
 1. Tirez une séance au Labradar, en soignant la visée, le décalage projectile et le reste des §5.1–§5.5. Vingt coups ou plus, tous avec la même balle.
 2. Notez la température, la pression **station** et l'humidité **au pas de tir** (§5.6). Pas la météo annoncée.
 3. Copiez le dossier de séance depuis la carte SD et zippez-le, sous-dossiers compris.
-4. **Outils BC** depuis le menu des outils → onglet **BC Labradar**.
+4. **Outils BC** depuis le menu des outils → onglet **Labrabaco NG**.
 5. Réglez le **modèle de traînée** — G7 pour un boat-tail moderne, G1 pour un culot plat ou une ogive ronde (§6.1).
 6. Renseignez l'**atmosphère** d'après vos notes.
 7. **Choisir un .zip Labradar…** et sélectionnez le fichier. La liste des pistes apparaît aussitôt.
@@ -651,7 +651,7 @@ La moyenne non pondérée est un choix délibéré, pas un oubli. Les points à 
 
 ## 13. Origine
 
-BC Labradar est le successeur de **Labrabaco**, un outil autonome du même auteur. La chaîne d'ingestion (la reconnaissance des pistes, les règles de tolérance ligne par ligne, l'algorithme de nettoyage des points et ses deux barrières de rejet portant sur la piste entière) en est portée fidèlement, tracée site d'appel par site d'appel et validée sur des pistes d'exemple réelles. Cela inclut les asymétries d'indice documentées au §12.3 qui ressemblent à des bugs et n'en sont pas.
+Labrabaco NG est le successeur de **Labrabaco**, un outil autonome du même auteur. La chaîne d'ingestion (la reconnaissance des pistes, les règles de tolérance ligne par ligne, l'algorithme de nettoyage des points et ses deux barrières de rejet portant sur la piste entière) en est portée fidèlement, tracée site d'appel par site d'appel et validée sur des pistes d'exemple réelles. Cela inclut les asymétries d'indice documentées au §12.3 qui ressemblent à des bugs et n'en sont pas.
 
 Ce qui est nouveau, c'est l'ajustement. L'outil d'origine passait une droite par les points nettoyés et dichotomisait sur le BC correspondant à ses extrémités ; celui-ci ajuste la physique de traînée propre à l'application contre tous les points conservés à la fois, conjointement avec une vitesse de référence. Ce changement, et le changement associé du seuil de nettoyage, de 0,97 à 0,99, ont été validés sur des pistes synthétiques à bruit réel avant que l'un ou l'autre ne soit livré. Les rapports de validation se trouvent dans le dépôt à côté du code, y compris les résultats négatifs, les deux conceptions écartées, et le seul mécanisme fonctionnel construit puis laissé de côté faute de mériter son coût.
 

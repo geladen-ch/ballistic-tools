@@ -1,4 +1,4 @@
-# geladen.ch ballistics Manuale d'uso — BC Labradar
+# geladen.ch ballistics Manuale d'uso — Labrabaco NG
 
 *Parte della* [suite balistica geladen.ch](https://bc.geladen.ch)*. Una delle quattro schede della pagina Strumenti BC. Successore dello strumento autonomo Labrabaco.*
 
@@ -10,7 +10,7 @@ Il coefficiente balistico è l'unico numero di tutto il calcolo di traiettoria c
 
 È anche il numero a cui la traiettoria è più sensibile a distanza, e quello che più facilmente lusinga. I BC pubblicati sono cifre di marketing tanto spesso quanto sono misure.
 
-**BC Labradar misura il tuo.** Legge i file di traccia che un cronografo Labradar scrive sulla propria scheda SD: una registrazione completa di velocità nel tempo per ogni colpo, campionata all'incirca ogni millisecondo sul primo centinaio di metri di volo. Adatta un coefficiente balistico a ciascun colpo separatamente, con la stessa fisica della resistenza che il resto della suite usa per le traiettorie. Poi ripulisce le tracce sbagliate, butta via i colpi che non concordano con gli altri e fa la media di ciò che sopravvive.
+**Labrabaco NG misura il tuo.** Legge i file di traccia che un cronografo Labradar scrive sulla propria scheda SD: una registrazione completa di velocità nel tempo per ogni colpo, campionata all'incirca ogni millisecondo sul primo centinaio di metri di volo. Adatta un coefficiente balistico a ciascun colpo separatamente, con la stessa fisica della resistenza che il resto della suite usa per le traiettorie. Poi ripulisce le tracce sbagliate, butta via i colpi che non concordano con gli altri e fa la media di ciò che sopravvive.
 
 Ne esce un BC per la **tua** palla, dalla **tua** canna, nella **tua** aria. Riportalo nell'Arsenale e ogni altro strumento della suite lavora su una misura invece che su un'affermazione.
 
@@ -98,7 +98,7 @@ Per gli impazienti. I dettagli seguono nei §5–§10.
 1. Spara una sessione col Labradar, curando la mira, l'offset del proiettile e il resto dei §5.1–§5.5. Venti colpi o più, tutti con la stessa palla.
 2. Annota temperatura, pressione **alla stazione** e umidità **alla linea di tiro** (§5.6). Non le previsioni.
 3. Copia la cartella della sessione dalla scheda SD e comprimila, sottocartelle incluse.
-4. **Strumenti BC** dal menu degli strumenti → scheda **BC Labradar**.
+4. **Strumenti BC** dal menu degli strumenti → scheda **Labrabaco NG**.
 5. Imposta il **modello di resistenza** — G7 per un boat-tail moderno, G1 per una base piatta o un'ogiva tonda (§6.1).
 6. Compila l'**atmosfera** dai tuoi appunti.
 7. **Scegli file .zip Labradar…** e seleziona il file. La lista delle tracce compare subito.
@@ -649,7 +649,7 @@ La media non pesata è una scelta deliberata, non una svista. I punti dentro una
 
 ## 13. Provenienza
 
-BC Labradar è il successore di **Labrabaco**, uno strumento autonomo dello stesso autore. La catena di ingestione (il riconoscimento delle tracce, le regole di tolleranza riga per riga, l'algoritmo di pulizia dei punti e le sue due barriere di rifiuto sulla traccia intera) ne è portata fedelmente, tracciata sito di chiamata per sito di chiamata e validata su tracce d'esempio reali. Questo include le asimmetrie d'indice documentate nel §12.3 che sembrano bug e non lo sono.
+Labrabaco NG è il successore di **Labrabaco**, uno strumento autonomo dello stesso autore. La catena di ingestione (il riconoscimento delle tracce, le regole di tolleranza riga per riga, l'algoritmo di pulizia dei punti e le sue due barriere di rifiuto sulla traccia intera) ne è portata fedelmente, tracciata sito di chiamata per sito di chiamata e validata su tracce d'esempio reali. Questo include le asimmetrie d'indice documentate nel §12.3 che sembrano bug e non lo sono.
 
 La novità è l'adattamento. Lo strumento originale passava una retta per i punti ripuliti e cercava per bisezione il BC corrispondente ai suoi estremi; questo adatta la fisica della resistenza propria dell'app contro tutti i punti mantenuti in una volta, congiuntamente a una velocità di riferimento. Quel cambiamento, e l'abbinato passaggio della soglia di pulizia, da 0,97 a 0,99, sono stati validati su tracce sintetiche a rumore reale prima che l'uno o l'altro fosse pubblicato. I rapporti di validazione stanno nel repository accanto al codice, compresi i risultati negativi, i due progetti scartati e l'unico meccanismo funzionante costruito e poi lasciato fuori per non valere il proprio costo.
 

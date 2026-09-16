@@ -33,7 +33,7 @@ le cas échéant, les statistiques derrière les chiffres :
 
 - [Arsenal](#/manual/arsenal)
 - [Calculette de précision de tir](#/manual/rifle-precision)
-- [BC Labradar](#/manual/bc-labradar)
+- [Labrabaco NG](#/manual/bc-labradar)
 - [Sauvegarde et synchronisation](#/manual/backup-sync)
 
 D'autres manuels détaillés pour les autres outils sont prévus.
@@ -397,8 +397,8 @@ zoom/déplacement et peut être **téléchargé en SVG**.
 
 Calcule un coefficient balistique à partir de données connues, ou convertit
 un BC entre différents modèles — regroupés sous un seul outil avec les
-onglets **Calcul BC**, **Conversion BC**, **BC multiples** et **BC
-Labradar**, tous déjà pleinement utilisables.
+onglets **Calcul BC**, **Conversion BC**, **BC multiples** et **Labrabaco
+NG**, tous déjà pleinement utilisables.
 
 Le **Calcul BC** déduit un coefficient balistique à partir d'une paire
 vitesse/distance proche et soit une vitesse éloignée, soit un temps de vol
@@ -436,7 +436,7 @@ résultat peut
 comme un seul BC de « compromis optimal » par modèle sur la plage
 supersonique propre à la balle.
 
-**BC Labradar** ajuste un BC par coup à partir d'un export du chronographe
+**Labrabaco NG** ajuste un BC par coup à partir d'un export du chronographe
 Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur
 sa carte SD, un par coup, enregistrant la vitesse environ toutes les
 millisecondes pendant le vol. Voir le [manuel détaillé](#/manual/bc-labradar)

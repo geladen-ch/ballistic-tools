@@ -1,4 +1,4 @@
-# geladen.ch ballistics Benutzerhandbuch — BC-Labradar
+# geladen.ch ballistics Benutzerhandbuch — Labrabaco NG
 
 *Teil der* [Ballistik-Suite von geladen.ch](https://bc.geladen.ch)*. Einer der vier Reiter der Seite BC-Werkzeuge. Nachfolger des eigenständigen Werkzeugs Labrabaco.*
 
@@ -10,7 +10,7 @@ Der ballistische Koeffizient ist die eine Zahl in der ganzen Flugbahnrechnung, d
 
 Es ist zugleich die Zahl, auf die die Flugbahn auf Distanz am empfindlichsten reagiert, und die mit der größten Neigung zur Schmeichelei. Veröffentlichte BCs sind ebenso oft Marketingzahlen wie Messwerte.
 
-**BC-Labradar misst Ihren.** Es liest die Track-Dateien, die ein Labradar-Chronograph auf seine eigene SD-Karte schreibt: eine vollständige Aufzeichnung von Geschwindigkeit über Zeit für jeden Schuss, etwa jede Millisekunde abgetastet, über die ersten rund hundert Meter des Fluges. Es passt für jeden Schuss einzeln einen ballistischen Koeffizienten an, mit derselben Widerstandsphysik, mit der der Rest der Suite Flugbahnen rechnet. Dann bereinigt es die verpatzten Tracks, wirft die Schüsse hinaus, die mit den übrigen nicht zusammenpassen, und mittelt, was übrig bleibt.
+**Labrabaco NG misst Ihren.** Es liest die Track-Dateien, die ein Labradar-Chronograph auf seine eigene SD-Karte schreibt: eine vollständige Aufzeichnung von Geschwindigkeit über Zeit für jeden Schuss, etwa jede Millisekunde abgetastet, über die ersten rund hundert Meter des Fluges. Es passt für jeden Schuss einzeln einen ballistischen Koeffizienten an, mit derselben Widerstandsphysik, mit der der Rest der Suite Flugbahnen rechnet. Dann bereinigt es die verpatzten Tracks, wirft die Schüsse hinaus, die mit den übrigen nicht zusammenpassen, und mittelt, was übrig bleibt.
 
 Heraus kommt ein BC für **Ihr** Geschoss, aus **Ihrem** Lauf, in **Ihrer** Luft. Tragen Sie ihn ins Arsenal ein, und jedes andere Werkzeug der Suite rechnet mit einer Messung statt mit einer Behauptung.
 
@@ -98,7 +98,7 @@ Für Ungeduldige. Einzelheiten folgen in §5–§10.
 1. Schießen Sie eine Sitzung mit dem Labradar, mit Sorgfalt bei Ausrichtung, Geschossversatz und dem Rest von §5.1–§5.5. Zwanzig Schuss oder mehr, alle mit demselben Geschoss.
 2. Notieren Sie Temperatur, **Stations**druck und Feuchtigkeit **am Schützenstand** (§5.6). Nicht die Wettervorhersage.
 3. Kopieren Sie den Sitzungsordner von der SD-Karte und zippen Sie ihn, samt Unterordnern.
-4. **BC-Werkzeuge** aus dem Werkzeugmenü → Reiter **BC-Labradar**.
+4. **BC-Werkzeuge** aus dem Werkzeugmenü → Reiter **Labrabaco NG**.
 5. Stellen Sie das **Luftwiderstandsmodell** ein — G7 für ein modernes Boat-Tail, G1 für Flachboden oder Rundkopf (§6.1).
 6. Tragen Sie die **Atmosphäre** aus Ihren Notizen ein.
 7. **Labradar-.zip wählen…** und die Datei auswählen. Die Track-Liste erscheint sofort.
@@ -649,7 +649,7 @@ Das ungewichtete Mittel ist eine bewusste Wahl, kein Versehen. Punkte innerhalb 
 
 ## 13. Herkunft
 
-BC-Labradar ist der Nachfolger von **Labrabaco**, einem eigenständigen Werkzeug desselben Autors. Der Einleseweg (das Erkennen von Tracks, die Toleranzregeln je Zeile, der Punktbereinigungsalgorithmus und seine beiden Ganz-Track-Schranken) ist getreu von dort portiert, Aufrufstelle für Aufrufstelle nachverfolgt und an echten Beispiel-Tracks validiert. Das schließt die in §12.3 dokumentierten Index-Asymmetrien ein, die wie Fehler aussehen und keine sind.
+Labrabaco NG ist der Nachfolger von **Labrabaco**, einem eigenständigen Werkzeug desselben Autors. Der Einleseweg (das Erkennen von Tracks, die Toleranzregeln je Zeile, der Punktbereinigungsalgorithmus und seine beiden Ganz-Track-Schranken) ist getreu von dort portiert, Aufrufstelle für Aufrufstelle nachverfolgt und an echten Beispiel-Tracks validiert. Das schließt die in §12.3 dokumentierten Index-Asymmetrien ein, die wie Fehler aussehen und keine sind.
 
 Neu ist die Anpassung. Das Altwerkzeug legte eine Gerade durch die bereinigten Punkte und halbierte nach dem BC, der zu deren Endpunkten passte; dieses passt die eigene Widerstandsphysik der App gegen jeden behaltenen Punkt auf einmal an, gemeinsam mit einer Referenzgeschwindigkeit. Diese Änderung, und die damit gepaarte Änderung der Bereinigungsschwelle von 0,97 auf 0,99, wurden an synthetischen Tracks mit echtem Rauschen validiert, bevor eine von beiden ausgeliefert wurde. Die Validierungsberichte liegen im Repository neben dem Code, samt der negativen Ergebnisse, der beiden verworfenen Entwürfe und des einen funktionierenden Mechanismus, der gebaut und dann weggelassen wurde, weil er seinen Preis nicht wert war.
 

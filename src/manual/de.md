@@ -35,7 +35,7 @@ Zahlen eingeht:
 
 - [Arsenal](#/manual/arsenal)
 - [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
-- [BC Labradar](#/manual/bc-labradar)
+- [Labrabaco NG](#/manual/bc-labradar)
 - [Sicherung & Synchronisierung](#/manual/backup-sync)
 
 Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
@@ -397,7 +397,7 @@ heruntergeladen** werden.
 Ermittelt einen ballistischen Koeffizienten aus bekannten Daten, oder
 rechnet einen BC zwischen verschiedenen Modellen um — zusammengefasst in
 einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung**,
-**Mehrere BC** und **BC-Labradar**, alle bereits voll nutzbar.
+**Mehrere BC** und **Labrabaco NG**, alle bereits voll nutzbar.
 
 Die **BC-Berechnung** ermittelt einen ballistischen Koeffizienten aus einem
 nahen Geschwindigkeits-/Distanzpaar und entweder einer fernen Geschwindigkeit
@@ -437,7 +437,7 @@ direkt ins Arsenal speichern, als CSV herunterladen/kopieren, oder als ein
 einzelner „optimaler Kompromiss"-BC pro Modell über den eigenen
 Überschallbereich des Geschosses ablesen.
 
-**BC-Labradar** ermittelt pro Schuss einen BC aus einem
+**Labrabaco NG** ermittelt pro Schuss einen BC aus einem
 Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das
 Gerät pro Schuss auf seiner SD-Karte ablegt und die die Geschwindigkeit
 etwa jede Millisekunde während des Flugs aufzeichnen. Siehe das

@@ -34,7 +34,7 @@ applicabile, le statistiche dietro i numeri:
 
 - [Arsenale](#/manual/arsenal)
 - [Calcolatore di precisione di tiro](#/manual/rifle-precision)
-- [BC Labradar](#/manual/bc-labradar)
+- [Labrabaco NG](#/manual/bc-labradar)
 - [Backup e sincronizzazione](#/manual/backup-sync)
 
 Altri manuali dettagliati per gli altri strumenti sono previsti.
@@ -388,7 +388,7 @@ come SVG**.
 
 Calcola un coefficiente balistico da dati noti, oppure converte un BC tra
 modelli diversi — raggruppati in un unico strumento con le schede
-**Calcolo BC**, **Conversione BC**, **BC multipli** e **BC Labradar**, già
+**Calcolo BC**, **Conversione BC**, **BC multipli** e **Labrabaco NG**, già
 tutte pienamente utilizzabili.
 
 Il **Calcolo BC** ricava un coefficiente balistico da una coppia
@@ -426,7 +426,7 @@ modifica. Il risultato può essere salvato direttamente nell'Arsenale,
 scaricato/copiato come CSV, oppure letto come un unico BC "di compromesso
 ottimale" per modello, sulla gamma supersonica propria del proiettile.
 
-**BC Labradar** calcola un BC per ogni colpo a partire da un'esportazione
+**Labrabaco NG** calcola un BC per ogni colpo a partire da un'esportazione
 del cronografo Labradar — uno **.zip** di file di traccia che il
 dispositivo scrive sulla sua scheda SD, uno per colpo, registrando la
 velocità circa ogni millisecondo durante il volo. Vedi il [manuale

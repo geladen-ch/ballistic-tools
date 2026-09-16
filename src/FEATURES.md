@@ -79,7 +79,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, a
 - **BC Calculation** — back out a BC from measured velocity loss or time of flight over a known distance, instead of trusting a published number
 - **BC Conversion** — convert a BC between standard drag models at a chosen reference velocity
 - ★ **Multiple BC** — turn 2–5 manufacturer-published BC values (each valid over its own speed band) into a bullet-specific Cd-Mach curve, with draggable segment borders on the chart, plus the "optimal compromise" single BC per model
-- ★ **BC Labradar** — parses raw Labradar chronograph track exports (.zip of per-shot millisecond-resolution velocity data), auto-fits a BC per shot, with signal-quality and outlier-rejection filters and per-track manual include/exclude; the averaged BC ships with its own 95% confidence interval (± N%, via a small-sample Student-t multiplier), so you can see how much the surviving tracks actually agree
+- ★ **Labrabaco NG** — parses raw Labradar chronograph track exports (.zip of per-shot millisecond-resolution velocity data), auto-fits a BC per shot, with signal-quality and outlier-rejection filters and per-track manual include/exclude; the averaged BC ships with its own 95% confidence interval (± N%, via a small-sample Student-t multiplier), so you can see how much the surviving tracks actually agree
 
 ## Cd–Mach Curve
 

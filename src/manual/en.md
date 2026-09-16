@@ -31,7 +31,7 @@ the numbers:
 
 - [Arsenal](#/manual/arsenal)
 - [Rifle Precision Calculator](#/manual/rifle-precision)
-- [BC Labradar](#/manual/bc-labradar)
+- [Labrabaco NG](#/manual/bc-labradar)
 - [Backup & Sync](#/manual/backup-sync)
 
 More detailed manuals for the other tools are planned.
@@ -344,7 +344,7 @@ as an SVG**.
 
 Calculate a ballistic coefficient from known data, or convert a BC between
 different models — grouped under one tool with **BC Calculation**, **BC
-Conversion**, **Multiple BC**, and **BC Labradar** tabs, all fully usable
+Conversion**, **Multiple BC**, and **Labrabaco NG** tabs, all fully usable
 today.
 
 **BC Calculation** backs out a ballistic coefficient from a near
@@ -377,7 +377,7 @@ unit, and the curve/results table update live as you go. The result can be
 saved straight to Arsenal, downloaded/copied as CSV, or read as a single
 "optimal compromise" BC per model over the bullet's own supersonic range.
 
-**BC Labradar** fits a BC per shot from a Labradar chronograph export — a
+**Labrabaco NG** fits a BC per shot from a Labradar chronograph export — a
 **.zip** of track files the device writes to its SD card, one per shot,
 recording velocity roughly every millisecond during flight. See the
 [detailed manual](#/manual/bc-labradar) for the full method, edge cases,
