@@ -39,6 +39,17 @@ export function exportChartSvg(container, filename) {
   if (!width || !height) return; // not actually laid out (e.g. hidden container) — nothing sensible to export
 
   const svg = original.cloneNode(true);
+  // Chartist's foreignObject() helper (see .foreignObject() in
+  // src/vendor/chartist/index.js, used by createLabel() for every axis
+  // label) sets each label <span>'s "xmlns" attribute to the XMLNS
+  // *meta*-namespace URI itself instead of the XHTML one — a value that's
+  // forbidden to (re)declare in XML and trips strict parsers ("reuse of
+  // xmlns namespace name is forbidden" in Firefox) as soon as this
+  // exported file is reopened. Those spans are already in the right
+  // namespace from document.createElement(), so XMLSerializer regenerates
+  // a correct declaration for them on its own — just drop every explicit
+  // "xmlns" Chartist left on a descendant before serializing.
+  for (const node of svg.querySelectorAll('[xmlns]')) node.removeAttribute('xmlns');
   svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   svg.setAttribute('width', String(width));
   svg.setAttribute('height', String(height));
