@@ -1068,7 +1068,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
-      "v217": "Fix: chart SVG exports (Cd–Mach curve, Trajectory, Arsenal comparison, Labrabaco NG track chart) failed to reopen with an XML namespace error caused by a bug in the vendored charting library's axis-label markup; exports now strip the bad attribute before saving. Axis labels also get a native SVG text fallback, so they still show up in SVG viewers that don't support the library's HTML-based label rendering.",
+      "v217": "Fix: fixed broken output of chart SVG exports (Cd–Mach curve, Trajectory, Arsenal comparison, Labrabaco NG track chart).",
       "v216": "Change: dropped the 'Live'/'Partial' status badges from tool listings (nav rail, category pages, Home) — nearly every tool is live now, so the badge was just noise; a not-yet-built tool still shows 'Planned'.",
       "v215": "Change: renamed 'BC Labradar' to 'Labrabaco NG' (we did not have enough confusion as it were).",
       "v214": "Fix: circular target zones (rings, gongs) now compute hit probability exactly via numerical integration, instead of approximating the circle as an equal-area square — that approximation could be badly wrong for a tight group aimed near a ring edge.",
