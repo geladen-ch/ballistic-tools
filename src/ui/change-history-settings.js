@@ -12,6 +12,7 @@ import { listRecentHistory, listRecentlyDeleted, listHistoryFor, revertToEntry }
 import { getDeviceId } from '../sync/device-id.js';
 import { getDeviceLabel } from '../sync/device-registry.js';
 import { recordTypeLabel } from '../sync/record-type-labels.js';
+import { isoDate } from './iso-date.js';
 
 // Each list keeps this many entries, newest first, and shows this many at
 // once: the rest is reached by scrolling inside the list. Rows can wrap to
@@ -74,7 +75,7 @@ function summaryFor(entry) {
   return t('settings.changeHistory.entrySummary', {
     type: recordTypeLabel(entry.recordType),
     status,
-    when: new Date(entry.capturedAt).toLocaleString(),
+    when: isoDate(entry.capturedAt),
     who: whoLabel(entry.supersededBy)
   });
 }
@@ -86,7 +87,7 @@ function deletedSummaryFor(row) {
   return t('settings.changeHistory.entrySummary', {
     type: recordTypeLabel(row.recordType),
     status: t('settings.changeHistory.deletedStatus'),
-    when: new Date(row.deletedAt).toLocaleString(),
+    when: isoDate(row.deletedAt),
     who: whoLabel(row.deletedBy)
   });
 }

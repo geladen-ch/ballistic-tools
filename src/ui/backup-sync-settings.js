@@ -6,6 +6,7 @@ import { el, clear } from '../dom.js';
 import { i18nSpan, applyI18nText, t } from '../i18n.js';
 import { sectionGroup } from './section.js';
 import { showDialog, hideDialog } from './app-dialog.js';
+import { isoDate } from './iso-date.js';
 import { copyButton } from './copy-button.js';
 import { downloadFile } from '../download.js';
 import { isBackupSyncEnabled, setBackupSyncEnabled } from '../backup-sync-prefs.js';
@@ -144,7 +145,7 @@ function lastChangedOf(record) {
 
 function formatWhen(iso) {
   const ms = iso ? Date.parse(iso) : NaN;
-  return Number.isFinite(ms) ? new Date(ms).toLocaleString() : t('settings.backupSync.review.unknownTimestamp');
+  return Number.isFinite(ms) ? isoDate(ms) : t('settings.backupSync.review.unknownTimestamp');
 }
 
 // One line per side: "Yours: edited <when>" / "Theirs: deleted <when>" —
@@ -246,7 +247,7 @@ function buildChoiceArea(item, lib, originalLocal, onResolved) {
 // beside a device that had just published.
 function deviceStatusText(row) {
   if (!row.isSelf && row.hasBundle === false) return t('settings.backupSync.devices.noBackup');
-  if (row.lastExportedAt) return t('settings.backupSync.devices.published', { when: new Date(row.lastExportedAt).toLocaleString() });
+  if (row.lastExportedAt) return t('settings.backupSync.devices.published', { when: isoDate(row.lastExportedAt) });
   return null;
 }
 
@@ -330,7 +331,7 @@ function confirmDeleteDevice(row, onDone) {
     body.splice(1, 0, el('p', {
       class: 'hint warning',
       text: t('settings.backupSync.devices.confirmRecent', {
-        when: row.lastExportedAt ? new Date(row.lastExportedAt).toLocaleString() : ''
+        when: row.lastExportedAt ? isoDate(row.lastExportedAt) : ''
       })
     }));
   }
@@ -560,7 +561,7 @@ export function backupSyncSection(onSyncApplied = () => {}) {
         statusLine.textContent = t('settings.backupSync.statusNeverSynced');
         return;
       }
-      const when = new Date(lastSyncedAt).toLocaleString();
+      const when = isoDate(lastSyncedAt);
       const devices = getLastSyncedDevices();
       statusLine.textContent = devices.length
         ? t('settings.backupSync.statusLastSyncedWith', { when, devices: devices.join(', ') })
@@ -619,7 +620,7 @@ export function backupSyncSection(onSyncApplied = () => {}) {
         renderCleanupWarnings([]);
         return;
       }
-      const when = new Date(status.at).toLocaleString();
+      const when = isoDate(status.at);
       if (status.removedCount > 0) {
         cleanupLine.textContent = status.bytesKnown
           ? t('settings.backupSync.cleanup.lastRemoved', {

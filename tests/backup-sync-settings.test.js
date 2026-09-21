@@ -12,6 +12,7 @@ const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
 const { backupSyncSection } = await import('../src/ui/backup-sync-settings.js');
 const { isBackupSyncEnabled, setBackupSyncEnabled } = await import('../src/backup-sync-prefs.js');
 const { getDeviceName } = await import('../src/sync/device-name.js');
+const { isoDate } = await import('../src/ui/iso-date.js');
 const { addPendingReview, resetPendingReviewForTests } = await import('../src/sync/pending-review.js');
 const { isDeviceDeleted } = await import('../src/sync/device-registry.js');
 const { resetLocationLibraryForTests } = await import('../src/location-library.js');
@@ -743,7 +744,7 @@ test('this device\'s own row shows when it last published', () => {
   setBackupSyncEnabled(true);
   const container = mount();
 
-  const expected = t('settings.backupSync.devices.published', { when: new Date(publishedAt).toLocaleString() });
+  const expected = t('settings.backupSync.devices.published', { when: isoDate(publishedAt) });
   assert.ok(rowTexts(container).some((text) => text.includes(getDeviceName()) && text.includes(expected)));
 });
 
@@ -911,7 +912,7 @@ test('a device that synced recently gets its "probably still in use" warning in 
   fireEvent(byKey(container, 'BUTTON', 'settings.backupSync.devices.deleteDeviceButton'), 'click');
   fireEvent(pickerRows()[0], 'click');
 
-  assert.ok(dialogRoot.textContent.includes(t('settings.backupSync.devices.confirmRecent', { when: new Date(justNow).toLocaleString() })));
+  assert.ok(dialogRoot.textContent.includes(t('settings.backupSync.devices.confirmRecent', { when: isoDate(justNow) })));
 });
 
 test('a device that cannot be deleted yet is shown in the picker with the reason, and cannot be picked', async () => {
@@ -989,6 +990,43 @@ test('with folder access "Clean Up Storage Now" is offered, with its hint', () =
   const container = mount();
   assert.ok(byKey(container, 'BUTTON', 'settings.backupSync.cleanup.runNowButton'));
   assert.ok(byKey(container, 'P', 'settings.backupSync.cleanup.runNowHint'));
+});
+
+// ---- dates are shown as YYYY-MM-DD, not localized ----
+
+test('the Devices list shows a device\'s last backup as an ISO date, with no time and no locale format', () => {
+  seedPeers({ kitchen: { name: 'Kitchen PC', modifiedAt: '2026-01-01T00:00:00.000Z', lastExportedAt: '2026-09-01T12:00:00.000Z' } });
+  setBackupSyncEnabled(true);
+  const container = mount();
+
+  const row = rowTexts(container).find((text) => text.includes('Kitchen PC'));
+  assert.ok(row.includes('published 2026-09-01'), row);
+  assert.ok(!/\d{1,2}:\d{2}/.test(row), 'no time of day');
+  assert.ok(!row.includes('/'), 'and no "9/1/2026" style');
+});
+
+test('the last-synced line shows an ISO date', () => {
+  localStorage.setItem('ballistics_last_synced_at_v1', '2026-09-15T12:00:00.000Z');
+  setBackupSyncEnabled(true);
+  const container = mount();
+  const line = findByTag(container, 'P').map((p) => p.textContent).find((text) => text.includes('2026-09-15'));
+  assert.ok(line, 'expected the status line to carry the ISO date');
+  assert.ok(!/\d{1,2}:\d{2}/.test(line));
+});
+
+test('both sides of a conflict are dated in ISO form', () => {
+  setBackupSyncEnabled(true);
+  const id = generateUserId('user-bullet');
+  saveUserBullet({ id, name: 'Mine', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  addPendingReview({
+    recordType: 'bullet', recordId: id, reason: 'same-timestamp-diverged-content', peerDeviceId: 'peer-1',
+    remoteVersion: { id, name: 'Theirs', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedAt: '2026-06-01T12:00:00.000Z' }
+  });
+  const container = mount();
+  fireEvent(byKey(container, 'BUTTON', 'settings.backupSync.reviewButton'), 'click');
+
+  assert.ok(dialogRoot.textContent.includes('2026-06-01'), 'their side, from the stored version');
+  assert.ok(dialogRoot.textContent.includes(isoDate(new Date())), 'and this side, from the local record');
 });
 
 // ---- Copy log ----

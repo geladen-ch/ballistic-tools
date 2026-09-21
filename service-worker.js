@@ -162,6 +162,7 @@ const APP_SHELL_URLS = [
   './src/ui/chart-column-select.js',
   './src/ui/download-button.js',
   './src/ui/copy-button.js',
+  './src/ui/iso-date.js',
   './src/ui/nav-icons.js',
   './src/ui/nav-rail.js',
   './src/ui/nav-tabbar.js',

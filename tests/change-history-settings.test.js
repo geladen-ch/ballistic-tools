@@ -259,3 +259,22 @@ test('a restore button is disabled while the snapshot is being fetched, so a sec
   await settle();
   assert.equal(loadUserBullets().length, 1);
 });
+
+test('history entries are dated in ISO form, with no time and no locale format', () => {
+  const id = generateUserId('user-bullet');
+  saveUserBullet({ id, name: 'V1', ...BULLET });
+  saveUserBullet({ id, name: 'V2', ...BULLET });
+  const gone = generateUserId('user-bullet');
+  saveUserBullet({ id: gone, name: 'Gone', ...BULLET });
+  deleteUserBullet(gone);
+
+  const container = mount();
+  const today = new Date();
+  const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const rows = findByTag(container, 'SPAN').map((s) => s.textContent).filter((text) => text.includes('—'));
+  assert.ok(rows.length >= 2, 'a recent change and a deletion are listed');
+  for (const row of rows) {
+    assert.ok(row.includes(iso), row);
+    assert.ok(!/\d{1,2}:\d{2}/.test(row), `no time of day in: ${row}`);
+  }
+});
