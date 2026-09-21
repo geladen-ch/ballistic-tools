@@ -37,6 +37,7 @@ function mountWithRefresh() {
 }
 
 let dialogRoot;
+const settle = (ms = 20) => new Promise((resolve) => setTimeout(resolve, ms));
 
 test.beforeEach(async () => {
   localStorage.clear();
@@ -64,7 +65,7 @@ test('lists a recent edit with a Revert button', () => {
   assert.ok(revertButton);
 });
 
-test('reverting a deletion brings the record back and re-renders the list', () => {
+test('reverting a deletion brings the record back and re-renders the list', async () => {
   const id = generateUserId('user-bullet');
   saveUserBullet({ id, name: 'My Bullet', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
   deleteUserBullet(id);
@@ -76,6 +77,7 @@ test('reverting a deletion brings the record back and re-renders the list', () =
   const revertButtons = findByTag(container, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === 'settings.changeHistory.revertButton');
   assert.equal(revertButtons.length, 1);
   fireEvent(revertButtons[0], 'click');
+  await settle(); // the snapshot is fetched from storage first
 
   assert.equal(loadUserBullets().length, 1);
   assert.equal(loadUserBullets()[0].name, 'My Bullet');
@@ -86,7 +88,7 @@ test('Recently Deleted shows the empty hint when nothing has been deleted', () =
   assert.ok(container.textContent.includes('Nothing recently deleted'));
 });
 
-test('Recently Deleted lists a deleted record with a Restore button, separate from the flat recent-changes list', () => {
+test('Recently Deleted lists a deleted record with a Restore button, separate from the flat recent-changes list', async () => {
   const id = generateUserId('user-bullet');
   saveUserBullet({ id, name: 'Gone Bullet', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
   deleteUserBullet(id);
@@ -96,13 +98,14 @@ test('Recently Deleted lists a deleted record with a Restore button, separate fr
   assert.equal(restoreButtons.length, 1, 'expected exactly one Restore button in the trash-bin section');
 
   fireEvent(restoreButtons[0], 'click');
+  await settle();
   assert.equal(loadUserBullets().length, 1);
   assert.equal(loadUserBullets()[0].name, 'Gone Bullet');
   // Restoring is itself an edit, so the record drops back out of the trash bin.
   assert.ok(container.textContent.includes('Nothing recently deleted'));
 });
 
-test('History… opens a dialog listing every retained version of that record, each independently restorable', () => {
+test('History… opens a dialog listing every retained version of that record, each independently restorable', async () => {
   const id = generateUserId('user-bullet');
   saveUserBullet({ id, name: 'V1', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
   saveUserBullet({ id, name: 'V2', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
@@ -122,6 +125,7 @@ test('History… opens a dialog listing every retained version of that record, e
   assert.equal(restoreVersionButtons.length, 2, 'one restore action per retained version');
 
   fireEvent(restoreVersionButtons[1], 'click'); // the older one (V1), listed second (newest first)
+  await settle();
   assert.equal(loadUserBullets()[0].name, 'V1');
 });
 
@@ -164,4 +168,94 @@ test('refresh() picks up a change-history entry added after mount, simulating a 
 
   refresh();
   assert.ok(container.textContent.includes('Before Sync'), 'the superseded version should now be listed');
+});
+
+// ---- how many rows: up to 50 kept per list, ten visible at a time ----
+
+const BULLET = { manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } };
+const buttonsFor = (container, key) => findByTag(container, 'BUTTON').filter((b) => b.getAttribute && b.getAttribute('data-i18n') === key);
+function findByClass(node, cls, out = []) {
+  if (node.classList && node.classList.contains(cls)) out.push(node);
+  for (const child of node.childNodes || []) findByClass(child, cls, out);
+  return out;
+}
+
+test('Recent changes keeps fifty entries, not twenty', () => {
+  const id = generateUserId('user-bullet');
+  for (let i = 0; i < 61; i++) saveUserBullet({ id, name: `Edit ${i}`, ...BULLET });
+
+  const container = mount();
+  assert.equal(buttonsFor(container, 'settings.changeHistory.revertButton').length, 50, 'sixty entries exist; the list holds the newest fifty');
+  assert.ok(container.textContent.includes('Edit 59'), 'the newest is there');
+  assert.ok(!container.textContent.includes('Edit 0 '), 'the oldest is not');
+});
+
+test('Recently deleted keeps fifty entries, not twenty', () => {
+  for (let i = 0; i < 55; i++) {
+    const id = generateUserId('user-bullet');
+    saveUserBullet({ id, name: `Doomed ${i}`, ...BULLET });
+    deleteUserBullet(id);
+  }
+  const container = mount();
+  assert.equal(buttonsFor(container, 'settings.changeHistory.restoreButton').length, 50);
+});
+
+test('each list scrolls inside its own box', () => {
+  const container = mount();
+  const scrollers = findByClass(container, 'history-scroll');
+  assert.equal(scrollers.length, 2, 'one for Recently deleted, one for Recent changes');
+});
+
+test('each list is sized to exactly ten rows, measured, and unbounded when there are ten or fewer', () => {
+  // No layout engine here, so a stand-in ResizeObserver hands over its
+  // callback and the rows report positions. Rows 32px apart: ten of them
+  // are 320px, so that is what the box must be.
+  const observers = [];
+  global.ResizeObserver = class { constructor(callback) { observers.push(callback); } observe() {} disconnect() {} };
+  try {
+    const id = generateUserId('user-bullet');
+    for (let i = 0; i < 13; i++) saveUserBullet({ id, name: `Edit ${i}`, ...BULLET }); // 12 entries
+
+    const container = mount();
+    const [deletedBox, recentBox] = findByClass(container, 'history-scroll');
+    const stub = (box) => box.childNodes[0].childNodes.forEach((row, i) => { row.getBoundingClientRect = () => ({ top: 100 + i * 32 }); });
+    stub(deletedBox);
+    stub(recentBox);
+    observers.forEach((callback) => callback());
+
+    assert.equal(recentBox.style.maxHeight, '320px', 'twelve rows: the box shows the first ten');
+    assert.equal(deletedBox.style.maxHeight, 'none', 'only the empty hint: nothing to limit');
+  } finally {
+    delete global.ResizeObserver;
+  }
+});
+
+test('the measurement follows the row heights, so wrapped rows still show ten', () => {
+  const observers = [];
+  global.ResizeObserver = class { constructor(callback) { observers.push(callback); } observe() {} disconnect() {} };
+  try {
+    const id = generateUserId('user-bullet');
+    for (let i = 0; i < 13; i++) saveUserBullet({ id, name: `Edit ${i}`, ...BULLET });
+    const container = mount();
+    const recentBox = findByClass(container, 'history-scroll')[1];
+    // A narrow screen: every row is three lines tall.
+    recentBox.childNodes[0].childNodes.forEach((row, i) => { row.getBoundingClientRect = () => ({ top: i * 96 }); });
+    observers.forEach((callback) => callback());
+    assert.equal(recentBox.style.maxHeight, '960px');
+  } finally {
+    delete global.ResizeObserver;
+  }
+});
+
+test('a restore button is disabled while the snapshot is being fetched, so a second click cannot restore twice', async () => {
+  const id = generateUserId('user-bullet');
+  saveUserBullet({ id, name: 'Once', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  deleteUserBullet(id);
+  const container = mount();
+  const [restoreButton] = buttonsFor(container, 'settings.changeHistory.restoreButton');
+
+  fireEvent(restoreButton, 'click');
+  assert.equal(restoreButton.disabled, true, 'disabled at once, before the fetch has finished');
+  await settle();
+  assert.equal(loadUserBullets().length, 1);
 });

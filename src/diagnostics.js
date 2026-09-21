@@ -10,6 +10,7 @@
 import { CACHE_VERSION, RELEASE_ID, CODENAME_SHORT, CODENAME_LONG } from './version.js';
 import { downloadFile } from './download.js';
 import { getDiagnosticLog, logDiagnostic } from './debug-log.js';
+import { getPersistedSyncLog } from './sync/sync-log.js';
 import { loadBulletLibraries } from './bullets.js';
 import { loadRifleCatalog } from './rifles.js';
 import { loadTargetCatalog } from './targets.js';
@@ -144,11 +145,16 @@ function collectUserDataCounts() {
 }
 
 export async function collectDiagnostics() {
-  const [environment, serviceWorker, storageEstimate, indexedDb] = await Promise.all([
+  const [environment, serviceWorker, storageEstimate, indexedDb, syncLog] = await Promise.all([
     collectEnvironment(),
     collectServiceWorkerAndCache(),
     collectStorageEstimate(),
-    collectIndexedDb()
+    collectIndexedDb(),
+    // The durable sync log, which unlike `log` below survives reloads.
+    // It is the only record of a cleanup or repair that chose not to
+    // surface anything to the user, so a diagnostics download is the one
+    // route by which such a decision can ever be reviewed.
+    getPersistedSyncLog().catch(() => [])
   ]);
 
   return {
@@ -160,7 +166,8 @@ export async function collectDiagnostics() {
     indexedDb,
     userData: collectUserDataCounts(),
     autoRecovery: readAutoRecoveryMarker(),
-    log: getDiagnosticLog()
+    log: getDiagnosticLog(),
+    syncLog
   };
 }
 

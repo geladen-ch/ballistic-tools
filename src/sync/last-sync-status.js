@@ -5,7 +5,66 @@
 // this device actually uses.
 const LAST_SYNCED_AT_KEY = 'ballistics_last_synced_at_v1';
 
+const OWN_PUBLISHED_AT_KEY = 'ballistics_own_published_at_v1';
+
 let lastSyncedDevices = [];
+
+// When *this* device last wrote its own bundle to the folder. The device
+// registry only ever holds peers — it is filled by reading other devices'
+// bundles, and a device never reads its own — so without this the Devices
+// list had no publish time for the one row it always shows, and rendered
+// "no backup file in the folder" beside a device that had just published.
+export function recordOwnPublished(exportedAt) {
+  try {
+    localStorage.setItem(OWN_PUBLISHED_AT_KEY, exportedAt || new Date().toISOString());
+  } catch {
+    // storage full/disabled — best-effort, same posture as prefs.js
+  }
+}
+
+export function getOwnPublishedAt() {
+  try {
+    return localStorage.getItem(OWN_PUBLISHED_AT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// What each backup file in the folder holds, as read out of the file
+// itself: `{ [fileName]: { id, name, exportedAt } }`. Nothing here is
+// inferred from a file name — the name is only the key the folder gives us
+// to look a file up by. The Devices list has to list the folder without
+// opening every file each time it repaints, so it reads this instead;
+// see device-deletion.js's identifyBackupFiles() for how a file no cycle
+// has read yet gets into it. Replaced wholesale by each sync cycle, so it
+// cannot accumulate names of files long gone.
+const FILE_DEVICES_KEY = 'ballistics_backup_file_devices_v1';
+
+export function recordFileDevices(files) {
+  try {
+    localStorage.setItem(FILE_DEVICES_KEY, JSON.stringify(files || {}));
+  } catch {
+    // best-effort, same posture as the rest of this file
+  }
+}
+
+export function getFileDevices() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FILE_DEVICES_KEY) || '{}');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const normalized = {};
+    for (const [fileName, value] of Object.entries(parsed)) {
+      // An earlier build stored just the id string.
+      const entry = typeof value === 'string' ? { id: value } : value;
+      if (entry && typeof entry.id === 'string' && entry.id) {
+        normalized[fileName] = { id: entry.id, name: entry.name || null, exportedAt: entry.exportedAt || null };
+      }
+    }
+    return normalized;
+  } catch {
+    return {};
+  }
+}
 
 export function getLastSyncedAt() {
   try {

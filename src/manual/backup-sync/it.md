@@ -62,6 +62,26 @@ Questo non è solo "meno comodo", ha un peso reale, e vale la pena capirlo prima
 - **Attivate la modalità "Automaticamente" solo se ogni dispositivo della vostra rete è della famiglia Chrome.** Nel momento in cui anche un solo dispositivo è Firefox, Safari o iOS, riportate tutti alla sincronizzazione **manuale**. La modalità automatica è stata costruita per il caso "tutto Chrome".
 - Se una rete mista è davvero la vostra situazione — un portatile, un telefono, un iPad — va bene, la funzione è costruita per gestirlo, basta andarci con gli occhi aperti: modalità manuale ovunque, e attivate "Supporto sincronizzazione manuale iPhone" solo se avete davvero bisogno che l'iPad/iPhone veda anche le foto, altrimenti pagherà una tassa per una funzione che non state usando.
 
+## La manutenzione che fa da sola
+
+Alcune cose avvengono in background e vale la pena conoscerle, perché toccano file che puoi vedere nella tua cartella cloud.
+
+- **I file foto inutilizzati vengono rimossi.** Ogni volta che modifichi o elimini una foto, la vecchia copia resta nella sottocartella `assets/` — non la rimuoveva mai nessuno, quindi la cartella non faceva che crescere. Ora, all'incirca una volta al giorno, l'app rimuove i file foto a cui nessun dispositivo fa più riferimento. Aspetta un mese prima di toccare qualsiasi cosa, così una foto ancora in viaggio attraverso il tuo provider cloud non è mai a rischio, e ti dice che cosa ha rimosso nella sezione Backup e sincronizzazione. Le tue foto vivono sui singoli dispositivi, non in quella cartella: anche nel caso peggiore, un file rimosso torna alla successiva sincronizzazione del dispositivo che possiede quella foto.
+- **«Pulisci ora lo spazio»** fa la stessa cosa su richiesta, e in più riordina la cronologia delle modifiche e il registro di sincronizzazione. Usalo se hai appena eliminato un progetto grosso e vuoi lo spazio subito. A differenza del passaggio automatico, riporta tutto ciò che ha trovato, che tu possa farci qualcosa o no. Compare solo nei browser della famiglia Chrome, quelli che possono usare una cartella di sincronizzazione — altrove il riordino che farebbe avviene già a ogni avvio dell'app.
+- **Le copie in più del backup di un dispositivo vengono riordinate.** Un browser senza accesso alla cartella (Firefox, per esempio) salva ogni esportazione manuale come nuovo file, ad esempio `backup-… (1).json`, quando ne esiste già uno. L'app le conta come un solo dispositivo e usa solo la copia più recente — giudicata dalla data di esportazione scritta nel file, non dalla data del file stesso — e, dove il browser lo consente, elimina le più vecchie. Ogni eliminazione viene annotata come avviso nel registro di sincronizzazione.
+
+Se vedi **«Impossibile sincronizzare le immagini da ...»**, significa che le foto da quella macchina non arrivano qui. Apri l'app sul dispositivo indicato, verifica che il provider cloud abbia finito di sincronizzare, e lancia una sincronizzazione. Se quel dispositivo resta via per un po', puoi comprimere il messaggio fino alla sua prossima sincronizzazione — torna da solo se il problema persiste.
+
+## Mettere fuori servizio un dispositivo
+
+Quando un computer o un telefono è davvero fuori uso — venduto, sostituito, morto — puoi eliminarlo da **Dispositivi** nella sezione Backup e sincronizzazione. Questo rimuove il suo file di backup dalla cartella e lo toglie dall'elenco su *tutti* i tuoi dispositivi, non solo su quello che stai guardando.
+
+L'app controlla prima tre cose e non ti lascia proseguire: conflitti non risolti che riguardano quel dispositivo, foto da esso ancora in arrivo, e un dispositivo che non è mai stato sincronizzato su questo. In tutti e tre i casi tiene ancora qualcosa di cui questo dispositivo non ha copia — sistema prima quello.
+
+**Solo un browser della famiglia Chrome può davvero rimuovere il file.** In Firefox, Safari, o su un iPhone o iPad l'eliminazione vale comunque — il dispositivo esce dai tuoi elenchi e tutti i dispositivi ignorano il suo vecchio file — ma il file resta nella cartella finché un dispositivo Chrome o Edge non si sincronizza e lo rimuove. Sincronizza una volta dopo l'eliminazione, così arriva agli altri tuoi dispositivi.
+
+E se elimini una macchina che poi risulta viva, non si è rotto nulla: rientra semplicemente alla sincronizzazione successiva. È voluto, ma vuol dire anche che eliminare un dispositivo ancora in uso non serve a niente — per questo l'elenco ti avvisa quando un dispositivo si è sincronizzato di recente.
+
 ## Un paio di reti di sicurezza, in breve
 
 - **Verifica.** Se due dispositivi modificano davvero la stessa cosa esattamente nello stesso momento, in un modo che l'app non può risolvere automaticamente con sicurezza, non indovina — lo segnala sotto **Verifica…**, nella stessa sezione delle Impostazioni, vi mostra entrambe le versioni, e vi lascia scegliere.

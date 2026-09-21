@@ -25,7 +25,9 @@
 // changes and forget to push their own back out.
 import { SYNCED_LIBRARIES } from './synced-libraries.js';
 import { buildBackupBundle, serializeBackupBundle, parseBackupBundle, backupFileName } from './backup-bundle.js';
-import { recordPeerDevice, getPeerExportedAt, recordPeerExportedAtSeen } from './device-registry.js';
+import {
+  recordPeerDevice, getPeerExportedAt, recordPeerExportedAtSeen, mergeDeviceTombstones, classifyDeletedPeerBundle
+} from './device-registry.js';
 import { mergeRecords, detectFutureExport, detectBackwardExport } from './merge.js';
 import { addPendingReview, clearPendingReview, expireStaleReviewsForPeer } from './pending-review.js';
 import { logSyncEvent } from './sync-log.js';
@@ -34,6 +36,7 @@ import { recordSyncCompleted, recordClockSkewedDevices } from './last-sync-statu
 import { resolveBundlePhotoRefs } from './photo-assets.js';
 import { downloadFile } from '../download.js';
 import { getDeviceId } from './device-id.js';
+import { selectLatestPerDevice } from './duplicate-bundles.js';
 
 const BACKUP_FILE_PATTERN = /^backup-.+\.json$/;
 
@@ -229,28 +232,25 @@ function makeFileListAssetReader(files) {
 // once, and one mistake shouldn't cost the rest.
 export async function importPickedFiles(files) {
   const fileArray = [...files];
-  // Skipping this device's own file matters more here than on the folder
-  // path (auto-sync.js's runSyncCycle does the same by name): 8a's
-  // whole-folder `webkitdirectory` selection hands back *everything* in the
-  // synced folder, which necessarily includes the bundle this device
-  // published there last time. Merging a device's own stale snapshot back
-  // into itself resolves nothing it doesn't already know, lists the device
-  // under its own "Synced with", and — for any record it has edited or
-  // deleted since — spends a full pass re-deciding against its own past.
-  const ownFileName = backupFileName(getDeviceId());
-  const backupFiles = fileArray.filter((f) => {
-    const name = relativePathOf(f).split('/').pop();
-    return BACKUP_FILE_PATTERN.test(name) && name !== ownFileName;
-  });
+  // This device's own bundle has to be left out (8a's whole-folder
+  // `webkitdirectory` selection hands back *everything* in the synced
+  // folder, which necessarily includes the one this device published there
+  // last time; merging a device's own stale snapshot back into itself
+  // resolves nothing it doesn't already know, lists the device under its
+  // own "Synced with", and spends a full pass re-deciding against its own
+  // past) — but that is settled below by the id inside each file, not by
+  // what the file is called.
+  const backupFiles = fileArray.filter((f) => BACKUP_FILE_PATTERN.test(relativePathOf(f).split('/').pop()));
   const directorySelection = isDirectorySelection(fileArray);
   const readAsset = directorySelection ? makeFileListAssetReader(fileArray) : null;
   logSyncEvent('debug', 'manual sync: picked', fileArray.length, 'file(s) via',
     directorySelection ? 'webkitdirectory folder selection' : 'plain multi-file selection',
-    `(${backupFiles.length} peer backup file(s))`);
+    `(${backupFiles.length} backup file(s))`);
 
   const totals = totalsShape();
   const devices = [];
   const clockSkewedDevices = [];
+  const parsed = [];
   for (const file of backupFiles) {
     let bundle;
     try {
@@ -259,11 +259,39 @@ export async function importPickedFiles(files) {
       logSyncEvent('debug', 'manual sync: skipping unreadable file', file.name, '—', (err && err.code) || 'unknown error');
       continue;
     }
-    // A bundle whose own device block claims this device's id — a copy of
-    // our file renamed by hand, say — is caught here rather than by
-    // filename alone, since the filename is only a convention.
+    // The bundle's own device block is what says it is ours, whatever the
+    // file was called or renamed to.
     if (bundle.device.id === getDeviceId()) {
       logSyncEvent('debug', 'manual sync: skipping this device\'s own bundle', file.name);
+      continue;
+    }
+    parsed.push({ fileName: file.name, bundle });
+  }
+
+  // Every tombstone in the batch is taken in before any bundle is judged, so
+  // a deletion made on another device applies to that device's file even
+  // when it is picked before the file carrying the tombstone. This is the
+  // path a browser that cannot write into the folder takes, and it is the
+  // one that could not remove a deleted device's file — so ignoring it here
+  // is what makes the deletion hold at all.
+  for (const { bundle } of parsed) mergeDeviceTombstones(bundle.devicesDeleted);
+
+  // Several files for one device (a browser's "backup-<id> (1).json") count
+  // once, by the newest export. Nothing is deleted here — a picked file is
+  // a read-only handle — the older ones are just left unused.
+  const { latest, superseded } = selectLatestPerDevice(parsed);
+  for (const older of superseded) {
+    logSyncEvent('warn', 'manual sync: ignoring', older.fileName, `(exported ${older.bundle.exportedAt}) — superseded by`,
+      older.supersededBy, 'from the same device');
+  }
+
+  for (const { fileName, bundle } of latest) {
+    // A file of a device that was deleted, at or before what the deletion
+    // discarded — see auto-sync.js for both halves of this rule. Skipped
+    // entirely: not merged, the device not recorded. (Nothing can be
+    // removed here; the file is just left alone.)
+    if (classifyDeletedPeerBundle(bundle.device.id, bundle.exportedAt) === 'stale') {
+      logSyncEvent('info', 'manual sync: ignoring', fileName, '— a file of a device that was deleted');
       continue;
     }
     const fileTotals = await mergeOneBundle(bundle, { readAsset, clockSkewedDevices });

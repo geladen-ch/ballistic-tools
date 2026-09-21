@@ -142,7 +142,10 @@ export function installFakeDom() {
     getItem: (k) => (store.has(k) ? store.get(k) : null),
     setItem: (k, v) => store.set(k, String(v)),
     removeItem: (k) => store.delete(k),
-    clear: () => store.clear()
+    clear: () => store.clear(),
+    // Enumerable, as a real Storage is.
+    get length() { return store.size; },
+    key: (i) => [...store.keys()][i] ?? null
   };
   // Defaults to "confirmed" — tests that need to exercise the cancel path
   // override this per-test (e.g. `global.confirm = () => false;`).
@@ -280,6 +283,16 @@ export function installFakeIndexedDb() {
     getAll() {
       const request = makeRequest();
       succeed(request, [...this.map.values()]);
+      return request;
+    }
+    getAllKeys() {
+      const request = makeRequest();
+      succeed(request, [...this.map.keys()]);
+      return request;
+    }
+    get(key) {
+      const request = makeRequest();
+      succeed(request, this.map.get(key));
       return request;
     }
     put(record) {

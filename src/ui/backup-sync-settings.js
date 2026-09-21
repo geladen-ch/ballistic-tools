@@ -5,12 +5,14 @@
 import { el, clear } from '../dom.js';
 import { i18nSpan, applyI18nText, t } from '../i18n.js';
 import { sectionGroup } from './section.js';
-import { showDialog } from './app-dialog.js';
+import { showDialog, hideDialog } from './app-dialog.js';
 import { copyButton } from './copy-button.js';
 import { downloadFile } from '../download.js';
 import { isBackupSyncEnabled, setBackupSyncEnabled } from '../backup-sync-prefs.js';
 import { getDeviceName, setDeviceName, hasCustomDeviceName } from '../sync/device-name.js';
-import { isFileSystemAccessSupported, pickFolder, getPersistedFolderHandle } from '../sync/fs-folder.js';
+import {
+  isFileSystemAccessSupported, pickFolder, getPersistedFolderHandle, verifyPermission, listBackupFiles
+} from '../sync/fs-folder.js';
 import { getSyncMode, setSyncMode, runSyncCycle, unregisterAutomaticTriggers } from '../sync/auto-sync.js';
 import {
   getLastSyncedAt, getLastSyncedDevices, getPendingPhotoDevices, getClockSkewedDevices
@@ -19,9 +21,19 @@ import { isIOS, syncViaPickedFiles } from '../sync/manual-sync.js';
 import {
   listPendingReviews, getPendingReviewCount, markPendingReviewResolved, reopenPendingReview
 } from '../sync/pending-review.js';
-import { isVerboseSyncLoggingEnabled, setVerboseSyncLoggingEnabled, getSyncLog } from '../sync/sync-log.js';
+import {
+  isVerboseSyncLoggingEnabled, setVerboseSyncLoggingEnabled, getPersistedSyncLog, clearSyncLog,
+  clearPersistedSyncLog, rotateSyncLogNow
+} from '../sync/sync-log.js';
+import {
+  runAssetCleanup, getAssetCleanupStatus, recordAssetCleanupRun,
+  suppressAssetWarning, isAssetWarningSuppressed, clearAssetWarningSuppression
+} from '../sync/asset-cleanup.js';
+import { sweepResolvedMarkers } from '../sync/pending-review.js';
+import { pruneChangeHistoryNow } from '../sync/change-history.js';
 import { isIphoneSyncSupportEnabled, setIphoneSyncSupportEnabled } from '../sync/photo-storage-prefs.js';
-import { getDeviceLabel } from '../sync/device-registry.js';
+import { getDeviceLabel, getDeviceNameEvenIfDeleted, isDeviceDeleted } from '../sync/device-registry.js';
+import { listSyncDevices, deleteSyncDevice, identifyBackupFiles } from '../sync/device-deletion.js';
 import { SYNCED_LIBRARIES } from '../sync/synced-libraries.js';
 import { recordTypeLabel } from '../sync/record-type-labels.js';
 import { loadUserBullets, loadUserRifles } from '../user-library.js';
@@ -30,6 +42,89 @@ import { loadRiflePrecisionProjects } from '../rifle-precision-library.js';
 import { buildExportPayload as buildArsenalPayload, serializeExport as serializeArsenal } from '../arsenal-export.js';
 import { buildExportPayload as buildLocationsPayload, serializeExport as serializeLocations } from '../location-export.js';
 import { buildExportPayload as buildRpPayload, serializeExport as serializeRp } from '../rifle-precision-export.js';
+import { downloadDiagnostics } from '../diagnostics.js';
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit++; }
+  return `${value < 10 && unit > 0 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
+}
+
+// The manual action reports **everything** it found, unlike the automatic
+// path, which surfaces only the two conditions a user can act on and keeps
+// the rest to the log. The asymmetry is deliberate: the visibility rules
+// govern *unsolicited* notices, and someone who pressed a button is owed an
+// answer whatever the cause. Every line pairs what happened with a cue for
+// what to do about it; where there is genuinely nothing to try, it says so
+// rather than inventing troubleshooting.
+function describeCleanupReport(report, prefixLines) {
+  const lines = [...prefixLines];
+  const names = (devices) => (devices || []).map((d) => d.name || d.id).filter(Boolean).join(', ');
+  if (!report) {
+    lines.push(t('settings.backupSync.cleanup.reportNoFolder'));
+    return lines;
+  }
+
+  switch (report.outcome) {
+    case 'no-assets':
+      lines.push(t('settings.backupSync.cleanup.reportNoAssets'));
+      break;
+    case 'parse-failure':
+      lines.push(t('settings.backupSync.cleanup.reportParseFailure', {
+        files: (report.detail || []).map((d) => d.fileName).join(', ')
+      }));
+      break;
+    case 'aborted':
+      lines.push(t('settings.backupSync.cleanup.reportAborted'));
+      break;
+    case 'error':
+      lines.push(t('settings.backupSync.cleanup.reportError', { detail: report.detail || '' }));
+      break;
+    case 'hard-stop':
+      if (report.failedCheck === 'bundle-lists-no-photos') {
+        lines.push(t('settings.backupSync.cleanup.reportStopMissingRef', { device: names(report.affectedDevices) }));
+      } else if (report.failedCheck === 'local-hash-invariant') {
+        lines.push(t('settings.backupSync.cleanup.reportStopInternal'));
+      } else if (report.failedCheck === 'attribution') {
+        lines.push(t('settings.backupSync.cleanup.reportStopAttribution'));
+      } else if (report.failedCheck === 'referenced-file-vanished') {
+        lines.push(t('settings.backupSync.cleanup.reportStopVanished', { device: names(report.affectedDevices) }));
+      }
+      break;
+    default:
+      lines.push(report.removed.length === 0
+        ? t('settings.backupSync.cleanup.reportNothingRemoved')
+        : (report.bytesKnown
+          ? t('settings.backupSync.cleanup.reportRemoved', {
+            count: report.removed.length, size: formatBytes(report.removedBytes)
+          })
+          : t('settings.backupSync.cleanup.reportRemovedCountOnly', { count: report.removed.length })));
+  }
+
+  // Observational findings — reported here and nowhere else.
+  if (report.referencedMissing && report.referencedMissing.length > 0) {
+    lines.push(t('settings.backupSync.cleanup.reportMissing', {
+      count: report.referencedMissing.length,
+      devices: names(report.missingFromDevices) || t('settings.backupSync.cleanup.unknownDevice')
+    }));
+  }
+  if (report.duplicateDeviceIds && report.duplicateDeviceIds.length > 0) {
+    lines.push(t('settings.backupSync.cleanup.reportDuplicateIds', { ids: report.duplicateDeviceIds.join(', ') }));
+  }
+  if (report.divergentRefs && report.divergentRefs.length > 0) {
+    lines.push(t('settings.backupSync.cleanup.reportDivergence', { count: report.divergentRefs.length }));
+  }
+  if (report.malformed && report.malformed.length > 0) {
+    lines.push(t('settings.backupSync.cleanup.reportMalformed', { count: report.malformed.length }));
+  }
+  if (report.unresolvedMarks && report.unresolvedMarks.length > 0) {
+    lines.push(t('settings.backupSync.cleanup.reportUnresolvedMarks', { count: report.unresolvedMarks.length }));
+  }
+  return lines;
+}
 
 function dateStamp() {
   return new Date().toISOString().slice(0, 10);
@@ -143,6 +238,130 @@ function buildChoiceArea(item, lib, originalLocal, onResolved) {
   return area;
 }
 
+// One line for a device in either the list or the picker: what the last
+// backup file from it says. "No backup file in the folder" is a claim about
+// the folder, so it is only made when the folder was actually listed and the
+// file is not in it. It used to be the fallback for *any* row without a
+// publish time — including this device's own, which is why it read that way
+// beside a device that had just published.
+function deviceStatusText(row) {
+  if (!row.isSelf && row.hasBundle === false) return t('settings.backupSync.devices.noBackup');
+  if (row.lastExportedAt) return t('settings.backupSync.devices.published', { when: new Date(row.lastExportedAt).toLocaleString() });
+  return null;
+}
+
+// Deleting a device is not a light decision, so it is not one click away
+// from every row in the list. The list only informs; this modal is where a
+// device is chosen, and the choice then goes on to the same confirmation as
+// before. Devices that cannot be deleted right now are shown, with the
+// reason, rather than left out — a device missing from the picker with no
+// explanation reads as a bug.
+function openDeleteDevicePicker(rows, onDone) {
+  const list = el('div', {});
+  for (const row of rows.filter((r) => !r.isSelf)) {
+    const status = deviceStatusText(row);
+    const info = [el('strong', { text: row.name })];
+    if (status) info.push(el('br'), el('span', { class: 'hint', text: status }));
+
+    if (row.blocked) {
+      // Never offered: the reason is the row's content, and it is not
+      // clickable. (`self` never reaches here — filtered above — and the
+      // rest are the gates in device-deletion.js's deletionBlockedReason().)
+      const reasonKey = {
+        conflicts: 'settings.backupSync.devices.blockedConflicts',
+        'photos-pending': 'settings.backupSync.devices.blockedPhotos',
+        'not-merged': 'settings.backupSync.devices.blockedNotMerged'
+      }[row.blocked.reason];
+      info.push(el('br'), el('span', {
+        class: 'hint warning',
+        text: t(reasonKey, { device: row.name, count: row.blocked.count })
+      }));
+      list.appendChild(el('div', { class: 'arsenal-row', 'aria-disabled': 'true' }, [
+        el('div', { class: 'arsenal-row-info' }, info)
+      ]));
+      continue;
+    }
+
+    const pick = () => {
+      hideDialog();
+      confirmDeleteDevice(row, onDone);
+    };
+    const item = el('div', { class: 'arsenal-row row-clickable', role: 'button', tabindex: '0' }, [
+      el('div', { class: 'arsenal-row-info' }, info)
+    ]);
+    item.addEventListener('click', pick);
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        pick();
+      }
+    });
+    list.appendChild(item);
+  }
+
+  showDialog({
+    bodyNode: el('div', {}, [
+      el('p', {}, [el('strong', { i18n: 'settings.backupSync.devices.pickTitle' })]),
+      el('p', { class: 'hint', i18n: 'settings.backupSync.devices.pickHint' }),
+      list
+    ]),
+    buttons: [{ label: t('settings.backupSync.devices.confirmCancel') }],
+    wide: true
+  });
+}
+
+// Deleting a device is shared and not undoable, so the confirmation spells
+// out what actually happens — including that a machine which is still live
+// simply rejoins, which is correct behaviour under the revival rule but
+// reads as broken if nobody said so in advance.
+function confirmDeleteDevice(row, onDone) {
+  const body = [
+    // Browsers without folder access cannot remove the file, so the usual
+    // wording ("its backup file is removed") would not be true of them.
+    el('p', {
+      text: t(isFileSystemAccessSupported()
+        ? 'settings.backupSync.devices.confirmBody'
+        : 'settings.backupSync.devices.confirmBodyNoFolder', { device: row.name })
+    }),
+    el('p', { class: 'hint', i18n: 'settings.backupSync.devices.confirmMerged' }),
+    el('p', { class: 'hint', i18n: 'settings.backupSync.devices.confirmRejoins' })
+  ];
+  if (row.recentlyPublished) {
+    body.splice(1, 0, el('p', {
+      class: 'hint warning',
+      text: t('settings.backupSync.devices.confirmRecent', {
+        when: row.lastExportedAt ? new Date(row.lastExportedAt).toLocaleString() : ''
+      })
+    }));
+  }
+  showDialog({
+    bodyNode: el('div', {}, [el('p', {}, [el('strong', { text: t('settings.backupSync.devices.confirmTitle', { device: row.name }) })]), ...body]),
+    buttons: [
+      { label: t('settings.backupSync.devices.confirmDelete'), onClick: async () => {
+        const handle = isFileSystemAccessSupported() ? await getPersistedFolderHandle() : null;
+        await deleteSyncDevice(handle, row.id);
+        onDone();
+      } },
+      { label: t('settings.backupSync.devices.confirmCancel') }
+    ]
+  });
+}
+
+// Who a conflict came from. A conflict can outlive the device it names: it
+// is raised on one device, and another device can delete that machine before
+// it is resolved. The record still holds the peer's version in full, so it can
+// still be resolved, but the plain name lookup returns nothing for a deleted
+// device and would have shown a raw id — so a deleted one is named, and said
+// to be deleted.
+function conflictPeerLabel(deviceId) {
+  const name = getDeviceLabel(deviceId);
+  if (name) return name;
+  if (isDeviceDeleted(deviceId)) {
+    return t('settings.backupSync.review.peerDeleted', { device: getDeviceNameEvenIfDeleted(deviceId) || deviceId });
+  }
+  return deviceId;
+}
+
 // Renders the pending-review list into a dialog — one entry per
 // unresolved conflict, each with "Keep mine"/"Take theirs". Both choices
 // resolve through the normal save path (a fresh modifiedAt/modifiedBy for
@@ -152,7 +371,7 @@ function openReviewDialog(onResolved) {
   const items = listPendingReviews();
   const rows = items.map((item) => {
     const lib = libraryFor(item.recordType);
-    const peerLabel = getDeviceLabel(item.peerDeviceId) || item.peerDeviceId;
+    const peerLabel = conflictPeerLabel(item.peerDeviceId);
     const originalLocal = lib.loadLocalWithTombstones().find((r) => r.id === item.recordId);
     const name = (item.remoteVersion && item.remoteVersion.name) || (originalLocal && originalLocal.name) || item.recordId;
 
@@ -323,7 +542,17 @@ export function backupSyncSection(onSyncApplied = () => {}) {
         ? t('settings.backupSync.clockSkewWarning', { devices: devices.join(', ') })
         : '';
     }
+    // Late-bound: renderStatus() is first called before the Devices list
+    // below exists, so it cannot reference renderDevices() directly (the
+    // const it belongs to is still in its temporal dead zone). Assigned
+    // once the list is built.
+    let refreshDevices = () => {};
     function renderStatus() {
+      // Every sync — folder or manual — ends in a renderStatus() call, so
+      // this is what keeps the Devices list current. It used to render
+      // once at mount and never again, so a peer first read during this
+      // very visit did not appear until Settings was reopened.
+      refreshDevices();
       const lastSyncedAt = getLastSyncedAt();
       renderPhotoWarning();
       renderClockSkewWarning();
@@ -338,6 +567,149 @@ export function backupSyncSection(onSyncApplied = () => {}) {
         : t('settings.backupSync.statusLastSynced', { when });
     }
     renderStatus();
+
+    // --- unused photo files (docs/plans/orphaned-storage-cleanup.md phase 5) ---
+    // Automatic deletion is never silent: this line is the only place a
+    // user ever learns that files were removed from their own cloud folder.
+    // A blocked run deliberately leaves it stale rather than alarming —
+    // the folder quietly stops shrinking, and the durable log carries the
+    // detail for a diagnostics download.
+    const cleanupLine = el('p', { class: 'hint' });
+    // One row per affected device, never one combined line: each has to be
+    // collapsible on its own, or silencing an unreachable machine would
+    // silence a reachable one alongside it.
+    const cleanupWarnings = el('div', { class: 'field' });
+
+    function renderCleanupWarnings(devices) {
+      clear(cleanupWarnings);
+      for (const device of devices || []) {
+        if (!device || !device.id) continue;
+        const collapsed = isAssetWarningSuppressed(device.id, device.exportedAt);
+        const name = device.name || device.id;
+        if (collapsed) {
+          // Collapsed, never hidden outright: someone later asking why
+          // photos are missing should still find the answer on screen.
+          const row = el('p', { class: 'hint', text: t('settings.backupSync.cleanup.warningCollapsed', { device: name }) });
+          const reopen = el('button', { class: 'secondary', i18n: 'settings.backupSync.cleanup.warningReopen' });
+          reopen.addEventListener('click', () => {
+            clearAssetWarningSuppression(device.id);
+            renderCleanupWarnings(devices);
+          });
+          cleanupWarnings.appendChild(el('div', {}, [row, reopen]));
+          continue;
+        }
+        const hide = el('button', { class: 'secondary', i18n: 'settings.backupSync.cleanup.warningHide' });
+        hide.addEventListener('click', () => {
+          suppressAssetWarning(device.id, device.exportedAt, device.condition || null);
+          renderCleanupWarnings(devices);
+        });
+        cleanupWarnings.appendChild(el('div', {}, [
+          el('p', { class: 'hint warning', text: t('settings.backupSync.cleanup.warningTitle', { device: name }) }),
+          el('p', { class: 'hint', text: t('settings.backupSync.cleanup.warningStep1', { device: name }) }),
+          el('p', { class: 'hint', text: t('settings.backupSync.cleanup.warningStep2') }),
+          hide
+        ]));
+      }
+    }
+
+    function renderCleanupStatus() {
+      const status = getAssetCleanupStatus();
+      if (!status || !status.at) {
+        cleanupLine.textContent = t('settings.backupSync.cleanup.never');
+        renderCleanupWarnings([]);
+        return;
+      }
+      const when = new Date(status.at).toLocaleString();
+      if (status.removedCount > 0) {
+        cleanupLine.textContent = status.bytesKnown
+          ? t('settings.backupSync.cleanup.lastRemoved', {
+              when, count: status.removedCount, size: formatBytes(status.removedBytes)
+            })
+          : t('settings.backupSync.cleanup.lastRemovedCountOnly', { when, count: status.removedCount });
+      } else {
+        cleanupLine.textContent = t('settings.backupSync.cleanup.lastNothing', { when });
+      }
+      // Only the two conditions a user can actually act on surface here;
+      // everything else is log-only, because there is no step they could
+      // take. The manual action below reports all of it regardless.
+      renderCleanupWarnings(status.affectedDevices || []);
+    }
+    renderCleanupStatus();
+
+    // --- devices (docs/plans/orphaned-storage-cleanup.md phase 6) ---
+    // Wrapped in the same nested section shell the Advanced group uses, so
+    // its heading reads as a heading rather than as a hint above
+    // full-size rows.
+    const devicesBody = el('div', {});
+    const devicesSection = sectionGroup('settings.backupSync.devices.heading', [devicesBody], { nested: true });
+
+    // The folder listing, when there is one to read without prompting, and
+    // what its files hold. Reading them is what lets a device whose bundle
+    // has not been through a sync cycle here yet appear at all — the
+    // registry only knows peers this browser has already read. Never prompts (this runs on every
+    // render, not from a gesture), and any failure just means the list is
+    // built from the registry alone.
+    async function readFolderFileNames() {
+      if (!isFileSystemAccessSupported()) return null;
+      try {
+        const handle = await getPersistedFolderHandle();
+        if (!handle || !(await verifyPermission(handle, { allowPrompt: false }))) return null;
+        const names = await listBackupFiles(handle);
+        // Learn what any file no sync cycle has read yet holds, by reading
+        // it, so the list never has to guess from a name.
+        await identifyBackupFiles(handle, names);
+        return names;
+      } catch {
+        return null;
+      }
+    }
+
+    let devicesRenderToken = 0;
+    function renderDevices() {
+      // Paint immediately from what is already known, then repaint once
+      // the folder listing arrives. The token drops a slow listing that a
+      // newer render has already superseded, so the list can never go
+      // backwards.
+      const token = ++devicesRenderToken;
+      paintDevices(null);
+      readFolderFileNames().then((fileNames) => {
+        if (token === devicesRenderToken && fileNames) paintDevices(fileNames);
+      });
+    }
+
+    function paintDevices(fileNames) {
+      clear(devicesBody);
+      const rows = listSyncDevices({ fileNames });
+      // Only this device: a one-row list of yourself is noise, and there is
+      // nothing on it you could act on anyway.
+      devicesSection.style.display = rows.length <= 1 ? 'none' : '';
+      if (rows.length <= 1) return;
+      for (const row of rows) {
+        const label = row.isSelf
+          ? t('settings.backupSync.devices.thisDevice', { device: row.name || getDeviceName() })
+          : row.name;
+        const status = deviceStatusText(row);
+        devicesBody.appendChild(el('div', { class: 'field' }, [
+          el('p', { class: 'hint', text: status ? `${label} — ${status}` : label })
+        ]));
+      }
+
+      // One button for the whole list, not one per row. This device is never
+      // in the picker: a device tombstoning itself would republish with a
+      // newer exportedAt on its next cycle, immediately revive, and achieve
+      // nothing.
+      const deleteDeviceButton = el('button', { class: 'secondary', i18n: 'settings.backupSync.devices.deleteDeviceButton' });
+      // Recomputed on click, so what the picker offers (and which gates it
+      // reports) is current rather than as of the last repaint. renderStatus()
+      // also refreshes this list, so it is not repainted separately here.
+      deleteDeviceButton.addEventListener('click', () => openDeleteDevicePicker(listSyncDevices({ fileNames }), () => {
+        renderStatus();
+        onSyncApplied();
+      }));
+      devicesBody.appendChild(el('div', { class: 'field' }, [deleteDeviceButton]));
+    }
+    refreshDevices = renderDevices;
+    renderDevices();
 
     const reviewLine = el('div', { class: 'field' });
     function renderReview() {
@@ -373,14 +745,89 @@ export function backupSyncSection(onSyncApplied = () => {}) {
     const copyLogButton = copyButton({
       label: t('settings.backupSync.copyLogButton'),
       copiedLabel: t('settings.backupSync.copyLogButtonCopied'),
-      getText: () => getSyncLog().join('\n')
+      // The durable log, not just the in-memory trace: that trace is only
+      // filled while verbose logging is on and is gone after a reload,
+      // which would leave the warnings and errors this log exists for
+      // (a file removed, a sync that failed) invisible here.
+      getText: () => getPersistedSyncLog().then((lines) => lines.join('\n'))
     });
+    // Clears both layers: the in-memory verbose trace and the durable
+    // history behind it. Deliberately one action rather than two — the
+    // distinction between them matters to sync-log.js, not to someone who
+    // just wants the log emptied.
+    const clearLogButton = el('button', { class: 'secondary', i18n: 'settings.backupSync.clearLogButton' });
+    clearLogButton.addEventListener('click', () => {
+      clearLogButton.disabled = true;
+      clearSyncLog();
+      clearPersistedSyncLog().finally(() => {
+        clearLogButton.disabled = false;
+      });
+    });
+    // Named for *storage*, not for assets, so it reconciles everything in
+    // one go rather than making the user find four separate actions.
+    // Not a confirmation dialog — a user-initiated action for someone who
+    // just deleted a large project and wants the space back today rather
+    // than waiting for the daily pass.
+    const cleanupNowButton = el('button', { class: 'secondary', i18n: 'settings.backupSync.cleanup.runNowButton' });
+    const cleanupReport = el('div', { class: 'field' });
+    cleanupNowButton.addEventListener('click', async () => {
+      cleanupNowButton.disabled = true;
+      clear(cleanupReport);
+      cleanupReport.appendChild(el('p', { class: 'hint', i18n: 'settings.backupSync.cleanup.running' }));
+      try {
+        const lines = [];
+        const markers = sweepResolvedMarkers();
+        if (markers > 0) lines.push(t('settings.backupSync.cleanup.reportMarkers', { count: markers }));
+        const history = pruneChangeHistoryNow();
+        if (history > 0) lines.push(t('settings.backupSync.cleanup.reportHistory', { count: history }));
+        await rotateSyncLogNow();
+
+        // A user gesture, so this is the one path allowed to re-prompt for
+        // folder permission if it has lapsed.
+        let report = null;
+        if (isFileSystemAccessSupported()) {
+          await runSyncCycle({ allowPrompt: true, trigger: 'manual' });
+          const handle = await getPersistedFolderHandle();
+          if (handle) {
+            report = await runAssetCleanup(handle);
+            recordAssetCleanupRun(report);
+          }
+        }
+        clear(cleanupReport);
+        for (const line of describeCleanupReport(report, lines)) {
+          cleanupReport.appendChild(el('p', { class: 'hint', text: line }));
+        }
+        if (report && report.outcome === 'hard-stop') {
+          const diagnostics = el('button', { class: 'secondary', i18n: 'settings.backupSync.cleanup.downloadDiagnostics' });
+          diagnostics.addEventListener('click', () => downloadDiagnostics());
+          cleanupReport.appendChild(diagnostics);
+        }
+        renderCleanupStatus();
+        renderStatus();
+        onSyncApplied();
+      } finally {
+        cleanupNowButton.disabled = false;
+      }
+    });
+
     const advancedSection = sectionGroup('settings.backupSync.advancedHeading', [
       el('div', { class: 'field' }, [
         el('label', { class: 'checkbox-field' }, [verboseCheckbox, i18nSpan('settings.backupSync.verboseLoggingLabel')]),
         el('p', { class: 'hint', i18n: 'settings.backupSync.verboseLoggingHint' })
       ]),
-      el('div', { class: 'field' }, [copyLogButton])
+      el('div', { class: 'field' }, [copyLogButton, clearLogButton]),
+      el('p', { class: 'hint', i18n: 'settings.backupSync.clearLogHint' }),
+      // Only where this browser can use a sync folder. What the button is
+      // for is removing photo files from that folder; without one, the rest
+      // of what it does (expired conflict records, change history over its
+      // limit, the sync log) is what already happens at every app start, so
+      // there it would be a button that appears to do something and does
+      // not.
+      ...(isFileSystemAccessSupported() ? [
+        el('div', { class: 'field' }, [cleanupNowButton]),
+        el('p', { class: 'hint', i18n: 'settings.backupSync.cleanup.runNowHint' }),
+        cleanupReport
+      ] : [])
     ], { nested: true });
 
     return el('div', {}, [
@@ -392,6 +839,9 @@ export function backupSyncSection(onSyncApplied = () => {}) {
       photoWarningLine,
       clockSkewLine,
       iphoneSyncField,
+      devicesSection,
+      cleanupLine,
+      cleanupWarnings,
       reviewLine,
       advancedSection
     ]);
@@ -533,6 +983,14 @@ export function backupSyncSection(onSyncApplied = () => {}) {
 
     return el('div', { class: 'field' }, [
       el('p', { class: 'hint', i18n: iosMode ? 'settings.backupSync.iosModeHint' : 'settings.backupSync.manualModeHint' }),
+      // Browsers that cannot write into the folder save the backup by
+      // download (or, on iOS, into the Files app), and the save step offers
+      // to rename it when the file already exists. A renamed copy is read
+      // as a second file for this device (see duplicate-bundles.js), so the
+      // instruction sits right where the save is explained. Caution rather
+      // than warning: nothing is broken by it, the mesh just gets an extra
+      // file to tidy.
+      el('p', { class: 'hint caution', i18n: iosMode ? 'settings.backupSync.iosModeWarning' : 'settings.backupSync.manualModeWarning' }),
       syncButton,
       fileInput,
       summaryArea,

@@ -3,19 +3,26 @@
 // is an explicit opt-in that registers a periodic timer plus a
 // tab-focus/visibilitychange trigger.
 import {
-  isFileSystemAccessSupported, getPersistedFolderHandle, verifyPermission,
+  isFileSystemAccessSupported, getPersistedFolderHandle, verifyPermission, removeBackupFile,
   listBackupFiles, readFile, writeOwnBackupFile, readAssetFile
 } from './fs-folder.js';
 import { buildBackupBundle, serializeBackupBundle, parseBackupBundle, backupFileName } from './backup-bundle.js';
 import { getDeviceId } from './device-id.js';
-import { recordPeerDevice, getPeerExportedAt, recordPeerExportedAtSeen } from './device-registry.js';
+import { selectLatestPerDevice } from './duplicate-bundles.js';
+import {
+  recordPeerDevice, getPeerExportedAt, recordPeerExportedAtSeen,
+  mergeDeviceTombstones, classifyDeletedPeerBundle
+} from './device-registry.js';
 import { mergeRecords, detectFutureExport, detectBackwardExport } from './merge.js';
 import { addPendingReview, clearPendingReview, expireStaleReviewsForPeer } from './pending-review.js';
 import { onLibraryWrite } from './write-hooks.js';
-import { logSyncEvent } from './sync-log.js';
+import { logSyncEvent, setSyncLogCycle, flushSyncLog } from './sync-log.js';
+import { runAssetCleanup, shouldRunAssetCleanupNow, recordAssetCleanupRun } from './asset-cleanup.js';
 import { logDiagnostic } from '../debug-log.js';
 import { SYNCED_LIBRARIES } from './synced-libraries.js';
-import { recordSyncCompleted, recordPendingPhotoDevices, recordClockSkewedDevices } from './last-sync-status.js';
+import {
+  recordSyncCompleted, recordPendingPhotoDevices, recordClockSkewedDevices, recordOwnPublished, recordFileDevices
+} from './last-sync-status.js';
 import { isBackupSyncEnabled } from '../backup-sync-prefs.js';
 import { applyReferencedPhotoStorage, resolveBundlePhotoRefs } from './photo-assets.js';
 import { isIphoneSyncSupportEnabled } from './photo-storage-prefs.js';
@@ -38,6 +45,14 @@ import { isIphoneSyncSupportEnabled } from './photo-storage-prefs.js';
 let writeSeq = 0;
 let publishedSeq = 0;
 onLibraryWrite(() => { writeSeq++; });
+
+// For state that is published but is not a library record — a device
+// tombstone, today — so changing it counts as something to publish. The
+// library writes reach this through onLibraryWrite() above; this is the same
+// counter for everything else.
+export function markSyncDirty() {
+  writeSeq++;
+}
 
 function isDirty() {
   return writeSeq !== publishedSeq;
@@ -171,8 +186,15 @@ async function withSyncLock(fn) {
 // Interrupted merges are safe to resume, by construction (see merge.js) —
 // there's deliberately no transaction wrapping this whole cycle.
 export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } = {}) {
+  // Tags every line this cycle produces with one id, so a month of them
+  // can still be read one cycle at a time. Overlapping calls can't confuse
+  // the tag: withSyncLock rejects a second cycle outright rather than
+  // queueing it. The trailing finally() also flushes — the end of a cycle
+  // is a natural checkpoint, and a crash just after one should not cost
+  // the record of what it did.
+  setSyncLogCycle(`c${Date.now().toString(36)}`);
   return withSyncLock(async () => {
-    logSyncEvent('debug', 'sync cycle starting —', trigger);
+    logSyncEvent('info', 'sync cycle starting —', trigger);
     if (!isBackupSyncEnabled()) {
       // Defense in depth: the master toggle being off should already mean
       // no trigger is registered to call this in the first place, but a
@@ -214,18 +236,89 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
     const photoPendingDeviceNames = [];
     const clockSkewedDevices = [];
 
+    // Every backup file is opened and judged by what is inside it — this
+    // device's own included. Neither which device a file belongs to nor
+    // which copy is newest is read off a file name: a browser's save
+    // dialog lets the user call the file anything, and a cloud client
+    // renames on conflict.
+    const readBundles = [];
     for (const fileName of fileNames) {
-      if (fileName === ownFileName) continue;
-
-      let bundle;
       try {
         const text = await readFile(handle, fileName);
-        bundle = parseBackupBundle(text);
+        readBundles.push({ fileName, bundle: parseBackupBundle(text) });
       } catch (err) {
         // A parse failure here is routine and expected — a cloud sync
         // client can briefly present a partially-downloaded or mid-write
         // file. Skip it and let the next cycle retry.
         logSyncEvent('debug', 'sync: skipping unreadable file', fileName, '—', (err && err.code) || 'unknown error');
+      }
+    }
+
+    // Every tombstone in every file is taken in before any bundle is judged,
+    // so a deletion is applied to the deleted device's file even when that
+    // file happens to be read before the file carrying the tombstone. A
+    // tombstone that is new here also makes this device publish, so it is
+    // passed on rather than known only until this device next has other news.
+    for (const { bundle } of readBundles) {
+      if (mergeDeviceTombstones(bundle.devicesDeleted) > 0) anyChange = true;
+    }
+
+    // One bundle per device: a browser that cannot write into the folder
+    // (Firefox) saves its manual export under a new name beside the old
+    // one, and a cloud client can leave a "conflicted copy". Only the
+    // newest by its own `exportedAt` counts; the older copies are
+    // redundant and are removed, so they neither show up as extra devices
+    // nor get re-read every cycle. Only files that parsed take part, so a
+    // half-downloaded file is never mistaken for a duplicate. This device
+    // is judged like any other: of the files carrying its own id, the
+    // newest stays and the rest go. What it stays is never merged, since
+    // this device's own state is authoritative and never comes back in
+    // through a file.
+    const { latest: latestPerDevice, superseded } = selectLatestPerDevice(readBundles);
+    const removedFiles = new Set();
+    for (const older of superseded) {
+      const label = older.bundle.device.name || older.bundle.device.id;
+      try {
+        await removeBackupFile(handle, older.fileName);
+        removedFiles.add(older.fileName);
+        logSyncEvent('warn', 'sync: removed', older.fileName, `(exported ${older.bundle.exportedAt}) — superseded by`,
+          older.supersededBy, 'from the same device,', label);
+      } catch (err) {
+        logSyncEvent('warn', 'sync: could not remove superseded', older.fileName, '— ignoring it; the newer', older.supersededBy,
+          'is used instead —', err && err.message);
+      }
+    }
+    const latest = latestPerDevice.filter(({ bundle }) => bundle.device.id !== deviceId);
+
+    // Remembered for the Devices list, which cannot open files each time it
+    // repaints: what each file still in the folder holds.
+    recordFileDevices(Object.fromEntries(
+      readBundles
+        .filter(({ fileName }) => !removedFiles.has(fileName))
+        .map(({ fileName, bundle }) => [fileName, {
+          id: bundle.device.id, name: bundle.device.name || null, exportedAt: bundle.exportedAt || null
+        }])
+    ));
+
+    for (const { fileName, bundle } of latest) {
+      // A bundle from a device this mesh has deleted is one of two things,
+      // and the export times tell them apart: later than what the deletion
+      // discarded means the machine is genuinely back and is merged like any
+      // other; at or before it means this is the file that was already
+      // discarded, still in the folder — because a browser that cannot
+      // remove files did the deleting, or because some peer's cloud client
+      // held a copy. It is skipped, and removed where this device can. (The
+      // tombstone itself is dropped later, when the returning device's
+      // export is recorded below.)
+      if (classifyDeletedPeerBundle(bundle.device.id, bundle.exportedAt) === 'stale') {
+        logSyncEvent('info', 'sync: ignoring a bundle of a deleted device —', fileName);
+        try {
+          await removeBackupFile(handle, fileName);
+          removedFiles.add(fileName);
+          logSyncEvent('warn', 'sync: removed', fileName, '— a file of a device that was deleted');
+        } catch (err) {
+          logSyncEvent('warn', 'sync: could not remove', fileName, '— a file of a deleted device; it is ignored —', err && err.message);
+        }
         continue;
       }
 
@@ -295,6 +388,23 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
     // pending should only be named once in the Settings warning.
     recordPendingPhotoDevices([...new Set(photoPendingDeviceNames)]);
 
+    // Reclaim unused photo assets (docs/plans/orphaned-storage-cleanup.md
+    // phase 5). Placed *before* the "nothing changed" early return below
+    // rather than after the publish: that return fires on exactly the
+    // cycles that dominate — a device where nothing changed — which is
+    // also precisely when orphans are sitting around, so a hook after the
+    // publish would almost never run. Safe here because the referenced set
+    // includes every photo this device holds locally, including ones this
+    // cycle is about to publish. Its own try/catch, so a cleanup failure
+    // can never change the outcome of the sync cycle itself.
+    if (shouldRunAssetCleanupNow()) {
+      try {
+        recordAssetCleanupRun(await runAssetCleanup(handle));
+      } catch (err) {
+        logSyncEvent('warn', 'asset cleanup threw —', err && err.message);
+      }
+    }
+
     // This device's own file never existing in the folder yet is not "no
     // change to publish" — it's the very first sync into this folder, and
     // skipping it would leave the device permanently invisible to every
@@ -304,10 +414,14 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
     // updates "last synced" (a real read did happen) and then quietly
     // never writes a bundle at all. `fileNames` is already the folder
     // listing this cycle just took, so this costs nothing extra to check.
-    const ownFileExists = fileNames.includes(ownFileName);
+    // The one place a name is used: the file this device *writes*, whose
+    // name is its own to choose. (Checking it holds this device's data is
+    // done above, by id; this only asks whether there is anything at all
+    // where the next publish will go.)
+    const ownFileExists = fileNames.includes(ownFileName) && !removedFiles.has(ownFileName);
     if (!isDirty() && !anyChange && ownFileExists) {
       logSyncEvent('debug', 'sync: nothing changed, not publishing a new bundle');
-      logSyncEvent('debug', 'sync cycle ended —', trigger);
+      logSyncEvent('info', 'sync cycle ended —', trigger);
       return;
     }
 
@@ -328,12 +442,16 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
       }
       await writeOwnBackupFile(handle, deviceId, serializeBackupBundle(ownBundle));
       publishedSeq = seqAtSnapshot;
+      recordOwnPublished(ownBundle.exportedAt);
       logSyncEvent('debug', 'sync: published own bundle');
     } catch (err) {
       logSyncEvent('warn', 'sync failed: could not write own bundle —', err && err.message);
       logDiagnostic('error', '[sync] could not write own bundle —', err && err.message);
     }
-    logSyncEvent('debug', 'sync cycle ended —', trigger);
+    logSyncEvent('info', 'sync cycle ended —', trigger);
+  }).finally(() => {
+    setSyncLogCycle(null);
+    flushSyncLog();
   });
 }
 

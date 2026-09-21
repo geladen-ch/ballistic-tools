@@ -21,6 +21,8 @@ import { initLocationLibrary } from './location-library.js';
 import { initSyncTriggers } from './sync/auto-sync.js';
 import { initChangeHistory } from './sync/change-history.js';
 import { initPendingReview } from './sync/pending-review.js';
+import { initSyncLog } from './sync/sync-log.js';
+import { initAssetState } from './sync/asset-state.js';
 import { migrateLegacyLocationStorage } from './location-storage-migration.js';
 import { initRiflePrecisionLibrary } from './rifle-precision-library.js';
 import * as homeView from './views/home-view.js';
@@ -169,7 +171,17 @@ try {
   // new conflicts get written against an empty mirror — the whole reason
   // Phase 4 persists them rather than keeping them in memory.
   await Promise.all([
-    initI18n(), initLocationLibrary(), initRiflePrecisionLibrary(), initChangeHistory(), initPendingReview()
+    initI18n(), initLocationLibrary(), initRiflePrecisionLibrary(), initChangeHistory(), initPendingReview(),
+    // The durable sync log (docs/plans/orphaned-storage-cleanup.md phase
+    // 1). Joins this list rather than initialising lazily so that its
+    // boot-time rotation runs once per load, and so lines logged during
+    // the rest of boot land in the right place.
+    initSyncLog(),
+    // What this device knows about each sync-folder photo asset without
+    // opening one (docs/plans/orphaned-storage-cleanup.md phases 2 and 5).
+    // writeAssetIfAbsent() reads it synchronously, so it has to be loaded
+    // before any sync cycle can publish.
+    initAssetState()
   ]);
   // One-time import of any pre-v2.9 localStorage location data left behind
   // by the IndexedDB migration — must run after initLocationLibrary() above,

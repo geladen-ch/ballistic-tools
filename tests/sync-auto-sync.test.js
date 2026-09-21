@@ -762,6 +762,7 @@ test('regression: a real-world reproduction — a stale review for a rifle-preci
   const peerCopy = { ...loadRiflePrecisionProjectsWithTombstones()[0] };
   localStorage.setItem('ballistics_device_id_v1', 'my-device');
   const peerBundle = buildBackupBundle();
+  peerBundle.device = { ...peerBundle.device, id: 'peer-device' }; // built while impersonating this device; a peer's file names the peer
   peerBundle.riflePrecision.projects = [peerCopy];
 
   const dir = makeFakeDirHandle({ 'backup-peer-device.json': { kind: 'file', content: serializeBackupBundle(peerBundle) } });

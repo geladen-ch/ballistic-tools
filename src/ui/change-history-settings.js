@@ -8,12 +8,47 @@ import { el, clear } from '../dom.js';
 import { i18nSpan, t } from '../i18n.js';
 import { sectionGroup } from './section.js';
 import { showDialog } from './app-dialog.js';
-import { listRecentHistory, listRecentlyDeleted, listHistoryFor, revertToSnapshot } from '../sync/change-history.js';
+import { listRecentHistory, listRecentlyDeleted, listHistoryFor, revertToEntry } from '../sync/change-history.js';
 import { getDeviceId } from '../sync/device-id.js';
 import { getDeviceLabel } from '../sync/device-registry.js';
 import { recordTypeLabel } from '../sync/record-type-labels.js';
 
-const VISIBLE_COUNT = 20;
+// Each list keeps this many entries, newest first, and shows this many at
+// once: the rest is reached by scrolling inside the list. Rows can wrap to
+// different heights (a narrow phone puts the buttons under the text), so
+// "this many at once" is measured rather than assumed — see fitToRows().
+const MAX_ROWS = 50;
+const SHOWN_ROWS = 10;
+
+// Sizes `scroller` to exactly `count` of the rows in `inner`, however tall
+// they are at this width: the distance from the first row's top to the
+// (count+1)th row's top. A CSS max-height stands in until that can be
+// measured — and where there is no ResizeObserver — so the list is never
+// unbounded. Observing `inner` (not `scroller`, whose height this sets)
+// means adding rows, removing them and a change of width all re-measure,
+// and nothing here can trigger itself.
+function fitToRows(scroller, inner, count) {
+  if (typeof ResizeObserver === 'undefined') return;
+  const measure = () => {
+    const rows = inner.childNodes;
+    if (rows.length <= count) {
+      scroller.style.maxHeight = 'none';
+      return;
+    }
+    const height = rows[count].getBoundingClientRect().top - rows[0].getBoundingClientRect().top;
+    if (height > 0) scroller.style.maxHeight = `${height}px`;
+  };
+  new ResizeObserver(measure).observe(inner);
+}
+
+// A list that scrolls: `scroller` is what goes in the page, `inner` is what
+// the renderers clear and refill.
+function scrollingList() {
+  const inner = el('div', {});
+  const scroller = el('div', { class: 'field history-scroll' }, [inner]);
+  fitToRows(scroller, inner, SHOWN_ROWS);
+  return { scroller, inner };
+}
 
 // "Who made this change" (Phase 9's UI spec), falling back to a generic
 // label when it's this device's own id (never shown by its own device
@@ -56,6 +91,21 @@ function deletedSummaryFor(row) {
   });
 }
 
+// Restoring is the one moment a snapshot has to be read: the lists only hold
+// a summary of each entry, and the whole entry — photos included, it can be
+// megabytes — is fetched from storage here, for this one entry. It is
+// asynchronous, so the button is disabled until it finishes, so a second
+// click cannot restore twice.
+async function restoreFrom(button, entryId, afterwards) {
+  button.disabled = true;
+  try {
+    await revertToEntry(entryId);
+  } finally {
+    button.disabled = false;
+  }
+  afterwards();
+}
+
 // Per-record "History" view (docs/plans/backup-sync.md Phase 9's UI
 // spec) — every retained version of one record, newest first, each with
 // its own "Restore this version" action. Reached from a "History…" button
@@ -65,12 +115,9 @@ function deletedSummaryFor(row) {
 function openHistoryDialog(recordType, recordId, recordName, onChanged) {
   const rows = listHistoryFor(recordType, recordId).map((entry) => {
     const restoreButton = el('button', { class: 'secondary', i18n: 'settings.changeHistory.restoreVersionButton' });
-    restoreButton.addEventListener('click', () => {
-      revertToSnapshot(recordType, entry.snapshot);
-      onChanged();
-    });
+    restoreButton.addEventListener('click', () => restoreFrom(restoreButton, entry.id, onChanged));
     return el('div', { class: 'checkbox-field' }, [
-      el('span', { text: `${entry.snapshot.name} — ${summaryFor(entry)}` }),
+      el('span', { text: `${entry.name} — ${summaryFor(entry)}` }),
       restoreButton
     ]);
   });
@@ -97,25 +144,24 @@ function openHistoryDialog(recordType, recordId, recordName, onChanged) {
 // fresh on every mount — see write-hooks.js's own listeners array, which
 // has no unsubscribe).
 export function changeHistorySection() {
-  const deletedList = el('div', { class: 'field' });
-  const recentList = el('div', { class: 'field' });
+  const { scroller: deletedScroller, inner: deletedList } = scrollingList();
+  const { scroller: recentScroller, inner: recentList } = scrollingList();
 
   function renderDeleted() {
     clear(deletedList);
-    const entries = listRecentlyDeleted(VISIBLE_COUNT);
+    const entries = listRecentlyDeleted(MAX_ROWS);
     if (entries.length === 0) {
       deletedList.appendChild(el('p', { class: 'hint', i18n: 'settings.changeHistory.recentlyDeletedEmptyHint' }));
       return;
     }
     for (const entry of entries) {
       const row = [el('span', { text: `${entry.tombstone.name} — ${deletedSummaryFor(entry)}` })];
-      if (entry.previousSnapshot) {
+      if (entry.previousEntryId) {
         const restoreButton = el('button', { class: 'secondary', i18n: 'settings.changeHistory.restoreButton' });
-        restoreButton.addEventListener('click', () => {
-          revertToSnapshot(entry.recordType, entry.previousSnapshot);
+        restoreButton.addEventListener('click', () => restoreFrom(restoreButton, entry.previousEntryId, () => {
           renderDeleted();
           renderRecent();
-        });
+        }));
         row.push(restoreButton);
       } else {
         // Deleted on a peer and merged in here, or aged out of the history
@@ -129,27 +175,26 @@ export function changeHistorySection() {
 
   function renderRecent() {
     clear(recentList);
-    const entries = listRecentHistory(VISIBLE_COUNT);
+    const entries = listRecentHistory(MAX_ROWS);
     if (entries.length === 0) {
       recentList.appendChild(el('p', { class: 'hint', i18n: 'settings.changeHistory.emptyHint' }));
       return;
     }
     for (const entry of entries) {
       const revertButton = el('button', { class: 'secondary', i18n: 'settings.changeHistory.revertButton' });
-      revertButton.addEventListener('click', () => {
-        revertToSnapshot(entry.recordType, entry.snapshot);
+      revertButton.addEventListener('click', () => restoreFrom(revertButton, entry.id, () => {
         renderRecent();
         renderDeleted();
-      });
+      }));
       const historyButton = el('button', { class: 'secondary', i18n: 'settings.changeHistory.historyButton' });
       historyButton.addEventListener('click', () => {
-        openHistoryDialog(entry.recordType, entry.recordId, entry.snapshot.name, () => {
+        openHistoryDialog(entry.recordType, entry.recordId, entry.name, () => {
           renderRecent();
           renderDeleted();
         });
       });
       recentList.appendChild(el('div', { class: 'checkbox-field' }, [
-        el('span', { text: `${entry.snapshot.name} — ${summaryFor(entry)}` }),
+        el('span', { text: `${entry.name} — ${summaryFor(entry)}` }),
         historyButton,
         revertButton
       ]));
@@ -162,9 +207,9 @@ export function changeHistorySection() {
   const node = sectionGroup('settings.changeHistory.heading', [
     el('p', { class: 'hint', i18n: 'settings.changeHistory.intro' }),
     el('h4', { i18n: 'settings.changeHistory.recentlyDeletedHeading' }),
-    deletedList,
+    deletedScroller,
     el('h4', { i18n: 'settings.changeHistory.recentHeading' }),
-    recentList
+    recentScroller
   ]);
 
   return {

@@ -62,6 +62,26 @@ Ce n'est pas juste « moins pratique », ça a un vrai poids, et ça vaut le cou
 - **N'activez le mode « Automatiquement » que si tous les appareils de votre réseau sont de la famille Chrome.** Dès qu'un seul appareil est sous Firefox, Safari ou iOS, repassez tout le monde en synchronisation **manuelle**. Le mode automatique a été conçu pour le cas « tout Chrome ».
 - Si un réseau mixte est vraiment votre situation — un portable, un téléphone, un iPad — pas de souci, la fonctionnalité est conçue pour ça, mais allez-y les yeux ouverts : mode manuel partout, et n'activez « Prise en charge de la synchronisation manuelle iPhone » que si vous avez vraiment besoin que l'iPad/l'iPhone voie aussi les photos, sinon ça paie une taxe pour une fonctionnalité que vous n'utilisez pas.
 
+## L'entretien qu'elle fait toute seule
+
+Quelques choses se passent en arrière-plan et méritent d'être connues, car elles touchent à des fichiers visibles dans votre propre dossier cloud.
+
+- **Les fichiers photo inutilisés sont nettoyés.** Chaque fois que vous modifiez ou supprimez une photo, l'ancienne copie reste dans le sous-dossier `assets/` — rien ne l'enlevait jamais, le dossier ne faisait donc que grossir. Désormais, environ une fois par jour, l'application supprime les fichiers photo auxquels plus aucun appareil ne fait référence. Elle attend un mois avant de toucher à quoi que ce soit, de sorte qu'une photo encore en transit chez votre fournisseur cloud n'est jamais en danger, et elle vous indique ce qu'elle a supprimé dans la section Sauvegarde et synchronisation. Vos photos elles-mêmes résident sur chaque appareil, pas dans ce dossier : même au pire, un fichier supprimé revient à la prochaine synchronisation de l'appareil qui détient cette photo.
+- **« Nettoyer le stockage maintenant »** fait la même chose à la demande, et range en plus l'historique des modifications et le journal de synchronisation. Utilisez-le si vous venez de supprimer un gros projet et voulez récupérer la place aujourd'hui. Contrairement au passage automatique, il rapporte tout ce qu'il a trouvé, que vous puissiez y faire quelque chose ou non. Il n'apparaît que dans les navigateurs de la famille Chrome, ceux qui peuvent utiliser un dossier de synchronisation — partout ailleurs, le rangement qu'il ferait a déjà lieu à chaque démarrage de l'application.
+- **Les copies en trop de la sauvegarde d'un appareil sont nettoyées.** Un navigateur sans accès au dossier (Firefox, par exemple) enregistre chaque export manuel sous un nouveau nom, comme `backup-… (1).json`, quand un fichier existe déjà. L'application les compte comme un seul appareil et n'utilise que la copie la plus récente — jugée d'après la date d'export inscrite dans le fichier, non d'après la date du fichier lui-même — puis, si le navigateur l'autorise, supprime les plus anciennes. Chaque suppression est consignée comme avertissement dans le journal de synchronisation.
+
+Si vous voyez **« Impossible de synchroniser les images depuis ... »**, c'est que les photos de cette machine n'atteignent pas celle-ci. Ouvrez l'application sur l'appareil nommé, vérifiez que votre fournisseur cloud a fini de synchroniser, et lancez une synchronisation. Si cet appareil est absent un moment, vous pouvez replier le message jusqu'à sa prochaine synchronisation — il revient de lui-même si le problème persiste.
+
+## Mettre un appareil hors service
+
+Quand un ordinateur ou un téléphone est vraiment hors circulation — vendu, remplacé, mort — vous pouvez le supprimer sous **Appareils** dans la section Sauvegarde et synchronisation. Cela retire son fichier de sauvegarde du dossier et le fait disparaître de la liste sur *tous* vos appareils, pas seulement celui que vous avez sous les yeux.
+
+L'application vérifie d'abord trois choses et ne vous laissera pas passer : les conflits non résolus impliquant cet appareil, les photos venant de lui qui arrivent encore, et un appareil qui n'a encore jamais été synchronisé sur celui-ci. Dans les trois cas, il détient encore quelque chose dont cet appareil n'a pas de copie — réglez cela d'abord.
+
+**Seul un navigateur de la famille Chrome peut réellement supprimer le fichier.** Dans Firefox, Safari, ou sur un iPhone ou un iPad, la suppression compte quand même — l'appareil disparaît de vos listes et tous les appareils ignorent son ancien fichier —, mais le fichier reste dans le dossier jusqu'à ce qu'un appareil Chrome ou Edge se synchronise et le supprime. Synchronisez une fois après la suppression pour que celle-ci parvienne à vos autres appareils.
+
+Et si vous supprimez une machine qui s'avère bien vivante, rien n'est cassé : elle revient tout simplement à sa prochaine synchronisation. C'est voulu, mais cela signifie aussi que supprimer un appareil encore utilisé ne sert à rien — d'où l'avertissement de la liste quand un appareil s'est synchronisé récemment.
+
 ## Deux filets de sécurité, en bref
 
 - **Vérification.** Si deux appareils modifient vraiment la même chose exactement au même moment, d'une façon que l'appli ne peut pas résoudre avec confiance toute seule, elle ne devine pas — elle le signale sous **Vérifier…**, dans la même section des Réglages, vous montre les deux versions, et vous laisse choisir.

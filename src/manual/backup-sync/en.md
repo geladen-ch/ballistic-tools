@@ -62,6 +62,26 @@ This isn't just "less convenient," it has real weight to it, and it's worth unde
 - **Turn on "Automatically" sync mode only if every device in your mesh is Chrome-family.** The moment even one device is Firefox, Safari, or iOS, switch everyone to **manual** sync. Automatic mode was built for the all-Chrome case.
 - If a mixed mesh is genuinely your situation — a laptop, a phone, an iPad — that's fine, the feature is built to handle it, just go in with eyes open: manual mode everywhere, and turn on "iPhone manual sync support" only if you actually need the iPad/iPhone to see photos too, since otherwise it'll pay a tax for a feature you're not using.
 
+## Housekeeping it does on its own
+
+A few things happen in the background that are worth knowing about, because they touch files you can see in your own cloud folder.
+
+- **Unused photo files get cleaned up.** Every time you edit or delete a photo, the old copy stays in the folder's `assets/` subfolder — nothing ever removed it, so the folder only grew. Now, roughly once a day, the app removes photo files that no device references any more. It waits a month before touching anything, so a photo that's still making its way through your cloud provider is never at risk, and it tells you what it removed in the Backup & Sync section. Your photos themselves live on each device, not in that folder, so even in the worst case a file it removed comes back the next time the device holding that photo syncs.
+- **"Clean up storage now"** does the same thing on demand, plus tidies up the stored change history and sync log. Use it if you've just deleted a big project and want the space back today. Unlike the automatic pass, it tells you everything it found, whether or not there's anything for you to do about it. It is only shown in Chrome-family browsers, the ones that can use a sync folder — everywhere else the tidying it would do already happens each time the app starts.
+- **Extra copies of a device's backup are tidied up.** A browser without folder access (Firefox, for one) saves each manual export as a new file such as `backup-… (1).json` when one is already there. The app counts those as one device and uses only the newest copy — judged by the export date recorded inside the file, not the file's own date — and, where the browser allows it, deletes the older ones. Each deletion is written to the sync log as a warning.
+
+If you ever see **"Could not sync images from ..."**, it means photos from that machine aren't reaching this one. Open the app on the named device, check that your cloud provider has finished syncing, and let it sync once. If that device is away for a while, you can collapse the message until it next syncs — it comes back on its own if the problem is still there.
+
+## Retiring a device
+
+When a computer or phone is genuinely out of circulation — sold, replaced, dead — you can delete it under **Devices** in the Backup & Sync section. That removes its backup file from the folder and takes it off the device list on *all* your devices, not just the one you're looking at.
+
+Three things the app checks first, and won't let you past: unresolved conflicts involving that device, photos from it that are still arriving, and a device that hasn't been synced on this one yet. All three mean it's still holding something this device hasn't taken a copy of yet, so settle those first.
+
+**Only a Chrome-family browser can actually remove the file.** In Firefox, Safari, or on an iPhone or iPad the deletion still counts — the device leaves your lists and every device ignores its old file — but the file itself stays in the folder until a Chrome or Edge device syncs and removes it. Sync once after deleting, so the deletion reaches your other devices.
+
+And if you delete a machine that turns out to be alive, nothing is broken — it simply rejoins the next time it syncs. That's deliberate, but it does mean deleting a device you're still using achieves nothing, which is why the list warns you when a device has synced recently.
+
 ## A couple of safety nets, briefly
 
 - **Review.** If two devices genuinely edit the same thing at the same moment in a way the app can't confidently resolve on its own, it doesn't guess — it flags it under **Review…** in the same Settings section, shows you both versions, and lets you pick.

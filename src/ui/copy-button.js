@@ -38,7 +38,16 @@ export function copyButton({ label, copiedLabel, getText }) {
   }
 
   button.addEventListener('click', () => {
-    navigator.clipboard.writeText(getText()).then(() => {
+    // getText() may return the text or a promise of it. A promise goes in as
+    // a ClipboardItem where the browser has one, so the write is still tied
+    // to this click: Safari refuses a plain writeText() that only runs after
+    // an await.
+    const text = getText();
+    const isPromise = text && typeof text.then === 'function';
+    const written = isPromise && typeof ClipboardItem !== 'undefined' && navigator.clipboard.write
+      ? navigator.clipboard.write([new ClipboardItem({ 'text/plain': text.then((value) => new Blob([value], { type: 'text/plain' })) })])
+      : Promise.resolve(text).then((value) => navigator.clipboard.writeText(value));
+    written.then(() => {
       setState(checkIcon, copiedLabel);
       clearTimeout(resetTimer);
       resetTimer = setTimeout(() => setState(copyIcon, label), CONFIRMATION_MS);

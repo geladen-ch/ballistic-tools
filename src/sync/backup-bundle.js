@@ -3,14 +3,20 @@
 // unlike the three existing per-library export formats
 // (ebalka2-arsenal/-locations/-rifle-precision), which stay tombstone-free
 // on purpose — see docs/plans/backup-sync.md's "Keep tombstones out of the
-// existing export files". A new format string with no installed base, so
-// there's no backward/forward-compatibility hazard to manage here the way
-// there would be for the existing three.
+// existing export files". This format had no installed base when it was
+// introduced, so its first version managed no compatibility hazard. That
+// stopped being true once it shipped: a field added now (`devicesDeleted`
+// below) is read by builds already in the wild. It is safe because
+// parseBackupBundle() validates only a whitelist of required fields and
+// returns the payload whole — an older build ignores what it does not
+// recognise rather than rejecting the file — but any new field has to stay
+// optional and additive for that to keep holding.
 import { loadUserBulletsWithTombstones, loadUserRiflesWithTombstones } from '../user-library.js';
 import { loadUserLocationsWithTombstones } from '../location-library.js';
 import { loadRiflePrecisionProjectsWithTombstones } from '../rifle-precision-library.js';
 import { getDeviceId } from './device-id.js';
 import { ensureDeviceNameRecord } from './device-name.js';
+import { getDeviceTombstones } from './device-registry.js';
 
 const FILE_FORMAT = 'ebalka2-backup';
 const FILE_VERSION = 1;
@@ -66,6 +72,13 @@ export function buildBackupBundle() {
     // the single source of truth, and the filename is derived from it.
     device: { id: getDeviceId(), name, modifiedAt },
     exportedAt: new Date().toISOString(),
+    // Device deletions this device knows about, so a machine retired on
+    // one device disappears from every device's list rather than only the
+    // one it was retired on (docs/plans/orphaned-storage-cleanup.md phase
+    // 6). Optional and additive: parseBackupBundle() validates a whitelist
+    // of required fields and returns the payload whole, so a build that
+    // predates this field ignores it rather than rejecting the bundle.
+    devicesDeleted: getDeviceTombstones(),
     photoStorage: 'inline',
     arsenal: {
       bullets: loadUserBulletsWithTombstones().map(stripLocalOnlyFields),

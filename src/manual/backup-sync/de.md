@@ -62,6 +62,26 @@ Das ist nicht nur „weniger bequem", das hat echtes Gewicht, und es lohnt sich,
 - **Schalten Sie den Modus „Automatisch" nur ein, wenn jedes Gerät in Ihrem Netzwerk zur Chrome-Familie gehört.** Sobald auch nur ein Gerät Firefox, Safari oder iOS ist, stellen Sie alle auf **manuelle** Synchronisierung um. Der automatische Modus wurde für den reinen Chrome-Fall gebaut.
 - Wenn ein gemischtes Netzwerk wirklich Ihre Situation ist — ein Laptop, ein Telefon, ein iPad — ist das in Ordnung, die Funktion ist dafür gebaut, gehen Sie nur mit offenen Augen ran: überall manueller Modus, und aktivieren Sie „iPhone-Unterstützung für manuelle Synchronisierung" nur, wenn Sie wirklich brauchen, dass das iPad/iPhone auch Fotos sieht, sonst zahlt es eine Steuer für eine Funktion, die Sie gar nicht nutzen.
 
+## Aufräumarbeiten, die von selbst laufen
+
+Ein paar Dinge passieren im Hintergrund, die du kennen solltest, denn sie betreffen Dateien, die du in deinem eigenen Cloud-Ordner sehen kannst.
+
+- **Ungenutzte Fotodateien werden entfernt.** Jedes Mal, wenn du ein Foto bearbeitest oder löschst, bleibt die alte Kopie im Unterordner `assets/` liegen — nichts hat sie je entfernt, der Ordner wuchs also nur. Jetzt entfernt die App etwa einmal täglich Fotodateien, auf die kein Gerät mehr verweist. Sie wartet einen Monat, bevor sie etwas anfasst, damit ein Foto, das noch durch deinen Cloud-Anbieter unterwegs ist, nie gefährdet ist, und sie sagt dir im Bereich Backup & Sync, was sie entfernt hat. Deine Fotos selbst liegen auf den einzelnen Geräten, nicht in diesem Ordner — selbst im schlimmsten Fall kommt eine entfernte Datei zurück, sobald das Gerät mit diesem Foto das nächste Mal synchronisiert.
+- **„Speicher jetzt bereinigen"** macht dasselbe auf Abruf und räumt zusätzlich den gespeicherten Änderungsverlauf und das Sync-Protokoll auf. Nutze es, wenn du gerade ein großes Projekt gelöscht hast und den Platz heute zurückhaben willst. Anders als der automatische Durchlauf meldet es alles, was es gefunden hat — egal, ob du etwas dagegen tun kannst oder nicht. Es wird nur in Browsern der Chrome-Familie angezeigt, die einen Sync-Ordner nutzen können — überall sonst passiert das Aufräumen ohnehin bei jedem Start der App.
+- **Überzählige Kopien der Sicherung eines Geräts werden aufgeräumt.** Ein Browser ohne Ordnerzugriff (etwa Firefox) speichert jeden manuellen Export als neue Datei, z. B. `backup-… (1).json`, wenn bereits eine vorhanden ist. Die App zählt diese als ein Gerät und verwendet nur die neueste Kopie — beurteilt nach dem in der Datei vermerkten Exportdatum, nicht nach dem Datum der Datei selbst — und löscht die älteren, sofern der Browser es erlaubt. Jedes Löschen wird als Warnung im Sync-Protokoll festgehalten.
+
+Wenn du **„Bilder von ... konnten nicht synchronisiert werden"** siehst, erreichen Fotos von diesem Rechner dieses Gerät nicht. Öffne die App auf dem genannten Gerät, prüfe, ob dein Cloud-Anbieter fertig synchronisiert hat, und lass es einmal synchronisieren. Ist das Gerät länger weg, kannst du die Meldung bis zur nächsten Synchronisierung ausblenden — sie kommt von selbst zurück, wenn das Problem weiter besteht.
+
+## Ein Gerät ausmustern
+
+Wenn ein Rechner oder Telefon wirklich aus dem Verkehr ist — verkauft, ersetzt, defekt — kannst du es unter **Geräte** im Bereich Backup & Sync löschen. Das entfernt seine Sicherungsdatei aus dem Ordner und nimmt es auf *allen* deinen Geräten aus der Liste, nicht nur auf dem, das du gerade vor dir hast.
+
+Drei Dinge prüft die App vorher und lässt dich nicht weiter: ungelöste Konflikte mit diesem Gerät, Fotos von ihm, die noch eintreffen, und ein Gerät, das auf diesem noch nie synchronisiert wurde. Alle drei heißen, dass es noch etwas hält, wovon dieses Gerät keine Kopie hat — kläre das also zuerst.
+
+**Nur ein Browser der Chrome-Familie kann die Datei wirklich entfernen.** In Firefox, Safari oder auf einem iPhone oder iPad zählt das Löschen trotzdem — das Gerät verschwindet aus deinen Listen, und alle Geräte ignorieren seine alte Datei —, aber die Datei selbst bleibt im Ordner, bis ein Chrome- oder Edge-Gerät synchronisiert und sie entfernt. Synchronisiere nach dem Löschen einmal, damit das Löschen deine anderen Geräte erreicht.
+
+Und wenn du ein Gerät löschst, das doch noch lebt, ist nichts kaputt: Es tritt bei der nächsten Synchronisierung einfach wieder bei. Das ist Absicht, bedeutet aber auch, dass das Löschen eines noch genutzten Geräts nichts bringt — deshalb warnt die Liste, wenn ein Gerät kürzlich synchronisiert hat.
+
 ## Ein paar Sicherheitsnetze, kurz
 
 - **Überprüfen.** Wenn zwei Geräte wirklich exakt zum selben Zeitpunkt dasselbe bearbeiten, auf eine Weise, die die App nicht selbstsicher automatisch auflösen kann, rät sie nicht — sie markiert es unter **Überprüfen…** im selben Einstellungsabschnitt, zeigt Ihnen beide Versionen und lässt Sie wählen.

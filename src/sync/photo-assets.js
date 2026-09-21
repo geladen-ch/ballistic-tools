@@ -18,6 +18,7 @@
 // none at all.
 import { dataUrlToBlob, blobToDataUrl } from '../data-url.js';
 import { writeAssetIfAbsent } from './fs-folder.js';
+import { markAssetBad } from './asset-state.js';
 import { logSyncEvent } from './sync-log.js';
 import { logDiagnostic } from '../debug-log.js';
 
@@ -47,6 +48,16 @@ async function sha256Hex(bytes) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+// The one place a data-URL becomes a photoRef. Exported so asset-cleanup.js
+// can compute the ref of a photo this device holds locally and recognise
+// the asset file that photo would be written to — if the two ever computed
+// it differently, cleanup would mistake live photos for orphans and delete
+// them, so there is deliberately only one implementation.
+export async function photoRefFor(dataUrl) {
+  const bytes = new Uint8Array(await dataUrlToBlob(dataUrl).arrayBuffer());
+  return `sha256-${await sha256Hex(bytes)}`;
+}
+
 // Converts one photo data-URL to a { photoRef, photoMime } pair, writing
 // assets/<ref>.jpg if not already present. `photoMime` is the photo's
 // *actual* MIME type (from dataUrlToBlob()'s own extraction, i.e.
@@ -59,8 +70,7 @@ async function sha256Hex(bytes) {
 // than silently losing it.
 async function refFor(dirHandle, dataUrl) {
   const blob = dataUrlToBlob(dataUrl);
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  const photoRef = `sha256-${await sha256Hex(bytes)}`;
+  const photoRef = await photoRefFor(dataUrl);
   try {
     await writeAssetIfAbsent(dirHandle, assetFileName(photoRef), blob);
     return { photoRef, photoMime: blob.type || 'application/octet-stream' };
@@ -119,7 +129,24 @@ async function resolveOne(readAsset, holder) {
   try {
     const file = await readAsset(assetFileName(holder.photoRef));
     if (!file) return false;
-    holder.photo = await blobToDataUrl(file, { mimeOverride: holder.photoMime });
+    // Verify the bytes actually hash to the ref that named them before
+    // trusting them (docs/plans/orphaned-storage-cleanup.md phase 2).
+    // This costs one digest over data already in memory — the file has to
+    // be read in full anyway to build the data URL — and it is the
+    // strongest integrity check content-addressed storage permits,
+    // catching a truncated or corrupted file as readily as an empty one.
+    // Marking the ref bad is what gets it repaired: the next publish from
+    // any device still holding that photo rewrites the file rather than
+    // trusting that it is present.
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const actual = `sha256-${await sha256Hex(bytes)}`;
+    if (actual !== holder.photoRef) {
+      logSyncEvent('warn', 'photo asset failed verification:', holder.photoRef, '— content does not match its name');
+      logDiagnostic('warn', '[sync] photo asset failed verification:', holder.photoRef);
+      markAssetBad(holder.photoRef);
+      return false;
+    }
+    holder.photo = await blobToDataUrl(new Blob([bytes], { type: file.type }), { mimeOverride: holder.photoMime });
     delete holder.photoRef;
     delete holder.photoMime;
     return true;

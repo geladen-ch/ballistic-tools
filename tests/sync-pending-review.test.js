@@ -8,7 +8,8 @@ installFakeIndexedDb();
 const {
   addPendingReview, listPendingReviews, getPendingReviewCount, clearPendingReview,
   markPendingReviewResolved, reopenPendingReview, expireStaleReviewsForPeer,
-  resetPendingReviewForTests, reloadPendingReviewForTests, flushPendingReviewWritesForTests
+  resetPendingReviewForTests, reloadPendingReviewForTests, flushPendingReviewWritesForTests,
+  markPendingReviewResolvedAtForTests, setPendingReviewSeenAtForTests, getPendingReviewEntryForTests
 } = await import('../src/sync/pending-review.js');
 const { notifyLibraryWrite } = await import('../src/sync/write-hooks.js');
 
@@ -222,4 +223,55 @@ test('expireStaleReviewsForPeer leaves a resolved suppression marker alone', () 
   // a resolved (not outstanding) entry.
   expireStaleReviewsForPeer('rifle-precision-project', 'peer-1', []);
   assert.equal(getPendingReviewCount(), 0);
+});
+
+// ---- docs/plans/orphaned-storage-cleanup.md phase 3 ----
+
+test('a resolved marker older than the retention window is swept at init', async () => {
+  markPendingReviewResolved('bullet', 'old', { id: 'old', name: 'Theirs' });
+  await flushPendingReviewWritesForTests();
+
+  // Age it past the window by rewriting the marker directly, then reload:
+  // the sweep runs at init, which is the whole point — it must catch
+  // entries written by earlier sessions, not just this one.
+  const aged = new Date(Date.now() - 401 * 24 * 60 * 60 * 1000).toISOString();
+  markPendingReviewResolvedAtForTests('bullet', 'old', { id: 'old', name: 'Theirs' }, aged);
+  await flushPendingReviewWritesForTests();
+  await reloadPendingReviewForTests();
+
+  assert.equal(getPendingReviewEntryForTests('bullet', 'old'), null,
+    'a decision nobody can act on any more should not keep a full record, photos included, forever');
+});
+
+test('a recent resolved marker survives the sweep', async () => {
+  markPendingReviewResolved('bullet', 'recent', { id: 'recent', name: 'Theirs' });
+  await flushPendingReviewWritesForTests();
+  await reloadPendingReviewForTests();
+
+  const entry = getPendingReviewEntryForTests('bullet', 'recent');
+  assert.ok(entry, 'suppression has to outlive a reload or the conflict re-raises every session');
+  assert.ok(entry.resolvedAt);
+});
+
+test('an outstanding entry is never swept, however old', async () => {
+  addPendingReview({
+    recordType: 'bullet', recordId: 'b1', reason: 'unresolvable-timestamp',
+    peerDeviceId: 'dev-2', remoteVersion: { id: 'b1', name: 'Remote' }
+  });
+  setPendingReviewSeenAtForTests('bullet', 'b1', new Date(Date.now() - 500 * 24 * 60 * 60 * 1000).toISOString());
+  await flushPendingReviewWritesForTests();
+  await reloadPendingReviewForTests();
+
+  assert.equal(getPendingReviewCount(), 1, 'an undecided conflict is still the user\'s to decide, however old');
+});
+
+test('the sweep removes the record from the store, not just the mirror', async () => {
+  const aged = new Date(Date.now() - 401 * 24 * 60 * 60 * 1000).toISOString();
+  markPendingReviewResolvedAtForTests('bullet', 'gone', { id: 'gone', name: 'Theirs' }, aged);
+  await flushPendingReviewWritesForTests();
+  await reloadPendingReviewForTests();   // sweeps
+  await flushPendingReviewWritesForTests();
+  await reloadPendingReviewForTests();   // proves the delete was durable
+
+  assert.equal(getPendingReviewEntryForTests('bullet', 'gone'), null);
 });

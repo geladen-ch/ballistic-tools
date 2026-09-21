@@ -294,17 +294,22 @@ test('importPickedFiles skips an unparseable file without aborting the rest of t
 test('importPickedFiles resolves a peer\'s referenced photo from an assets/ subfolder present in a directory selection', async () => {
   localStorage.setItem('ballistics_device_id_v1', 'my-device');
   const photoBytes = 'directory photo bytes';
+  // A real digest of `photoBytes`, not a stand-in: resolveOne() now verifies
+  // that an asset's content hashes to the ref that named it before trusting
+  // it (docs/plans/orphaned-storage-cleanup.md phase 2), so a made-up ref
+  // would be correctly rejected as corrupt.
+  const photoRef = 'sha256-e78a23c9fec77d1bd40c6d23632c3c9592cd925bb918b4e9fcfe4f5a0ecb3c97';
   const peerBundle = {
     format: 'ebalka2-backup', version: 1, photoStorage: 'referenced',
     device: { id: 'peer-device', name: 'Peer', modifiedAt: '2021-01-01T00:00:00.000Z' },
     exportedAt: new Date().toISOString(),
     arsenal: { bullets: [], rifles: [] },
-    locations: { locations: [{ id: 'loc1', name: 'Range', photoRef: 'sha256-abc123', targets: [] }] },
+    locations: { locations: [{ id: 'loc1', name: 'Range', photoRef, targets: [] }] },
     riflePrecision: { projects: [] }
   };
   const files = [
     makeFile(JSON.stringify(peerBundle), 'backup-peer-device.json', { webkitRelativePath: 'sync-folder/backup-peer-device.json' }),
-    makeFile(photoBytes, 'sha256-abc123.jpg', { webkitRelativePath: 'sync-folder/assets/sha256-abc123.jpg', type: 'image/jpeg' })
+    makeFile(photoBytes, `${photoRef}.jpg`, { webkitRelativePath: `sync-folder/assets/${photoRef}.jpg`, type: 'image/jpeg' })
   ];
 
   await importPickedFiles(files);

@@ -18,6 +18,14 @@ import { logSyncEvent } from './sync-log.js';
 
 const STORE_NAME = 'pending-review';
 
+// See the two libraries' identical tombstone constant for why this errs
+// long. A resolved marker is a suppression record, not a conflict: it
+// carries the exact `remoteVersion` the user decided about, so an
+// unchanged peer re-offering that same version stays quiet. Nothing ever
+// cleared them, and each one holds a full record — photos included — so
+// a library that has seen a few photo conflicts kept those bytes forever.
+const RESOLVED_MARKER_RETENTION_MS = 400 * 24 * 60 * 60 * 1000; // ~13 months
+
 let mirror = [];
 let dbPromise = null;
 let readyPromise = null;
@@ -46,12 +54,45 @@ export function initPendingReview() {
       try {
         const db = await getDb();
         mirror = await getAll(db, STORE_NAME);
+        sweepResolvedMarkers();
       } catch {
         mirror = [];
       }
     })();
   }
   return readyPromise;
+}
+
+// Drops resolved suppression markers older than the retention window —
+// run once per boot, right after the mirror is populated, mirroring
+// sweepTombstones() in location-library.js/rifle-precision-library.js.
+//
+// Deliberately age-based only. Dropping a marker when its peer stops
+// offering the record would be more precise, but a peer's record can be
+// briefly absent from a cycle while its photo is still syncing (the
+// 'skip' path in resolveBundlePhotoRefs), and that would re-ask the user
+// about a conflict they had already decided. The cost of the age rule is
+// narrow and one-off: a peer still offering the identical version after
+// 400 days re-raises the conflict exactly once.
+//
+// Outstanding (unresolved) entries are never touched here — clearPending-
+// Review() and expireStaleReviewsForPeer() already cover those, and an
+// outstanding conflict is a thing the user still has to decide however
+// old it is.
+export function sweepResolvedMarkers() {
+  const cutoff = Date.now() - RESOLVED_MARKER_RETENTION_MS;
+  const stale = mirror.filter((e) => e.resolvedAt && Date.parse(e.resolvedAt) <= cutoff);
+  if (stale.length === 0) return 0;
+  const staleIds = new Set(stale.map((e) => e.id));
+  mirror = mirror.filter((e) => !staleIds.has(e.id));
+  logSyncEvent('info', 'pending review: swept', stale.length, 'resolved marker(s) past the retention window');
+  for (const entry of stale) {
+    enqueueWrite(async () => {
+      const db = await getDb();
+      await deleteRecord(db, STORE_NAME, entry.id);
+    });
+  }
+  return stale.length;
 }
 
 function reviewId(recordType, recordId) {
@@ -250,4 +291,33 @@ export async function reloadPendingReviewForTests() {
 
 export function flushPendingReviewWritesForTests() {
   return writeChain;
+}
+
+// Writes a resolved marker with a chosen `resolvedAt`, so the retention
+// sweep can be tested without waiting 400 days or stubbing the clock.
+export function markPendingReviewResolvedAtForTests(recordType, recordId, remoteVersion, resolvedAt) {
+  const id = reviewId(recordType, recordId);
+  const existing = mirror.find((e) => e.id === id);
+  return upsertEntry({
+    id,
+    recordType,
+    recordId,
+    reason: existing ? existing.reason : null,
+    peerDeviceId: existing ? existing.peerDeviceId : null,
+    remoteVersion,
+    seenAt: existing ? existing.seenAt : resolvedAt,
+    resolvedAt
+  });
+}
+
+// Ages an outstanding entry, to prove the sweep leaves it alone.
+export function setPendingReviewSeenAtForTests(recordType, recordId, seenAt) {
+  const id = reviewId(recordType, recordId);
+  const existing = mirror.find((e) => e.id === id);
+  if (!existing) return null;
+  return upsertEntry({ ...existing, seenAt });
+}
+
+export function getPendingReviewEntryForTests(recordType, recordId) {
+  return mirror.find((e) => e.id === reviewId(recordType, recordId)) || null;
 }

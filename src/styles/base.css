@@ -229,6 +229,11 @@ a { color: var(--accent); }
    --danger, so it reads as guidance instead of blending into the quieter
    field-level hints around it. */
 .hint.prominent { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 8px; margin-bottom: 4px; }
+/* The change-history lists (src/ui/change-history-settings.js): they scroll
+   inside their own box rather than lengthening the page. fitToRows() there
+   replaces this max-height with the measured height of exactly ten rows;
+   this is only the stand-in for before that has run. */
+.history-scroll { overflow-y: auto; max-height: 26rem; }
 /* Live per-field validation (src/ui/field-validity.js) — toggled
    directly on whichever control (input/select/textarea) it's checking,
    so one rule covers every field in the app regardless of which other
