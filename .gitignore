@@ -5,6 +5,7 @@ node_modules/
 Thumbs.db
 
 docs/
+legacy-notice/
 data/
 screenshots/
 .claude/
