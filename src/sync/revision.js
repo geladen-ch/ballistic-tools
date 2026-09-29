@@ -1,6 +1,5 @@
-// A Lamport-style integer counter carried on every synced record — see
-// docs/plans/backup-sync.md Phase 4's "revision counter" for the original
-// rationale: unlike modifiedAt/deletedAt (wall-clock, so dependent on every
+// A Lamport-style integer counter carried on every synced record.
+// Unlike modifiedAt/deletedAt (wall-clock, so dependent on every
 // device's clock being roughly correct), a revision only ever moves
 // forward through an unbroken local chain of "I wrote this, building on
 // whatever I'd already seen" — so the common sequential case (edit on the

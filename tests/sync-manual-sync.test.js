@@ -296,8 +296,7 @@ test('importPickedFiles resolves a peer\'s referenced photo from an assets/ subf
   const photoBytes = 'directory photo bytes';
   // A real digest of `photoBytes`, not a stand-in: resolveOne() now verifies
   // that an asset's content hashes to the ref that named it before trusting
-  // it (docs/plans/orphaned-storage-cleanup.md phase 2), so a made-up ref
-  // would be correctly rejected as corrupt.
+  // it, so a made-up ref would be correctly rejected as corrupt.
   const photoRef = 'sha256-e78a23c9fec77d1bd40c6d23632c3c9592cd925bb918b4e9fcfe4f5a0ecb3c97';
   const peerBundle = {
     format: 'ebalka2-backup', version: 1, photoStorage: 'referenced',

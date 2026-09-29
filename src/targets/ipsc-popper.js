@@ -3,7 +3,7 @@
 // edge meeting the circle below its center (not a plain rectangle-plus-
 // circle stack, so plain addition doesn't apply — see
 // src/engine/target-shapes.js's profileHitProbability). Geometry from
-// data/targets/IPSC_Popper_steel_target.png: base 150mm wide, circle
+// the reference IPSC Popper steel target diagram: base 150mm wide, circle
 // 300mm diameter (R150mm) centered 700mm above the base, taper widening
 // from the base up to 200mm wide where it meets the circle, total height
 // 850mm (base to top of circle). All figures below converted to

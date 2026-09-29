@@ -24,19 +24,21 @@ import {
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
 } from '../hit-probability-prefs.js';
 import { loadHitProbabilityState, saveHitProbabilityState } from '../hit-probability-state.js';
+import {
+  presetUnitField as sharedPresetUnitField,
+  BENCH_PRECISION_PRESETS, DEFAULT_BENCH_PRECISION_PRESET_KEY,
+  MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY
+} from '../ui/precision-preset-field.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
+// muzzleVelocitySD/benchPrecision themselves live in
+// ui/precision-preset-field.js now — shared with the Truing Session tool,
+// which needs the exact same two ladders;
+// every other field below is specific to this page and stays here.
 const PRESETS = {
-  muzzleVelocitySD: [
-    { key: 'manicReload', value: 2 }, { key: 'goodReload', value: 3 }, { key: 'factoryPremium', value: 4 },
-    { key: 'factoryMatch', value: 5 }, { key: 'factoryTraining', value: 7 }, { key: 'surplus', value: 9 }
-  ],
-  benchPrecision: [
-    { key: 'benchrest', value: 0.03 }, { key: 'supermatch', value: 0.06 }, { key: 'sniper', value: 0.09 },
-    { key: 'basic', value: 0.14 }, { key: 'dmr', value: 0.20 }, { key: 'm4m16', value: 0.32 },
-    { key: 'ak74', value: 0.39 }, { key: 'akmAk47', value: 0.53 }
-  ],
+  muzzleVelocitySD: MUZZLE_VELOCITY_SD_PRESETS,
+  benchPrecision: BENCH_PRECISION_PRESETS,
   shooterSkill: [
     { key: 'robot', value: 0 }, { key: 'elite', value: 0.06 }, { key: 'marksman', value: 0.12 },
     { key: 'proficient', value: 0.24 }, { key: 'novice', value: 0.36 }
@@ -66,7 +68,7 @@ const PRESETS = {
 };
 
 const DEFAULT_PRESET_KEY = {
-  muzzleVelocitySD: 'factoryMatch', benchPrecision: 'basic', shooterSkill: 'marksman',
+  muzzleVelocitySD: DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY, benchPrecision: DEFAULT_BENCH_PRECISION_PRESET_KEY, shooterSkill: 'marksman',
   distanceMedianError: 'laser', tempMedianError: 'pocketThermometer', pressureMedianError: 'pocketBarometer',
   windMedianError: 'good', movingTargetSpeed: 'static', movingTargetSpeedError: 'good',
   spotterMeasure: 'master'
@@ -135,18 +137,6 @@ const ZOOM_MAX = 4;
 const ZOOM_STEP = 0.05;
 const ZOOM_DEFAULT = 1;
 
-// A synthetic, non-pickable option shown whenever the paired number field's
-// value no longer matches any preset — indicates "you're not looking at a
-// preset value anymore" rather than offering an action of its own.
-const CUSTOM_PRESET_KEY = '__custom__';
-
-// A synthetic option offered only while the currently active cartridge
-// (the rifle section's own rifle+cartridge picker — see
-// applyActiveCartridgeExtras() below) specifies its own value for this
-// field — picks up that value the same way a real preset does, but its
-// value comes from the Arsenal rather than PRESETS[fieldId].
-const RIG_PRESET_KEY = '__rig__';
-
 // Cookie-backed (survives navigation and an app restart — see
 // hit-probability-state.js) state for the Uncertainty and Simulation
 // panels. Module-level rather than in shot-state.js because none of this
@@ -173,88 +163,17 @@ function setPanelState(patch) {
   saveHitProbabilityState(patch);
 }
 
-// `getRigValue`, if given, resolves RIG_PRESET_KEY's own current value —
-// looked up live rather than baked in at select-creation time, since the
-// active cartridge (and so this value) can change after the select already
-// exists; see presetUnitField()'s own setRigValue() below, the only thing
-// that ever actually adds the option this handles.
-function presetSelect(fieldId, initialKey, onPick, getRigValue) {
-  const options = PRESETS[fieldId].map((p) => el('option', { value: p.key, i18n: `hitProbability.presetLabels.${p.key}` }));
-  options.push(el('option', { value: CUSTOM_PRESET_KEY, disabled: true, i18n: 'hitProbability.presetLabels.custom' }));
-  const select = el('select', {}, options);
-  select.value = initialKey;
-  select.addEventListener('change', () => {
-    if (select.value === CUSTOM_PRESET_KEY) return;
-    if (select.value === RIG_PRESET_KEY) { onPick(getRigValue()); return; }
-    onPick(PRESETS[fieldId].find((p) => p.key === select.value).value);
-  });
-  return select;
-}
-
-// A unitField() paired with a presets <select> that pre-fills it (still
-// freely editable afterward) — the pairing used throughout the
-// Uncertainty panel. Reuses unitField's own unit-conversion logic via its
-// `before` slot rather than duplicating it. Typing a value by hand (as
-// opposed to picking a preset, which sets the field programmatically and
-// so never fires unitField's own onInput) flips the select to "Custom" —
-// both live in the same handler so there's no ordering question between
-// "mark custom" and "persist" running on the same keystroke.
+// Thin wrapper around ui/precision-preset-field.js's generic version
+// — every call site below keeps its original
+// two-argument shape (`presetUnitField('fieldId', {...})`), resolving
+// this page's own PRESETS/DEFAULT_PRESET_KEY lookup and cookie-backed
+// panelState the shared module takes as plain parameters.
 function presetUnitField(id, { max, step, isSpan = false, onInput }) {
-  let field;
-  // The active cartridge's own value for this field, and the <option> that
-  // exposes it (only present while such a value exists) — both owned by
-  // setRigValue() below, the only thing that ever touches either.
-  let rigValue = null;
-  let rigOption = null;
-  const initialKey = persistedValue(id + 'Preset', DEFAULT_PRESET_KEY[id]);
-  const select = presetSelect(id, initialKey, (value) => {
-    field.setEngineValue(value);
-    setPanelState({ [id]: value, [id + 'Preset']: select.value });
-    onInput();
-  }, () => rigValue);
-  const defaultValue = PRESETS[id].find((p) => p.key === DEFAULT_PRESET_KEY[id]).value;
-  const initialValue = persistedValue(id, defaultValue);
-  field = unitField({
-    id, min: 0, max, step, value: initialValue, isSpan, before: select,
-    onInput: () => {
-      select.value = CUSTOM_PRESET_KEY;
-      setPanelState({ [id]: field.getEngineValue(), [id + 'Preset']: CUSTOM_PRESET_KEY });
-      onInput();
-    }
+  return sharedPresetUnitField({
+    id, presetList: PRESETS[id], defaultKey: DEFAULT_PRESET_KEY[id], labelPrefix: 'hitProbability.presetLabels.',
+    max, step, isSpan, onInput,
+    getPersisted: persistedValue, setPersisted: setPanelState
   });
-
-  // Called by applyActiveCartridgeExtras() whenever the active rifle+
-  // cartridge selection changes — `value` is the cartridge's own value for
-  // this field (engine units), or null once it no longer specifies one
-  // (a different cartridge, or "Other"/no rifle). `autoSelect` additionally
-  // picks it right now, the "default to specified values" behavior; a
-  // caller that only wants to keep the *option* available without forcing
-  // a selection (see benchPrecisionField's own combined-mode case) omits
-  // it. Typing a value by hand still flips back to Custom exactly the way
-  // it already does for any other preset — no special-casing needed there.
-  field.setRigValue = function setRigValue(value, { autoSelect = false } = {}) {
-    rigValue = value;
-    if (value == null) {
-      if (rigOption) { rigOption.remove(); rigOption = null; }
-      if (select.value === RIG_PRESET_KEY) {
-        select.value = DEFAULT_PRESET_KEY[id];
-        field.setEngineValue(defaultValue);
-        setPanelState({ [id]: defaultValue, [id + 'Preset']: DEFAULT_PRESET_KEY[id] });
-      }
-      return;
-    }
-    if (!rigOption) {
-      rigOption = el('option', { value: RIG_PRESET_KEY, i18n: 'hitProbability.presetLabels.thisRig' });
-      select.insertBefore(rigOption, select.querySelector(`option[value="${CUSTOM_PRESET_KEY}"]`));
-    }
-    if (autoSelect) {
-      select.value = RIG_PRESET_KEY;
-      field.setEngineValue(value);
-      setPanelState({ [id]: value, [id + 'Preset']: RIG_PRESET_KEY });
-    }
-  };
-
-  return field;
 }
 
 // A user on yards gets a round 600 yd default rather than whatever a
@@ -941,7 +860,7 @@ export function mount(container) {
       // The target library failed to load (offline on first visit, a
       // missing/corrupt asset, ...) — leave the results column showing its
       // placeholder "—" state rather than a silently-stuck loading state.
-      logDiagnostic('warn', `[catalog:targets] failed to load current target "${id}" (data/scoring-function/illustration):`, err);
+      logDiagnostic('warn', `[catalog:targets] failed to load current target "${id}" (scoring-function illustration):`, err);
       applyI18nText(targetNameLabel, 'hitProbability.targetLoadError');
     });
   }

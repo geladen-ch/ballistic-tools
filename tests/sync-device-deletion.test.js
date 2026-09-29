@@ -1,5 +1,4 @@
-// Deleting a device that is out of circulation — docs/plans/orphaned-storage-cleanup.md
-// phase 6. The two properties under test: a deletion propagates to every
+// Deleting a device that is out of circulation. The two properties under test: a deletion propagates to every
 // device, and a machine that turns out to be alive is never locked out of
 // rejoining.
 import test from 'node:test';

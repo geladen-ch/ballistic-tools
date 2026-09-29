@@ -67,8 +67,7 @@ test('estimateTrackBC returns keptPoints/discardedPoints that partition the inpu
 
 // estimateTrackBCWholeWindow — the whole-window physics fit
 // src/workers/ballistics-worker.js actually dispatches to now (see
-// src/engine/labradar-bc.js). Validated in
-// docs/reports/labradar-bc-validation.md to recover BC 3-9x more
+// src/engine/labradar-bc.js). Validated to recover BC 3-9x more
 // accurately than estimateTrackBC's linear fit across every tested
 // configuration; the tests below check both that it still works the
 // same way estimateTrackBC's own tests do, and — the point of the
@@ -103,8 +102,8 @@ test('estimateTrackBCWholeWindow returns keptPoints/discardedPoints that partiti
 
 test('estimateTrackBCWholeWindow recovers BC far more accurately than estimateTrackBC on a noiseless track with real curvature', () => {
   // A fast, low-BC, long-window track — the shape estimateTrackBC's own
-  // linear fit is known to be biased on (see the noiseless sanity check
-  // in docs/reports/labradar-bc-validation.md). No injected noise at
+  // linear fit is known to be biased on, per the noiseless sanity check
+  // that validated this estimator. No injected noise at
   // all here: this isolates the curve-shape bias itself, not noise
   // robustness.
   const trueBC = 0.10;

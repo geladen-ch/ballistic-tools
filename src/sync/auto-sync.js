@@ -1,4 +1,4 @@
-// Sync cycle orchestration — see docs/plans/backup-sync.md Phase 5.
+// Sync cycle orchestration.
 // Manual is the default on every platform; automatic mode (Chromium-only)
 // is an explicit opt-in that registers a periodic timer plus a
 // tab-focus/visibilitychange trigger.
@@ -97,8 +97,7 @@ export function setSyncMode(mode) {
 // not just the sync mode preference — if backup/sync was ever turned back
 // off, this must stay a no-op even though `ballistics_sync_mode_v1` still
 // says "automatic" from before, since the master toggle being off means
-// nothing about this feature runs, permanently, until re-enabled (see
-// docs/plans/backup-sync.md Phase 6).
+// nothing about this feature runs, permanently, until re-enabled.
 export function initSyncTriggers() {
   if (isBackupSyncEnabled() && getSyncMode() === 'automatic') registerAutomaticTriggers();
 }
@@ -388,8 +387,7 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
     // pending should only be named once in the Settings warning.
     recordPendingPhotoDevices([...new Set(photoPendingDeviceNames)]);
 
-    // Reclaim unused photo assets (docs/plans/orphaned-storage-cleanup.md
-    // phase 5). Placed *before* the "nothing changed" early return below
+    // Reclaim unused photo assets. Placed *before* the "nothing changed" early return below
     // rather than after the publish: that return fires on exactly the
     // cycles that dominate — a device where nothing changed — which is
     // also precisely when orphans are sitting around, so a hook after the
@@ -433,8 +431,7 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
       // Off (default): use the efficient photoRef/assets/ split among
       // folder-access peers. On: keep every photo inline so any device,
       // folder access or not, can always import this bundle completely —
-      // see docs/plans/backup-sync.md Phase 7's "iPhone manual sync
-      // support" toggle.
+      // the "iPhone manual sync support" toggle.
       if (!isIphoneSyncSupportEnabled()) {
         await applyReferencedPhotoStorage(ownBundle, handle);
       } else {

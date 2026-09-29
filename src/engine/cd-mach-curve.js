@@ -1,8 +1,8 @@
 // Reverse-engineers a bullet's own Cd-vs-Mach drag curve from a measured
 // distance/velocity table (e.g. Doppler radar or multi-chronograph
-// readings) — ported from the legacy getcdmach tool's CdMachTable()
-// (data/legacy.code/getcdmach/engine/getcdmachengine.js), onto this
-// engine's metric SI physics instead of that tool's archaic-imperial one.
+// readings) — ported from the legacy getcdmach tool's own CdMachTable(),
+// onto this engine's metric SI physics instead of that tool's
+// archaic-imperial one.
 //
 // For each table row (as a segment start), solves for the single
 // "blanket" Cd (same at every Mach, for that segment only) that makes a

@@ -1,6 +1,5 @@
 // IndexedDB-backed store of automatic-merge conflicts that couldn't be
-// resolved without a person — see docs/plans/backup-sync.md Phase 4's
-// "Pending review needs somewhere to live". A skip-review outcome from
+// resolved without a person. A skip-review outcome from
 // mergeRecords() (merge.js) is produced mid-cycle from a peer's bundle
 // that may not be readable later (Phase 8a/8b have no persisted folder
 // handle at all), so it's captured here rather than recomputed on demand,

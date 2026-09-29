@@ -90,8 +90,8 @@ export function compareModifiedAt(importedAt, existingAt) {
 
 // Matches an imported item against the current library by id first —
 // required for repeated automatic merging to recognize the same record
-// across cycles (see docs/plans/backup-sync.md's Prerequisite fix #2) —
-// falling back to case/whitespace-insensitive name matching only when the
+// across cycles — falling back to case/whitespace-insensitive name
+// matching only when the
 // item has no id or it doesn't resolve locally (covers old hand-edited
 // files predating this field's use as a merge key).
 function findExisting(item, existingList) {
@@ -140,7 +140,7 @@ export function generateCopyName(baseName, nameTaken) {
 // Resolves what to actually write for one imported item under the chosen
 // conflict mode. A genuinely new item (no match by id or name) keeps its
 // own id verbatim rather than minting a fresh one — required so a repeated
-// automatic merge (docs/plans/backup-sync.md) recognizes it as the same
+// automatic merge recognizes it as the same
 // record on every future cycle instead of re-inserting a duplicate; a
 // fresh id is only minted as a defensive fallback if the imported id
 // happens to collide with a *different* existing record's id. An

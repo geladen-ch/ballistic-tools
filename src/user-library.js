@@ -16,8 +16,7 @@ const RIFLES_KEY = 'ballistics_user_rifles_v1';
 const RECORD_TYPE_BY_KEY = { [BULLETS_KEY]: 'bullet', [RIFLES_KEY]: 'rifle' };
 
 // A tombstone's deletedAt must outlive the longest plausible dormancy of an
-// unsynced secondary device (see docs/plans/backup-sync.md's "retention
-// window is a correctness parameter") — err long, a stale-but-live copy
+// unsynced secondary device — err long, a stale-but-live copy
 // resurrecting everywhere is worse than a trash bin that grows a little.
 const TOMBSTONE_RETENTION_MS = 400 * 24 * 60 * 60 * 1000; // ~13 months
 
@@ -96,7 +95,7 @@ function upsert(key, entry) {
 // rather than restamping it with this device's own id — the local device
 // did not author that version, a peer or a prior export did, and
 // `modifiedBy` is what lets a peer later render "(from Guns' iPhone)" for
-// it (see docs/plans/backup-sync.md Phase 2).
+// it.
 //
 // `revision` is preserved verbatim too — via the `{...entry}` spread,
 // same as modifiedAt/modifiedBy — deliberately NOT bumped the way
@@ -121,9 +120,9 @@ function upsertRaw(key, entry) {
 }
 
 // Soft-delete: replaces the record with a tombstone rather than removing
-// it outright, so a deletion can propagate through sync (Phase 1 of
-// docs/plans/backup-sync.md) instead of a stale remote copy silently
-// resurrecting it on a future merge. `childArrayField` carries forward an
+// it outright, so a deletion can propagate through sync instead of a
+// stale remote copy silently resurrecting it on a future merge.
+// `childArrayField` carries forward an
 // empty child array matching the record's normal shape (`cartridges` for a
 // rifle, absent for a bullet) — see the plan's "tombstones must be
 // shape-preserving": several existing call sites reach into that array

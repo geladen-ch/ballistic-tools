@@ -100,9 +100,9 @@ function removePersisted(id) {
 }
 
 // Prunes tombstones older than the retention window — run once per boot,
-// from initLocationLibrary() below, right after mirror is populated. See
-// docs/plans/backup-sync.md's "retention window is a correctness
-// parameter": too short and a long-dormant device's still-live copy gets
+// from initLocationLibrary() below, right after mirror is populated. The
+// retention window is a correctness parameter, not a housekeeping knob:
+// too short and a long-dormant device's still-live copy gets
 // resurrected mesh-wide once every peer has already pruned the deletion.
 function sweepTombstones() {
   const cutoff = Date.now() - TOMBSTONE_RETENTION_MS;
@@ -189,9 +189,8 @@ export function importUserLocation(location) {
 // Soft-delete: replaces the record with a tombstone — keeping an empty
 // `targets` array so it stays the shape every existing location-reading
 // call site expects — rather than removing it outright, so the deletion
-// can propagate through sync (Phase 1 of docs/plans/backup-sync.md)
-// instead of a stale remote copy silently resurrecting it on a future
-// merge.
+// can propagate through sync instead of a stale remote copy silently
+// resurrecting it on a future merge.
 export function deleteUserLocation(id) {
   const idx = mirror.findIndex((e) => e.id === id);
   if (idx === -1) return; // already gone / never existed

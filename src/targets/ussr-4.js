@@ -3,7 +3,7 @@
 // narrower "head" rectangle, the two sharing an edge with no overlap, so
 // summing their probabilities is safe). See src/targets/ussr-4.json for
 // the target's own data and src/engine/target-shapes.js for the shared
-// rectangleHitProbability math. Ported from the legacy data/targets/ussr-4.js
+// rectangleHitProbability math. Ported from the legacy target definition
 // (coordinates converted from meters to centimeters, poa split into
 // offsetX/offsetY).
 import { rectangleHitProbability } from '../engine/target-shapes.js';

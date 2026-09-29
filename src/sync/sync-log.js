@@ -1,6 +1,5 @@
-// A sync-activity log in two layers — see docs/plans/backup-sync.md Phase
-// 10 for the original in-memory trace, and docs/plans/orphaned-storage-
-// cleanup.md phase 1 for the durable one added on top.
+// A sync-activity log in two layers: the original in-memory trace, and
+// a durable one added on top.
 //
 //  - `buffer` is the **verbose session trace**: everything, gated behind
 //    the verbose toggle, in memory only, lost on reload. It backs

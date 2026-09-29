@@ -90,9 +90,9 @@ test('rangeEstimationSD is vertical-only and zero when sd is zero', () => {
   assert.ok(y > 0, 'dialing for the wrong range should produce a vertical miss');
 });
 
-test('movingTargetLeadSD matches estimatedSpeed * tof * SD(speedErrorPct), horizontal only', () => {
+test('movingTargetLeadSD matches estimatedSpeed * tof * SD(speedErrorPct) converted to cm, horizontal only', () => {
   const { x, y } = movingTargetLeadSD(10, 10, 1);
-  const expected = 10 * 1 * probableErrorToSD(10 / 100);
+  const expected = 10 * 1 * probableErrorToSD(10 / 100) * 100;
   assert.ok(Math.abs(x - expected) < 1e-9);
   assert.equal(y, 0);
 });

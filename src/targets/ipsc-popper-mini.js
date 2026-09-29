@@ -1,7 +1,7 @@
 // Scoring function for the IPSC/USPSA steel "Mini Popper" target — same
 // shape and derivation as ipsc-popper.js (see its own comment for the
-// geometry rationale), scaled down per
-// data/targets/IPSC_Mini_Popper_steel_target.png: base 100mm wide, circle
+// geometry rationale), scaled down per the reference IPSC Mini Popper
+// steel target diagram: base 100mm wide, circle
 // 200mm diameter (R100mm) centered 460mm above the base, taper widening to
 // 135mm wide where it meets the circle, total height 560mm (base to top of
 // circle). All figures below converted to centimeters. hitProbability's own

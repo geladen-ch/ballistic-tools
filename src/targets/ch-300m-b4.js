@@ -4,7 +4,7 @@
 // overlap) and a small zone-4 bullseye circle at the center. See
 // src/targets/ch-300m-b4.json for the target's own data and
 // src/engine/target-shapes.js for the shared hit-probability math. Ported
-// from the legacy data/targets/ch-300m-b4.js (radii/coordinates converted
+// from the legacy target definition (radii/coordinates converted
 // from meters to centimeters, poa split into offsetX/offsetY).
 import { circleHitProbability, rectangleHitProbability } from '../engine/target-shapes.js';
 

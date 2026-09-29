@@ -2,6 +2,7 @@ import { el, clear } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { muzzleVelocityTempField } from '../muzzle-velocity-temp-field.js';
 import { cartridgePrecisionField } from './cartridge-precision-field.js';
+import { cartridgeZeroAtmosphereField } from './cartridge-zero-atmosphere-field.js';
 import { stabilityIndicator } from '../stability-indicator.js';
 import { bulletForm } from './bullet-form.js';
 import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor, compareBulletsForPicker } from '../../bullets.js';
@@ -15,8 +16,15 @@ import { disambiguateByName } from '../../sync/disambiguate-by-name.js';
 
 const DEFAULT_VALUES = {
   name: '', muzzleVelocity: 800, referenceTempC: null, velocityTempSensitivity: null, bulletId: '',
-  muzzleVelocitySD: null, precision: null, zeroedWithCartridgeId: null
+  muzzleVelocitySD: null, precision: null, zeroedWithCartridgeId: null, bcGainFactor: 1,
+  zeroAtmosphere: null
 };
+
+// Outside this band the factor is possible but genuinely unusual (a real
+// BC or drag-model error can still land out here) — a non-blocking hint,
+// not a save gate.
+const BC_GAIN_WARNING_LO = 0.90;
+const BC_GAIN_WARNING_HI = 1.10;
 const ALL_CALIBERS_VALUE = '__all__';
 const NEW_BULLET_VALUE = '__new__';
 
@@ -92,8 +100,42 @@ export function cartridgeForm({
   const precisionField = cartridgePrecisionField({});
   precisionField.setInitialValues(values.precision);
 
-  // "Zeroed with a different cartridge" — see zero-donor.js and
-  // docs/plans/arsenal-zero-with-different-cartridge.md. Only offered when
+  // The Truing Session tool's own writable field — "1.00 = as published,
+  // 1.05 = behaves as if the BC were 5%
+  // higher (less drag, flatter)". Lives on the cartridge, not the bullet,
+  // because the same published bullet genuinely drags differently out of
+  // a different barrel/velocity — see makeStepper() in engine/trajectory.js
+  // for where it's actually applied. Missing on every cartridge saved
+  // before this field existed; DEFAULT_VALUES above is what makes that
+  // read as exactly 1.0 rather than blank.
+  const bcGainFactorField = unitField({
+    id: 'bcGainFactor', ...FIELD_BOUNDS.bcGainFactor, step: 0.01, value: values.bcGainFactor,
+    onInput: refreshBcGainReadout
+  });
+  const bcGainReadout = el('p', { class: 'hint' });
+  const bcGainWarning = el('p', { class: 'hint warning', i18n: 'arsenal.bcGainFactorWarning' });
+  bcGainWarning.style.display = 'none';
+
+  function refreshBcGainReadout() {
+    const factor = bcGainFactorField.getEngineValue();
+    const bullet = findOfferedBullet(bulletSelect.value);
+    if (factor == null || !bullet || !bullet.profile) {
+      bcGainReadout.textContent = '';
+    } else if (bullet.profile.type === 'cdTable') {
+      const pct = Math.abs((factor - 1) * 100).toFixed(1);
+      bcGainReadout.textContent = factor >= 1
+        ? t('arsenal.bcGainFactorReadoutCdTableLess', { pct })
+        : t('arsenal.bcGainFactorReadoutCdTableMore', { pct });
+    } else {
+      const baseBc = bullet.profile.bc;
+      bcGainReadout.textContent = t('arsenal.bcGainFactorReadoutBc', {
+        model: bullet.profile.model, effectiveBc: (baseBc * factor).toFixed(4), baseBc: baseBc.toFixed(4), factor: factor.toFixed(3)
+      });
+    }
+    bcGainWarning.style.display = (factor != null && (factor < BC_GAIN_WARNING_LO || factor > BC_GAIN_WARNING_HI)) ? '' : 'none';
+  }
+
+  // "Zeroed with a different cartridge" — see zero-donor.js. Only offered when
   // there's another cartridge on this rifle to borrow from, and only when
   // this cartridge isn't already a donor for one of its own siblings — a
   // donor can't in turn pick a donor (no chaining, see arsenal-view.js's
@@ -118,6 +160,22 @@ export function cartridgeForm({
   zeroDonorHint.style.display = canPickZeroDonor ? '' : 'none';
   zeroDonorDisabledHint.style.display = isZeroDonorForOthers ? '' : 'none';
 
+  // "Specify zero atmosphere" — the air this cartridge's own zero was set
+  // in. Meaningless for a zero recipient (it borrows another cartridge's
+  // zero, so has none of its own), so the field is hidden whenever the
+  // "Zeroed with" picker above names a donor — live, as that select
+  // changes, not just at open. A recipient's stored value is dropped on
+  // save (see readValues()); the field keeps whatever was typed until then,
+  // so flipping the picker back and forth loses nothing.
+  const zeroAtmosphereField = cartridgeZeroAtmosphereField({ initialValue: values.zeroAtmosphere });
+  function isZeroRecipient() {
+    return canPickZeroDonor && !!zeroDonorSelect.value;
+  }
+  function refreshZeroAtmosphereVisibility() {
+    zeroAtmosphereField.node.style.display = isZeroRecipient() ? 'none' : '';
+  }
+  zeroDonorSelect.addEventListener('change', refreshZeroAtmosphereVisibility);
+
   // Narrows the bullet picker below to one caliber at a time — the same
   // "known designation, or a raw-mm label for anything else" idea
   // arsenal-view.js's own caliber filter uses (bulletCaliberLabel()),
@@ -141,8 +199,7 @@ export function cartridgeForm({
   let builtIns = [];
   const userBullets = loadUserBullets().map((b) => ({ ...b, isUser: true }));
   // Two independently-created user bullets (e.g. merged in from another
-  // device) can coincidentally share a name — see
-  // docs/plans/backup-sync.md Phase 4b. Built-in bullets never collide
+  // device) can coincidentally share a name. Built-in bullets never collide
   // this way (a single canonical source), so this only ever needs to
   // cover the user's own list.
   const userBulletLabels = disambiguateByName(userBullets);
@@ -234,6 +291,7 @@ export function cartridgeForm({
     populateBulletOptions();
     refreshBulletCopyNotice();
     refreshStability();
+    refreshBcGainReadout();
     // Narrowing the caliber filter can drop the previously-picked bullet
     // out of the list entirely (bulletSelect then falls back to blank/
     // its first option) — re-check now rather than waiting for Save,
@@ -297,6 +355,7 @@ export function cartridgeForm({
     if (bulletSelect.value !== NEW_BULLET_VALUE) lastRealBulletId = bulletSelect.value;
     refreshBulletCopyNotice();
     refreshStability();
+    refreshBcGainReadout();
     refreshBulletFormVisibility();
   });
 
@@ -334,6 +393,7 @@ export function cartridgeForm({
         lastRealBulletId = saved.id;
         refreshBulletCopyNotice();
         refreshStability();
+        refreshBcGainReadout();
         bulletValidity.validate();
         refreshBulletFormVisibility();
       },
@@ -347,6 +407,7 @@ export function cartridgeForm({
         bulletSelect.value = fallback;
         refreshBulletCopyNotice();
         refreshStability();
+        refreshBcGainReadout();
         bulletValidity.validate();
         refreshBulletFormVisibility();
       }
@@ -396,6 +457,7 @@ export function cartridgeForm({
     if (!values.bulletId) bulletSelect.value = NEW_BULLET_VALUE;
     refreshBulletCopyNotice();
     refreshStability();
+    refreshBcGainReadout();
     refreshBulletFormVisibility();
   });
 
@@ -410,12 +472,14 @@ export function cartridgeForm({
       bulletId: bulletSelect.value,
       muzzleVelocitySD: muzzleVelocitySDField.getEngineValue(),
       precision: precisionField.getValue(),
+      bcGainFactor: bcGainFactorField.getEngineValue(),
       // Defensive against stale form state: a cartridge that became a
       // donor for a sibling *during* this edit (shouldn't happen — the
       // picker is only reachable from a fully re-rendered form — but the
       // field itself is hidden, not disabled, so its value must still be
       // ignored whenever it isn't actually offered) always saves null.
-      zeroedWithCartridgeId: canPickZeroDonor ? (zeroDonorSelect.value || null) : null
+      zeroedWithCartridgeId: canPickZeroDonor ? (zeroDonorSelect.value || null) : null,
+      zeroAtmosphere: isZeroRecipient() ? null : zeroAtmosphereField.getValue()
     };
   }
 
@@ -438,7 +502,9 @@ export function cartridgeForm({
       { ok: muzzleVelocityTemp.validate(), node: muzzleVelocityTemp.node },
       { ok: bulletValidity.validate(), node: bulletSelect },
       { ok: muzzleVelocitySDField.validate(), node: muzzleVelocitySDField.node },
-      { ok: precisionField.validate(), node: precisionField.node }
+      { ok: precisionField.validate(), node: precisionField.node },
+      { ok: bcGainFactorField.validate(), node: bcGainFactorField.node },
+      { ok: isZeroRecipient() || zeroAtmosphereField.validate(), node: zeroAtmosphereField.node }
     ];
     const firstInvalid = checks.find((c) => !c.ok);
     if (firstInvalid) {
@@ -479,9 +545,14 @@ export function cartridgeForm({
     bulletCopyNotice,
     bulletOverwriteWarning,
     stability.node,
+    bcGainFactorField.node,
+    el('p', { class: 'hint', i18n: 'arsenal.bcGainFactorHint' }),
+    bcGainReadout,
+    bcGainWarning,
     zeroDonorField,
     zeroDonorHint,
     zeroDonorDisabledHint,
+    zeroAtmosphereField.node,
     muzzleVelocitySDField.node,
     el('p', { class: 'hint', i18n: 'arsenal.hitProbabilityOnlyHint' }),
     precisionField.node,
@@ -490,6 +561,8 @@ export function cartridgeForm({
 
   refreshDuplicateWarning();
   refreshStability();
+  refreshBcGainReadout();
+  refreshZeroAtmosphereVisibility();
 
   return { node };
 }

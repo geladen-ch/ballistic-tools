@@ -1,6 +1,4 @@
-// Retiring a device that is out of circulation — see
-// docs/plans/orphaned-storage-cleanup.md phase 6 and
-// docs/plans/device-deletion-propagation.md.
+// Retiring a device that is out of circulation.
 //
 // There is one action and it is a deletion: no local-only "forget" tier,
 // no restore list. It records a tombstone that travels to every other

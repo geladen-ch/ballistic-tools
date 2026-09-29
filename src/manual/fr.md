@@ -20,7 +20,9 @@ Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**, le
 **Calculateur de terrain**, **Armes**, **Courbe Cd-Mach**, **Outils BC**, la
 **Calculette de précision de tir** et **Paramètres** — ainsi que
 **Probabilité d'impact**, utilisable pour ses scénarios actuels mais encore
-en développement actif.
+en développement actif, et **Session de calibrage**, marquée Expérimental —
+ses statistiques sont validées mais n'ont pas encore été éprouvées sur le
+terrain.
 
 ---
 
@@ -33,6 +35,7 @@ le cas échéant, les statistiques derrière les chiffres :
 
 - [Arsenal](#/manual/arsenal)
 - [Calculette de précision de tir](#/manual/rifle-precision)
+- [Session de calibrage](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Sauvegarde et synchronisation](#/manual/backup-sync)
 
@@ -113,7 +116,11 @@ graphique :
 - **Distance maximale** / **Pas de distance** — jusqu'où, et avec quel
   incrément, la table est calculée.
 - **Angle de ligne de mire** — inclinaison du tir (montée/descente), en
-  degrés, positif vers le haut. Laissez à 0 pour un tir à plat.
+  degrés, positif vers le haut. Laissez à 0 pour un tir à plat. L'angle
+  d'élévation du zéro n'en est jamais affecté : l'arme est toujours considérée
+  comme réglée à plat et par temps calme (dans l'atmosphère de zéro de la
+  cartouche, si vous en avez indiqué une dans Armes), si bien qu'une inclinaison
+  apparaît dans les corrections.
 
 **Le tableau** affiche une ligne par pas de distance, avec des colonnes
 activables (chute, dérive, corrections d'élévation/dérive en clics/mrad/MOA,

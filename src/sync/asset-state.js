@@ -1,6 +1,5 @@
 // What this device knows about each photo asset in the sync folder,
-// without ever opening one — see docs/plans/orphaned-storage-cleanup.md
-// phases 2 and 5.
+// without ever opening one.
 //
 // The governing constraint is that plan's decision 10: no new *kind* of
 // filesystem operation. Directory enumeration and whole-file reads are

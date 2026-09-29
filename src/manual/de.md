@@ -21,7 +21,9 @@ Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**,
 der **Feldrechner**, **Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge**, der
 **Gewehr-Präzisionsrechner** und **Einstellungen** — sowie die
 **Trefferwahrscheinlichkeit**, die für ihre aktuellen Szenarien nutzbar ist,
-aber noch aktiv weiterentwickelt wird.
+aber noch aktiv weiterentwickelt wird, und die **Einschieß-Sitzung**, als
+Experimentell markiert — ihre Statistik ist validiert, hat aber noch keine
+Erprobung in der Praxis.
 
 ---
 
@@ -35,6 +37,7 @@ Zahlen eingeht:
 
 - [Arsenal](#/manual/arsenal)
 - [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
+- [Einschieß-Sitzung](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Sicherung & Synchronisierung](#/manual/backup-sync)
 
@@ -109,7 +112,11 @@ diese Tabelle und dieses Diagramm betreffen:
 - **Maximale Distanz** / **Distanzschritt** — wie weit, und in welchen
   Schritten, die Tabelle berechnet wird.
 - **Ziellinienwinkel** — Steigung/Gefälle des Schusses, in Grad, positiv
-  bergauf. Für einen ebenen Schuss auf 0 belassen.
+  bergauf. Für einen ebenen Schuss auf 0 belassen. Der Nullpunkt-Erhöhungswinkel
+  wird davon nie beeinflusst: Das Gewehr gilt immer als auf ebener Strecke und
+  bei Windstille eingeschossen (in der Nullpunkt-Atmosphäre der Patrone, falls
+  Sie unter Waffen eine angegeben haben), daher zeigt sich eine Neigung in den
+  Korrekturen.
 
 **Die Tabelle** zeigt eine Zeile pro Distanzschritt, mit ein-/ausschaltbaren
 Spalten (Fall, Windabtrieb, Höhen-/Windkorrekturen in Klicks/mrad/MOA,

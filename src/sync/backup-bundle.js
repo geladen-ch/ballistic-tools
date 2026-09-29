@@ -2,8 +2,8 @@
 // cycle, carrying all four user libraries *with* tombstones (Phase 1),
 // unlike the three existing per-library export formats
 // (ebalka2-arsenal/-locations/-rifle-precision), which stay tombstone-free
-// on purpose — see docs/plans/backup-sync.md's "Keep tombstones out of the
-// existing export files". This format had no installed base when it was
+// on purpose so a plain export never carries deletion markers. This
+// format had no installed base when it was
 // introduced, so its first version managed no compatibility hazard. That
 // stopped being true once it shipped: a field added now (`devicesDeleted`
 // below) is read by builds already in the wild. It is safe because
@@ -74,8 +74,7 @@ export function buildBackupBundle() {
     exportedAt: new Date().toISOString(),
     // Device deletions this device knows about, so a machine retired on
     // one device disappears from every device's list rather than only the
-    // one it was retired on (docs/plans/orphaned-storage-cleanup.md phase
-    // 6). Optional and additive: parseBackupBundle() validates a whitelist
+    // one it was retired on. Optional and additive: parseBackupBundle() validates a whitelist
     // of required fields and returns the payload whole, so a build that
     // predates this field ignores it rather than rejecting the bundle.
     devicesDeleted: getDeviceTombstones(),

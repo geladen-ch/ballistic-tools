@@ -28,7 +28,7 @@ export function toolCard(tool) {
   const inner = [
     el('div', { class: 'category-card-head' }, [
       el('h2', { i18n: tool.nameKey }),
-      statusChip(tool.status)
+      ...statusChip(tool)
     ]),
     el('p', { i18n: tool.descKey })
   ];

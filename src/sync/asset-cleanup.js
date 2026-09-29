@@ -1,6 +1,5 @@
 // Reclaims `assets/<ref>.jpg` files in the sync folder that nothing
-// references any more — see docs/plans/orphaned-storage-cleanup.md phase
-// 5. Every photo edit and every record deletion leaves the previous
+// references any more. Every photo edit and every record deletion leaves the previous
 // content-addressed file behind, and until this existed nothing in the app
 // ever called removeEntry(), so a folder only ever grew.
 //

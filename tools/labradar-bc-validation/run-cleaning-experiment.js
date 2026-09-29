@@ -1,5 +1,4 @@
-// Runner for the cleaning-step follow-up experiment — see
-// docs/plans/labradar-cleaning-experiment.md for the full rationale.
+// Runner for the cleaning-step follow-up experiment.
 // Not a node:test spec — a manual analysis tool (`node
 // tools/labradar-bc-validation/run-cleaning-experiment.js`), same
 // category as run-experiment.js and tools/dev-server.js.
@@ -24,7 +23,7 @@ import {
 } from './shared.js';
 
 const CLEAN_VARIANTS = { C0: cleanC0, C1: cleanC1, C2: cleanC2, C3: cleanC3 };
-const TRUE_OUTLIER_CUTOFF_MS = 15; // m/s — roughly the real corpus's own p90-tail severity, see docs/labradar-bc-validation.md
+const TRUE_OUTLIER_CUTOFF_MS = 15; // m/s — roughly the real corpus's own p90-tail severity
 
 // Mirrors src/engine/labradar-bc.js's estimateTrackBC exactly, for the
 // portion *after* its own cleanTrack call — duplicated rather than

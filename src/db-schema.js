@@ -14,13 +14,13 @@
 export const DB_NAME = 'ballistics-tools';
 export const DB_VERSION = 5;
 
-// Version 3 adds all three of docs/plans/backup-sync.md's new stores in a
-// single bump rather than one bump each — see that plan's "One schema
-// bump, not three" for why (a DB_VERSION bump is a one-way door: an older
+// Version 3 adds all three of the sync feature's new stores in a
+// single bump rather than one bump each, because a DB_VERSION bump is a
+// one-way door: an older
 // build can never open a newer on-disk database, so collapsing three
 // planned bumps into one means a rollback strands users on exactly one
 // version instead of three different ones).
-// Version 4 adds both stores docs/plans/orphaned-storage-cleanup.md ever
+// Version 4 adds both stores the orphaned-storage cleanup work ever
 // needs, in one bump, for the same reason version 3 collapsed three into
 // one: a bump is a one-way door. 'sync-log' is used immediately (that
 // plan's phase 1); 'asset-state' is not written to until its phase 2, and

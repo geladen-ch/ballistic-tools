@@ -18,7 +18,9 @@ way of natural selection?
 This manual covers the fully functional tools — **Trajectory**, **Range
 Solver**, **Guns**, **Cd–Mach Curve**, **BC Tools**, **Rifle Precision
 Calculator**, and **Settings** — plus **Hit Probability**, usable for its
-current scenarios but still under active development.
+current scenarios but still under active development, and **Truing
+Session**, marked Experimental — its statistics are validated but it
+hasn't yet had real-world mileage.
 
 ---
 
@@ -31,6 +33,7 @@ the numbers:
 
 - [Arsenal](#/manual/arsenal)
 - [Rifle Precision Calculator](#/manual/rifle-precision)
+- [Truing Session](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Backup & Sync](#/manual/backup-sync)
 
@@ -100,7 +103,10 @@ couple of settings specific to this table and chart:
 - **Max range** / **Range step** — how far, and in what increments, the
   table is computed.
 - **Line-of-sight angle** — incline/decline of the shot, in degrees, positive
-  uphill. Leave at 0 for a flat shot.
+  uphill. Leave at 0 for a flat shot. The zero elevation angle is never
+  affected by it: the rifle is always taken to have been zeroed on the level,
+  in calm air (in the cartridge's zero atmosphere, if you specified one in
+  Guns), so an incline shows up in the corrections instead.
 
 **The table** shows one row per distance step, with toggleable columns
 (drop, windage, elevation/windage corrections in clicks/mrad/MOA, velocity,

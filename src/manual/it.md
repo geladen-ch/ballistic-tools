@@ -21,7 +21,9 @@ Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**,
 il **Calcolatore per il poligono**, **Armi**, **Curva Cd-Mach**, **Strumenti
 BC**, il **Calcolatore di precisione di tiro** e **Impostazioni** — oltre a
 **Probabilità di colpire**, utilizzabile per i suoi scenari attuali ma
-ancora in sviluppo attivo.
+ancora in sviluppo attivo, e alla **Sessione di taratura**, contrassegnata
+come Sperimentale — la sua statistica è validata ma non ha ancora
+un'esperienza sul campo.
 
 ---
 
@@ -34,6 +36,7 @@ applicabile, le statistiche dietro i numeri:
 
 - [Arsenale](#/manual/arsenal)
 - [Calcolatore di precisione di tiro](#/manual/rifle-precision)
+- [Sessione di taratura](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Backup e sincronizzazione](#/manual/backup-sync)
 
@@ -108,7 +111,11 @@ questo grafico:
 - **Distanza massima** / **Passo di distanza** — fino a dove, e con quale
   incremento, viene calcolata la tabella.
 - **Angolo linea di mira** — inclinazione del tiro (in salita/discesa), in
-  gradi, positivo verso l'alto. Lascia a 0 per un tiro in piano.
+  gradi, positivo verso l'alto. Lascia a 0 per un tiro in piano. L'angolo di
+  elevazione dello zero non ne è mai influenzato: l'arma si considera sempre
+  azzerata in piano e in aria calma (nell'atmosfera di zero della cartuccia, se
+  ne hai specificata una in Armi), quindi un'inclinazione compare nelle
+  correzioni.
 
 **La tabella** mostra una riga per ogni passo di distanza, con colonne
 attivabili (caduta, deriva, correzioni di elevazione/deriva in

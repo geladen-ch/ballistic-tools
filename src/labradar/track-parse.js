@@ -1,7 +1,7 @@
 // Parses a single Labradar track CSV into the {t, v, dist, snr, a} point
 // shape src/engine/labradar-clean.js and labradar-bc.js expect. Ports
-// RadarTrack's own content-sniff and row-tolerance rules exactly (see
-// data/legacy.code/labrabaco/engine/labrabacoengine.js) — this is the
+// RadarTrack's own content-sniff and row-tolerance rules exactly, ported
+// from the legacy Labrabaco tool's own engine — this is the
 // one module in the whole feature exempt from "engine code only touches
 // metric": it's the ingestion boundary, converting whatever units a
 // track's own header declares into metric before anything past this
@@ -20,7 +20,7 @@ function isNumericStr(s) {
 
 // Returns null for anything that isn't a Labradar track — a device
 // report CSV, a stray non-track file that happens to end in .csv, or
-// (confirmed against real sample data — see data/labradar.track/) a
+// (confirmed against real captured Labradar sample tracks) a
 // macOS AppleDouble resource-fork file some other tool left in the ZIP,
 // which decodes to garbage text that simply never matches this header.
 export function sniffLabradarTrack(text) {

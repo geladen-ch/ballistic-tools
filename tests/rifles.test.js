@@ -65,10 +65,10 @@ test('loadRifle caches per id — repeated calls resolve the same data without r
   assert.equal(first, second);
 });
 
-// Regression coverage for the data/rifles.info import: every catalog
+// Regression coverage for the rifle catalog import: every catalog
 // entry must resolve to a well-formed record, and every cartridge's
 // bulletId must resolve against the bullet library those rifle files
-// reference (imported earlier from data/bullets.info).
+// reference (imported from the bullet catalog).
 test('every catalog rifle resolves to a well-formed record with cartridges that reference real bullets', async () => {
   const { loadBullet } = await import('../src/bullets.js');
   const catalog = loadRifleCatalog();
@@ -100,7 +100,7 @@ test('every catalog rifle resolves to a well-formed record with cartridges that 
   }
 });
 
-test('the data/rifles.info imports carry each source file\'s exact muzzle velocity / temperature data', async () => {
+test('the rifle catalog imports carry each source file\'s exact muzzle velocity / temperature data', async () => {
   const ak74 = await loadRifle('ak74');
   const sevenN6 = ak74.cartridges.find((c) => c.bulletId === 'russian-545x39-7n6');
   assert.deepEqual(

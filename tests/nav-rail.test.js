@@ -42,9 +42,10 @@ test('renders expanded by default, with both groups open', () => {
 
   assert.equal(container.className, 'app-rail');
   const tools = findByClass(container, 'rail-tool');
-  // 3 measurement + 3 visible analysis tools (range-card is hidden from
-  // listings; range-solver is a GROUPS.shooting tool, not an accordion
-  // one — see nav-tools.js), all visible since both groups start open
+  // 3 measurement + 3 visible analysis tools (range-card and truing-session
+  // are hidden from listings; range-solver is a GROUPS.shooting tool, not
+  // an accordion one — see nav-tools.js), all visible since both groups
+  // start open
   assert.equal(tools.length, 6);
 });
 

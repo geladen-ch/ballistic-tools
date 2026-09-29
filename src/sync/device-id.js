@@ -1,6 +1,5 @@
 // Persists a random, opaque identity for this installation — created once,
-// never changes. Used to attribute tombstones (deletedBy, Phase 1) and,
-// once the rest of docs/plans/backup-sync.md's Phase 2 lands, every
+// never changes. Used to attribute tombstones (deletedBy) and every
 // library record's modifiedBy. Never shown to the user directly — see
 // device-name.js for the human-friendly label that is.
 const DEVICE_ID_KEY = 'ballistics_device_id_v1';

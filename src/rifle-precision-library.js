@@ -182,8 +182,8 @@ export function importRiflePrecisionProject(project) {
 // `targets` array so it stays the shape every existing project-reading
 // call site expects (toStorable()/fromStorable() above both map over it
 // unconditionally) — rather than removing it outright, so the deletion can
-// propagate through sync (Phase 1 of docs/plans/backup-sync.md) instead of
-// a stale remote copy silently resurrecting it on a future merge.
+// propagate through sync instead of a stale remote copy silently
+// resurrecting it on a future merge.
 export function deleteRiflePrecisionProject(id) {
   const idx = mirror.findIndex((p) => p.id === id);
   if (idx === -1) return; // already gone / never existed

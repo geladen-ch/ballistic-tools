@@ -1,5 +1,5 @@
-// Settings UI for Phase 9's local change-history/revert safety net — see
-// docs/plans/backup-sync.md. Deliberately its own section, separate from
+// Settings UI for the local change-history/revert safety net.
+// Deliberately its own section, separate from
 // backup-sync-settings.js's "Backup & Sync" block: history capture is
 // unconditional (every user gets it, whether or not sync is ever turned
 // on), so this section is never hidden behind that feature's master
@@ -107,8 +107,7 @@ async function restoreFrom(button, entryId, afterwards) {
   afterwards();
 }
 
-// Per-record "History" view (docs/plans/backup-sync.md Phase 9's UI
-// spec) — every retained version of one record, newest first, each with
+// Per-record "History" view — every retained version of one record, newest first, each with
 // its own "Restore this version" action. Reached from a "History…" button
 // next to any entry in the flat recent-changes list below, rather than a
 // separate per-library screen, so it works identically for all four

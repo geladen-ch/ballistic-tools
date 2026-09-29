@@ -1,7 +1,6 @@
 // Phase 8a/8b — platforms with no persisted folder handle at all reuse the
 // exact same device-id/bundle/merge machinery as the Chromium folder-based
-// flow (auto-sync.js). The two tiers differ only in I/O glue, per
-// docs/plans/backup-sync.md Phase 8:
+// flow (auto-sync.js). The two tiers differ only in I/O glue:
 //
 // - 8a (desktop non-Chromium: Firefox anywhere, Safari on macOS) can pick
 //   a whole folder in one gesture (`<input type="file" webkitdirectory>`),
@@ -43,8 +42,7 @@ const BACKUP_FILE_PATTERN = /^backup-.+\.json$/;
 // iOS/iPadOS has neither the File System Access API nor working
 // `<input type="file" webkitdirectory>` folder selection in practice, so
 // it gets the share-sheet tier (8b) instead of the directory-picker tier
-// (8a) — confirmed at implementation time, not merely assumed, per
-// docs/plans/backup-sync.md's own note that this needed verifying.
+// (8a) — confirmed at implementation time, not merely assumed.
 // iPadOS 13+ reports as a Mac in its own User-Agent string, so touch
 // support is the actual tell — a real Mac reports 0 touch points.
 export function isIOS() {

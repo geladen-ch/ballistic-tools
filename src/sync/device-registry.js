@@ -113,8 +113,7 @@ export function recordPeerExportedAtSeen(deviceId, exportedAt) {
   save(registry);
 }
 
-// Local-only "forget this retired device" — see
-// docs/plans/backup-sync.md's "Optional: forgetting a retired device".
+// Local-only "forget this retired device" — an optional convenience.
 // Never propagated; undoes itself automatically the next time this device
 // actually reads a fresh `device` block from that peer's own bundle file.
 export function forgetDevice(deviceId) {
@@ -124,8 +123,7 @@ export function forgetDevice(deviceId) {
   save(registry);
 }
 
-// ---- device deletion, docs/plans/orphaned-storage-cleanup.md phase 6 and
-// docs/plans/device-deletion-propagation.md ----
+// ---- device deletion ----
 
 // A device tombstone says "everything from this device up to its export
 // `upTo` has been discarded". `upTo` is that device's *own* `exportedAt`

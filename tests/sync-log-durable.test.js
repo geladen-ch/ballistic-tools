@@ -1,5 +1,5 @@
-// The durable half of sync-log.js — see docs/plans/orphaned-storage-cleanup.md
-// phase 1. The in-memory verbose trace is covered by sync-log.test.js,
+// The durable half of sync-log.js. The in-memory verbose trace is
+// covered by sync-log.test.js,
 // which deliberately installs no IndexedDB fake; this file installs one
 // and asserts on what survives a reload.
 import test from 'node:test';

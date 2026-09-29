@@ -1,6 +1,6 @@
-// A local change-history/revert safety net — see docs/plans/backup-sync.md
-// Phase 9. Captures a full snapshot of every library write (the same
-// upsert()/tombstone paths Phase 5's dirty flag hooks, via write-hooks.js)
+// A local change-history/revert safety net. Captures a full snapshot of
+// every library write (the same upsert()/tombstone paths the dirty flag
+// hooks, via write-hooks.js)
 // so an accidental deletion or edit — local, or merged in from another
 // device — can be recovered. Explicitly **not** gated by the master
 // backup/sync toggle: every user gets this, whether or not sync itself is

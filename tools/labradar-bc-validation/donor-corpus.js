@@ -1,7 +1,7 @@
 // Extracts real noise "donor" tracks from a local, gitignored bulk export
-// of Labradar sessions (data/labradar.track/bulk/ — not part of this repo,
-// supplied locally; see the "Noise model" section of the plan this tool
-// implements). Each donor contributes its own (timeFraction, residual)
+// of Labradar sessions — not part of this repo, supplied locally (see the
+// "Noise model" rationale this tool implements). Each donor contributes
+// its own (timeFraction, residual)
 // sequence plus its own point-timing/SNR pattern, so synthetic-track.js's
 // `donor` noise mode can transplant a real track's actual noise behavior
 // onto a different (known-BC) true trajectory, rather than sampling from

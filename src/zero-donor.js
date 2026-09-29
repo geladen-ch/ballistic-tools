@@ -1,6 +1,6 @@
-// "Zeroed with a different cartridge" (see docs/plans/arsenal-zero-with-
-// different-cartridge.md): a cartridge can point at a sibling on the same
-// rifle (cartridge.zeroedWithCartridgeId) whose ballistics should govern
+// "Zeroed with a different cartridge": a cartridge can point at a sibling
+// on the same rifle (cartridge.zeroedWithCartridgeId) whose ballistics
+// should govern
 // the *vertical* zero-angle solve instead of its own — see trajectory.js's
 // resolveLaunchAngle(). This module resolves that sibling's id into the
 // actual ballistic-profile fields a caller's engine state needs to override
@@ -29,7 +29,10 @@ function bulletProfileValues(bullet) {
   if (bullet.profile.type === 'cdTable') {
     return { cdTable: bullet.profile.table, massKg: bullet.massKg, caliberM: bullet.caliberM };
   }
-  return { bc: bullet.profile.bc, dragModel: bullet.profile.model, massKg: bullet.massKg, caliberM: bullet.caliberM };
+  // cdTable: null so a Cd-table recipient's own table can't survive the
+  // { ...state, ...donor } merge in resolveLaunchAngle() and silently win
+  // over this BC donor's profile (makeStepper() prefers any cdTable).
+  return { cdTable: null, bc: bullet.profile.bc, dragModel: bullet.profile.model, massKg: bullet.massKg, caliberM: bullet.caliberM };
 }
 
 // `null` whenever there's nothing to resolve (no donor set, the referenced
@@ -46,6 +49,15 @@ export async function resolveZeroDonorBallistics(rifle, cartridge) {
     muzzleVelocity: donor.muzzleVelocity,
     referenceTempC: donor.referenceTempC,
     velocityTempSensitivity: donor.velocityTempSensitivity,
+    // The donor's own trued drag, not the recipient's -- otherwise the
+    // recipient's bcGainFactor (and every dragPct perturbation the Truing
+    // Session applies to it) would leak into the borrowed zero solve.
+    bcGainFactor: donor.bcGainFactor ?? 1,
+    // The air the donor's zero was set in (null when it names none): the
+    // borrowed zero is solved there too, not in the recipient's own air.
+    // Always present, so a stale value can't survive the { ...state, ...donor }
+    // merge in resolveLaunchAngle().
+    zeroAtmosphere: donor.zeroAtmosphere ?? null,
     ...bulletProfileValues(bullet)
   };
 }

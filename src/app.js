@@ -30,6 +30,7 @@ import * as trajectoryView from './views/trajectory-view.js';
 import * as bcToolsView from './views/bc-tools-view.js';
 import * as cdMachCurveView from './views/cd-mach-curve-view.js';
 import * as hitProbabilityView from './views/hit-probability-view.js';
+import * as truingSessionView from './views/truing-session-view.js';
 import * as unitConversionView from './views/unit-conversion-view.js';
 import * as rangeSolverView from './views/range-solver-view.js';
 import * as locationsView from './views/locations-view.js';
@@ -40,6 +41,7 @@ import * as riflePrecisionAnalysisView from './views/rifle-precision-analysis-vi
 import * as settingsView from './views/settings-view.js';
 import * as manualView from './views/manual-view.js';
 import * as riflePrecisionManualView from './views/rifle-precision-manual-view.js';
+import * as truingSessionManualView from './views/truing-session-manual-view.js';
 import * as arsenalManualView from './views/arsenal-manual-view.js';
 import * as bcLabradarManualView from './views/bc-labradar-manual-view.js';
 import * as backupSyncManualView from './views/backup-sync-manual-view.js';
@@ -131,6 +133,7 @@ const views = {
   '/bc-tools': bcToolsView,
   '/cd-mach-curve': cdMachCurveView,
   '/hit-probability': hitProbabilityView,
+  '/truing-session': truingSessionView,
   '/unit-conversion': unitConversionView,
   '/range-solver': rangeSolverView,
   '/locations': locationsView,
@@ -138,6 +141,7 @@ const views = {
   '/settings': settingsView,
   '/manual': manualView,
   '/manual/rifle-precision': riflePrecisionManualView,
+  '/manual/truing-session': truingSessionManualView,
   '/manual/arsenal': arsenalManualView,
   '/manual/bc-labradar': bcLabradarManualView,
   '/manual/backup-sync': backupSyncManualView,
@@ -172,14 +176,12 @@ try {
   // Phase 4 persists them rather than keeping them in memory.
   await Promise.all([
     initI18n(), initLocationLibrary(), initRiflePrecisionLibrary(), initChangeHistory(), initPendingReview(),
-    // The durable sync log (docs/plans/orphaned-storage-cleanup.md phase
-    // 1). Joins this list rather than initialising lazily so that its
+    // The durable sync log. Joins this list rather than initialising lazily so that its
     // boot-time rotation runs once per load, and so lines logged during
     // the rest of boot land in the right place.
     initSyncLog(),
     // What this device knows about each sync-folder photo asset without
-    // opening one (docs/plans/orphaned-storage-cleanup.md phases 2 and 5).
-    // writeAssetIfAbsent() reads it synchronously, so it has to be loaded
+    // opening one. writeAssetIfAbsent() reads it synchronously, so it has to be loaded
     // before any sync cycle can publish.
     initAssetState()
   ]);

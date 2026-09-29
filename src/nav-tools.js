@@ -18,7 +18,7 @@ const PARTIAL_IDS = new Set(['hit-probability']);
 // excluded from toolsInGroup()'s results — so every listing surface (Home,
 // the category hub pages, both nav-rail layouts) stops showing the card
 // without deleting the tool itself.
-const HIDDEN_IDS = new Set(['range-card']);
+const HIDDEN_IDS = new Set(['range-card', 'truing-session']);
 
 export const GROUPS = {
   analysis: {
@@ -57,6 +57,7 @@ const TOOL_DEFS = [
   { id: 'hit-probability', group: 'analysis', path: '/hit-probability', nameKey: 'nav.hitProbability', descKey: 'home.hitProbDesc' },
   { id: 'unit-conversion', group: 'analysis', path: '/unit-conversion', nameKey: 'catalog.unitConversion', descKey: 'catalog.unitConversionDesc' },
   { id: 'range-card', group: 'analysis', path: null, nameKey: 'catalog.rangeCard', descKey: 'catalog.rangeCardDesc' },
+  { id: 'truing-session', group: 'analysis', path: '/truing-session', nameKey: 'nav.truingSession', descKey: 'home.truingSessionDesc', experimental: true },
 
   { id: 'bc-tools', group: 'measurement', path: '/bc-tools', nameKey: 'catalog.bcTools', descKey: 'catalog.bcToolsDesc' },
   { id: 'cd-mach-curve', group: 'measurement', path: '/cd-mach-curve', nameKey: 'catalog.cdMachCurve', descKey: 'catalog.cdMachCurveDesc' },

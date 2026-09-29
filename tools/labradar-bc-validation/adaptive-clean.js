@@ -1,6 +1,5 @@
-// Cleaning variants compared in this follow-up experiment (see
-// docs/plans/labradar-cleaning-experiment.md), all sharing the same
-// proven greedy structure as the shipped chopShop port
+// Cleaning variants compared in this follow-up experiment, all sharing
+// the same proven greedy structure as the shipped chopShop port
 // (src/engine/labradar-clean.js's cleanTrack): iteratively remove the
 // worst-residual point, refit the reference, repeat to a floor of 10,
 // then restore from the first step that clears an R^2-ratio-to-best
@@ -24,8 +23,8 @@
 // noiseless track at any tested threshold up to 0.9999. Pushing much
 // past ~0.99-0.995 trades a shrinking mean-error gain for a large jump
 // in discard count (60+ points from ~100-140-point tracks at 0.9999,
-// well past the 10-30 discards real severe tracks actually show — see
-// docs/labradar-bc-validation.md's Diagnostic C) that a single-draw
+// well past the 10-30 discards real severe tracks actually show, per a
+// dedicated diagnostic run) that a single-draw
 // mean-error check can't be trusted to fully price in, so this file
 // does not chase that regime.
 import { cleanTrack, weightedLinearFit } from '../../src/engine/labradar-clean.js';
@@ -37,9 +36,8 @@ const MIN_LEFT_FLOOR = 10;
 const DEFAULT_R2_THRESHOLD = 0.97;
 
 // Below this many points, the physics reference and the full 2-parameter
-// fit disagree too often to trust (measured directly — see build step 1
-// in docs/plans/labradar-cleaning-experiment.md: worst-point agreement
-// with the full fit was 100% at ~115 points, 71% down to ~40 points,
+// fit disagree too often to trust (measured directly: worst-point
+// agreement with the full fit was 100% at ~115 points, 71% down to ~40 points,
 // then fell off a cliff to 21-43% below ~30 points). Below this floor,
 // C1/C3 fall back to the linear reference for the remainder of the trim
 // loop rather than trusting an unreliable physics reference all the way
@@ -77,7 +75,7 @@ function weightedSSE(pred, obs, w) {
 // Physics reference for one trim iteration: BC only, v1 FIXED (passed in,
 // computed once per track outside the loop — never re-derived per
 // iteration, unlike the full 2-parameter fit) — validated as the cheap
-// design in docs/plans/labradar-cleaning-experiment.md after a naive
+// design after a naive
 // 2-point bisection was tried and rejected (it interpolated exactly
 // through 2 raw points with zero robustness; this fits a proper
 // weighted SSE over every point in the fit range instead). Mirrors

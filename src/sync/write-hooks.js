@@ -3,9 +3,8 @@
 // every write, without those storage modules importing sync code
 // directly (which would be a real import cycle: this app's storage layer
 // predates sync and must stay usable on its own). Two subscribers use
-// this today, both described in docs/plans/backup-sync.md: Phase 5's
-// dirty flag (skip publishing a bundle with nothing new to say) and
-// Phase 9's history-capture hook (a snapshot on every edit, regardless of
+// this today: the dirty flag (skip publishing a bundle with nothing new
+// to say) and the history-capture hook (a snapshot on every edit, regardless of
 // the master toggle).
 const listeners = [];
 

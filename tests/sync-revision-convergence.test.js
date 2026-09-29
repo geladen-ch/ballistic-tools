@@ -1,5 +1,5 @@
-// Integration-level regression test for the revision counter (Phase 4's
-// optional Lamport-style ordering, docs/plans/backup-sync.md) — the one
+// Integration-level regression test for the revision counter (the
+// Lamport-style ordering layered on top of modifiedAt/deletedAt) — the one
 // property no unit test of a single function can catch: does the whole
 // system actually CONVERGE, or does it climb forever?
 //

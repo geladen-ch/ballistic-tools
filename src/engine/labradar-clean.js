@@ -1,6 +1,6 @@
 // Ports RadarTrack.chopShop("dist", ...) — the one live-wired point-
-// cleaning routine in the legacy Labrabaco tool (data/legacy.code/
-// labrabaco/engine/labrabacoengine.js), confirmed by tracing every call
+// cleaning routine in the legacy Labrabaco tool's own engine, confirmed
+// by tracing every call
 // site: BCFetcher.processTrackData is the only reachable caller, and it
 // always calls chopShop("dist", 0, 0.97). Every other cleaning routine in
 // that file (chopShop's own "tail"/"noise" modes, calcBCnotails,
@@ -33,9 +33,8 @@
 // for both this and the "coincides with a real fit-range problem, stays
 // trimmed" case).
 const MIN_LEFT_FLOOR = 10;
-// 0.99, not legacy's 0.97 — validated in
-// docs/reports/labradar-cleaning-experiment.md as a large accuracy win
-// paired with the whole-window curve fit (src/engine/labradar-bc.js's
+// 0.99, not legacy's 0.97 — measured experimentally as a large accuracy
+// win paired with the whole-window curve fit (src/engine/labradar-bc.js's
 // estimateTrackBCWholeWindow). The real app always passes an explicit
 // r2Threshold (see src/views/bc-tools-view.js's De-noise threshold
 // slider), so this fallback isn't load-bearing there either way — kept

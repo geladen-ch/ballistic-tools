@@ -127,12 +127,14 @@ export function rangeEstimationSD(nominalState, sd, targetRange, nominalImpact) 
 
 // A shooter leading a laterally-moving target by `estimatedSpeed * tof`
 // (correctly, for their own estimate) misses by the error in that speed
-// estimate alone: SD_x = estimatedSpeed * tof * SD(speedErrorPct).
+// estimate alone: SD_x = estimatedSpeed * tof * SD(speedErrorPct). The
+// *100 converts the meters this gives (m/s * s) to cm, matching every
+// other contribution in this module.
 // Horizontal only — target motion is lateral-only in this model, mirroring
 // wind's own lateral-only treatment.
 export function movingTargetLeadSD(estimatedSpeed, speedErrorPct, tof) {
   if (!estimatedSpeed || !speedErrorPct) return { x: 0, y: 0 };
-  const x = estimatedSpeed * tof * probableErrorToSD(speedErrorPct / 100);
+  const x = estimatedSpeed * tof * probableErrorToSD(speedErrorPct / 100) * 100;
   return { x, y: 0 };
 }
 

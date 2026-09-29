@@ -138,6 +138,8 @@ test('selecting a library rifle auto-applies its first cartridge via onLibraryCa
     referenceTempC: undefined,
     velocityTempSensitivity: undefined,
     bulletId: 'swiss-gp11',
+    bcGainFactor: 1,
+    zeroAtmosphere: null,
     muzzleVelocitySD: null,
     precision: null
   });
@@ -231,8 +233,8 @@ test('selecting a cartridge with a donor resolves the donor\'s own ballistic pro
   await settle();
 
   assert.deepEqual(rifle.getZeroDonorBallistics(), {
-    muzzleVelocity: 800, referenceTempC: undefined, velocityTempSensitivity: undefined,
-    bc: 0.274, dragModel: 'G7', massKg: 0.0113, caliberM: 0.00778
+    muzzleVelocity: 800, referenceTempC: undefined, velocityTempSensitivity: undefined, bcGainFactor: 1, zeroAtmosphere: null,
+    cdTable: null, bc: 0.274, dragModel: 'G7', massKg: 0.0113, caliberM: 0.00778
   });
   assert.ok(onInputCalls > callsBeforeSwitch, 'onInput must fire again once the donor resolves, so callers recompute');
 });

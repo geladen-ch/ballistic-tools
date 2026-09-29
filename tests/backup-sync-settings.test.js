@@ -703,7 +703,7 @@ test('onSyncApplied fires after a review-dialog resolution and again after a can
   assert.equal(calls, 2, 'expected a second call after cancelling');
 });
 
-// ---- the Devices list — docs/plans/orphaned-storage-cleanup.md phase 6 ----
+// ---- the Devices list ----
 
 function rowTexts(container) {
   // Each device is one hint paragraph carrying "<label> — <status>", or

@@ -108,8 +108,8 @@ function tabSwitcher(tabs, panels, onSwitch, initialKey) {
   return { node: el('div', { class: 'section-tabs' }, buttons) };
 }
 
-// Legacy's own two selectable "odd tracks filter" thresholds (see
-// data/legacy.code/labrabaco/labrabaco.html) — replicated as-is per the
+// Legacy's own two selectable "odd tracks filter" thresholds — replicated
+// as-is per the
 // user's choice to keep both dropdowns rather than hardcode fixed
 // thresholds. `null` is the "None" option (gate/clip skipped entirely —
 // see aggregateTracks()).
@@ -117,8 +117,8 @@ const R2_GATE_THRESHOLDS = { none: null, normal: 0.95, highNoise: 0.90 };
 const SIGMA_CLIP_THRESHOLDS = { none: null, conservative: 2.0, aggressive: 1.644854 };
 
 // Per-option hints, condensed from the legacy tool's own explanatory
-// text for these two filters (data/legacy.code/labrabaco/labrabaco.html,
-// the "Odd tracks filters" block) rather than invented fresh.
+// text for these two filters (its own "Odd tracks filters" block)
+// rather than invented fresh.
 const R2_GATE_HINT_KEYS = {
   none: 'bcToolsLabradar.filterR2HintNone',
   normal: 'bcToolsLabradar.filterR2HintNormal',
@@ -133,9 +133,8 @@ const SIGMA_CLIP_HINT_KEYS = {
 // chopShop's own point-cleaning restore gate (src/engine/labradar-clean.js's
 // r2Threshold — a different knob from the two aggregate whole-track
 // filters above) exposed as a friendlier 1 ("Loose") to 3 ("Normal")
-// slider rather than the raw 0.97-0.99 ratio, per
-// docs/reports/labradar-cleaning-experiment.md's validated finding that
-// raising it from legacy's 0.97 toward 0.99 meaningfully improves
+// slider rather than the raw 0.97-0.99 ratio — measured experimentally
+// that raising it from legacy's 0.97 toward 0.99 meaningfully improves
 // accuracy paired with the whole-window curve fit. Default is Normal
 // (0.99, the validated value); Loose (0.97) recovers today's older,
 // gentler cleaning behavior for anyone who wants it.

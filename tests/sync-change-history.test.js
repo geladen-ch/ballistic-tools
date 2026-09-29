@@ -287,7 +287,7 @@ test('initChangeHistory is safe to call repeatedly', async () => {
   assert.ok(Array.isArray(listRecentHistory()));
 });
 
-// ---- docs/plans/orphaned-storage-cleanup.md phase 4 ----
+// ---- capped history retention ----
 
 test('the caps are enforced at boot, not only when the next edit is captured', async () => {
   // Entries written past the caps by an earlier session (or by a second

@@ -9,6 +9,7 @@ legacy-notice/
 data/
 screenshots/
 .claude/
+CLAUDE.local.md
 ebalka2.code-workspace
 tools/labradar-bc-validation/last-run.csv
 tools/labradar-bc-validation/last-cleaning-run.csv

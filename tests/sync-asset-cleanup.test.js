@@ -1,5 +1,4 @@
-// Reclaiming unused photo assets — docs/plans/orphaned-storage-cleanup.md
-// phase 5. The invariant running through every test here: a file is only
+// Reclaiming unused photo assets. The invariant running through every test here: a file is only
 // ever removed when nothing references it *and* this device has watched it
 // sit unreferenced for the full grace period, and nothing in the pass ever
 // opens an asset file to decide anything.

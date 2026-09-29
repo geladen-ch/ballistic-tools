@@ -1,5 +1,5 @@
 // The write-intent journal and content verification that make asset
-// writes crash-safe — docs/plans/orphaned-storage-cleanup.md phase 2.
+// writes crash-safe.
 //
 // The property under test throughout: nothing here ever opens an asset
 // file to decide anything. A zero-byte or truncated asset is found by

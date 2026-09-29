@@ -214,8 +214,7 @@ export function circularArcHalfWidth(cy, r) {
 // run through the same Gauss-Legendre quadrature every other non-rectangular
 // shape in this module uses — not an approximation of the circle's shape,
 // just of the integral, and converged well past the precision anything here
-// cares about (48 nodes vs. 192 agree to ~1e-10 or better; see
-// docs/reports/circle-hit-probability-precision.md). `cx`/`cy` is the
+// cares about (48 nodes vs. 192 agree to ~1e-10 or better). `cx`/`cy` is the
 // circle's own center in the same frame `offsetX`/`offsetY` (where the
 // dispersion is actually centered) is expressed in.
 //

@@ -1,7 +1,6 @@
 // Display-only disambiguation for two independently-created records that
-// happen to share a name — see docs/plans/backup-sync.md Phase 4b for why
-// this is deliberately never stored or propagated (the rejected
-// auto-rename-on-import approach can't converge under bidirectional
+// happen to share a name. Deliberately never stored or propagated: the
+// rejected auto-rename-on-import approach can't converge under bidirectional
 // automatic sync). A pure function of "the current live list", recomputed
 // on every render, so every device derives the identical labeling from the
 // identical underlying ids with nothing to disagree about.

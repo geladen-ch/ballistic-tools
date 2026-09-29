@@ -652,6 +652,20 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
    accent color instead to read as clearly present. */
 .range-solver-location-row .icon-button { color: var(--accent); }
 
+/* Truing Session's own location header (src/ui/truing-session/entry-gate.js's
+   locationIntakePanel) — same name+picker-button shape as
+   .range-solver-location-row just above, reused rather than duplicated in
+   spirit (this one has no target <select> of its own, so it's a smaller,
+   separate rule rather than sharing the class). */
+.truing-session-location-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.truing-session-location-name { font-weight: 600; font-size: 14px; }
+.truing-session-location-header .icon-button { color: var(--accent); }
+
 /* ---- Range Card tab (src/ui/range-solver/range-card-panel.js) ----
    Three zones — table, photo picker, wind strip — arranged with CSS Grid
    named areas so the same three DOM children just get reassigned areas
@@ -934,9 +948,8 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   font-variant-numeric: tabular-nums;
   font-size: 14px;
 }
-/* The one row that matters right now — see this tab's own design brief
-   (docs/plans/range-solver-range-card-view.md): "one target displayed in
-   a prominent manner, larger than all others." container-type lets its
+/* The one row that matters right now: one target displayed in
+   a prominent manner, larger than all others. container-type lets its
    own value cells scale off this row's actual box rather than the
    viewport, same reasoning .range-solver-stat uses for the single-target
    readout elsewhere in this file. */

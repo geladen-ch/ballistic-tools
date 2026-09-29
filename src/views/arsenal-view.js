@@ -768,8 +768,7 @@ export function mount(container) {
     clear(bulletsListEl);
     const allBullets = loadUserBullets();
     // Two independently-created bullets (e.g. merged in from another
-    // device) can coincidentally share a name — see
-    // docs/plans/backup-sync.md Phase 4b. This is a pure, unstored display
+    // device) can coincidentally share a name. This is a pure, unstored display
     // label: never touches the record itself, just what's shown here.
     const bulletLabels = disambiguateByName(allBullets);
     const caliber = caliberFilter.value;

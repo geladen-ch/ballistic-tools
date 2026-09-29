@@ -69,11 +69,22 @@ export function cartridgeSection({ slider = false, onInput } = {}) {
     bullet.node
   ]);
 
+  // A library cartridge's own BC gain factor (the Truing Session's trued
+  // drag correction) -- 1 whenever no library cartridge governs this
+  // section, since a manually entered cartridge has no record to carry one.
+  let libraryBcGainFactor = 1;
+  // Likewise the library cartridge's own zero atmosphere (the air its zero
+  // was set in) -- null when none is specified or no library cartridge
+  // governs this section; the engine then zeroes in the shot's own air.
+  let libraryZeroAtmosphere = null;
+
   function getValues() {
     return {
       muzzleVelocity: muzzleVelocityField.getEngineValue(),
       ...muzzleVelocityTemp.getValues(),
-      ...bullet.getValues()
+      ...bullet.getValues(),
+      bcGainFactor: libraryBcGainFactor,
+      zeroAtmosphere: libraryZeroAtmosphere
     };
   }
 
@@ -84,6 +95,8 @@ export function cartridgeSection({ slider = false, onInput } = {}) {
   // already reads — locking just pre-fills them and disables editing —
   // so getValues() itself needs no special case for the locked state.
   async function setLibraryCartridge(cartridge) {
+    libraryBcGainFactor = cartridge ? (cartridge.bcGainFactor ?? 1) : 1;
+    libraryZeroAtmosphere = cartridge ? (cartridge.zeroAtmosphere ?? null) : null;
     if (cartridge) {
       muzzleVelocityField.setEngineValue(cartridge.muzzleVelocity);
       muzzleVelocityField.setDisabled(true);

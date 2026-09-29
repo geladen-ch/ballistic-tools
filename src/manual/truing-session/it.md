@@ -1,0 +1,97 @@
+# geladen.ch ballistics Manuale utente — Sessione di taratura
+
+*Parte della* [suite geladen.ch ballistics](https://bc.geladen.ch)*. Sperimentale.*
+
+---
+
+## 1. A cosa serve questo strumento
+
+Il vostro fucile e l'app non sono d'accordo. Regolate ciò che l'app prevede, e il proiettile atterra altrove. Qualcosa non va — ma l'errore di alzo osservato sul bersaglio da solo non dice *cosa*: una velocità alla volata sbagliata, un coefficiente balistico sbagliato, uno zero che si è spostato, un cannocchiale che non eroga esattamente i propri click, o semplicemente una stima del vento sbagliata, possono tutti produrre lo stesso errore. Questo strumento pianifica una breve sessione di tiro che separa davvero queste cause, vi guida nello sparo in sicurezza e riporta ciò che ha appreso — anche quando *non* riesce a distinguere due cause, il che è di per sé un'informazione utile.
+
+**Ambito: solo supersonico.** Ogni bersaglio pianificato da questo strumento si trova dove il proiettile è ancora chiaramente più veloce del suono (fino a Mach 1,1). Il comportamento transonico e subsonico è un problema diverso e più difficile, che questa versione non affronta.
+
+**Questo strumento è contrassegnato come Sperimentale.** La statistica alla base è stata validata su dati sintetici con errori noti inseriti appositamente, ma non ha ancora l'esperienza sul campo che il resto di questa app possiede. Trattate la sua correzione del BC come un forte indizio da verificare, non come un dato certo — e se un risultato sembra implausibile, probabilmente lo è (vedi §6).
+
+### Cosa non è questo strumento
+
+Non sostituisce un registro di ricarica accurato né una sessione al cronografo fine a sé stessa. Riguarda specificamente la **separazione delle cause l'una dall'altra**, cosa che un semplice registro DOPE di solito non può fare — vedi §2.
+
+Non tara la velocità alla volata. La velocità alla volata è un dato in ingresso con una provenienza (l'avete misurata, o la confezione la dichiara); questo strumento tara il **fattore di resistenza aerodinamica**, l'unica grandezza che una sessione supersonica può davvero vedere chiaramente una volta che un cronografo ha fissato la velocità alla volata.
+
+---
+
+## 2. Perché una sessione pianificata, e non semplicemente il vostro registro esistente
+
+Poche voci DOPE a diverse distanze sembrano dover rivelare tutto — cinque numeri per cinque incognite. In pratica non è così, per una semplice ragione geometrica: velocità alla volata, fattore di resistenza aerodinamica e tracciamento del cannocchiale curvano la traiettoria in un modo quasi identico lungo un normale campo di tiro. I vostri dati non possono distinguerli, indipendentemente da quanti gruppi aggiungete, a meno che *qualcos'altro* — un cronografo, un test "tall-target", un secondo bersaglio scelto appositamente per dirimere la questione — non dia all'adattamento un appiglio indipendente su una di queste grandezze.
+
+La leva di gran lunga più potente di tutto questo strumento è una che fornite voi, non una che sparate: **una lettura al cronografo**. Senza di essa, nessuna sessione supersonica, a qualsiasi distanza o numero di colpi, misura in modo affidabile il fattore di resistenza aerodinamica meglio di circa ±3%. Con essa, la stessa sessione raggiunge abitualmente ±1,5%. Senza cronografo la sessione vale comunque la pena di essere sparata — correggerà i vostri alzi e individuerà un vero problema di zero — ma non fornirà, e non dovrebbe fornire, una correzione del BC.
+
+---
+
+## 3. Le tre fasi
+
+### Prepara
+
+Lo strumento legge il fucile e la cartuccia attivi (dall'Arsenale — questo strumento non ha un proprio selettore di fucile) e la vostra postazione di tiro attiva. Vi dice chiaramente se i bersagli registrati sono abbastanza lontani da dire qualcosa di utile sulla resistenza aerodinamica, calcola la miglior coppia di bersagli vicino/lontano per *questa* cartuccia, e vi guida attraverso una breve lista di controlli interamente facoltativi — verifica dello zero, valore di click del cannocchiale, dispersione propria del fucile e, soprattutto, la media reale della velocità alla volata di oggi. Nulla è obbligatorio, ma saltarli significa che la sessione dovrà spendere la propria precisione per scoprire ciò che avreste potuto dirle gratis.
+
+Lo strumento ha i propri input meteo — temperatura, pressione di stazione, umidità e vento all'arma — e li tiene da sé; nulla di ciò che inserisci in un altro strumento li cambia. Inserisci la pressione di stazione, quella che legge un barometro all'arma, mai un valore ridotto al livello del mare (QNH) preso da un telefono o da un'app meteo; se la scheda del luogo ha un'altitudine, lo strumento ti avvisa se la pressione inserita sembra QNH. Leggi la temperatura all'arma a circa 3 °C; l'umidità conta poco. Confermi le condizioni prima di poter iniziare, e in quel momento vengono congelate nella sessione: il piano e ogni adattamento successivo girano in quell'aria, per cui un meteo cambiato altrove dopo non può alterare i tiri già sparati. Lo zero si considera fatto una volta, in piano e con aria calma, nell'atmosfera di zero della cartuccia quando l'Arsenale ne indica una (impostala lì se hai azzerato un altro giorno o a un'altra altitudine; conta soprattutto per uno zero di 200 m o più), altrimenti in quest'aria di partenza. Una correzione del BC presuppone che le condizioni inserite fossero giuste — una temperatura o una pressione sbagliata viene assorbita dal termine di resistenza — e la schermata Conclusione lo dice.
+
+Se i bersagli registrati non arrivano abbastanza lontano, o nessuno è vicino allo zero, lo strumento chiede una volta se avete un riferimento naturale — una roccia, il bordo di un terrapieno, qualsiasi cosa telemetrabile — per colmare la lacuna. Lo chiede solo quando esiste una lacuna reale.
+
+Ogni numero di pianificazione tiene conto della dispersione della vostra carabina (dall'Arsenale, o dal preset scelto) e presuppone un bersaglio vicino letto con un'occhiata anziché colpo per colpo — il caso prudente — così il voto mostrato è uno che una sessione reale può davvero ottenere. Siete voi a stabilire il totale dei colpi da portare, passi di sicurezza inclusi; il piano spara un colpo sul gruppo vicino (un'occhiata che più colpi non affinano) e usa il resto per una distanza intermedia e per il bersaglio lontano, nella ripartizione che separa meglio le cause; ogni suggerimento (un cronografo, più colpi, un controllo dello zero, un bersaglio più lontano) mostra il suo risultato accanto a quello attuale. Se correggete distanza o angolo di un bersaglio, scegliete se scriverlo per sempre nella scheda del luogo o usarlo solo per questa sessione. "Questo campo è piatto" non viene mai spuntato al posto vostro — una scheda del luogo non distingue un campo piatto da uno che nessuno ha misurato —, quindi spuntatelo solo se sapete che il campo è piatto. Spuntarlo disattiva solo i controlli di pendenza per questa sessione; non scrive mai un angolo da nessuna parte, e una pendenza che avete escluso a priori può poi essere scambiata per una distanza sbagliata o una resistenza aerodinamica sbagliata. Sotto il campo dei colpi lo strumento mostra da dove i colpi in più rendono molto meno e cosa darebbero dieci e venti in più; sono numeri minimi, che contano solo i colpi di cui vedete l'impatto — portatene quindi di più.
+
+Sotto la valutazione lo strumento vi chiede sempre di misurare di nuovo il bersaglio lontano prima di iniziare — la distanza con il telemetro (più letture, badando a un raggio che colpisca qualcosa davanti al bersaglio) e l'angolo con l'inclinometro, a meno che abbiate dichiarato il campo piatto. È su quella sola distanza che il risultato si appoggia di più, ed è quella che i colpi possono verificare meno: senza altri bersagli vicini, una distanza sbagliata di qualche decina di metri appare identica a una resistenza aerodinamica sbagliata, e anche con un bersaglio vicino un errore simile spesso passa inosservato. Un minuto al bersaglio lontano vale più di colpi in più. Saltarlo è l'errore più costoso di una sessione: una distanza del bersaglio lontano sbagliata di 20 m lascia tipicamente il risultato a circa 0,3 mrad dal vero a quel bersaglio (circa 30 cm a 1.000 m), e lo strumento non lo segnala, perché un bersaglio troppo lontano sembra esattamente una palla con BC più basso. Dai allo strumento un fondale alto almeno 2 m (1 m per parte): con 1 m circa un terzo delle sessioni perde un impatto fuori da esso, con 2 m qualcuna su cento.
+
+### Spara
+
+Lo strumento sequenzia i colpi come una scala: prima il terreno vicino, poi un solo passo sicuro più in là, solo una volta che il passo precedente è effettivamente atterrato sul parapalle. Questo è intenzionale — un'ipotesi sbagliata nell'app potrebbe, in linea di principio, mandare un colpo ben oltre un parapalle lontano, e non c'è motivo di rischiarlo già al primo colpo della giornata. "Non sono riuscito a vedere dove è arrivato" è qui un risultato normale e utile, non un errore — dice qualcosa di reale allo strumento, che arretra automaticamente su un terreno più sicuro.
+
+Dopo ogni gruppo registrato, lo strumento mostra una lettura dal vivo, chiaramente provvisoria, di ciò che ha appreso finora. Non è la risposta definitiva — un gruppo successivo può rivederla, e a volte lo fa — per questo viene mostrata deliberatamente in modo diverso dal rapporto finale, e dirà "velocità alla volata o resistenza aerodinamica, non ancora separabili" invece di indovinare quale delle due, finché un cronografo o un colpo ben piazzato non risolve davvero la questione.
+
+La scala non fa mai più di quattro volte una distanza su cui un colpo è effettivamente arrivato, e va oltre solo se non resta nulla di più vicino e la previsione dice che il colpo cadrà ancora sul parapalle; un luogo senza distanze intermedie può quindi ancora bloccarsi prima del bersaglio lontano — la schermata di preparazione vi avvisa, e potete aggiungere una distanza sul momento. Se lo strumento ritiene che distanza o angolo di un bersaglio siano sbagliati, vi chiede di rimisurarlo e, se il poligono non è piano, di prenderne l'inclinazione: dai soli colpi una distanza errata e un pendio non registrato appaiono identici, ed è l'angolo a distinguerli.
+
+Prima di ogni gruppo lo strumento mostra cosa impostare per quel tiro — elevazione e deriva, nell'unità e con i segni di direzione che hai scelto per Range Solver — dall'adattamento finora (i dati propri dell'app prima che sia registrato qualcosa), nell'aria e nel vento di quel tiro, con una banda al 95 %. Impostalo per intero e registra ciò che hai impostato: l'elevazione che inserisci è l'impostazione completa, non una correzione sul numero dello strumento. La inserisci in click del cannocchiale (positivo è verso l'alto); ogni altra distanza, velocità e angolo di questo strumento, inserito o mostrato, segue le unità scelte nelle Impostazioni, e l'indicazione del tiro successivo dà anche i click quando Range Solver è impostato in mrad o MOA. La deriva è solo prevista dal vento indicato; lo strumento non impara nulla dagli impatti laterali. Ogni gruppo ha anche il proprio meteo: spunta che il meteo è cambiato e inserisci ciò che legge il tuo misuratore tascabile a quel bersaglio; i gruppi successivi lo mantengono finché non lo cambi di nuovo, e le letture del cronografo di ogni gruppo sono confrontate con la velocità che la cartuccia ha nell'aria di quel gruppo. Quando la prossima distanza prevista supera di più di quattro volte la più lontana andata a segno, o il fondale è troppo piccolo per essa, lo strumento dice quale delle due, e solo allora chiede una distanza intermedia (un bersaglio naturale conta; puoi rispondere «nessuno disponibile»). Prima del primissimo tiro avvisa se quel tiro potrebbe uscire dal fondale e propone al suo posto la distanza di zero; proseguire comunque è permesso. Una distanza in cui non hai visto l'impatto ha un altro tentativo dopo che è stato registrato un altro gruppo, con l'elevazione che lo strumento indica per essa; se non si può sparare nulla di più vicino, un gruppo in più a una distanza già validata sblocca quel tentativo. Se gli impatti mancati si ripetono, controlla prima il BC e il modello di resistenza della cartuccia rispetto alla loro fonte pubblicata, poi lo zero, la velocità iniziale e la pressione inserita.
+
+### Conclusione
+
+Un elenco classificato, mai un verdetto unico. Ogni voce riceve tre cose: quanto è probabile che conti davvero alla vostra distanza operativa massima, la sua entità con un margine onesto e — dove due cause non si possono distinguere — entrambe insieme, mai una sola. Dove la sessione ha trovato una correzione di resistenza aerodinamica reale e ben misurata (offerta solo con un cronografo alle spalle), potete salvarla sulla vostra cartuccia; vedrete i numeri prima/dopo prima di impegnarvi.
+
+Una correzione del BC viene proposta solo con almeno cinque letture al cronografo effettivamente registrate in questa sessione — una casella "cronografo disponibile per l'esercizio" spuntata senza letture non dimostra nulla — e potete tenerla solo per questa sessione invece di salvarla. Senza di essa ottenete comunque la correzione dell'alzo per esattamente le distanze tirate. Alla fine, "Inizia una nuova sessione" cancella la sessione (i vostri preset restano). Lo strumento è prudente su ciò che chiama correzione. Una correzione dello zero viene segnalata solo se è molto probabile che conti; se è solo possibile, vedrete "possibile, non ancora chiaro" e vi si chiede di non cambiare nulla solo per questo. La tabella dell'alzo per le distanze tirate compare solo se le sue correzioni superano il dubbio che le riguarda — una correzione più piccola della propria incertezza è solo il rumore di pochi gruppi, e applicarla può lasciarvi peggio che non fare nulla. Una causa che la sessione non ha potuto determinare non viene mai indicata come nella norma: la conclusione dice invece «non determinato da questa sessione» (il valore del click, per esempio, si stabilisce solo con un test su un bersaglio alto o con il righello, non sparando); «nella norma» resta per le cause che i colpi hanno determinato e trovato piccole. La velocità iniziale che il cronografo misura durante la sessione (già dalla prima misura) prevale sulla media verificata in precedenza: l'adattamento la pesa con la sua incertezza, la dispersione da colpo a colpo divisa per la radice del numero di misure, e non le oppone più la media verificata, perché quella è stata misurata in un'altra occasione e un giorno più caldo o più freddo, o un altro lotto, può renderla sbagliata. L'elenco della Conclusione ti ricorda anche quali compiti hai spuntato: le bande indicate e il voto considerano ogni voce spuntata come davvero fatta, e se una era ottimistica (uno zero spuntato ma non ricontrollato) l'incertezza reale è maggiore di quella mostrata — nei test il valore vero cadeva allora fuori dalla banda indicata circa una volta su due. Quando la velocità iniziale misurata differisce da quella della cartuccia, l'elenco dice quanti colpi cronografare per chiarirlo (la media a circa 2 m/s, alla tua dispersione).
+
+Per i curiosi: un riscontro sullo zero è segnalato come correzione a P(rilevante) ≥ 0,8 e come "possibile" tra 0,5 e 0,8. Una voce della tabella conta solo se raggiunge 0,05 mrad e una deviazione standard della propria incertezza predittiva (la covarianza dell'adattamento propagata attraverso le colonne di sensibilità a quella distanza); la tabella compare se almeno una voce conta. Le due soglie sono state scelte esplorando regole candidate su migliaia di sessioni simulate: insieme dimezzano circa le sessioni in cui seguire il risultato lascia l'alzo peggiore che non fare nulla, con un piccolo costo dove lo zero è davvero un po' fuori.
+
+---
+
+## 4. Il selettore di certezza — versione semplice
+
+A volte state registrando un vecchio ricordo, un singolo colpo annunciato, o un gruppo su un bersaglio che non avete potuto ispezionare da vicino (del tutto normale per un bersaglio vicino su un poligono affollato). In questi casi, invece di una misura precisa, vedrete tre opzioni:
+
+- **Molto certo** — ci scommettereste il vostro zero.
+- **Abbastanza certo** — probabilmente giusto, ma non punteresti molto sul numero esatto.
+- **Meno certo** — un'idea approssimativa di dove sia atterrato, nulla di più.
+
+Scegliete onestamente. Lo strumento pesa la vostra lettura di conseguenza — un "meno certo" onesto gli è più utile di un'ipotesi sicura di sé travestita da misura precisa.
+
+### Per gli appassionati di tecnica
+
+Ogni livello corrisponde a una deviazione standard, scalata sul valore di click del vostro cannocchiale: Molto certo = ±1 click (σ = mezzo click), Abbastanza certo = ±2 click (σ = un click), Meno certo = ±3 click (σ = 1,5 click), ciascuno letto come intervallo al 95%. Questa scala è autocalibrante — il rumore di fondo di un singolo colpo del tutto non misurato corrisponde quasi esattamente alla riga "Meno certo" con un click standard di 0,1 mrad, ed è per questo che è anche il valore predefinito onesto per un gruppo sul bersaglio vicino che non avete potuto risolvere colpo per colpo.
+
+---
+
+## 5. Cosa significa "fattore di guadagno BC", e dove risiede
+
+Una correzione di resistenza aerodinamica tarata viene salvata sulla vostra **cartuccia**, come "fattore di guadagno BC" — un moltiplicatore, 1,00 per impostazione predefinita. 1,05 significa che il proiettile si comporta come se il suo BC pubblicato fosse superiore del 5% (meno resistenza, traiettoria più tesa); 0,95 significa il contrario. Risiede sulla cartuccia, non sul proiettile, perché lo stesso proiettile sparato da un fucile diverso a una velocità diversa ha davvero una resistenza leggermente diversa — i dati pubblicati stessi restano intatti.
+
+Una volta salvato, ogni strumento di questa app — Traiettoria, Risolutore di distanza, Probabilità di colpo, questo — usa automaticamente il valore corretto. Tarare una cartuccia due volte combina le due correzioni; la seconda non sovrascrive mai semplicemente la prima.
+
+---
+
+## 6. Riconoscere un risultato implausibile
+
+Se una sessione riporta una correzione di resistenza aerodinamica di decine di punti percentuali, o una velocità alla volata sbagliata di centinaia di metri al secondo, non è un risultato sottile — è un segnale che qualcos'altro, più a monte, non va: un BC implausibile inserito per il proiettile, o il modello di resistenza aerodinamica sbagliato scelto (G1 specificato per un proiettile il cui BC è stato in realtà misurato per G7, o viceversa). Verificate il BC e il modello di resistenza aerodinamica della cartuccia rispetto alla loro fonte pubblicata prima di fidarvi di qualsiasi altra cosa riportata dalla sessione. Una sessione che ha anche dovuto arretrare più volte perché "non riusciva a vedere l'impatto" vi sta dicendo la stessa cosa in un altro modo — prendetelo sul serio quanto i numeri.
+
+---
+
+## 7. Privacy
+
+Tutto in questo strumento funziona e resta sul vostro dispositivo, esattamente come il resto di questa app — nessun account, nessun caricamento, nessuna telemetria. La sessione stessa è conservata nella memoria locale del vostro browser. Lo strumento scrive altrove solo quando lo scegliete esplicitamente: un fattore di guadagno BC o una nuova deviazione standard della velocità nella vostra scheda della cartuccia, o una distanza o un angolo corretti nella vostra scheda del luogo.

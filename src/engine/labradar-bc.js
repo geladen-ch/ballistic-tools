@@ -1,7 +1,7 @@
 // Per-track BC estimation and multi-track aggregation for the Labradar
 // tool — ports BCFetcher.processTrackData's per-track pipeline and
-// BCFetcher.reportAllDone's two whole-track rejection gates (see
-// data/legacy.code/labrabaco/engine/labrabacoengine.js) on top of this
+// BCFetcher.reportAllDone's two whole-track rejection gates, from the
+// legacy Labrabaco tool's own engine, on top of this
 // app's own cleanTrack()/estimateBCFromTimeWindow().
 import { cleanTrack, fitVelocityModel } from './labradar-clean.js';
 import { estimateBCFromTimeWindow, estimateBCWholeWindow } from './bc-estimate.js';
@@ -47,7 +47,7 @@ export function estimateTrackBC({
 // velocity, against every kept point at once, using the app's own drag
 // model directly instead of a linear approximation — rather than
 // estimateTrackBC()'s two-point linear-fit-then-bisect. Validated
-// (tools/labradar-bc-validation/, docs/reports/labradar-bc-validation.md)
+// (see tools/labradar-bc-validation/)
 // to recover BC 3-9x more accurately across every tested configuration,
 // including a real ~9% curve-shape bias estimateTrackBC carries even on
 // a noiseless track. This is the function the real app actually calls

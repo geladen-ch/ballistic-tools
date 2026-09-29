@@ -2717,3 +2717,127 @@ test('a caliber filter that matches bullets but no rifle shows the rifle list\'s
   assert.ok(container.textContent.includes(t('arsenal.noRiflesFiltered')));
   assert.ok(!container.textContent.includes(t('arsenal.noRifles')));
 });
+
+// ---- Cartridge form's optional "Specify zero atmosphere" ----
+
+function zeroAtmosphereRifle() {
+  saveUserRifle({
+    id: 'my-rifle', name: 'Zero Air Rifle',
+    defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [
+      { id: 'c1', name: 'Practice', muzzleVelocity: 800, bulletId: 'swiss-gp11' },
+      { id: 'c2', name: 'Duty', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'c1' },
+      {
+        id: 'c3', name: 'Alpine', muzzleVelocity: 810, bulletId: 'swiss-gp11',
+        zeroAtmosphere: { altitudeM: 1500, tempC: 4, pressureHpa: 845, humidityPct: 30 }
+      }
+    ]
+  });
+}
+
+// The checkbox's enclosing "field" div — what the cartridge form shows/hides.
+const zeroAtmosphereFieldNode = (container) => byId(container, 'cartridgeZeroAtmosphereEnabled').parentNode.parentNode;
+
+test('a cartridge that is not a zero recipient offers "Specify zero atmosphere", unchecked by default, and saves null', async () => {
+  zeroAtmosphereRifle();
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Zero Air Rifle');
+
+  fireEvent(cartridgeEditButton(container, 'Practice'), 'click');
+  await settle();
+  assert.equal(zeroAtmosphereFieldNode(container).style.display, '');
+  assert.equal(byId(container, 'cartridgeZeroAtmosphereEnabled').checked, false);
+
+  fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
+  const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c1');
+  assert.equal(saved.zeroAtmosphere, null);
+});
+
+test('ticking "Specify zero atmosphere" reveals the atmosphere inputs (no wind, no presets) and saves the entered conditions on the cartridge', async () => {
+  zeroAtmosphereRifle();
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Zero Air Rifle');
+
+  fireEvent(cartridgeEditButton(container, 'Practice'), 'click');
+  await settle();
+  const checkbox = byId(container, 'cartridgeZeroAtmosphereEnabled');
+  const details = checkbox.parentNode.parentNode.childNodes[1];
+  assert.equal(details.style.display, 'none', 'the inputs stay hidden until the box is ticked');
+  checkbox.checked = true;
+  fireEvent(checkbox, 'change');
+  assert.equal(details.style.display, '');
+  assert.equal(findInputs(details).some((n) => n.id === 'windSpeed' || n.id === 'windAngle'), false, 'a zero atmosphere has no wind');
+
+  assert.equal(byId(details, 'atmospherePreset'), undefined, 'no atmosphere presets on this form');
+  const temp = byId(details, 'tempC');
+  temp.value = '-5';
+  fireEvent(temp, 'input');
+
+  fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
+  const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c1');
+  assert.equal(saved.zeroAtmosphere.tempC, -5);
+  assert.deepEqual(Object.keys(saved.zeroAtmosphere).sort(), ['altitudeM', 'humidityPct', 'pressureHpa', 'tempC']);
+});
+
+test('a stored zero atmosphere reopens checked with its saved values, and is kept when the cartridge is re-saved untouched', async () => {
+  zeroAtmosphereRifle();
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Zero Air Rifle');
+
+  fireEvent(cartridgeEditButton(container, 'Alpine'), 'click');
+  await settle();
+  assert.equal(byId(container, 'cartridgeZeroAtmosphereEnabled').checked, true);
+  assert.equal(byId(container, 'tempC').value, '4');
+  assert.equal(byId(container, 'pressureHpa').value, '845');
+
+  fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
+  const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c3');
+  const { altitudeM, ...rest } = saved.zeroAtmosphere;
+  assert.deepEqual(rest, { tempC: 4, pressureHpa: 845, humidityPct: 30 });
+  // outside the "Standard atmosphere" preset the altitude is back-derived from the station pressure, as everywhere else
+  assert.ok(Math.abs(altitudeM - 1505) < 5, `expected ~1505 m for 845 hPa, got ${altitudeM}`);
+});
+
+test('a zero recipient is not offered "Specify zero atmosphere"; picking a donor hides it live and drops a stored value on save', async () => {
+  zeroAtmosphereRifle();
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Zero Air Rifle');
+
+  fireEvent(cartridgeEditButton(container, 'Duty'), 'click');
+  await settle();
+  assert.equal(zeroAtmosphereFieldNode(container).style.display, 'none', 'Duty is a recipient');
+
+  // "Alpine" has its own zero atmosphere; making it a recipient hides the field and clears the value
+  fireEvent(cartridgeEditButton(container, 'Alpine'), 'click');
+  await settle();
+  assert.equal(zeroAtmosphereFieldNode(container).style.display, '');
+  const donorSelect = byId(container, 'arsenalCartridgeZeroedWith');
+  donorSelect.value = 'c1';
+  fireEvent(donorSelect, 'change');
+  assert.equal(zeroAtmosphereFieldNode(container).style.display, 'none');
+
+  fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
+  const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c3');
+  assert.equal(saved.zeroedWithCartridgeId, 'c1');
+  assert.equal(saved.zeroAtmosphere, null);
+});
+
+test('Save is blocked while the zero atmosphere has an out-of-range value', async () => {
+  zeroAtmosphereRifle();
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  activateRifleRow(container, 'Zero Air Rifle');
+
+  fireEvent(cartridgeEditButton(container, 'Alpine'), 'click');
+  await settle();
+  const temp = byId(container, 'tempC');
+  temp.value = '900';
+  fireEvent(temp, 'input');
+  fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
+  assert.equal(loadUserRifles()[0].cartridges.find((c) => c.id === 'c3').zeroAtmosphere.tempC, 4, 'nothing saved');
+});

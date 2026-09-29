@@ -1,5 +1,5 @@
 // Shot-group / precision-analysis statistics, ported from the legacy TARAN
-// app (data/legacy.code/taran/trous.js + synth-pane.js, GPLv3, Copyright
+// app (trous.js + synth-pane.js, GPLv3, Copyright
 // 2015 Alexandre Trofimov). Pure functions, no DOM — every value here is
 // plain data (project/target/group records in and out), unit-testable in
 // isolation the same way src/engine/*'s other modules already are.

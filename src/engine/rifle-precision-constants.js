@@ -1,5 +1,5 @@
 // Precomputed statistical lookup tables for shot-group dispersion analysis,
-// ported verbatim from the legacy TARAN app (data/legacy.code/taran/trous.js,
+// ported verbatim from the legacy TARAN app (trous.js,
 // GPLv3, Copyright 2015 Alexandre Trofimov). Each table is indexed by sample
 // size n (index 0 and 1 are unused/null — n < 2 is meaningless for these
 // estimators). Deliberately NOT re-derived analytically: these are

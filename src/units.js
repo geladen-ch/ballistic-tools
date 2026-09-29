@@ -148,6 +148,7 @@ export const FIELD_UNITS = {
   r2: { group: 'distance', engineUnit: 'm' },
   targetRange: { group: 'distance', engineUnit: 'm' },
   battleZeroRange: { group: 'distance', engineUnit: 'm' },
+  truingBackdropHeight: { group: 'distance', engineUnit: 'm' },
 
   sightHeight: { group: 'smallLength', engineUnit: 'mm' },
   riflingTwist: { group: 'riflingTwist', engineUnit: 'mm' },
@@ -337,7 +338,9 @@ export const FIELD_BOUNDS = {
   circleGongDiameter: { min: 1, max: 200 }, // cm
   targetHeight: { min: 1, max: 300 }, // cm — matches rectPlateHeight, same kind of quantity
   rectPlateWidth: { min: 1, max: 300 }, // cm
-  rectPlateHeight: { min: 1, max: 300 } // cm
+  rectPlateHeight: { min: 1, max: 300 }, // cm
+  bcGainFactor: { min: 0.8, max: 1.2 }, // unitless multiplier, no FIELD_UNITS entry — see makeStepper() in engine/trajectory.js
+  truingBackdropHeight: { min: 1, max: 40 } // m, total height -- see engine/truing-session.js's own "each way" margin, which this is divided by 2 to produce
 };
 
 // The bounds message's own "allowed range" text, in whatever unit the

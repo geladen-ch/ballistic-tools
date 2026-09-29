@@ -519,7 +519,7 @@ test('matchCaliberDesignation returns the matched entry object within tolerance,
   assert.equal(matchCaliberDesignation(0.0064, designations), null);
 });
 
-// Regression coverage for the data/bullets.info import: every catalog
+// Regression coverage for the bullet catalog import: every catalog
 // entry must resolve to a well-formed record, and the manufacturer
 // inferred from the source filename/name (Hornady, Lapua, RUAG) or
 // "Military" for everything else must actually match what's stored.

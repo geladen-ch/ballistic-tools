@@ -225,7 +225,7 @@ test('expireStaleReviewsForPeer leaves a resolved suppression marker alone', () 
   assert.equal(getPendingReviewCount(), 0);
 });
 
-// ---- docs/plans/orphaned-storage-cleanup.md phase 3 ----
+// ---- retention-window sweep ----
 
 test('a resolved marker older than the retention window is swept at init', async () => {
   markPendingReviewResolved('bullet', 'old', { id: 'old', name: 'Theirs' });

@@ -1,4 +1,4 @@
-// Phase 7's photo-splitting scheme — see docs/plans/backup-sync.md.
+// The photo-splitting scheme.
 // Replaces an inline data-URL `photo` with a content-hash `photoRef:
 // "sha256-<hex>"` plus a write-once `assets/<ref>.jpg` file in the synced
 // folder, so an unchanged photo isn't re-embedded (and re-uploaded through
@@ -130,8 +130,7 @@ async function resolveOne(readAsset, holder) {
     const file = await readAsset(assetFileName(holder.photoRef));
     if (!file) return false;
     // Verify the bytes actually hash to the ref that named them before
-    // trusting them (docs/plans/orphaned-storage-cleanup.md phase 2).
-    // This costs one digest over data already in memory — the file has to
+    // trusting them. This costs one digest over data already in memory — the file has to
     // be read in full anyway to build the data URL — and it is the
     // strongest integrity check content-addressed storage permits,
     // catching a truncated or corrupted file as readily as an empty one.
@@ -176,8 +175,8 @@ async function resolveOne(readAsset, holder) {
 //   some photos but is still a one-shot action with no persisted state to
 //   retry from): best-effort applies — the record still imports, just
 //   without its photo, exactly like any other field an importing device
-//   can't resolve (see docs/plans/backup-sync.md Phase 7's "Conflict with
-//   iOS manual sync").
+//   can't resolve (the "iPhone manual sync support" toggle's own
+//   "Conflict with iOS manual sync" case).
 //
 // `readAsset` is null for contexts with no asset access at all (Phase 8b
 // always; Phase 8a's plain multi-file picker) — every referenced photo is

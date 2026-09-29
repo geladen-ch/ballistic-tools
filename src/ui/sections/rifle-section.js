@@ -145,6 +145,13 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
         referenceTempC: cartridge.referenceTempC,
         velocityTempSensitivity: cartridge.velocityTempSensitivity,
         bulletId: cartridge.bulletId,
+        // The cartridge's trued drag correction (the Truing Session's own
+        // BC gain factor) -- every tool's state must carry it, or a trued
+        // cartridge would shoot differently here than in the Truing Session.
+        bcGainFactor: cartridge.bcGainFactor ?? 1,
+        // The air this cartridge's zero was set in, when the cartridge
+        // names one (null otherwise) -- see cartridge-zero-atmosphere-field.js.
+        zeroAtmosphere: cartridge.zeroAtmosphere ?? null,
         // Optional, Hit Probability-only — see cartridge-form.js's own
         // muzzleVelocitySD/precision fields. Every other caller of this
         // callback (Trajectory, Range Solver) ignores these two extra

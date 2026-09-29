@@ -224,7 +224,7 @@ export function mountNavRail(container) {
   function toolRow(tool) {
     return el('div', { class: 'row' }, [
       el('span', { class: 'name', text: t(tool.nameKey) }),
-      statusChip(tool.status)
+      ...statusChip(tool)
     ]);
   }
 

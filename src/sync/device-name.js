@@ -1,10 +1,9 @@
 // A human-friendly, editable device label, separate from the opaque
 // deviceId (device-id.js) which is never shown to the user. Defaults to a
 // coarse guess parsed from navigator.userAgent ("Safari on iPhone",
-// "Chrome on Windows") until the user overrides it — see
-// docs/plans/backup-sync.md's Phase 2 "Device name" for why Phase 6's
-// Settings UI nudges the user to actually change it (two similar devices,
-// e.g. two iPhones, default to an identical-looking guess).
+// "Chrome on Windows") until the user overrides it — the Settings UI
+// nudges the user to actually change it, since two similar devices
+// (e.g. two iPhones) default to an identical-looking guess.
 //
 // Stored as `{ name, modifiedAt }` under one localStorage key rather than
 // two, since the record travels as a single `device: { id, name,

@@ -25,7 +25,8 @@ export function makeStepper(state) {
   const {
     bc, dragModel = 'G1', cdTable, massKg, caliberM,
     windSpeed = 0, windAngle = 90,
-    tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0
+    tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0,
+    bcGainFactor = 1
   } = state;
 
   const table = cdTable || (DRAG_TABLES[dragModel] || DRAG_TABLES.G1);
@@ -50,11 +51,19 @@ export function makeStepper(state) {
   //             suggest, since that skips the pi/4 hidden inside BC's own d^2
   //             term. BC is converted from its conventional lb/in^2 to
   //             kg/m^2 so the rest of the model can stay SI throughout.
-  const kFactor = cdTable
+  // bcGainFactor (default 1, i.e. no-op) is the Arsenal cartridge's own
+  // truing correction — "1.05 behaves as if the BC were 5% higher" — and
+  // applies identically to both branches below via this one division:
+  // higher gain, less effective drag, smaller kFactor. This is also the
+  // insertion point truing-session.js's fitted dragPct is folded through
+  // (applyParameters there sets bcGainFactor rather than rescaling bc
+  // directly, so the same division covers cdTable bullets too).
+  let kFactor = cdTable
     // areaM2 / (2 * massKg), not 1 / (2 * (massKg / areaM2)) — same value,
     // one division instead of two.
     ? areaM2 / (2 * massKg)
     : Math.PI / (8 * LBIN2_TO_KGM2 * bc);
+  kFactor /= bcGainFactor;
 
   // The ICAO standard-atmosphere reference pressure *at the site's own
   // altitude* — the denominator of pressureAtAltitude()'s ratio (see
@@ -310,6 +319,33 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
   return theta1;
 }
 
+// The air fields a cartridge's `zeroAtmosphere` ({ tempC, pressureHpa,
+// humidityPct, altitudeM }, see the Arsenal cartridge form) replaces in a
+// zero solve.
+const ZERO_AIR_KEYS = ['tempC', 'pressureHpa', 'humidityPct', 'altitudeM'];
+
+// The state a rifle's zero is solved in: always the flat (losAngleDeg 0),
+// calm-air one — a rifle is zeroed on the level, before any incline or
+// wind of a later shot exists, and the turret then keeps that setting, so
+// neither the tool's own line-of-sight angle nor its wind may leak into
+// the zero (the incline and wind instead show up in that shot's own
+// come-up). The air is the state's own, unless `base.zeroAtmosphere` says
+// the zero was set in different air: then that replaces the air fields
+// (which also moves the muzzle velocity, for a cartridge with a
+// temperature sensitivity, since resolveMuzzleVelocity() reads tempC).
+// `base` is the state whose ballistics/zeroAtmosphere govern — the state
+// itself, or (for a "zeroed with a different cartridge" recipient) the
+// state with the donor's ballistics merged over it; everything else,
+// sight height and zero range included, is `state`'s own.
+function flatCalmZeroState(state, base = state) {
+  const zeroState = { ...base, losAngleDeg: 0, windSpeed: 0, windAngle: 90 };
+  const zeroAtmosphere = base.zeroAtmosphere;
+  if (zeroAtmosphere) {
+    for (const k of ZERO_AIR_KEYS) if (zeroAtmosphere[k] != null) zeroState[k] = zeroAtmosphere[k];
+  }
+  return zeroState;
+}
+
 // The single place that decides how a launch angle is actually obtained for
 // a shot, so integrate()/computeImpact() (below) don't each reimplement the
 // same precedence. Three cases:
@@ -329,10 +365,13 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
 //    own ballistics.
 //  - neither: the plain, original behavior — solve this cartridge's own
 //    zero angle from its own ballistics.
+// Either way the solve itself is always flat and calm, in the cartridge's
+// zero atmosphere when it names one (the donor's, for a recipient) — see
+// flatCalmZeroState() above.
 export function resolveLaunchAngle(state) {
   if (state.launchAngle !== undefined) return state.launchAngle;
   const donor = state.zeroDonorBallistics;
-  return solveZeroAngle(donor ? { ...state, ...donor } : state);
+  return solveZeroAngle(flatCalmZeroState(state, donor ? { ...state, ...donor } : state));
 }
 
 // Secant-method solve for the launch yaw (radians, sign whatever
@@ -367,7 +406,10 @@ export function resolveLaunchAngle(state) {
 // enough; the alternative (a coupled 2D secant/Newton solve) would be
 // solving for a coupling this small that it's below the engine's own
 // numerical noise floor anyway.
-export function solveHorizontalZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
+export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 } = {}) {
+  // Solved in the same flat, calm, zero-atmosphere state the vertical zero
+  // is (see flatCalmZeroState()) — the yaw belongs to the same one setting.
+  const state = flatCalmZeroState(shotState);
   const { zeroRange, sightHeight, losAngleDeg = 0 } = state;
   if (zeroRange <= 0 || !state.zeroForSpinDrift) return 0;
 
@@ -651,10 +693,9 @@ export function integrate(state) {
   return { points, launchAngleDeg: (launchAngle * 180) / Math.PI };
 }
 
-// Low-allocation single-shot solve: returns only the impact point (relative
-// to the sight line) at one target range, no sample array — designed to be
-// cheap to call many times in a tight loop (e.g. a Monte Carlo batch).
-export function computeImpact(state, targetRange) {
+// Everything computeImpact() and makeImpactWalker() do before the first integration step: the frame, the resolved
+// muzzle velocity, launch angle, spin-drift mode and stepper, and the muzzle point. One place, so the two cannot drift.
+function impactSetup(state) {
   const { sightHeight, losAngleDeg = 0 } = state;
   const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
@@ -683,6 +724,26 @@ export function computeImpact(state, targetRange) {
     vz: vxy * Math.sin(horizontalZeroAngle), t: 0,
     ...initialExtra
   };
+  return { cosL, sinL, rangeOf, mode, spinDrift, step, p0 };
+}
+
+// The impact reported for a landed raw point: relative to the sight line, spin drift folded into the windage.
+function impactFromRaw(raw, cosL, sinL, spinDrift) {
+  const los = toLOS(raw, cosL, sinL);
+  const windageCm = raw.z * 100 + (spinDrift ? spinDriftCm(spinDrift, raw.t) : 0);
+  return {
+    dropCm: los.drop * 100,
+    windageCm,
+    velocity: los.velocity,
+    tof: raw.t
+  };
+}
+
+// Low-allocation single-shot solve: returns only the impact point (relative
+// to the sight line) at one target range, no sample array — designed to be
+// cheap to call many times in a tight loop (e.g. a Monte Carlo batch).
+export function computeImpact(state, targetRange) {
+  const { cosL, sinL, rangeOf, spinDrift, step, p0 } = impactSetup(state);
 
   let older = null, prev = null, cur = p0, steps = 0;
   while (rangeOf(cur) < targetRange && steps < MAX_STEPS) {
@@ -701,13 +762,68 @@ export function computeImpact(state, targetRange) {
     ? cur // targetRange reached at or before the muzzle itself — nothing to interpolate
     : landOnRange(older, prev, cur, () => (steps < MAX_STEPS ? step(cur) : null), rangeOf, targetRange);
 
-  const los = toLOS(raw, cosL, sinL);
-  const windageCm = raw.z * 100 + (spinDrift ? spinDriftCm(spinDrift, raw.t) : 0);
+  return impactFromRaw(raw, cosL, sinL, spinDrift);
+}
+
+// computeImpact() for one state at many target ranges: the raw integrator walk is done once, extended only as far as the
+// farthest range asked for so far, and every range is landed from the stored points. The result for a range is exactly
+// computeImpact(state, range)'s, bit for bit: the walk from the muzzle does not depend on the target (the same steps, in
+// the same order, from the same point), the target only decides where it stops, and each range is landed with the same
+// landOnRange() from the same three points (plus the same one-step-further point when that rule asks for it). Worth it
+// when several targets share one state, as in the truing session's fits; a caller with one range per state should keep
+// using computeImpact(). The 4-DOF stepper is not assumed to be a pure function of its point, so it is not cached.
+// The most points a walk keeps (about 60 s of flight at the coarse step, far past any real shot).
+const WALK_STORE_LIMIT = 3000;
+export function makeImpactWalker(state) {
+  const setup = impactSetup(state);
+  if (setup.mode === 'mccoy4dof') return { impactAt: (targetRange) => computeImpact(state, targetRange) };
+  const { cosL, sinL, rangeOf, spinDrift, step, p0 } = setup;
+  const points = [p0];
+  const ranges = [rangeOf(p0)];
+  let increasing = true; // every range so far above the one before: the walk moves away from the muzzle
+  const extend = () => {
+    const p = step(points[points.length - 1]);
+    const r = rangeOf(p);
+    if (!(r > ranges[ranges.length - 1])) increasing = false;
+    points.push(p);
+    ranges.push(r);
+  };
   return {
-    dropCm: los.drop * 100,
-    windageCm,
-    velocity: los.velocity,
-    tof: raw.t
+    impactAt(targetRange) {
+      // the number of steps computeImpact()'s loop would have taken: the first point at or past the target range, walking
+      // on from the stored points when the target lies beyond them
+      let i = 0;
+      while (ranges[ranges.length - 1] < targetRange && points.length <= MAX_STEPS) {
+        // a target no bullet of this state reaches within a sane flight (a mistyped range) is not worth keeping thousands
+        // of points for: fly it fresh, exactly as computeImpact() does
+        if (points.length > WALK_STORE_LIMIT) return computeImpact(state, targetRange);
+        extend();
+      }
+      if (increasing) {
+        // ranges only ever grow along a walk, so the first point at or past the target is found by bisection
+        let lo = 0, hi = ranges.length - 1;
+        if (!(ranges[hi] < targetRange)) {
+          while (lo < hi) { const mid = (lo + hi) >> 1; if (ranges[mid] < targetRange) lo = mid + 1; else hi = mid; }
+          i = lo;
+        } else i = Math.min(hi, MAX_STEPS);
+      } else {
+        while (ranges[i] < targetRange && i < MAX_STEPS) {
+          if (i + 1 === points.length) extend();
+          i++;
+        }
+      }
+      const cur = points[i];
+      const prev = i > 0 ? points[i - 1] : null;
+      const older = i > 1 ? points[i - 2] : null;
+      const raw = prev === null
+        ? cur
+        : landOnRange(older, prev, cur, () => {
+          if (i >= MAX_STEPS) return null;
+          if (i + 1 === points.length) extend();
+          return points[i + 1];
+        }, rangeOf, targetRange);
+      return impactFromRaw(raw, cosL, sinL, spinDrift);
+    }
   };
 }
 

@@ -16,7 +16,24 @@ import { t } from '../i18n.js';
 // every caller here (nav-rail.js, category-view.js) fully rebuilds its
 // DOM on language change already, so a freshly-built chip is always
 // current.
-export function statusChip(status) {
+function plannedChip(status) {
   if (status !== 'planned') return null;
   return el('span', { class: 'status-chip status-chip-planned', text: t('catalog.statusPlanned') });
+}
+
+// A tool's Experimental badge — independent of the Planned/live/partial
+// status above (a tool can be fully live and still carry it, e.g. the
+// Truing Session tool). Same per-chip-instance `text` reasoning as
+// plannedChip(): several Experimental badges can appear on one page, so
+// this must not use the `i18n` prop either.
+function experimentalChip(tool) {
+  if (!tool || !tool.experimental) return null;
+  return el('span', { class: 'status-chip status-chip-experimental', text: t('catalog.statusExperimental') });
+}
+
+// Returns every chip that applies to `tool` (zero, one or two), for a
+// caller to spread as children — see nav-rail.js's toolRow() and
+// category-view.js's toolCard() for the two call sites.
+export function statusChip(tool) {
+  return [plannedChip(tool.status), experimentalChip(tool)].filter(Boolean);
 }

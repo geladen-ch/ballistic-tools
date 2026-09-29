@@ -33,8 +33,7 @@ function loadBullet(id) {
   return record;
 }
 
-// See docs/plans/labradar-cleaning-experiment.md / docs/labradar-bc-validation.md
-// "Ground-truth configs" for the rationale behind each choice.
+// "Ground-truth configs" for the rationale behind each choice below.
 export const TIER_A_CONFIGS = [
   { id: 'heavy-338', v1: 830, trueBc: 0.368, trueState: { bc: 0.368, dragModel: 'G7', ...ATMO } },
   { id: 'm4a1-m193', v1: 971, trueBc: 0.122, trueState: { bc: 0.122, dragModel: 'G7', ...ATMO } },

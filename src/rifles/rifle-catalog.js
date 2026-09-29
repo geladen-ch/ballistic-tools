@@ -5,9 +5,9 @@
 // worker can `import` it directly, with exactly one source of truth
 // either side has to stay in sync with.
 export const RIFLE_IDS = [
-  // Imported from data/rifles.info — see each file's own "source" field
-  // for provenance (and for which parts are sourced vs. this app's own
-  // placeholder defaults).
+  // Imported from the rifle reference data set — see each file's own
+  // "source" field for provenance (and for which parts are sourced vs.
+  // this app's own placeholder defaults).
   'ak74',
   'akm',
   'fass57',

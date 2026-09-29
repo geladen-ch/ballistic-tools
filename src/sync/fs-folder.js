@@ -1,5 +1,5 @@
 // Thin wrapper around the File System Access API for the shared sync
-// folder — see docs/plans/backup-sync.md Phase 3. This surface
+// folder. This surface
 // (`showDirectoryPicker`) only exists in Chromium (desktop Chrome/Edge,
 // Android Chrome); callers must feature-detect via
 // isFileSystemAccessSupported() before touching anything else here, and
@@ -124,8 +124,8 @@ function getAssetsDirHandle(dirHandle, { create = false } = {}) {
 }
 
 // Content-addressed, write-once, **plus repair of a write this device did
-// not finish** (Phase 7's photo-splitting, extended by docs/plans/
-// orphaned-storage-cleanup.md phase 2). A filename derived from a content
+// not finish** (extending the photo-splitting scheme's own write-once
+// guarantee). A filename derived from a content
 // hash names identical bytes every time, so finding it already present is
 // normally a legitimate reason to skip the write entirely.
 //
@@ -232,8 +232,8 @@ export async function readAssetFile(dirHandle, filename) {
 }
 
 // `createWritable()` stages into a swap file and commits atomically on
-// close() — see docs/plans/backup-sync.md Phase 5's note on why there's
-// deliberately no pagehide-triggered "best effort" write: an aborted write
+// close(). There is deliberately no pagehide-triggered "best effort"
+// write: an aborted write
 // here is understood to leave the previous file intact, not a truncated
 // one, but that's exactly the kind of guarantee worth re-verifying against
 // the spec/browser behavior before leaning on it further, which is why

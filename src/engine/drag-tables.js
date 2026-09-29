@@ -1,6 +1,6 @@
 // Standard reference drag coefficient tables (Mach -> Cd) for the McCoy
-// family of "G" drag functions. Sourced from the legacy nics/*.cs files
-// (data/legacy.code/nics/), which match — byte-for-byte, verified against
+// family of "G" drag functions. Sourced from the legacy nics/*.cs files,
+// which match — byte-for-byte, verified against
 // the upstream repo — the current G1/G2/G5/G6/G7/G8/GI/GS tables in
 // gehtsoft-usa/BallisticCalculator1 (LGPL-2.1), an actively maintained
 // open-source ballistics library. G7's values above Mach 2.6 were
@@ -201,10 +201,10 @@ export const GS_TABLE = [
 
 // RA4: a McDrag-family standard for lead round-nose .22 LR (subsonic
 // rimfire) projectiles — distinct from the G-series (all centerfire).
-// Sourced verbatim from data/drag/RA4.json's cdData, itself matched
-// exactly against two independent legacy sources found in this repo
-// (data/legacy.code/labrabaco/data/dragmodels/RA4.json and
-// data/legacy.code/toms/data/drag_cd.json's "RA4" entry).
+// Sourced verbatim from the reference RA4 drag-model JSON's cdData,
+// itself matched exactly against two independent legacy sources: the
+// Labrabaco tool's own dragmodels/RA4.json and the Toms tool's own
+// drag_cd.json "RA4" entry.
 export const RA4_TABLE = [
   [0, 0.2283], [0.05, 0.2283], [0.1, 0.2282], [0.15, 0.2281],
   [0.2, 0.2281], [0.25, 0.2281], [0.3, 0.2281], [0.35, 0.2281],

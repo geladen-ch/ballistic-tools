@@ -5,8 +5,8 @@
 // whose position is driven directly by confidenceScaleFraction() (the
 // raw confidence-interval width), not snapped to one of the 8 discrete
 // levels — replacing the previous flat list of 8 separate rows. Traced
-// from the real legacy gauge math (data/legacy.code/taran/synth-pane.js's
-// own cipos formula), not just the reference screenshot. The
+// from the real legacy gauge math (the TARAN app's own synth-pane.js
+// cipos formula), not just the reference screenshot. The
 // "Confidence rating:" row label itself is plain, user-facing copy, not
 // part of that legacy tone.
 // Factory returning {node, update(confidenceLower, confidenceUpper)},
@@ -15,7 +15,7 @@ import { el, clear } from '../../dom.js';
 import { t, tOptional } from '../../i18n.js';
 import { confidenceLevel, confidenceScaleFraction } from '../../engine/rifle-precision-stats.js';
 
-// Legacy's own CONFI_LEVELS colors (data/legacy.code/taran/synth-pane.js),
+// Legacy's own CONFI_LEVELS colors (from the TARAN app's synth-pane.js),
 // index 0 (worst/"Useless") through 7 (best/"Awesome") — same order
 // confidenceLevel() itself returns. Also the same 6 (non-flat) stops the
 // gauge's own background gradient is built from, in CSS custom

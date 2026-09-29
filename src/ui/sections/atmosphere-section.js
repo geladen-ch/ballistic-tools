@@ -209,5 +209,15 @@ export function atmosphereSection({
     };
   }
 
-  return { node, getValues };
+  // Every number field's own live check (see unit-field.js) doubles as a
+  // Save gate for a host form — the fields are otherwise private to this
+  // section. Every field is checked (no short-circuit) so each bad one
+  // shows its own red border, not just the first.
+  function validate() {
+    const fields = [tempField, pressureField, humidityField];
+    if (altitudeField && currentPreset === 'standard') fields.push(altitudeField);
+    return fields.map((f) => f.validate()).every(Boolean);
+  }
+
+  return { node, getValues, validate };
 }

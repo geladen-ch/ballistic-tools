@@ -35,8 +35,8 @@ test('resolves a built-in donor bullet\'s BC profile alongside the donor\'s own 
   const recipient = RIFLE.cartridges[1];
   const resolved = await resolveZeroDonorBallistics(RIFLE, recipient);
   assert.deepEqual(resolved, {
-    muzzleVelocity: 800, referenceTempC: undefined, velocityTempSensitivity: undefined,
-    bc: 0.274, dragModel: 'G7', massKg: 0.0113, caliberM: 0.00778
+    muzzleVelocity: 800, referenceTempC: undefined, velocityTempSensitivity: undefined, bcGainFactor: 1, zeroAtmosphere: null,
+    cdTable: null, bc: 0.274, dragModel: 'G7', massKg: 0.0113, caliberM: 0.00778
   });
 });
 
@@ -54,7 +54,7 @@ test('resolves a user-library donor bullet\'s cdTable profile, and prefers the u
   };
   const resolved = await resolveZeroDonorBallistics(rifle, rifle.cartridges[1]);
   assert.deepEqual(resolved, {
-    muzzleVelocity: 850, referenceTempC: 15, velocityTempSensitivity: 1.1,
+    muzzleVelocity: 850, referenceTempC: 15, velocityTempSensitivity: 1.1, bcGainFactor: 1, zeroAtmosphere: null,
     cdTable: [[0.5, 0.2], [1.5, 0.4]], massKg: 0.012, caliberM: 0.008
   });
 });
@@ -68,4 +68,36 @@ test('null when the donor\'s own bulletId doesn\'t resolve to any known bullet',
     ]
   };
   assert.equal(await resolveZeroDonorBallistics(rifle, rifle.cartridges[1]), null);
+});
+
+test('the donor carries its own bcGainFactor, not the recipient\'s', async () => {
+  const rifle = {
+    id: 'r4',
+    cartridges: [
+      { id: 'donor', name: 'Donor', muzzleVelocity: 800, bulletId: RIFLE.cartridges[0].bulletId, bcGainFactor: 1.04 },
+      { id: 'recipient', name: 'Recipient', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'donor', bcGainFactor: 0.9 }
+    ]
+  };
+  const resolved = await resolveZeroDonorBallistics(rifle, rifle.cartridges[1]);
+  assert.equal(resolved.bcGainFactor, 1.04);
+});
+
+test('a BC-profile donor clears cdTable, so a Cd-table recipient\'s own table cannot win the zero solve', async () => {
+  const resolved = await resolveZeroDonorBallistics(RIFLE, RIFLE.cartridges[1]);
+  const merged = { cdTable: [[0.5, 0.3], [1.5, 0.5]], bc: 0.5, ...resolved };
+  assert.equal(merged.cdTable, null);
+  assert.equal(merged.bc, resolved.bc);
+});
+
+test('carries the donor\'s zero atmosphere, not the recipient\'s', async () => {
+  const zeroAtmosphere = { tempC: 4, pressureHpa: 845, humidityPct: 30, altitudeM: 1505 };
+  const rifle = {
+    id: 'r5',
+    cartridges: [
+      { id: 'donor', name: 'Donor', muzzleVelocity: 800, bulletId: 'swiss-gp11', zeroAtmosphere },
+      { id: 'recipient', name: 'Recipient', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'donor' }
+    ]
+  };
+  const resolved = await resolveZeroDonorBallistics(rifle, rifle.cartridges[1]);
+  assert.deepEqual(resolved.zeroAtmosphere, zeroAtmosphere);
 });

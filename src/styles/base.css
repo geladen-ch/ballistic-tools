@@ -186,7 +186,9 @@ a { color: var(--accent); }
    doesn't outrank the dual-input override further down. */
 .field input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"], [type="reset"]),
 .field select,
-.field textarea {
+.field textarea,
+.truing-session-table input,
+.truing-session-view .field-row input:not([type="checkbox"]) {
   width: 100%;
   background: var(--panel-raised);
   border: 1px solid var(--line);
@@ -474,6 +476,8 @@ a { color: var(--accent); }
   margin-bottom: 4px;
 }
 .checkbox-field input[type="checkbox"] { width: auto; margin: 0; }
+/* A confirmation the shooter must give before going on (Truing Session): the label in the same red as .hint.warning. */
+.checkbox-field.warning { color: var(--danger); }
 
 /* Interface-scale picker (src/ui-scale-prefs.js, Settings) — plain radio
    buttons instead of theme-picker's/impact-color-picker's boxed swatch
@@ -639,6 +643,23 @@ a { color: var(--accent); }
   padding: 12px;
   margin: 12px 0 0;
 }
+/* Truing Session's live, provisional findings during Shoot
+   (src/ui/truing-session/shoot-panel.js) — this must read as visibly less
+   certain than the final Conclude list, never the same visual weight, so a
+   dashed accent border stands in for "still updating" the same way
+   .status-chip-planned's dashed border already means "not final"
+   elsewhere in this app. */
+.truing-session-live-panel { border-style: dashed; border-color: var(--accent-dim); background: var(--panel-raised); }
+/* A flagged target (the one interrupting live finding during Shoot) and
+   the re-check / location-choice blocks that act on it. */
+.truing-session-flag { border-left: 3px solid var(--danger); padding: 4px 0 4px 12px; margin: 12px 0; }
+.truing-session-recheck, .truing-session-choice { margin: 8px 0 12px; }
+.truing-session-view .field-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+.truing-session-view .field-row input:not([type="checkbox"]) { width: auto; flex: 1 1 8em; min-width: 6em; }
+.truing-session-conclusion-list > li { margin-bottom: 12px; }
+.truing-session-table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 13px; }
+.truing-session-table th, .truing-session-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.truing-session-table th { font-weight: 600; color: var(--dim); font-size: 12px; }
 /* A standalone action button following a group of fields — inside a
    .input-section (Trajectory's "Add rifle/bullet to arsenal") or a plain
    .card (BC Estimator's "Estimate", Settings' "Reset to metric defaults").
@@ -1018,6 +1039,12 @@ th { color: var(--dim); font-weight: 500; }
   line-height: 1.6;
 }
 .status-chip-planned { color: var(--dim); background: transparent; border: 1px dashed var(--line); }
+
+/* Experimental badge (src/ui/status-chip.js) — independent of the
+   Planned/live/partial status above, so it can sit next to a fully live
+   tool (e.g. Truing Session). Reuses the same accent "needs attention"
+   role as .status-chip-marginal. */
+.status-chip-experimental { color: var(--accent); background: rgba(232, 163, 61, 0.14); border: 1px solid var(--accent-dim); }
 
 /* Backup & Sync's pending-review dialog (src/ui/backup-sync-settings.js)
    — marks a conflict row as decided, reusing the same ok/green role as

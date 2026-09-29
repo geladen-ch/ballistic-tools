@@ -1,7 +1,6 @@
-// Settings UI for the "Backup & Sync" feature — see
-// docs/plans/backup-sync.md Phase 6. One section, always in the same
-// place; what renders inside it differs by capability (Chromium folder
-// sync vs. Phase 8a's plain download/upload), not by separate screens.
+// Settings UI for the "Backup & Sync" feature. One section, always in the
+// same place; what renders inside it differs by capability (Chromium folder
+// sync vs. the plain download/upload tier), not by separate screens.
 import { el, clear } from '../dom.js';
 import { i18nSpan, applyI18nText, t } from '../i18n.js';
 import { sectionGroup } from './section.js';
@@ -366,8 +365,8 @@ function conflictPeerLabel(deviceId) {
 // Renders the pending-review list into a dialog — one entry per
 // unresolved conflict, each with "Keep mine"/"Take theirs". Both choices
 // resolve through the normal save path (a fresh modifiedAt/modifiedBy for
-// this device), per docs/plans/backup-sync.md Phase 4's "Resolving a
-// conflict is not a new merge path".
+// this device) — resolving a conflict is not a new merge path, it goes
+// through the same save as any other edit.
 function openReviewDialog(onResolved) {
   const items = listPendingReviews();
   const rows = items.map((item) => {
@@ -381,8 +380,7 @@ function openReviewDialog(onResolved) {
         el('strong', { text: name }),
         el('br'),
         // Which of the four synced libraries this is — a bare name alone
-        // doesn't say it (see docs/plans/backup-sync.md's own "K31" bug:
-        // a built-in library rifle and a rifle-precision project can
+        // doesn't say it: a built-in library rifle and a rifle-precision project can
         // share a name with nothing else in this dialog to tell them
         // apart).
         el('span', { class: 'hint', text: t('settings.backupSync.review.libraryLine', { library: recordTypeLabel(item.recordType) }) }),
@@ -569,7 +567,7 @@ export function backupSyncSection(onSyncApplied = () => {}) {
     }
     renderStatus();
 
-    // --- unused photo files (docs/plans/orphaned-storage-cleanup.md phase 5) ---
+    // --- unused photo files ---
     // Automatic deletion is never silent: this line is the only place a
     // user ever learns that files were removed from their own cloud folder.
     // A blocked run deliberately leaves it stale rather than alarming —
@@ -637,7 +635,7 @@ export function backupSyncSection(onSyncApplied = () => {}) {
     }
     renderCleanupStatus();
 
-    // --- devices (docs/plans/orphaned-storage-cleanup.md phase 6) ---
+    // --- devices ---
     // Wrapped in the same nested section shell the Advanced group uses, so
     // its heading reads as a heading rather than as a hint above
     // full-size rows.

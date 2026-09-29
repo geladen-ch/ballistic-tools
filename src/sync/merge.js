@@ -1,6 +1,5 @@
-// The automatic-merge algorithm — see docs/plans/backup-sync.md Phase 4
-// for the full specification and rationale behind every branch below.
-// Generic over any flat list of `{ id, modifiedAt | deletedAt, ... }`
+// The automatic-merge algorithm. Generic over any flat list of
+// `{ id, modifiedAt | deletedAt, ... }`
 // records; bullets, rifles, locations, and rifle-precision projects are
 // each merged independently by calling this once per library.
 import { logSyncEvent } from './sync-log.js';

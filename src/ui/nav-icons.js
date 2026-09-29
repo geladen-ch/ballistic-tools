@@ -116,7 +116,7 @@ export function targetIcon(size = 18) {
 // marking the angle off the horizontal and a dot at the eye — inline
 // adornment for the Target tab's LoS-angle field (range-solver-view.js),
 // standing in for that field's removed text label. Redrawn from the
-// original data/icons/los-angle-icon.svg (an Inkscape export: hardcoded
+// original LoS-angle icon (an Inkscape export: hardcoded
 // black, odd mm-based viewBox) into this module's own line-icon
 // convention instead of loaded as a static file. A small hollow ring in
 // the otherwise-empty upper-left corner reads as a bare degree sign (°),

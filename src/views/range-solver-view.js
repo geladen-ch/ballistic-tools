@@ -24,6 +24,7 @@ import { clicksForOffset, engineToDisplay, displayToEngine, unitChoice, UNIT_GRO
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
+import { INDICATOR_GLYPHS } from '../ui/dope-format.js';
 import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import {
@@ -63,13 +64,6 @@ function currentUnit(group) {
   const unit = getUnit(group);
   return UNIT_GROUPS[group].choices.some((c) => c.unit === unit) ? unit : UNIT_GROUPS[group].defaultUnit;
 }
-
-// Matches range-solver-prefs.js's own INDICATOR_STYLE_CHOICES values.
-const INDICATOR_GLYPHS = {
-  arrows: { elevationPositive: '↑', elevationNegative: '↓', windagePositive: '→', windageNegative: '←' },
-  signs: { elevationPositive: '+', elevationNegative: '−', windagePositive: '+', windageNegative: '−' },
-  udlr: { elevationPositive: 'U', elevationNegative: 'D', windagePositive: 'R', windageNegative: 'L' }
-};
 
 // Matches range-solver-prefs.js's own OUTPUT_UNIT_CHOICES values other than
 // 'clicks' (which dials through the active rifle's own scope click value

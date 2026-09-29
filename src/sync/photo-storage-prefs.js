@@ -1,5 +1,4 @@
-// The "iPhone manual sync support" toggle — see
-// docs/plans/backup-sync.md Phase 7's "Conflict with iOS manual sync".
+// The "iPhone manual sync support" toggle.
 // Off by default: a folder-access device (Chromium) writes the efficient
 // photoRef/assets/ split among its peers. Turning this on makes this
 // device always embed photos inline instead, so any bundle it writes is
