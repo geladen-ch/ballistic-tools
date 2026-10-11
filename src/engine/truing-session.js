@@ -27,47 +27,26 @@ export const MATERIALITY_MRAD = 0.1;
 export const SUPERSONIC_MACH = 1.1;
 export const DEGENERACY_R = 0.8;
 
-// ---- dragPct's own prior is a mixture, not one flat sigma ----
-// Two independent, additive sources of "how wrong might the assumed BC
-// be", from a survey of published-vs-measured BC figures across several
-// manufacturers and bullet lines:
-//  1. Published-vs-true error for the reference article itself. Annex B's
-//     |published - gift BC| figures, read as a symmetric distribution
-//     (the actual skew is one manufacturer's marketing practice, not
-//     physics): mostly small (same-lab measurements cluster around 2%),
-//     occasionally large for a manufacturer whose published figure is a
-//     compromise across a velocity band rather than a measurement (up to
-//     ~10%, averaging ~8.5% in that regime) -- roughly 15-20% of entries
-//     exceed 5%, hence the 80/20 mixture weight below.
-//  2. This-barrel-vs-reference-barrel variation (twist, bore, throat) --
-//     Gaussian, a fixed 1.75% (2sigma = 3.5%), present on top of source 1
-//     regardless of how good the published figure is: even an honestly
-//     and precisely measured BC was measured on someone else's barrel,
-//     not this one. Only actually zero if the BC in use was independently
-//     measured on this exact rifle -- out of scope for this version;
-//     dragPct stays "never checked" either way, unlike the other priors below.
-// Combining: source 2 is Gaussian and independent of source 1, so
-// convolving them is exact, not an approximation -- a Gaussian mixture
-// convolved with an independent Gaussian is the same mixture with each
-// component's variance increased by the Gaussian's variance. No new
-// machinery beyond addition in quadrature.
-export const SIGMA_DRAG_BARREL_PCT = 1.75;
-export const SIGMA_DRAG_PUBLISHED_NARROW_PCT = 2;
-export const SIGMA_DRAG_PUBLISHED_WIDE_PCT = 8.5;
-export const DRAG_MIXTURE_WEIGHTS = [0.8, 0.2]; // typical / occasionally-a-marketing-outlier
-export const SIGMA_DRAG_NARROW_PCT = Math.hypot(SIGMA_DRAG_PUBLISHED_NARROW_PCT, SIGMA_DRAG_BARREL_PCT);
-export const SIGMA_DRAG_WIDE_PCT = Math.hypot(SIGMA_DRAG_PUBLISHED_WIDE_PCT, SIGMA_DRAG_BARREL_PCT);
+// ---- dragPct's prior: one normal distribution, sized from the data ----
+// How wrong the BC in use may be for this rifle, as one zero-mean normal with two independent parts, added in quadrature:
+//  1. The published figure against the bullet's true drag: the RMS of 56 published G7 BCs from three manufacturers against
+//     the BC that best reproduces each bullet's reference drag curve, 3.6 %. That sample is too small, and its large errors
+//     too clearly one vendor's methodology or marketing, to say anything about the SHAPE of the distribution -- a mixture
+//     of "typical" and "outlier" BCs read into it proved over-confident whenever the errors were in fact normal -- so it is
+//     used for the variance only. The RMS, not the SD: the vendors' mean offsets are folded into the spread rather than
+//     claimed as a known bias.
+//  2. This barrel against the one the figure was measured on (rifling, bore, muzzle velocity): the same bullet measured by
+//     the same method varies by about 1.8-2.0 % (1 sigma). That is the floor, present however good the published figure is.
+// A cartridge already trued on this rifle starts from the same prior: its gain factor is a correction, not a measurement
+// the next session should trust beyond the published figure's own uncertainty.
+// With a variance that matches the data, a normal prior keeps the stated bands honest whatever the true shape is (the fit is
+// close to linear), and the planner and the analysis share it.
+export const SIGMA_DRAG_PUBLISHED_PCT = 3.6;
+export const SIGMA_DRAG_BARREL_PCT = 1.9;
+export const SIGMA_DRAG_PCT = Math.hypot(SIGMA_DRAG_PUBLISHED_PCT, SIGMA_DRAG_BARREL_PCT);
 
-// The single-number stand-in for planning (before any shots exist -- there
-// is no fit yet to run a real mixture evidence comparison against, only a
-// round count to price a forecast for), derived rather than assumed: the
-// mixture's own marginal SD, both components centred at 0.
-export function dragPctMarginalSigma(weights = DRAG_MIXTURE_WEIGHTS, sigmas = [SIGMA_DRAG_NARROW_PCT, SIGMA_DRAG_WIDE_PCT]) {
-  return Math.sqrt(weights.reduce((s, w, i) => s + w * sigmas[i] * sigmas[i], 0));
-}
-
-export const DEFAULT_PRIORS_UNCHECKED = { zeroMrad: 0.25, v0Ms: 20, dragPct: dragPctMarginalSigma(), trackPct: 1 };
-export const DEFAULT_PRIORS_CHECKED_NO_CHRONO = { zeroMrad: 0.08, v0Ms: 20, dragPct: dragPctMarginalSigma(), trackPct: 0.15 };
+export const DEFAULT_PRIORS_UNCHECKED = { zeroMrad: 0.25, v0Ms: 20, dragPct: SIGMA_DRAG_PCT, trackPct: 1 };
+export const DEFAULT_PRIORS_CHECKED_NO_CHRONO = { zeroMrad: 0.08, v0Ms: 20, dragPct: SIGMA_DRAG_PCT, trackPct: 0.15 };
 
 export const BASE_PARAMS = ['zeroMrad', 'v0Ms', 'dragPct', 'trackPct'];
 
@@ -1316,9 +1295,9 @@ function targetThetaAt(theta, o) {
 // re-running it against a clean, no-blunder-injected session, where it
 // should favour "fine" and instead favoured "blunder" at ~90% every time.
 // Shared here by every "which prior variant does the data actually
-// support" comparison (the per-target blunder mixture, and dragPct's own
-// published/barrel mixture below), so there is exactly one place this
-// formula is written, not one copy per use.
+// support" comparison (the per-target blunder mixture, and the ticked
+// homework's own), so there is exactly one place this formula is written,
+// not one copy per use.
 export function laplaceLogEvidence({ state, observations, fit, priors, params }) {
   // A fit made by fitSession() already carries its linearisation at the solution: the residual-plus-prior objective
   // there, the log-variances and the information matrix -- exactly what is recomputed below for a fit that does not.
@@ -1467,13 +1446,13 @@ function combineMixture(results, params) {
 }
 
 // ---- General multi-axis mixture fit ----
-// Generalizes both blunderPatternForTarget (above) and the single-axis
-// dragPct mixture (below) to any number of simultaneous "which hypothesis
-// is true here" axes, run together rather than one at a time. Each axis
+// Generalizes blunderPatternForTarget (above) to any number of
+// simultaneous "which hypothesis is true here" axes, run together rather
+// than one at a time. Each axis
 // is either:
 //   { kind: 'param', key, sigmas, weights, labels? }   -- an already-active
 //     parameter's own prior sigma is swapped between alternatives (e.g.
-//     dragPct's narrow/wide components)
+//     a ticked homework item's verified and unverified priors)
 //   { kind: 'target', targetIndex, sigmas, weights, labels? } -- a
 //     per-target nuisance term (rangeErrM_<targetIndex>) is conditionally
 //     added, at one of the given sigmas (e.g. a target's own fine/blunder
@@ -1628,19 +1607,17 @@ export const JOINT_BLUNDER_SHORTLIST = 4;
 // can lose a finding at the 0.5 line, by a hair; the cap is a parameter (`maxSimultaneous`) for exactly that reason.
 export const JOINT_BLUNDER_MAX_SIMULTANEOUS = 2;
 // `extraAxes`: further { kind: 'param' } axes to enumerate with the others (e.g. whether a homework item ticked as done really was).
-export function jointBlunderCheck({ state, observations, priors, targetIndices, rechecked = false, dragAxis = true, params = BASE_PARAMS, shortlist = JOINT_BLUNDER_SHORTLIST, warmIn = null, maxSimultaneous = JOINT_BLUNDER_MAX_SIMULTANEOUS, extraAxes = [] }) {
-  const warm = warmContext(warmIn, JSON.stringify([state, priors, params, rechecked, dragAxis, extraAxes]));
-  // blunderPatternForTarget runs an ordinary fit, so it needs a scalar
-  // dragPct prior; a caller using the dragPct axis normally omits it
-  // (the axis supplies it per-hypothesis), and leaving it undefined here
-  // is the 1/undefined^2 = NaN trap this engine has hit before.
-  const screenPriors = { ...priors, dragPct: priors.dragPct ?? dragPctMarginalSigma() };
+export function jointBlunderCheck({ state, observations, priors: givenPriors, targetIndices, rechecked = false, params = BASE_PARAMS, shortlist = JOINT_BLUNDER_SHORTLIST, warmIn = null, maxSimultaneous = JOINT_BLUNDER_MAX_SIMULTANEOUS, extraAxes = [] }) {
+  // A caller that leaves the drag scale's prior out gets the default one: left undefined, it would be the 1/undefined^2 = NaN
+  // trap this engine has hit before.
+  const priors = { ...givenPriors, dragPct: givenPriors.dragPct ?? SIGMA_DRAG_PCT };
+  const warm = warmContext(warmIn, JSON.stringify([state, priors, params, rechecked, extraAxes]));
   let resolved = targetIndices;
   let screenedWeights = null;
   if (targetIndices.length > shortlist) {
     screenedWeights = {};
     for (const ti of targetIndices) {
-      screenedWeights[ti] = blunderPatternForTarget({ state, observations, priors: screenPriors, targetIndex: ti, rechecked, params, warm }).posteriorWeights[1];
+      screenedWeights[ti] = blunderPatternForTarget({ state, observations, priors, targetIndex: ti, rechecked, params, warm }).posteriorWeights[1];
     }
     const keep = new Set([...targetIndices]
       .sort((a, b) => screenedWeights[b] - screenedWeights[a])
@@ -1648,10 +1625,7 @@ export function jointBlunderCheck({ state, observations, priors, targetIndices, 
     resolved = targetIndices.filter((ti) => keep.has(ti));
   }
 
-  const axes = [];
-  if (dragAxis) axes.push({ kind: 'param', key: 'dragPct', sigmas: [SIGMA_DRAG_NARROW_PCT, SIGMA_DRAG_WIDE_PCT], weights: DRAG_MIXTURE_WEIGHTS, labels: ['typical', 'outlier'] });
-  const extraAxisOffset = axes.length;
-  axes.push(...extraAxes);
+  const axes = [...extraAxes];
   const weights = rechecked ? [0.98, 0.02] : [0.9, 0.1];
 
   // A rough, theta=0 residual per target, used only to decide which terms
@@ -1767,25 +1741,10 @@ export function jointBlunderCheck({ state, observations, priors, targetIndices, 
   // each extra axis's posterior weight away from its first (baseline) choice -- for a homework item, that the tick did not hold
   const extraDoubt = {};
   extraAxes.forEach((axis, j) => {
-    const pos = extraAxisOffset + j;
-    extraDoubt[axis.key] = combined.results.reduce((sum, r, ci) => sum + (r.choiceIndices[pos] !== 0 ? combined.posteriorWeights[ci] : 0), 0);
+    extraDoubt[axis.key] = combined.results.reduce((sum, r, ci) => sum + (r.choiceIndices[j] !== 0 ? combined.posteriorWeights[ci] : 0), 0);
   });
 
   return { ...combined, marginalBlunder, marginalSomethingWrong, marginalInclined, inclinationDeg, losTargets, exactlyResolved: resolved, screened: screenedWeights != null, extraDoubt, warm: warm.out };
-}
-
-// ---- dragPct's own prior, run as a mixture rather than one flat sigma ----
-// A thin, single-axis case of fitSessionMixture above: the hypotheses
-// differ only in which sigma dragPct's own prior uses this time, not in
-// the parameter list. Collapses to a single reported mean/covariance via
-// the standard Gaussian-mixture combination (law of total variance): the
-// UI still wants one dragPct +/- SD to show, same as always, but that
-// number now genuinely reflects "still consistent with a typical BC" vs
-// "this really does look like one of the rare, badly-off ones", instead
-// of a single compromise sigma splitting the difference between the two
-// regimes no real bullet actually sits in.
-export function fitSessionDragMixture({ state, observations, priors, params = BASE_PARAMS, weights = DRAG_MIXTURE_WEIGHTS, sigmas = [SIGMA_DRAG_NARROW_PCT, SIGMA_DRAG_WIDE_PCT], labels = ['typical', 'outlier'] }) {
-  return fitSessionMixture({ state, observations, priors, params, axes: [{ kind: 'param', key: 'dragPct', sigmas, weights, labels }] });
 }
 
 // ---- Student's-t machinery, for v0Ms's "checked" prior below ----

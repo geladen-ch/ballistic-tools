@@ -259,7 +259,7 @@ test('the Prepare screen tells how many rounds are worth bringing, and says the 
     { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
   ]);
   await settle();
-  saveTruingSessionState({ phase: 'prepare', homeworkState: { roundBudget: 16 } });
+  saveTruingSessionState({ phase: 'prepare', homeworkState: { roundBudget: 16, chronographAvailable: true } });
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle(300);
@@ -268,8 +268,8 @@ test('the Prepare screen tells how many rounds are worth bringing, and says the 
   assert.ok(text.includes(t('truingSession.rangeGrading.budgetMinimum')), 'and says it is a minimum: rounds the spotter cannot see do not count');
   assert.ok(text.includes(t('truingSession.prepare.roundBudgetLabel')), 'and the budget field itself asks for a 20-25% margin on top');
   assert.ok(t('truingSession.prepare.roundBudgetLabel').includes('20'));
-  // the default homework (no chronograph, nothing checked, a marksman's own skill on top of the rifle's) has a knee, at 20 rounds
-  // here; a budget of 16 is not on a row of the table, so it gets a row of its own
+  // with a chronograph (nothing else checked, a marksman's own skill on top of the rifle's) more rounds pay up to a knee; a
+  // budget of 16 is not on a row of the table, so it gets a row of its own
   assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowMinimal')));
   assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowOptimal')));
   assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowEnhanced')));
@@ -299,7 +299,7 @@ test('picking a recommended number of rounds plans for it', async () => {
     { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
   ]);
   await settle();
-  saveTruingSessionState({ phase: 'prepare', homeworkState: { roundBudget: 16 } });
+  saveTruingSessionState({ phase: 'prepare', homeworkState: { roundBudget: 16, chronographAvailable: true } });
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle(300);
@@ -1521,7 +1521,7 @@ test('the rounds field starts at the optimal number, follows it, and a number of
     { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
   ]);
   await settle();
-  saveTruingSessionState({ phase: 'prepare' });
+  saveTruingSessionState({ phase: 'prepare', homeworkState: { chronographAvailable: true } });
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle(300);

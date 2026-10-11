@@ -5,7 +5,7 @@
 // relies on is directly testable.
 import {
   BASE_PARAMS, DEGENERACY_R, MATERIALITY_MRAD, SUPERSONIC_MACH, DEFAULT_BACKDROP_MARGIN_M,
-  dragPctMarginalSigma, v0MsCheckedSigma, plannedV0Sigma, rangeAtMach,
+  SIGMA_DRAG_PCT, v0MsCheckedSigma, plannedV0Sigma, rangeAtMach,
   chronoObservation, rangeCheckObservation, applyAngleCheck, applyFlatRangeDeclaration,
   jointBlunderCheck, resolutionMatrix, sensitivityColumns, applyParameters, predictedComeUp,
   comeUpMrad, correlationOf, degenerateGroups, grade, sampleSD, sdDeviatesSignificantly, withConditions, nextShotDope,
@@ -248,7 +248,7 @@ export function sessionPriors(homework, { chronoReadings = 0, minReadings = MIN_
     v0Ms: homework.mvAverageChecked && homework.mvSD && !trustSession
       ? v0MsCheckedSigma({ mvSD: homework.mvSD, nToday: DEFAULT_MV_AVERAGE_SHOTS, mvSdSampleSize: mvSdSampleSizeFrom(homework) })
       : 20,
-    dragPct: dragPctMarginalSigma(),
+    dragPct: SIGMA_DRAG_PCT,
     trackPct: homework.trackTested ? 0.15 : 1
   };
   return priors;
@@ -494,8 +494,8 @@ export function workingRangeMax({ state, targets, session }) {
   return Math.max(state.zeroRange || 0, ...usable, ...shot, 0) || ceiling;
 }
 
-// Runs the joint blunder check with the drag-scale mixture as one of its
-// axes and reports from its blunder-aware combined fit -- flagging a
+// Runs the joint blunder check and reports from its blunder-aware
+// combined fit -- flagging a
 // target as a likely blunder does not, by itself, fix the reported
 // numbers, so every value here comes from the blunder-aware fit, never
 // from a plain fit that ignores per-target blunders.
@@ -522,7 +522,7 @@ export function homeworkCheckAxes(homework, priors) {
 
 export function analyseSession({ state, observations, priors, params, rechecked = false, rMax, clickMrad = 0.1, chronoN = 0, targets = [], plan = null, triedRanges = [], missedRanges = [], warm = null, extraAxes = [], causes = params }) {
   const targetKeys = [...new Set(observations.filter((o) => o.rangeM != null && o.targetIndex != null).map((o) => o.targetIndex))];
-  const joint = jointBlunderCheck({ state, observations, priors, params, targetIndices: targetKeys, rechecked, dragAxis: true, warmIn: warm, extraAxes });
+  const joint = jointBlunderCheck({ state, observations, priors, params, targetIndices: targetKeys, rechecked, warmIn: warm, extraAxes });
   const { theta, cov, sd } = joint;
   const { Rtilde } = resolutionMatrix({ cov, priors, params });
   // "Now" is the latest group's air and wind, when groups carry their own.

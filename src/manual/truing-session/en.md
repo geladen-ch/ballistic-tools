@@ -84,7 +84,7 @@ The muzzle-velocity spread that sets those weights is not simply the recorded on
 
 ## 5. What "BC gain factor" means, and where it lives
 
-A trued drag correction is saved on your **cartridge**, as a "BC gain factor" — a multiplier, 1.00 by default. 1.05 means the bullet behaves as if its published BC were 5% higher (less drag, flatter); 0.95 means the opposite. It lives on the cartridge, not the bullet, because the same bullet out of a different rifle at a different velocity genuinely drags a little differently — the published data itself is untouched.
+A trued drag correction is saved on your **cartridge**, as a "BC gain factor" — a multiplier, 1.00 by default. 1.05 means the bullet behaves as if its published BC were 5% higher (less drag, flatter); 0.95 means the opposite. It lives on the cartridge, not the bullet, because the same bullet out of a different rifle at a different velocity genuinely drags a little differently — the published data itself is untouched. Before any shots, the tool takes the BC in use to be off by about 4 % (one standard deviation) for your rifle: published BCs typically differ from measured drag by about 3.6 %, and the same bullet varies by about 1.9 % from barrel to barrel. A cartridge you have already trued starts each new session from the same assumption.
 
 Once saved, every tool in this app — Trajectory, Range Solver, Hit Probability, this one — uses the corrected value automatically. Truing a cartridge twice compounds the two corrections; it never simply overwrites the first one with the second.
 

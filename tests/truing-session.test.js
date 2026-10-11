@@ -4,11 +4,11 @@ import { readFileSync } from 'node:fs';
 import { computeImpact, solveZeroAngle } from '../src/engine/trajectory.js';
 import {
   comeUpMrad, machAt, rangeAtMach, sigmaForGroup, observationSigmaMrad, sensitivityColumns, posterior, resolutionMatrix,
-  requiredFarDistance, invalidityFloor, fitSession, fitSessionMixture, fitSessionDragMixture,
+  requiredFarDistance, invalidityFloor, fitSession, fitSessionMixture,
   blunderPatternForTarget, jointBlunderCheck, chronoObservation, rangeCheckObservation, rangeSigmaM, RANGE_SIGMA_FRACTION,
-  v0MsCheckedSigma, tInflationFactor, tQuantile, dragPctMarginalSigma, applyParameters,
-  losUColumn, losUFromDeg, losDegFromU, SIGMA_LOS_INCLINED_U, SIGMA_DRAG_NARROW_PCT, SIGMA_DRAG_WIDE_PCT,
-  DRAG_MIXTURE_WEIGHTS, BASE_PARAMS, predictiveComeUpSd, missMetres, nextLadderRange,
+  v0MsCheckedSigma, tInflationFactor, tQuantile, applyParameters,
+  losUColumn, losUFromDeg, losDegFromU, SIGMA_LOS_INCLINED_U, SIGMA_DRAG_PCT, SIGMA_DRAG_PUBLISHED_PCT, SIGMA_DRAG_BARREL_PCT,
+  BASE_PARAMS, predictiveComeUpSd, missMetres, nextLadderRange,
   retreatAfterMissedImpact, DEFAULT_PRIORS_UNCHECKED, DEFAULT_LADDER_MAX_JUMP_FACTOR, BEYOND_CAP_CONFIDENCE_Z,
   ladderStartCheck, registerMissedImpact, registerRecordedGroup, planWholeSession, DEFAULT_PRIORS_CHECKED_NO_CHRONO, planCost, planObjectiveScales2, PLAN_COST_CAP, MATERIALITY_MRAD
 } from '../src/engine/truing-session.js';
@@ -161,11 +161,11 @@ test('golden: rifle-precision variants of sigmaForGroup feeding the posterior', 
   closeTo(post06.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0325, 0.0002, 'zeroMrad, "supermatch" 0.06 mrad');
 });
 
-test('golden: dragPct mixture prior constants', () => {
-  closeTo(SIGMA_DRAG_NARROW_PCT, 2.658, 0.001, 'narrow sigma');
-  closeTo(SIGMA_DRAG_WIDE_PCT, 8.678, 0.001, 'wide sigma');
-  assert.deepEqual(DRAG_MIXTURE_WEIGHTS, [0.8, 0.2]);
-  closeTo(dragPctMarginalSigma(), 4.551, 0.001, 'marginal sigma for planning');
+test('golden: the drag scale prior is one normal, the published figure\'s RMS error and the barrel floor in quadrature', () => {
+  assert.equal(SIGMA_DRAG_PUBLISHED_PCT, 3.6);
+  assert.equal(SIGMA_DRAG_BARREL_PCT, 1.9);
+  closeTo(SIGMA_DRAG_PCT, 4.0706, 0.0001, 'sigma');
+  assert.equal(DEFAULT_PRIORS_UNCHECKED.dragPct, SIGMA_DRAG_PCT);
 });
 
 test('golden: v0MsCheckedSigma / tInflationFactor / tQuantile', () => {
@@ -191,7 +191,7 @@ test('golden: the deterministic shot-sequencing ladder', () => {
   // rounding artifact in that table, not a bug here (verified directly
   // against the engine itself). The ladder's actual DECISIONS below are
   // what matters and are unaffected either way.
-  const expectedSd = { 100: 0.250000, 200: 0.254596, 300: 0.270717, 400: 0.301656, 500: 0.350332, 600: 0.420107, 700: 0.515020, 800: 0.640919, 870: 0.751763 };
+  const expectedSd = { 100: 0.250000, 200: 0.254596, 300: 0.270579, 400: 0.301111, 500: 0.349007, 600: 0.417165, 700: 0.509278, 800: 0.630638, 870: 0.736873 };
   for (const r of ranges) closeTo(predictiveComeUpSd({ state: REF_STATE, cov, rangeM: r }), expectedSd[r], 0.0001, `predictiveComeUpSd(${r})`);
 
   // the step cap is 4 times the farthest validated distance
@@ -398,32 +398,20 @@ test('Scenario E: an un-modelled range blunder masquerades as a spurious drag fi
   closeTo(blunderResult.fit.theta.rangeErrM_1, 16.9, 0.1, 'recovered rangeErrM under the blunder pattern (true injected error: 30m -- a ballistics-only estimate undershoots, which is why a live re-check resolves it far more tightly, see Scenario Q below)');
 });
 
-test('Scenario P: dragPct as a mixture reports tighter for a typical BC, wider for an outlier', () => {
-  function runCase(trueDragPct) {
-    const rng = mulberry32(42);
-    const trueState = { ...SCEN_REF, bc: SCEN_REF.bc / (1 + trueDragPct / 100) };
-    const observations = [
-      simulateObservation({ trueState, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
-      simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
-    ];
-    const flatFit = fitSession({ state: SCEN_REF, observations, priors: { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15 } });
-    const mix = fitSessionDragMixture({ state: SCEN_REF, observations, priors: { zeroMrad: 0.08, v0Ms: 3, trackPct: 0.15 } });
-    return { flatFit, mix };
-  }
-
-  const typical = runCase(2);
-  closeTo(typical.flatFit.theta.dragPct, 2.066, 0.01, 'P1 flat: theta');
-  closeTo(typical.flatFit.sd.dragPct, 1.565, 0.01, 'P1 flat: sd');
-  closeTo(typical.mix.theta.dragPct, 1.708, 0.01, 'P1 mixture: theta');
-  closeTo(typical.mix.sd.dragPct, 1.439, 0.01, 'P1 mixture: sd -- tighter than the flat prior for a typical BC');
-  closeTo(typical.mix.posteriorWeights[0], 0.901, 0.005, 'P1: posterior weight on the narrow (typical) component');
-
-  const outlier = runCase(9);
-  closeTo(outlier.flatFit.theta.dragPct, 8.460, 0.01, 'P2 flat: theta');
-  closeTo(outlier.flatFit.sd.dragPct, 1.423, 0.01, 'P2 flat: sd');
-  closeTo(outlier.mix.theta.dragPct, 8.575, 0.01, 'P2 mixture: theta');
-  closeTo(outlier.mix.sd.dragPct, 1.653, 0.01, 'P2 mixture: sd -- wider than the flat prior for an outlier BC');
-  closeTo(outlier.mix.posteriorWeights[1], 0.803, 0.005, 'P2: posterior weight shifts to the wide (outlier) component');
+test('the joint check fits the drag scale with its one normal prior, and supplies it when the caller leaves it out', () => {
+  const rng = mulberry32(42);
+  const trueState = { ...SCEN_REF, bc: SCEN_REF.bc / 1.06 };
+  const observations = [
+    simulateObservation({ trueState, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
+    simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
+  ];
+  const priors = { zeroMrad: 0.08, v0Ms: 3, trackPct: 0.15 };
+  const flat = fitSession({ state: SCEN_REF, observations, priors: { ...priors, dragPct: SIGMA_DRAG_PCT } });
+  const joint = jointBlunderCheck({ state: SCEN_REF, observations, priors, targetIndices: [] });
+  assert.equal(joint.results.length, 1, 'no hypotheses about the drag scale itself');
+  closeTo(joint.theta.dragPct, flat.theta.dragPct, 1e-9, 'theta');
+  closeTo(joint.sd.dragPct, flat.sd.dragPct, 1e-9, 'sd');
+  assert.ok(Number.isFinite(joint.theta.dragPct) && joint.theta.dragPct > 4, `a 6 % drag error is found: ${joint.theta.dragPct}`);
 });
 
 test('a distance reading is good to 0.2% of the distance, and a second reading of a target carries that sigma by default', () => {
@@ -449,13 +437,13 @@ test('Scenario Q: joint blunder detection vs one-at-a-time, plus a live rangefin
   const chrono = chronoObservation({ state: SCEN_REF, velocitiesMs, mvSD });
   const finalObservations = [...observations, chrono];
 
-  const oneAtATime = [0, 1, 2].map((idx) => blunderPatternForTarget({ state: SCEN_REF, observations, priors: { ...priors, dragPct: dragPctMarginalSigma() }, targetIndex: idx, rechecked: true }).posteriorWeights[1]);
-  closeTo(oneAtATime[1], 0.6984, 0.001, 'one-at-a-time: the real culprit (860m)');
-  closeTo(oneAtATime[2], 0.8109, 0.001, 'one-at-a-time: over-flags its clean 10m-away neighbour (870m) nearly as hard');
+  const oneAtATime = [0, 1, 2].map((idx) => blunderPatternForTarget({ state: SCEN_REF, observations, priors: { ...priors, dragPct: SIGMA_DRAG_PCT }, targetIndex: idx, rechecked: true }).posteriorWeights[1]);
+  closeTo(oneAtATime[1], 0.7043, 0.001, 'one-at-a-time: the real culprit (860m)');
+  closeTo(oneAtATime[2], 0.8187, 0.001, 'one-at-a-time: over-flags its clean 10m-away neighbour (870m) nearly as hard');
 
   const joint = jointBlunderCheck({ state: SCEN_REF, observations: finalObservations, priors, targetIndices: [0, 1, 2], rechecked: true });
-  closeTo(joint.marginalBlunder[1], 0.3999, 0.001, 'joint: the real culprit stays flagged');
-  closeTo(joint.marginalBlunder[2], 0.2923, 0.001, 'joint: its clean neighbour is substantially exonerated once the shared v0Ms cause is credited to v0Ms itself');
+  closeTo(joint.marginalBlunder[1], 0.3763, 0.001, 'joint: the real culprit stays flagged');
+  closeTo(joint.marginalBlunder[2], 0.3405, 0.001, 'joint: its clean neighbour falls below the culprit, and far below its one-at-a-time 0.82, once the shared v0Ms cause is credited to v0Ms itself');
   closeTo(joint.theta.v0Ms, -39.07, 0.01, 'joint: recovered v0Ms (true -40)');
 
   const rangeCheck = rangeCheckObservation({ targetIndex: 1, believedRangeM: 860, newReadingM: 850.4 });
@@ -1045,7 +1033,7 @@ test('a hypothesis whose fit runs away does not poison the joint analysis', () =
     { kind: 'rangeCheck', targetIndex: '700', sigmaM: 1.4, residualM: -2.817773506539197 }
   ];
   const priors = { zeroMrad: 0.25, v0Ms: 20, trackPct: 1 };
-  const j = jointBlunderCheck({ state, observations, priors, params: BASE_PARAMS, targetIndices: ['100', '450', '700'], rechecked: false, dragAxis: true });
+  const j = jointBlunderCheck({ state, observations, priors, params: BASE_PARAMS, targetIndices: ['100', '450', '700'], rechecked: false });
   for (const k of BASE_PARAMS) assert.ok(Number.isFinite(j.theta[k]) && Number.isFinite(j.sd[k]), `${k}: ${j.theta[k]} ± ${j.sd[k]}`);
   assert.ok(j.posteriorWeights.every(Number.isFinite));
 });
