@@ -5,7 +5,7 @@ import { installFakeDom } from './helpers/fake-dom.js';
 installFakeDom();
 
 const {
-  sessionPriors, planningPriors, sessionParams, mvSdSampleSizeFrom, effectiveMvSd, buildObservations,
+  sessionPriors, planningPriors, sessionParams, reportedCauses, mvSdSampleSizeFrom, effectiveMvSd, buildObservations,
   sessionTargets, groupTargetKey, analyseSession, bcCorrectionOffer, MIN_CHRONO_READINGS_FOR_BC,
   farTargetCheckPrompt, ZERO_FINDING_MIN_P, DIAL_TABLE_MIN_MRAD, DIAL_TABLE_MIN_SD_MULTIPLE, nextShotFromAnalysis,
   roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN, windStrengthOf, roundBudgetOrDefault, DEFAULT_ROUND_BUDGET, livePriors, MIN_CHRONO_READINGS_TRUSTED
@@ -49,9 +49,21 @@ test('once the session has enough chronograph readings of its own, they replace 
   assert.ok(Math.abs(planned - row * 20 / Math.hypot(20, row)) < 1e-9);
 });
 
-test('a completed tall-target test drops trackPct from the parameter set', () => {
-  assert.deepEqual(sessionParams({ trackTested: true }), BASE_PARAMS.filter((k) => k !== 'trackPct'));
-  assert.deepEqual(sessionParams({}), BASE_PARAMS);
+test('a completed tall-target test keeps the click value in the fit at its tight prior, but out of the report', () => {
+  assert.deepEqual(sessionParams({ trackTested: true }), BASE_PARAMS);
+  assert.equal(sessionPriors({ trackTested: true }).trackPct, 0.15);
+  assert.deepEqual(reportedCauses({ trackTested: true }), BASE_PARAMS.filter((k) => k !== 'trackPct'));
+  assert.deepEqual(reportedCauses({}), BASE_PARAMS);
+  const homework = { zeroVerified: true, trackTested: true, mvSD: 3, chronographAvailable: true };
+  const targets = sessionTargets({ location: { targets: [LOCATION.targets[0], LOCATION.targets[2]] } });
+  const session = referenceSession(5, Array(10).fill(792.48));
+  const observations = buildObservations({ state: REF_STATE, session, targets, rangeDeclaredFlat: true, mvSD: 3 });
+  const run = (extra) => analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true, rMax: 860, chronoN: 10, targets, ...extra });
+  const mentioned = (a) => [...a.notMaterial, ...a.notDetermined, ...a.findings.flatMap((f) => [f.param, ...(f.members || [])])];
+  assert.ok(mentioned(run({})).includes('trackPct'), 'reported when every fitted cause is'); // the filter below is what keeps it out
+  const analysis = run({ causes: reportedCauses(homework) });
+  assert.ok(analysis.params.includes('trackPct'));
+  assert.ok(!mentioned(analysis).includes('trackPct'), `trackPct reported: ${JSON.stringify(mentioned(analysis))}`);
 });
 
 test('the SD sample size follows its provenance', () => {
@@ -188,7 +200,7 @@ function analyse(session) {
   const homework = { zeroVerified: true, trackTested: true, mvSD: 3, chronographAvailable: true };
   const observations = buildObservations({ state: REF_STATE, session, targets, rangeDeclaredFlat: true, mvSD: 3 });
   return analyseSession({
-    state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true,
+    state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true,
     rMax: 860, chronoN: session.chronoVelocities.filter((v) => v != null).length, targets
   });
 }
@@ -219,7 +231,7 @@ test('a cause the session did not determine is listed as not determined, never a
   const homework = { zeroVerified: true, trackTested: false, mvSD: 3, chronographAvailable: true };
   const observations = buildObservations({ state: REF_STATE, session, targets, rangeDeclaredFlat: true, mvSD: 3 });
   const result = analyseSession({
-    state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true,
+    state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true,
     rMax: 860, chronoN: 10, targets
   });
   assert.ok(result.notDetermined.includes('trackPct'), `notDetermined: ${result.notDetermined}`);
@@ -242,7 +254,7 @@ test('without chronograph readings a v0 shift is never reported as a measured mu
   const targets = groups.map((g) => ({ key: g.targetKey, rangeM: g.rangeM, registered: true, losAngleDeg: 0 }));
   const homework = { zeroVerified: true, trackTested: true, windConfidenceMs: 0.5 };
   const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: 3 });
-  const result = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true, rMax: 300, chronoN: 0, targets });
+  const result = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 300, chronoN: 0, targets });
   assert.ok(!result.findings.some((f) => f.case === 'measuredV0'));
 });
 
@@ -269,7 +281,7 @@ function nearOnly(observedComeUp) {
   const groups = [{ rangeM: 100, targetKey: 'near', observedComeUp, shots: 4, sigmaMrad: 0.15 }];
   const homework = { trackTested: true };
   const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
-  return analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true, rMax: 100, chronoN: 0, targets });
+  return analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 100, chronoN: 0, targets });
 }
 
 test('a zero finding is a correction only at P(material) of ZERO_FINDING_MIN_P or more; between 0.5 and that it is "possible"', () => {
@@ -346,7 +358,7 @@ test('analyseSession accepts groups with their own conditions, and nextShotFromA
   ];
   const homework = { zeroVerified: true, trackTested: true, mvSD: 3, chronographAvailable: false };
   const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
-  const analysis = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true, rMax: 700, chronoN: 0, targets });
+  const analysis = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 700, chronoN: 0, targets });
   assert.ok(analysis.warm && analysis.cov);
   const next = nextShotFromAnalysis({ state: REF_STATE, analysis, rangeM: 500, conditions: { tempC: 24, pressureHpa: 1001, windSpeed: 4, windAngle: 90 }, windSigma: { speedMs: 1, dirDeg: 7.5 } });
   assert.ok(Number.isFinite(next.elevationMrad) && next.elevationMrad > 2 && next.elevationMrad < 4, `elevation at 500 m ${next.elevationMrad}`);
@@ -589,7 +601,7 @@ test('a ticked zero the shots contradict is doubted, and the result allows for i
     const groups = [100, 100, 300, 700, 700].map((r, i) => ({ rangeM: r, targetKey: ['near', 'near', 'mid', 'far', 'far'][i], observedComeUp: comeUpMrad(truth, r) + zeroOffMrad, shots: 3, sigmaMrad: 0.05 }));
     const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
     const priors = sessionPriors(hw);
-    return analyseSession({ state: REF_STATE, observations, priors, params: sessionParams(hw), rechecked: true, rMax: 700, targets, extraAxes: homeworkCheckAxes(hw, priors) });
+    return analyseSession({ state: REF_STATE, observations, priors, params: sessionParams(hw), causes: reportedCauses(hw), rechecked: true, rMax: 700, targets, extraAxes: homeworkCheckAxes(hw, priors) });
   };
   const held = run(0);
   const broken = run(0.5); // half a mrad off: six times the verified zero's sigma

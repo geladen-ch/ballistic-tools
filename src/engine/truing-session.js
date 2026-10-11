@@ -424,12 +424,17 @@ export function sensitivityColumns(state, rangeM, knownLosDeg = 0) {
     // Perturbs bcGainFactor, not `bc` directly -- a direct `bc` rescale
     // is a no-op for a Cd-table
     // bullet (247 of 385 library bullets), since makeStepper() only reads
-    // `bc` when there's no cdTable at all. Dividing bcGainFactor by 1.05
-    // is exactly equivalent to dividing bc by 1.05 for a BC-profile
+    // `bc` when there's no cdTable at all. Dividing bcGainFactor by 1.01
+    // is exactly equivalent to dividing bc by 1.01 for a BC-profile
     // bullet (kFactor is a pure multiplicative composition of the two),
     // so this is a strict generalisation, not a behaviour change for the
     // bullets the old form did work for.
-    dragPct: (comeUpMrad({ ...baseState, bcGainFactor: (baseState.bcGainFactor ?? 1) / 1.05 }, rangeM) - b) / 5,
+    // A centred difference over +-1 %, the same steps applyParameters takes for dragPct = +-1: the come-up curves in the drag
+    // scale, so a one-sided step (it used to be +5 %) reads a slope steeper than the local one -- 2.7 % steeper at 800 m for a
+    // .308 -- and the fit then reports the drag scale pinned tighter than it is (its 95 % band missed 5.7 % of the time in a
+    // whole-session Monte Carlo, against 5.2 % centred). It costs one more trajectory per column.
+    dragPct: (comeUpMrad({ ...baseState, bcGainFactor: (baseState.bcGainFactor ?? 1) / 1.01 }, rangeM)
+      - comeUpMrad({ ...baseState, bcGainFactor: (baseState.bcGainFactor ?? 1) / 0.99 }, rangeM)) / 2,
     trackPct: 0.01 * b
   };
 }

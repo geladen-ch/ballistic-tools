@@ -221,10 +221,15 @@ export function effectiveMvSd({ homework, velocities = [], state = null, groups 
 }
 
 // ---- parameters and priors ----
-// A completed tall-target/ruler test removes trackPct outright, rather
-// than just giving it a tight prior -- it's then a known quantity to
-// subtract from the observations, not something left to estimate.
-export function sessionParams(homework) {
+// Every cause is fitted, a tested click value included: a tall-target/ruler test leaves it good to its prior (0.15 %), not
+// exact, and a residual left out of the fit lands on the drag scale -- in a whole-session Monte Carlo it made the drag scale's
+// 95 % band miss about a third of a point more often with a tested turret; fitted at its prior, the band misses 5.0 %.
+export function sessionParams() {
+  return [...BASE_PARAMS];
+}
+// The causes the conclusion reports on: a tested click value is fitted but not reported -- the session cannot add to what the
+// test settled, and "click value not determined" would read as if the test had not been done.
+export function reportedCauses(homework) {
   return homework.trackTested ? BASE_PARAMS.filter((k) => k !== 'trackPct') : [...BASE_PARAMS];
 }
 
@@ -515,7 +520,7 @@ export function homeworkCheckAxes(homework, priors) {
   return axes;
 }
 
-export function analyseSession({ state, observations, priors, params, rechecked = false, rMax, clickMrad = 0.1, chronoN = 0, targets = [], plan = null, triedRanges = [], missedRanges = [], warm = null, extraAxes = [] }) {
+export function analyseSession({ state, observations, priors, params, rechecked = false, rMax, clickMrad = 0.1, chronoN = 0, targets = [], plan = null, triedRanges = [], missedRanges = [], warm = null, extraAxes = [], causes = params }) {
   const targetKeys = [...new Set(observations.filter((o) => o.rangeM != null && o.targetIndex != null).map((o) => o.targetIndex))];
   const joint = jointBlunderCheck({ state, observations, priors, params, targetIndices: targetKeys, rechecked, dragAxis: true, warmIn: warm, extraAxes });
   const { theta, cov, sd } = joint;
@@ -526,7 +531,7 @@ export function analyseSession({ state, observations, priors, params, rechecked 
   const applied = applyParameters(nowState, theta);
   const J = sensitivityColumns(applied, rMax);
   const idx = (k) => params.indexOf(k);
-  const causes = params;
+  // (`causes`: the parameters reported on, a subset of the fitted `params`)
   const groups = degenerateGroups(cov, params, DEGENERACY_R, causes);
   const inGroup = new Set(groups.flat());
   const findings = [];

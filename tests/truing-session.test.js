@@ -86,21 +86,32 @@ test('golden: sensitivity columns', () => {
 
   const j870 = sensitivityColumns(REF_STATE, 870);
   closeTo(j870.v0Ms, -0.030886, 0.000001, 'J(870).v0Ms');
-  closeTo(j870.dragPct, 0.075402, 0.000001, 'J(870).dragPct');
+  closeTo(j870.dragPct, 0.073149, 0.000001, 'J(870).dragPct');
   closeTo(j870.trackPct, 0.101196, 0.000001, 'J(870).trackPct');
+});
+
+test('the drag column is the local slope of the come-up, not a secant over a large step', () => {
+  // A one-sided 5 % step read the slope 2.7 % steep at 800 m and left the drag scale's band too narrow; the column must agree with
+  // a fine centred difference to well under that.
+  const at = (pct, r) => predictedComeUp(applyParameters(REF_STATE, { dragPct: pct }), r);
+  for (const r of [600, 870]) {
+    const local = (at(0.1, r) - at(-0.1, r)) / 0.2;
+    const ratio = sensitivityColumns(REF_STATE, r).dragPct / local;
+    assert.ok(Math.abs(ratio - 1) < 0.002, `J(${r}).dragPct / local slope = ${ratio}`);
+  }
 });
 
 test('golden: requiredFarDistance / invalidityFloor with the string noise; the rifle and the velocity spread push the far target out', () => {
   const args = (r50Mrad, mvSD) => ({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, r50Mrad, mvSD });
-  assert.equal(requiredFarDistance({ ...args(null, null), farShots: 8, targetSdPct: 3 }), 445);
-  assert.equal(requiredFarDistance({ ...args(null, null), farShots: 8, targetSdPct: 2 }), 620);
+  assert.equal(requiredFarDistance({ ...args(null, null), farShots: 8, targetSdPct: 3 }), 450);
+  assert.equal(requiredFarDistance({ ...args(null, null), farShots: 8, targetSdPct: 2 }), 625);
   assert.equal(invalidityFloor(args(null, null)), 360);
-  assert.equal(requiredFarDistance({ ...args(0.14, null), farShots: 8, targetSdPct: 3 }), 570);
-  assert.equal(requiredFarDistance({ ...args(0.14, null), farShots: 8, targetSdPct: 2 }), 735);
-  assert.equal(invalidityFloor(args(0.14, null)), 420);
-  assert.equal(requiredFarDistance({ ...args(0.14, 6), farShots: 8, targetSdPct: 3 }), 590);
-  assert.equal(requiredFarDistance({ ...args(0.14, 6), farShots: 8, targetSdPct: 2 }), 775);
-  assert.equal(invalidityFloor(args(0.14, 6)), 420, 'the floor idealises the far reading, so only the near group\'s noise moves it');
+  assert.equal(requiredFarDistance({ ...args(0.14, null), farShots: 8, targetSdPct: 3 }), 575);
+  assert.equal(requiredFarDistance({ ...args(0.14, null), farShots: 8, targetSdPct: 2 }), 740);
+  assert.equal(invalidityFloor(args(0.14, null)), 425);
+  assert.equal(requiredFarDistance({ ...args(0.14, 6), farShots: 8, targetSdPct: 3 }), 595);
+  assert.equal(requiredFarDistance({ ...args(0.14, 6), farShots: 8, targetSdPct: 2 }), 790);
+  assert.equal(invalidityFloor(args(0.14, 6)), 425, 'the floor idealises the far reading, so only the near group\'s noise moves it');
 });
 
 test('golden: the certainty levels feed the posterior -- the zero SD from one three-round string at 100 m', () => {
@@ -115,14 +126,14 @@ test('golden: the certainty levels feed the posterior -- the zero SD from one th
 test('golden: full posterior + resolution matrix, 100m x4 + 870m x8, chronographed', () => {
   const groups = [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }];
   const post = posterior({ state: REF_STATE, groups, priors: CHECKED_PRIORS });
-  const expectedSd = [0.0558, 2.9172, 1.5715, 0.1499];
+  const expectedSd = [0.0558, 2.9125, 1.6149, 0.1499];
   post.sd.forEach((v, i) => closeTo(v, expectedSd[i], 0.0002, `sd[${BASE_PARAMS[i]}]`));
 
   const rm = resolutionMatrix({ cov: post.cov, priors: CHECKED_PRIORS, params: post.params });
   const expectedRtilde = [
-    [0.513, -0.023, 0.095, 0.004],
-    [-0.023, 0.054, -0.221, -0.009],
-    [0.095, -0.221, 0.901, 0.036],
+    [0.513, -0.023, 0.097, 0.004],
+    [-0.023, 0.057, -0.227, -0.009],
+    [0.097, -0.227, 0.896, 0.036],
     [0.004, -0.009, 0.036, 0.001]
   ];
   for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) closeTo(rm.Rtilde[i][j], expectedRtilde[i][j], 0.002, `Rtilde[${i}][${j}]`);
@@ -131,22 +142,22 @@ test('golden: full posterior + resolution matrix, 100m x4 + 870m x8, chronograph
 test('golden: unchecked v0Ms prior (no chronograph) and near-target-at-300 variants', () => {
   const groups = [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }];
   const noChrono = posterior({ state: REF_STATE, groups, priors: { ...CHECKED_PRIORS, v0Ms: 20 } });
-  closeTo(noChrono.sd[BASE_PARAMS.indexOf('dragPct')], 4.2784, 0.001, 'dragPct, no chronograph');
+  closeTo(noChrono.sd[BASE_PARAMS.indexOf('dragPct')], 4.3125, 0.001, 'dragPct, no chronograph');
   closeTo(noChrono.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0562, 0.0002, 'zeroMrad, no chronograph');
-  closeTo(noChrono.sd[BASE_PARAMS.indexOf('v0Ms')], 10.6019, 0.001, 'v0Ms, no chronograph');
+  closeTo(noChrono.sd[BASE_PARAMS.indexOf('v0Ms')], 10.3824, 0.001, 'v0Ms, no chronograph');
 
   const nearAt300 = posterior({ state: REF_STATE, groups: [{ rangeM: 300, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }], priors: CHECKED_PRIORS });
-  closeTo(nearAt300.sd[BASE_PARAMS.indexOf('dragPct')], 1.5440, 0.001, 'dragPct, near at 300m');
+  closeTo(nearAt300.sd[BASE_PARAMS.indexOf('dragPct')], 1.5878, 0.001, 'dragPct, near at 300m');
   closeTo(nearAt300.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0577, 0.0002, 'zeroMrad, near at 300m');
 });
 
 test('golden: rifle-precision variants of sigmaForGroup feeding the posterior', () => {
   const groups = (r50Mrad) => [{ rangeM: 100, shots: 4, r50Mrad, mvSD: 6 }, { rangeM: 870, shots: 8, r50Mrad, mvSD: 6 }];
   const post14 = posterior({ state: REF_STATE, groups: groups(0.14), priors: CHECKED_PRIORS });
-  closeTo(post14.sd[BASE_PARAMS.indexOf('dragPct')], 1.6643, 0.001, 'dragPct, "basic" 0.14 mrad');
+  closeTo(post14.sd[BASE_PARAMS.indexOf('dragPct')], 1.7096, 0.001, 'dragPct, "basic" 0.14 mrad');
   closeTo(post14.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0498, 0.0002, 'zeroMrad, "basic" 0.14 mrad');
   const post06 = posterior({ state: REF_STATE, groups: groups(0.06), priors: CHECKED_PRIORS });
-  closeTo(post06.sd[BASE_PARAMS.indexOf('dragPct')], 1.5359, 0.001, 'dragPct, "supermatch" 0.06 mrad');
+  closeTo(post06.sd[BASE_PARAMS.indexOf('dragPct')], 1.5785, 0.001, 'dragPct, "supermatch" 0.06 mrad');
   closeTo(post06.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0325, 0.0002, 'zeroMrad, "supermatch" 0.06 mrad');
 });
 
@@ -180,7 +191,7 @@ test('golden: the deterministic shot-sequencing ladder', () => {
   // rounding artifact in that table, not a bug here (verified directly
   // against the engine itself). The ladder's actual DECISIONS below are
   // what matters and are unaffected either way.
-  const expectedSd = { 100: 0.250000, 200: 0.254596, 300: 0.270717, 400: 0.301656, 500: 0.350527, 600: 0.420639, 700: 0.516317, 800: 0.643739, 870: 0.756359 };
+  const expectedSd = { 100: 0.250000, 200: 0.254596, 300: 0.270717, 400: 0.301656, 500: 0.350332, 600: 0.420107, 700: 0.515020, 800: 0.640919, 870: 0.751763 };
   for (const r of ranges) closeTo(predictiveComeUpSd({ state: REF_STATE, cov, rangeM: r }), expectedSd[r], 0.0001, `predictiveComeUpSd(${r})`);
 
   // the step cap is 4 times the farthest validated distance
@@ -339,12 +350,12 @@ test('Scenario C/D: the v0/drag degeneracy is real, and only a chronograph break
       simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
     ];
     const fit = fitSession({ state: SCEN_REF, observations, priors });
-    closeTo(fit.theta.dragPct, 6.403, 0.01, 'C: recovered dragPct');
-    closeTo(fit.sd.dragPct, 1.429, 0.01, 'C: dragPct sd');
-    closeTo(fit.theta.v0Ms, -0.870, 0.01, 'C: v0Ms stays near 0, chronographed');
+    closeTo(fit.theta.dragPct, 6.389, 0.01, 'C: recovered dragPct');
+    closeTo(fit.sd.dragPct, 1.467, 0.01, 'C: dragPct sd');
+    closeTo(fit.theta.v0Ms, -0.897, 0.01, 'C: v0Ms stays near 0, chronographed');
     const { Rtilde } = resolutionMatrix({ cov: fit.cov, priors });
     const iv0 = BASE_PARAMS.indexOf('v0Ms'), idrag = BASE_PARAMS.indexOf('dragPct');
-    closeTo(Rtilde[idrag][iv0], -0.208, 0.005, 'C: v0Ms/dragPct correlation, chronographed');
+    closeTo(Rtilde[idrag][iv0], -0.214, 0.005, 'C: v0Ms/dragPct correlation, chronographed');
   }
 
   // D: same injected error, same seed, but NOT chronographed -- v0Ms and dragPct become
@@ -357,8 +368,8 @@ test('Scenario C/D: the v0/drag degeneracy is real, and only a chronograph break
       simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
     ];
     const fit = fitSession({ state: SCEN_REF, observations, priors });
-    closeTo(fit.theta.dragPct, 1.880, 0.01, 'D: recovered dragPct');
-    closeTo(fit.theta.v0Ms, -12.088, 0.01, 'D: recovered v0Ms');
+    closeTo(fit.theta.dragPct, 1.837, 0.01, 'D: recovered dragPct');
+    closeTo(fit.theta.v0Ms, -12.193, 0.01, 'D: recovered v0Ms');
     const cov = posterior({ state: SCEN_REF, groups: [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }], priors }).cov;
     const iv0 = BASE_PARAMS.indexOf('v0Ms'), idrag = BASE_PARAMS.indexOf('dragPct');
     const rawCorr = cov[iv0][idrag] / Math.sqrt(cov[iv0][iv0] * cov[idrag][idrag]);
@@ -376,15 +387,15 @@ test('Scenario E: an un-modelled range blunder masquerades as a spurious drag fi
   ];
 
   const naiveFit = fitSession({ state: SCEN_REF, observations, priors });
-  closeTo(naiveFit.theta.dragPct, 8.209, 0.01, 'without a blunder term, a 30m range error is blamed entirely on drag');
-  closeTo(naiveFit.sd.dragPct, 1.391, 0.01, 'and looks confidently material, not merely noisy');
+  closeTo(naiveFit.theta.dragPct, 8.192, 0.01, 'without a blunder term, a 30m range error is blamed entirely on drag');
+  closeTo(naiveFit.sd.dragPct, 1.428, 0.01, 'and looks confidently material, not merely noisy');
 
   const blunder = blunderPatternForTarget({ state: SCEN_REF, observations, priors, targetIndex: 1 });
   const fineResult = blunder.results.find((r) => r.pattern === 'fine');
   const blunderResult = blunder.results.find((r) => r.pattern === 'blunder');
   closeTo(blunder.posteriorWeights[blunder.results.indexOf(fineResult)], 0.843, 0.005, 'fine pattern posterior weight');
   closeTo(blunder.posteriorWeights[blunder.results.indexOf(blunderResult)], 0.157, 0.005, 'blunder pattern posterior weight');
-  closeTo(blunderResult.fit.theta.rangeErrM_1, 16.7, 0.1, 'recovered rangeErrM under the blunder pattern (true injected error: 30m -- a ballistics-only estimate undershoots, which is why a live re-check resolves it far more tightly, see Scenario Q below)');
+  closeTo(blunderResult.fit.theta.rangeErrM_1, 16.9, 0.1, 'recovered rangeErrM under the blunder pattern (true injected error: 30m -- a ballistics-only estimate undershoots, which is why a live re-check resolves it far more tightly, see Scenario Q below)');
 });
 
 test('Scenario P: dragPct as a mixture reports tighter for a typical BC, wider for an outlier', () => {
@@ -402,16 +413,16 @@ test('Scenario P: dragPct as a mixture reports tighter for a typical BC, wider f
 
   const typical = runCase(2);
   closeTo(typical.flatFit.theta.dragPct, 2.066, 0.01, 'P1 flat: theta');
-  closeTo(typical.flatFit.sd.dragPct, 1.528, 0.01, 'P1 flat: sd');
+  closeTo(typical.flatFit.sd.dragPct, 1.565, 0.01, 'P1 flat: sd');
   closeTo(typical.mix.theta.dragPct, 1.708, 0.01, 'P1 mixture: theta');
-  closeTo(typical.mix.sd.dragPct, 1.410, 0.01, 'P1 mixture: sd -- tighter than the flat prior for a typical BC');
+  closeTo(typical.mix.sd.dragPct, 1.439, 0.01, 'P1 mixture: sd -- tighter than the flat prior for a typical BC');
   closeTo(typical.mix.posteriorWeights[0], 0.901, 0.005, 'P1: posterior weight on the narrow (typical) component');
 
   const outlier = runCase(9);
-  closeTo(outlier.flatFit.theta.dragPct, 8.478, 0.01, 'P2 flat: theta');
-  closeTo(outlier.flatFit.sd.dragPct, 1.386, 0.01, 'P2 flat: sd');
-  closeTo(outlier.mix.theta.dragPct, 8.586, 0.01, 'P2 mixture: theta');
-  closeTo(outlier.mix.sd.dragPct, 1.615, 0.01, 'P2 mixture: sd -- wider than the flat prior for an outlier BC');
+  closeTo(outlier.flatFit.theta.dragPct, 8.460, 0.01, 'P2 flat: theta');
+  closeTo(outlier.flatFit.sd.dragPct, 1.423, 0.01, 'P2 flat: sd');
+  closeTo(outlier.mix.theta.dragPct, 8.575, 0.01, 'P2 mixture: theta');
+  closeTo(outlier.mix.sd.dragPct, 1.653, 0.01, 'P2 mixture: sd -- wider than the flat prior for an outlier BC');
   closeTo(outlier.mix.posteriorWeights[1], 0.803, 0.005, 'P2: posterior weight shifts to the wide (outlier) component');
 });
 
@@ -464,9 +475,9 @@ import {
 
 test('planPosterior prices a plan with the string noise: a larger velocity spread costs drag precision', () => {
   const plan = { state: REF_STATE, ranges: [100, 870], shots: [4, 8], priors: CHECKED_PRIORS, r50Mrad: 0.14 };
-  closeTo(planPosterior({ ...plan, mvSD: 3 }).dragSd, 1.5208, 0.001, '3 m/s');
-  closeTo(planPosterior({ ...plan, mvSD: 6 }).dragSd, 1.6643, 0.001, '6 m/s');
-  closeTo(planPosterior({ ...plan, mvSD: 10 }).dragSd, 1.9449, 0.001, '10 m/s');
+  closeTo(planPosterior({ ...plan, mvSD: 3 }).dragSd, 1.5631, 0.001, '3 m/s');
+  closeTo(planPosterior({ ...plan, mvSD: 6 }).dragSd, 1.7096, 0.001, '6 m/s');
+  closeTo(planPosterior({ ...plan, mvSD: 10 }).dragSd, 1.9954, 0.001, '10 m/s');
   closeTo(planPosterior({ ...plan, mvSD: 6 }).zeroDragCorr, 0.359, 0.002, '|corr(zero, drag)|');
 });
 

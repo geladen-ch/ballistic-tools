@@ -30,7 +30,7 @@ import { sessionOnlyNotice } from '../ui/truing-session/recheck-prompt.js';
 import { conditionsCard, conditionsSummary } from '../ui/truing-session/conditions.js';
 import { dist, angle, missExample } from '../ui/truing-session/units.js';
 import {
-  sessionTargets, sessionParams, livePriors, effectiveMvSd, buildObservations, wholePlan,
+  sessionTargets, sessionParams, reportedCauses, livePriors, effectiveMvSd, buildObservations, wholePlan,
   homeworkCheckAxes, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked, withPlanKeys,
   DEFAULT_ROUND_BUDGET
 } from '../ui/truing-session/session-model.js';
@@ -390,7 +390,7 @@ export function mount(container) {
         state, observations: obs, priors, params, rechecked: false,
         rMax: workingRangeMax({ state, targets: tgs, session }), clickMrad, chronoN: chronoCount(session),
         targets: tgs, plan, triedRanges: session.triedRanges, missedRanges: session.missedRanges, warm: liveWarm,
-        extraAxes: homeworkCheckAxes(hw, priors)
+        extraAxes: homeworkCheckAxes(hw, priors), causes: reportedCauses(hw)
       }).then((result) => { liveWarm = result.warm; return result; });
     };
     const persistSession = () => setPersisted({ shootSession: session });

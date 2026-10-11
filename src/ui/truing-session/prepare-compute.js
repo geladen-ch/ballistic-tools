@@ -105,7 +105,7 @@ function gradingData({ state, homework, availableDistances, usable, ceiling, rou
   addPlanAdvice('moreRounds', whatIf(roundBudget + 6), { n: 6 });
   // (the plan takes the fewest rounds at the nearest distance; the zero and the drag scale are told apart by the distances beyond it)
   if (!homework.zeroVerified) addPlanAdvice('verifyZero', whatIf(roundBudget, { zeroVerified: true }));
-  if (!homework.trackTested) addPlanAdvice('tallTarget', whatIf(roundBudget, { trackTested: true }, sessionParams({ ...homework, trackTested: true })));
+  if (!homework.trackTested) addPlanAdvice('tallTarget', whatIf(roundBudget, { trackTested: true }));
   const farPriors = priorsFor(nearShots + farShots);
   const neededA = requiredFarDistance({ state, priors: farPriors, nearM, nearShots, farShots, targetSdPct: 2, ...noise });
   const neededB = requiredFarDistance({ state, priors: farPriors, nearM, nearShots, farShots, targetSdPct: 3, ...noise });
