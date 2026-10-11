@@ -54,7 +54,7 @@ test('fields with no unit group pass through unconverted', () => {
 });
 
 test('roundForDisplay respects the configured decimal precision', () => {
-  assert.equal(roundForDisplay('maxRange', 'ft', 328.084), 328);
+  assert.equal(roundForDisplay('maxRange', 'yd', 109.36133), 109.4);
   assert.equal(roundForDisplay('pressureHpa', 'inHg', 29.91234), 29.91);
 });
 

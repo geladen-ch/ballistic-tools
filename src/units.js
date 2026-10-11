@@ -31,8 +31,7 @@ export const UNIT_GROUPS = {
     defaultUnit: 'm',
     choices: [
       { unit: 'm', label: 'm', decimals: 1 },
-      { unit: 'yd', label: 'yd', decimals: 1 },
-      { unit: 'ft', label: 'ft', decimals: 0 }
+      { unit: 'yd', label: 'yd', decimals: 1 }
     ]
   },
   smallLength: {

@@ -57,7 +57,7 @@ Carabine       une carabine précise : hauteur de lunette, distance de réglage,
 Les groupes d'unités en jeu :
 
 - **Vitesse** (`m/s`, `ft/s`, `mph`, `km/h`) — vitesse initiale et son écart-type.
-- **Distance** (`m`, `yd`, `ft`) — la distance de réglage d'une carabine, et la distance maximale du graphique de comparaison.
+- **Distance** (`m`, `yd`) — la distance de réglage d'une carabine, et la distance maximale du graphique de comparaison.
 - **Petite longueur** (`mm`, `cm`, `in`) — hauteur de lunette, calibre et longueur de balle. Le calibre et la longueur s'affichent avec une précision plus fine à l'échelle des projectiles (2 décimales en mm, 3 en cm et en pouces), la même précision que la Calculette de précision de tir utilise pour la même raison.
 - **Pas de rayure** (`mm`, `in`) — son propre groupe d'unités, délibérément **indépendant** de la petite longueur. Un tireur qui pense en millimètres pour la hauteur de lunette cite très souvent malgré tout le pas de rayure à la manière traditionnelle, en pouces par tour, et changer votre préférence générale de petite longueur ne convertira pas silencieusement un pas de rayure saisi comme « 1:8 in » en un nombre en millimètres que vous ne reconnaîtriez plus.
 - **Température** (`°C`, `°F`) — la température de référence d'une cartouche pour la sensibilité vitesse-température.

@@ -4,6 +4,11 @@
 import { integrate, solveDirectHit, solveDangerZone } from '../engine/trajectory.js';
 import { estimateBC, estimateBCFromTof } from '../engine/bc-estimate.js';
 import { estimateTrackBCWholeWindow } from '../engine/labradar-bc.js';
+import { computePrepare } from '../ui/truing-session/prepare-compute.js';
+import { analyseSession } from '../ui/truing-session/session-model.js';
+
+// the truing session's analysis, without its internal mixture (large, and read by nothing outside it)
+const truingAnalyse = (request) => { const { joint, ...analysis } = analyseSession(request); return analysis; };
 
 const HANDLERS = {
   trajectory: integrate,
@@ -11,7 +16,9 @@ const HANDLERS = {
   dangerZone: solveDangerZone,
   bcEstimate: estimateBC,
   bcEstimateTof: estimateBCFromTof,
-  labradarTrackBc: estimateTrackBCWholeWindow
+  labradarTrackBc: estimateTrackBCWholeWindow,
+  truingPrepare: computePrepare,
+  truingAnalyse
 };
 
 self.onmessage = (e) => {

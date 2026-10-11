@@ -14,18 +14,11 @@
 import { el } from '../dom.js';
 import { unitField } from './unit-field.js';
 
-// A synthetic, non-pickable option shown whenever the paired number field's
-// value no longer matches any preset — indicates "you're not looking at a
-// preset value anymore" rather than offering an action of its own.
-export const CUSTOM_PRESET_KEY = '__custom__';
+// The custom and rig keys live in preset-keys.js (see there); re-exported here for the field's own callers.
+import { CUSTOM_PRESET_KEY, RIG_PRESET_KEY } from './preset-keys.js';
+export { CUSTOM_PRESET_KEY, RIG_PRESET_KEY };
 
-// A synthetic option offered only while the active cartridge specifies its
-// own value for this field — picks up that value the same way a real
-// preset does, but its value comes from the Arsenal rather than the preset
-// list.
-export const RIG_PRESET_KEY = '__rig__';
-
-// The two preset ladders both Hit Probability and Truing Session need —
+// The preset ladders both Hit Probability and Truing Session need —
 // see hit-probability-view.js's own (larger, tool-specific) PRESETS object
 // for the rest, which stays local to that file. Each preset's `key` is
 // also its translation key under hitProbability.presetLabels — reused
@@ -39,6 +32,13 @@ export const BENCH_PRECISION_PRESETS = [
   { key: 'ak74', value: 0.39 }, { key: 'akmAk47', value: 0.53 }
 ];
 export const DEFAULT_BENCH_PRECISION_PRESET_KEY = 'basic';
+
+// Shooter skill as an angular R50 (mrad), on top of the rifle's own bench precision.
+export const SHOOTER_SKILL_PRESETS = [
+  { key: 'robot', value: 0 }, { key: 'elite', value: 0.06 }, { key: 'marksman', value: 0.12 },
+  { key: 'proficient', value: 0.24 }, { key: 'novice', value: 0.36 }
+];
+export const DEFAULT_SHOOTER_SKILL_PRESET_KEY = 'marksman';
 
 export const MUZZLE_VELOCITY_SD_PRESETS = [
   { key: 'manicReload', value: 2 }, { key: 'goodReload', value: 3 }, { key: 'factoryPremium', value: 4 },

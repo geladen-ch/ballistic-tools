@@ -28,6 +28,7 @@ import { showDialog } from '../ui/app-dialog.js';
 import { rifleCartridgePickerBody } from '../ui/rifle-cartridge-picker.js';
 import { setPendingCartridgeActivation } from '../arsenal-prefill.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
+import { isoDateTime } from '../ui/iso-date.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -228,9 +229,9 @@ export function mount(container) {
 
   function lastModifiedLabel(project) {
     if (!project.modifiedAt) return null;
-    const date = new Date(project.modifiedAt);
-    if (Number.isNaN(date.getTime())) return null;
-    return t('arsenal.lastModified', { date: date.toISOString().slice(0, 16).replace('T', ' ') });
+    const date = isoDateTime(project.modifiedAt);
+    if (!date) return null;
+    return t('arsenal.lastModified', { date });
   }
 
   // ---- targets ----

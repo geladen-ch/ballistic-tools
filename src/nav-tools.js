@@ -18,7 +18,7 @@ const PARTIAL_IDS = new Set(['hit-probability']);
 // excluded from toolsInGroup()'s results — so every listing surface (Home,
 // the category hub pages, both nav-rail layouts) stops showing the card
 // without deleting the tool itself.
-const HIDDEN_IDS = new Set(['range-card', 'truing-session']);
+const HIDDEN_IDS = new Set(['range-card']);
 
 export const GROUPS = {
   analysis: {

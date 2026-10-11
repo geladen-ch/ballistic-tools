@@ -231,7 +231,7 @@ Einstellung.
 
 ### Standorte & Ziele
 
-Optional: Speichern Sie die Ziele eines Schießstands einmal — Distanz und
+Optional: Speichern Sie die Ziele eines Schießplatzes einmal — Distanz und
 Ziellinienwinkel, und, falls Sie ein vom Schützenstandpunkt aus
 aufgenommenes Foto hinzufügen, wo sich jedes davon darauf befindet — und
 wählen Sie sie bei späteren Besuchen direkt im Reiter „Ziel" aus, statt

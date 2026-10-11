@@ -81,18 +81,23 @@ export function gunsSummary({ bare = false } = {}) {
       if (rifle) libraryCartridge = rifle.cartridges.find((c) => c.id === cartridgeId) || null;
     }
 
-    let bulletName = t('guns.customBulletLabel');
+    // The line names the active cartridge (e.g. "174gr GP11"), not its
+    // bullet. A custom/manual load has no cartridge record, so there the
+    // bullet's own name (or the generic label) still stands in for it.
+    let loadName = t('guns.customBulletLabel');
     const bulletId = libraryCartridge
       ? libraryCartridge.bulletId
       : cartridgeState && cartridgeState.bullet && cartridgeState.bullet.selectedId;
-    if (bulletId && bulletId !== BULLET_OTHER) {
+    if (libraryCartridge && libraryCartridge.name) {
+      loadName = libraryCartridge.name;
+    } else if (bulletId && bulletId !== BULLET_OTHER) {
       const userBullet = loadUserBullets().find((b) => b.id === bulletId);
       if (userBullet) {
-        bulletName = userBullet.name;
+        loadName = userBullet.name;
       } else {
         try {
           const bullet = await loadBullet(bulletId);
-          bulletName = bullet.name;
+          loadName = bullet.name;
         } catch {
           // built-in catalog unavailable — keep the generic label
         }
@@ -110,9 +115,9 @@ export function gunsSummary({ bare = false } = {}) {
       const velocityUnit = getUnit('velocity');
       const velocityChoice = unitChoice('muzzleVelocity', velocityUnit);
       const displayVelocity = engineToDisplay('muzzleVelocity', muzzleVelocity, velocityUnit);
-      bulletLine.textContent = `${bulletName} · ${displayVelocity.toFixed(velocityChoice.decimals)} ${velocityChoice.label}`;
+      bulletLine.textContent = `${loadName} · ${displayVelocity.toFixed(velocityChoice.decimals)} ${velocityChoice.label}`;
     } else {
-      bulletLine.textContent = bulletName;
+      bulletLine.textContent = loadName;
     }
   }
 

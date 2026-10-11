@@ -9,11 +9,13 @@ import {
   chronoObservation, rangeCheckObservation, applyAngleCheck, applyFlatRangeDeclaration,
   jointBlunderCheck, resolutionMatrix, sensitivityColumns, applyParameters, predictedComeUp,
   comeUpMrad, correlationOf, degenerateGroups, grade, sampleSD, sdDeviatesSignificantly, withConditions, nextShotDope,
-  planWholeSession, causesWeightFor, predictiveComeUpSd, DEFAULT_LADDER_MAX_JUMP_FACTOR
+  planWholeSession, predictiveComeUpSd, DEFAULT_LADDER_MAX_JUMP_FACTOR, MAX_STRING_SHOTS,
+  sigmaForGroup, perShotSigmaMrad, observationSigmaMrad, windErrorMrad, windSigmaMsFor, WIND_DIRECTION_SIGMA_DEG
 } from '../../engine/truing-session.js';
 import { erf } from '../../engine/target-shapes.js';
 import { standardAtmosphereAt } from '../../engine/atmosphere.js';
-import { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } from '../precision-preset-field.js';
+import { resolveMuzzleVelocity } from '../../engine/trajectory.js';
+import { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } from '../preset-keys.js';
 
 // A BC correction is only ever offered for saving with at least this many
 // chronograph velocities actually captured this session (on top of grade
@@ -41,14 +43,14 @@ export const ZERO_FINDING_MIN_P = 0.8;
 export const DIAL_TABLE_MIN_MRAD = 0.05;
 export const DIAL_TABLE_MIN_SD_MULTIPLE = 1;         // a real but sub-DEGENERACY_R overlap worth noting, short of fully degenerate
 export const WALK_OUT_SHOTS_PER_RUNG = 1;     // an intermediate ladder rung is a safety check, not a measurement: one round does it (three bought nothing in the ladder campaigns)
-export const DEFAULT_ROUND_BUDGET = 20;         // the knee of the drag-scale spread against rounds falls between 16 and 32 rounds (18 to 24 with a chronograph on a dense range); the Prepare panel shows where it is for this range and homework
+export const REPEAT_GROUP_SHOTS = 3;         // an extra group at a validated distance, shot only to unlock the retry after a miss: enough to move the fit
+export const DEFAULT_ROUND_BUDGET = 20;         // the fallback when the knee of the drag-scale spread against rounds cannot be worked out (it falls between 16 and 32 rounds, 18 to 24 with a chronograph on a dense range); the Prepare screen starts from the knee for this range and homework
 export const DEFAULT_NEAR_SHOTS = 4;          // the representative 4-and-8 split shown on the optimal-range readout
 export const DEFAULT_FAR_SHOTS = 8;
-export const DEFAULT_MV_AVERAGE_SHOTS = 10;
+export const DEFAULT_MV_AVERAGE_SHOTS = 10;  // the shots behind a checked velocity average: a short check, not a field to fill in
 export const ASSUMED_MV_SD_SAMPLE_SIZE = 10;  // the conservative default sample size for an SD of unknown provenance
+export const UNSTATED_MV_SD_WEIGHT = 5;       // an SD given without the number of shots behind it counts as this many when it is pooled with the session's readings
 
-// windMs is a nuisance parameter, never reported as a cause of its own.
-const NUISANCE = new Set(['windMs']);
 
 // ---- the far-target cross-check prompt ----
 // The far target carries nearly all of the drag-scale information in a
@@ -117,8 +119,9 @@ export function recommendedMvShots(mvSD) {
   return Math.min(40, Math.max(10, Math.ceil((1.96 * mvSD / MV_AVERAGE_TOLERANCE_MS) ** 2)));
 }
 
-// The homework items ticked as done: the stated uncertainty assumes each one really was.
-export const HOMEWORK_TICKS = ['sightHeightMeasured', 'zeroVerified', 'trackTested', 'mvAverageChecked'];
+// The homework items ticked as done: the stated uncertainty assumes each one really was. The click value comes first: it is the one
+// whose false tick most often leaves the real error outside the stated band.
+export const HOMEWORK_TICKS = ['trackTested', 'zeroVerified', 'sightHeightMeasured', 'mvAverageChecked'];
 export function homeworkTicked(homework) {
   return HOMEWORK_TICKS.filter((k) => homework && homework[k]);
 }
@@ -148,6 +151,21 @@ export function targetForRange(targets, rangeM) {
   return targets.find((tg) => tg.rangeM === rangeM) || null;
 }
 
+// Each planned distance tied to its target by key, when the session starts. A live re-check can correct a target's distance
+// while strings are still to be shot there; the planned distance then no longer matches the target's distance, and only the key
+// still finds it.
+export function withPlanKeys(plan, targets) {
+  if (!plan) return plan;
+  return { ...plan, keys: plan.ranges.map((r) => { const tg = targetForRange(targets, r); return tg ? tg.key : null; }) };
+}
+
+// The target a proposed distance stands for: a planned distance by its key (when the plan has keys), any other by its distance.
+export function targetForStep(targets, plan, rangeM) {
+  const i = plan && plan.keys ? plan.ranges.indexOf(rangeM) : -1;
+  const keyed = i >= 0 && plan.keys[i] != null ? targets.find((tg) => tg.key === plan.keys[i]) : null;
+  return keyed || targetForRange(targets, rangeM);
+}
+
 // A group persisted before targets were keyed carries only its range.
 export function groupTargetKey(group, targets) {
   if (group.targetKey != null) return group.targetKey;
@@ -166,21 +184,40 @@ export function mvSdSampleSizeFrom(homework) {
   return null;
 }
 
-// The live SD override: past 10 captured readings, and only when the
-// F-test says today's spread really differs, today's SD (and its real
-// count) governs the rest of the session. Derived from the persisted
-// readings on every call, so every re-fit sees the same answer.
-export function effectiveMvSd({ homework, velocities = [] }) {
+// The number of shots the recorded SD is stated to rest on: only a hand-typed SD with its shot count. A preset, the rig's value and a typed
+// SD without a count are given without one.
+export const statedMvSdShots = (homework) => (homework.muzzleVelocitySDPreset === CUSTOM_PRESET_KEY && homework.mvSdShots > 1 ? homework.mvSdShots : null);
+
+// The muzzle-velocity spread this session works with. The recorded SD (Arsenal, a preset or a typed value, resting on `mvSdSampleSize`
+// shots; an SD given without a shot count, a preset or a rig value included, counts as UNSTATED_MV_SD_WEIGHT shots) and the spread of today's readings are pooled by their degrees of freedom:
+// sigma^2 = ((N0 - 1) sigma0^2 + (n - 1) s^2) / (N0 + n - 2), and the pooled figure counts as N0 + n - 1 shots, so the readings move the figure
+// smoothly from the first two on, in proportion to how much they know, and nothing happens when the recorded SD is right. The readings are
+// measured against the velocity the cartridge has in each group's own air, with their common offset removed, so a change of weather or a
+// wrong average velocity does not inflate the spread; without per-group readings (an older session) the raw list is used. `override` is
+// kept for the notice and the Arsenal offer: past 10 readings, when an F-test says today's SD really differs from the recorded one.
+export function effectiveMvSd({ homework, velocities = [], state = null, groups = null }) {
   const recorded = { mvSD: homework.mvSD, mvSdSampleSize: mvSdSampleSizeFrom(homework), override: null };
-  const valid = velocities.filter((v) => v != null && Number.isFinite(v));
-  if (!homework.mvSD || valid.length <= 10) return recorded;
-  const sessionSD = sampleSD(valid);
-  const test = sdDeviatesSignificantly({
-    sessionSD, nToday: valid.length, assumedSD: homework.mvSD,
-    assumedSampleSize: recorded.mvSdSampleSize ?? ASSUMED_MV_SD_SAMPLE_SIZE
-  });
-  if (!test.significant) return recorded;
-  return { mvSD: sessionSD, mvSdSampleSize: valid.length, override: { sd: sessionSD, sampleSize: valid.length, recordedSd: homework.mvSD } };
+  if (!homework.mvSD) return recorded;
+  const values = [];
+  const perGroup = state && groups ? groups.filter((g) => g.chronoVelocities && g.chronoVelocities.length) : [];
+  if (perGroup.length) {
+    for (const g of perGroup) {
+      const expected = resolveMuzzleVelocity(withConditions(state, g.conditions));
+      for (const v of g.chronoVelocities) if (v != null && Number.isFinite(v)) values.push(v - expected);
+    }
+  } else {
+    for (const v of velocities) if (v != null && Number.isFinite(v)) values.push(v);
+  }
+  const n = values.length;
+  if (n < 2) return recorded;
+  const sessionSD = sampleSD(values);
+  const n0 = statedMvSdShots(homework) ?? UNSTATED_MV_SD_WEIGHT;
+  const mvSD = Math.sqrt(((n0 - 1) * homework.mvSD ** 2 + (n - 1) * sessionSD ** 2) / (n0 + n - 2));
+  const test = sdDeviatesSignificantly({ sessionSD, nToday: n, assumedSD: homework.mvSD, assumedSampleSize: n0 });
+  return {
+    mvSD, mvSdSampleSize: n0 + n - 1,
+    override: test.significant ? { sd: sessionSD, sampleSize: n, recordedSd: homework.mvSD, usedSd: mvSD } : null
+  };
 }
 
 // ---- parameters and priors ----
@@ -204,11 +241,10 @@ export function sessionPriors(homework, { chronoReadings = 0, minReadings = MIN_
   const priors = {
     zeroMrad: homework.zeroVerified ? 0.08 : 0.25,
     v0Ms: homework.mvAverageChecked && homework.mvSD && !trustSession
-      ? v0MsCheckedSigma({ mvSD: homework.mvSD, nToday: homework.mvAverageShots || DEFAULT_MV_AVERAGE_SHOTS, mvSdSampleSize: mvSdSampleSizeFrom(homework) })
+      ? v0MsCheckedSigma({ mvSD: homework.mvSD, nToday: DEFAULT_MV_AVERAGE_SHOTS, mvSdSampleSize: mvSdSampleSizeFrom(homework) })
       : 20,
     dragPct: dragPctMarginalSigma(),
-    trackPct: homework.trackTested ? 0.15 : 1,
-    windMs: homework.windConfidenceMs ?? 2
+    trackPct: homework.trackTested ? 0.15 : 1
   };
   return priors;
 }
@@ -230,19 +266,31 @@ export function planningPriors(homework, { nShots, chronographed = !!homework.ch
   };
 }
 
+// ---- the wind the plan is made for ----
+// Before the shooting the wind is not known, only how windy it is expected to be at the location. Each expected strength stands for a
+// typical speed and how well that is called (1-sigma of the speed's absolute value; the direction is unknown, so every direction alike).
+// The boundary between the two is the speed the shooter is asked about, in the unit they read wind in.
+export const WIND_STRENGTH_LIMIT_MS = 5;
+export const WIND_STRENGTHS = { moderate: { expectedMs: 3, speedSigmaMs: 1 }, strong: { expectedMs: 7, speedSigmaMs: 2 } };
+export const DEFAULT_WIND_STRENGTH = 'moderate';
+export const windStrengthOf = (homework) => (homework && WIND_STRENGTHS[homework.windStrength] ? homework.windStrength : DEFAULT_WIND_STRENGTH);
+export const planningWind = (homework) => ({ ...WIND_STRENGTHS[windStrengthOf(homework)], dirSigmaDeg: WIND_DIRECTION_SIGMA_DEG });
+// the rifle's and the wind's share of every planning call
+export const planningNoise = (homework) => ({ r50Mrad: homework.r50Mrad, mvSD: homework.mvSD, wind: planningWind(homework) });
+
 export function backdropMarginFrom(homework) {
   return (homework.backdropHeightM ?? DEFAULT_BACKDROP_MARGIN_M * 2) / 2;
 }
 
 // The session plan: the distances the session visits, rungs included, and the shots at each, for a TOTAL of `roundBudget` rounds
 // (planWholeSession in the engine). `overrides` are homework what-ifs for the advice list (a chronograph, a zero check): the
-// criterion weight follows the homework as it would then stand. `backdropMarginM` is the ladder's margin (Infinity: the plan
+// priors follow the homework as it would then stand. `backdropMarginM` is the ladder's margin (Infinity: the plan
 // without the safety constraint, to tell the user when the ladder cannot reach the distance the plan would like).
 export function wholePlan({ state, availableDistances, homework, roundBudget, params, overrides = {}, backdropMarginM }) {
   const hw = { ...homework, ...overrides };
   return planWholeSession({
-    state, availableDistances, roundBudget, priors: planningPriors(hw, { nShots: roundBudget }), r50Mrad: hw.r50Mrad, params,
-    criterionWeight: causesWeightFor(hw), backdropMarginM: backdropMarginM ?? backdropMarginFrom(hw)
+    state, availableDistances, roundBudget, priors: planningPriors(hw, { nShots: roundBudget }), r50Mrad: hw.r50Mrad, mvSD: hw.mvSD, wind: planningWind(hw), params,
+    backdropMarginM: backdropMarginM ?? backdropMarginFrom(hw)
   });
 }
 
@@ -253,7 +301,8 @@ export function wholePlan({ state, availableDistances, homework, roundBudget, pa
 // grade (the homework and the distances are) and there is no knee to report. These are minimum numbers: rounds are counted as
 // shot and seen, and a round the spotter cannot see does not count. Costs a few dozen planner runs, all memoised: the panel asks
 // for it after it has drawn.
-export const BUDGET_ADVICE_GRID = [6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 60];
+// Steps of two where the knee usually falls, coarser beyond.
+export const BUDGET_ADVICE_GRID = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 40, 48, 60];
 export const BUDGET_ADVICE_FLAT_BELOW = 0.1;
 export const BUDGET_ADVICE_STEPS = [10, 20];
 export function roundBudgetAdvice({ state, availableDistances, homework, params, backdropMarginM, currentBudget = null }) {
@@ -269,22 +318,105 @@ export function roundBudgetAdvice({ state, availableDistances, homework, params,
   };
   const points = BUDGET_ADVICE_GRID.map((b) => planAt(b) && describe(b)).filter(Boolean);
   if (points.length < 4) return null;
+  // The knee is looked for on the curve made non-increasing (each budget no worse than a smaller one): more rounds can always be
+  // spent like the smaller plan's and more, so a budget whose own plan happens to come out a little worse is a planner artifact,
+  // and a step like that must not drag the knee along.
+  let best = Infinity;
+  const smooth = points.map((pt) => { best = Math.min(best, pt.dragSd); return best; });
   const first = points[0], last = points[points.length - 1];
-  const improvement = (first.dragSd - last.dragSd) / first.dragSd;
+  const firstSd = smooth[0], lastSd = smooth[smooth.length - 1];
+  const improvement = (firstSd - lastSd) / firstSd;
   const yours = currentBudget != null ? describe(currentBudget) : null;
   if (improvement < BUDGET_ADVICE_FLAT_BELOW) return { flat: true, atMost: last, yours, points };
   let knee = null;
-  for (const pt of points) {
+  points.forEach((pt, i) => {
     const x = (pt.roundBudget - first.roundBudget) / (last.roundBudget - first.roundBudget);
-    const y = (pt.dragSd - last.dragSd) / (first.dragSd - last.dragSd);
+    const y = (smooth[i] - lastSd) / (firstSd - lastSd);
     const depth = (1 - x) - y;
     if (!knee || depth > knee.depth) knee = { ...pt, depth };
-  }
+  });
   const options = [knee.roundBudget, ...BUDGET_ADVICE_STEPS.map((n) => knee.roundBudget + n)].map((b, i) => {
     const d = i === 0 ? knee : describe(b);
     return d && { ...d, extra: i === 0 ? 0 : BUDGET_ADVICE_STEPS[i - 1], dragSdChange: (d.dragSd - knee.dragSd) / knee.dragSd };
   }).filter(Boolean);
-  return { flat: false, knee: options[0], options, yours, points };
+  return { flat: false, knee: options[0], options, yours, points, tiers: budgetTiers({ points, knee, describe }) };
+}
+
+// The three numbers to offer: the fewest rounds whose drag scale spread is within BUDGET_MINIMAL_WITHIN of the optimum's, the knee
+// (the optimum), the knee plus the smaller step (enhanced), and the knee plus the larger step (deluxe).
+export const BUDGET_MINIMAL_WITHIN = 0.1;
+function budgetTiers({ points, knee, describe }) {
+  const minimal = points.find((pt) => pt.dragSd <= knee.dragSd * (1 + BUDGET_MINIMAL_WITHIN));
+  const enhanced = describe(knee.roundBudget + BUDGET_ADVICE_STEPS[0]);
+  const deluxe = describe(knee.roundBudget + BUDGET_ADVICE_STEPS[BUDGET_ADVICE_STEPS.length - 1]);
+  const change = (d) => (d.dragSd - knee.dragSd) / knee.dragSd;
+  return {
+    minimal: { ...minimal, dragSdChange: change(minimal) },
+    optimal: { ...knee, dragSdChange: 0 },
+    enhanced: enhanced && { ...enhanced, dragSdChange: change(enhanced) },
+    deluxe: deluxe && { ...deluxe, dragSdChange: change(deluxe) }
+  };
+}
+
+// The rounds to start from when the shooter has not chosen a number: the optimum for this range and homework, or the fixed default
+// where there is none to report (no usable distance, or rounds do not limit the result).
+export const roundBudgetOrDefault = (advice) => (advice && !advice.flat ? advice.tiers.optimal.roundBudget : DEFAULT_ROUND_BUDGET);
+
+// ---- strings: a distance's rounds, shot a few at a time ----
+// A distance's planned rounds split into strings of at most MAX_STRING_SHOTS, as evenly as possible, the longer strings first:
+// 12 -> 3 3 3 3, 7 -> 3 2 2, 4 -> 2 2.
+export function splitIntoStrings(rounds) {
+  if (!(rounds > 0)) return [];
+  const count = Math.ceil(rounds / MAX_STRING_SHOTS);
+  const base = Math.floor(rounds / count);
+  return Array.from({ length: count }, (_, i) => base + (i < rounds % count ? 1 : 0));
+}
+
+// The rounds still to shoot at each planned distance: the plan's rounds there less the rounds recorded there (a round the spotter
+// did not see does not count, and neither does an extra group shot only to unlock a retry).
+export function roundsLeft(plan, session) {
+  const left = new Map();
+  (plan ? plan.ranges : []).forEach((r, i) => {
+    const shot = session.groups.filter((g) => g.rangeM === r && !g.extra).reduce((sum, g) => sum + (g.shots || 0), 0);
+    left.set(r, Math.max(0, (plan.shots[i] || 0) - shot));
+  });
+  return left;
+}
+
+// The rounds in the next string at a planned distance.
+export const nextStringShots = (left) => splitIntoStrings(left)[0] ?? 0;
+
+// Once every planned distance has been shot once, the next string goes to the distance with the most rounds left, the farther
+// one on a tie; several strings in a row at one distance are fine. Distances at or beyond `ceilingM` (a missed distance) are out.
+export function rotationNext(left, ceilingM = Infinity) {
+  let best = null;
+  for (const [r, n] of left) {
+    if (n <= 0 || r >= ceilingM) continue;
+    if (!best || n > best.left || (n === best.left && r > best.rangeM)) best = { rangeM: r, left: n };
+  }
+  return best ? best.rangeM : null;
+}
+
+// One round's sigma, and a string's, at `rangeM` in the given air: the rifle's r50, the muzzle-velocity spread through the
+// come-up's sensitivity to velocity there, and the spotter's reading at `certaintyKey`.
+export function shotNoise({ state, rangeM, knownLosDeg = 0, conditions = null, r50Mrad, mvSD, certaintyKey, windConfidenceKey }) {
+  const shot = withConditions(state, conditions);
+  return {
+    r50Mrad, mvSD, v0SensMrad: sensitivityColumns(shot, rangeM, knownLosDeg).v0Ms, sigmaObsMrad: observationSigmaMrad(certaintyKey),
+    // the come-up's error from this string's wind reading: the string is read in one wind, so it does not average down within it
+    windSdMrad: windErrorMrad({ state: shot, rangeM, knownLosDeg, speedSigmaMs: windSigmaMsFor(windConfidenceKey) }).verticalMrad
+  };
+}
+// the 1-sigma error of a wind reading at a confidence, as nextShotDope takes it
+export const windSigmaFor = (windConfidenceKey) => ({ speedMs: windSigmaMsFor(windConfidenceKey), dirDeg: WIND_DIRECTION_SIGMA_DEG });
+export const perShotSigma = (noise) => perShotSigmaMrad(noise);
+export const stringSigma = (noise, shots) => sigmaForGroup({ shots, ...noise });
+
+// A string read shot by shot: `comeUps` in the order fired, null for a round the spotter did not see. Returns how many rounds were seen and
+// their mean. The tool does not look for flyers among them: an obvious one is shot again, not recorded.
+export function readShots(comeUps) {
+  const seen = comeUps.filter((x) => Number.isFinite(x));
+  return { seen: seen.length, mean: seen.length ? seen.reduce((sum, x) => sum + x, 0) / seen.length : null };
 }
 
 // ---- observations ----
@@ -299,8 +431,11 @@ export function buildObservations({ state, session, targets, rangeDeclaredFlat, 
     const tg = targets.find((t) => t.key === key);
     const recorded = tg && tg.losAngleDeg ? tg.losAngleDeg : 0;
     return {
-      rangeM: g.rangeM, observedComeUp: g.observedComeUp, shots: g.shots, sigmaMrad: g.sigmaMrad,
-      resolved: g.resolved, targetIndex: key, knownLosDeg: recorded,
+      rangeM: g.rangeM, observedComeUp: g.observedComeUp, shots: g.shots,
+      // a string that kept its SD-free noise parts is weighed with the session's current velocity spread (so a spread refined by later
+      // readings also settles the strings shot before them); otherwise with the sigma it was recorded with
+      sigmaMrad: g.noise && mvSD ? stringSigma({ ...g.noise, mvSD }, g.shots) : g.sigmaMrad,
+      targetIndex: key, knownLosDeg: recorded,
       // the air and wind this group was shot in, when the group carries its own (see withConditions in the engine)
       ...(g.conditions ? { conditions: g.conditions } : {})
     };
@@ -359,9 +494,30 @@ export function workingRangeMax({ state, targets, session }) {
 // target as a likely blunder does not, by itself, fix the reported
 // numbers, so every value here comes from the blunder-aware fit, never
 // from a plain fit that ignores per-target blunders.
-export function analyseSession({ state, observations, priors, params, rechecked = false, rMax, clickMrad = 0.1, chronoN = 0, targets = [], plan = null, triedRanges = [], missedRanges = [], warm = null }) {
+// ---- whether the ticked homework held ----
+// A tick is taken at its word, mostly: the verified prior is the likelier explanation (HOMEWORK_TRUST), but the analysis also weighs
+// "it was not really done" (the unverified prior), so shots that contradict a tick widen the result instead of being forced into
+// the other causes. Only for the zero and the velocity average: the session's shots say too little about the click value to be worth
+// the cost (every axis doubles the analysis). The velocity average only while the session's own chronograph does not yet decide it.
+export const HOMEWORK_TRUST = 0.9;
+// A target is flagged, and its re-check asked for, once its distance or angle is this likely to be wrong: a re-range is cheap, and a
+// mis-ranged target is what the shots can least tell from a wrong drag scale (simulated: asking at 50 % almost never fired; at 20 %
+// it costs about one request in ten sessions and improves the dope and the drag estimate).
+export const RECHECK_PROMPT_DOUBT = 0.2;
+// The doubt above which the Conclude screen says the shots do not bear the tick out.
+export const HOMEWORK_DOUBT_SHOWN = 0.5;
+export function homeworkCheckAxes(homework, priors) {
+  const unverified = sessionPriors({ r50Mrad: homework.r50Mrad, mvSD: homework.mvSD });
+  const weights = [HOMEWORK_TRUST, 1 - HOMEWORK_TRUST];
+  const axes = [];
+  if (homework.zeroVerified && priors.zeroMrad < unverified.zeroMrad) axes.push({ kind: 'param', key: 'zeroMrad', sigmas: [priors.zeroMrad, unverified.zeroMrad], weights });
+  if (homework.mvAverageChecked && priors.v0Ms < unverified.v0Ms) axes.push({ kind: 'param', key: 'v0Ms', sigmas: [priors.v0Ms, unverified.v0Ms], weights });
+  return axes;
+}
+
+export function analyseSession({ state, observations, priors, params, rechecked = false, rMax, clickMrad = 0.1, chronoN = 0, targets = [], plan = null, triedRanges = [], missedRanges = [], warm = null, extraAxes = [] }) {
   const targetKeys = [...new Set(observations.filter((o) => o.rangeM != null && o.targetIndex != null).map((o) => o.targetIndex))];
-  const joint = jointBlunderCheck({ state, observations, priors, params, targetIndices: targetKeys, rechecked, dragAxis: true, warmIn: warm });
+  const joint = jointBlunderCheck({ state, observations, priors, params, targetIndices: targetKeys, rechecked, dragAxis: true, warmIn: warm, extraAxes });
   const { theta, cov, sd } = joint;
   const { Rtilde } = resolutionMatrix({ cov, priors, params });
   // "Now" is the latest group's air and wind, when groups carry their own.
@@ -370,7 +526,7 @@ export function analyseSession({ state, observations, priors, params, rechecked 
   const applied = applyParameters(nowState, theta);
   const J = sensitivityColumns(applied, rMax);
   const idx = (k) => params.indexOf(k);
-  const causes = params.filter((k) => !NUISANCE.has(k));
+  const causes = params;
   const groups = degenerateGroups(cov, params, DEGENERACY_R, causes);
   const inGroup = new Set(groups.flat());
   const findings = [];
@@ -463,7 +619,7 @@ export function analyseSession({ state, observations, priors, params, rechecked 
   // range error and inclination are exactly degenerate for one group.
   for (const key of targetKeys) {
     const p = joint.marginalSomethingWrong[key] ?? 0;
-    if (p <= 0.5) continue;
+    if (p <= RECHECK_PROMPT_DOUBT) continue;
     const o = observations.find((ob) => ob.targetIndex === key && ob.rangeM != null);
     const tg = targets.find((t) => t.key === key);
     const slopePossible = joint.losTargets.includes(key);
@@ -484,7 +640,7 @@ export function analyseSession({ state, observations, priors, params, rechecked 
   const plannedFarReached = planFar == null || (farthestShot >= planFar && !missedRanges.includes(planFar));
 
   return {
-    joint, warm: joint.warm, theta, cov, sd, params, Rtilde, grade: g, findings: ranked, notMaterial, notDetermined,
+    joint, warm: joint.warm, theta, cov, sd, params, Rtilde, grade: g, findings: ranked, notMaterial, notDetermined, homeworkDoubt: joint.extraDoubt,
     nothingMaterial: ranked.length === 0,
     plannedFarReached, planFar, farthestShot, triedRanges
   };
@@ -510,7 +666,7 @@ export function bcCorrectionOffer({ state, dragPct }) {
 
 
 // What to dial for the next shot, from a finished analysis: the engine's nextShotDope with the analysis's own fit
-// (parameters, covariance) and the air and wind of that shot. `crosswindSigmaMs` is how well the crosswind is known.
-export function nextShotFromAnalysis({ state, analysis, rangeM, conditions = null, knownLosDeg = 0, crosswindSigmaMs = 0 }) {
-  return nextShotDope({ state, conditions, theta: analysis.theta, cov: analysis.cov, params: analysis.params, rangeM, knownLosDeg, crosswindSigmaMs });
+// (parameters, covariance) and the air and wind of that shot. `windSigma` is how well the wind is known ({ speedMs, dirDeg }, see nextShotDope).
+export function nextShotFromAnalysis({ state, analysis, rangeM, conditions = null, knownLosDeg = 0, windSigma = null }) {
+  return nextShotDope({ state, conditions, theta: analysis.theta, cov: analysis.cov, params: analysis.params, rangeM, knownLosDeg, windSigma });
 }

@@ -36,6 +36,7 @@ import { downloadButton } from '../ui/download-button.js';
 import { exportChartSvg } from '../chart-svg-export.js';
 import { downloadFile } from '../download.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
+import { isoDateTime } from '../ui/iso-date.js';
 
 const KG_TO_GRAIN = 15432.358352941432;
 const ALL_VALUE = '__all__';
@@ -376,13 +377,13 @@ export function mount(container) {
   // Built-in-library records have no modifiedAt at all; a user record
   // saved before this field existed won't either, until its next save —
   // both cases just omit the line rather than showing a bogus date.
-  // Deliberately UTC and hand-formatted (not toLocaleDateString) so the
-  // displayed value doesn't depend on the host's locale/timezone.
+  // Shown as YYYY-MM-DD HH:MM in the viewer's own time zone, hand-formatted
+  // (not toLocaleString) so the layout doesn't vary with the UI locale.
   function lastModifiedLabel(entry) {
     if (!entry.modifiedAt) return null;
-    const date = new Date(entry.modifiedAt);
-    if (Number.isNaN(date.getTime())) return null;
-    return t('arsenal.lastModified', { date: date.toISOString().slice(0, 16).replace('T', ' ') });
+    const date = isoDateTime(entry.modifiedAt);
+    if (!date) return null;
+    return t('arsenal.lastModified', { date });
   }
 
   // === Comparison: up to two rifle+cartridge configs, side by side ===

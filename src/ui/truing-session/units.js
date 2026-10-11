@@ -2,7 +2,7 @@
 // a field is in the unit the user picked in Settings (the same FIELD_UNITS / getUnit() convention every tool in the app
 // follows), and everything stored or handed to the engine stays in metres, m/s and mrad. Dope for the next shot follows Range
 // Solver's own output setting (dope-format.js); an elevation the shooter types in is in scope clicks.
-import { UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
+import { UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, velocityPerTempToDisplay, velocityPerTempSymbol } from '../../units.js';
 import { getUnit } from '../../prefs.js';
 
 function choiceFor(fieldId, groupName) {
@@ -15,9 +15,14 @@ function formatted(fieldId, groupName, engineValue, decimals) {
   return `${engineToDisplay(fieldId, engineValue, c.unit).toFixed(decimals ?? c.decimals)} ${c.label}`;
 }
 
-// ---- distances (m, yd, ft): whole numbers, as every range in this tool always was ----
+// ---- distances (m, yd): whole numbers, as every range in this tool always was ----
 export const dist = (m, decimals = 0) => formatted('range', 'distance', m, decimals);
 export const distLabel = () => choiceFor('range', 'distance').label;
+// A round distance quoted in advice ("a zero of 200 m or more"): the same number in metres and in yards, so the text reads as it
+// would be written in either.
+export const nominalDist = (m) => `${m} ${distLabel()}`;
+// The metres a nominal distance stands for: 100 is 100 m, or 100 yd (91.44 m).
+export const nominalDistM = (n) => fromDisplayDistance(n);
 // "100, 400, 870 m": the numbers, then the unit once
 export const distList = (list, separator = ', ') => `${list.map((m) => engineToDisplay('range', m, choiceFor('range', 'distance').unit).toFixed(0)).join(separator)} ${distLabel()}`;
 export const toDisplayDistance = (m, decimals = 0) => Number(engineToDisplay('range', m, choiceFor('range', 'distance').unit).toFixed(decimals));
@@ -32,6 +37,16 @@ export function distanceFromField(text, originalM) {
 
 // ---- velocities and wind speeds ----
 export const vel = (ms, decimals = 1) => formatted('muzzleVelocity', 'velocity', ms, decimals);
+// A cartridge's muzzle velocity as the Arsenal records it, in the shooter's units, with its temperature drift when it has one:
+// { velocity: "792.5 m/s", drift: { temp: "15 °C", rate: "+0.8 m/s/°C" } | null }
+export function arsenalMuzzleVelocity(cartridge) {
+  const hasDrift = cartridge.referenceTempC != null && cartridge.velocityTempSensitivity != null;
+  const rate = hasDrift ? velocityPerTempToDisplay(cartridge.velocityTempSensitivity, getUnit('velocity'), getUnit('temperature')) : null;
+  return {
+    velocity: vel(cartridge.muzzleVelocity),
+    drift: hasDrift ? { temp: temperature(cartridge.referenceTempC), rate: `${rate > 0 ? '+' : ''}${Number(rate.toFixed(2))} ${velocityPerTempSymbol(getUnit('velocity'), getUnit('temperature'))}` } : null
+  };
+}
 export const velLabel = () => choiceFor('muzzleVelocity', 'velocity').label;
 export const fromDisplayVelocity = (x) => displayToEngine('muzzleVelocity', x, choiceFor('muzzleVelocity', 'velocity').unit);
 export const toDisplayVelocity = (ms) => engineToDisplay('muzzleVelocity', ms, choiceFor('muzzleVelocity', 'velocity').unit);
@@ -39,6 +54,14 @@ export const toDisplayVelocityText = (ms, decimals = 1) => toDisplayVelocity(ms)
 export const windLabel = () => choiceFor('windSpeed', 'windSpeed').label;
 export const toDisplayWind = (ms, decimals = 1) => engineToDisplay('windSpeed', ms, choiceFor('windSpeed', 'windSpeed').unit).toFixed(decimals);
 export const windSpeed = (ms, decimals = 1) => formatted('windSpeed', 'windSpeed', ms, decimals);
+// The boundary between a low-to-moderate and a strong wind (5 m/s), as a whole number in the shooter's own wind unit, rounded the way
+// people say it: 5 m/s, 16 ft/s, 11 mph, 18 km/h.
+const WIND_STRENGTH_LIMIT_BY_UNIT = { 'm/s': 5, 'ft/s': 16, mph: 11, 'km/h': 18 };
+export function windStrengthLimit(limitMs = 5) {
+  const c = choiceFor('windSpeed', 'windSpeed');
+  const shown = limitMs === 5 && WIND_STRENGTH_LIMIT_BY_UNIT[c.unit] != null ? WIND_STRENGTH_LIMIT_BY_UNIT[c.unit] : Math.round(engineToDisplay('windSpeed', limitMs, c.unit));
+  return `${shown} ${c.label}`;
+}
 // no trailing zeros: "2 m/s", "0.5 m/s", "4.5 mph"
 export function windSpeedShort(ms) {
   const c = choiceFor('windSpeed', 'windSpeed');
@@ -70,5 +93,5 @@ export function missExample(mrad = 0.3, atDisplay = 1000) {
 // The ruler-test rule of thumb (a shift per distance for one unit of angle), in the shooter's angle and distance units
 export function angleRuleKey() {
   if (getUnit('angleDispersion') !== 'arcmin') return 'truingSession.homework.ruleMrad';
-  return ['yd', 'ft'].includes(getUnit('distance')) ? 'truingSession.homework.ruleMoaImperial' : 'truingSession.homework.ruleMoaMetric';
+  return getUnit('distance') === 'yd' ? 'truingSession.homework.ruleMoaImperial' : 'truingSession.homework.ruleMoaMetric';
 }

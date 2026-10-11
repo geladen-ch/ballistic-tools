@@ -995,7 +995,7 @@ test('with folder access "Clean Up Storage Now" is offered, with its hint', () =
 // ---- dates are shown as YYYY-MM-DD, not localized ----
 
 test('the Devices list shows a device\'s last backup as an ISO date, with no time and no locale format', () => {
-  seedPeers({ kitchen: { name: 'Kitchen PC', modifiedAt: '2026-01-01T00:00:00.000Z', lastExportedAt: '2026-09-01T12:00:00.000Z' } });
+  seedPeers({ kitchen: { name: 'Kitchen PC', modifiedAt: '2026-01-01T00:00:00.000Z', lastExportedAt: new Date(2026, 8, 1, 12).toISOString() } });
   setBackupSyncEnabled(true);
   const container = mount();
 
@@ -1006,7 +1006,7 @@ test('the Devices list shows a device\'s last backup as an ISO date, with no tim
 });
 
 test('the last-synced line shows an ISO date', () => {
-  localStorage.setItem('ballistics_last_synced_at_v1', '2026-09-15T12:00:00.000Z');
+  localStorage.setItem('ballistics_last_synced_at_v1', new Date(2026, 8, 15, 12).toISOString());
   setBackupSyncEnabled(true);
   const container = mount();
   const line = findByTag(container, 'P').map((p) => p.textContent).find((text) => text.includes('2026-09-15'));
@@ -1020,7 +1020,7 @@ test('both sides of a conflict are dated in ISO form', () => {
   saveUserBullet({ id, name: 'Mine', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
   addPendingReview({
     recordType: 'bullet', recordId: id, reason: 'same-timestamp-diverged-content', peerDeviceId: 'peer-1',
-    remoteVersion: { id, name: 'Theirs', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedAt: '2026-06-01T12:00:00.000Z' }
+    remoteVersion: { id, name: 'Theirs', manufacturer: 'M', caliberM: 0.007, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' }, modifiedAt: new Date(2026, 5, 1, 12).toISOString() }
   });
   const container = mount();
   fireEvent(byKey(container, 'BUTTON', 'settings.backupSync.reviewButton'), 'click');

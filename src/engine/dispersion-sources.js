@@ -84,6 +84,17 @@ export function conventionValueToR50Mrad(valueMrad, convention) {
   return sdToR50(CONVENTION_TO_SD[convention](valueMrad));
 }
 
+// The one per-shot R50 (mrad) a rifle-precision input resolves to, for a consumer that wants a single isotropic
+// figure (the Truing Session's group noise) rather than Hit Probability's per-axis one: the shape
+// of Hit Probability's `ownErrors` (precisionMode, detailed, simplified). Detailed adds bench rifle and shooter
+// skill in quadrature on the VERTICAL axis -- the shooter's position scales their skill by positionV -- since come-up is
+// what such a consumer reads off the target; simplified is the combined value as entered, in its own convention.
+export function precisionToR50Mrad({ precisionMode, detailed, simplified }) {
+  if (precisionMode === 'simplified') return conventionValueToR50Mrad(simplified.value, simplified.convention);
+  const { benchR50, shooterR50, positionV } = detailed;
+  return sdToR50(Math.hypot(r50ToSD(benchR50), r50ToSD(shooterR50) * positionV));
+}
+
 // A dispersion already expressed as an angle (mrad) — bench rifle
 // precision, shooter skill, the simplified combined-precision field —
 // converted to linear cm at the target range via the standard small-angle

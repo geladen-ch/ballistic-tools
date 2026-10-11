@@ -127,7 +127,7 @@ function describeCleanupReport(report, prefixLines) {
 }
 
 function dateStamp() {
-  return new Date().toISOString().slice(0, 10);
+  return isoDate(new Date());
 }
 
 function libraryFor(recordType) {

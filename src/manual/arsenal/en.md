@@ -57,7 +57,7 @@ Rifle         a specific rifle: sight height, zero range, twist, scope clicks
 The unit groups in play:
 
 - **Velocity** (`m/s`, `ft/s`, `mph`, `km/h`) — muzzle velocity and its standard deviation.
-- **Distance** (`m`, `yd`, `ft`) — a rifle's zero range, and the Comparison chart's maximum range.
+- **Distance** (`m`, `yd`) — a rifle's zero range, and the Comparison chart's maximum range.
 - **Small length** (`mm`, `cm`, `in`) — sight height, caliber, and bullet length. Caliber and length are shown to a finer bullet-scale precision (2 decimals in mm, 3 in cm and inches), the same precision the Rifle Precision tool uses for the same reason.
 - **Rifling twist** (`mm`, `in`) — its own unit group, deliberately **independent** of small length. A shooter who thinks in millimetres for sight height very often still quotes twist rate the traditional way, as inches per turn, and switching your general small-length preference will not silently convert a twist rate you typed as "1:8 in" into a number in millimetres you no longer recognise.
 - **Temperature** (`°C`, `°F`) — a cartridge's reference temperature for velocity-vs-temperature sensitivity.

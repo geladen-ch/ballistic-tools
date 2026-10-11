@@ -67,7 +67,7 @@ Das bedeutet auch, dass Ihre Zielpunktmarkierungen ehrlich sein müssen. Wenn Si
 
 Zwei der Einheitengruppen der Suite sind im Spiel:
 
-- **Distanz** (`m`, `yd`, `ft`) — die Distanz des Projekts.
+- **Distanz** (`m`, `yd`) — die Distanz des Projekts.
 - **Kleine Länge** (`mm`, `cm`, `in`) — alles, was auf dem Papier gemessen wird: das Kalibrierlineal, das Sie eingeben, das Kaliber, die Streuung und jedes Ergebnis im Bericht, wenn die Ergebniseinheiten auf absolut statt auf winkelbezogen stehen. Da dies Messungen im Geschossmaßstab sind, werden sie feiner angezeigt als der allgemeine Standard der Suite: **2 Nachkommastellen in mm, 3 in cm und Zoll**.
 
 Intern arbeitet die Rechenmaschine ausschließlich in Millimetern und Metern, und die Umrechnung geschieht nur an der Anzeigegrenze. Das hat eine praktische Folge, die man kennen sollte: **eine Änderung Ihrer Einheiteneinstellung verändert niemals gespeicherte Daten oder irgendein berechnetes Ergebnis.** Wechseln Sie von mm auf Zoll, und jedes bestehende Projekt wird korrekt neu angezeigt — die Kalibrierung, die Sie letztes Jahr als 100 mm eingegeben haben, liest sich nun als 3,937 in, beschreibt dasselbe Lineal und liefert genau dieselben Streuungsstatistiken.
@@ -103,7 +103,7 @@ Erwarten Sie nicht, dass der Bericht vor etwa zwanzig Schuss irgendetwas Vertrau
 **Projekt hinzufügen** öffnet ein kurzes Formular:
 
 - **Projektname** — erforderlich. Wenn Sie einen Namen eingeben, den es in Ihrer Bibliothek schon gibt, erscheint eine Warnung, dass das Speichern den bestehenden Eintrag überschreibt. Es ist eine Warnung, keine Sperre.
-- **Distanz** — die Entfernung von der Mündung zur Zielscheibe. Eingegeben und angezeigt in der Distanzeinheit, die Sie in den **Einstellungen** konfiguriert haben (m, yd oder ft); intern in jedem Fall in Metern gespeichert, sodass eine spätere Änderung Ihrer Einstellung bestehende Projekte korrekt neu anzeigt, statt sie zu beschädigen.
+- **Distanz** — die Entfernung von der Mündung zur Zielscheibe. Eingegeben und angezeigt in der Distanzeinheit, die Sie in den **Einstellungen** konfiguriert haben (m oder yd); intern in jedem Fall in Metern gespeichert, sodass eine spätere Änderung Ihrer Einstellung bestehende Projekte korrekt neu anzeigt, statt sie zu beschädigen.
 
   Dieser Wert steuert jede Winkelumrechnung im Bericht, achten Sie also darauf, dass die Zahl zu der daneben angezeigten Einheit passt. Steht Ihre Einstellung auf Meter und Sie tippen `100` für eine Scheibe, die Sie in Wirklichkeit auf 100 *Yards* geschossen haben, fällt jede mrad- und MOA-Angabe im Bericht etwa 9 % zu klein aus — und nirgends wird Sie etwas warnen, denn 100 m ist eine vollkommen plausible Absicht.
 - **Kaliber** — entweder aus der Standard-Bezeichnungsliste gewählt (derselben, die das Arsenal verwendet) oder direkt eingegeben, in Ihrer eingestellten Einheit für kleine Längen. Es dient dazu, Treffer im wahren Laufdurchmesser auf dem Berichtsdiagramm zu zeichnen, und sonst nirgends — es beeinflusst keine Statistik.

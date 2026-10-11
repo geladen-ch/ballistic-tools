@@ -6,7 +6,7 @@ import { freshId } from './helpers/fresh-import.js';
 installFakeDom();
 
 const { getUnit, setUnit, getAllUnits, resetUnits, onUnitsChange } = await import('../src/prefs.js');
-const { getCookie, removeCookie } = await import('../src/cookies.js');
+const { getCookie, setCookie, removeCookie } = await import('../src/cookies.js');
 const { UNIT_GROUPS } = await import('../src/units.js');
 
 test('defaults match each unit group\'s defaultUnit', () => {
@@ -73,6 +73,16 @@ test('a cookie value survives a fresh module load (session-to-session persistenc
   assert.equal(fresh.getUnit('altitude'), 'ft');
 
   resetUnits();
+});
+
+test('a saved feet distance preference (no longer offered) loads as yards, leaving other groups alone', async () => {
+  setCookie('ballistics_unit_prefs_v1', JSON.stringify({ distance: 'ft', altitude: 'ft' }));
+
+  const fresh = await import(`../src/prefs.js?reload=${freshId()}`);
+  assert.equal(fresh.getUnit('distance'), 'yd');
+  assert.equal(fresh.getUnit('altitude'), 'ft', 'altitude still offers feet');
+
+  fresh.resetUnits();
 });
 
 test('an existing legacy localStorage value is migrated into the cookie on load, then removed', async () => {

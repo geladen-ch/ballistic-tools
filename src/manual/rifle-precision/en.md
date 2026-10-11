@@ -67,7 +67,7 @@ This also means your point-of-aim marks must be honest. If you mark the POA at t
 
 Two of the suite's unit groups are in play:
 
-- **Distance** (`m`, `yd`, `ft`) — the project's range.
+- **Distance** (`m`, `yd`) — the project's range.
 - **Small length** (`mm`, `cm`, `in`) — everything measured on the paper: the calibration ruler you type in, caliber, extreme spread, and every result in the report when the results selector is set to absolute rather than angular. Because these are bullet-scale measurements, they are shown to finer precision than the suite's general small-length default: **2 decimals in mm, 3 in cm and inches**.
 
 Internally the engine works exclusively in millimetres and metres, and conversion happens only at the display boundary. This has a practical consequence worth knowing: **changing your unit preference never alters stored data or any computed result.** Switch from mm to inches and every existing project re-displays correctly — the calibration you typed as 100 mm last year now reads 3.937 in, describes the same ruler, and yields exactly the same dispersion statistics.
@@ -103,7 +103,7 @@ Do not expect the report to say anything trustworthy until you are past about tw
 **Add project** opens a short form:
 
 - **Project name** — required. If you type a name that already exists in your library, a warning appears telling you that saving will overwrite the existing entry. It is a warning, not a block.
-- **Range** — the distance from muzzle to target. Entered and displayed in whatever distance unit you have configured in **Settings** (m, yd or ft); stored internally in metres regardless, so changing your preference later re-displays existing projects correctly rather than corrupting them.
+- **Range** — the distance from muzzle to target. Entered and displayed in whatever distance unit you have configured in **Settings** (m or yd); stored internally in metres regardless, so changing your preference later re-displays existing projects correctly rather than corrupting them.
 
   This value drives every angular conversion in the report, so make sure the number matches the unit shown beside it. If your preference is set to metres and you type `100` for a target you actually shot at 100 *yards*, every mrad and MOA figure in the report comes out about 9 % small — and nothing anywhere will warn you, because 100 m is a perfectly plausible thing to have meant.
 - **Caliber** — chosen either from the standard caliber-designation dropdown (the same one the Arsenal uses) or typed in directly, in your configured small-length unit. This is used to draw impacts at true bore diameter on the report diagram, and nowhere else — it does not affect any statistic.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const {
   isInRangeSolverMode, setRangeSolverMode, onRangeSolverModeChange,
-  getRangeSolverTab, setRangeSolverTab, onRangeSolverTabChange,
+  getRangeSolverTab, setRangeSolverTab, onRangeSolverTabChange, setNextRangeSolverTab,
   resetRangeSolverNavForTests
 } = await import('../src/range-solver-nav.js');
 
@@ -85,4 +85,14 @@ test('resetRangeSolverNavForTests() clears both the mode and the active tab', ()
   resetRangeSolverNavForTests();
   assert.equal(isInRangeSolverMode(), false);
   assert.equal(getRangeSolverTab(), 'target');
+});
+
+test('setNextRangeSolverTab picks the tab for the next entry only', () => {
+  setNextRangeSolverTab('rangeCard');
+  setRangeSolverMode(true);
+  assert.equal(getRangeSolverTab(), 'rangeCard');
+
+  setRangeSolverMode(false);
+  setRangeSolverMode(true);
+  assert.equal(getRangeSolverTab(), 'target', 'one-shot: the entry after that resets to Target again');
 });

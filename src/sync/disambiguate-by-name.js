@@ -12,15 +12,16 @@
 import { getDeviceLabel } from './device-registry.js';
 import { logSyncEvent } from './sync-log.js';
 import { t } from '../i18n.js';
+import { isoDate } from '../ui/iso-date.js';
 
 function normalizedName(name) {
   return typeof name === 'string' ? name.trim().toLowerCase() : '';
 }
 
 function shortDate(isoString) {
-  const ms = Date.parse(isoString);
-  if (!Number.isFinite(ms)) return null;
-  return new Date(ms).toISOString().slice(0, 10); // YYYY-MM-DD
+  // Strings only: isoDate(null) would read as the epoch rather than "absent".
+  if (typeof isoString !== 'string') return null;
+  return isoDate(isoString) || null; // YYYY-MM-DD, viewer's local date
 }
 
 // Resolves one record's disambiguation suffix once its name is known to

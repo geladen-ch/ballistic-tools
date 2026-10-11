@@ -21,6 +21,7 @@ const { resetShotStateForTests, loadRifleState, saveCartridgeState, saveRifleSta
 const { resetComparisonForTests, getComparisonSelection } = await import('../src/comparison-state.js');
 const { requestGunsDone, resetGunsNavForTests } = await import('../src/guns-nav.js');
 const { setUnit, resetUnits } = await import('../src/prefs.js');
+const { isoDateTime } = await import('../src/ui/iso-date.js');
 
 test.beforeEach(() => {
   localStorage.clear();
@@ -420,7 +421,7 @@ test('saving the bullet form without choosing a caliber is blocked, with a speci
 test('the bullet list shows each bullet\'s last-modified timestamp', () => {
   saveUserBullet({ id: generateUserId('user-bullet'), name: 'Dated Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
   const stored = loadUserBullets()[0];
-  const expectedDate = new Date(stored.modifiedAt).toISOString().slice(0, 16).replace('T', ' ');
+  const expectedDate = isoDateTime(stored.modifiedAt);
 
   const container = makeElement('main');
   arsenalView.mount(container);
@@ -718,7 +719,7 @@ test('the rifle list shows each rifle\'s last-modified timestamp', () => {
     cartridges: []
   });
   const stored = loadUserRifles()[0];
-  const expectedDate = new Date(stored.modifiedAt).toISOString().slice(0, 16).replace('T', ' ');
+  const expectedDate = isoDateTime(stored.modifiedAt);
 
   const container = makeElement('main');
   arsenalView.mount(container);

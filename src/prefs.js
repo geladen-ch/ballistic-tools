@@ -18,6 +18,14 @@ function defaults() {
   return d;
 }
 
+// A saved value that is no longer one of its group's choices: feet used to be
+// a distance choice and is now yards (the nearest imperial unit), so an
+// imperial shooter stays imperial instead of dropping to the metric default.
+function migrate(prefs) {
+  if (prefs.distance === 'ft') return { ...prefs, distance: 'yd' };
+  return prefs;
+}
+
 function save(prefs) {
   try {
     setCookie(COOKIE_NAME, JSON.stringify(prefs));
@@ -29,14 +37,14 @@ function save(prefs) {
 function load() {
   try {
     const raw = getCookie(COOKIE_NAME);
-    if (raw) return { ...defaults(), ...JSON.parse(raw) };
+    if (raw) return migrate({ ...defaults(), ...JSON.parse(raw) });
   } catch {
     // malformed cookie value — fall through to the legacy source/defaults
   }
   try {
     const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
     if (legacy) {
-      const migrated = { ...defaults(), ...JSON.parse(legacy) };
+      const migrated = migrate({ ...defaults(), ...JSON.parse(legacy) });
       save(migrated); // carry the existing choice forward into the cookie
       localStorage.removeItem(LEGACY_STORAGE_KEY);
       return migrated;

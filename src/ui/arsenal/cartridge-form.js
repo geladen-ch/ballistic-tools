@@ -116,7 +116,25 @@ export function cartridgeForm({
   const bcGainWarning = el('p', { class: 'hint warning', i18n: 'arsenal.bcGainFactorWarning' });
   bcGainWarning.style.display = 'none';
 
+  // Shown right under the bullet picker: which drag data the selected
+  // bullet carries (standard-model BC, or a custom Cd-Mach curve).
+  const bulletProfileInfo = el('p', { class: 'hint' });
+
+  function refreshBulletProfileInfo() {
+    const bullet = findOfferedBullet(bulletSelect.value);
+    if (!bullet || !bullet.profile) {
+      bulletProfileInfo.textContent = '';
+    } else if (bullet.profile.type === 'cdTable') {
+      bulletProfileInfo.textContent = t('arsenal.cartridgeBulletProfileCdTable');
+    } else {
+      bulletProfileInfo.textContent = t('arsenal.cartridgeBulletProfileBc', {
+        model: bullet.profile.model, bc: bullet.profile.bc.toFixed(3)
+      });
+    }
+  }
+
   function refreshBcGainReadout() {
+    refreshBulletProfileInfo();
     const factor = bcGainFactorField.getEngineValue();
     const bullet = findOfferedBullet(bulletSelect.value);
     if (factor == null || !bullet || !bullet.profile) {
@@ -541,6 +559,7 @@ export function cartridgeForm({
     caliberLockedHint,
     el('p', { class: 'hint prominent', i18n: 'arsenal.cartridgeBulletHint' }),
     el('div', { class: 'field' }, [el('label', { i18n: 'arsenal.cartridgeBullet' }), bulletSelect, bulletValidity.hintNode]),
+    bulletProfileInfo,
     bulletFormContainer,
     bulletCopyNotice,
     bulletOverwriteWarning,

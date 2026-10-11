@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   probableErrorToSD, r50ToSD, r95ToSD, r99ToSD, es5ToSD, es10ToSD, sdToR50,
-  CONVENTION_TO_SD, conventionValueToR50Mrad,
+  CONVENTION_TO_SD, conventionValueToR50Mrad, precisionToR50Mrad,
   angularSDToLinear, trajectoryPerturbationSD, rangeEstimationSD,
   movingTargetLeadSD, combineSD
 } from '../src/engine/dispersion-sources.js';
@@ -108,4 +108,16 @@ test('combineSD adds variances (sqrt of sum of squares), keeping the source list
   assert.ok(Math.abs(sdX - 5) < 1e-9, '3-4-5 triangle: sqrt(3^2+4^2) = 5');
   assert.ok(Math.abs(sdY - 5) < 1e-9);
   assert.equal(combineSD(contributions).contributions, contributions);
+});
+
+test('precisionToR50Mrad adds bench rifle and position-scaled shooter skill in quadrature on the vertical axis', () => {
+  const detailed = { benchR50: 0.3, shooterR50: 0.2, positionH: 9, positionV: 2 };
+  assert.ok(Math.abs(precisionToR50Mrad({ precisionMode: 'detailed', detailed }) - Math.hypot(0.3, 0.4)) < 1e-12);
+  assert.ok(Math.abs(precisionToR50Mrad({ precisionMode: 'detailed', detailed: { ...detailed, shooterR50: 0 } }) - 0.3) < 1e-12, 'no shooter term leaves the rifle alone');
+});
+
+test('precisionToR50Mrad passes a simplified value through its own convention', () => {
+  const simplified = { value: 0.5, convention: 'r95' };
+  assert.equal(precisionToR50Mrad({ precisionMode: 'simplified', simplified }), conventionValueToR50Mrad(0.5, 'r95'));
+  assert.ok(Math.abs(precisionToR50Mrad({ precisionMode: 'simplified', simplified: { value: 0.3, convention: 'r50' } }) - 0.3) < 1e-12);
 });

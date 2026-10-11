@@ -49,19 +49,17 @@ export function recheckPrompt({ target, rangeDeclaredFlat, angleMeasured, onSubm
   return { node };
 }
 
-// The entry gate's two-way choice, reused wherever a registered target's
-// distance or angle has been corrected: write it to the location card, or
-// keep it for this truing session only. `changes`: [{ name, field, from, to }].
-export function locationChoice({ changes, onUpdateCard, onSessionOnly }) {
+// What a corrected registered target's distance or angle did: it holds for this truing session only, and the location is left as it
+// is. `changes`: [{ name, field, from, to }].
+export function sessionOnlyNotice({ changes, onDismiss }) {
   const node = el('div', { class: 'truing-session-choice' });
   node.appendChild(el('p', { i18n: 'truingSession.choice.changedIntro' }));
   node.appendChild(el('ul', {}, changes.map((c) => el('li', {
     text: t(c.field === 'angle' ? 'truingSession.choice.changedAngle' : 'truingSession.choice.changedRange', { name: c.name, from: c.field === 'angle' ? c.from : dist(c.from), to: c.field === 'angle' ? c.to : dist(c.to) })
   }))));
-  const update = el('button', { i18n: 'truingSession.choice.updateCard' });
-  update.addEventListener('click', onUpdateCard);
-  const sessionOnly = el('button', { class: 'secondary', i18n: 'truingSession.choice.sessionOnly' });
-  sessionOnly.addEventListener('click', onSessionOnly);
-  node.appendChild(el('div', { class: 'field-row' }, [update, sessionOnly]));
+  node.appendChild(el('p', { class: 'hint prominent', i18n: 'truingSession.choice.sessionOnlyNote' }));
+  const dismiss = el('button', { class: 'secondary', i18n: 'truingSession.choice.dismiss' });
+  dismiss.addEventListener('click', onDismiss);
+  node.appendChild(dismiss);
   return { node };
 }

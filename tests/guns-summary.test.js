@@ -77,7 +77,7 @@ test('a built-in rifle\'s own matching cartridge is read from its catalog record
   assert.equal(rifleLine.textContent, 'K31');
 
   const [bulletLine] = findByClass(guns.node, 'bullet-line');
-  assert.ok(bulletLine.textContent.includes('174gr GP11'), `expected the K31's own GP11 load, got "${bulletLine.textContent}"`);
+  assert.ok(bulletLine.textContent.includes('174gr GP11'), `expected the K31's own GP11 cartridge name, got "${bulletLine.textContent}"`);
   assert.ok(bulletLine.textContent.includes('780'), `expected the K31's own 780 m/s, got "${bulletLine.textContent}"`);
 });
 
@@ -150,4 +150,26 @@ test('a manually-entered ("Other") bullet with no muzzle velocity yet shows only
   await settle();
   const [bulletLine] = findByClass(guns.node, 'bullet-line');
   assert.equal(bulletLine.textContent, t('guns.customBulletLabel'));
+});
+
+test('an Arsenal rifle\'s active cartridge shows its own name and velocity, not its bullet\'s name', async () => {
+  saveUserBullet({
+    id: 'my-bullet', name: 'My Bullet', manufacturer: 'Handload',
+    caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.45, model: 'G1' }
+  });
+  saveUserRifle({
+    id: 'my-rifle', name: 'My Rifle',
+    defaultSightHeightM: 0.05, defaultZeroRangeM: 100,
+    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    cartridges: [{ id: 'c1', name: 'Match Load', muzzleVelocity: 820, bulletId: 'my-bullet' }]
+  });
+  saveRifleState({ library: { rifleId: 'my-rifle', cartridgeId: 'c1' } });
+
+  const guns = gunsSummary();
+  await settle();
+
+  const [bulletLine] = findByClass(guns.node, 'bullet-line');
+  assert.ok(bulletLine.textContent.includes('Match Load'), bulletLine.textContent);
+  assert.ok(!bulletLine.textContent.includes('My Bullet'), bulletLine.textContent);
+  assert.ok(bulletLine.textContent.includes('820'), bulletLine.textContent);
 });

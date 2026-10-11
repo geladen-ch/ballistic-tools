@@ -12,6 +12,16 @@ await warmCatalogs();
 
 const { makeElement } = await import('./helpers/fake-dom.js');
 const truingSessionView = await import('../src/views/truing-session-view.js');
+// The Prepare planning runs in a worker in the app; here it runs in-process, through a structured clone both ways like a real
+// worker message, so anything that could not be posted to a worker fails here too.
+const { setPlannerTransport } = await import('../src/ui/truing-session/prepare-planner.js');
+const { computePrepare } = await import('../src/ui/truing-session/prepare-compute.js');
+const { analyseSession } = await import('../src/ui/truing-session/session-model.js');
+const runInProcess = async (type, request) => {
+  const job = type === 'truingPrepare' ? computePrepare : (r) => { const { joint, ...analysis } = analyseSession(r); return analysis; };
+  return structuredClone(job(structuredClone(request)));
+};
+setPlannerTransport(runInProcess);
 const { conditionsSummary } = await import('../src/ui/truing-session/conditions.js');
 const units = await import('../src/ui/truing-session/units.js');
 const farCheckText = (key) => t(key, { far: units.dist(870), err: units.dist(20), cost: units.angle(0.3, 1), ...units.missExample() });
@@ -20,12 +30,26 @@ const { saveUserRifle, generateUserId } = await import('../src/user-library.js')
 const { resetLocationLibraryForTests, saveUserLocation } = await import('../src/location-library.js');
 const { saveRangeSolverLocationState, resetRangeSolverStateForTests } = await import('../src/range-solver-state.js');
 const { resetTruingSessionStateForTests, saveTruingSessionState } = await import('../src/truing-session-state.js');
+const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
+
+// the app's modal root, as index.html provides it
+const dialogRoot = makeElement('div');
+mountDialogRoot(dialogRoot);
+const dialogOpen = () => dialogRoot.firstChild.style.display !== 'none';
+const dialogText = () => dialogRoot.textContent;
+async function answerDialog(label) {
+  const button = findByTag(dialogRoot, 'BUTTON').find((b) => b.textContent === label);
+  assert.ok(button, `expected a dialog button "${label}"`);
+  fireEvent(button, 'click');
+  await settle();
+}
 
 function settle(ms = 40) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 test.beforeEach(async () => {
+  mountDialogRoot(dialogRoot);
   localStorage.clear();
   resetShotStateForTests();
   resetTruingSessionStateForTests();
@@ -165,12 +189,12 @@ test('a sea-level-reduced pressure at altitude is called out on the conditions c
   assert.ok(!warning(container2), 'no warning for a real station pressure');
 });
 
-function setUpArsenalAndLocation(targetSpecs = [{ name: 'Near', rangeM: 100, losAngleDeg: 0 }, { name: 'Far', rangeM: 870, losAngleDeg: 0 }]) {
+function setUpArsenalAndLocation(targetSpecs = [{ name: 'Near', rangeM: 100, losAngleDeg: 0 }, { name: 'Far', rangeM: 870, losAngleDeg: 0 }], cartridgeExtras = {}) {
   const bulletId = 'geladen-308-178-eld-m';
   saveUserRifle({
     id: 'r1', name: 'My Rifle', defaultSightHeightM: 0.05, defaultZeroRangeM: 100,
     defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
-    cartridges: [{ id: 'c1', name: 'My Load', muzzleVelocity: 792.48, bulletId }]
+    cartridges: [{ id: 'c1', name: 'My Load', muzzleVelocity: 792.48, bulletId, ...cartridgeExtras }]
   });
   saveRifleState({ library: { rifleId: 'r1', cartridgeId: 'c1' } });
 
@@ -208,15 +232,10 @@ test('recording a group in the Shoot phase updates the live panel and persists t
   truingSessionView.mount(container);
   await settle();
 
-  const inputs = findByTag(container, 'INPUT');
-  const shotsInput = inputs.find((i) => i.getAttribute('type') === 'number' && i !== inputs[inputs.length - 1]);
-  assert.ok(shotsInput, 'expected a shots-count number input');
-  const numberInputs = inputs.filter((i) => i.getAttribute('type') === 'number');
-  assert.ok(numberInputs.length >= 2, 'expected at least shots and come-up number inputs');
-  numberInputs[0].value = '4';
+  const numberInputs = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number');
+  assert.ok(numberInputs.length >= 1, 'expected the come-up number input');
+  numberInputs[0].value = '101'; // clicks of 0.1 mrad
   fireEvent(numberInputs[0], 'input');
-  numberInputs[1].value = '101'; // clicks of 0.1 mrad
-  fireEvent(numberInputs[1], 'input');
 
   const buttons = findByTag(container, 'BUTTON');
   const recordButton = buttons.find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
@@ -229,11 +248,37 @@ test('recording a group in the Shoot phase updates the live panel and persists t
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   const persisted = loadTruingSessionState();
   assert.equal(persisted.shootSession.groups.length, 1);
-  assert.equal(persisted.shootSession.groups[0].shots, 4);
+  assert.equal(persisted.shootSession.groups[0].shots, 1, 'the recommended number of rounds: one at the first rung');
+  assert.equal(persisted.shootSession.groups[0].mode, 'average');
+  assert.equal(persisted.shootSession.groups[0].certaintyKey, 'good', 'the reading is good unless said otherwise');
   assert.ok(Math.abs(persisted.shootSession.groups[0].observedComeUp - 10.1) < 1e-9, 'entered in clicks, stored in mrad');
 });
 
 test('the Prepare screen tells how many rounds are worth bringing, and says the numbers are minimums', async () => {
+  setUpArsenalAndLocation([
+    { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
+  ]);
+  await settle();
+  saveTruingSessionState({ phase: 'prepare', homeworkState: { roundBudget: 16 } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(300);
+  const text = container.textContent;
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetHeading')), 'the budget advice is drawn after the rest of the panel');
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetMinimum')), 'and says it is a minimum: rounds the spotter cannot see do not count');
+  assert.ok(text.includes(t('truingSession.prepare.roundBudgetLabel')), 'and the budget field itself asks for a 20-25% margin on top');
+  assert.ok(t('truingSession.prepare.roundBudgetLabel').includes('20'));
+  // the default homework (no chronograph, nothing checked, a marksman's own skill on top of the rifle's) has a knee, at 20 rounds
+  // here; a budget of 16 is not on a row of the table, so it gets a row of its own
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowMinimal')));
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowOptimal')));
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowEnhanced')));
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowDeluxe')));
+  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowYours')));
+  assert.ok(text.includes(t('truingSession.prepare.roundBudgetHeading')) && text.includes(t('truingSession.prepare.roundBudgetIntro')));
+});
+
+test('the Prepare panes come in the order: equipment, homework, best distances, location check, range grading, rounds', async () => {
   setUpArsenalAndLocation([
     { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
   ]);
@@ -243,26 +288,61 @@ test('the Prepare screen tells how many rounds are worth bringing, and says the 
   truingSessionView.mount(container);
   await settle(300);
   const text = container.textContent;
-  assert.ok(text.includes(t('truingSession.rangeGrading.budgetHeading')), 'the budget advice is drawn after the rest of the panel');
-  assert.ok(text.includes(t('truingSession.rangeGrading.budgetMinimum')), 'and says it is a minimum: rounds the spotter cannot see do not count');
-  // the default homework (no chronograph, nothing checked) has a knee; the default budget of 20 is that knee here, so it needs no row of its own
-  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowKnee')));
-  assert.ok(!text.includes(t('truingSession.rangeGrading.budgetRowYours')), 'the default budget sits on a row of the table already');
-  assert.ok(text.includes(t('truingSession.rangeGrading.budgetRowPlus', { n: 10 })) && text.includes(t('truingSession.rangeGrading.budgetRowPlus', { n: 20 })));
+  const at = ['equipment.heading', 'homework.heading', 'prepare.optimalHeading', 'location.heading', 'rangeGrading.heading', 'prepare.roundBudgetHeading']
+    .map((k) => text.indexOf(t(`truingSession.${k}`)));
+  assert.ok(at.every((i) => i >= 0), `every pane is drawn: ${at}`);
+  assert.deepEqual([...at].sort((x, y) => x - y), at, 'in the asked-for order');
 });
 
-async function recordGroupNow(container, shots, comeUp) {
-  // the shots and come-up fields have no id; the weather fields (when opened) do
+test('picking a recommended number of rounds plans for it', async () => {
+  setUpArsenalAndLocation([
+    { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
+  ]);
+  await settle();
+  saveTruingSessionState({ phase: 'prepare', homeworkState: { roundBudget: 16 } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(300);
+  const deluxeRow = findByTag(container, 'TR').find((r) => r.textContent.includes(t('truingSession.rangeGrading.budgetRowDeluxe')));
+  assert.ok(deluxeRow, 'a Deluxe row');
+  const pick = findByTag(deluxeRow, 'BUTTON')[0];
+  const n = parseInt(/^(\d+)/.exec(deluxeRow.textContent)[1], 10);
+  fireEvent(pick, 'click');
+  await settle(300);
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.equal(loadTruingSessionState().homeworkState.roundBudget, n);
+});
+
+// Before the first string at the planned far target the Shoot screen asks for one more reading of its distance (and angle): answer
+// it with the distance as recorded and a level angle, when it is on screen. Returns whether it was.
+async function answerFarRecheck(container) {
+  const box = findByTag(container, 'DIV').find((d) => String(d.className).includes('truing-session-recheck'));
+  if (!box || !container.textContent.includes(t('truingSession.shoot.farRecheck', { range: '' }).split(' ').slice(0, 4).join(' '))) return false;
+  const range = Number(/(\d+(?:\.\d+)?)/.exec(findByTag(box, 'P')[0].textContent)[1]);
+  const [distance, angleInput] = findByTag(box, 'INPUT').filter((i) => i.getAttribute('type') === 'number');
+  distance.value = String(range);
+  if (angleInput) angleInput.value = '0';
+  fireEvent(findByTag(box, 'BUTTON').find((b) => b.textContent === t('truingSession.recheck.submitButton')), 'click');
+  await settle();
+  return true;
+}
+
+async function recordGroupNow(container, comeUp, { dialog = 'continue' } = {}) {
+  await answerFarRecheck(container);
+  // a string is always the recommended number of rounds; the come-up field has no id (the weather fields, when opened, do)
   const numberInputs = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id);
-  numberInputs[0].value = String(shots); fireEvent(numberInputs[0], 'input');
-  numberInputs[1].value = String(Number((comeUp / 0.1).toFixed(3))); fireEvent(numberInputs[1], 'input'); // the field takes clicks of 0.1 mrad
+  numberInputs[0].value = String(Number((comeUp / 0.1).toFixed(3))); fireEvent(numberInputs[0], 'input'); // the field takes clicks of 0.1 mrad
   const record = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
   assert.ok(record, 'expected a Record group button');
   fireEvent(record, 'click');
   await settle();
+  // fewer velocities than rounds opens a question; most tests just carry on as is
+  if (dialog !== 'leave' && dialogOpen()) await answerDialog(t(dialog === 'continue' ? 'truingSession.shoot.chronoShortContinue' : 'truingSession.shoot.chronoShortComplete'));
+  // and the far target's re-range, if the next string is its first (most tests are about something else)
+  if (!dialogOpen()) await answerFarRecheck(container);
 }
 
-test('the Shoot phase follows the plan: the planned distances in order with their planned shots, and nothing after the plan is done', async () => {
+test('the Shoot phase follows the plan: each distance once, nearest first, then strings of at most three to the distance with the most rounds left, and nothing after the plan is done', async () => {
   setUpArsenalAndLocation([
     { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 },
     { name: 'D', rangeM: 600, losAngleDeg: 0 }, { name: 'E', rangeM: 800, losAngleDeg: 0 }
@@ -272,17 +352,25 @@ test('the Shoot phase follows the plan: the planned distances in order with thei
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle();
+  const expectNext = (rangeM, k, n, shots, after) => {
+    assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(rangeM) })), `next: ${rangeM}`);
+    assert.ok(container.textContent.includes(t('truingSession.shoot.plannedString', { k, n, shots, after })), `string ${k} of ${n} at ${rangeM}`);
+    assert.equal(findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id).length, 2, 'the come-up and the backdrop: there is no rounds field, the string is the recommended number');
+  };
 
-  assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(100) })));
-  assert.ok(container.textContent.includes(t('truingSession.shoot.plannedStep', { shots: 1 })), 'the near group is planned at one round');
-  await recordGroupNow(container, 1, 0);
-  // the ladder alone would take the farthest safe distance (500 or more); the plan says 300
-  assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(300) })), 'the next planned distance, not the farthest safe one');
-  assert.ok(container.textContent.includes(t('truingSession.shoot.plannedStep', { shots: 5 })));
-  await recordGroupNow(container, 5, 1.6);
-  assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(800) })));
-  await recordGroupNow(container, 6, 8.6);
-  assert.ok(container.textContent.includes(t('truingSession.shoot.ladderDone')), 'every planned distance is shot: the ladder is complete, no leftover distances proposed');
+  expectNext(100, 1, 1, 1, 0);
+  await recordGroupNow(container, 0);
+  // the ladder alone would take the farthest safe distance (500 or more); the plan says 300, its five rounds as 3 + 2
+  expectNext(300, 1, 2, 3, 2);
+  await recordGroupNow(container, 1.6);
+  expectNext(800, 1, 2, 3, 3);
+  await recordGroupNow(container, 8.6);
+  // every distance shot once: 800 has three left, 300 two, so 800 first
+  expectNext(800, 2, 2, 3, 0);
+  await recordGroupNow(container, 8.6);
+  expectNext(300, 2, 2, 2, 0);
+  await recordGroupNow(container, 1.6);
+  assert.ok(container.textContent.includes(t('truingSession.shoot.ladderDone')), 'every planned round is shot: the ladder is complete, no leftover distances proposed');
   assert.ok(!container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(500) })));
   assert.ok(!container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(600) })));
 });
@@ -337,7 +425,6 @@ test('the Conclude phase offers to save a resolved, chronographed BC correction,
 
   const saveButton = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.conclusion.saveButton'));
   assert.ok(saveButton, 'expected a save-to-cartridge button for a resolved, chronographed BC finding');
-  assert.ok(findByTag(container, 'BUTTON').some((b) => b.textContent === t('truingSession.choice.sessionOnly')), 'the "this session only" alternative must be offered alongside');
 
   fireEvent(saveButton, 'click');
 
@@ -345,6 +432,31 @@ test('the Conclude phase offers to save a resolved, chronographed BC correction,
   const updatedCartridge = loadUserRifles().find((r) => r.id === 'r1').cartridges.find((c) => c.id === 'c1');
   // +4% drag injected -> a factor near 1/1.04 = 0.962.
   assert.ok(updatedCartridge.bcGainFactor > 0.93 && updatedCartridge.bcGainFactor < 0.99, `got ${updatedCartridge.bcGainFactor}`);
+});
+
+// 12 readings spread far wider than the recorded 3 m/s SD: today's spread then governs the fit.
+const WIDE_READINGS = [770, 815, 790, 805, 780, 820, 775, 810, 785, 800, 795, 765];
+
+test('a significantly wider chronograph spread is offered for the cartridge only on the Conclude screen, with no session-only button', async () => {
+  setUpArsenalAndLocation();
+  await settle();
+  await concludeFixture({ velocities: WIDE_READINGS });
+
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(80);
+
+  const buttons = () => findByTag(container, 'BUTTON');
+  const toCartridge = buttons().find((b) => b.textContent === t('truingSession.shoot.sdToArsenal'));
+  assert.ok(toCartridge, 'expected an "update the main cartridge record" button for the wider spread');
+
+  fireEvent(toCartridge, 'click');
+  await settle(80);
+
+  const { loadUserRifles } = await import('../src/user-library.js');
+  const cartridge = loadUserRifles().find((r) => r.id === 'r1').cartridges.find((c) => c.id === 'c1');
+  assert.ok(cartridge.muzzleVelocitySD > 10, `got ${cartridge.muzzleVelocitySD}`);
+  assert.ok(!buttons().some((b) => b.textContent === t('truingSession.shoot.sdToArsenal')), 'the button gives way to the saved note');
 });
 
 test('acceptance 3: a ticked chronograph box with no readings captured never offers a BC write', async () => {
@@ -425,18 +537,16 @@ async function editFarDistanceAndConfirm(container, value) {
   await settle();
 }
 
-test('step 7: a corrected distance asks "update the location card / this session only"; session-only leaves the location untouched', async () => {
+test('step 7: a corrected distance is kept for this session only, the pane says so, and the location is never offered an update', async () => {
   setUpArsenalAndLocation();
   await settle();
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle();
+  assert.ok(container.textContent.includes(t('truingSession.location.sessionOnlyHint')), 'the location pane says corrections are for this session only');
 
   await editFarDistanceAndConfirm(container, 855);
-  const sessionOnly = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.choice.sessionOnly'));
-  assert.ok(sessionOnly, 'expected the two-way choice after a changed distance');
-  fireEvent(sessionOnly, 'click');
-  await settle();
+  assert.ok(!findByTag(container, 'BUTTON').some((b) => /location card|Update the main/i.test(b.textContent)), 'no way to write the correction to the location');
 
   const { loadUserLocations } = await import('../src/location-library.js');
   assert.ok(loadUserLocations()[0].targets.some((tg) => tg.rangeM === 870), 'the location record must be unchanged');
@@ -444,21 +554,6 @@ test('step 7: a corrected distance asks "update the location card / this session
   const persisted = loadTruingSessionState();
   assert.ok(Object.values(persisted.targetOverrides).some((ov) => ov.rangeM === 855));
   assert.equal(persisted.rangeRecheckedThisSession, true);
-});
-
-test('step 7: "update the main location card" writes the corrected distance back', async () => {
-  setUpArsenalAndLocation();
-  await settle();
-  const container = makeElement('main');
-  truingSessionView.mount(container);
-  await settle();
-
-  await editFarDistanceAndConfirm(container, 855);
-  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.choice.updateCard')), 'click');
-  await settle();
-
-  const { loadUserLocations } = await import('../src/location-library.js');
-  assert.ok(loadUserLocations()[0].targets.some((tg) => tg.rangeM === 855));
 });
 
 test('step 5a: declaring the range flat never writes an angle anywhere, even when a distance on an angled target is corrected', async () => {
@@ -491,13 +586,13 @@ test('step 5a: declaring the range flat never writes an angle anywhere, even whe
   await settle();
 
   await editFarDistanceAndConfirm(container, 860);
-  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.choice.updateCard')), 'click');
-  await settle();
 
   const { loadUserLocations } = await import('../src/location-library.js');
   const far = loadUserLocations()[0].targets.find((tg) => tg.name === 'Far');
-  assert.equal(far.rangeM, 860);
+  assert.equal(far.rangeM, 870, 'the location keeps its distance');
   assert.equal(far.losAngleDeg, 3, 'the recorded angle must survive the flat declaration');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.ok(Object.values(loadTruingSessionState().targetOverrides).some((ov) => ov.rangeM === 860 && ov.losAngleDeg === undefined), 'the corrected distance is held for the session, with no angle written');
 });
 
 test('the Conclude phase mounts without throwing, with no groups recorded', async () => {
@@ -579,13 +674,14 @@ test('a group records its own weather and chronograph readings; the next group c
   truingSessionView.mount(container);
   await settle();
 
-  // the first group: no weather change ticked, so no conditions on the group; readings kept on the group
-  const chronoField = () => findByTag(container, 'INPUT').find((i) => i.getAttribute('type') === 'text');
+  // the first group: no air change ticked, so only the wind (the starting one) is on the group; readings kept on the group
+  const chronoField = () => findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
   chronoField().value = '790 791 -';
-  await recordGroupNow(container, 1, 0);
+  await recordGroupNow(container, 0);
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   let groups = loadTruingSessionState().shootSession.groups;
-  assert.equal(groups[0].conditions, undefined);
+  assert.deepEqual(groups[0].conditions, { windSpeed: 0, windAngle: 90 });
+  assert.equal(groups[0].windConfidenceKey, 'good', 'a wind reading is Good unless said otherwise');
   assert.deepEqual(groups[0].chronoVelocities, [790, 791, null]);
 
   // the second: the weather has changed (a warmer target)
@@ -596,13 +692,13 @@ test('a group records its own weather and chronograph readings; the next group c
   assert.ok(temp, 'the temperature field appears once the weather is marked as changed');
   temp.value = '24';
   fireEvent(temp, 'input');
-  await recordGroupNow(container, 4, 1.6);
+  await recordGroupNow(container, 1.6);
   groups = loadTruingSessionState().shootSession.groups;
   assert.equal(groups[1].conditions.tempC, 24);
   assert.ok(groups[1].conditions.pressureHpa > 0);
 
   // the third carries the second's air without asking again
-  await recordGroupNow(container, 6, 10);
+  await recordGroupNow(container, 10);
   groups = loadTruingSessionState().shootSession.groups;
   assert.equal(groups[2].conditions.tempC, 24);
   assert.equal(loadTruingSessionState().shootSession.chronoVelocities.length, 3, 'the pooled list still counts the readings');
@@ -611,11 +707,13 @@ test('a group records its own weather and chronograph readings; the next group c
 test('the conditions card says where the zero comes from: the cartridge\'s zero atmosphere in Arsenal when it has one', async () => {
   setUpArsenalAndLocation();
   await settle();
+  const { saveUserRifle: saveRifle, loadUserRifles: loadRifles } = await import('../src/user-library.js');
+  saveRifle({ ...loadRifles().find((r) => r.id === 'r1'), defaultZeroRangeM: 200 }); // a zero long enough for the air to matter
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle();
   assert.ok(!findByTag(container, 'INPUT').some((i) => i.id === 'truingZeroAirDifferent'), 'no zero-conditions checkbox of its own');
-  assert.ok(container.textContent.includes(t('truingSession.conditions.zeroFromConditions', { long: units.dist(200) })));
+  assert.ok(container.textContent.includes(t('truingSession.conditions.zeroFromConditions', { long: units.nominalDist(200), short: units.nominalDist(100) })));
 
   // a cartridge with a zero atmosphere
   const { saveUserRifle, loadUserRifles } = await import('../src/user-library.js');
@@ -644,8 +742,8 @@ test('the Shoot screen shows what to dial for the next shot: the app\'s own dope
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotDialFull')), 'says the recorded come-up is the whole dial');
   assert.equal(dopeLines().length, 2, 'elevation and windage');
 
-  await recordGroupNow(container, 1, 0);
-  await recordGroupNow(container, 4, 1.6);
+  await recordGroupNow(container, 0);
+  await recordGroupNow(container, 1.6);
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotHeading', { range: units.dist(870) })));
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotFromFit')), 'after a group it comes from the fit');
   const before = dopeLines()[0];
@@ -671,7 +769,7 @@ test('a stalled ladder names the step cap, asks for an intermediate distance, an
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle();
-  await recordGroupNow(container, 1, 0);
+  await recordGroupNow(container, 0);
   assert.ok(container.textContent.includes(t('truingSession.shoot.ladderStuckCap', { far: units.dist(870), farthest: units.dist(100), low: units.dist(100), high: units.dist(400) })), 'names the cap and the range that would fix it');
   assert.ok(container.textContent.includes(t('truingSession.shoot.intermediateQuestion')));
   const none = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.noIntermediateButton'));
@@ -716,6 +814,30 @@ test('Conclude reminds that the stated uncertainties assume the ticked homework 
   assert.ok(container.textContent.includes(t('truingSession.conclusion.homeworkAssumed', { items: t('truingSession.homework.tick.zeroVerified') }).slice(0, 40)));
 });
 
+test('the Conclude screen adds the click-value warning only when the click value was ticked as done', async () => {
+  const conclude = async (homeworkState) => {
+    setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 870, losAngleDeg: 0 }]);
+    await settle();
+    saveTruingSessionState({
+      phase: 'conclude', homeworkState,
+      sessionConditions: { tempC: 15, pressureHpa: 1013.25, humidityPct: 50, windSpeed: 0, windAngle: 90, altitudeM: 0 },
+      shootSession: {
+        groups: [{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05 }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05 }],
+        chronoVelocities: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
+      }
+    });
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle(200);
+    return container.textContent;
+  };
+  const warning = t('truingSession.conclusion.homeworkClickValue');
+  const withClick = await conclude({ zeroVerified: true, trackTested: true });
+  assert.ok(withClick.includes(warning));
+  assert.ok(withClick.includes(t('truingSession.conclusion.homeworkAssumed', { items: `${t('truingSession.homework.tick.trackTested')}, ${t('truingSession.homework.tick.zeroVerified')}` }).slice(0, 80)), 'the click value leads the list');
+  assert.ok(!(await conclude({ zeroVerified: true })).includes(warning));
+});
+
 test('after a missed impact with nothing to retreat to, an extra group at a validated distance gives the missed distance its one retry', async () => {
   setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
   await settle();
@@ -727,7 +849,7 @@ test('after a missed impact with nothing to retreat to, an extra group at a vali
   truingSessionView.mount(container);
   await settle();
   const button = (text) => findByTag(container, 'BUTTON').find((b) => b.textContent === text);
-  await recordGroupNow(container, 1, 0);
+  await recordGroupNow(container, 0);
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(300) })));
   fireEvent(button(t('truingSession.shoot.cantSeeImpactButton')), 'click');
   await settle();
@@ -738,7 +860,7 @@ test('after a missed impact with nothing to retreat to, an extra group at a vali
   fireEvent(again, 'click');
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(100) })));
   assert.ok(container.textContent.includes(t('truingSession.shoot.repeatStep')));
-  await recordGroupNow(container, 3, 0);
+  await recordGroupNow(container, 0);
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(300) })), 'the missed distance is tried once more');
 });
 
@@ -792,7 +914,7 @@ test('changing the backdrop height on the Shoot screen keeps what was typed into
   truingSessionView.mount(container);
   await settle();
   const fields = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id);
-  const comeUp = fields[1];
+  const comeUp = fields[0];
   comeUp.value = '1.25';
   fireEvent(comeUp, 'input');
   const backdrop = fields[fields.length - 1];
@@ -884,9 +1006,9 @@ test('with imperial and MOA preferences, the Shoot screen takes readings in ft/s
     assert.ok(text.includes('MOA') && text.includes(t('truingSession.shoot.nextShotClicks')), 'the next shot is in MOA, with clicks as well');
     assert.equal(text.match(METRIC_LEFTOVER), null, `no metric leftover on Shoot: ${text.match(METRIC_LEFTOVER)}`);
 
-    const chrono = findByTag(container, 'INPUT').find((i) => i.getAttribute('type') === 'text');
+    const chrono = findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
     chrono.value = '2600 2602';
-    await recordGroupNow(container, 1, 0);
+    await recordGroupNow(container, 0);
     const { loadTruingSessionState } = await import('../src/truing-session-state.js');
     const v = loadTruingSessionState().shootSession.chronoVelocities;
     assert.ok(Math.abs(v[0] - 2600 * 0.3048) < 1e-6, `2600 ft/s is ${2600 * 0.3048} m/s (${v[0]})`);
@@ -915,7 +1037,7 @@ test('with imperial and MOA preferences, Conclude and the stalled-ladder message
   });
 });
 
-test('every Conclude finding is written in the preferred units (MOA, ft/s, mph, yards)', async () => {
+test('every Conclude finding is written in the preferred units (MOA, ft/s, yards)', async () => {
   const { conclusionPanel } = await import('../src/ui/truing-session/conclusion.js');
   await withUnits(IMPERIAL, 'moa', async () => {
     const analysis = {
@@ -923,7 +1045,6 @@ test('every Conclude finding is written in the preferred units (MOA, ft/s, mph, 
       findings: [
         { case: 4, param: 'zeroMrad', value: 0.12, size: 0.05, clicks: 1.2, pMaterial: 0.9 },
         { case: 'measuredV0', param: 'v0Ms', value: -8, size: 2, pMaterial: 0.9 },
-        { case: 8, reason: 'underdetermined', param: 'windMs', value: 1, size: 1.5, grade: 'B', pMaterial: 0.4 },
         { case: 6, members: ['dragPct', 'v0Ms'], valueMrad: 0.1, sizeMrad: 0.05, pMaterial: 0.5, action: 'chronograph' },
         { case: 2, grade: 'B', corrections: [{ rangeM: 500, deltaMrad: 0.2 }] }
       ]
@@ -936,9 +1057,724 @@ test('every Conclude finding is written in the preferred units (MOA, ft/s, mph, 
     assert.equal(text.match(METRIC_LEFTOVER), null, `no metric leftover: ${text.match(METRIC_LEFTOVER) && text.slice(text.match(METRIC_LEFTOVER).index - 60, text.match(METRIC_LEFTOVER).index + 30)}`);
     assert.ok(text.includes('MOA'), 'angles in MOA');
     assert.ok(text.includes('ft/s'), 'velocities in ft/s');
-    assert.ok(text.includes('mph'), 'wind in mph');
     assert.ok(text.includes('yd'), 'distances in yards');
     // 0.12 mrad is 0.41 MOA
     assert.ok(text.includes(units.toDisplayAngle(0.12)), 'the zero shift converted');
   });
+});
+
+test('chronograph readings are space-separated, with comma or dot as the decimal separator', async () => {
+  const { parseReadings } = await import('../src/ui/truing-session/shoot-panel.js');
+  assert.deepEqual(parseReadings('812 815.5 - 809,25 x'), [812, 815.5, null, 809.25, null]);
+  assert.deepEqual(parseReadings('  812\t815  \n809 '), [812, 815, 809]);
+  assert.deepEqual(parseReadings('812; 815'), [812, 815]);
+  assert.deepEqual(parseReadings(''), []);
+});
+
+// ---- Rifle precision: bench rifle + shooter skill (or one simplified value), as in Hit Probability ----
+
+const byId = (container, id) => findByTag(container, 'INPUT').concat(findByTag(container, 'SELECT')).find((n) => n.id === id);
+async function mountPrepare(cartridgeExtras) {
+  setUpArsenalAndLocation(undefined, cartridgeExtras);
+  await settle();
+  saveTruingSessionState({ phase: 'prepare' });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(60);
+  return container;
+}
+const sessionR50 = async () => (await import('../src/truing-session-state.js')).loadTruingSessionState().homeworkState.r50Mrad;
+const isHidden = (node) => { for (let n = node; n; n = n.parentNode) if (n.style && n.style.display === 'none') return true; return false; };
+
+test('the rifle precision defaults to a basic rifle with a marksman, in quadrature', async () => {
+  const container = await mountPrepare();
+  assert.ok(byId(container, 'shooterSkill') && byId(container, 'position') && byId(container, 'simplifiedPrecisionEnabled'));
+  assert.ok(isHidden(byId(container, 'combinedPrecision')), 'the simplified entry is off by default');
+  assert.ok(Math.abs(await sessionR50() - Math.hypot(0.14, 0.12)) < 1e-9);
+  assert.ok(container.textContent.includes(t('truingSession.homework.r50Resolved', { value: units.angle(Math.hypot(0.14, 0.12)) })));
+});
+
+test('the simplified toggle swaps bench rifle and shooter for one combined value', async () => {
+  const container = await mountPrepare();
+  const toggle = byId(container, 'simplifiedPrecisionEnabled');
+  toggle.checked = true; fireEvent(toggle, 'change');
+  assert.ok(isHidden(byId(container, 'benchPrecision')) && !isHidden(byId(container, 'combinedPrecision')));
+  const combined = byId(container, 'combinedPrecision');
+  combined.value = String(units.toDisplayAngle(0.3)); fireEvent(combined, 'input');
+  assert.ok(Math.abs(await sessionR50() - 0.3) < 0.01, 'the combined value is the session R50');
+});
+
+test('an Arsenal rig precision recorded as combined selects the simplified entry; one recorded as bench keeps the shooter', async () => {
+  let container = await mountPrepare({ precision: { mode: 'combined', r50Mrad: 0.25 } });
+  assert.equal(byId(container, 'simplifiedPrecisionEnabled').checked, true);
+  assert.equal(byId(container, 'combinedPrecisionThisRig').checked, true);
+  assert.ok(Math.abs(await sessionR50() - 0.25) < 1e-9);
+
+  resetTruingSessionStateForTests();
+  container = await mountPrepare({ precision: { mode: 'own', r50Mrad: 0.2 } });
+  assert.equal(byId(container, 'simplifiedPrecisionEnabled').checked, false);
+  assert.ok(Math.abs(await sessionR50() - Math.hypot(0.2, 0.12)) < 1e-9);
+});
+
+test('a precision picked by hand is not replaced by the Arsenal one on the next visit', async () => {
+  let container = await mountPrepare({ precision: { mode: 'own', r50Mrad: 0.2 } });
+  const toggle = byId(container, 'simplifiedPrecisionEnabled');
+  toggle.checked = true; fireEvent(toggle, 'change');
+  container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(60);
+  assert.equal(byId(container, 'simplifiedPrecisionEnabled').checked, true);
+});
+
+// ---- strings read round by round ----
+// Read round by round the form has one come-up field (and, with a chronograph, one velocity field) per round: `text` is the come-ups in
+// firing order, a "-" or a missing value leaves its field empty; `velocities` likewise in display units.
+const roundFields = (container, prefix) => findByTag(container, 'INPUT').filter((i) => new RegExp(`^${prefix}\\d+$`).test(i.id || ''));
+function fillRounds(container, text, velocities) {
+  const comeUps = roundFields(container, 'truingShotComeUp');
+  assert.ok(comeUps.length, 'expected the per-round come-up fields');
+  const values = text.trim() === '' ? [] : text.trim().split(/\s+/);
+  comeUps.forEach((field, i) => { field.value = values[i] == null || values[i] === '-' ? '' : values[i]; fireEvent(field, 'input'); });
+  if (velocities != null) {
+    const fields = roundFields(container, 'truingShotVelocity');
+    assert.equal(fields.length, comeUps.length, 'one velocity field per round');
+    const vs = velocities.trim() === '' ? [] : velocities.trim().split(/\s+/);
+    fields.forEach((field, i) => { field.value = vs[i] == null || vs[i] === '-' ? '' : vs[i]; fireEvent(field, 'input'); });
+  }
+}
+async function recordShotsNow(container, text, { velocities = null, dialog = 'continue' } = {}) {
+  fillRounds(container, text, velocities);
+  const record = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
+  fireEvent(record, 'click');
+  await settle();
+  if (dialog !== 'leave' && dialogOpen()) await answerDialog(t(dialog === 'continue' ? 'truingSession.shoot.chronoShortContinue' : 'truingSession.shoot.chronoShortComplete'));
+}
+
+async function shootStringsSetUp() {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300], shots: [1, 9], targets: [100, 300] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  await recordGroupNow(container, 0);
+  const mode = findByTag(container, 'SELECT').find((s) => s.id === 'truingStringMode');
+  assert.ok(mode, 'expected the string-reading choice');
+  mode.value = 'shots';
+  fireEvent(mode, 'change');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  return { container, groups: () => loadTruingSessionState().shootSession.groups, session: () => loadTruingSessionState().shootSession };
+}
+
+test('a string read round by round records every come-up, averages them, and keeps the choice for the next string', async () => {
+  const { container, groups } = await shootStringsSetUp();
+  const certainty = findByTag(container, 'SELECT').find((s) => s.id === 'truingCertainty');
+  assert.ok(certainty, 'the certainty picker is on every string, not just the near one');
+  assert.equal(certainty.value, 'good', 'good by default');
+  await recordShotsNow(container, '16 17 18');
+  const g = groups()[1];
+  assert.equal(g.mode, 'shots');
+  assert.equal(g.shots, 3, 'the recommended number of rounds');
+  assert.ok(Math.abs(g.observedComeUp - 1.7) < 1e-9, 'the mean of the rounds, in mrad');
+  assert.deepEqual(g.shotComeUps.map((x) => Math.round(x * 100) / 100), [1.6, 1.7, 1.8]);
+  assert.equal(g.certaintyKey, 'good');
+  assert.ok(g.sigmaMrad > 0);
+  assert.ok(g.noise && g.noise.sigmaObsMrad > 0 && Number.isFinite(g.noise.v0SensMrad) && 'r50Mrad' in g.noise, 'the string keeps the noise parts that do not depend on the velocity spread');
+  // 9 rounds at 300 m: 3 + 3 + 3
+  assert.ok(container.textContent.includes(t('truingSession.shoot.plannedString', { k: 2, n: 3, shots: 3, after: 3 })), 'the next string at 300 m');
+  assert.equal(findByTag(container, 'SELECT').find((s) => s.id === 'truingStringMode').value, 'shots', 'the reading choice stays');
+});
+
+test('the tool does not look for flyers: every round seen counts, and the screen says to shoot an obvious flyer again', async () => {
+  const { container, groups } = await shootStringsSetUp();
+  assert.ok(container.textContent.includes(t('truingSession.shoot.flyerRule')), 'the instruction is on the Shoot screen');
+  fillRounds(container, '16 17 30');
+  assert.ok(!container.textContent.includes('Leave round'), 'no flyer warning and no leave-it-out box');
+  assert.equal(findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'checkbox' && i.parentNode && /round 3/i.test(i.parentNode.textContent)).length, 0);
+  await recordShotsNow(container, '16 17 30');
+  const g = groups()[1];
+  assert.equal(g.shots, 3, 'nothing is left out');
+  assert.equal(g.excludedShot, undefined);
+  assert.ok(Math.abs(g.observedComeUp - (1.6 + 1.7 + 3.0) / 3) < 1e-9);
+});
+
+test('read round by round, the form has one come-up field per round and every one must be filled; the whole group can be reported as not seen', async () => {
+  const { container, groups, session } = await shootStringsSetUp();
+  assert.equal(roundFields(container, 'truingShotComeUp').length, 3, 'one come-up field for each of the three rounds');
+  assert.equal(roundFields(container, 'truingShotVelocity').length, 0, 'no velocity fields without a chronograph');
+  for (const text of ['16 17', '16 17 -', '']) {
+    await recordShotsNow(container, text);
+    assert.equal(groups().length, 1, `"${text}" is not recorded`);
+    assert.ok(container.textContent.includes(t('truingSession.shoot.shotComeUpsCount', { n: 3 })), `"${text}" is asked for again`);
+  }
+  const miss = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.cantSeeImpactButton'));
+  assert.ok(miss, 'the "cannot see the impacts" button stays, for the whole string');
+  fireEvent(miss, 'click');
+  await settle();
+  assert.equal(groups().length, 1);
+  assert.equal(session().missedImpactCount, 1, 'the whole string is a missed impact');
+});
+
+test('a string read at its centre has no rounds field: it is the recommended number of rounds', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300], shots: [1, 9], targets: [100, 300] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  await recordGroupNow(container, 0);
+  await recordGroupNow(container, 1.6);
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  const groups = loadTruingSessionState().shootSession.groups;
+  assert.deepEqual(groups.map((g) => g.shots), [1, 3], 'one round at the near distance, a string of three at 300 m');
+});
+
+test('fewer velocities than rounds opens a question: go back and complete them, or carry on as is', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', homeworkState: { chronographAvailable: true }, plan: { ranges: [100, 300], shots: [1, 9], targets: [100, 300] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  const groups = () => loadTruingSessionState().shootSession?.groups || [];
+  const chronoField = () => findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
+  chronoField().value = '790';
+  await recordGroupNow(container, 0, { dialog: 'leave' });
+  assert.equal(dialogOpen(), false, 'one velocity for one round: nothing to ask');
+  assert.equal(groups().length, 1);
+  // the string at 300 m has three rounds; two velocities
+  chronoField().value = '790 - 792';
+  await recordGroupNow(container, 1.6, { dialog: 'leave' });
+  assert.ok(dialogOpen() && dialogText().includes(t('truingSession.shoot.chronoShort', { n: 2, shots: 3 })));
+  assert.equal(groups().length, 1, 'not recorded yet');
+  await answerDialog(t('truingSession.shoot.chronoShortComplete'));
+  assert.equal(dialogOpen(), false);
+  assert.equal(groups().length, 1, 'going back records nothing');
+  assert.equal(chronoField().value, '790 - 792', 'and keeps what was typed');
+  await recordGroupNow(container, 1.6, { dialog: 'continue' });
+  assert.equal(groups().length, 2, 'carrying on records the string as it is');
+  assert.deepEqual(groups()[1].chronoVelocities, [790, null, 792]);
+  assert.equal(groups()[1].shots, 3);
+  // a velocity for every round: no question
+  chronoField().value = '790 791 792';
+  await recordGroupNow(container, 1.6, { dialog: 'leave' });
+  assert.equal(dialogOpen(), false, 'every round has a velocity');
+  assert.equal(groups().length, 3);
+});
+
+test('read round by round with a chronograph: one velocity field per round, and the same question when some are missing', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', homeworkState: { chronographAvailable: true }, plan: { ranges: [100, 300], shots: [1, 9], targets: [100, 300] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  const groups = () => loadTruingSessionState().shootSession?.groups || [];
+  await recordGroupNow(container, 0, { dialog: 'leave' }); // the first rung: one round, one velocity wanted
+  await answerDialog(t('truingSession.shoot.chronoShortContinue'));
+  await answerFarRecheck(container); // 300 m is this plan's far target
+  const mode = findByTag(container, 'SELECT').find((s) => s.id === 'truingStringMode');
+  mode.value = 'shots';
+  fireEvent(mode, 'change');
+  assert.equal(roundFields(container, 'truingShotComeUp').length, 3);
+  assert.equal(roundFields(container, 'truingShotVelocity').length, 3, 'a velocity field beside each come-up');
+  const listField = findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
+  assert.equal(listField.parentNode.style.display, 'none', 'the list-of-velocities field is only for strings read at their centre');
+  await recordShotsNow(container, '16 17 18', { velocities: '790 - 792', dialog: 'leave' });
+  assert.ok(dialogOpen() && dialogText().includes(t('truingSession.shoot.chronoShort', { n: 2, shots: 3 })));
+  await answerDialog(t('truingSession.shoot.chronoShortComplete'));
+  assert.equal(groups().length, 1, 'going back records nothing');
+  assert.equal(roundFields(container, 'truingShotVelocity')[0].value, '790', 'and keeps what was typed');
+  await recordShotsNow(container, '16 17 18', { velocities: '790 - 792', dialog: 'continue' });
+  assert.deepEqual(groups()[1].chronoVelocities, [790, null, 792], 'a round with no velocity is a missed reading');
+  assert.equal(groups()[1].shots, 3);
+  await recordShotsNow(container, '16 17 18', { velocities: '790 791 792', dialog: 'leave' });
+  assert.equal(dialogOpen(), false, 'a velocity for every round: no question');
+  assert.deepEqual(groups()[2].chronoVelocities, [790, 791, 792]);
+});
+
+// ---- implausible entries: advice next to the field, recorded as typed ----
+const hintText = (key, vars = {}) => t(`truingSession.shoot.plausibleHint.${key}`, { unit: t('truingSession.shoot.nextShotClicks'), rec: '', ...vars });
+const fieldWarning = (input) => (input.parentNode ? input.parentNode.textContent : '');
+const typeInto = (input, value) => { input.value = value; fireEvent(input, 'input'); };
+
+test('a come-up that looks wrong gets a warning with the likely slip named, and is recorded as typed anyway', async () => {
+  const { container, groups } = await shootStringsSetUp(); // the string at 300 m; the dope is about 16 clicks
+  const mode = findByTag(container, 'SELECT').find((s) => s.id === 'truingStringMode');
+  mode.value = 'average';
+  fireEvent(mode, 'change');
+  const comeUp = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id)[0];
+  typeInto(comeUp, '16');
+  assert.ok(!['mrad', 'delta', 'sign', 'tenth'].some((h) => fieldWarning(comeUp).includes(hintText(h).split('(')[0])), 'an ordinary entry has no warning');
+  typeInto(comeUp, '1.6'); // mrad typed where clicks are wanted
+  assert.ok(fieldWarning(comeUp).includes(hintText('mrad')), 'the mrad hint');
+  typeInto(comeUp, '3'); // "+3": a difference to the recommended come-up
+  assert.ok(fieldWarning(comeUp).includes(hintText('delta', { rec: '' }).split('(')[0]), 'the difference hint');
+  typeInto(comeUp, '-3');
+  assert.ok(fieldWarning(comeUp).includes(hintText('delta', { rec: '' }).split('(')[0]));
+  typeInto(comeUp, '16');
+  assert.ok(!fieldWarning(comeUp).includes(hintText('mrad')), 'the warning goes away when the entry is fixed');
+  // advice only: whatever is typed is recorded
+  typeInto(comeUp, '1.6');
+  const record = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
+  fireEvent(record, 'click');
+  await settle();
+  assert.equal(groups().length, 2);
+  assert.ok(Math.abs(groups()[1].observedComeUp - 0.16) < 1e-9, 'the typed value, in mrad');
+});
+
+test('read round by round, each come-up and each velocity is judged on its own; the list of velocities gets one line', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', homeworkState: { chronographAvailable: true }, plan: { ranges: [100, 300], shots: [1, 9], targets: [100, 300] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  await recordGroupNow(container, 0);
+  const mode = findByTag(container, 'SELECT').find((s) => s.id === 'truingStringMode');
+  // centre mode: the list of velocities, one line for the whole field
+  const list = findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
+  typeInto(list, '790 79 791 7');
+  const listWarning = fieldWarning(list);
+  assert.ok(listWarning.includes('79, 7'), 'the values that look off are named in one line');
+  typeInto(list, '790 791 792');
+  assert.ok(!fieldWarning(list).includes('79, 7'));
+  mode.value = 'shots';
+  fireEvent(mode, 'change');
+  const comeUps = roundFields(container, 'truingShotComeUp');
+  const speeds = roundFields(container, 'truingShotVelocity');
+  typeInto(comeUps[0], '16'); typeInto(comeUps[1], '17'); typeInto(comeUps[2], '160');
+  assert.ok(!fieldWarning(comeUps[0]).includes(hintText('tenth')) && !fieldWarning(comeUps[1]).includes(hintText('tenth')));
+  assert.ok(fieldWarning(comeUps[2]).includes(hintText('tenth')), 'only the third round looks off: a digit too many');
+  typeInto(speeds[0], '790'); typeInto(speeds[1], '79'); typeInto(speeds[2], '791');
+  assert.ok(fieldWarning(speeds[1]).includes(t('truingSession.shoot.plausibleHint.digit')), 'the second reading lost a digit');
+  assert.ok(!fieldWarning(speeds[0]).includes(t('truingSession.shoot.plausibleHint.digit')));
+  // recorded as typed, warnings and all
+  const record = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
+  fireEvent(record, 'click');
+  await settle();
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  const g = loadTruingSessionState().shootSession.groups[1];
+  assert.deepEqual(g.chronoVelocities, [790, 79, 791]);
+  assert.ok(Math.abs(g.shotComeUps[2] - 16) < 1e-9);
+});
+
+test('without a chronograph there is no question about velocities', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100], shots: [3], targets: [100] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  await recordGroupNow(container, 0, { dialog: 'leave' });
+  assert.equal(dialogOpen(), false);
+});
+
+test('after a re-check corrected a planned target\'s distance, the rotation still shoots that target, at its corrected distance, and records it under its own key', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  const { loadUserLocations } = await import('../src/location-library.js');
+  const [idA, idB] = loadUserLocations()[0].targets.map((tg) => tg.id);
+  saveTruingSessionState({
+    phase: 'shoot',
+    plan: { ranges: [100, 300], shots: [1, 6], targets: [100, 300], keys: [idA, idB] },
+    targetOverrides: { [idB]: { rangeM: 312 } }, // the re-check found B at 312 m, for this session
+    shootSession: {
+      groups: [
+        { rangeM: 100, targetKey: idA, observedComeUp: 0, shots: 1, sigmaMrad: 0.13 },
+        { rangeM: 300, targetKey: idB, observedComeUp: 1.6, shots: 3, sigmaMrad: 0.08 }
+      ],
+      chronoVelocities: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 300], farthestValidatedM: 300,
+      rangeChecks: [{ targetKey: idB, believedRangeM: 300, newReadingM: 312 }], angleChecks: {}
+    }
+  });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(312) })), 'the next string is at B, shown at its corrected distance');
+  assert.ok(container.textContent.includes(t('truingSession.shoot.plannedString', { k: 2, n: 2, shots: 3, after: 0 })), 'the second of B\'s two strings');
+  await recordGroupNow(container, 1.7);
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  const g = loadTruingSessionState().shootSession.groups[2];
+  assert.equal(g.targetKey, idB, 'recorded under B, not a phantom target at the old distance');
+  assert.equal(g.rangeM, 300, 'at the planned distance, like B\'s earlier string, so the range check corrects both alike');
+  assert.ok(container.textContent.includes(t('truingSession.shoot.ladderDone')), 'every planned round shot');
+});
+
+test('a plan saved without target keys gets them when the Shoot screen opens', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
+  await settle();
+  const { loadUserLocations } = await import('../src/location-library.js');
+  const ids = loadUserLocations()[0].targets.map((tg) => tg.id);
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300], shots: [1, 6], targets: [100, 300] } });
+  truingSessionView.mount(makeElement('main'));
+  await settle();
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.deepEqual(loadTruingSessionState().plan.keys, ids);
+});
+
+test('the backdrop height field is in the location pane, not the equipment pane', async () => {
+  setUpArsenalAndLocation();
+  await settle();
+  saveTruingSessionState({ phase: 'prepare' });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(300);
+  const text = container.textContent;
+  const field = text.indexOf(t('truingSession.equipment.backdropHint', { two: units.dist(2) }));
+  assert.ok(field >= 0, 'the backdrop hint is drawn');
+  assert.ok(field > text.indexOf(t('truingSession.location.heading')), 'after the location pane heading');
+  assert.ok(field < text.indexOf(t('truingSession.rangeGrading.heading')), 'and before the next pane');
+});
+
+test('the notice after a mid-session correction says the location is unchanged, offers no way to save to it, and can be dismissed', async () => {
+  const { sessionOnlyNotice } = await import('../src/ui/truing-session/recheck-prompt.js');
+  let dismissed = false;
+  const notice = sessionOnlyNotice({ changes: [{ name: 'B', field: 'range', from: 300, to: 312 }], onDismiss: () => { dismissed = true; } }).node;
+  assert.ok(notice.textContent.includes(t('truingSession.choice.sessionOnlyNote')));
+  assert.equal(findByTag(notice, 'BUTTON').length, 1, 'only a dismiss button');
+  fireEvent(findByTag(notice, 'BUTTON')[0], 'click');
+  assert.ok(dismissed);
+});
+
+test('nominalDist keeps its round number in metres and in yards', async () => {
+  const { setUnit } = await import('../src/prefs.js');
+  try {
+    setUnit('distance', 'm');
+    assert.equal(units.nominalDist(200), '200 m');
+    setUnit('distance', 'yd');
+    assert.equal(units.nominalDist(200), '200 yd');
+    assert.equal(units.nominalDist(100), '100 yd');
+  } finally { setUnit('distance', 'm'); }
+});
+
+test('the zero-atmosphere hint is left out for a zero of 100 m (yd) or less, whichever of the two the shooter reads in', async () => {
+  const { setUnit } = await import('../src/prefs.js');
+  const hint = () => t('truingSession.conditions.zeroFromConditions', { long: units.nominalDist(200), short: units.nominalDist(100) });
+  const { saveUserRifle: saveRifle, loadUserRifles: loadRifles } = await import('../src/user-library.js');
+  const mountWith = async (zeroRangeM) => {
+    saveRifle({ ...loadRifles().find((r) => r.id === 'r1'), defaultZeroRangeM: zeroRangeM });
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle();
+    const note = findByTag(container, 'P').find((p) => p.textContent === hint());
+    return !!note && note.style.display !== 'none';
+  };
+  try {
+    setUpArsenalAndLocation();
+    await settle();
+    assert.equal(await mountWith(100), false, '100 m');
+    assert.equal(await mountWith(50), false, 'shorter');
+    assert.equal(await mountWith(150), true, 'longer');
+    setUnit('distance', 'yd');
+    assert.equal(await mountWith(91.44), false, '100 yd');
+    assert.equal(await mountWith(100), true, '100 m is more than 100 yd');
+  } finally { setUnit('distance', 'm'); }
+});
+
+test('Prepare asks only how windy it is expected to be, with the boundary in the shooter\'s own wind unit', async () => {
+  const { setUnit } = await import('../src/prefs.js');
+  setUpArsenalAndLocation();
+  await settle();
+  const options = async (unit) => {
+    setUnit('windSpeed', unit);
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle();
+    const select = findByTag(container, 'SELECT').find((x) => x.id === 'truingWindStrength');
+    assert.ok(select, 'the strength choice is there');
+    assert.ok(!findByTag(container, 'SELECT').some((x) => x.id === 'truingWindConfidence'), 'and the old confidence dropdown is not');
+    return findByTag(select, 'OPTION');
+  };
+  try {
+    let opts = await options('m/s');
+    assert.deepEqual(opts.map((o) => o.value), ['moderate', 'strong']);
+    assert.ok(opts[0].textContent.includes('5 m/s') && opts[1].textContent.includes('5 m/s'));
+    opts = await options('mph');
+    assert.ok(opts[0].textContent.includes('11 mph') && opts[1].textContent.includes('11 mph'));
+    opts = await options('km/h');
+    assert.ok(opts[0].textContent.includes('18 km/h'));
+    opts = await options('ft/s');
+    assert.ok(opts[0].textContent.includes('16 ft/s'));
+  } finally { setUnit('windSpeed', 'm/s'); }
+});
+
+test('the expected wind strength is saved, and a strength saved as a 3 m/s confidence by the earlier dropdown comes back as strong', async () => {
+  setUpArsenalAndLocation();
+  await settle();
+  saveTruingSessionState({ phase: 'prepare', homeworkState: { windConfidenceMs: 3 } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const select = findByTag(container, 'SELECT').find((x) => x.id === 'truingWindStrength');
+  assert.equal(select.value, 'strong');
+  select.value = 'moderate';
+  fireEvent(select, 'change');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.equal(loadTruingSessionState().homeworkState.windStrength, 'moderate');
+});
+
+test('the rounds field starts at the optimal number, follows it, and a number of the shooter\'s own stays', async () => {
+  setUpArsenalAndLocation([
+    { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 500, losAngleDeg: 0 }, { name: 'D', rangeM: 800, losAngleDeg: 0 }
+  ]);
+  await settle();
+  saveTruingSessionState({ phase: 'prepare' });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle(300);
+  const budgetField = (c) => findByTag(c, 'INPUT').find((i) => i.getAttribute('type') === 'number' && i.getAttribute('min') === '6');
+  const optimalRow = findByTag(container, 'TR').find((r) => r.textContent.includes(t('truingSession.rangeGrading.budgetRowOptimal')));
+  const optimal = parseInt(/^(\d+)/.exec(optimalRow.textContent)[1], 10);
+  assert.equal(parseInt(budgetField(container).value, 10), optimal, 'pre-filled with the optimal number');
+  assert.ok(container.textContent.includes(t('truingSession.prepare.roundBudgetPrefilled')));
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.equal(loadTruingSessionState().homeworkState.roundBudget, undefined, 'not saved as if the shooter had chosen it');
+
+  const field = budgetField(container);
+  field.value = '33';
+  fireEvent(field, 'change');
+  await settle(300);
+  assert.equal(loadTruingSessionState().homeworkState.roundBudget, 33);
+  const again = makeElement('main');
+  truingSessionView.mount(again);
+  await settle(300);
+  assert.equal(parseInt(budgetField(again).value, 10), 33, 'the shooter\'s own number stays');
+});
+
+test('each group records the wind on its dial and the confidence in it; the next group starts from both, and the dope follows the dial', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 870, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({
+    phase: 'shoot', plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] },
+    sessionConditions: { tempC: 10, pressureHpa: 1013, humidityPct: 50, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+  });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  assert.ok(container.textContent.includes(t('truingSession.windConfidence.directionHint')), 'the hint that the wind direction matters, and to dial the observed windage');
+  const confidence = () => findByTag(container, 'SELECT').find((x) => x.id === 'truingGroupWindConfidence');
+  assert.deepEqual(findByTag(confidence(), 'OPTION').map((o) => o.value), ['excellent', 'good', 'fair', 'poor']);
+  assert.equal(confidence().value, 'good');
+
+  // a wind of 5 m/s moves the windage the screen recommends
+  const windage = () => findByTag(container, 'P').find((p) => String(p.className).includes('next-shot-dope') && p.textContent.startsWith(t('truingSession.shoot.nextShotWindage'))).textContent;
+  const before = windage();
+  const speed = findByTag(container, 'INPUT').find((i) => i.id === 'windSpeed');
+  speed.value = '5';
+  fireEvent(speed, 'input');
+  assert.notEqual(windage(), before, 'the windage follows the dial as it is changed');
+  confidence().value = 'fair';
+  fireEvent(confidence(), 'change');
+  await recordGroupNow(container, 0);
+
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  let groups = loadTruingSessionState().shootSession.groups;
+  assert.equal(groups[0].conditions.windSpeed, 5);
+  assert.equal(groups[0].windConfidenceKey, 'fair');
+  assert.ok(groups[0].noise.windSdMrad >= 0, 'the wind\'s error is kept with the string\'s noise parts');
+
+  // the next group starts from the same wind and the same confidence
+  assert.equal(confidence().value, 'fair');
+  assert.equal(findByTag(container, 'INPUT').find((i) => i.id === 'windSpeed').value, speed.value);
+  await recordGroupNow(container, 1.6);
+  groups = loadTruingSessionState().shootSession.groups;
+  assert.equal(groups[1].conditions.windSpeed, 5);
+  assert.equal(groups[1].windConfidenceKey, 'fair');
+});
+
+test('the Prepare weather card is the air only: no wind dial there, and the conditions summary carries no wind', async () => {
+  setUpArsenalAndLocation();
+  await settle();
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  assert.ok(findByTag(container, 'INPUT').some((i) => i.id === 'tempC'), 'the air is there');
+  assert.ok(!findByTag(container, 'INPUT').some((i) => i.id === 'windSpeed'), 'the wind is not');
+  assert.equal(conditionsSummary({ tempC: 12, pressureHpa: 923, humidityPct: 40, windSpeed: 3, windAngle: 90 }), conditionsSummary({ tempC: 12, pressureHpa: 923, humidityPct: 40 }));
+  assert.ok(!conditionsSummary({ tempC: 12, windSpeed: 3, windAngle: 90 }).includes('3'), 'a wind in the values is not written out');
+});
+
+test('the expected wind strength sits in the conditions card, between the air fields and the confirmation', async () => {
+  setUpArsenalAndLocation();
+  await settle();
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const text = container.textContent;
+  const at = ['conditions.heading', 'homework.windStrengthLabel', 'conditions.confirmLabel', 'equipment.heading']
+    .map((k) => text.indexOf(t(`truingSession.${k}`)));
+  assert.ok(at.every((i) => i >= 0), `all present: ${at}`);
+  assert.deepEqual([...at].sort((a, b) => a - b), at, 'conditions heading, wind strength, confirmation, then the first pane below');
+  const select = findByTag(container, 'SELECT').find((x) => x.id === 'truingWindStrength');
+  select.value = 'strong';
+  fireEvent(select, 'change');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.equal(loadTruingSessionState().homeworkState.windStrength, 'strong', 'and it is still saved with the homework');
+});
+
+test('the Prepare weather is always the real air: no atmosphere preset to pick', async () => {
+  setUpArsenalAndLocation();
+  await settle();
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  assert.ok(!findByTag(container, 'SELECT').some((x) => x.id === 'atmospherePreset'), 'no preset selector');
+  assert.ok(!findByTag(container, 'INPUT').some((i) => i.id === 'altitudeM'), 'no typed altitude (the pressure says it)');
+  assert.ok(['tempC', 'pressureHpa', 'humidityPct'].every((id) => findByTag(container, 'INPUT').some((i) => i.id === id)), 'temperature, pressure and humidity as read');
+});
+
+test('the muzzle velocity average item shows the Arsenal value with its drift, sits above the SD, and its hint follows the chronograph', async () => {
+  setUpArsenalAndLocation(undefined, { referenceTempC: 15, velocityTempSensitivity: 0.8 });
+  await settle();
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const text = container.textContent;
+  const label = t('truingSession.homework.mvAverageChecked', {
+    arsenal: t('truingSession.homework.mvArsenalWithDrift', { velocity: units.vel(792.48), temp: units.temperature(15), rate: '+0.8 m/s/°C' })
+  });
+  assert.ok(text.includes(label), `label with the Arsenal value and drift: ${label}`);
+  assert.ok(text.indexOf(label) < text.indexOf(t('truingSession.homework.mvSdShotsLabel')), 'above the SD');
+  assert.ok(!findByTag(container, 'INPUT').some((i) => i.getAttribute('type') === 'number' && i.getAttribute('min') === '2' && i.getAttribute('max') === '100'), 'no shots-in-that-check box');
+  // no chronograph: the item that matters most; ticking the chronograph box changes the hint
+  assert.ok(text.includes(t('truingSession.homework.mvAverageHintNoChrono')));
+  assert.ok(!text.includes(t('truingSession.homework.mvAverageHintChrono')));
+  const chrono = findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoAvailable');
+  chrono.checked = true;
+  fireEvent(chrono, 'change');
+  await settle();
+  assert.ok(container.textContent.includes(t('truingSession.homework.mvAverageHintChrono')));
+  assert.ok(!container.textContent.includes(t('truingSession.homework.mvAverageHintNoChrono')));
+
+  // a cartridge with no drift recorded shows the velocity alone
+  localStorage.clear();
+  setUpArsenalAndLocation();
+  await settle();
+  const plain = makeElement('main');
+  truingSessionView.mount(plain);
+  await settle();
+  assert.ok(plain.textContent.includes(t('truingSession.homework.mvArsenal', { velocity: units.vel(792.48) })));
+  assert.ok(!plain.textContent.includes('m/s/°C'));
+});
+
+test('"What would help" never advises something that reads as worse: each quoted spread is no larger than the current one', async () => {
+  setUpArsenalAndLocation([
+    { name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 200, losAngleDeg: 0 }, { name: 'C', rangeM: 300, losAngleDeg: 0 },
+    { name: 'D', rangeM: 400, losAngleDeg: 0 }, { name: 'E', rangeM: 500, losAngleDeg: 0 }, { name: 'F', rangeM: 800, losAngleDeg: 0 }
+  ]);
+  await settle();
+  let checked = 0;
+  for (const homeworkState of [{ chronographAvailable: true, roundBudget: 20 }, { roundBudget: 20 }, { chronographAvailable: true, roundBudget: 30 }, { roundBudget: 12 }]) {
+    saveTruingSessionState({ phase: 'prepare', homeworkState });
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle(200);
+    for (const li of findByTag(container, 'LI')) {
+      const m = /±([\d.]+)% → ±([\d.]+)%/.exec(li.textContent);
+      if (!m) continue;
+      checked++;
+      assert.ok(Number(m[2]) <= Number(m[1]) + 1e-9, `advice reads as worse: ${li.textContent} (${JSON.stringify(homeworkState)})`);
+    }
+  }
+  assert.ok(checked >= 8, `enough advice lines were checked: ${checked}`);
+});
+
+test('the Prepare readouts say they are calculating until the planner answers, and an answer to an older request is dropped', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 800, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'prepare' });
+  const pending = [];
+  setPlannerTransport((type, request) => (type === 'truingPrepare' ? new Promise((resolve) => pending.push({ request, resolve })) : runInProcess(type, request)));
+  try {
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle();
+    assert.ok(container.textContent.includes(t('truingSession.prepare.calculating')), 'calculating while the planner works');
+    assert.equal(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.prepare.startShootingButton')).disabled, true, 'no start without a plan');
+    // a homework change sends a newer request before the first is answered
+    const zero = findByTag(container, 'INPUT').find((i) => i.id === 'truingZeroVerified');
+    zero.checked = true;
+    fireEvent(zero, 'change');
+    await settle();
+    assert.ok(pending.length >= 2, `a second request: ${pending.length}`);
+    const newest = pending[pending.length - 1];
+    newest.resolve(computePrepare(structuredClone(newest.request)));
+    await settle();
+    const grading = () => container.textContent.includes(t('truingSession.rangeGrading.stringsHeading'));
+    assert.ok(grading(), 'the newest answer is drawn');
+    // the older answer, arriving late, does not replace it
+    const older = pending[0];
+    older.resolve({ ...computePrepare(structuredClone(older.request)), roundBudget: 999 });
+    await settle();
+    const field = findByTag(container, 'INPUT').find((i) => i.getAttribute('min') === '6');
+    assert.notEqual(field.value, '999', 'a stale answer is dropped');
+  } finally {
+    setPlannerTransport(runInProcess);
+  }
+});
+
+test('Conclude says which ticked item the shots do not bear out, and only above the doubt threshold', async () => {
+  const { conclusionPanel } = await import('../src/ui/truing-session/conclusion.js');
+  const base = { plannedFarReached: true, planFar: 800, farthestShot: 800, notMaterial: [], notDetermined: [], nothingMaterial: true, findings: [] };
+  const draw = (homeworkDoubt) => conclusionPanel({
+    analysis: { ...base, homeworkDoubt }, state: {}, clickMrad: 0.1, session: { groups: [{}], missedImpactCount: 0 }, rangeDeclaredFlat: true, rMax: 800,
+    cartridgeName: 'X', bcDecision: null, homeworkTicked: ['zeroVerified', 'mvAverageChecked'], mvSD: 4, conditionsText: '', onNewSession() {}
+  }).node.textContent;
+  const zeroNote = t('truingSession.conclusion.homeworkDoubt', { item: t('truingSession.homework.tick.zeroVerified'), p: '93%' });
+  assert.ok(draw({ zeroMrad: 0.93, v0Ms: 0.1 }).includes(zeroNote));
+  assert.ok(!draw({ zeroMrad: 0.93, v0Ms: 0.1 }).includes(t('truingSession.homework.tick.mvAverageChecked') + ' tick'), 'the velocity, borne out, is not named');
+  assert.ok(!draw({ zeroMrad: 0.3 }).includes(t('truingSession.conclusion.homeworkDoubt', { item: t('truingSession.homework.tick.zeroVerified'), p: '30%' })));
+});
+
+test('the Shoot screen keeps the last analysis on screen, marked as updating, until the one for the newest group arrives', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 870, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] } });
+  const held = [];
+  setPlannerTransport((type, request) => (type === 'truingAnalyse' ? new Promise((resolve) => held.push(() => resolve(runInProcess(type, request)))) : runInProcess(type, request)));
+  try {
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle();
+    await recordGroupNow(container, 0);
+    assert.ok(held.length >= 1, 'the analysis was asked for');
+    assert.ok(container.textContent.includes(t('truingSession.prepare.calculating')), 'the live panel says it is being worked out');
+    held.splice(0).forEach((go) => go());
+    await settle();
+    assert.ok(!container.textContent.includes(t('truingSession.prepare.calculating')), 'and stops saying so once it has arrived');
+    assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotFromFit')), 'the next shot is dialled from the fit');
+  } finally {
+    setPlannerTransport(runInProcess);
+  }
+});
+
+test('before the first string at the planned far target, the Shoot screen asks for its distance (and angle) again, once', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 870, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const asked = () => container.textContent.includes(t('truingSession.shoot.farRecheck', { range: units.dist(870) }));
+  const record = () => findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
+  assert.ok(!asked() && record(), 'not at the near distances');
+  // shoot the near and middle distances by hand, without answering anything
+  for (const comeUp of [0, 1.6, 1.6]) {
+    const input = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id)[0];
+    if (!input) break;
+    input.value = String(comeUp / 0.1); fireEvent(input, 'input');
+    fireEvent(record(), 'click');
+    await settle();
+    if (asked()) break;
+  }
+  assert.ok(asked(), 'asked before the first string at 870 m');
+  assert.equal(record(), undefined, 'no string at the far target before the reading');
+  assert.ok(await answerFarRecheck(container));
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  const checks = loadTruingSessionState().shootSession.rangeChecks;
+  assert.equal(checks.length, 1, 'the reading is recorded as a re-check of the far target');
+  assert.ok(!asked() && record(), 'and then the string can be shot');
 });

@@ -274,8 +274,8 @@ test('changing the target range recomputes the elevation readout live, no Calcul
   cleanup();
 });
 
-test('target range default depends on the distance unit: 500 m, 500 yd, or 1500 ft', async () => {
-  for (const [unit, expected] of [['m', 500], ['yd', 500], ['ft', 1500]]) {
+test('target range default depends on the distance unit: 500 m or 500 yd', async () => {
+  for (const [unit, expected] of [['m', 500], ['yd', 500]]) {
     setUnit('distance', unit);
     const container = makeElement('main');
     const cleanup = rangeSolverView.mount(container);
@@ -546,36 +546,6 @@ test('picking a target with a fractional LOS angle stays selected — detachIfHa
 
   assert.equal(findById(container, 'targetRange').value, '300');
   assert.equal(findById(container, 'losAngle').value, '6', 'displayed rounded to the field\'s own whole-degree precision');
-  assert.equal(select.value, t2.id, 'still tracking the picked target — not silently detached to Manual entry');
-  assert.equal(loadRangeSolverLocationState().targetId, t2.id);
-
-  cleanup();
-});
-
-test('picking a target stays selected even when the display unit\'s own decimals differ from the range field\'s hardcoded precision (feet: 0 vs the field\'s 1)', async () => {
-  // Same class of bug as the LOS-angle regression above, on the other
-  // field: targetRangeField is built with a hardcoded `decimals: 1`
-  // regardless of unit (range-solver-view.js), but distance's `ft` choice
-  // prefers 0 decimals (units.js) — a hand-rolled round-trip keyed off the
-  // *unit's* preferred decimals (rather than the field's own) would drift
-  // from what the field actually displays/rounds to, exactly like the LOS
-  // case. 328 m is chosen so its feet conversion (~1076.1 ft) doesn't
-  // already happen to be a whole number.
-  setUnit('distance', 'ft');
-  const t1 = makeTestTarget({ rangeM: 500, losAngleDeg: 0 });
-  const t2 = makeTestTarget({ rangeM: 328, losAngleDeg: 0 });
-  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
-  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
-  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
-
-  const container = makeElement('main');
-  const cleanup = rangeSolverView.mount(container);
-  await settle();
-
-  const select = findById(container, 'rangeSolverTargetSelect');
-  select.value = t2.id;
-  fireEvent(select, 'change');
-
   assert.equal(select.value, t2.id, 'still tracking the picked target — not silently detached to Manual entry');
   assert.equal(loadRangeSolverLocationState().targetId, t2.id);
 

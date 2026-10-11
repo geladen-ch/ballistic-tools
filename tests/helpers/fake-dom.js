@@ -81,6 +81,15 @@ function makeElement(tag) {
       this.childNodes = this.childNodes.filter((c) => c !== child);
       return child;
     },
+    // `ref` null/absent appends, as in a real DOM; querySelector() below finds nothing, so a caller
+    // looking an anchor up that way gets the append.
+    insertBefore(child, ref) {
+      const at = ref ? this.childNodes.indexOf(ref) : -1;
+      if (at < 0) return this.appendChild(child);
+      child.parentNode = this;
+      this.childNodes.splice(at, 0, child);
+      return child;
+    },
     addEventListener(type, handler) {
       (this._listeners[type] ||= []).push(handler);
     },

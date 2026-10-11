@@ -1,41 +1,21 @@
-// The three-level certainty control used for the Shoot phase's near-target
-// reading — the near target defaults to unresolved, since a busy or shared
-// range usually can't resolve individual shots there. Self-calibrating off
-// the user's own scope click value — the three labels never change, only
-// the sigma each implies does.
+// How well the spotter read a string's impacts in the reticle, picked on every string: three fixed levels, each the half-width
+// of a 95% interval in mrad (CERTAINTY_HALF_WIDTH_MRAD in the engine), shown in the angle unit chosen in Settings. "Good" is the
+// default; the engine turns the level into the reading's sigma (half the half-width).
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
 import { convertAngularValue } from '../../units.js';
+import { CERTAINTY_HALF_WIDTH_MRAD, DEFAULT_CERTAINTY_KEY } from '../../engine/truing-session.js';
+import { angle } from './units.js';
 
-// label -> half-width in clicks; sigma = half-width/2 (a 95% interval).
-// "Less certain" (3 clicks) is the near-target default — its sigma is
-// exactly UNRESOLVED_SIGMA_MRAD (0.15) at the app's own default 0.1 mrad
-// click value, which is what makes the three-level scale self-calibrating
-// rather than an arbitrary ladder.
-const LEVELS = [
-  { key: 'veryCertain', halfWidthClicks: 1 },
-  { key: 'fairlyCertain', halfWidthClicks: 2 },
-  { key: 'lessCertain', halfWidthClicks: 3 }
-];
-const DEFAULT_LEVEL_KEY = 'lessCertain';
-
-// `verticalClickMrad`: the user's own scope vertical click value, already
-// resolved to mrad (rifle.getClickSettings() + convertAngularValue(...,
-// 'mrad') — see the caller). Returns { node, getSigmaMrad, setLevel,
-// getLevelKey }.
-export function certaintyPicker({ verticalClickMrad, initialKey = DEFAULT_LEVEL_KEY, onInput } = {}) {
-  const options = LEVELS.map((lvl) => el('option', {
-    value: lvl.key,
-    text: `${t(`truingSession.certainty.${lvl.key}`)} (±${lvl.halfWidthClicks} ${t('truingSession.certainty.clicksUnit')})`
+// Returns { node, getLevelKey, setLevel }.
+export function certaintyPicker({ initialKey = DEFAULT_CERTAINTY_KEY, onInput } = {}) {
+  const options = Object.entries(CERTAINTY_HALF_WIDTH_MRAD).map(([key, halfWidth]) => el('option', {
+    value: key,
+    text: `${t(`truingSession.certainty.${key}`)} (±${angle(halfWidth)})`
   }));
-  const select = el('select', {}, options);
-  select.value = LEVELS.some((l) => l.key === initialKey) ? initialKey : DEFAULT_LEVEL_KEY;
+  const select = el('select', { id: 'truingCertainty' }, options);
+  select.value = initialKey in CERTAINTY_HALF_WIDTH_MRAD ? initialKey : DEFAULT_CERTAINTY_KEY;
   select.addEventListener('change', () => { if (onInput) onInput(); });
-
-  function sigmaForLevel(key) {
-    const lvl = LEVELS.find((l) => l.key === key) || LEVELS[LEVELS.length - 1];
-    return (lvl.halfWidthClicks * verticalClickMrad) / 2;
-  }
 
   const node = el('div', { class: 'field' }, [
     el('label', { i18n: 'truingSession.certainty.label' }),
@@ -44,7 +24,6 @@ export function certaintyPicker({ verticalClickMrad, initialKey = DEFAULT_LEVEL_
 
   return {
     node,
-    getSigmaMrad: () => sigmaForLevel(select.value),
     getLevelKey: () => select.value,
     setLevel: (key) => { select.value = key; }
   };

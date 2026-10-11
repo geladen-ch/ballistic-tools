@@ -8,7 +8,7 @@ const {
   sessionPriors, planningPriors, sessionParams, mvSdSampleSizeFrom, effectiveMvSd, buildObservations,
   sessionTargets, groupTargetKey, analyseSession, bcCorrectionOffer, MIN_CHRONO_READINGS_FOR_BC,
   farTargetCheckPrompt, ZERO_FINDING_MIN_P, DIAL_TABLE_MIN_MRAD, DIAL_TABLE_MIN_SD_MULTIPLE, nextShotFromAnalysis,
-  roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, livePriors, MIN_CHRONO_READINGS_TRUSTED
+  roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN, windStrengthOf, roundBudgetOrDefault, DEFAULT_ROUND_BUDGET, livePriors, MIN_CHRONO_READINGS_TRUSTED
 } = await import('../src/ui/truing-session/session-model.js');
 const { v0MsCheckedSigma, comeUpMrad, sigmaForGroup, predictedComeUp, withConditions, BASE_PARAMS } = await import('../src/engine/truing-session.js');
 const { resolveMuzzleVelocity } = await import('../src/engine/trajectory.js');
@@ -21,7 +21,7 @@ const REF_STATE = {
 
 test('the fit priors never switch v0Ms on the chronograph checkbox; a verified MV average uses the checked-sigma formula', () => {
   assert.equal(sessionPriors({ chronographAvailable: true, mvSD: 3 }).v0Ms, 20);
-  const checked = sessionPriors({ mvAverageChecked: true, mvAverageShots: 10, mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY });
+  const checked = sessionPriors({ mvAverageChecked: true, mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY });
   assert.equal(checked.v0Ms, v0MsCheckedSigma({ mvSD: 3, nToday: 10, mvSdSampleSize: 10 }));
 });
 
@@ -32,7 +32,7 @@ test('planning priors fold the planned chronographed shots into v0Ms; without a 
 });
 
 test('once the session has enough chronograph readings of its own, they replace the checked MV average as the muzzle-velocity prior', () => {
-  const hw = { mvAverageChecked: true, mvAverageShots: 10, mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY };
+  const hw = { mvAverageChecked: true, mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY };
   const checked = sessionPriors(hw).v0Ms;
   assert.ok(checked < 2);
   // no readings: the checked average stands; from the threshold (one reading) the loose prior lets the readings' own row decide
@@ -61,14 +61,77 @@ test('the SD sample size follows its provenance', () => {
   assert.equal(mvSdSampleSizeFrom({ muzzleVelocitySDPreset: 'factoryMatch' }), null);
 });
 
-test('today\'s SD overrides the recorded one only past 10 readings and only when the F-test says so (acceptance 16)', () => {
+test('the session\'s velocity spread is the recorded SD and today\'s readings pooled by degrees of freedom', () => {
+  const homework = { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY, mvSdShots: 10 }; // 6 m/s resting on 10 shots
+  assert.deepEqual(effectiveMvSd({ homework, velocities: [] }), { mvSD: 6, mvSdSampleSize: 10, override: null }, 'no readings: the recorded SD');
+  assert.equal(effectiveMvSd({ homework, velocities: [790] }).mvSD, 6, 'one reading says nothing about a spread');
+  const readings = [0, 2, 4, 6, 8, 10].map((x) => 790 + x); // sample variance 14
+  const pooled = effectiveMvSd({ homework, velocities: readings });
+  assert.ok(Math.abs(pooled.mvSD - Math.sqrt((9 * 36 + 5 * 14) / 14)) < 1e-12);
+  assert.equal(pooled.mvSdSampleSize, 15);
+  assert.equal(pooled.override, null, 'six readings are never tested for a significant difference');
+  // readings that agree with the recorded SD leave it where it is
+  const alike = Array.from({ length: 20 }, (_, i) => 790 + (i % 2 ? 3 : -3)); // SD about 3.08, recorded 3
+  const same = effectiveMvSd({ homework: { mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY }, velocities: alike });
+  assert.ok(Math.abs(same.mvSD - 3) < 0.1 && same.override === null);
+});
+
+test('an SD given without a shot count counts as 5 shots when pooled; one with its count counts as that many', () => {
+  const readings = [0, 2, 4, 6, 8, 10].map((x) => 790 + x); // sample variance 14
+  const at = (n0) => Math.sqrt(((n0 - 1) * 36 + 5 * 14) / (n0 + 4));
+  for (const homework of [{ mvSD: 6, muzzleVelocitySDPreset: 'factoryMatch' }, { mvSD: 6, muzzleVelocitySDPreset: RIG_PRESET_KEY }, { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY }, { mvSD: 6 }]) {
+    const r = effectiveMvSd({ homework, velocities: readings });
+    assert.ok(Math.abs(r.mvSD - at(5)) < 1e-12, `${homework.muzzleVelocitySDPreset}`);
+    assert.equal(r.mvSdSampleSize, 10);
+  }
+  const typed = effectiveMvSd({ homework: { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY, mvSdShots: 25 }, velocities: readings });
+  assert.ok(Math.abs(typed.mvSD - at(25)) < 1e-12);
+  assert.ok(at(5) < at(25), 'an SD without a count gives way to today\'s readings sooner');
+});
+
+test('past 10 readings a significantly different spread is announced, and the figure used is pooled, not replaced', () => {
   const homework = { mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY };
   const wide = Array.from({ length: 20 }, (_, i) => 790 + (i % 2 ? 9 : -9));
   assert.equal(effectiveMvSd({ homework, velocities: wide.slice(0, 10) }).override, null, '10 readings: never tested');
   const over = effectiveMvSd({ homework, velocities: wide });
-  assert.ok(over.override && over.mvSD > 8 && over.mvSdSampleSize === 20);
-  const similar = Array.from({ length: 20 }, (_, i) => 790 + (i % 2 ? 3 : -3));
-  assert.equal(effectiveMvSd({ homework, velocities: similar }).override, null);
+  assert.ok(over.override && over.override.sd > 9 && over.override.sampleSize === 20 && over.override.recordedSd === 3);
+  assert.ok(over.mvSD > 3 && over.mvSD < over.override.sd, `pooled between the two (${over.mvSD})`);
+  assert.equal(over.override.usedSd, over.mvSD);
+  assert.equal(over.mvSdSampleSize, 24, "5 shots behind the rig SD (no count given) + 20 readings - 1");
+});
+
+test('the spread is measured around each group\'s expected velocity, with a common offset removed', () => {
+  const state = { ...REF_STATE, referenceTempC: 15, velocityTempSensitivity: 0.8 };
+  const cold = { tempC: 5 }; const warm = { tempC: 25 };
+  const vAt = (c) => resolveMuzzleVelocity(withConditions(state, c));
+  const homework = { mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY };
+  const jitter = [-2, 2, -1, 1, 0, 0];
+  // identical jitter in a cold and a warm group: raw readings differ by 16 m/s between the groups, around their own expected velocity they do not
+  const groups = [
+    { conditions: cold, chronoVelocities: jitter.map((j) => vAt(cold) + j) },
+    { conditions: warm, chronoVelocities: jitter.map((j) => vAt(warm) + j) }
+  ];
+  const flat = groups.flatMap((g) => g.chronoVelocities);
+  const perGroup = effectiveMvSd({ homework, velocities: flat, state, groups });
+  const raw = effectiveMvSd({ homework, velocities: flat });
+  assert.ok(raw.mvSD > perGroup.mvSD + 1, `raw ${raw.mvSD} against ${perGroup.mvSD}`);
+  // all readings 15 m/s above the specified velocity: the offset is the fit's business, not spread
+  const biased = [{ chronoVelocities: jitter.map((j) => vAt({}) + 15 + j) }];
+  const offset = effectiveMvSd({ homework, velocities: biased[0].chronoVelocities, state, groups: biased });
+  const centred = effectiveMvSd({ homework, velocities: jitter.map((j) => vAt({}) + j), state, groups: [{ chronoVelocities: jitter.map((j) => vAt({}) + j) }] });
+  assert.ok(Math.abs(offset.mvSD - centred.mvSD) < 1e-9);
+});
+
+test('a string that kept its noise parts is re-weighed with the current velocity spread; an older one keeps its recorded sigma', () => {
+  const targets = [{ key: 'a', rangeM: 600, registered: true, losAngleDeg: 0 }];
+  const noise = { r50Mrad: 0.14, v0SensMrad: -0.02, sigmaObsMrad: 0.05 };
+  const withNoise = { rangeM: 600, targetKey: 'a', observedComeUp: 5.3, shots: 3, sigmaMrad: 0.2, noise };
+  const without = { rangeM: 600, targetKey: 'a', observedComeUp: 5.3, shots: 3, sigmaMrad: 0.2 };
+  const sigmaAt = (g, mvSD) => buildObservations({ state: REF_STATE, session: { groups: [g] }, targets, rangeDeclaredFlat: true, mvSD }).find((o) => o.rangeM != null).sigmaMrad;
+  assert.ok(Math.abs(sigmaAt(withNoise, 6) - sigmaForGroup({ shots: 3, ...noise, mvSD: 6 })) < 1e-12);
+  assert.ok(sigmaAt(withNoise, 12) > sigmaAt(withNoise, 6));
+  assert.equal(sigmaAt(without, 12), 0.2);
+  assert.equal(sigmaAt(withNoise, null), 0.2, 'no spread known: the recorded sigma');
 });
 
 const LOCATION = {
@@ -122,7 +185,7 @@ function referenceSession(dragPct, velocities) {
 
 function analyse(session) {
   const targets = sessionTargets({ location: { targets: [LOCATION.targets[0], LOCATION.targets[2]] } });
-  const homework = { zeroVerified: true, trackTested: true, windConfidenceMs: 0.5, mvSD: 3, chronographAvailable: true };
+  const homework = { zeroVerified: true, trackTested: true, mvSD: 3, chronographAvailable: true };
   const observations = buildObservations({ state: REF_STATE, session, targets, rangeDeclaredFlat: true, mvSD: 3 });
   return analyseSession({
     state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true,
@@ -153,7 +216,7 @@ test('a cause the session did not determine is listed as not determined, never a
   // Click value not tested: the shots barely determine it, so its small fitted effect says nothing about the scope.
   const session = referenceSession(0, Array(10).fill(792.48));
   const targets = sessionTargets({ location: { targets: [LOCATION.targets[0], LOCATION.targets[2]] } });
-  const homework = { zeroVerified: true, trackTested: false, windConfidenceMs: 0.5, mvSD: 3, chronographAvailable: true };
+  const homework = { zeroVerified: true, trackTested: false, mvSD: 3, chronographAvailable: true };
   const observations = buildObservations({ state: REF_STATE, session, targets, rangeDeclaredFlat: true, mvSD: 3 });
   const result = analyseSession({
     state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true,
@@ -281,11 +344,11 @@ test('analyseSession accepts groups with their own conditions, and nextShotFromA
     { rangeM: 100, targetKey: 'near', observedComeUp: comeUpMrad(withConditions(truth, c1), 100), shots: 4, sigmaMrad: 0.05, conditions: c1 },
     { rangeM: 700, targetKey: 'far', observedComeUp: comeUpMrad(withConditions(truth, c2), 700), shots: 8, sigmaMrad: 0.05, conditions: c2 }
   ];
-  const homework = { zeroVerified: true, trackTested: true, windConfidenceMs: 0.5, mvSD: 3, chronographAvailable: false };
+  const homework = { zeroVerified: true, trackTested: true, mvSD: 3, chronographAvailable: false };
   const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
   const analysis = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), rechecked: true, rMax: 700, chronoN: 0, targets });
   assert.ok(analysis.warm && analysis.cov);
-  const next = nextShotFromAnalysis({ state: REF_STATE, analysis, rangeM: 500, conditions: { tempC: 24, pressureHpa: 1001, windSpeed: 4, windAngle: 90 }, crosswindSigmaMs: 1 });
+  const next = nextShotFromAnalysis({ state: REF_STATE, analysis, rangeM: 500, conditions: { tempC: 24, pressureHpa: 1001, windSpeed: 4, windAngle: 90 }, windSigma: { speedMs: 1, dirDeg: 7.5 } });
   assert.ok(Number.isFinite(next.elevationMrad) && next.elevationMrad > 2 && next.elevationMrad < 4, `elevation at 500 m ${next.elevationMrad}`);
   assert.ok(Math.abs(next.windageMrad) > 0.1, `windage from a 4 m/s crosswind ${next.windageMrad}`);
   assert.ok(next.elevationSdMrad > 0 && next.windageSdMrad > 0);
@@ -293,7 +356,7 @@ test('analyseSession accepts groups with their own conditions, and nextShotFromA
 
 // ---- The round budget advice ----
 const ADVICE_DISTANCES = [100, 200, 300, 400, 500, 600, 700, 800];
-const ADVICE_HW = { r50Mrad: 0.14, mvSD: 4, muzzleVelocitySDPreset: RIG_PRESET_KEY, windConfidenceMs: 2, backdropHeightM: 4 };
+const ADVICE_HW = { r50Mrad: 0.14, mvSD: 4, muzzleVelocitySDPreset: RIG_PRESET_KEY, windStrength: 'moderate', backdropHeightM: 4 };
 const adviceFor = (homework, currentBudget = 12) => roundBudgetAdvice({ state: REF_STATE, availableDistances: ADVICE_DISTANCES, homework: { ...ADVICE_HW, ...homework }, params: sessionParams({ ...ADVICE_HW, ...homework }), currentBudget });
 
 test('roundBudgetAdvice: a knee on the budget grid, and what ten and twenty rounds more than it would buy', () => {
@@ -316,6 +379,29 @@ test('roundBudgetAdvice: a knee on the budget grid, and what ten and twenty roun
   const before = a.points.filter((p) => p.roundBudget <= a.knee.roundBudget), after = a.points.filter((p) => p.roundBudget >= a.knee.roundBudget);
   const slope = (pts) => (pts[0].dragSd - pts[pts.length - 1].dragSd) / (pts[pts.length - 1].roundBudget - pts[0].roundBudget);
   assert.ok(slope(before) > slope(after), 'steeper before the knee than after');
+});
+
+test('roundBudgetAdvice: minimal, optimal, enhanced and deluxe tiers', () => {
+  const a = adviceFor({ chronographAvailable: true });
+  const { minimal, optimal, enhanced, deluxe } = a.tiers;
+  assert.equal(optimal.roundBudget, a.knee.roundBudget, 'optimal is the knee');
+  assert.ok(minimal.roundBudget <= optimal.roundBudget, 'minimal is no more than optimal');
+  assert.equal(enhanced.roundBudget, optimal.roundBudget + 10, 'enhanced is the optimum plus ten rounds');
+  assert.equal(deluxe.roundBudget, optimal.roundBudget + BUDGET_ADVICE_STEPS[BUDGET_ADVICE_STEPS.length - 1]);
+  assert.ok(optimal.dragSd > enhanced.dragSd && enhanced.dragSd > deluxe.dragSd, 'more rounds, less spread, tier by tier');
+  assert.ok(deluxe.dragSd < optimal.dragSd && optimal.dragSdChange === 0 && deluxe.dragSdChange < 0);
+  // minimal is the fewest rounds on the grid whose drag spread is within 10% of the optimum's, and no smaller budget is
+  assert.ok(minimal.dragSd <= optimal.dragSd * (1 + BUDGET_MINIMAL_WITHIN) + 1e-12);
+  assert.ok(minimal.dragSdChange > 0 || minimal.roundBudget === optimal.roundBudget);
+  assert.ok(a.points.filter((p) => p.roundBudget < minimal.roundBudget).every((p) => p.dragSd > optimal.dragSd * (1 + BUDGET_MINIMAL_WITHIN)));
+  assert.ok(minimal.roundBudget > BUDGET_ADVICE_GRID[0], 'not the bottom of the grid: a handful of rounds is not within 10% of the knee');
+});
+
+test('roundBudgetOrDefault: the optimum, or the fixed default when there is none to report', () => {
+  const a = adviceFor({ chronographAvailable: true });
+  assert.equal(roundBudgetOrDefault(a), a.tiers.optimal.roundBudget);
+  assert.equal(roundBudgetOrDefault(null), DEFAULT_ROUND_BUDGET);
+  assert.equal(roundBudgetOrDefault({ flat: true }), DEFAULT_ROUND_BUDGET);
 });
 
 test('roundBudgetAdvice: the caller\'s own budget is planned too, and rounds do not limit a hopeless plan', () => {
@@ -385,6 +471,129 @@ test('the recommended number of chronograph rounds grows with the spread, betwee
 });
 
 test('the homework ticks the stated uncertainty leans on are the four that feed the fit', () => {
-  assert.deepEqual(homeworkTicked({ zeroVerified: true, mvAverageChecked: true, coldBoreHandled: true }), ['zeroVerified', 'mvAverageChecked']);
+  assert.deepEqual(homeworkTicked({ zeroVerified: true, mvAverageChecked: true }), ['zeroVerified', 'mvAverageChecked']);
   assert.deepEqual(homeworkTicked({}), []);
+});
+
+test('the click value is listed first among the ticked homework items', () => {
+  assert.deepEqual(homeworkTicked({ zeroVerified: true, sightHeightMeasured: true, mvAverageChecked: true, trackTested: true }), ['trackTested', 'zeroVerified', 'sightHeightMeasured', 'mvAverageChecked']);
+});
+
+// ---- strings of at most three rounds ----
+const { splitIntoStrings, roundsLeft, nextStringShots, rotationNext, readShots, shotNoise, perShotSigma, stringSigma } = await import('../src/ui/truing-session/session-model.js');
+const { sensitivityColumns, observationSigmaMrad, MAX_STRING_SHOTS } = await import('../src/engine/truing-session.js');
+const closeTo = (actual, expected, tol, msg) => assert.ok(Math.abs(actual - expected) <= tol, `${msg}: expected ${expected}, got ${actual}`);
+
+test('a distance\'s rounds split into strings of at most three, as evenly as possible, the longer ones first', () => {
+  assert.equal(MAX_STRING_SHOTS, 3);
+  assert.deepEqual(splitIntoStrings(1), [1]);
+  assert.deepEqual(splitIntoStrings(3), [3]);
+  assert.deepEqual(splitIntoStrings(4), [2, 2]);
+  assert.deepEqual(splitIntoStrings(5), [3, 2]);
+  assert.deepEqual(splitIntoStrings(7), [3, 2, 2]);
+  assert.deepEqual(splitIntoStrings(12), [3, 3, 3, 3]);
+  assert.deepEqual(splitIntoStrings(0), []);
+  for (let n = 1; n <= 40; n++) {
+    const split = splitIntoStrings(n);
+    assert.equal(split.reduce((a, b) => a + b, 0), n, `${n} rounds are all shot`);
+    assert.ok(split.every((k) => k >= 1 && k <= MAX_STRING_SHOTS), `${n}: no string longer than three`);
+    assert.ok(Math.max(...split) - Math.min(...split) <= 1, `${n}: as even as possible`);
+  }
+  // the next string is the first of what is left: 7 rounds go 3, 2, 2
+  assert.deepEqual([7, 4, 2].map(nextStringShots), [3, 2, 2]);
+});
+
+test('rounds left per planned distance count the rounds recorded there, but not an extra group shot to unlock a retry', () => {
+  const plan = { ranges: [100, 300, 800], shots: [1, 5, 6] };
+  const session = { groups: [{ rangeM: 100, shots: 1 }, { rangeM: 300, shots: 3 }, { rangeM: 300, shots: 3, extra: true }, { rangeM: 800, shots: 2 }] };
+  assert.deepEqual([...roundsLeft(plan, session)], [[100, 0], [300, 2], [800, 4]]);
+  assert.deepEqual([...roundsLeft(plan, { groups: [{ rangeM: 300, shots: 9 }] })], [[100, 1], [300, 0], [800, 6]], 'never below zero');
+});
+
+test('after the first pass the next string goes to the distance with the most rounds left, the farther one on a tie, never at or past a missed distance', () => {
+  assert.equal(rotationNext(new Map([[100, 0], [300, 2], [800, 3]])), 800);
+  assert.equal(rotationNext(new Map([[100, 0], [300, 3], [800, 3]])), 800, 'a tie goes to the farther distance');
+  assert.equal(rotationNext(new Map([[100, 0], [300, 6], [800, 3]])), 300, 'several strings in a row at one distance are fine');
+  assert.equal(rotationNext(new Map([[100, 0], [300, 2], [800, 3]]), 800), 300, 'a missed distance is out');
+  assert.equal(rotationNext(new Map([[100, 0], [300, 0]])), null, 'nothing left: the plan is done');
+});
+
+test('a string read round by round: how many rounds were seen and their mean, with no flyer check', () => {
+  const plain = readShots([5.2, 5.4, null]);
+  assert.equal(plain.seen, 2);
+  closeTo(plain.mean, 5.3, 1e-12, 'mean of the rounds seen');
+  assert.deepEqual(readShots([5.2, 5.4, 9.9]), { seen: 3, mean: (5.2 + 5.4 + 9.9) / 3 }, 'a wild round counts like any other');
+  assert.deepEqual(readShots([null, null]), { seen: 0, mean: null });
+});
+
+test('a string\'s noise: the rifle, the velocity spread at that distance in that air, the picked certainty, and the wind\'s error', () => {
+  const noise = shotNoise({ state: REF_STATE, rangeM: 870, r50Mrad: 0.14, mvSD: 6, certaintyKey: 'fair', windConfidenceKey: 'good' });
+  closeTo(noise.v0SensMrad, sensitivityColumns(REF_STATE, 870).v0Ms, 1e-12, 'the come-up\'s sensitivity to velocity at 870 m');
+  assert.equal(noise.sigmaObsMrad, observationSigmaMrad('fair'));
+  closeTo(perShotSigma(noise), Math.sqrt((0.14 / 1.1774) ** 2 + (6 * noise.v0SensMrad) ** 2 + 0.1 ** 2), 1e-12, 'one round');
+  assert.ok(noise.windSdMrad > 0, 'the wind is never known exactly');
+  closeTo(stringSigma(noise, 3), Math.sqrt(perShotSigma(noise) ** 2 / 3 + noise.windSdMrad ** 2), 1e-12, 'three rounds: the wind\'s error is the string\'s, undivided');
+  const poor = shotNoise({ state: REF_STATE, rangeM: 870, r50Mrad: 0.14, mvSD: 6, certaintyKey: 'fair', windConfidenceKey: 'poor' });
+  const excellent = shotNoise({ state: REF_STATE, rangeM: 870, r50Mrad: 0.14, mvSD: 6, certaintyKey: 'fair', windConfidenceKey: 'excellent' });
+  assert.ok(excellent.windSdMrad < noise.windSdMrad && noise.windSdMrad < poor.windSdMrad, 'a less confident reading of the wind costs more');
+  const cold = shotNoise({ state: REF_STATE, rangeM: 870, conditions: { tempC: -15 }, r50Mrad: 0.14, mvSD: 6, certaintyKey: 'good', windConfidenceKey: 'good' });
+  assert.notEqual(cold.v0SensMrad, noise.v0SensMrad, 'the sensitivity is taken in the string\'s own air');
+});
+
+// ---- planned distances keep their targets through a re-check ----
+const { withPlanKeys, targetForStep } = await import('../src/ui/truing-session/session-model.js');
+
+test('a planned distance finds its target by key after a re-check has corrected the target\'s distance', () => {
+  const before = [{ key: 'a', rangeM: 100, registered: true }, { key: 'b', rangeM: 300, registered: true }];
+  const plan = withPlanKeys({ ranges: [100, 300], shots: [1, 6] }, before);
+  assert.deepEqual(plan.keys, ['a', 'b']);
+  const after = [{ key: 'a', rangeM: 100, registered: true }, { key: 'b', rangeM: 312, registered: true }];
+  assert.equal(targetForStep(after, plan, 300).key, 'b', 'the planned 300 m is still target b, now at 312 m');
+  assert.equal(targetForStep(after, { ranges: [100, 300], shots: [1, 6] }, 300), null, 'by distance alone it would find nothing');
+  assert.equal(targetForStep(after, plan, 312).key, 'b', 'any other distance is still looked up by distance');
+  assert.equal(withPlanKeys({ ranges: [100, 450], shots: [1, 6] }, before).keys[1], null, 'a planned distance with no target there');
+});
+
+test('the expected wind strength reaches the plan: a strong wind asks for more of the same rounds, never fewer', () => {
+  const hw = (windStrength) => ({ ...ADVICE_HW, chronographAvailable: true, windStrength });
+  const sd = (windStrength) => wholePlan({ state: REF_STATE, availableDistances: ADVICE_DISTANCES, homework: hw(windStrength), roundBudget: 20, params: sessionParams(hw(windStrength)) }).dragSd;
+  assert.ok(sd('strong') > sd('moderate'), 'a strong wind leaves the drag scale less certain');
+  assert.equal(windStrengthOf({}), 'moderate', 'moderate unless said otherwise');
+  assert.equal(windStrengthOf({ windStrength: 'gale' }), 'moderate');
+  const a = (windStrength) => roundBudgetAdvice({ state: REF_STATE, availableDistances: ADVICE_DISTANCES, homework: hw(windStrength), params: sessionParams(hw(windStrength)) });
+  assert.ok(a('strong').tiers.optimal.roundBudget >= a('moderate').tiers.optimal.roundBudget);
+});
+
+// ---- whether the ticked homework held ----
+const { homeworkCheckAxes, HOMEWORK_TRUST } = await import('../src/ui/truing-session/session-model.js');
+
+test('homeworkCheckAxes: the zero and the velocity average, when ticked, each weighed as "held" or "not done"', () => {
+  const hw = { zeroVerified: true, mvAverageChecked: true, trackTested: true, mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY };
+  const priors = sessionPriors(hw);
+  const axes = homeworkCheckAxes(hw, priors);
+  assert.deepEqual(axes.map((a) => a.key), ['zeroMrad', 'v0Ms'], 'not the click value: the shots say too little about it');
+  assert.deepEqual(axes[0].sigmas, [0.08, 0.25]);
+  assert.deepEqual(axes[0].weights, [HOMEWORK_TRUST, 1 - HOMEWORK_TRUST]);
+  assert.equal(axes[1].sigmas[1], 20);
+  assert.deepEqual(homeworkCheckAxes({}, sessionPriors({})), [], 'nothing ticked, nothing to check');
+  // once the session's own chronograph decides the velocity, its tick is not weighed any more
+  const trusted = livePriors(hw, { chronoVelocities: Array.from({ length: MIN_CHRONO_READINGS_TRUSTED }, () => 790) });
+  assert.deepEqual(homeworkCheckAxes(hw, trusted).map((a) => a.key), ['zeroMrad']);
+});
+
+test('a ticked zero the shots contradict is doubted, and the result allows for it; one they bear out is not', () => {
+  const targets = [{ key: 'near', rangeM: 100, registered: true, losAngleDeg: 0 }, { key: 'mid', rangeM: 300, registered: true, losAngleDeg: 0 }, { key: 'far', rangeM: 700, registered: true, losAngleDeg: 0 }];
+  const hw = { zeroVerified: true, trackTested: true, mvSD: 3 };
+  const run = (zeroOffMrad) => {
+    const truth = { ...REF_STATE };
+    const groups = [100, 100, 300, 700, 700].map((r, i) => ({ rangeM: r, targetKey: ['near', 'near', 'mid', 'far', 'far'][i], observedComeUp: comeUpMrad(truth, r) + zeroOffMrad, shots: 3, sigmaMrad: 0.05 }));
+    const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
+    const priors = sessionPriors(hw);
+    return analyseSession({ state: REF_STATE, observations, priors, params: sessionParams(hw), rechecked: true, rMax: 700, targets, extraAxes: homeworkCheckAxes(hw, priors) });
+  };
+  const held = run(0);
+  const broken = run(0.5); // half a mrad off: six times the verified zero's sigma
+  assert.ok(held.homeworkDoubt.zeroMrad < 0.2, `a zero that holds: ${held.homeworkDoubt.zeroMrad}`);
+  assert.ok(broken.homeworkDoubt.zeroMrad > 0.9, `a zero half a mrad off: ${broken.homeworkDoubt.zeroMrad}`);
+  assert.ok(Math.abs(broken.theta.zeroMrad - 0.5) < 0.1, `and the zero is found rather than forced into the other causes: ${broken.theta.zeroMrad}`);
 });

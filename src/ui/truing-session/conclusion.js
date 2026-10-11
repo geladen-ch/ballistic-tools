@@ -5,31 +5,35 @@
 // in its own units, and degenerate causes only ever as one joint finding.
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { bcCorrectionOffer, recommendedMvShots } from './session-model.js';
+import { bcCorrectionOffer, recommendedMvShots, HOMEWORK_DOUBT_SHOWN } from './session-model.js';
 import { recheckPrompt } from './recheck-prompt.js';
 import { flagText } from './shoot-panel.js';
-import { dist, angle, toDisplayAngle, angleLabel, vel, velLabel, toDisplayVelocityText, toDisplayWind, windLabel } from './units.js';
+import { dist, angle, toDisplayAngle, angleLabel, vel, velLabel, toDisplayVelocityText } from './units.js';
 
 const pctP = (p) => `${Math.round(p * 100)}%`;
 const paramName = (k) => t(`truingSession.params.${k}`);
 
-// A fitted quantity as value ± size, in the shooter's own units: the precision unit for angles, the velocity and wind units for
+// A fitted quantity as value (confidence ±size), in the shooter's own units: the precision unit for angles, the velocity and wind units for
 // speeds; a zero also in scope clicks.
 function sizeText(f, clickMrad) {
   const sign = f.value >= 0 ? '+' : '';
+  const conf = (text) => `(${t('truingSession.conclusion.confidenceLabel')} ±${text})`;
   switch (f.param) {
-    case 'dragPct': return `${sign}${f.value.toFixed(1)} ± ${f.size.toFixed(1)}%`;
-    case 'trackPct': return `${sign}${f.value.toFixed(2)} ± ${f.size.toFixed(2)}%`;
-    case 'zeroMrad': return `${sign}${toDisplayAngle(f.value)} ± ${toDisplayAngle(f.size)} ${angleLabel()} (${(f.value / clickMrad).toFixed(1)} ± ${(f.size / clickMrad).toFixed(1)} ${t('truingSession.certainty.clicksUnit')})`;
-    case 'v0Ms': return `${sign}${toDisplayVelocityText(f.value)} ± ${toDisplayVelocityText(f.size)} ${velLabel()}`;
-    case 'windMs': return `${sign}${toDisplayWind(f.value)} ± ${toDisplayWind(f.size)} ${windLabel()}`;
-    default: return `${sign}${f.value.toFixed(2)} ± ${f.size.toFixed(2)}`;
+    case 'dragPct': return `${sign}${f.value.toFixed(1)}% ${conf(`${f.size.toFixed(1)}%`)}`;
+    case 'trackPct': return `${sign}${f.value.toFixed(2)}% ${conf(`${f.size.toFixed(2)}%`)}`;
+    case 'zeroMrad': {
+      const clicks = t('truingSession.certainty.clicksUnit');
+      return `${sign}${toDisplayAngle(f.value)} ${angleLabel()} ${conf(`${toDisplayAngle(f.size)} ${angleLabel()}`)} = ${(f.value / clickMrad).toFixed(1)} ${clicks} ${conf(`${(f.size / clickMrad).toFixed(1)} ${clicks}`)}`;
+    }
+    case 'v0Ms': return `${sign}${toDisplayVelocityText(f.value)} ${velLabel()} ${conf(`${toDisplayVelocityText(f.size)} ${velLabel()}`)}`;
+    default: return `${sign}${f.value.toFixed(2)} ${conf(f.size.toFixed(2))}`;
   }
 }
 
 // `ctx`: { analysis, state, clickMrad, session, rangeDeclaredFlat, rMax,
 // cartridgeName, bcDecision ({ kind, fromFactor, toFactor? } | null),
-// onSaveBc(newFactor), onBcSessionOnly(), onRecheck(key, rangeM, reading),
+// mvOverride ({ sd, sampleSize, recordedSd, usedSd } | null), mvSdSaved,
+// onSaveBc(newFactor), onMvSdToArsenal(sd), onRecheck(key, rangeM, reading),
 // onNewSession() }.
 export function conclusionPanel(ctx) {
   const node = el('div', {});
@@ -134,9 +138,34 @@ export function conclusionPanel(ctx) {
     ]);
   }
 
-  // The stated bands and the grade take every ticked homework item as done.
+  // Today's chronograph spread governed the fit once it differed significantly from the recorded one; writing it to the
+  // cartridge is the only decision left.
+  if (ctx.mvOverride) {
+    const o = ctx.mvOverride;
+    const kids = [el('p', { text: t('truingSession.shoot.sdOverride', { today: vel(o.sd), n: o.sampleSize, recorded: vel(o.recordedSd), used: vel(o.usedSd) }) })];
+    if (ctx.mvSdSaved) {
+      kids.push(el('p', { class: 'hint', i18n: 'truingSession.shoot.sdSavedToArsenal' }));
+    } else {
+      const save = el('button', { i18n: 'truingSession.shoot.sdToArsenal' });
+      save.addEventListener('click', () => ctx.onMvSdToArsenal(o.sd));
+      kids.push(save);
+    }
+    item(kids);
+  }
+
+  // A ticked item the shots do not bear out: the analysis already allows for it (its bands are the wider for it); say which.
+  const DOUBT_TICK = { zeroMrad: 'zeroVerified', v0Ms: 'mvAverageChecked' };
+  const doubted = Object.entries((analysis && analysis.homeworkDoubt) || {}).filter(([, p]) => p > HOMEWORK_DOUBT_SHOWN);
+  if (doubted.length) {
+    item(doubted.map(([k, p]) => el('p', { class: 'hint warning', text: t('truingSession.conclusion.homeworkDoubt', { item: t(`truingSession.homework.tick.${DOUBT_TICK[k]}`), p: `${Math.round(100 * p)}%` }) })));
+  }
+
+  // The stated bands and the grade take every ticked homework item as done (as likely, when the shots do not say otherwise).
   if ((ctx.homeworkTicked || []).length) {
-    item([el('p', { class: 'hint', text: t('truingSession.conclusion.homeworkAssumed', { items: ctx.homeworkTicked.map((k) => t(`truingSession.homework.tick.${k}`)).join(', ') }) })]);
+    item([
+      el('p', { class: 'hint', text: t('truingSession.conclusion.homeworkAssumed', { items: ctx.homeworkTicked.map((k) => t(`truingSession.homework.tick.${k}`)).join(', ') }) }),
+      ...(ctx.homeworkTicked.includes('trackTested') ? [el('p', { class: 'hint', i18n: 'truingSession.conclusion.homeworkClickValue' })] : [])
+    ]);
   }
 
   node.appendChild(newSessionControl(ctx.onNewSession));
@@ -166,14 +195,10 @@ function bcOffer(f, ctx, pLine) {
   const decision = ctx.bcDecision && Math.abs(ctx.bcDecision.fromFactor - offer.oldFactor) < 1e-9 ? ctx.bcDecision.kind : null;
   if (decision === 'saved') {
     children.push(el('p', { class: 'hint', text: t('truingSession.conclusion.savedLabel', { factor: ctx.bcDecision.toFactor.toFixed(3) }) }));
-  } else if (decision === 'session') {
-    children.push(el('p', { class: 'hint', i18n: 'truingSession.conclusion.bcSessionOnlyLabel' }));
   } else {
     const save = el('button', { i18n: 'truingSession.conclusion.saveButton' });
     save.addEventListener('click', () => ctx.onSaveBc(offer.newFactor));
-    const sessionOnly = el('button', { class: 'secondary', i18n: 'truingSession.choice.sessionOnly' });
-    sessionOnly.addEventListener('click', () => ctx.onBcSessionOnly());
-    children.push(el('div', { class: 'field-row' }, [save, sessionOnly]));
+    children.push(save);
   }
   return children;
 }

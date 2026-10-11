@@ -22,12 +22,10 @@ import { speedOfSound } from './atmosphere.js';
 import { r50ToSD } from './dispersion-sources.js';
 
 // ---- Constants and priors ----
-export const SIGMA_POI_MRAD = 0.1 / 0.6745;      // 0.148258
-export const SIGMA_ROUND_MRAD = 0.1 / Math.sqrt(12); // 0.028868
+export const SIGMA_ROUND_MRAD = 0.1 / Math.sqrt(12); // 0.028868: a come-up known only to the nearest 0.1 mrad click
 export const MATERIALITY_MRAD = 0.1;
 export const SUPERSONIC_MACH = 1.1;
 export const DEGENERACY_R = 0.8;
-export const UNRESOLVED_SIGMA_MRAD = 0.15;       // the certainty picker's "Less certain" default
 
 // ---- dragPct's own prior is a mixture, not one flat sigma ----
 // Two independent, additive sources of "how wrong might the assumed BC
@@ -68,10 +66,10 @@ export function dragPctMarginalSigma(weights = DRAG_MIXTURE_WEIGHTS, sigmas = [S
   return Math.sqrt(weights.reduce((s, w, i) => s + w * sigmas[i] * sigmas[i], 0));
 }
 
-export const DEFAULT_PRIORS_UNCHECKED = { zeroMrad: 0.25, v0Ms: 20, dragPct: dragPctMarginalSigma(), trackPct: 1, windMs: 2 };
-export const DEFAULT_PRIORS_CHECKED_NO_CHRONO = { zeroMrad: 0.08, v0Ms: 20, dragPct: dragPctMarginalSigma(), trackPct: 0.15, windMs: 0.5 };
+export const DEFAULT_PRIORS_UNCHECKED = { zeroMrad: 0.25, v0Ms: 20, dragPct: dragPctMarginalSigma(), trackPct: 1 };
+export const DEFAULT_PRIORS_CHECKED_NO_CHRONO = { zeroMrad: 0.08, v0Ms: 20, dragPct: dragPctMarginalSigma(), trackPct: 0.15 };
 
-export const BASE_PARAMS = ['zeroMrad', 'v0Ms', 'dragPct', 'trackPct', 'windMs'];
+export const BASE_PARAMS = ['zeroMrad', 'v0Ms', 'dragPct', 'trackPct'];
 
 // ---- The observable, and sign conventions ----
 // ---- Conditions that change during a session, and the zero that does not ----
@@ -209,19 +207,76 @@ export const windageMrad = (state, rangeM) => impactAt(state, rangeM).windageCm 
 // in the cold and the heat, so a fixed sea-level reference put it in the wrong place.
 export const machAt = (state, rangeM) => computeImpact(state, rangeM).velocity / speedOfSound(state.tempC ?? 15);
 
-// ---- Observation noise for one group ----
+// ---- Observation noise for one string ----
+// A come-up is read from a string of at most MAX_STRING_SHOTS rounds: a spotter judges the centre of more than three impacts
+// at a long distance far worse than the square root of their number promises, so a distance's rounds are shot as several
+// strings, each its own reading. One round's vertical scatter has three independent parts: the rifle's own dispersion (its
+// r50, as a per-axis sigma), the muzzle-velocity spread times the come-up's sensitivity to velocity at that distance (nothing
+// at the zero, 0.16 mrad at 800 m for a .308 with 6 m/s), and how well the spotter reads the impact in the reticle. A string's
+// reading is the mean of its rounds.
+export const MAX_STRING_SHOTS = 3;
+// The spotter's reading, as the half-width of a 95% interval (two sigma), in mrad.
+export const CERTAINTY_HALF_WIDTH_MRAD = { good: 0.1, fair: 0.2, poor: 0.3 };
+export const DEFAULT_CERTAINTY_KEY = 'good';
+export const observationSigmaMrad = (key = DEFAULT_CERTAINTY_KEY) => (CERTAINTY_HALF_WIDTH_MRAD[key] ?? CERTAINTY_HALF_WIDTH_MRAD[DEFAULT_CERTAINTY_KEY]) / 2;
 
-// `resolved`: whether the group's shots could actually be told apart
-// (walked down, or camera/monitor quality) -- default false for a near
-// target read only from the firing line. An unresolved group
-// is one holistic reading, not an n-shot average: sigma does not depend
-// on `shots` at all in that case.
-export function sigmaForGroup({ shots, r50Mrad = null, resolved = true, unresolvedSigma = UNRESOLVED_SIGMA_MRAD }) {
-  if (!resolved) return unresolvedSigma;
+// One round's vertical sigma at a distance whose come-up moves `v0SensMrad` per m/s of muzzle velocity.
+export function perShotSigmaMrad({ r50Mrad = null, mvSD = null, v0SensMrad = 0, sigmaObsMrad = observationSigmaMrad() } = {}) {
   const sdRifle = r50Mrad != null ? r50ToSD(r50Mrad) : 0;
-  const perShot = Math.hypot(sdRifle, SIGMA_POI_MRAD);
-  return Math.hypot(perShot / Math.sqrt(shots), SIGMA_ROUND_MRAD);
+  const sdVelocity = mvSD ? Math.abs(v0SensMrad) * mvSD : 0;
+  return Math.sqrt(sdRifle ** 2 + sdVelocity ** 2 + sigmaObsMrad ** 2);
 }
+
+// The sigma of a string's mean come-up: one round's sigma over the square root of the rounds read, and the wind's own error on top.
+// The wind is read once per string, so its error does not shrink with the rounds in the string, only with the number of strings
+// that make up the reading (`windSdMrad`: the come-up's error from one string's wind reading; a plan's distance with more than
+// MAX_STRING_SHOTS rounds is several strings, each read in its own wind).
+export function sigmaForGroup({ shots, windSdMrad = 0, ...noise }) {
+  const strings = Math.max(1, Math.ceil(shots / MAX_STRING_SHOTS));
+  return Math.sqrt(perShotSigmaMrad(noise) ** 2 / shots + windSdMrad ** 2 / strings);
+}
+
+// ---- The wind's error ----
+// The wind read at the rifle is never the wind the bullet flies through. Each group carries a confidence in its wind reading, as
+// the 1-sigma error of the wind's speed (the absolute value, whatever its direction), and the direction is always uncertain by
+// WIND_DIRECTION_SIGMA_DEG. The errors of different groups are independent: there is no shared wind unknown in the fit.
+export const WIND_DIRECTION_SIGMA_DEG = 7.5;
+export const WIND_CONFIDENCE_SIGMA_MS = { excellent: 0.5, good: 1, fair: 2, poor: 3 };
+export const DEFAULT_WIND_CONFIDENCE_KEY = 'good';
+export const windSigmaMsFor = (key) => WIND_CONFIDENCE_SIGMA_MS[key] ?? WIND_CONFIDENCE_SIGMA_MS[DEFAULT_WIND_CONFIDENCE_KEY];
+
+// Below this called speed the called direction means nothing: the error is then spread over every direction.
+const WIND_DIRECTION_MEANINGLESS_MS = 0.5;
+const WIND_STEP_MS = 0.5;
+const WIND_STEP_DEG = 1;
+// How far the come-up (vertical) and the windage (horizontal) move, in mrad (1-sigma), for a wind of `state` read to `speedSigmaMs`
+// in speed and WIND_DIRECTION_SIGMA_DEG in direction (finite differences about the called wind).
+export function windErrorMrad({ state, rangeM, knownLosDeg = 0, speedSigmaMs, dirSigmaDeg = WIND_DIRECTION_SIGMA_DEG }) {
+  const base = knownLosDeg ? { ...state, losAngleDeg: knownLosDeg } : state;
+  const speed = base.windSpeed || 0;
+  const angle = base.windAngle ?? 90;
+  const vertical = (st) => comeUpMrad(st, rangeM);
+  const horizontal = (st) => windageMrad(st, rangeM);
+  if (speed < WIND_DIRECTION_MEANINGLESS_MS) {
+    // every direction alike: the root mean square of the head/tail and the cross sensitivities, per m/s
+    const calm = { ...base, windSpeed: 0 };
+    const head = { ...calm, windSpeed: 5, windAngle: 0 }, cross = { ...calm, windSpeed: 5, windAngle: 90 };
+    const sens = (f) => Math.sqrt(((f(head) - f(calm)) ** 2 + (f(cross) - f(calm)) ** 2) / 2) / 5;
+    return { verticalMrad: sens(vertical) * speedSigmaMs, horizontalMrad: sens(horizontal) * speedSigmaMs };
+  }
+  const bySpeed = { ...base, windSpeed: speed + WIND_STEP_MS };
+  const byAngle = { ...base, windAngle: angle + WIND_STEP_DEG };
+  const err = (f) => {
+    const f0 = f(base);
+    return Math.hypot((f(bySpeed) - f0) / WIND_STEP_MS * speedSigmaMs, (f(byAngle) - f0) / WIND_STEP_DEG * dirSigmaDeg);
+  };
+  return { verticalMrad: err(vertical), horizontalMrad: err(horizontal) };
+}
+
+// The wind a plan is made for, before any wind has been read: `expectedMs` the typical speed, `speedSigmaMs` how well it is called, the
+// direction unknown (every direction alike). The come-up's error from one string's wind, in mrad, given the distance's sensitivity
+// columns (`col.windRms`: the come-up's sensitivity to a wind of any direction, per m/s).
+export const plannedWindSdMrad = (col, wind) => (wind && col ? col.windRms * Math.hypot(wind.speedSigmaMs, wind.expectedMs * wind.dirSigmaDeg * Math.PI / 180) : 0);
 
 // ---- The far-target distance ----
 // A small memo for the physics the Prepare screen asks for over and over -- the same state, the same distances --
@@ -302,12 +357,10 @@ export const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
 
 // ---- Applying a parameter vector to a state ----
 // v0Ms and dragPct are folded into the physics (nonlinear -> re-linearise
-// every Gauss-Newton iteration); windMs is folded in as an along-axis
-// (windAngle 0) addition -- the along-axis component is the only one this
-// estimator ever fits, a deliberate simplification (real crosswind vector
-// composition is not needed for the estimator's core behaviour). zeroMrad
-// and trackPct are NOT state fields; they are added post-hoc to the
-// come-up in predictedComeUp() below.
+// every Gauss-Newton iteration). zeroMrad and trackPct are NOT state fields;
+// they are added post-hoc to the come-up in predictedComeUp() below. The
+// wind is not a fitted parameter: its error is noise on each group (see
+// windErrorMrad).
 export function applyParameters(state, theta = {}) {
   const out = { ...state };
   if (theta.v0Ms) out.muzzleVelocity = state.muzzleVelocity + theta.v0Ms;
@@ -324,28 +377,7 @@ export function applyParameters(state, theta = {}) {
     // 1.05 applied twice ends at 1.05^2 / applied-again, never overwritten.
     out.bcGainFactor = (state.bcGainFactor ?? 1) / (1 + theta.dragPct / 100);
   }
-  // windAngle forced to 0, matching sensitivityColumns's own windMs
-  // column above -- theta.windMs is specifically the along-axis
-  // (headwind/tailwind) component, not the full wind vector, and the
-  // applied state used for residuals must stay linearised consistently
-  // with the column used to fit it (the same class of bug fitSession()
-  // below has to guard against for the chrono/rangeCheck rows).
-  if (theta.windMs) Object.assign(out, alongAxisWind(state, theta.windMs));
   return out;
-}
-
-// The state's called wind with `deltaMs` added to its head/tail component only (positive = more headwind). With no
-// wind, or a pure head/tail wind, this is the plain addition it always was; with a crosswind called for the shot, the
-// crosswind is kept, where forcing the angle to zero would have turned it into a headwind.
-export function alongAxisWind(state, deltaMs) {
-  const speed = state.windSpeed || 0;
-  const angle = state.windAngle ?? 90;
-  if (speed === 0) return { windSpeed: deltaMs, windAngle: 0 };
-  if (angle === 0) return { windSpeed: speed + deltaMs, windAngle: 0 };
-  const rad = angle * Math.PI / 180;
-  const head = speed * Math.cos(rad) + deltaMs;
-  const cross = speed * Math.sin(rad);
-  return { windSpeed: Math.hypot(head, cross), windAngle: Math.atan2(cross, head) * 180 / Math.PI };
 }
 
 // Predicted come-up at range R for a target with index `t` (or no per-target
@@ -398,21 +430,22 @@ export function sensitivityColumns(state, rangeM, knownLosDeg = 0) {
     // so this is a strict generalisation, not a behaviour change for the
     // bullets the old form did work for.
     dragPct: (comeUpMrad({ ...baseState, bcGainFactor: (baseState.bcGainFactor ?? 1) / 1.05 }, rangeM) - b) / 5,
-    trackPct: 0.01 * b,
-    // windAngle forced to 0 for the perturbation: windMs is specifically
-    // the along-axis (headwind/tailwind) component, independent of
-    // whatever crosswind the ambient state also carries. Confirmed against
-    // a reference case with a pure crosswind ambient state (windAngle 90,
-    // windSpeed 0): only forcing windAngle 0 here reproduces the expected
-    // sensitivity at long range -- leaving the ambient angle in place
-    // understates it by three orders of magnitude.
-    windMs: (comeUpMrad({ ...baseState, ...alongAxisWind(baseState, 5) }, rangeM) - b) / 5
+    trackPct: 0.01 * b
   };
 }
 
 // sensitivityColumns() for the planning screens: memoised (see above) and frozen, because the result is shared.
 export function planningColumns(state, rangeM) {
-  return memoized('cols', state, rangeM, () => Object.freeze(sensitivityColumns(state, rangeM)));
+  return memoized('cols', state, rangeM, () => Object.freeze({ ...sensitivityColumns(state, rangeM), windRms: windRmsMrad(state, rangeM) }));
+}
+// The come-up's sensitivity to a wind of unknown direction, per m/s: the root mean square of its sensitivities to a head/tail and to a
+// cross wind, from a calm baseline.
+function windRmsMrad(state, rangeM) {
+  const calm = { ...state, windSpeed: 0 };
+  const c0 = comeUpMrad(calm, rangeM);
+  const head = comeUpMrad({ ...calm, windSpeed: 5, windAngle: 0 }, rangeM) - c0;
+  const cross = comeUpMrad({ ...calm, windSpeed: 5, windAngle: 90 }, rangeM) - c0;
+  return Math.sqrt((head * head + cross * cross) / 2) / 5;
 }
 
 // Per-target blunder columns, for the mixture model further down.
@@ -471,16 +504,16 @@ export function losUColumn(state, rangeM, currentU = 0, knownLosDeg = 0, refDeg 
 }
 
 // ---- The posterior (planning: no observations needed) ----
-// `groups`: [{ rangeM, shots, r50Mrad?, resolved?, sigmaMrad?, knownLosDeg?, col? }]
+// `groups`: [{ rangeM, shots, r50Mrad?, mvSD?, sigmaObsMrad?, sigmaMrad?, knownLosDeg?, col? }]
 // `priors`: { paramName: sigma }, over `params` (defaults to BASE_PARAMS)
 export function posterior({ state, groups, priors, params = BASE_PARAMS }) {
   const p = params.length;
   const prec = Array.from({ length: p }, (_, i) => Array.from({ length: p }, (_, j) => (i === j ? 1 / priors[params[i]] ** 2 : 0)));
   for (const g of groups) {
-    const sigma = g.sigmaMrad ?? sigmaForGroup(g);
     // `g.col`: this range's sensitivity columns, when the caller has already computed them (the planner tries thousands of
     // designs over the same few distances, and the columns depend on the distance alone, not on the shots fired there).
     const col = g.col || sensitivityColumns(state, g.rangeM, g.knownLosDeg || 0);
+    const sigma = g.sigmaMrad ?? sigmaForGroup({ ...g, v0SensMrad: col.v0Ms });
     for (let i = 0; i < p; i++) for (let j = 0; j < p; j++) prec[i][j] += col[params[i]] * col[params[j]] / (sigma * sigma);
   }
   const cov = inverse(prec);
@@ -545,112 +578,13 @@ export function degenerateGroups(cov, params, threshold = DEGENERACY_R, include 
   return Object.values(groups).filter((g) => g.length > 1);
 }
 
-// `r50Mrad`: the session's one resolved rifle precision -- applied to
-// every planned group, since it is a property of the rifle, not the
-// target. `nearResolved`: whether the plan's nearest target is read shot
-// by shot; false by default, since planning should assume the same
-// conservative, unresolved near-target read that Shoot defaults to.
-export function planSession({ state, availableDistances, roundBudget, priors, r50Mrad = null, nearResolved = false, minShotsPerTarget = 3, maxTargets = 3, params = BASE_PARAMS }) {
-  const ceiling = rangeAtMach(state, SUPERSONIC_MACH);
-  const usable = capCandidates(availableDistances.filter((d) => d <= ceiling), ceiling);
-  const dragIdx = params.indexOf('dragPct');
-  // The physics behind a design depends only on its distances; compute each distance's columns once, not once per allocation.
-  const columns = new Map(usable.map((r) => [r, planningColumns(state, r)]));
-  const groupsFor = (chosen, shots) => chosen.map((r, i) => ({ rangeM: r, shots: shots[i], r50Mrad, resolved: i === 0 ? nearResolved : true, col: columns.get(r) }));
-  const exact = (chosen, shots) => {
-    const groups = groupsFor(chosen, shots);
-    const post = posterior({ state, groups, priors, params });
-    return {
-      ranges: [...chosen], shots: [...shots], dragSd: post.sd[dragIdx], sd: post.sd, cov: post.cov, params,
-      zeroDragCorr: Math.abs(correlationOf(post.cov, params, 'zeroMrad', 'dragPct'))
-    };
-  };
-
-  // Ranking every design by the drag scale's posterior variance needs only one entry of the inverse. With the prior
-  // precision diagonal (P) and a design's groups adding rank-one terms w_g u_g u_g', the matrix-inversion lemma gives
-  //   var(drag) = P^-1[drag][drag] - d' (diag(sigma_g^2) + G)^-1 d,   G[g][h] = u_g' P^-1 u_h,   d[g] = P^-1[drag][drag] u_g[drag]
-  // a system of size (number of groups, at most 3) instead of a 5x5 inversion per design; G and d are computed once per
-  // candidate pair. It is used only to rank: every design within rounding of the best is then re-evaluated with the exact
-  // posterior() in enumeration order, so the chosen design and every reported number are those the exact search gives.
-  const n = usable.length;
-  const prior2 = params.map((k) => priors[k] ** 2);
-  const u = usable.map((r) => params.map((k) => columns.get(r)[k]));
-  const G = usable.map((_, a) => usable.map((__, b) => u[a].reduce((sum, ua, i) => sum + prior2[i] * ua * u[b][i], 0)));
-  const dvec = u.map((ua) => prior2[dragIdx] * ua[dragIdx]);
-  const sigma2Near = [];
-  const sigma2 = [];
-  for (let sh = 0; sh <= roundBudget; sh++) {
-    const sn = sh >= 1 ? sigmaForGroup({ shots: sh, r50Mrad, resolved: nearResolved }) : 0;
-    const so = sh >= 1 ? sigmaForGroup({ shots: sh, r50Mrad, resolved: true }) : 0;
-    sigma2Near.push(sn * sn); sigma2.push(so * so);
-  }
-  const REL_TOL = 1e-9;
-  let vMin = Infinity;
-  let near = [];
-  const idxs = new Array(maxTargets);
-  const shotsNow = new Array(maxTargets);
-  const variance = (k) => {
-    const M = (g, h) => G[idxs[g]][idxs[h]] + (g === h ? (g === 0 ? sigma2Near[shotsNow[0]] : sigma2[shotsNow[g]]) : 0);
-    const d0 = dvec[idxs[0]];
-    let q;
-    if (k === 1) q = d0 * d0 / M(0, 0);
-    else {
-      const d1 = dvec[idxs[1]];
-      if (k === 2) {
-        const m00 = M(0, 0), m01 = M(0, 1), m11 = M(1, 1);
-        q = (m11 * d0 * d0 - 2 * m01 * d0 * d1 + m00 * d1 * d1) / (m00 * m11 - m01 * m01);
-      } else {
-        const d2 = dvec[idxs[2]];
-        const m00 = M(0, 0), m01 = M(0, 1), m02 = M(0, 2), m11 = M(1, 1), m12 = M(1, 2), m22 = M(2, 2);
-        const c00 = m11 * m22 - m12 * m12, c01 = m02 * m12 - m01 * m22, c02 = m01 * m12 - m02 * m11;
-        const c11 = m00 * m22 - m02 * m02, c12 = m01 * m02 - m00 * m12, c22 = m00 * m11 - m01 * m01;
-        const det = m00 * c00 + m01 * c01 + m02 * c02;
-        q = (c00 * d0 * d0 + c11 * d1 * d1 + c22 * d2 * d2 + 2 * (c01 * d0 * d1 + c02 * d0 * d2 + c12 * d1 * d2)) / det;
-      }
-    }
-    return prior2[dragIdx] - q;
-  };
-  const chosenNow = new Array(maxTargets);
-  const record = (k) => {
-    const v = variance(k);
-    if (v < vMin * (1 + REL_TOL)) {
-      near.push({ ranges: chosenNow.slice(0, k), shots: shotsNow.slice(0, k), v });
-      if (v < vMin) { vMin = v; near = near.filter((c) => c.v <= vMin * (1 + REL_TOL)); }
-    }
-  };
-  const allocate = (k, idx, remaining) => {
-    if (idx === k - 1) {
-      if (remaining < minShotsPerTarget) return;
-      shotsNow[idx] = remaining;
-      record(k);
-      return;
-    }
-    for (let sh = minShotsPerTarget; sh <= remaining - minShotsPerTarget * (k - idx - 1); sh++) {
-      shotsNow[idx] = sh;
-      allocate(k, idx + 1, remaining - sh);
-    }
-  };
-  const pick = (start, depth) => {
-    if (depth >= 1) allocate(depth, 0, roundBudget);
-    if (depth === maxTargets) return;
-    for (let i = start; i < n; i++) { idxs[depth] = i; chosenNow[depth] = usable[i]; pick(i + 1, depth + 1); }
-  };
-  if (dragIdx < 0 || n === 0) return null;
-  pick(0, 0);
-  let best = null;
-  for (const c of near) {
-    const e = exact(c.ranges, c.shots);
-    if (!best || e.dragSd < best.dragSd) best = e;
-  }
-  return best;
-}
-
 // The posterior of an explicit plan -- `ranges` ascending, `shots` per
-// range -- built the same way planSession() builds its candidates, so
-// every "what if" comparison the Prepare screen prices is directly
-// comparable with the plan itself.
-export function planPosterior({ state, ranges, shots, priors, r50Mrad = null, nearResolved = false, params = BASE_PARAMS }) {
-  const groups = ranges.map((r, i) => ({ rangeM: r, shots: shots[i], r50Mrad, resolved: i === 0 ? nearResolved : true, col: planningColumns(state, r) }));
+// range -- with the same noise as the whole-session planner, so every
+// "what if" comparison the Prepare screen prices is directly comparable
+// with the plan itself. However a distance's rounds are split into
+// strings, their readings add up to one reading of all of them.
+export function planPosterior({ state, ranges, shots, priors, r50Mrad = null, mvSD = null, sigmaObsMrad = observationSigmaMrad(), wind = null, params = BASE_PARAMS }) {
+  const groups = ranges.map((r, i) => { const col = planningColumns(state, r); return { rangeM: r, shots: shots[i], r50Mrad, mvSD, sigmaObsMrad, windSdMrad: plannedWindSdMrad(col, wind), col }; });
   const post = posterior({ state, groups, priors, params });
   return {
     ...post,
@@ -660,53 +594,100 @@ export function planPosterior({ state, ranges, shots, priors, r50Mrad = null, ne
 }
 
 // ---- The whole-session planner ----
-// planSession() chooses up to three distances and their shots for the drag scale's posterior spread, and leaves everything the
-// session does besides -- the ladder's intermediate rungs, the shots at them -- uncounted. This planner plans every distance the
-// session visits, with the round budget as the TOTAL. A design is a set of TARGET distances (one to `maxTargets`); the ladder's
+// This planner plans every distance the session visits, the ladder's intermediate rungs included, with the round budget as the
+// TOTAL. A design is a set of TARGET distances (one to `maxTargets`); the ladder's
 // safety rungs that reaching them needs are found by walking the ladder itself (nextLadderRange, with the posterior after each
 // group), and every distance visited, targets and rungs alike, gets its own shots (at least `minShots`) so that the shots add up to
-// the budget exactly. The shots and the distances are chosen to minimise the relative posterior variance of zero, muzzle velocity and
-// drag together, the drag term weighted `criterionWeight` times: the causes are told apart (a zero error is not read as a BC error),
-// and with checked homework, whose tight priors make the zero and the velocity cheap, the drag scale is what the plan is for.
-// The nearest distance is the glance-read near group: its reading is a glance, so its shots sharpen nothing and it gets the minimum.
+// the budget exactly. Each distance's rounds are shot as strings of at most MAX_STRING_SHOTS (see sigmaForGroup); the strings'
+// readings add up to one reading of all the distance's rounds, so the planner allocates rounds, not strings. The nearest distance
+// gets the minimum: it is a check of the zero on the way out, and the zero and the drag scale are told apart by the distances beyond it.
 //
-// For a design of at most three groups the criterion has a closed form: with the prior precision diagonal, minimising the weighted
-// sum of relative variances is maximising tr(M^-1 D), M = G + diag(sigma_g^2), G[g][h] = sum_i q_i u_g[i] u_h[i] over every
-// parameter (q_i the prior variance), D[g][h] = sum over zero, velocity, drag of w_i q_i u_g[i] u_h[i] -- a system of size three,
-// not a 5x5 inversion per allocation, and every allocation of the shots is enumerated. Designs with rungs (more than three groups)
-// are allocated greedily then by swaps. Only the winner gets the exact posterior.
-export const CAUSES_WEIGHT_UNCHECKED = 1;
-export const CAUSES_WEIGHT_CHECKED = 4;
-// The tested weights: 1 when nothing is checked, 4 when the zero, the click value and the muzzle velocity are.
-export function causesWeightFor(homework) {
-  return homework && homework.zeroVerified && homework.trackTested && homework.mvAverageChecked ? CAUSES_WEIGHT_CHECKED : CAUSES_WEIGHT_UNCHECKED;
+// What the plan aims at: every cause the session fits determined as far as it matters, the drag scale to a grade-A result. Each
+// cause's posterior SD (after the others are accounted for, so a plan that leaves two causes confused scores badly on both) is
+// measured against the size at which it matters: for the zero, the velocity and the click value, the size that moves the come-up at
+// the farthest usable distance by MATERIALITY_MRAD; for the drag scale, the grade-A limit. The plan minimises the sum of those
+// squared ratios, each capped at PLAN_COST_CAP: a cause known no better than about twice its material size counts as undetermined,
+// and pinning it further earns nothing, so rounds go where they can change a verdict. A verified item's tight prior leaves it
+// little to gain, which frees rounds for what is still unknown -- homework never makes the plan worse.
+//
+// For a design of at most three groups each cause's posterior variance has a closed form: with the prior precision diagonal,
+// Var_i = q_i - q_i^2 u_i' M^-1 u_i, M = G + diag(sigma_g^2), G[g][h] = sum_i q_i u_g[i] u_h[i] over every parameter (q_i the prior
+// variance, u_i the cause's sensitivity column over the design's groups) -- a system of size three, not a full inversion per
+// allocation, and every allocation of the shots is enumerated. Designs with rungs (more than three groups) are allocated greedily then
+// by swaps. Only the winner gets the exact posterior.
+export const PLAN_COST_CAP = 4.5;
+// A session is for the come-ups at distance: when the location has anything beyond the near band, a plan must reach it. (With the
+// zero unverified and no chronograph, a plan that spends every round at the zero range can score as well as one that measures little
+// at the far target -- the far target cannot be resolved well enough to earn its rounds -- and would leave nothing trued.)
+export const PLAN_NEAR_BAND_M = 300;
+export const PLAN_DRAG_SCALE_PCT = 2; // the grade-A limit
+// The size at which each fitted cause matters, as a variance, for a plan whose farthest usable distance has sensitivity columns `farCol`.
+export function planObjectiveScales2(params, farCol) {
+  return params.map((k) => {
+    if (k === 'dragPct') return PLAN_DRAG_SCALE_PCT ** 2;
+    const sens = Math.abs(farCol[k] || 0);
+    return sens > 0 ? (MATERIALITY_MRAD / sens) ** 2 : Infinity;
+  });
+}
+// The plan's score from each cause's posterior variance (`variances`, in `params` order) and the scales above.
+export function planCost(variances, scales2) {
+  let cost = 0;
+  for (let i = 0; i < variances.length; i++) cost += Math.min(variances[i] / scales2[i], PLAN_COST_CAP);
+  return cost;
 }
 
 export function planWholeSession({
-  state, availableDistances, roundBudget, priors, r50Mrad = null, nearResolved = false, params = BASE_PARAMS, criterionWeight = 1, maxTargets = 3,
-  minShots = 1, backdropMarginM = DEFAULT_BACKDROP_MARGIN_M, confidenceZ = DEFAULT_LADDER_CONFIDENCE_Z, maxJumpFactor = DEFAULT_LADDER_MAX_JUMP_FACTOR, walkShots = 2
+  state, availableDistances, roundBudget, priors, r50Mrad = null, mvSD = null, sigmaObsMrad = observationSigmaMrad(), wind = null, params = BASE_PARAMS,
+  maxTargets = 3, minShots = 1, backdropMarginM = DEFAULT_BACKDROP_MARGIN_M, confidenceZ = DEFAULT_LADDER_CONFIDENCE_Z, maxJumpFactor = DEFAULT_LADDER_MAX_JUMP_FACTOR,
+  walkShots = 2
 }) {
-  const key = JSON.stringify([availableDistances, roundBudget, priors, r50Mrad, nearResolved, params, criterionWeight, maxTargets, minShots, backdropMarginM, confidenceZ, maxJumpFactor, walkShots]);
-  const plan = memoized('whole', state, key, () => computeWholeSession({ state, availableDistances, roundBudget, priors, r50Mrad, nearResolved, params, criterionWeight, maxTargets, minShots, backdropMarginM, confidenceZ, maxJumpFactor, walkShots }));
+  const key = JSON.stringify([availableDistances, roundBudget, priors, r50Mrad, mvSD, sigmaObsMrad, wind, params, maxTargets, minShots, backdropMarginM, confidenceZ, maxJumpFactor, walkShots]);
+  const plan = memoized('whole', state, key, () => computeWholeSession({ state, availableDistances, roundBudget, priors, r50Mrad, mvSD, sigmaObsMrad, wind, params, maxTargets, minShots, backdropMarginM, confidenceZ, maxJumpFactor, walkShots }));
   return plan && JSON.parse(JSON.stringify(plan)); // the memo's own copy is never handed out
 }
 
-function computeWholeSession({ state, availableDistances, roundBudget, priors, r50Mrad, nearResolved, params, criterionWeight, maxTargets, minShots, backdropMarginM, confidenceZ, maxJumpFactor, walkShots }) {
+// The inverse of a small symmetric positive-definite matrix: explicit for one to three groups, Gauss-Jordan beyond.
+function smallInverse(M) {
+  const k = M.length;
+  if (k === 1) return [[1 / M[0][0]]];
+  if (k === 2) {
+    const det = M[0][0] * M[1][1] - M[0][1] * M[0][1];
+    return [[M[1][1] / det, -M[0][1] / det], [-M[0][1] / det, M[0][0] / det]];
+  }
+  if (k === 3) {
+    const [m00, m01, m02] = M[0], m11 = M[1][1], m12 = M[1][2], m22 = M[2][2];
+    const c00 = m11 * m22 - m12 * m12, c01 = m02 * m12 - m01 * m22, c02 = m01 * m12 - m02 * m11;
+    const c11 = m00 * m22 - m02 * m02, c12 = m01 * m02 - m00 * m12, c22 = m00 * m11 - m01 * m01;
+    const det = m00 * c00 + m01 * c01 + m02 * c02;
+    return [[c00 / det, c01 / det, c02 / det], [c01 / det, c11 / det, c12 / det], [c02 / det, c12 / det, c22 / det]];
+  }
+  const A = M.map((row, i) => [...row, ...row.map((_, j) => (i === j ? 1 : 0))]);
+  for (let c = 0; c < k; c++) {
+    let piv = c; for (let r = c + 1; r < k; r++) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
+    [A[c], A[piv]] = [A[piv], A[c]];
+    const d = A[c][c];
+    for (let j = 0; j < 2 * k; j++) A[c][j] /= d;
+    for (let r = 0; r < k; r++) if (r !== c) { const f = A[r][c]; if (f) for (let j = 0; j < 2 * k; j++) A[r][j] -= f * A[c][j]; }
+  }
+  return A.map((row) => row.slice(k));
+}
+
+function computeWholeSession({ state, availableDistances, roundBudget, priors, r50Mrad, mvSD, sigmaObsMrad, wind, params, maxTargets, minShots, backdropMarginM, confidenceZ, maxJumpFactor, walkShots }) {
   const ceiling = rangeAtMach(state, SUPERSONIC_MACH);
   const usable = capCandidates(availableDistances.filter((d) => d <= ceiling), ceiling);
-  const zeroI = params.indexOf('zeroMrad'), v0I = params.indexOf('v0Ms'), dragI = params.indexOf('dragPct');
+  const dragI = params.indexOf('dragPct');
   if (dragI < 0 || usable.length === 0) return null;
   const columns = new Map(usable.map((r) => [r, planningColumns(state, r)]));
   const u = new Map(usable.map((r) => [r, params.map((k) => columns.get(r)[k])]));
   const q = params.map((k) => priors[k] ** 2);
-  const wTerm = params.map((_, i) => (i === dragI ? criterionWeight : (i === zeroI || i === v0I ? 1 : 0)));
-  const sigma2Near = [], sigma2 = [];
-  for (let sh = 0; sh <= roundBudget; sh++) {
-    const sn = sh >= 1 ? sigmaForGroup({ shots: sh, r50Mrad, resolved: nearResolved }) : 0;
-    const so = sh >= 1 ? sigmaForGroup({ shots: sh, r50Mrad, resolved: true }) : 0;
-    sigma2Near.push(sn * sn); sigma2.push(so * so);
-  }
-  const groupsFor = (ranges, shots) => ranges.map((r, i) => ({ rangeM: r, shots: shots[i], r50Mrad, resolved: i === 0 ? nearResolved : true, col: columns.get(r) }));
+  const scales2 = planObjectiveScales2(params, columns.get(Math.max(...usable)));
+  // one round's variance at each distance (the velocity-spread part grows with the distance); n rounds there read to 1/n of it
+  const perShot2 = new Map(usable.map((r) => [r, perShotSigmaMrad({ r50Mrad, mvSD, v0SensMrad: columns.get(r).v0Ms, sigmaObsMrad }) ** 2]));
+  // the wind's error at each distance, from one string's wind reading (see plannedWindSdMrad); a distance's strings are read in
+  // their own winds, so it falls with their number
+  const wind2 = new Map(usable.map((r) => [r, plannedWindSdMrad(columns.get(r), wind) ** 2]));
+  const stringsOf = (n) => Math.ceil(n / MAX_STRING_SHOTS);
+  const groupsFor = (ranges, shots) => ranges.map((r, i) => ({ rangeM: r, shots: shots[i], sigmaMrad: Math.sqrt(perShot2.get(r) / shots[i] + wind2.get(r) / stringsOf(shots[i])), col: columns.get(r) }));
   // the rungs a set of target distances needs: the ladder walked with `walkShots` shots at every group so far
   const walk = (targets) => {
     const visited = []; let farthest = null;
@@ -722,88 +703,82 @@ function computeWholeSession({ state, availableDistances, roundBudget, priors, r
     }
     return visited.sort((a, b) => a - b);
   };
-  // M and D for a design (the shots enter only through M's diagonal)
-  const matrices = (ranges) => {
+  // G for a design (the shots enter only through M's diagonal)
+  const gramOf = (ranges) => {
     const k = ranges.length;
-    const G = Array.from({ length: k }, () => new Array(k)), D = Array.from({ length: k }, () => new Array(k));
+    const G = Array.from({ length: k }, () => new Array(k));
     for (let a = 0; a < k; a++) for (let b = a; b < k; b++) {
-      let g = 0, d = 0;
+      let g = 0;
       const ua = u.get(ranges[a]), ub = u.get(ranges[b]);
-      for (let i = 0; i < params.length; i++) { const t = q[i] * ua[i] * ub[i]; g += t; d += wTerm[i] * t; }
-      G[a][b] = G[b][a] = g; D[a][b] = D[b][a] = d;
+      for (let i = 0; i < params.length; i++) g += q[i] * ua[i] * ub[i];
+      G[a][b] = G[b][a] = g;
     }
-    return { G, D };
+    return G;
   };
-  // tr(M^-1 D) for M = G + diag(sigma^2): explicit for one to three groups, Gauss-Jordan beyond
-  const traceOf = (G, D, shots) => {
-    const k = shots.length;
-    const s = (g) => (g === 0 ? sigma2Near[shots[0]] : sigma2[shots[g]]);
-    if (k === 1) return D[0][0] / (G[0][0] + s(0));
-    if (k === 2) {
-      const m00 = G[0][0] + s(0), m01 = G[0][1], m11 = G[1][1] + s(1);
-      return (m11 * D[0][0] - 2 * m01 * D[0][1] + m00 * D[1][1]) / (m00 * m11 - m01 * m01);
-    }
-    if (k === 3) {
-      const m00 = G[0][0] + s(0), m01 = G[0][1], m02 = G[0][2], m11 = G[1][1] + s(1), m12 = G[1][2], m22 = G[2][2] + s(2);
-      const c00 = m11 * m22 - m12 * m12, c01 = m02 * m12 - m01 * m22, c02 = m01 * m12 - m02 * m11;
-      const c11 = m00 * m22 - m02 * m02, c12 = m01 * m02 - m00 * m12, c22 = m00 * m11 - m01 * m01;
-      const det = m00 * c00 + m01 * c01 + m02 * c02;
-      return (c00 * D[0][0] + c11 * D[1][1] + c22 * D[2][2] + 2 * (c01 * D[0][1] + c02 * D[0][2] + c12 * D[1][2])) / det;
-    }
-    const A = Array.from({ length: k }, (_, i) => [...G[i].map((x, j) => (i === j ? x + s(i) : x)), ...Array.from({ length: k }, (__, j) => (i === j ? 1 : 0))]);
-    for (let c = 0; c < k; c++) {
-      let piv = c; for (let r = c + 1; r < k; r++) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
-      [A[c], A[piv]] = [A[piv], A[c]];
-      const d = A[c][c];
-      for (let j = 0; j < 2 * k; j++) A[c][j] /= d;
-      for (let r = 0; r < k; r++) if (r !== c) { const f = A[r][c]; if (f) for (let j = 0; j < 2 * k; j++) A[r][j] -= f * A[c][j]; }
-    }
-    let tr = 0;
-    for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) tr += A[a][k + b] * D[b][a];
-    return tr;
+  // the design's score for an allocation of the shots: every cause's posterior variance, capped and summed (lower is better)
+  const costOf = (ranges, G, shots) => {
+    const k = ranges.length;
+    const Minv = smallInverse(G.map((row, a) => row.map((x, b) => (a === b ? x + perShot2.get(ranges[a]) / shots[a] + wind2.get(ranges[a]) / stringsOf(shots[a]) : x))));
+    const variances = params.map((_, i) => {
+      let quad = 0;
+      for (let a = 0; a < k; a++) {
+        const ua = u.get(ranges[a])[i];
+        if (!ua) continue;
+        for (let b = 0; b < k; b++) quad += ua * Minv[a][b] * u.get(ranges[b])[i];
+      }
+      return q[i] - q[i] * q[i] * quad;
+    });
+    return planCost(variances, scales2);
   };
+  const better = (a, b) => b === null || a < b * (1 - 1e-12) - 1e-15;
   let best = null;
+  const hasFar = usable.some((r) => r > PLAN_NEAR_BAND_M);
   const consider = (targets) => {
+    if (hasFar && Math.max(...targets) <= PLAN_NEAR_BAND_M) return;
     const ranges = walk(targets);
     if (!ranges) return;
     const k = ranges.length;
     const min = ranges.map(() => minShots);
     if (k * minShots > roundBudget) return;
-    const { G, D } = matrices(ranges);
+    const G = gramOf(ranges);
+    const cost = (sh) => costOf(ranges, G, sh);
+    // the nearest distance keeps the minimum whenever there is a distance beyond it
+    const first = k > 1 ? 1 : 0;
     const shots = new Array(k);
-    let value = -Infinity, chosen = null;
+    shots[0] = minShots;
+    let value = null, chosen = null;
     if (k <= 3) {
       const allocate = (idx, remaining) => {
         if (idx === k - 1) {
           if (remaining < minShots) return;
           shots[idx] = remaining;
-          const v = traceOf(G, D, shots);
-          if (v > value * (1 + 1e-12) || chosen === null) { value = v; chosen = shots.slice(); }
+          const v = cost(shots);
+          if (better(v, value)) { value = v; chosen = shots.slice(); }
           return;
         }
         for (let sh = minShots; sh <= remaining - minShots * (k - idx - 1); sh++) { shots[idx] = sh; allocate(idx + 1, remaining - sh); }
       };
-      allocate(0, roundBudget);
+      allocate(first, roundBudget - first * minShots);
     } else {
       chosen = min.slice();
       for (let left = roundBudget - k * minShots; left > 0; left--) {
-        let bi = 0, bv = -Infinity;
-        for (let i = 0; i < k; i++) { chosen[i]++; const v = traceOf(G, D, chosen); chosen[i]--; if (v > bv) { bv = v; bi = i; } }
+        let bi = first, bv = null;
+        for (let i = first; i < k; i++) { chosen[i]++; const v = cost(chosen); chosen[i]--; if (better(v, bv)) { bv = v; bi = i; } }
         chosen[bi]++;
       }
-      value = traceOf(G, D, chosen);
+      value = cost(chosen);
       for (let pass = 0; pass < 20; pass++) {
         let improved = false;
-        for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) {
+        for (let i = first; i < k; i++) for (let j = first; j < k; j++) {
           if (i === j || chosen[i] <= minShots) continue;
           chosen[i]--; chosen[j]++;
-          const v = traceOf(G, D, chosen);
-          if (v > value * (1 + 1e-12)) { value = v; improved = true; } else { chosen[i]++; chosen[j]--; }
+          const v = cost(chosen);
+          if (better(v, value)) { value = v; improved = true; } else { chosen[i]++; chosen[j]--; }
         }
         if (!improved) break;
       }
     }
-    if (chosen && (!best || value > best.value * (1 + 1e-12))) best = { ranges, shots: chosen, targets: [...targets], value };
+    if (chosen && (!best || better(value, best.value))) best = { ranges, shots: chosen, targets: [...targets], value };
   };
   const pickTargets = (start, chosen) => {
     if (chosen.length >= 1) consider(chosen);
@@ -819,21 +794,26 @@ function computeWholeSession({ state, availableDistances, roundBudget, priors, r
   };
 }
 
-export function requiredFarDistance({ state, priors, nearM, nearShots, nearOpts = {}, farShots, targetSdPct, r50Mrad = null, step = 5 }) {
+// The nearest far distance at which a near and a far group, with the planner's noise, measure the drag scale to `targetSdPct`.
+export function requiredFarDistance({ state, priors, nearM, nearShots, farShots, targetSdPct, r50Mrad = null, mvSD = null, sigmaObsMrad = observationSigmaMrad(), wind = null, step = 5 }) {
   const ceiling = rangeAtMach(state, SUPERSONIC_MACH);
+  const noise = { r50Mrad, mvSD, sigmaObsMrad };
   const nearCol = planningColumns(state, nearM);
   for (let far = 200; far <= ceiling; far += step) {
-    const groups = [{ rangeM: nearM, shots: nearShots, r50Mrad, ...nearOpts, col: nearCol }, { rangeM: far, shots: farShots, r50Mrad, col: planningColumns(state, far) }];
+    const farCol = planningColumns(state, far);
+    const groups = [{ rangeM: nearM, shots: nearShots, ...noise, windSdMrad: plannedWindSdMrad(nearCol, wind), col: nearCol }, { rangeM: far, shots: farShots, ...noise, windSdMrad: plannedWindSdMrad(farCol, wind), col: farCol }];
     if (posterior({ state, groups, priors }).sd[BASE_PARAMS.indexOf('dragPct')] <= targetSdPct) return far;
   }
   return null;
 }
 
-export function invalidityFloor({ state, priors, nearM, nearShots, nearOpts = {}, targetSdPct = 4, r50Mrad = null, step = 5 }) {
+// The far distance below which even a far reading as good as a click allows (any number of rounds) cannot measure the drag
+// scale to `targetSdPct`.
+export function invalidityFloor({ state, priors, nearM, nearShots, targetSdPct = 4, r50Mrad = null, mvSD = null, sigmaObsMrad = observationSigmaMrad(), wind = null, step = 5 }) {
   const ceiling = rangeAtMach(state, SUPERSONIC_MACH);
   const nearCol = planningColumns(state, nearM);
   for (let far = 200; far <= ceiling; far += step) {
-    const groups = [{ rangeM: nearM, shots: nearShots, r50Mrad, ...nearOpts, col: nearCol }, { rangeM: far, sigmaMrad: SIGMA_ROUND_MRAD, col: planningColumns(state, far) }];
+    const groups = [{ rangeM: nearM, shots: nearShots, r50Mrad, mvSD, sigmaObsMrad, windSdMrad: plannedWindSdMrad(nearCol, wind), col: nearCol }, { rangeM: far, sigmaMrad: SIGMA_ROUND_MRAD, col: planningColumns(state, far) }];
     if (posterior({ state, groups, priors }).sd[BASE_PARAMS.indexOf('dragPct')] <= targetSdPct) return far;
   }
   return null;
@@ -863,34 +843,25 @@ export const TIGHTENED_LADDER_CONFIDENCE_Z = 3; // adopted for the rest of the s
 // number Range Solver shows as windage clicks) for a target at `rangeM`, in the air and wind of that shot (`conditions`),
 // with the current best fit (`theta`, from an analysis) folded in: the fitted muzzle velocity, drag scale, zero offset and
 // tracking correction. The uncertainties are the elevation's own predictive SD from the fit's covariance, and the
-// windage's SD from how well the crosswind is known (`crosswindSigmaMs`: 0 = taken as called). Windage is a prediction only:
+// windage's SD from how well the wind is known (`windSigma`: { speedMs, dirDeg } -- the 1-sigma error of the called wind's speed and
+// direction; null = taken as called); the elevation's SD takes the wind's error on top of the fit's. Windage is a prediction only:
 // the estimator is vertical-only and learns nothing from where impacts land sideways. Spin drift is included only when the
 // state has it switched on.
-export function nextShotDope({ state, conditions = null, theta = {}, cov = null, params = BASE_PARAMS, rangeM, knownLosDeg = 0, crosswindSigmaMs = 0 }) {
+export function nextShotDope({ state, conditions = null, theta = {}, cov = null, params = BASE_PARAMS, rangeM, knownLosDeg = 0, windSigma = null }) {
   const shot = withConditions(state, conditions);
   const applied = applyParameters(shot, theta);
   const losState = knownLosDeg ? { ...applied, losAngleDeg: knownLosDeg } : applied;
   const impact = computeImpact(withFixedBore(losState), rangeM);
   const elevationMrad = predictedComeUp(applied, rangeM, theta, { knownLosDeg });
   const windage = impact.windageCm * 10 / rangeM;
-  // d(windage)/d(crosswind): one metre per second more crosswind from the right (the engine's 90 degree convention),
-  // on top of whatever wind was called
-  const crossState = { ...losState, ...crosswindAdded(losState, 1) };
-  const windageSensitivity = windageMrad(crossState, rangeM) - windage;
+  const windError = windSigma ? windErrorMrad({ state: losState, rangeM, speedSigmaMs: windSigma.speedMs, dirSigmaDeg: windSigma.dirDeg }) : { verticalMrad: 0, horizontalMrad: 0 };
+  const fitSd = cov ? predictiveComeUpSd({ state: shot, theta, cov, params, rangeM, knownLosDeg }) : null;
   return {
     rangeM, elevationMrad, windageMrad: windage,
-    elevationSdMrad: cov ? predictiveComeUpSd({ state: shot, theta, cov, params, rangeM, knownLosDeg }) : null,
-    windageSdMrad: Math.abs(windageSensitivity) * crosswindSigmaMs,
+    elevationSdMrad: fitSd == null ? null : Math.hypot(fitSd, windError.verticalMrad),
+    windageSdMrad: windError.horizontalMrad,
     velocityMs: impact.velocity, timeOfFlightS: impact.tof
   };
-}
-// The called wind with `deltaMs` more crosswind (from the right) added, keeping its head/tail component.
-function crosswindAdded(state, deltaMs) {
-  const speed = state.windSpeed || 0;
-  const rad = (state.windAngle ?? 90) * Math.PI / 180;
-  const head = speed * Math.cos(rad);
-  const cross = speed * Math.sin(rad) + deltaMs;
-  return { windSpeed: Math.hypot(head, cross), windAngle: Math.atan2(cross, head) * 180 / Math.PI };
 }
 
 export function predictiveComeUpSd({ state, theta = {}, cov, params = BASE_PARAMS, rangeM, knownLosDeg = 0 }) {
@@ -1078,7 +1049,7 @@ export function planLadderWalk({ state, cov, params = BASE_PARAMS, candidateRang
 
 // ---- The estimator (Gauss-Newton, to handle the mild physics
 // nonlinearity a single linearisation at zero would miss) ----
-// `observations`: [{ rangeM, observedComeUp, shots, r50Mrad?, resolved?, sigmaMrad?, targetIndex? }]
+// `observations`: [{ rangeM, observedComeUp, shots, r50Mrad?, sigmaMrad?, targetIndex? }]
 // Per-target terms (rangeErrM_t/losU_t) are opt-in per observation via
 // `includeRangeErr`/`includeLosDeg` -- when included, they get their own
 // theta entries named `rangeErrM_<targetIndex>`/`losU_<targetIndex>`.
@@ -1241,6 +1212,12 @@ export function plannedV0Sigma({ priorSigma, chronographed, mvSD, nShots, mvSdSa
   return 1 / Math.sqrt(1 / priorSigma ** 2 + 1 / rowSigma ** 2);
 }
 
+// One reading of a distance is good to 0.2% of the distance (1 sigma), whatever the instrument: a laser's display rounds to whole metres at
+// medium and long range on top of its own accuracy, and a map or a pace count is no better. Used for the "fine" component of the blunder
+// check, for a second reading of the same target, and for deciding whether a second reading shows a different distance.
+export const RANGE_SIGMA_FRACTION = 0.002;
+export const rangeSigmaM = (rangeM) => RANGE_SIGMA_FRACTION * rangeM;
+
 // A live, in-session re-check of one target's distance via a second
 // independent laser reading -- directly informs that target's own
 // rangeErrM_t, wherever it is active (both the "fine" and "blunder"
@@ -1248,7 +1225,7 @@ export function plannedV0Sigma({ priorSigma, chronographed, mvSD, nShots, mvSdSa
 // blunderPatternForTarget, differing only in prior sigma), the same way a
 // chronograph reading directly informs v0Ms above. Modeled with the SAME
 // instrument-precision sigma as the mixture's own "fine" component
-// (0.002*R/2) by default -- a second reading with the same laser is NOT
+// (rangeSigmaM) by default -- a second reading with the same laser is NOT
 // the "two genuinely independent methods" case that drops the mixture
 // outright (several reads of the same instrument on the same,
 // consistently misidentified object still agree with each other and still
@@ -1256,7 +1233,7 @@ export function plannedV0Sigma({ priorSigma, chronographed, mvSD, nShots, mvSdSa
 // that target's own rangeErrM_t, on top of whatever the ballistic
 // residuals alone imply -- and unlike more rounds, it costs a few seconds
 // with equipment already in hand.
-export function rangeCheckObservation({ targetIndex, believedRangeM, newReadingM, sigmaM = 0.002 * believedRangeM / 2 }) {
+export function rangeCheckObservation({ targetIndex, believedRangeM, newReadingM, sigmaM = rangeSigmaM(believedRangeM) }) {
   return { kind: 'rangeCheck', targetIndex, sigmaM, residualM: newReadingM - believedRangeM };
 }
 
@@ -1441,7 +1418,7 @@ function warmContext(warmIn, fingerprint) {
 // "blunder" prior pair matches the default weights below, or the
 // re-checked pair if `rechecked` is set.
 export function blunderPatternForTarget({ state, observations, priors, targetIndex, rechecked = false, params = BASE_PARAMS, warm = null }) {
-  const fineSigma = (rangeM) => 0.002 * rangeM / 2;
+  const fineSigma = rangeSigmaM;
   const blunderSigma = 20;
   const weights = rechecked ? [0.98, 0.02] : [0.9, 0.1];
   const target = observations.find((o) => o.targetIndex === targetIndex && o.rangeM != null);
@@ -1568,7 +1545,12 @@ export function fitSessionMixture({ state, observations, priors, params = BASE_P
     const impossible = p.some((k) => k.startsWith('losU_') && (fit.theta[k] || 0) < 0);
     return { label: labelParts.join(' + '), choiceIndices, fit, logZ, weight: impossible ? 0 : weight };
   });
-  const combined = combineMixture(results, params);
+  // A hypothesis whose fit ran away (a non-finite estimate or evidence -- seen with a wide drag scale and several targets allowed to
+  // be mis-ranged at once, with too few groups to pin them) says nothing; left in, its NaN would poison every weight and the
+  // combined result. It is dropped, as long as anything else is left.
+  const finite = (r) => Number.isFinite(r.logZ) && params.every((k) => Number.isFinite(r.fit.theta[k])) && r.fit.cov.every((row) => row.every(Number.isFinite));
+  const kept = results.filter(finite);
+  const combined = combineMixture(kept.length ? kept : results, params);
   if (warm) warm.out.base = combined.theta;
   return combined;
 }
@@ -1640,8 +1622,9 @@ export const JOINT_BLUNDER_SHORTLIST = 4;
 // too tight (it changed two of the 585 lists). Sessions in which several targets really are wrong at once are the ones that
 // can lose a finding at the 0.5 line, by a hair; the cap is a parameter (`maxSimultaneous`) for exactly that reason.
 export const JOINT_BLUNDER_MAX_SIMULTANEOUS = 2;
-export function jointBlunderCheck({ state, observations, priors, targetIndices, rechecked = false, dragAxis = true, params = BASE_PARAMS, shortlist = JOINT_BLUNDER_SHORTLIST, warmIn = null, maxSimultaneous = JOINT_BLUNDER_MAX_SIMULTANEOUS }) {
-  const warm = warmContext(warmIn, JSON.stringify([state, priors, params, rechecked, dragAxis]));
+// `extraAxes`: further { kind: 'param' } axes to enumerate with the others (e.g. whether a homework item ticked as done really was).
+export function jointBlunderCheck({ state, observations, priors, targetIndices, rechecked = false, dragAxis = true, params = BASE_PARAMS, shortlist = JOINT_BLUNDER_SHORTLIST, warmIn = null, maxSimultaneous = JOINT_BLUNDER_MAX_SIMULTANEOUS, extraAxes = [] }) {
+  const warm = warmContext(warmIn, JSON.stringify([state, priors, params, rechecked, dragAxis, extraAxes]));
   // blunderPatternForTarget runs an ordinary fit, so it needs a scalar
   // dragPct prior; a caller using the dragPct axis normally omits it
   // (the axis supplies it per-hypothesis), and leaving it undefined here
@@ -1662,6 +1645,8 @@ export function jointBlunderCheck({ state, observations, priors, targetIndices, 
 
   const axes = [];
   if (dragAxis) axes.push({ kind: 'param', key: 'dragPct', sigmas: [SIGMA_DRAG_NARROW_PCT, SIGMA_DRAG_WIDE_PCT], weights: DRAG_MIXTURE_WEIGHTS, labels: ['typical', 'outlier'] });
+  const extraAxisOffset = axes.length;
+  axes.push(...extraAxes);
   const weights = rechecked ? [0.98, 0.02] : [0.9, 0.1];
 
   // A rough, theta=0 residual per target, used only to decide which terms
@@ -1705,7 +1690,7 @@ export function jointBlunderCheck({ state, observations, priors, targetIndices, 
   const losOffered = {};
   for (const ti of resolved) {
     const o = observations.find((ob) => ob.targetIndex === ti && ob.rangeM != null);
-    const laserSigma = 0.002 * o.rangeM / 2;
+    const laserSigma = rangeSigmaM(o.rangeM);
     // `losMeasured` is how a MEASURED FLAT target says so. A stored
     // location record cannot tell "confirmed flat" from "never measured"
     // -- both look like losAngleDeg 0 -- so a 0 on file keeps the mixture.
@@ -1774,7 +1759,14 @@ export function jointBlunderCheck({ state, observations, priors, targetIndices, 
     inclinationDeg[ti] = wSum > 0 ? losDegFromU(uSum / wSum) : 0;
   }
 
-  return { ...combined, marginalBlunder, marginalSomethingWrong, marginalInclined, inclinationDeg, losTargets, exactlyResolved: resolved, screened: screenedWeights != null, warm: warm.out };
+  // each extra axis's posterior weight away from its first (baseline) choice -- for a homework item, that the tick did not hold
+  const extraDoubt = {};
+  extraAxes.forEach((axis, j) => {
+    const pos = extraAxisOffset + j;
+    extraDoubt[axis.key] = combined.results.reduce((sum, r, ci) => sum + (r.choiceIndices[pos] !== 0 ? combined.posteriorWeights[ci] : 0), 0);
+  });
+
+  return { ...combined, marginalBlunder, marginalSomethingWrong, marginalInclined, inclinationDeg, losTargets, exactlyResolved: resolved, screened: screenedWeights != null, extraDoubt, warm: warm.out };
 }
 
 // ---- dragPct's own prior, run as a mixture rather than one flat sigma ----

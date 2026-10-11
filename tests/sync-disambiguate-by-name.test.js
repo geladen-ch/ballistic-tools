@@ -42,8 +42,8 @@ test('prefers the authoring device name via modifiedBy and the device registry',
 
 test('falls back to a short authoring date when modifiedBy is missing or unresolvable', () => {
   const labels = disambiguateByName([
-    { id: 'a', name: 'X', modifiedAt: '2021-03-15T12:00:00.000Z' },
-    { id: 'b', name: 'X', modifiedAt: '2021-06-01T00:00:00.000Z' }
+    { id: 'a', name: 'X', modifiedAt: new Date(2021, 2, 15, 12).toISOString() },
+    { id: 'b', name: 'X', modifiedAt: new Date(2021, 5, 1, 12).toISOString() }
   ]);
   assert.equal(labels.get('a'), 'X (added 2021-03-15)');
   assert.equal(labels.get('b'), 'X (added 2021-06-01)');
@@ -51,8 +51,8 @@ test('falls back to a short authoring date when modifiedBy is missing or unresol
 
 test('falls back to createdAt for record types without modifiedAt collision info (Rifle Precision Projects)', () => {
   const labels = disambiguateByName([
-    { id: 'a', name: 'X', createdAt: '2021-03-15T12:00:00.000Z' },
-    { id: 'b', name: 'X', createdAt: '2021-06-01T00:00:00.000Z' }
+    { id: 'a', name: 'X', createdAt: new Date(2021, 2, 15, 12).toISOString() },
+    { id: 'b', name: 'X', createdAt: new Date(2021, 5, 1, 12).toISOString() }
   ], { dateFallbackField: 'createdAt' });
   assert.equal(labels.get('a'), 'X (added 2021-03-15)');
   assert.equal(labels.get('b'), 'X (added 2021-06-01)');

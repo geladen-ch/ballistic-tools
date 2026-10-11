@@ -67,7 +67,7 @@ Cela veut dire aussi que vos marques de point de visée doivent être honnêtes.
 
 Deux des groupes d'unités de la suite entrent en jeu :
 
-- **Distance** (`m`, `yd`, `ft`) — la distance du projet.
+- **Distance** (`m`, `yd`) — la distance du projet.
 - **Petite longueur** (`mm`, `cm`, `in`) — tout ce qui se mesure sur le papier : la règle de calibration que vous saisissez, le calibre, la dispersion maximale, et tous les résultats du rapport quand le sélecteur d'unités est réglé sur l'absolu plutôt que sur l'angulaire. Comme ce sont des mesures à l'échelle d'une balle, elles sont affichées plus finement que le réglage général de la suite : **2 décimales en mm, 3 en cm et en pouces**.
 
 En interne, le moteur travaille exclusivement en millimètres et en mètres, et la conversion n'a lieu qu'à la frontière de l'affichage. Cela a une conséquence pratique qu'il est bon de connaître : **changer votre préférence d'unités ne modifie jamais les données stockées ni aucun résultat calculé.** Passez des mm aux pouces et chaque projet existant se réaffiche correctement — la calibration que vous aviez saisie à 100 mm l'an dernier affiche désormais 3,937 in, décrit la même règle, et donne exactement les mêmes statistiques de dispersion.
@@ -103,7 +103,7 @@ N'attendez pas du rapport qu'il dise quoi que ce soit de fiable avant une vingta
 **Ajouter un projet** ouvre un formulaire court :
 
 - **Titre du projet** — obligatoire. Si vous saisissez un titre qui existe déjà dans votre bibliothèque, un avertissement vous prévient que l'enregistrement écrasera l'entrée existante. C'est un avertissement, pas un blocage.
-- **Distance** — la distance de la bouche à la cible. Saisie et affichée dans l'unité de distance configurée dans les **Réglages** (m, yd ou ft) ; stockée en interne en mètres quoi qu'il arrive, de sorte que changer votre préférence plus tard réaffiche correctement les projets existants au lieu de les corrompre.
+- **Distance** — la distance de la bouche à la cible. Saisie et affichée dans l'unité de distance configurée dans les **Réglages** (m ou yd) ; stockée en interne en mètres quoi qu'il arrive, de sorte que changer votre préférence plus tard réaffiche correctement les projets existants au lieu de les corrompre.
 
   Cette valeur pilote toute conversion angulaire du rapport, alors assurez-vous que le nombre corresponde à l'unité affichée à côté. Si votre préférence est en mètres et que vous tapez `100` pour une cible que vous avez en réalité tirée à 100 *yards*, tous les chiffres en mrad et en MOA du rapport ressortent environ 9 % trop petits — et rien nulle part ne vous préviendra, parce que 100 m est parfaitement plausible.
 - **Calibre** — choisi soit dans la liste déroulante des désignations standard (la même que celle de l'Arsenal), soit saisi directement, dans votre unité de petite longueur. Il sert à dessiner les impacts au diamètre réel du canon sur le diagramme du rapport, et à rien d'autre — il n'influence aucune statistique.

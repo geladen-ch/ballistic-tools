@@ -1,18 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const { isoDate } = await import('../src/ui/iso-date.js');
+const { isoDate, isoDateTime } = await import('../src/ui/iso-date.js');
 
 test('formats a date as YYYY-MM-DD', () => {
-  assert.equal(isoDate('2026-09-21T12:00:00.000Z'), '2026-09-21');
+  assert.equal(isoDate(new Date(2026, 8, 21, 12).toISOString()), '2026-09-21');
 });
 
 test('pads a single-digit month and day', () => {
-  assert.equal(isoDate('2026-03-05T12:00:00.000Z'), '2026-03-05');
+  assert.equal(isoDate(new Date(2026, 2, 5, 12).toISOString()), '2026-03-05');
 });
 
 test('accepts an ISO string, a number of milliseconds, or a Date', () => {
-  const ms = Date.parse('2026-09-21T12:00:00.000Z');
+  const ms = new Date(2026, 8, 21, 12).getTime();
   assert.equal(isoDate(ms), '2026-09-21');
   assert.equal(isoDate(new Date(ms)), '2026-09-21');
 });
@@ -37,6 +37,19 @@ test('is the date in the viewer\'s own time zone, not the UTC date', () => {
     process.env.TZ = 'Pacific/Honolulu';
     assert.equal(isoDate('2026-09-21T23:30:00.000Z'), '2026-09-21');
     assert.equal(isoDate('2026-09-22T05:00:00.000Z'), '2026-09-21', 'before midnight there, though already the 22nd in UTC');
+  } finally {
+    if (original === undefined) delete process.env.TZ; else process.env.TZ = original;
+  }
+});
+
+test('isoDateTime formats as YYYY-MM-DD HH:MM in the viewer\'s own time zone', () => {
+  const original = process.env.TZ;
+  try {
+    process.env.TZ = 'Europe/Zurich';
+    assert.equal(isoDateTime('2026-09-21T17:05:33.000Z'), '2026-09-21 19:05');
+    process.env.TZ = 'Pacific/Honolulu';
+    assert.equal(isoDateTime('2026-09-22T05:00:00.000Z'), '2026-09-21 19:00');
+    assert.equal(isoDateTime('not a date'), '');
   } finally {
     if (original === undefined) delete process.env.TZ; else process.env.TZ = original;
   }

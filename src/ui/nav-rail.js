@@ -27,7 +27,7 @@ import {
   isInRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, onRangeSolverTabChange, setRangeSolverTab
 } from '../range-solver-nav.js';
-import { isInLocationsMode, onLocationsModeChange } from '../locations-nav.js';
+import { isInLocationsMode, onLocationsModeChange, requestLocationsDone } from '../locations-nav.js';
 import {
   isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
 } from '../location-placement-nav.js';
@@ -161,7 +161,7 @@ export function mountNavRail(container) {
   // Range Solver above, just with nothing to switch between.
   function buildLocationsMode() {
     const doneBtn = el('button', { type: 'button', class: 'done-btn' }, [checkIcon(13), el('span', { i18n: 'guns.doneButton' })]);
-    doneBtn.addEventListener('click', () => { location.hash = '#/range-solver'; });
+    doneBtn.addEventListener('click', () => requestLocationsDone());
     return el('nav', { class: 'rail-inner rail-locations-mode' }, [doneBtn]);
   }
 

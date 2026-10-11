@@ -57,7 +57,7 @@ Fucile         un fucile preciso: altezza ottica, distanza di azzeramento, passo
 I gruppi di unità coinvolti:
 
 - **Velocità** (`m/s`, `ft/s`, `mph`, `km/h`) — velocità alla volata e la sua deviazione standard.
-- **Distanza** (`m`, `yd`, `ft`) — la distanza di azzeramento di un fucile, e la distanza massima del grafico di confronto.
+- **Distanza** (`m`, `yd`) — la distanza di azzeramento di un fucile, e la distanza massima del grafico di confronto.
 - **Lunghezza piccola** (`mm`, `cm`, `in`) — altezza ottica, calibro e lunghezza del proiettile. Calibro e lunghezza sono mostrati con una precisione più fine, a scala di proiettile (2 decimali in mm, 3 in cm e pollici), la stessa precisione che il Calcolatore di precisione di tiro usa per lo stesso motivo.
 - **Passo di rigatura** (`mm`, `in`) — un proprio gruppo di unità, deliberatamente **indipendente** dalla lunghezza piccola. Un tiratore che pensa in millimetri per l'altezza ottica molto spesso cita comunque il passo di rigatura nel modo tradizionale, in pollici per giro, e cambiare la tua preferenza generale di lunghezza piccola non convertirà silenziosamente un passo di rigatura digitato come «1:8 in» in un numero in millimetri che non riconosci più.
 - **Temperatura** (`°C`, `°F`) — la temperatura di riferimento di una cartuccia per la sensibilità velocità-temperatura.

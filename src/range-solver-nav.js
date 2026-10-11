@@ -16,6 +16,9 @@ const modeListeners = new Set();
 
 let activeTab = 'target';
 const tabListeners = new Set();
+// A one-shot tab for the next entry into the section, so a round trip to
+// another screen (Locations' Done) can land back on the tab it left from.
+let nextEntryTab = null;
 
 export function isInRangeSolverMode() {
   return inRangeSolverMode;
@@ -24,13 +27,23 @@ export function isInRangeSolverMode() {
 // Called from range-solver-view.js's mount()/cleanup — nav-rail.js and
 // nav-tabbar.js each subscribe (see onRangeSolverModeChange) to swap their
 // own chrome for the Target/Wind/Atmosphere/Gun/Exit-solver control while
-// this is true. Always resets the active tab back to Target on the way
-// in — the section never remembers which tab was last open.
+// this is true. Resets the active tab back to Target on the way in — the
+// section never remembers which tab was last open — unless
+// setNextRangeSolverTab() asked for a specific one for this entry.
 export function setRangeSolverMode(on) {
   if (inRangeSolverMode === on) return;
   inRangeSolverMode = on;
-  if (on) activeTab = 'target';
+  if (on) {
+    activeTab = nextEntryTab || 'target';
+    nextEntryTab = null;
+  }
   modeListeners.forEach((fn) => fn(inRangeSolverMode));
+}
+
+// Consumed by the very next entry into the section (see
+// setRangeSolverMode), then forgotten.
+export function setNextRangeSolverTab(tab) {
+  nextEntryTab = tab;
 }
 
 export function onRangeSolverModeChange(fn) {
@@ -58,4 +71,5 @@ export function onRangeSolverTabChange(fn) {
 export function resetRangeSolverNavForTests() {
   inRangeSolverMode = false;
   activeTab = 'target';
+  nextEntryTab = null;
 }

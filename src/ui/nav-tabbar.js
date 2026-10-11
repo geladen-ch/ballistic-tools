@@ -29,7 +29,7 @@ import {
   isInRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, onRangeSolverTabChange, setRangeSolverTab
 } from '../range-solver-nav.js';
-import { isInLocationsMode, onLocationsModeChange } from '../locations-nav.js';
+import { isInLocationsMode, onLocationsModeChange, requestLocationsDone } from '../locations-nav.js';
 import {
   isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
 } from '../location-placement-nav.js';
@@ -187,7 +187,7 @@ export function mountNavTabbar(container) {
   // nav-rail.js's own buildLocationsMode() for the desktop equivalent.
   function buildLocationsModeItems() {
     const doneBtn = el('button', { type: 'button', class: 'tab-item' }, [checkIcon(19), labelSpan(t('guns.doneButton'))]);
-    doneBtn.addEventListener('click', () => { location.hash = '#/range-solver'; });
+    doneBtn.addEventListener('click', () => requestLocationsDone());
     return [doneBtn];
   }
 

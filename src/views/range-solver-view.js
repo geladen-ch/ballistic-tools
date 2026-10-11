@@ -36,6 +36,7 @@ import {
 } from '../range-solver-state.js';
 import { loadUserLocations } from '../location-library.js';
 import { locationPickerButton } from '../ui/locations/location-picker-button.js';
+import { goToLocations } from '../locations-nav.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
@@ -49,10 +50,9 @@ const DEFAULT_WIND_SPEED_MS = 0;
 const MANUAL_ENTRY_VALUE = '';
 
 // One independently-chosen round number per unit — not a conversion of a
-// single metric default into the others (1500 ft isn't "500 m in feet",
-// it's its own sensible round number for someone thinking in feet) — so
-// the table is keyed straight off the unit symbol.
-const TARGET_RANGE_DEFAULTS = { m: 500, yd: 500, ft: 1500 };
+// single metric default into the others — so the table is keyed straight
+// off the unit symbol.
+const TARGET_RANGE_DEFAULTS = { m: 500, yd: 500 };
 // Wind speed's own unit-aware step/decimals are wind-control.js's own
 // concern now (its WIND_SPEED_STEPS table there) — every windControl()
 // caller gets the same stepping, not just this one.
@@ -159,7 +159,7 @@ export function mount(container) {
   const targetSelect = el('select', { id: 'rangeSolverTargetSelect', class: 'range-solver-target-select' });
   const openLocationsButton = locationPickerButton({
     label: t('rangeSolverLocations.manageButtonLabel'),
-    onClick: () => { location.hash = '#/locations'; }
+    onClick: goToLocations
   });
   const openPhotoOverlayButton = photoPickerButton({
     label: t('rangeSolverLocations.photoPickerButtonLabel'),
@@ -299,7 +299,7 @@ export function mount(container) {
   const rangeCard = rangeCardPanel({
     onSelectTarget: (targetId) => selectTarget(targetId),
     indicatorGlyphs,
-    onManageLocations: () => { location.hash = '#/locations'; }
+    onManageLocations: goToLocations
   });
   const rangeCardTab = el('div', { class: 'range-solver-tab-panel range-card-tab-panel' }, [rangeCard.node]);
   // wind.node's other possible parent — see applyActiveTab()'s reparenting

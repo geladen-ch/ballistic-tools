@@ -13,3 +13,13 @@ export function isoDate(value) {
   const pad = (n) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
+
+// The same, plus the time as "YYYY-MM-DD HH:MM" (24-hour, minutes), still in
+// the viewer's own time zone — for a "last modified" line where the time of
+// day matters, not just the day.
+export function isoDateTime(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${isoDate(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}

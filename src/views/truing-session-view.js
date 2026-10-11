@@ -11,26 +11,28 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { loadRifleState, loadAtmosphereState } from '../shot-state.js';
 import { loadUserRifles, saveUserRifle } from '../user-library.js';
 import { goToGuns } from '../guns-nav.js';
-import { loadUserLocations, saveUserLocation } from '../location-library.js';
+import { goToLocations } from '../locations-nav.js';
+import { loadUserLocations } from '../location-library.js';
 import { loadRangeSolverLocationState } from '../range-solver-state.js';
 import { locationPickerButton } from '../ui/locations/location-picker-button.js';
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
 import { loadTruingSessionState, saveTruingSessionState, clearTruingSessionKeys } from '../truing-session-state.js';
 import {
-  rangeAtMach, grade, requiredFarDistance, SUPERSONIC_MACH, DEFAULT_LADDER_CONFIDENCE_Z
+  rangeAtMach, rangeSigmaM, SUPERSONIC_MACH, DEFAULT_LADDER_CONFIDENCE_Z
 } from '../engine/truing-session.js';
 import { homeworkAndEquipmentPanel, locationIntakePanel } from '../ui/truing-session/entry-gate.js';
-import { optimalRangePanel, rangeGradingPanel } from '../ui/truing-session/range-grading.js';
+import { optimalRangePanel, rangeGradingPanel, roundBudgetPanel, calculatingPanel } from '../ui/truing-session/range-grading.js';
+import { requestPrepare, requestAnalysis } from '../ui/truing-session/prepare-planner.js';
 import { shootPanel } from '../ui/truing-session/shoot-panel.js';
 import { conclusionPanel } from '../ui/truing-session/conclusion.js';
 import { verticalClickMradFrom, horizontalClickMradFrom } from '../ui/truing-session/certainty-picker.js';
-import { locationChoice } from '../ui/truing-session/recheck-prompt.js';
+import { sessionOnlyNotice } from '../ui/truing-session/recheck-prompt.js';
 import { conditionsCard, conditionsSummary } from '../ui/truing-session/conditions.js';
 import { dist, angle, missExample } from '../ui/truing-session/units.js';
 import {
-  sessionTargets, sessionParams, livePriors, planningPriors, effectiveMvSd, buildObservations, wholePlan,
-  analyseSession, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked,
-  DEFAULT_ROUND_BUDGET, DEFAULT_NEAR_SHOTS, DEFAULT_FAR_SHOTS
+  sessionTargets, sessionParams, livePriors, effectiveMvSd, buildObservations, wholePlan,
+  homeworkCheckAxes, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked, withPlanKeys,
+  DEFAULT_ROUND_BUDGET
 } from '../ui/truing-session/session-model.js';
 
 // Everything "start a new session" clears. Preferences -- the homework
@@ -41,7 +43,7 @@ const SESSION_KEYS = [
   'rangeRecheckedThisSession', 'rangeDeclaredFlat', 'naturalTargetsAnswer', 'naturalGapsClosed', 'bcDecision',
   'conditionsConfirmed', 'sessionConditions'
 ];
-const DAY_SPECIFIC_HOMEWORK = ['zeroVerified', 'mvAverageChecked', 'coldBoreHandled'];
+const DAY_SPECIFIC_HOMEWORK = ['zeroVerified', 'mvAverageChecked'];
 
 function findActiveArsenalConfig() {
   const rifleState = loadRifleState();
@@ -91,7 +93,7 @@ export function mount(container) {
   if (!activeLocation || activeLocation.targets.length === 0) {
     root.appendChild(el('h1', { i18n: 'truingSession.title' }));
     root.appendChild(el('p', { i18n: 'truingSession.gate.needsLocation' }));
-    root.appendChild(locationPickerButton({ label: t('truingSession.gate.openLocationsButton'), onClick: () => { location.hash = '#/locations'; } }));
+    root.appendChild(locationPickerButton({ label: t('truingSession.gate.openLocationsButton'), onClick: goToLocations }));
     return () => { disposed = true; };
   }
 
@@ -137,7 +139,12 @@ export function mount(container) {
     if (shared) setPersisted({ conditions: { ...shared } });
   }
   let conditionsTimer = null;
-  let refreshPrepareStart = null; // the Prepare screen's readouts and Start button, while that screen is showing
+  let refreshPrepareStart = null; // the Prepare screen's Start button, while that screen is showing
+  // the planning worker's last answer for the Prepare screen ({ key, data }), and the number of the newest request sent to it
+  let prepareResult = null;
+  let prepareTicket = 0;
+  // the newest Conclude analysis asked for (an answer to an older one is dropped)
+  let concludeTicket = 0;
   function onConditionsInput() {
     // one re-render after the typing stops: the plan is recomputed for the new air, and typing must not lose its focus
     clearTimeout(conditionsTimer);
@@ -188,10 +195,9 @@ export function mount(container) {
     return s;
   }
 
-  // A registered target's distance/angle corrected mid-session gets the
-  // "update the location card or use this session only" two-way choice;
-  // the pending ask survives a re-render.
-  let pendingLocationChoice = null;
+  // A registered target's distance/angle corrected mid-session is kept for this session only; the notice saying so survives a
+  // re-render until it is dismissed.
+  let pendingLocationNotice = null;
 
   // A re-render replaces every control of the phase, and a control that is being typed in must not be one of them.
   // The conditions card is never rebuilt (it stays in its host from one render to the next); for anything else that had the
@@ -225,12 +231,12 @@ export function mount(container) {
     if (phase === 'prepare') {
       if (conditions.node.parentNode !== conditionsHost) conditionsHost.appendChild(conditions.node);
       // the cartridge's zero atmosphere (Arsenal) is where the zero was set; the engine reads it from the state
-      conditions.refreshZeroNote(state.zeroAtmosphere ?? null);
+      conditions.refreshZeroNote(state.zeroAtmosphere ?? null, state.zeroRange);
     } else {
       clear(conditionsHost);
     }
     if (phase !== 'prepare') phaseContainer.appendChild(el('p', { class: 'hint', text: t('truingSession.conditions.used', { summary: conditionsSummary(sessionConditionValues()) }) }));
-    if (pendingLocationChoice) phaseContainer.appendChild(pendingLocationChoice());
+    if (pendingLocationNotice) phaseContainer.appendChild(pendingLocationNotice());
     if (phase === 'prepare') renderPrepare(state);
     else if (phase === 'shoot') renderShoot(state);
     else renderConclude(state);
@@ -246,70 +252,69 @@ export function mount(container) {
     });
     setHomework(homeworkPanel.getState());
 
-    const ceiling = rangeAtMach(state, SUPERSONIC_MACH);
     const all = targets();
     const registered = all.filter((tg) => tg.registered).map((tg) => tg.rangeM);
     const allDistances = all.map((tg) => tg.rangeM);
-    const hw = homework();
-    const planPriors = planningPriors(hw, { nShots: DEFAULT_NEAR_SHOTS + DEFAULT_FAR_SHOTS });
-    const bandArgs = { state, priors: planPriors, nearM: state.zeroRange, nearShots: DEFAULT_NEAR_SHOTS, nearOpts: { resolved: false }, farShots: DEFAULT_FAR_SHOTS, r50Mrad: hw.r50Mrad };
-    const farBandLow = requiredFarDistance({ ...bandArgs, targetSdPct: 2 }) ?? requiredFarDistance({ ...bandArgs, targetSdPct: 3 });
-    const farOptimumM = rangeAtMach(state, 1.15);
-    const farLow = farBandLow ?? farOptimumM * 0.9;
-    const savedPlan = wholePlan({ state, availableDistances: registered, homework: hw, roundBudget: hw.roundBudget || DEFAULT_ROUND_BUDGET, params: sessionParams(hw) });
-    const gaps = {
-      nearGap: !allDistances.some((d) => d >= state.zeroRange && d <= 300),
-      farGap: !allDistances.some((d) => d >= farLow && d <= ceiling),
-      alreadyGradeA: !!savedPlan && grade(savedPlan.dragSd).letter === 'A',
-      zeroRangeM: state.zeroRange, farOptimumM, farBandLowM: farBandLow, farBandHighM: ceiling
-    };
+    // Every number below comes from the planning worker (prepare-compute.js); until it answers, the panels say they are calculating.
+    // A result for exactly the same inputs is drawn at once, so redrawing the screen does not start over.
+    const requestFor = (h) => ({ state, homework: h, availableDistances: allDistances, registeredDistances: registered, roundBudget: h.roundBudget || null });
+    const keyOf = (request) => JSON.stringify(request);
+    const ready = prepareResult && prepareResult.key === keyOf(requestFor(homework())) ? prepareResult.data : null;
 
+    // Top to bottom: what to bring, what to have done, the best distances, the distances to re-check, whether this range will do,
+    // and how many rounds to bring.
+    // the expected wind belongs with the weather above, in the conditions card
+    clear(conditions.windHost);
+    conditions.windHost.appendChild(homeworkPanel.windStrengthNode);
+    phaseContainer.appendChild(homeworkPanel.equipmentNode);
+    phaseContainer.appendChild(homeworkPanel.homeworkNode);
     const optimalHost = el('div');
     phaseContainer.appendChild(optimalHost);
-    phaseContainer.appendChild(homeworkPanel.node);
 
     const intake = locationIntakePanel({
-      location: activeLocation, gaps,
+      location: activeLocation, gaps: ready ? ready.gaps : null,
       persisted: { getPersisted, setPersisted },
-      onChangeLocation: () => { location.hash = '#/locations'; },
+      backdropNode: homeworkPanel.backdropNode,
+      onChangeLocation: goToLocations,
       // an edited distance or angle is applied when the field is left; drawing again at once would destroy the field the
       // shooter tabbed into, so those wait for a pause
       onCommit: (edited) => (edited ? scheduleRender() : renderPhase())
     });
     phaseContainer.appendChild(intake.node);
 
-    const budgetInput = el('input', { type: 'number', min: 6, max: 60, step: 1, value: hw.roundBudget || DEFAULT_ROUND_BUDGET });
-    budgetInput.addEventListener('change', () => {
-      const v = parseInt(budgetInput.value, 10);
-      if (!Number.isFinite(v) || v < 6) return;
-      setHomework({ roundBudget: v });
-      refreshReadouts();
-    });
-    phaseContainer.appendChild(el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.prepare.roundBudgetLabel' }), budgetInput]));
-
     const gradingHost = el('div');
     phaseContainer.appendChild(gradingHost);
     const farCheckHost = el('div');
     phaseContainer.appendChild(farCheckHost);
+    const roundsPanel = roundBudgetPanel({ onChange: (n) => { setHomework({ roundBudget: n }); refreshReadouts(); } });
+    phaseContainer.appendChild(roundsPanel.node);
     const startBlockedHint = el('p', { class: 'hint warning', i18n: 'truingSession.prepare.startBlockedHint' });
     const startBlockedConditions = el('p', { class: 'hint warning', i18n: 'truingSession.prepare.startBlockedConditions' });
     const startButton = el('button', { i18n: 'truingSession.prepare.startShootingButton' });
     let currentPlan = null;
     startButton.addEventListener('click', () => {
       if (!currentPlan) return;
-      setPersisted({ plan: currentPlan, sessionConditions: conditions.getValues(), shootSession: getPersisted('shootSession', null) || emptyShootSession() });
+      setPersisted({ plan: withPlanKeys(currentPlan, targets()), sessionConditions: conditions.getValues(), shootSession: getPersisted('shootSession', null) || emptyShootSession() });
       goToPhase('shoot');
     });
 
-    function refreshReadouts() {
-      setHomework(homeworkPanel.getState());
+    function refreshStart() {
+      const recheckedYet = intake.getRangeRecheckedThisSession();
+      const conditionsConfirmed = conditions.isConfirmed();
+      startButton.disabled = !recheckedYet || !conditionsConfirmed || !currentPlan;
+      startBlockedHint.style.display = recheckedYet ? 'none' : '';
+      startBlockedConditions.style.display = conditionsConfirmed ? 'none' : '';
+    }
+    function drawReadouts(data) {
       const h = homework();
       clear(optimalHost);
-      optimalHost.appendChild(optimalRangePanel({ state, homework: h }).node);
+      optimalHost.appendChild(optimalRangePanel({ state, data }).node);
       clear(gradingHost);
-      const grading = rangeGradingPanel({ state, homework: h, availableDistances: allDistances, roundBudget: h.roundBudget || DEFAULT_ROUND_BUDGET });
+      const grading = rangeGradingPanel({ homework: h, data });
       gradingHost.appendChild(grading.node);
       currentPlan = grading.plan;
+      roundsPanel.update({ advice: data.advice, roundBudget: data.roundBudget, isDefault: data.isDefault });
+      intake.setGaps(data.gaps);
       clear(farCheckHost);
       const farCheck = currentPlan && farTargetCheckPrompt({ planRanges: currentPlan.ranges, rangeDeclaredFlat: intake.getRangeDeclaredFlat() });
       if (farCheck) {
@@ -318,14 +323,35 @@ export function mount(container) {
           text: t(farCheck.needsAngle ? 'truingSession.prepare.farCheckDistanceAngle' : 'truingSession.prepare.farCheckDistance', { far: dist(farCheck.farM), err: dist(20), cost: angle(0.3, 1), ...missExample() })
         }));
       }
-      const recheckedYet = intake.getRangeRecheckedThisSession();
-      const conditionsConfirmed = conditions.isConfirmed();
-      startButton.disabled = !recheckedYet || !conditionsConfirmed || !currentPlan;
-      startBlockedHint.style.display = recheckedYet ? 'none' : '';
-      startBlockedConditions.style.display = conditionsConfirmed ? 'none' : '';
+      refreshStart();
     }
-    refreshReadouts();
-    refreshPrepareStart = refreshReadouts;
+    function refreshReadouts() {
+      setHomework(homeworkPanel.getState());
+      const request = requestFor(homework());
+      const key = keyOf(request);
+      if (prepareResult && prepareResult.key === key) { drawReadouts(prepareResult.data); return; }
+      // the newest request wins: an answer to an older one is dropped
+      const ticket = ++prepareTicket;
+      currentPlan = null;
+      clear(optimalHost);
+      optimalHost.appendChild(calculatingPanel('truingSession.prepare.optimalHeading'));
+      clear(gradingHost);
+      gradingHost.appendChild(calculatingPanel('truingSession.rangeGrading.heading'));
+      clear(farCheckHost);
+      roundsPanel.calculating();
+      refreshStart();
+      requestPrepare(request).then((data) => {
+        if (disposed || ticket !== prepareTicket) return;
+        prepareResult = { key, data };
+        drawReadouts(data);
+      }, () => {
+        if (disposed || ticket !== prepareTicket) return;
+        clear(gradingHost);
+        gradingHost.appendChild(el('p', { class: 'hint warning', i18n: 'truingSession.prepare.calculationFailed' }));
+      });
+    }
+    if (ready) drawReadouts(ready); else refreshReadouts();
+    refreshPrepareStart = refreshStart;
 
     phaseContainer.appendChild(startBlockedHint);
     phaseContainer.appendChild(startBlockedConditions);
@@ -343,35 +369,42 @@ export function mount(container) {
     let plan = getPersisted('plan', null);
     if (!plan) {
       const p = wholePlan({ state, availableDistances: tgs.map((tg) => tg.rangeM), homework: hw, roundBudget: hw.roundBudget || DEFAULT_ROUND_BUDGET, params });
-      plan = p ? { ranges: p.ranges, shots: p.shots, targets: p.targets } : { ranges: [], shots: [] };
+      plan = p ? withPlanKeys({ ranges: p.ranges, shots: p.shots, targets: p.targets }, tgs) : { ranges: [], shots: [] };
+    } else if (!plan.keys) {
+      // a plan saved before plans carried their targets' keys: tie them now, before any further re-check can move a target
+      plan = withPlanKeys(plan, tgs);
+      setPersisted({ plan });
     }
-    const mvStatus = () => effectiveMvSd({ homework: hw, velocities: session.chronoVelocities });
+    const mvStatus = () => effectiveMvSd({ homework: hw, velocities: session.chronoVelocities, state, groups: session.groups });
     const observations = () => {
       const mv = mvStatus();
       return buildObservations({ state, session, targets: tgs, rangeDeclaredFlat, mvSD: mv.mvSD, mvSdSampleSize: mv.mvSdSampleSize });
     };
+    // The analysis runs in the planning worker (it enumerates many hypotheses, more with every ticked homework item it checks):
+    // resolves with analyseSession's result.
     const analyse = (obs) => {
-      const result = analyseSession({
-        state, observations: obs, priors: livePriors(hw, session), params, rechecked: getPersisted('rangeRecheckedThisSession', false),
+      const priors = livePriors(hw, session);
+      return requestAnalysis({
+        // the distances are taken as possibly mis-ranged (10 %) even once the shooter has confirmed them: simulated, the lower
+        // 'rechecked' prior (2 %) was too confident even when true, and cost wrong BC corrections whenever mis-ranging was commoner
+        state, observations: obs, priors, params, rechecked: false,
         rMax: workingRangeMax({ state, targets: tgs, session }), clickMrad, chronoN: chronoCount(session),
-        targets: tgs, plan, triedRanges: session.triedRanges, missedRanges: session.missedRanges, warm: liveWarm
-      });
-      liveWarm = result.warm;
-      return result;
+        targets: tgs, plan, triedRanges: session.triedRanges, missedRanges: session.missedRanges, warm: liveWarm,
+        extraAxes: homeworkCheckAxes(hw, priors)
+      }).then((result) => { liveWarm = result.warm; return result; });
     };
     const persistSession = () => setPersisted({ shootSession: session });
     return { hw, session, tgs, params, get priors() { return livePriors(hw, session); }, rangeDeclaredFlat, clickMrad, plan, mvStatus, observations, analyse, persistSession };
   }
 
-  // Record the re-check, and offer the two-way location choice when a
-  // registered target's distance or angle turned out different.
+  // Record the re-check, and keep a registered target's corrected distance or angle for this session.
   function handleRecheck(ctx, targetKey, believedRangeM, { newReadingM, angleDeg }) {
     const { session } = ctx;
     session.rangeChecks.push({ targetKey, believedRangeM, newReadingM });
     if (angleDeg != null) session.angleChecks = { ...session.angleChecks, [targetKey]: angleDeg };
     ctx.persistSession();
     const tg = ctx.tgs.find((x) => x.key === targetKey);
-    const rangeChanged = Math.abs(newReadingM - believedRangeM) > 2 * (0.002 * believedRangeM / 2);
+    const rangeChanged = Math.abs(newReadingM - believedRangeM) > 2 * rangeSigmaM(believedRangeM);
     const angleChanged = angleDeg != null && Math.abs(angleDeg - (tg ? tg.losAngleDeg || 0 : 0)) >= 0.5;
     if (tg && tg.registered && (rangeChanged || angleChanged)) {
       const edit = {};
@@ -379,25 +412,11 @@ export function mount(container) {
       const name = tg.name || formatTargetSummary(tg.rangeM, tg.losAngleDeg);
       if (rangeChanged) { edit.rangeM = newReadingM; changes.push({ name, field: 'range', from: tg.rangeM, to: newReadingM }); }
       if (angleChanged) { edit.losAngleDeg = angleDeg; changes.push({ name, field: 'angle', from: tg.losAngleDeg || 0, to: angleDeg }); }
-      pendingLocationChoice = () => locationChoice({
-        changes,
-        onUpdateCard: () => {
-          activeLocation.targets = activeLocation.targets.map((x) => (x.id === targetKey ? { ...x, ...edit } : x));
-          saveUserLocation({ ...activeLocation });
-          const overrides = { ...getPersisted('targetOverrides', {}) };
-          delete overrides[targetKey];
-          setPersisted({ targetOverrides: overrides });
-          pendingLocationChoice = null;
-          renderPhase();
-        },
-        onSessionOnly: () => {
-          const overrides = { ...getPersisted('targetOverrides', {}) };
-          overrides[targetKey] = { ...(overrides[targetKey] || {}), ...edit };
-          setPersisted({ targetOverrides: overrides });
-          pendingLocationChoice = null;
-          renderPhase();
-        }
-      }).node;
+      // held for this session only: the location is never written to
+      const overrides = { ...getPersisted('targetOverrides', {}) };
+      overrides[targetKey] = { ...(overrides[targetKey] || {}), ...edit };
+      setPersisted({ targetOverrides: overrides });
+      pendingLocationNotice = () => sessionOnlyNotice({ changes, onDismiss: () => { pendingLocationNotice = null; renderPhase(); } }).node;
     }
     renderPhase();
   }
@@ -407,13 +426,12 @@ export function mount(container) {
     const ctx = sessionContext(state);
     const panel = shootPanel({
       state, params: ctx.params, getPriors: () => ctx.priors, session: ctx.session, targets: ctx.tgs, plan: ctx.plan,
-      ceiling: rangeAtMach(state, SUPERSONIC_MACH), clickMrad: ctx.clickMrad, clickHorizontalMrad: horizontalClickMradFrom(rifle), crosswindSigmaMs: ctx.hw.windConfidenceMs ?? 2, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
+      ceiling: rangeAtMach(state, SUPERSONIC_MACH), clickMrad: ctx.clickMrad, clickHorizontalMrad: horizontalClickMradFrom(rifle), rangeDeclaredFlat: ctx.rangeDeclaredFlat,
       r50Mrad: ctx.hw.r50Mrad, chronographAvailable: !!ctx.hw.chronographAvailable, startConditions: sessionConditionValues(),
       getHomework: homework, setHomework,
       buildObservations: ctx.observations, analyse: ctx.analyse, mvStatus: ctx.mvStatus,
       onChange: ctx.persistSession,
       onRecheck: (key, rangeM, reading) => handleRecheck(ctx, key, rangeM, reading),
-      onMvToArsenal: (sd) => saveCartridgePatch({ muzzleVelocitySD: Math.round(sd * 10) / 10 }),
       onAddNaturalTarget: (rangeM) => {
         const natural = getPersisted('naturalTargets', []);
         if (!natural.some((n) => n.rangeM === rangeM)) setPersisted({ naturalTargets: [...natural, { rangeM }] });
@@ -434,18 +452,37 @@ export function mount(container) {
   // ---- Conclude ----
   function renderConclude(state) {
     const ctx = sessionContext(state);
-    const analysis = ctx.session.groups.length ? ctx.analyse(ctx.observations()) : null;
+    if (!ctx.session.groups.length) { drawConclusion(state, ctx, null); return; }
+    const ticket = ++concludeTicket;
+    const waiting = el('p', { class: 'hint', i18n: 'truingSession.prepare.calculating' });
+    phaseContainer.appendChild(waiting);
+    ctx.analyse(ctx.observations()).then((analysis) => {
+      if (disposed || ticket !== concludeTicket || phase !== 'conclude') return;
+      if (waiting.parentNode) waiting.parentNode.removeChild(waiting);
+      drawConclusion(state, ctx, analysis);
+    }, () => {
+      if (disposed || ticket !== concludeTicket) return;
+      waiting.textContent = t('truingSession.prepare.calculationFailed');
+    });
+  }
+  function drawConclusion(state, ctx, analysis) {
     const panel = conclusionPanel({
       analysis, state, clickMrad: ctx.clickMrad, session: ctx.session, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
       rMax: workingRangeMax({ state, targets: ctx.tgs, session: ctx.session }),
       conditionsText: conditionsSummary(sessionConditionValues()), homeworkTicked: homeworkTicked(ctx.hw), mvSD: ctx.mvStatus().mvSD,
       cartridgeName: cartridge.name, bcDecision: getPersisted('bcDecision', null),
+      mvOverride: ctx.mvStatus().override, mvSdSaved: ctx.session.mvDecision === 'arsenal',
+      onMvSdToArsenal: (sd) => {
+        saveCartridgePatch({ muzzleVelocitySD: Math.round(sd * 10) / 10 });
+        ctx.session.mvDecision = 'arsenal';
+        ctx.persistSession();
+        renderPhase();
+      },
       onSaveBc: (newFactor) => {
         saveCartridgePatch({ bcGainFactor: newFactor });
         setPersisted({ bcDecision: { kind: 'saved', fromFactor: state.bcGainFactor ?? 1, toFactor: newFactor } });
         renderPhase();
       },
-      onBcSessionOnly: () => { setPersisted({ bcDecision: { kind: 'session', fromFactor: state.bcGainFactor ?? 1 } }); renderPhase(); },
       onRecheck: (key, rangeM, reading) => handleRecheck(ctx, key, rangeM, reading),
       onNewSession: () => {
         clearTruingSessionKeys(SESSION_KEYS);
@@ -453,7 +490,7 @@ export function mount(container) {
         const hw = { ...homework() };
         for (const k of DAY_SPECIFIC_HOMEWORK) delete hw[k];
         setPersisted({ homeworkState: hw });
-        pendingLocationChoice = null;
+        pendingLocationNotice = null;
         goToPhase('prepare');
       }
     });

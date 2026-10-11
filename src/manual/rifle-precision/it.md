@@ -67,7 +67,7 @@ Ciò significa anche che i vostri segni di punto di mira devono essere onesti. S
 
 Due dei gruppi di unità della suite entrano in gioco:
 
-- **Distanza** (`m`, `yd`, `ft`) — la distanza del progetto.
+- **Distanza** (`m`, `yd`) — la distanza del progetto.
 - **Lunghezza piccola** (`mm`, `cm`, `in`) — tutto ciò che si misura sulla carta: il righello di calibrazione che digitate, il calibro, l'estensione, e ogni risultato del rapporto quando il selettore delle unità è impostato sull'assoluto anziché sull'angolare. Trattandosi di misure alla scala di una palla, sono mostrate con precisione più fine rispetto al valore generale della suite: **2 decimali in mm, 3 in cm e pollici**.
 
 Internamente il motore lavora esclusivamente in millimetri e metri, e la conversione avviene solo al confine della visualizzazione. Ciò ha una conseguenza pratica che vale la pena conoscere: **cambiare la preferenza sulle unità non altera mai i dati archiviati né alcun risultato calcolato.** Passate da mm a pollici e ogni progetto esistente si rivisualizza correttamente — la calibrazione che l'anno scorso avete digitato come 100 mm ora si legge 3,937 in, descrive lo stesso righello e produce esattamente le stesse statistiche di dispersione.
@@ -103,7 +103,7 @@ Non aspettatevi che il rapporto dica qualcosa di attendibile prima di una ventin
 **Aggiungi progetto** apre un breve modulo:
 
 - **Nome del progetto** — obbligatorio. Se digitate un nome già presente nella vostra libreria, compare un avviso che salvando sovrascriverete la voce esistente. È un avviso, non un blocco.
-- **Distanza** — la distanza dalla volata al bersaglio. Inserita e mostrata nell'unità di distanza configurata nelle **Impostazioni** (m, yd o ft); archiviata internamente in metri in ogni caso, così che cambiare la preferenza in seguito rivisualizzi correttamente i progetti esistenti invece di corromperli.
+- **Distanza** — la distanza dalla volata al bersaglio. Inserita e mostrata nell'unità di distanza configurata nelle **Impostazioni** (m o yd); archiviata internamente in metri in ogni caso, così che cambiare la preferenza in seguito rivisualizzi correttamente i progetti esistenti invece di corromperli.
 
   Questo valore guida ogni conversione angolare del rapporto, quindi assicuratevi che il numero corrisponda all'unità mostrata accanto. Se la vostra preferenza è in metri e digitate `100` per un bersaglio che in realtà avete sparato a 100 *iarde*, ogni cifra in mrad e MOA del rapporto esce circa il 9 % più piccola — e nulla, da nessuna parte, vi avviserà, perché 100 m è del tutto plausibile.
 - **Calibro** — scelto dall'elenco a discesa delle designazioni standard (lo stesso che usa l'Arsenale) oppure digitato direttamente, nella vostra unità di lunghezza piccola. Serve a disegnare gli impatti al diametro reale dell'anima sul diagramma del rapporto, e a nient'altro — non influenza alcuna statistica.

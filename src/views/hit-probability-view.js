@@ -26,23 +26,18 @@ import {
 import { loadHitProbabilityState, saveHitProbabilityState } from '../hit-probability-state.js';
 import {
   presetUnitField as sharedPresetUnitField,
-  BENCH_PRECISION_PRESETS, DEFAULT_BENCH_PRECISION_PRESET_KEY,
   MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY
 } from '../ui/precision-preset-field.js';
+import { riflePrecisionInputs } from '../ui/rifle-precision-inputs.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
-// muzzleVelocitySD/benchPrecision themselves live in
-// ui/precision-preset-field.js now — shared with the Truing Session tool,
-// which needs the exact same two ladders;
+// muzzleVelocitySD lives in ui/precision-preset-field.js — shared with the
+// Truing Session tool, as are the rifle-precision ladders (bench precision,
+// shooter skill; see ui/rifle-precision-inputs.js);
 // every other field below is specific to this page and stays here.
 const PRESETS = {
   muzzleVelocitySD: MUZZLE_VELOCITY_SD_PRESETS,
-  benchPrecision: BENCH_PRECISION_PRESETS,
-  shooterSkill: [
-    { key: 'robot', value: 0 }, { key: 'elite', value: 0.06 }, { key: 'marksman', value: 0.12 },
-    { key: 'proficient', value: 0.24 }, { key: 'novice', value: 0.36 }
-  ],
   distanceMedianError: [
     { key: 'ideal', value: 0 }, { key: 'laser', value: 0.14 }, { key: 'expertReticle', value: 4 },
     { key: 'lowTech', value: 8 }, { key: 'nakedEyeTrained', value: 12.5 }, { key: 'nakedEyeAverage', value: 15 }
@@ -68,26 +63,11 @@ const PRESETS = {
 };
 
 const DEFAULT_PRESET_KEY = {
-  muzzleVelocitySD: DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY, benchPrecision: DEFAULT_BENCH_PRECISION_PRESET_KEY, shooterSkill: 'marksman',
+  muzzleVelocitySD: DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY,
   distanceMedianError: 'laser', tempMedianError: 'pocketThermometer', pressureMedianError: 'pocketBarometer',
   windMedianError: 'good', movingTargetSpeed: 'static', movingTargetSpeedError: 'good',
   spotterMeasure: 'master'
 };
-
-// Vertical/horizontal dispersion multipliers applied to shooter skill —
-// no stated default, so "Prone, with bipod" (the neutral 1.0/1.0 case) is
-// used as this view's own starting point.
-const POSITIONS = [
-  { key: 'fullySupported', v: 0.5, h: 0.5 },
-  { key: 'proneBipod', v: 1.0, h: 1.0 },
-  { key: 'proneOffhand', v: 1.4, h: 1.6 },
-  { key: 'kneeling', v: 1.5, h: 2.4 },
-  { key: 'standing', v: 2.1, h: 2.5 },
-  { key: 'quickHalt', v: 2.3, h: 3.4 }
-];
-const DEFAULT_POSITION_KEY = 'proneBipod';
-
-const CONVENTIONS = ['r50', 'r95', 'r99', 'es5', 'es10'];
 
 const SCENARIOS = ['singleShot', 'spotterCorrected'];
 const DEFAULT_SCENARIO = 'singleShot';
@@ -255,71 +235,13 @@ export function mount(container) {
   const muzzleVelocitySDRigHint = el('p', { class: 'hint', i18n: 'hitProbability.thisRigMuzzleVelocitySDHint' });
   muzzleVelocitySDRigHint.style.display = 'none';
 
-  const { checkbox: simplifiedToggle, row: simplifiedToggleRow } =
-    persistedCheckbox('simplifiedPrecisionEnabled', 'hitProbability.simplifiedToggleLabel', false, () => {
-      applySimplifiedVisibility();
-      recompute();
-    });
-
-  const benchPrecisionField = presetUnitField('benchPrecision', { max: 3, step: 0.01, onInput: () => recompute() });
-  const benchPrecisionRigHint = el('p', { class: 'hint', i18n: 'hitProbability.thisRigPrecisionHint' });
-  benchPrecisionRigHint.style.display = 'none';
-  const shooterSkillField = presetUnitField('shooterSkill', { max: 3, step: 0.01, onInput: () => recompute() });
-  const positionSelect = persistedSelect(
-    'position', POSITIONS.map((p) => el('option', { value: p.key, i18n: `hitProbability.presetLabels.${p.key}` })),
-    DEFAULT_POSITION_KEY, () => recompute()
-  );
-  const detailedPrecisionBlock = el('div', {}, [
-    benchPrecisionRigHint,
-    benchPrecisionField.node,
-    shooterSkillField.node,
-    el('div', { class: 'field' }, [el('label', { i18n: 'fields.position' }), positionSelect])
-  ]);
-
-  // The active cartridge's own combined-precision value (R50 mrad), for
-  // the "This rig's" checkbox below — null whenever the active cartridge
-  // doesn't specify one (see applyActiveCartridgeExtras()).
-  let activeCombinedRigR50Mrad = null;
-  const combinedThisRigCheckbox = el('input', { type: 'checkbox', id: 'combinedPrecisionThisRig' });
-  const combinedThisRigRow = el('label', { class: 'checkbox-field' }, [combinedThisRigCheckbox, i18nSpan('hitProbability.thisRigCheckboxLabel')]);
-  combinedThisRigRow.style.display = 'none';
-  combinedThisRigCheckbox.addEventListener('change', () => {
-    if (combinedThisRigCheckbox.checked && activeCombinedRigR50Mrad != null) {
-      conventionSelect.value = 'r50';
-      combinedPrecisionField.setEngineValue(activeCombinedRigR50Mrad);
-      setPanelState({ precisionConvention: 'r50', combinedPrecision: activeCombinedRigR50Mrad });
-      recompute();
-    }
-  });
-  const combinedPrecisionRigHint = el('p', { class: 'hint', i18n: 'hitProbability.thisRigPrecisionHint' });
-  combinedPrecisionRigHint.style.display = 'none';
-
-  const conventionSelect = persistedSelect(
-    'precisionConvention', CONVENTIONS.map((c) => el('option', { value: c, i18n: `hitProbability.convention${c[0].toUpperCase()}${c.slice(1)}` })),
-    'r50', () => { combinedThisRigCheckbox.checked = false; recompute(); }
-  );
-  const combinedPrecisionField = persistedUnitField('combinedPrecision', {
-    min: 0, max: 3, step: 0.01, value: 0.14, before: conventionSelect,
-    onInput: () => { combinedThisRigCheckbox.checked = false; recompute(); }
-  });
-  const simplifiedPrecisionBlock = el('div', {}, [
-    combinedPrecisionField.node,
-    combinedThisRigRow,
-    combinedPrecisionRigHint,
-    el('p', { class: 'hint', i18n: 'hitProbability.simplifiedHint' })
-  ]);
-
-  function applySimplifiedVisibility() {
-    detailedPrecisionBlock.style.display = simplifiedToggle.checked ? 'none' : '';
-    simplifiedPrecisionBlock.style.display = simplifiedToggle.checked ? '' : 'none';
-  }
-  applySimplifiedVisibility();
+  const precisionInputs = riflePrecisionInputs({ getPersisted: persistedValue, setPersisted: setPanelState, onInput: () => recompute() });
 
   // Reflects the currently active rifle+cartridge selection's own optional
   // muzzleVelocitySD/precision (see cartridge-form.js) onto the "This
-  // rig's" affordances above: a preset-select option for muzzle velocity
-  // SD and bench precision, a checkbox for combined precision — see
-  // presetUnitField()'s own setRigValue() for the first two. Called by
+  // rig's" affordances: a preset-select option for muzzle velocity SD (see
+  // presetUnitField()'s own setRigValue()), and the rifle-precision block's
+  // own (see rifle-precision-inputs.js). Called by
   // rifleSection's onLibraryCartridgeChange, so on every rifle/cartridge
   // change (including back to "Other", or a cartridge with neither field
   // set, both of which clear everything below).
@@ -328,37 +250,7 @@ export function mount(container) {
     muzzleVelocitySDField.setRigValue(sdValue, { autoSelect: sdValue != null });
     muzzleVelocitySDRigHint.style.display = sdValue != null ? '' : 'none';
 
-    const precision = extras && extras.precision ? extras.precision : null;
-    benchPrecisionRigHint.style.display = precision ? '' : 'none';
-    combinedPrecisionRigHint.style.display = precision ? '' : 'none';
-
-    if (precision && precision.mode === 'combined') {
-      activeCombinedRigR50Mrad = precision.r50Mrad;
-      combinedThisRigRow.style.display = '';
-      benchPrecisionField.setRigValue(null);
-      if (!simplifiedToggle.checked) {
-        simplifiedToggle.checked = true;
-        applySimplifiedVisibility();
-      }
-      combinedThisRigCheckbox.checked = true;
-      conventionSelect.value = 'r50';
-      combinedPrecisionField.setEngineValue(precision.r50Mrad);
-      setPanelState({ precisionConvention: 'r50', combinedPrecision: precision.r50Mrad });
-    } else if (precision && precision.mode === 'own') {
-      activeCombinedRigR50Mrad = null;
-      combinedThisRigRow.style.display = 'none';
-      combinedThisRigCheckbox.checked = false;
-      if (simplifiedToggle.checked) {
-        simplifiedToggle.checked = false;
-        applySimplifiedVisibility();
-      }
-      benchPrecisionField.setRigValue(precision.r50Mrad, { autoSelect: true });
-    } else {
-      activeCombinedRigR50Mrad = null;
-      combinedThisRigRow.style.display = 'none';
-      combinedThisRigCheckbox.checked = false;
-      benchPrecisionField.setRigValue(null);
-    }
+    precisionInputs.setRigPrecision(extras && extras.precision ? extras.precision : null);
 
     recompute();
   }
@@ -367,9 +259,7 @@ export function mount(container) {
     el('h3', { i18n: 'hitProbability.ownErrorsHeading' }),
     muzzleVelocitySDField.node,
     muzzleVelocitySDRigHint,
-    simplifiedToggleRow,
-    detailedPrecisionBlock,
-    simplifiedPrecisionBlock
+    precisionInputs.node
   ]);
 
   const distanceMedianErrorField = presetUnitField('distanceMedianError', { max: 50, step: 0.1, onInput: () => recompute() });
@@ -1145,17 +1035,7 @@ export function mount(container) {
 
     const ownErrors = {
       muzzleVelocitySD: muzzleVelocitySDField.getEngineValue(),
-      precisionMode: simplifiedToggle.checked ? 'simplified' : 'detailed',
-      detailed: {
-        benchR50: benchPrecisionField.getEngineValue(),
-        shooterR50: shooterSkillField.getEngineValue(),
-        positionH: POSITIONS.find((p) => p.key === positionSelect.value).h,
-        positionV: POSITIONS.find((p) => p.key === positionSelect.value).v
-      },
-      simplified: {
-        value: combinedPrecisionField.getEngineValue(),
-        convention: conventionSelect.value
-      }
+      ...precisionInputs.getValues()
     };
 
     const conditionErrors = {

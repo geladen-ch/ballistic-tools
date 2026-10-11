@@ -8,25 +8,24 @@ import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
-import { presetUnitField, RIG_PRESET_KEY, BENCH_PRECISION_PRESETS, DEFAULT_BENCH_PRECISION_PRESET_KEY, MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY } from '../precision-preset-field.js';
+import { presetUnitField, RIG_PRESET_KEY, MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY } from '../precision-preset-field.js';
+import { riflePrecisionInputs } from '../rifle-precision-inputs.js';
+import { precisionToR50Mrad } from '../../engine/dispersion-sources.js';
 import { formatTargetSummary } from '../locations/target-summary.js';
 import { locationPickerButton } from '../locations/location-picker-button.js';
-import { saveUserLocation } from '../../location-library.js';
 import { DEFAULT_BACKDROP_MARGIN_M } from '../../engine/truing-session.js';
-import { DEFAULT_MV_AVERAGE_SHOTS } from './session-model.js';
-import { locationChoice } from './recheck-prompt.js';
-import { dist, distLabel, toDisplayDistance, fromDisplayDistance, distanceFromField, windSpeedShort, angle, angleRuleKey } from './units.js';
+import { WIND_STRENGTHS, DEFAULT_WIND_STRENGTH, WIND_STRENGTH_LIMIT_MS } from './session-model.js';
+import { dist, distLabel, toDisplayDistance, fromDisplayDistance, distanceFromField, windStrengthLimit, angle, angleRuleKey, arsenalMuzzleVelocity } from './units.js';
 
 const MIN_RECOMMENDED_BACKDROP_M = 2;
-const WIND_CONFIDENCE_OPTIONS = [0.5, 1, 2, 3, 5];
-const DEFAULT_WIND_CONFIDENCE = 2;
 
 // `warning`: the label in the warning colour, for a confirmation the shooter has to give before going on.
-export function checkboxRow(id, labelKey, checked, onChange, { warning = false } = {}) {
+// `text`: the label as already worked out (with figures in it), in place of the translation key.
+export function checkboxRow(id, labelKey, checked, onChange, { warning = false, text = null } = {}) {
   const checkbox = el('input', { type: 'checkbox', id });
   checkbox.checked = !!checked;
   checkbox.addEventListener('change', () => onChange(checkbox.checked));
-  return { checkbox, row: el('label', { class: warning ? 'checkbox-field warning' : 'checkbox-field' }, [checkbox, el('span', { i18n: labelKey })]) };
+  return { checkbox, row: el('label', { class: warning ? 'checkbox-field warning' : 'checkbox-field' }, [checkbox, el('span', text != null ? { text } : { i18n: labelKey })]) };
 }
 
 function smallNumberInput({ value, min, max, step = 1, onChange }) {
@@ -50,28 +49,30 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
   const zeroVerified = checkboxRow('truingZeroVerified', 'truingSession.homework.zeroVerified', getPersisted('zeroVerified', false), (v) => set({ zeroVerified: v }));
   const trackTested = checkboxRow('truingTrackTested', 'truingSession.homework.trackTested', getPersisted('trackTested', false), (v) => set({ trackTested: v }));
 
-  const mvShotsInput = smallNumberInput({ value: getPersisted('mvAverageShots', DEFAULT_MV_AVERAGE_SHOTS), min: 2, max: 100, onChange: (v) => set({ mvAverageShots: v }) });
-  const mvShotsField = el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.homework.mvAverageShotsLabel' }), mvShotsInput]);
-  const mvAverageChecked = checkboxRow('truingMvAverageChecked', 'truingSession.homework.mvAverageChecked', getPersisted('mvAverageChecked', false), (v) => {
-    mvShotsField.style.display = v ? '' : 'none';
-    set({ mvAverageChecked: v });
+  // The muzzle velocity average: what the Arsenal entry holds is shown in the label, since that is the number being verified.
+  const arsenalMv = arsenalMuzzleVelocity(cartridge);
+  const mvAverageChecked = checkboxRow('truingMvAverageChecked', 'truingSession.homework.mvAverageChecked', getPersisted('mvAverageChecked', false), (v) => set({ mvAverageChecked: v }), {
+    text: t('truingSession.homework.mvAverageChecked', {
+      arsenal: arsenalMv.drift ? t('truingSession.homework.mvArsenalWithDrift', { velocity: arsenalMv.velocity, ...arsenalMv.drift }) : t('truingSession.homework.mvArsenal', { velocity: arsenalMv.velocity })
+    })
   });
-  mvShotsField.style.display = mvAverageChecked.checkbox.checked ? '' : 'none';
+  // With a chronograph the session double-checks the velocity itself; without one this is the item that matters most
+  const mvAverageHint = el('p', { class: 'hint' });
+  const refreshMvAverageHint = () => {
+    mvAverageHint.textContent = t(chrono.checkbox.checked ? 'truingSession.homework.mvAverageHintChrono' : 'truingSession.homework.mvAverageHintNoChrono');
+  };
 
-  const oneLot = checkboxRow('truingOneLot', 'truingSession.homework.oneLot', getPersisted('oneLot', true), (v) => set({ oneLot: v }));
-  const coldBore = checkboxRow('truingColdBoreHandled', 'truingSession.homework.coldBoreHandled', getPersisted('coldBoreHandled', false), (v) => set({ coldBoreHandled: v }));
-
-  const r50Field = presetUnitField({
-    id: 'benchPrecision', presetList: BENCH_PRECISION_PRESETS, defaultKey: DEFAULT_BENCH_PRECISION_PRESET_KEY,
-    labelPrefix: 'hitProbability.presetLabels.', max: 3, step: 0.01,
-    onInput: () => onInput(), getPersisted, setPersisted
-  });
-  // The Arsenal value is auto-selected unless the user explicitly picked
-  // something else; a saved "This rig" pick is restored here, since the
-  // rig option only exists once setRigValue() has added it.
+  // Rifle + shooter precision, as in Hit Probability: bench rifle R50, shooter skill and position, or one simplified combined
+  // value. The session's per-shot noise takes the one R50 they resolve to (vertical, since come-up is what it reads).
+  const r50Resolved = el('p', { class: 'hint' });
+  const refreshR50Resolved = () => { r50Resolved.textContent = t('truingSession.homework.r50Resolved', { value: angle(precisionToR50Mrad(precision.getValues())) }); };
+  const precision = riflePrecisionInputs({ getPersisted, setPersisted, rigHints: false, onInput: () => { refreshR50Resolved(); onInput(); } });
+  // The Arsenal value is auto-selected unless the user explicitly picked something else; a saved "This rig" pick is
+  // restored here, since the rig option only exists once setRigValue() has added it.
   const rigWanted = (key) => { const saved = getPersisted(key); return !saved || saved === RIG_PRESET_KEY; };
   const hasRigR50 = cartridge.precision && cartridge.precision.r50Mrad != null;
-  if (hasRigR50) r50Field.setRigValue(cartridge.precision.r50Mrad, { autoSelect: rigWanted('benchPrecisionPreset') });
+  precision.setRigPrecision(hasRigR50 ? { mode: 'own', ...cartridge.precision } : null, { force: precision.rigStillWanted() });
+  refreshR50Resolved();
   const r50Hint = hasRigR50
     ? el('p', { class: 'hint', text: t('truingSession.homework.r50FromArsenal', { value: angle(cartridge.precision.r50Mrad) }) })
     : el('p', { class: 'hint' }, [
@@ -89,9 +90,14 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
   }
   const mvSdShotsInput = smallNumberInput({ value: getPersisted('mvSdShots', null), min: 2, max: 200, onChange: (v) => set({ mvSdShots: v }) });
 
-  const windSelect = el('select', { id: 'truingWindConfidence' }, WIND_CONFIDENCE_OPTIONS.map((v) => el('option', { value: String(v), text: `±${windSpeedShort(v)}` })));
-  windSelect.value = String(getPersisted('windConfidenceMs', DEFAULT_WIND_CONFIDENCE));
-  windSelect.addEventListener('change', () => set({ windConfidenceMs: Number(windSelect.value) }));
+  // Only the expected strength is asked here: the wind itself is read, and its confidence stated, for every group on the Shoot screen.
+  // A choice saved by the earlier ±m/s dropdown (3 m/s and up) was a strong wind.
+  const savedStrength = getPersisted('windStrength', null) ?? (getPersisted('windConfidenceMs', 0) >= 3 ? 'strong' : DEFAULT_WIND_STRENGTH);
+  const windSelect = el('select', { id: 'truingWindStrength' }, Object.keys(WIND_STRENGTHS).map((key) => el('option', {
+    value: key, text: t(`truingSession.homework.windStrength.${key}`, { limit: windStrengthLimit(WIND_STRENGTH_LIMIT_MS) })
+  })));
+  windSelect.value = WIND_STRENGTHS[savedStrength] ? savedStrength : DEFAULT_WIND_STRENGTH;
+  windSelect.addEventListener('change', () => set({ windStrength: windSelect.value }));
 
   const homeworkSection = el('div', { class: 'input-section' }, [
     el('h3', { i18n: 'truingSession.homework.heading' }),
@@ -101,21 +107,24 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
     el('p', { class: 'hint', i18n: 'truingSession.homework.zeroHint' }),
     trackTested.row,
     el('p', { class: 'hint', text: t('truingSession.homework.trackHint', { rule: t(angleRuleKey()) }) }),
-    r50Field.node,
+    precision.node,
     r50Hint,
-    mvSDField.node,
-    el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.homework.mvSdShotsLabel' }), mvSdShotsInput]),
-    el('p', { class: 'hint', i18n: 'truingSession.homework.mvSdHint' }),
+    r50Resolved,
     mvAverageChecked.row,
-    mvShotsField,
-    el('p', { class: 'hint', i18n: 'truingSession.homework.mvAverageHint' }),
-    oneLot.row,
-    coldBore.row,
-    el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.homework.windConfidenceLabel' }), windSelect])
+    mvAverageHint,
+    mvSDField.node,
+    el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.homework.mvSdShotsLabel' }), mvSdShotsInput])
+  ]);
+
+  // Shown with the conditions (it is about the weather at the range), kept here with the rest of the homework slice's state.
+  const windStrengthSection = el('div', {}, [
+    el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.homework.windStrengthLabel' }), windSelect]),
+    el('p', { class: 'hint', i18n: 'truingSession.homework.windStrengthHint' })
   ]);
 
   // ---- Equipment ----
-  const chrono = checkboxRow('truingChronoAvailable', 'truingSession.equipment.chronographLabel', getPersisted('chronographAvailable', false), (v) => set({ chronographAvailable: v }));
+  const chrono = checkboxRow('truingChronoAvailable', 'truingSession.equipment.chronographLabel', getPersisted('chronographAvailable', false), (v) => { refreshMvAverageHint(); set({ chronographAvailable: v }); });
+  refreshMvAverageHint();
 
   // A single total height, point of aim assumed centred in it; the
   // engine's ladder takes the "each way" half (backdropMarginFrom()).
@@ -136,8 +145,15 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
     el('p', { class: 'hint prominent', i18n: 'truingSession.equipment.rangefinderMandatory' }),
     el('p', { class: 'hint prominent', i18n: 'truingSession.equipment.angleMeterMandatory' }),
     el('p', { class: 'hint prominent', i18n: 'truingSession.equipment.weatherMeterMandatory' }),
+    el('p', { class: 'hint prominent', i18n: 'truingSession.equipment.oneLotMandatory' }),
+    el('p', { class: 'hint', i18n: 'truingSession.equipment.spotterRecommended' }),
+    el('p', { class: 'hint', i18n: 'truingSession.equipment.rangeVisibleImpacts' }),
     chrono.row,
-    el('p', { class: 'hint', i18n: 'truingSession.equipment.chronographHint' }),
+    el('p', { class: 'hint', i18n: 'truingSession.equipment.chronographHint' })
+  ]);
+
+  // Shown in the location pane (it is a property of the range), kept here with the rest of the homework slice's state.
+  const backdropSection = el('div', {}, [
     backdropField.node,
     el('p', { class: 'hint', text: t('truingSession.equipment.backdropHint', { two: dist(MIN_RECOMMENDED_BACKDROP_M) }) }),
     backdropSmall
@@ -149,31 +165,31 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
       sightHeightMeasured: sightHeight.checkbox.checked,
       trackTested: trackTested.checkbox.checked,
       mvAverageChecked: mvAverageChecked.checkbox.checked,
-      mvAverageShots: getPersisted('mvAverageShots', DEFAULT_MV_AVERAGE_SHOTS),
-      oneLot: oneLot.checkbox.checked,
-      coldBoreHandled: coldBore.checkbox.checked,
-      r50Mrad: r50Field.getEngineValue(),
+      r50Mrad: precisionToR50Mrad(precision.getValues()),
       mvSD: mvSDField.getEngineValue(),
       muzzleVelocitySDPreset: getPersisted('muzzleVelocitySDPreset', DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY),
       mvSdShots: getPersisted('mvSdShots', null),
-      windConfidenceMs: Number(windSelect.value),
+      windStrength: windSelect.value,
       chronographAvailable: chrono.checkbox.checked,
       backdropHeightM: backdropField.getEngineValue()
     };
   }
 
-  return { node: el('div', {}, [homeworkSection, equipmentSection]), getState };
+  return { equipmentNode: equipmentSection, homeworkNode: homeworkSection, backdropNode: backdropSection, windStrengthNode: windStrengthSection, getState };
 }
 
-// The location intake. `location` is the active location record (mutated
-// in place when "update the main location card" is chosen, so the rest of
-// this mount sees the saved values). `persisted` is the top-level session
-// slice. `gaps`: { nearGap, farGap, alreadyGradeA, zeroRangeM,
+// The location intake. `location` is the active location record, never written to: whatever is corrected here holds for this
+// truing session only (`targetOverrides`). `persisted` is the top-level session
+// slice. `backdropNode`: the backdrop height field, drawn under the location header. `gaps` (null until the planner has worked
+// them out, then setGaps()): { nearGap, farGap, alreadyGradeA, zeroRangeM,
 // farOptimumM, farBandLowM, farBandHighM } -- whether the near/far target
 // bands the planner wants are covered by the saved targets already.
-export function locationIntakePanel({ location, gaps, persisted, onCommit, onChangeLocation }) {
+export function locationIntakePanel({ location, gaps, persisted, backdropNode, onCommit, onChangeLocation }) {
   const { getPersisted, setPersisted } = persisted;
   const node = el('div', { class: 'input-section' });
+  // the natural-target questions, drawn on their own: the gaps they ask about come from the planner, later than the rest
+  const naturalHost = el('div');
+  let currentGaps = gaps;
 
   const targetOverrides = { ...(getPersisted('targetOverrides', {})) };
   const pendingEdits = { ...(getPersisted('pendingTargetEdits', {})) };
@@ -181,7 +197,6 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
   let rangeRecheckedThisSession = getPersisted('rangeRecheckedThisSession', false);
   let naturalTargetsAnswer = getPersisted('naturalTargetsAnswer', null);
   const naturalGapsClosed = { ...(getPersisted('naturalGapsClosed', {})) };
-  let choosing = false;
   let recheckBox = null; // the confirmation checkbox, while it is on screen
 
   // The flat-range checkbox: hidden and forced off when a recorded angle is steeper than 5 degrees,
@@ -216,7 +231,6 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
   function finishRecheck() {
     for (const k of Object.keys(pendingEdits)) delete pendingEdits[k];
     rangeRecheckedThisSession = true;
-    choosing = false;
     commit();
     render();
   }
@@ -228,6 +242,7 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
       el('span', { class: 'truing-session-location-name', text: location.name }),
       locationPickerButton({ label: t('truingSession.location.changeLocationButtonLabel'), onClick: () => { if (onChangeLocation) onChangeLocation(); } })
     ]));
+    if (backdropNode) node.appendChild(backdropNode);
 
     // The flat-range declaration. A declaration, not a measurement: it
     // never writes an angle anywhere -- it only withdraws the inclination
@@ -240,6 +255,8 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
 
     // Re-check every target's distance and angle before planning around them.
     node.appendChild(el('p', { i18n: 'truingSession.location.recheckInstructions' }));
+    node.appendChild(el('p', { class: 'hint prominent', i18n: 'truingSession.location.sessionOnlyHint' }));
+    node.appendChild(el('p', { class: 'hint', i18n: 'truingSession.location.backdropDistanceInstructions' }));
     if (!rangeDeclaredFlat) node.appendChild(el('p', { class: 'hint', i18n: 'truingSession.location.recheckAngleInstructions' }));
     const table = el('table', { class: 'truing-session-table' });
     table.appendChild(el('tr', {}, [
@@ -281,36 +298,16 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
       class: rangeRecheckedThisSession ? 'hint' : 'hint warning',
       text: t(rangeRecheckedThisSession ? 'truingSession.location.allCheckedConfirmedHint' : 'truingSession.location.allCheckedRequiredHint')
     }));
-    if (choosing) {
-      // One ask for the whole batch of changes, not one per field.
-      node.appendChild(locationChoice({
-        changes: pendingChanges(),
-        onUpdateCard: () => {
-          const updatedTargets = location.targets.map((tg) => {
-            const edit = pendingEdits[tg.id];
-            if (!edit) return tg;
-            delete targetOverrides[tg.id];
-            return { ...tg, ...edit };
-          });
-          location.targets = updatedTargets;
-          saveUserLocation({ ...location, targets: updatedTargets });
-          finishRecheck();
-        },
-        onSessionOnly: () => {
-          for (const [id, edit] of Object.entries(pendingEdits)) targetOverrides[id] = { ...(targetOverrides[id] || {}), ...edit };
-          finishRecheck();
-        }
-      }).node);
-    } else {
-      const done = checkboxRow('truingRangeRechecked', 'truingSession.location.allCheckedButton', rangeRecheckedThisSession, (checked) => {
-        if (!checked) { rangeRecheckedThisSession = false; commit(); render(); return; }
-        if (pendingChanges().length > 0) { choosing = true; render(); return; }
-        finishRecheck();
-      }, { warning: true });
-      recheckBox = done.checkbox;
-      node.appendChild(done.row);
-    }
+    const done = checkboxRow('truingRangeRechecked', 'truingSession.location.allCheckedButton', rangeRecheckedThisSession, (checked) => {
+      if (!checked) { rangeRecheckedThisSession = false; commit(); render(); return; }
+      // the corrections are kept for this session; the location itself is left as it is
+      for (const [id, edit] of Object.entries(pendingEdits)) targetOverrides[id] = { ...(targetOverrides[id] || {}), ...edit };
+      finishRecheck();
+    }, { warning: true });
+    recheckBox = done.checkbox;
+    node.appendChild(done.row);
 
+    node.appendChild(naturalHost);
     renderNaturalTargets();
   }
 
@@ -319,6 +316,10 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
   // per open gap, each answerable with a distance or "not available" --
   // never re-asked.
   function renderNaturalTargets() {
+    clear(naturalHost);
+    if (!currentGaps) return;
+    const gaps = currentGaps;
+    const node = naturalHost;
     const { nearGap, farGap, alreadyGradeA } = gaps;
     if (alreadyGradeA || (!nearGap && !farGap)) return;
     node.appendChild(el('h4', { i18n: 'truingSession.location.naturalTargetHeading' }));
@@ -367,6 +368,12 @@ export function locationIntakePanel({ location, gaps, persisted, onCommit, onCha
     getTargetOverrides: () => targetOverrides,
     getNaturalTargets: () => naturalTargets,
     getRangeRecheckedThisSession: () => rangeRecheckedThisSession,
-    getRangeDeclaredFlat: () => rangeDeclaredFlat
+    getRangeDeclaredFlat: () => rangeDeclaredFlat,
+    // the planner's answer about the near and far gaps (null while it is still working)
+    setGaps: (g) => {
+      if (JSON.stringify(g) === JSON.stringify(currentGaps)) return;
+      currentGaps = g;
+      renderNaturalTargets();
+    }
   };
 }

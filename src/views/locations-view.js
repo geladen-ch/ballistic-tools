@@ -23,6 +23,7 @@ import { setLocationsMode } from '../locations-nav.js';
 import { shouldClearTargetCoords } from '../location-photo.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
+import { isoDateTime } from '../ui/iso-date.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -107,9 +108,9 @@ export function mount(container) {
 
   function lastModifiedLabel(entry) {
     if (!entry.modifiedAt) return null;
-    const date = new Date(entry.modifiedAt);
-    if (Number.isNaN(date.getTime())) return null;
-    return t('arsenal.lastModified', { date: date.toISOString().slice(0, 16).replace('T', ' ') });
+    const date = isoDateTime(entry.modifiedAt);
+    if (!date) return null;
+    return t('arsenal.lastModified', { date });
   }
 
   function refreshLibraryView() {

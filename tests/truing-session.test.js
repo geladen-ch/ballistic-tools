@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { computeImpact, solveZeroAngle } from '../src/engine/trajectory.js';
 import {
-  comeUpMrad, machAt, rangeAtMach, sigmaForGroup, sensitivityColumns, posterior, resolutionMatrix,
+  comeUpMrad, machAt, rangeAtMach, sigmaForGroup, observationSigmaMrad, sensitivityColumns, posterior, resolutionMatrix,
   requiredFarDistance, invalidityFloor, fitSession, fitSessionMixture, fitSessionDragMixture,
-  blunderPatternForTarget, jointBlunderCheck, chronoObservation, rangeCheckObservation,
+  blunderPatternForTarget, jointBlunderCheck, chronoObservation, rangeCheckObservation, rangeSigmaM, RANGE_SIGMA_FRACTION,
   v0MsCheckedSigma, tInflationFactor, tQuantile, dragPctMarginalSigma, applyParameters,
   losUColumn, losUFromDeg, losDegFromU, SIGMA_LOS_INCLINED_U, SIGMA_DRAG_NARROW_PCT, SIGMA_DRAG_WIDE_PCT,
   DRAG_MIXTURE_WEIGHTS, BASE_PARAMS, predictiveComeUpSd, missMetres, nextLadderRange,
   retreatAfterMissedImpact, DEFAULT_PRIORS_UNCHECKED, DEFAULT_LADDER_MAX_JUMP_FACTOR, BEYOND_CAP_CONFIDENCE_Z,
-  ladderStartCheck, registerMissedImpact, registerRecordedGroup, planWholeSession, causesWeightFor
+  ladderStartCheck, registerMissedImpact, registerRecordedGroup, planWholeSession, DEFAULT_PRIORS_CHECKED_NO_CHRONO, planCost, planObjectiveScales2, PLAN_COST_CAP, MATERIALITY_MRAD
 } from '../src/engine/truing-session.js';
 
 // The reference .308 configuration these golden values are computed against.
@@ -21,7 +21,12 @@ const REF_STATE = {
   windSpeed: 0, windAngle: 90, losAngleDeg: 0
 };
 
-const CHECKED_PRIORS = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15, windMs: 0.5 };
+const CHECKED_PRIORS = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15 };
+
+// The per-group noise the reference values of the posterior, fit and scenario tests below were computed with: a fixed 0.148 mrad
+// per-shot reading (0.1 mrad as a probable error) on top of the rifle's r50, and the 0.1 mrad click rounding. It is given to those
+// tests explicitly, so they pin the posterior and the estimator, not the noise model, which has tests of its own.
+const referenceSigma = (shots, r50Mrad = null) => Math.hypot(Math.hypot(r50Mrad != null ? r50Mrad / 1.1774 : 0, 0.1 / 0.6745) / Math.sqrt(shots), 0.1 / Math.sqrt(12));
 
 function closeTo(actual, expected, tol, msg) {
   assert.ok(Math.abs(actual - expected) <= tol, `${msg}: expected ${expected}, got ${actual}`);
@@ -52,12 +57,25 @@ test('golden: rangeAtMach', () => {
   closeTo(rangeAtMach(altState, 1.15), 986, 1, 'altitude rangeAtMach(1.15)');
 });
 
-test('golden: sigmaForGroup', () => {
-  closeTo(sigmaForGroup({ shots: 1 }), 0.151042, 0.000001, 'n=1');
-  closeTo(sigmaForGroup({ shots: 4 }), 0.079551, 0.000001, 'n=4');
-  closeTo(sigmaForGroup({ shots: 8 }), 0.059841, 0.000001, 'n=8');
-  closeTo(sigmaForGroup({ shots: 4, r50Mrad: 0.14 }), 0.099313, 0.000001, '"basic" preset n=4');
-  closeTo(sigmaForGroup({ shots: 8, r50Mrad: 0.14 }), 0.073132, 0.000001, '"basic" preset n=8');
+test('a string\'s sigma: the rifle\'s r50, the velocity spread through the come-up\'s sensitivity at the distance, and the spotter\'s reading, over the square root of the rounds', () => {
+  const sdRifle = 0.14 / 1.1774;
+  closeTo(observationSigmaMrad(), 0.05, 1e-12, 'good (the default): ±0.1 mrad is two sigma');
+  closeTo(observationSigmaMrad('fair'), 0.1, 1e-12, 'fair');
+  closeTo(observationSigmaMrad('poor'), 0.15, 1e-12, 'poor');
+  closeTo(sigmaForGroup({ shots: 1 }), 0.05, 1e-12, 'no rifle, no velocity spread: the reading alone');
+  closeTo(sigmaForGroup({ shots: 3, r50Mrad: 0.14 }), Math.sqrt(sdRifle ** 2 + 0.05 ** 2) / Math.sqrt(3), 1e-12, 'r50 0.14, three rounds');
+  closeTo(sigmaForGroup({ shots: 3, r50Mrad: 0.14 }), 0.074473, 1e-6, 'golden');
+  const j870 = sensitivityColumns(REF_STATE, 870).v0Ms;
+  closeTo(sigmaForGroup({ shots: 3, r50Mrad: 0.14, mvSD: 6, v0SensMrad: j870 }), Math.sqrt(sdRifle ** 2 + (6 * j870) ** 2 + 0.05 ** 2) / Math.sqrt(3), 1e-12, 'at 870 m with 6 m/s');
+  closeTo(sigmaForGroup({ shots: 3, r50Mrad: 0.14, mvSD: 6, v0SensMrad: j870 }), 0.130360, 1e-6, 'golden at 870 m');
+  assert.ok(6 * Math.abs(j870) > sdRifle, 'at 870 m a 6 m/s spread scatters a .308 more than the rifle does');
+  closeTo(sigmaForGroup({ shots: 3, r50Mrad: 0.14, mvSD: 6, v0SensMrad: sensitivityColumns(REF_STATE, 100).v0Ms }), sigmaForGroup({ shots: 3, r50Mrad: 0.14 }), 1e-9, 'and at the zero range nothing');
+  closeTo(sigmaForGroup({ shots: 3, r50Mrad: 0.14, sigmaObsMrad: observationSigmaMrad('poor') }), Math.sqrt(sdRifle ** 2 + 0.15 ** 2) / Math.sqrt(3), 1e-12, 'a poor reading');
+
+  // a planning group with the noise inputs gets its own distance's velocity sensitivity from the posterior's columns
+  const viaColumns = posterior({ state: REF_STATE, groups: [{ rangeM: 870, shots: 3, r50Mrad: 0.14, mvSD: 6 }], priors: CHECKED_PRIORS });
+  const explicit = posterior({ state: REF_STATE, groups: [{ rangeM: 870, shots: 3, sigmaMrad: sigmaForGroup({ shots: 3, r50Mrad: 0.14, mvSD: 6, v0SensMrad: j870 }) }], priors: CHECKED_PRIORS });
+  assert.deepEqual(viaColumns.cov, explicit.cov);
 });
 
 test('golden: sensitivity columns', () => {
@@ -65,78 +83,71 @@ test('golden: sensitivity columns', () => {
   assert.equal(j100.zeroMrad, 1);
   closeTo(j100.v0Ms, 0, 1e-9, 'J(100).v0Ms at the zero range');
   closeTo(j100.dragPct, 0, 1e-9, 'J(100).dragPct at the zero range');
-  // the bore is zeroed in calm air (see withFixedBore), so 5 m/s more headwind moves the impact at the zero range by a
-  // hair (0.00005 mrad here); it used to be exactly 0 only because the zero was re-solved in the wind
-  closeTo(j100.windMs, 0, 1e-4, 'J(100).windMs at the zero range');
 
   const j870 = sensitivityColumns(REF_STATE, 870);
   closeTo(j870.v0Ms, -0.030886, 0.000001, 'J(870).v0Ms');
   closeTo(j870.dragPct, 0.075402, 0.000001, 'J(870).dragPct');
   closeTo(j870.trackPct, 0.101196, 0.000001, 'J(870).trackPct');
-  // 0.021764 while the zero was re-solved in the perturbed wind; the bore is now zeroed in calm air, so this is the wind's own effect
-  closeTo(j870.windMs, 0.021810, 0.000001, 'J(870).windMs -- requires windAngle forced to 0 for the perturbation (see the fix comment in engine/truing-session.js)');
 });
 
-test('golden: near-target resolvability -- requiredFarDistance / invalidityFloor', () => {
-  const unresolved = { resolved: false };
-  const resolved = { resolved: true };
-  assert.equal(requiredFarDistance({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, nearOpts: unresolved, farShots: 8, targetSdPct: 3 }), 630);
-  assert.equal(requiredFarDistance({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, nearOpts: unresolved, farShots: 8, targetSdPct: 2 }), 795);
-  assert.equal(invalidityFloor({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, nearOpts: unresolved }), 465);
-  assert.equal(requiredFarDistance({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, nearOpts: resolved, farShots: 8, targetSdPct: 3 }), 610);
-  assert.equal(requiredFarDistance({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, nearOpts: resolved, farShots: 8, targetSdPct: 2 }), 770);
-  assert.equal(invalidityFloor({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, nearOpts: resolved }), 435);
+test('golden: requiredFarDistance / invalidityFloor with the string noise; the rifle and the velocity spread push the far target out', () => {
+  const args = (r50Mrad, mvSD) => ({ state: REF_STATE, priors: CHECKED_PRIORS, nearM: 100, nearShots: 4, r50Mrad, mvSD });
+  assert.equal(requiredFarDistance({ ...args(null, null), farShots: 8, targetSdPct: 3 }), 445);
+  assert.equal(requiredFarDistance({ ...args(null, null), farShots: 8, targetSdPct: 2 }), 620);
+  assert.equal(invalidityFloor(args(null, null)), 360);
+  assert.equal(requiredFarDistance({ ...args(0.14, null), farShots: 8, targetSdPct: 3 }), 570);
+  assert.equal(requiredFarDistance({ ...args(0.14, null), farShots: 8, targetSdPct: 2 }), 735);
+  assert.equal(invalidityFloor(args(0.14, null)), 420);
+  assert.equal(requiredFarDistance({ ...args(0.14, 6), farShots: 8, targetSdPct: 3 }), 590);
+  assert.equal(requiredFarDistance({ ...args(0.14, 6), farShots: 8, targetSdPct: 2 }), 775);
+  assert.equal(invalidityFloor(args(0.14, 6)), 420, 'the floor idealises the far reading, so only the near group\'s noise moves it');
 });
 
-test('golden: near-target zero posterior SD, resolved vs the three-level certainty picker', () => {
+test('golden: the certainty levels feed the posterior -- the zero SD from one three-round string at 100 m', () => {
   const priors = { zeroMrad: 0.08 };
   const params = ['zeroMrad'];
-  const resolvedSd = sigmaForGroup({ shots: 4 });
-  closeTo(posterior({ state: REF_STATE, groups: [{ rangeM: 100, shots: 4, sigmaMrad: resolvedSd }], priors, params }).sd[0], 0.0564, 0.0001, 'resolved');
-  closeTo(posterior({ state: REF_STATE, groups: [{ rangeM: 100, shots: 4, sigmaMrad: 0.05 }], priors, params }).sd[0], 0.0424, 0.0001, 'Very certain');
-  closeTo(posterior({ state: REF_STATE, groups: [{ rangeM: 100, shots: 4, sigmaMrad: 0.10 }], priors, params }).sd[0], 0.0625, 0.0001, 'Fairly certain');
-  closeTo(posterior({ state: REF_STATE, groups: [{ rangeM: 100, shots: 4, sigmaMrad: 0.15 }], priors, params }).sd[0], 0.0706, 0.0001, 'Less certain (default)');
+  const zeroSd = (key) => posterior({ state: REF_STATE, groups: [{ rangeM: 100, shots: 3, r50Mrad: 0.14, sigmaObsMrad: observationSigmaMrad(key) }], priors, params }).sd[0];
+  closeTo(zeroSd('good'), 0.0545, 0.0001, 'good (the default)');
+  closeTo(zeroSd('fair'), 0.0597, 0.0001, 'fair');
+  closeTo(zeroSd('poor'), 0.0648, 0.0001, 'poor');
 });
 
 test('golden: full posterior + resolution matrix, 100m x4 + 870m x8, chronographed', () => {
-  const groups = [{ rangeM: 100, shots: 4 }, { rangeM: 870, shots: 8 }];
+  const groups = [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }];
   const post = posterior({ state: REF_STATE, groups, priors: CHECKED_PRIORS });
-  const expectedSd = [0.0558, 2.9173, 1.5768, 0.1499, 0.4998];
+  const expectedSd = [0.0558, 2.9172, 1.5715, 0.1499];
   post.sd.forEach((v, i) => closeTo(v, expectedSd[i], 0.0002, `sd[${BASE_PARAMS[i]}]`));
 
   const rm = resolutionMatrix({ cov: post.cov, priors: CHECKED_PRIORS, params: post.params });
   const expectedRtilde = [
-    [0.513, -0.023, 0.095, 0.004, 0.003],
-    [-0.023, 0.054, -0.221, -0.009, -0.006],
-    [0.095, -0.221, 0.901, 0.036, 0.026],
-    [0.004, -0.009, 0.036, 0.001, 0.001],
-    [0.003, -0.006, 0.026, 0.001, 0.001]
+    [0.513, -0.023, 0.095, 0.004],
+    [-0.023, 0.054, -0.221, -0.009],
+    [0.095, -0.221, 0.901, 0.036],
+    [0.004, -0.009, 0.036, 0.001]
   ];
-  for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) closeTo(rm.Rtilde[i][j], expectedRtilde[i][j], 0.002, `Rtilde[${i}][${j}]`);
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) closeTo(rm.Rtilde[i][j], expectedRtilde[i][j], 0.002, `Rtilde[${i}][${j}]`);
 });
 
 test('golden: unchecked v0Ms prior (no chronograph) and near-target-at-300 variants', () => {
-  const groups = [{ rangeM: 100, shots: 4 }, { rangeM: 870, shots: 8 }];
+  const groups = [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }];
   const noChrono = posterior({ state: REF_STATE, groups, priors: { ...CHECKED_PRIORS, v0Ms: 20 } });
-  closeTo(noChrono.sd[BASE_PARAMS.indexOf('dragPct')], 4.2785, 0.001, 'dragPct, no chronograph');
+  closeTo(noChrono.sd[BASE_PARAMS.indexOf('dragPct')], 4.2784, 0.001, 'dragPct, no chronograph');
   closeTo(noChrono.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0562, 0.0002, 'zeroMrad, no chronograph');
-  closeTo(noChrono.sd[BASE_PARAMS.indexOf('v0Ms')], 10.6049, 0.001, 'v0Ms, no chronograph');
+  closeTo(noChrono.sd[BASE_PARAMS.indexOf('v0Ms')], 10.6019, 0.001, 'v0Ms, no chronograph');
 
-  const nearAt300 = posterior({ state: REF_STATE, groups: [{ rangeM: 300, shots: 4 }, { rangeM: 870, shots: 8 }], priors: CHECKED_PRIORS });
-  closeTo(nearAt300.sd[BASE_PARAMS.indexOf('dragPct')], 1.5496, 0.001, 'dragPct, near at 300m');
+  const nearAt300 = posterior({ state: REF_STATE, groups: [{ rangeM: 300, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }], priors: CHECKED_PRIORS });
+  closeTo(nearAt300.sd[BASE_PARAMS.indexOf('dragPct')], 1.5440, 0.001, 'dragPct, near at 300m');
   closeTo(nearAt300.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0577, 0.0002, 'zeroMrad, near at 300m');
 });
 
 test('golden: rifle-precision variants of sigmaForGroup feeding the posterior', () => {
-  const groups14 = [{ rangeM: 100, shots: 4, r50Mrad: 0.14 }, { rangeM: 870, shots: 8, r50Mrad: 0.14 }];
-  const post14 = posterior({ state: REF_STATE, groups: groups14, priors: CHECKED_PRIORS });
-  closeTo(post14.sd[BASE_PARAMS.indexOf('dragPct')], 1.6831, 0.001, 'dragPct, "basic" 0.14 mrad');
-  closeTo(post14.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0615, 0.0002, 'zeroMrad, "basic" 0.14 mrad');
-
-  const groups06 = [{ rangeM: 100, shots: 4, r50Mrad: 0.06 }, { rangeM: 870, shots: 8, r50Mrad: 0.06 }];
-  const post06 = posterior({ state: REF_STATE, groups: groups06, priors: CHECKED_PRIORS });
-  closeTo(post06.sd[BASE_PARAMS.indexOf('dragPct')], 1.5984, 0.001, 'dragPct, "supermatch" 0.06 mrad');
-  closeTo(post06.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0572, 0.0002, 'zeroMrad, "supermatch" 0.06 mrad');
+  const groups = (r50Mrad) => [{ rangeM: 100, shots: 4, r50Mrad, mvSD: 6 }, { rangeM: 870, shots: 8, r50Mrad, mvSD: 6 }];
+  const post14 = posterior({ state: REF_STATE, groups: groups(0.14), priors: CHECKED_PRIORS });
+  closeTo(post14.sd[BASE_PARAMS.indexOf('dragPct')], 1.6643, 0.001, 'dragPct, "basic" 0.14 mrad');
+  closeTo(post14.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0498, 0.0002, 'zeroMrad, "basic" 0.14 mrad');
+  const post06 = posterior({ state: REF_STATE, groups: groups(0.06), priors: CHECKED_PRIORS });
+  closeTo(post06.sd[BASE_PARAMS.indexOf('dragPct')], 1.5359, 0.001, 'dragPct, "supermatch" 0.06 mrad');
+  closeTo(post06.sd[BASE_PARAMS.indexOf('zeroMrad')], 0.0325, 0.0002, 'zeroMrad, "supermatch" 0.06 mrad');
 });
 
 test('golden: dragPct mixture prior constants', () => {
@@ -169,7 +180,7 @@ test('golden: the deterministic shot-sequencing ladder', () => {
   // rounding artifact in that table, not a bug here (verified directly
   // against the engine itself). The ladder's actual DECISIONS below are
   // what matters and are unaffected either way.
-  const expectedSd = { 100: 0.250000, 200: 0.254597, 300: 0.270724, 400: 0.301686, 500: 0.350617, 600: 0.420852, 700: 0.516756, 800: 0.644570, 870: 0.757611 };
+  const expectedSd = { 100: 0.250000, 200: 0.254596, 300: 0.270717, 400: 0.301656, 500: 0.350527, 600: 0.420639, 700: 0.516317, 800: 0.643739, 870: 0.756359 };
   for (const r of ranges) closeTo(predictiveComeUpSd({ state: REF_STATE, cov, rangeM: r }), expectedSd[r], 0.0001, `predictiveComeUpSd(${r})`);
 
   // the step cap is 4 times the farthest validated distance
@@ -308,11 +319,11 @@ const SCEN_REF = {
   tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50,
   windSpeed: 0, windAngle: 0, losAngleDeg: 0
 };
-function simulateObservation({ trueState, believedRangeM, trueRangeM = believedRangeM, trueLosDeg = 0, trueZeroMrad = 0, shots, r50Mrad = null, resolved = true, targetIndex, rng }) {
-  const sigma = sigmaForGroup({ shots, r50Mrad, resolved });
+function simulateObservation({ trueState, believedRangeM, trueRangeM = believedRangeM, trueLosDeg = 0, trueZeroMrad = 0, shots, r50Mrad = null, targetIndex, rng }) {
+  const sigma = referenceSigma(shots, r50Mrad);
   const trueComeUp = comeUpMrad({ ...trueState, losAngleDeg: trueLosDeg }, trueRangeM) + trueZeroMrad;
   const observedComeUp = trueComeUp + gaussian(rng) * sigma;
-  return { rangeM: believedRangeM, observedComeUp, shots, r50Mrad, resolved, targetIndex, sigmaMrad: undefined };
+  return { rangeM: believedRangeM, observedComeUp, shots, r50Mrad, targetIndex, sigmaMrad: sigma };
 }
 
 test('Scenario C/D: the v0/drag degeneracy is real, and only a chronograph breaks it', () => {
@@ -322,10 +333,10 @@ test('Scenario C/D: the v0/drag degeneracy is real, and only a chronograph break
   // C: chronographed (tight v0Ms prior) -- dragPct comes out clean, near-uncorrelated with v0Ms.
   {
     const rng = mulberry32(2);
-    const priors = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15, windMs: 0.5 };
+    const priors = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15 };
     const observations = [
-      simulateObservation({ trueState, believedRangeM: 100, shots: 4, resolved: true, targetIndex: 0, rng }),
-      simulateObservation({ trueState, believedRangeM: 870, shots: 8, resolved: true, targetIndex: 1, rng })
+      simulateObservation({ trueState, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
+      simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
     ];
     const fit = fitSession({ state: SCEN_REF, observations, priors });
     closeTo(fit.theta.dragPct, 6.403, 0.01, 'C: recovered dragPct');
@@ -340,15 +351,15 @@ test('Scenario C/D: the v0/drag degeneracy is real, and only a chronograph break
   // nearly indistinguishable (|corr| far past DEGENERACY_R).
   {
     const rng = mulberry32(2);
-    const priors = { zeroMrad: 0.08, v0Ms: 20, dragPct: 5, trackPct: 0.15, windMs: 0.5 };
+    const priors = { zeroMrad: 0.08, v0Ms: 20, dragPct: 5, trackPct: 0.15 };
     const observations = [
-      simulateObservation({ trueState, believedRangeM: 100, shots: 4, resolved: true, targetIndex: 0, rng }),
-      simulateObservation({ trueState, believedRangeM: 870, shots: 8, resolved: true, targetIndex: 1, rng })
+      simulateObservation({ trueState, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
+      simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
     ];
     const fit = fitSession({ state: SCEN_REF, observations, priors });
     closeTo(fit.theta.dragPct, 1.880, 0.01, 'D: recovered dragPct');
     closeTo(fit.theta.v0Ms, -12.088, 0.01, 'D: recovered v0Ms');
-    const cov = posterior({ state: SCEN_REF, groups: [{ rangeM: 100, shots: 4 }, { rangeM: 870, shots: 8 }], priors }).cov;
+    const cov = posterior({ state: SCEN_REF, groups: [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }], priors }).cov;
     const iv0 = BASE_PARAMS.indexOf('v0Ms'), idrag = BASE_PARAMS.indexOf('dragPct');
     const rawCorr = cov[iv0][idrag] / Math.sqrt(cov[iv0][iv0] * cov[idrag][idrag]);
     closeTo(rawCorr, 0.967, 0.005, 'D: raw v0Ms/dragPct correlation, un-chronographed');
@@ -358,10 +369,10 @@ test('Scenario C/D: the v0/drag degeneracy is real, and only a chronograph break
 
 test('Scenario E: an un-modelled range blunder masquerades as a spurious drag finding, and the mixture catches it', () => {
   const rng = mulberry32(3);
-  const priors = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15, windMs: 0.5 };
+  const priors = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15 };
   const observations = [
-    simulateObservation({ trueState: SCEN_REF, believedRangeM: 100, shots: 4, resolved: true, targetIndex: 0, rng }),
-    simulateObservation({ trueState: SCEN_REF, believedRangeM: 870, trueRangeM: 900, shots: 8, resolved: true, targetIndex: 1, rng })
+    simulateObservation({ trueState: SCEN_REF, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
+    simulateObservation({ trueState: SCEN_REF, believedRangeM: 870, trueRangeM: 900, shots: 8, targetIndex: 1, rng })
   ];
 
   const naiveFit = fitSession({ state: SCEN_REF, observations, priors });
@@ -381,11 +392,11 @@ test('Scenario P: dragPct as a mixture reports tighter for a typical BC, wider f
     const rng = mulberry32(42);
     const trueState = { ...SCEN_REF, bc: SCEN_REF.bc / (1 + trueDragPct / 100) };
     const observations = [
-      simulateObservation({ trueState, believedRangeM: 100, shots: 4, resolved: true, targetIndex: 0, rng }),
-      simulateObservation({ trueState, believedRangeM: 870, shots: 8, resolved: true, targetIndex: 1, rng })
+      simulateObservation({ trueState, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
+      simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 1, rng })
     ];
-    const flatFit = fitSession({ state: SCEN_REF, observations, priors: { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15, windMs: 0.5 } });
-    const mix = fitSessionDragMixture({ state: SCEN_REF, observations, priors: { zeroMrad: 0.08, v0Ms: 3, trackPct: 0.15, windMs: 0.5 } });
+    const flatFit = fitSession({ state: SCEN_REF, observations, priors: { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15 } });
+    const mix = fitSessionDragMixture({ state: SCEN_REF, observations, priors: { zeroMrad: 0.08, v0Ms: 3, trackPct: 0.15 } });
     return { flatFit, mix };
   }
 
@@ -404,67 +415,65 @@ test('Scenario P: dragPct as a mixture reports tighter for a typical BC, wider f
   closeTo(outlier.mix.posteriorWeights[1], 0.803, 0.005, 'P2: posterior weight shifts to the wide (outlier) component');
 });
 
+test('a distance reading is good to 0.2% of the distance, and a second reading of a target carries that sigma by default', () => {
+  assert.equal(RANGE_SIGMA_FRACTION, 0.002);
+  closeTo(rangeSigmaM(300), 0.6, 1e-12, '300 m');
+  closeTo(rangeSigmaM(1000), 2, 1e-12, '1,000 m');
+  closeTo(rangeCheckObservation({ targetIndex: 0, believedRangeM: 500, newReadingM: 503 }).sigmaM, 1, 1e-12, 'default sigma of a second reading');
+  closeTo(rangeCheckObservation({ targetIndex: 0, believedRangeM: 500, newReadingM: 503, sigmaM: 0.4 }).sigmaM, 0.4, 1e-12, 'an explicit sigma still wins');
+});
+
 test('Scenario Q: joint blunder detection vs one-at-a-time, plus a live rangefinder re-check', () => {
   const rng = mulberry32(99);
   const trueV0Shift = -40;
   const trueState = { ...SCEN_REF, muzzleVelocity: SCEN_REF.muzzleVelocity + trueV0Shift };
   const mvSD = 3, nChrono = 12;
-  const priors = { zeroMrad: 0.08, v0Ms: 20, trackPct: 0.15, windMs: 0.5 };
+  const priors = { zeroMrad: 0.08, v0Ms: 20, trackPct: 0.15 };
   const observations = [
-    simulateObservation({ trueState, believedRangeM: 100, shots: 4, resolved: true, targetIndex: 0, rng }),
-    simulateObservation({ trueState, believedRangeM: 860, trueRangeM: 850, shots: 8, resolved: true, targetIndex: 1, rng }),
-    simulateObservation({ trueState, believedRangeM: 870, shots: 8, resolved: true, targetIndex: 2, rng })
+    simulateObservation({ trueState, believedRangeM: 100, shots: 4, targetIndex: 0, rng }),
+    simulateObservation({ trueState, believedRangeM: 860, trueRangeM: 850, shots: 8, targetIndex: 1, rng }),
+    simulateObservation({ trueState, believedRangeM: 870, shots: 8, targetIndex: 2, rng })
   ];
   const velocitiesMs = Array.from({ length: nChrono }, () => (SCEN_REF.muzzleVelocity + trueV0Shift) + gaussian(rng) * mvSD);
   const chrono = chronoObservation({ state: SCEN_REF, velocitiesMs, mvSD });
   const finalObservations = [...observations, chrono];
 
   const oneAtATime = [0, 1, 2].map((idx) => blunderPatternForTarget({ state: SCEN_REF, observations, priors: { ...priors, dragPct: dragPctMarginalSigma() }, targetIndex: idx, rechecked: true }).posteriorWeights[1]);
-  closeTo(oneAtATime[1], 0.8756, 0.001, 'one-at-a-time: the real culprit (860m)');
-  closeTo(oneAtATime[2], 0.9352, 0.001, 'one-at-a-time: over-flags its clean 10m-away neighbour (870m) nearly as hard');
+  closeTo(oneAtATime[1], 0.6984, 0.001, 'one-at-a-time: the real culprit (860m)');
+  closeTo(oneAtATime[2], 0.8109, 0.001, 'one-at-a-time: over-flags its clean 10m-away neighbour (870m) nearly as hard');
 
   const joint = jointBlunderCheck({ state: SCEN_REF, observations: finalObservations, priors, targetIndices: [0, 1, 2], rechecked: true });
-  closeTo(joint.marginalBlunder[1], 0.5439, 0.001, 'joint: the real culprit stays flagged');
-  closeTo(joint.marginalBlunder[2], 0.3934, 0.001, 'joint: its clean neighbour is substantially exonerated once the shared v0Ms cause is credited to v0Ms itself');
+  closeTo(joint.marginalBlunder[1], 0.3999, 0.001, 'joint: the real culprit stays flagged');
+  closeTo(joint.marginalBlunder[2], 0.2923, 0.001, 'joint: its clean neighbour is substantially exonerated once the shared v0Ms cause is credited to v0Ms itself');
   closeTo(joint.theta.v0Ms, -39.07, 0.01, 'joint: recovered v0Ms (true -40)');
 
   const rangeCheck = rangeCheckObservation({ targetIndex: 1, believedRangeM: 860, newReadingM: 850.4 });
   const withCheck = jointBlunderCheck({ state: SCEN_REF, observations: [...finalObservations, rangeCheck], priors, targetIndices: [0, 1, 2], rechecked: true });
-  closeTo(withCheck.marginalBlunder[1], 1.0000, 0.0005, 'a second reading resolves the 860m target almost completely');
-  closeTo(withCheck.marginalBlunder[2], 0.0093, 0.001, 'and fully exonerates its neighbour');
+  closeTo(withCheck.marginalBlunder[1], 0.9782, 0.001, 'a second reading resolves the 860m target almost completely');
+  closeTo(withCheck.marginalBlunder[2], 0.0096, 0.001, 'and fully exonerates its neighbour');
   const bestIdx = withCheck.posteriorWeights.indexOf(Math.max(...withCheck.posteriorWeights));
-  closeTo(withCheck.results[bestIdx].fit.theta.rangeErrM_1, -9.9, 0.1, 'the direct re-reading pins the correction size (true -10m), tighter than ballistics alone (Scenario E\'s own 16.7m vs a true 30m)');
+  closeTo(withCheck.results[bestIdx].fit.theta.rangeErrM_1, -10.4, 0.1, 'the direct re-reading pins the correction size (true -10m), tighter than ballistics alone (Scenario E\'s own 16.7m vs a true 30m)');
 });
 
 // ---- audit fixes ----
 import {
-  planSession, planPosterior, snapRetreat, planLadderWalk, plannedV0Sigma, correlationOf, degenerateGroups,
+  planPosterior, snapRetreat, planLadderWalk, plannedV0Sigma, correlationOf, degenerateGroups,
   PLAN_CANDIDATE_CAP, SUPERSONIC_MACH, planningColumns, clearPlanningMemo, laplaceLogEvidence, predictedComeUp,
-  withConditions, withFixedBore, alongAxisWind, windageMrad, nextShotDope, JOINT_BLUNDER_MAX_SIMULTANEOUS, clearWalkers
+  withConditions, withFixedBore, windErrorMrad, plannedWindSdMrad, WIND_DIRECTION_SIGMA_DEG, windageMrad, nextShotDope, JOINT_BLUNDER_MAX_SIMULTANEOUS, clearWalkers
 } from '../src/engine/truing-session.js';
 
-test('planPosterior reproduces the resolved/unresolved near-target drag SDs and the 0.43 zero/drag overlap from the golden reference plan', () => {
-  const plan = { state: REF_STATE, ranges: [100, 870], shots: [4, 8], priors: CHECKED_PRIORS };
-  closeTo(planPosterior({ ...plan }).dragSd, 1.655, 0.001, 'unresolved near (the default)');
-  const resolved = planPosterior({ ...plan, nearResolved: true });
-  closeTo(resolved.dragSd, 1.577, 0.001, 'resolved near');
-  closeTo(resolved.zeroDragCorr, 0.43, 0.01, '|corr(zero, drag)|');
+test('planPosterior prices a plan with the string noise: a larger velocity spread costs drag precision', () => {
+  const plan = { state: REF_STATE, ranges: [100, 870], shots: [4, 8], priors: CHECKED_PRIORS, r50Mrad: 0.14 };
+  closeTo(planPosterior({ ...plan, mvSD: 3 }).dragSd, 1.5208, 0.001, '3 m/s');
+  closeTo(planPosterior({ ...plan, mvSD: 6 }).dragSd, 1.6643, 0.001, '6 m/s');
+  closeTo(planPosterior({ ...plan, mvSD: 10 }).dragSd, 1.9449, 0.001, '10 m/s');
+  closeTo(planPosterior({ ...plan, mvSD: 6 }).zeroDragCorr, 0.359, 0.002, '|corr(zero, drag)|');
 });
 
-test('planSession applies the session r50 and plans the near target unresolved by default', () => {
-  // 860, not 870: the golden reference's own 870 m sits just past this bullet's 869.2 m ceiling.
-  const args = { state: REF_STATE, availableDistances: [100, 860], roundBudget: 12, priors: CHECKED_PRIORS };
-  const idealised = planSession({ ...args, nearResolved: true });
-  const unresolved = planSession({ ...args });
-  const rackRifle = planSession({ ...args, r50Mrad: 0.14 });
-  assert.ok(unresolved.dragSd > idealised.dragSd, 'unresolved near must cost precision');
-  assert.ok(rackRifle.dragSd > unresolved.dragSd, 'a real rifle\'s dispersion must cost precision');
-  assert.ok(rackRifle.cov && rackRifle.zeroDragCorr > 0, 'the plan reports its covariance and zero/drag overlap');
-});
 
-test('planSession caps a long candidate list and still plans', () => {
+test('planWholeSession caps a long candidate list and still plans', () => {
   const many = Array.from({ length: 40 }, (_, i) => 100 + i * 20);
-  const plan = planSession({ state: REF_STATE, availableDistances: many, roundBudget: 12, priors: CHECKED_PRIORS });
+  const plan = planWholeSession({ state: REF_STATE, availableDistances: many, roundBudget: 12, priors: CHECKED_PRIORS, r50Mrad: 0.14, mvSD: 6 });
   assert.ok(PLAN_CANDIDATE_CAP === 12);
   assert.ok(plan.ranges.every((r) => many.includes(r)));
   assert.ok(Math.max(...plan.ranges) <= rangeAtMach(REF_STATE, 1.1));
@@ -505,7 +514,7 @@ test('chronoObservation carries the Student\'s-t sample-size inflation; plannedV
 });
 
 test('degenerateGroups finds the un-chronographed v0/drag pair and nothing once v0 is pinned', () => {
-  const groups = [{ rangeM: 100, shots: 4 }, { rangeM: 870, shots: 8 }];
+  const groups = [{ rangeM: 100, shots: 4, sigmaMrad: referenceSigma(4) }, { rangeM: 870, shots: 8, sigmaMrad: referenceSigma(8) }];
   const loose = posterior({ state: REF_STATE, groups, priors: { ...CHECKED_PRIORS, v0Ms: 20 } });
   assert.deepEqual(degenerateGroups(loose.cov, BASE_PARAMS).map((g) => [...g].sort()), [['dragPct', 'v0Ms']]);
   assert.ok(Math.abs(correlationOf(loose.cov, BASE_PARAMS, 'v0Ms', 'dragPct')) > 0.9);
@@ -516,63 +525,17 @@ test('degenerateGroups finds the un-chronographed v0/drag pair and nothing once 
 test('jointBlunderCheck: string target keys work, and a target on an unrecorded 25° slope is flagged by the summed probability even though "mis-ranged" alone stays under 50%', () => {
   const obs = [100, 400, 700].map((r) => ({
     rangeM: r, observedComeUp: comeUpMrad({ ...REF_STATE, losAngleDeg: r === 700 ? 25 : 0 }, r),
-    shots: 8, sigmaMrad: sigmaForGroup({ shots: 8 }), targetIndex: `t${r}`
+    shots: 8, sigmaMrad: referenceSigma(8), targetIndex: `t${r}`
   }));
   const chrono = chronoObservation({ state: REF_STATE, velocitiesMs: Array(10).fill(792.48), mvSD: 3 });
-  const j = jointBlunderCheck({ state: REF_STATE, observations: [...obs, chrono], priors: { zeroMrad: 0.08, v0Ms: 20, trackPct: 0.15, windMs: 0.5 }, targetIndices: obs.map((o) => o.targetIndex), rechecked: true });
+  const j = jointBlunderCheck({ state: REF_STATE, observations: [...obs, chrono], priors: { zeroMrad: 0.08, v0Ms: 20, trackPct: 0.15 }, targetIndices: obs.map((o) => o.targetIndex), rechecked: true });
   assert.ok(j.marginalBlunder.t700 < 0.5, `mis-ranged alone: ${j.marginalBlunder.t700}`);
   assert.ok(j.marginalSomethingWrong.t700 > 0.5, `summed: ${j.marginalSomethingWrong.t700}`);
   assert.ok(j.marginalSomethingWrong.t100 < 0.2 && j.marginalSomethingWrong.t400 < 0.2, 'the clean targets stay unflagged');
 });
 
-// ---- The planner computes each distance's sensitivity columns once; its answer must not change ----
-// A plain brute-force search that calls posterior() with no precomputed columns, exactly as the planner did
-// before the columns were shared across designs.
-function bruteForcePlan({ state, candidates, budget, priors, r50Mrad, nearResolved = false, minShots = 3, maxTargets = 3 }) {
-  const dragIdx = BASE_PARAMS.indexOf('dragPct');
-  let best = null;
-  const subsets = [];
-  const pick = (start, chosen) => {
-    if (chosen.length >= 1) subsets.push([...chosen]);
-    if (chosen.length === maxTargets) return;
-    for (let i = start; i < candidates.length; i++) pick(i + 1, [...chosen, candidates[i]]);
-  };
-  pick(0, []);
-  for (const ranges of subsets) {
-    const k = ranges.length;
-    const allocate = (remaining, idx, current) => {
-      if (idx === k - 1) {
-        if (remaining < minShots) return;
-        const shots = [...current, remaining];
-        const groups = ranges.map((r, i) => ({ rangeM: r, shots: shots[i], r50Mrad, resolved: i === 0 ? nearResolved : true }));
-        const post = posterior({ state, groups, priors });
-        if (!best || post.sd[dragIdx] < best.dragSd) best = { ranges, shots, dragSd: post.sd[dragIdx], sd: post.sd, cov: post.cov };
-        return;
-      }
-      for (let s = minShots; s <= remaining - minShots * (k - idx - 1); s++) allocate(remaining - s, idx + 1, [...current, s]);
-    };
-    allocate(budget, 0, []);
-  }
-  return best;
-}
-
-test('planSession returns exactly what a brute-force search without shared columns returns', () => {
-  const candidates = [100, 250, 400, 550, 700, 800];
-  const ceiling = rangeAtMach(REF_STATE, SUPERSONIC_MACH);
-  assert.ok(candidates.every((d) => d <= ceiling));
-  for (const [budget, priors, nearResolved] of [[12, DEFAULT_PRIORS_UNCHECKED, false], [15, CHECKED_PRIORS, true]]) {
-    const fast = planSession({ state: REF_STATE, availableDistances: candidates, roundBudget: budget, priors, r50Mrad: 0.14, nearResolved });
-    const slow = bruteForcePlan({ state: REF_STATE, candidates, budget, priors, r50Mrad: 0.14, nearResolved });
-    assert.deepEqual(fast.ranges, slow.ranges);
-    assert.deepEqual(fast.shots, slow.shots);
-    assert.equal(fast.dragSd, slow.dragSd, 'the drag-scale SD must be bit-for-bit the same');
-    assert.deepEqual(Array.from(fast.sd), Array.from(slow.sd));
-    assert.deepEqual(fast.cov, slow.cov);
-  }
-});
-
 test('posterior with precomputed columns equals posterior computing them itself', () => {
-  const groups = [{ rangeM: 100, shots: 4, resolved: false }, { rangeM: 600, shots: 8 }];
+  const groups = [{ rangeM: 100, shots: 1, r50Mrad: 0.14, mvSD: 6 }, { rangeM: 600, shots: 3, r50Mrad: 0.14, mvSD: 6 }];
   const plain = posterior({ state: REF_STATE, groups, priors: CHECKED_PRIORS });
   const shared = posterior({ state: REF_STATE, groups: groups.map((g) => ({ ...g, col: sensitivityColumns(REF_STATE, g.rangeM) })), priors: CHECKED_PRIORS });
   assert.deepEqual(shared.cov, plain.cov);
@@ -582,8 +545,10 @@ test('posterior with precomputed columns equals posterior computing them itself'
 test('the planning memo returns the same numbers as a direct computation and never a stale one when an input changes', () => {
   clearPlanningMemo();
   const direct = sensitivityColumns(REF_STATE, 600);
-  assert.deepEqual({ ...planningColumns(REF_STATE, 600) }, direct);
-  assert.deepEqual({ ...planningColumns(REF_STATE, 600) }, direct, 'a second call (a memo hit) gives the same numbers');
+  const { windRms, ...planned } = planningColumns(REF_STATE, 600);
+  assert.deepEqual(planned, direct);
+  assert.ok(windRms > 0 && windRms < 0.05, `the come-up's sensitivity to a wind of unknown direction, per m/s: ${windRms}`);
+  assert.deepEqual({ ...planningColumns(REF_STATE, 600) }, { ...planned, windRms }, 'a second call (a memo hit) gives the same numbers');
   assert.ok(Object.isFrozen(planningColumns(REF_STATE, 600)), 'the shared result is frozen so no caller can corrupt it');
 
   // a state that differs in any physics field must not hit the old entry, even if it is the same object mutated
@@ -600,13 +565,13 @@ test('the planning memo returns the same numbers as a direct computation and nev
 
 test('the planner ranks designs with a closed form but reports the exact posterior of the chosen one', () => {
   const candidates = [100, 200, 300, 450, 600, 750, 860];
-  const plan = planSession({ state: REF_STATE, availableDistances: candidates, roundBudget: 24, priors: CHECKED_PRIORS, r50Mrad: 0.14 });
+  const plan = planWholeSession({ state: REF_STATE, availableDistances: candidates, roundBudget: 24, priors: CHECKED_PRIORS, r50Mrad: 0.14, mvSD: 6 });
   const exactPost = posterior({
     state: REF_STATE, priors: CHECKED_PRIORS,
-    groups: plan.ranges.map((r, i) => ({ rangeM: r, shots: plan.shots[i], r50Mrad: 0.14, resolved: i === 0 ? false : true }))
+    groups: plan.ranges.map((r, i) => ({ rangeM: r, shots: plan.shots[i], r50Mrad: 0.14, mvSD: 6 }))
   });
-  assert.deepEqual(plan.cov, exactPost.cov);
-  assert.equal(plan.dragSd, exactPost.sd[BASE_PARAMS.indexOf('dragPct')]);
+  plan.cov.forEach((row, a) => row.forEach((v, b) => closeTo(v, exactPost.cov[a][b], 1e-12 * Math.max(1, Math.abs(v)), `cov[${a}][${b}]`)));
+  closeTo(plan.dragSd, exactPost.sd[BASE_PARAMS.indexOf('dragPct')], 1e-12, 'drag SD');
 });
 
 // ---- The estimator: warm starts, the reused evidence, and predictedComeUp's dedupe ----
@@ -629,7 +594,7 @@ test('a warm start converges to the same solution as a cold start, to well below
 test('a start that does not converge is discarded: the answer is the cold-start answer', () => {
   const args = estimatorCase();
   const cold = fitSession(args);
-  const wild = fitSession({ ...args, start: { zeroMrad: 5, v0Ms: 400, dragPct: -60, trackPct: 20, windMs: 30 } });
+  const wild = fitSession({ ...args, start: { zeroMrad: 5, v0Ms: 400, dragPct: -60, trackPct: 20 } });
   assert.deepEqual(wild.theta, cold.theta);
   assert.deepEqual(wild.cov, cold.cov);
 });
@@ -680,16 +645,33 @@ test('jointBlunderCheck hands back a warm start; using it agrees with a cold run
 });
 
 // ---- Per-group air and wind, the zero that stays put, and what to dial next ----
-test('the fitted along-axis wind is added to the called wind without turning a crosswind into a headwind', () => {
-  assert.deepEqual(alongAxisWind({ windSpeed: 0, windAngle: 90 }, 3), { windSpeed: 3, windAngle: 0 });
-  assert.deepEqual(alongAxisWind({}, -2), { windSpeed: -2, windAngle: 0 }, 'no wind called: the plain addition it always was');
-  assert.deepEqual(alongAxisWind({ windSpeed: 4, windAngle: 0 }, 3), { windSpeed: 7, windAngle: 0 }, 'a called headwind just grows');
-  const mixed = alongAxisWind({ windSpeed: 5, windAngle: 90 }, 3);
-  closeTo(mixed.windSpeed * Math.sin(mixed.windAngle * Math.PI / 180), 5, 1e-9, 'the 5 m/s crosswind is kept');
-  closeTo(mixed.windSpeed * Math.cos(mixed.windAngle * Math.PI / 180), 3, 1e-9, 'and 3 m/s of headwind is added');
-  // physically: a 5 m/s called tailwind plus 5 m/s more headwind is no wind at all
-  const cancelled = applyParameters({ ...REF_STATE, windSpeed: 5, windAngle: 180 }, { windMs: 5 });
-  closeTo(comeUpMrad(cancelled, 700), comeUpMrad({ ...REF_STATE, windSpeed: 0 }, 700), 1e-9, 'come-up with the tailwind cancelled');
+test('the wind error: speed and direction sigma move the come-up and the windage, and an uncalled wind spreads over every direction', () => {
+  const at = (windSpeed, windAngle) => ({ ...REF_STATE, windSpeed, windAngle });
+  // no error, no effect; a larger speed error moves the impact proportionally
+  const none = windErrorMrad({ state: at(5, 90), rangeM: 700, speedSigmaMs: 0, dirSigmaDeg: 0 });
+  assert.equal(none.verticalMrad, 0); assert.equal(none.horizontalMrad, 0);
+  const one = windErrorMrad({ state: at(5, 90), rangeM: 700, speedSigmaMs: 1, dirSigmaDeg: 0 });
+  const two = windErrorMrad({ state: at(5, 90), rangeM: 700, speedSigmaMs: 2, dirSigmaDeg: 0 });
+  closeTo(two.horizontalMrad / one.horizontalMrad, 2, 0.02, 'windage error doubles with the speed error');
+  // a crosswind's speed error moves the windage far more than the come-up; a headwind's, the come-up
+  assert.ok(one.horizontalMrad > 10 * one.verticalMrad, `crosswind: windage ${one.horizontalMrad} vs come-up ${one.verticalMrad}`);
+  const head = windErrorMrad({ state: at(5, 0), rangeM: 700, speedSigmaMs: 1, dirSigmaDeg: 0 });
+  assert.ok(head.verticalMrad > one.verticalMrad, 'a headwind\'s speed error reaches the come-up');
+  // the direction error is a rotation of the wind: nothing for a calm, more for a stronger wind
+  const dirOnly = (speed) => windErrorMrad({ state: at(speed, 90), rangeM: 700, speedSigmaMs: 0, dirSigmaDeg: WIND_DIRECTION_SIGMA_DEG }).horizontalMrad;
+  assert.ok(dirOnly(8) > dirOnly(4) && dirOnly(4) > 0);
+  // a wind that was not called: every direction alike, so a head and a cross wind of the same error are averaged
+  const calm = windErrorMrad({ state: at(0, 90), rangeM: 700, speedSigmaMs: 1 });
+  const calmHead = windErrorMrad({ state: at(0, 0), rangeM: 700, speedSigmaMs: 1 });
+  assert.deepEqual(calm, calmHead, 'the called direction means nothing without a called speed');
+  assert.ok(calm.verticalMrad > 0 && calm.horizontalMrad > 0);
+});
+
+test('a string\'s wind error does not shrink with its rounds, only with the strings that make up a reading', () => {
+  const base = { r50Mrad: 0.1, sigmaObsMrad: 0.05 };
+  const noWind = sigmaForGroup({ shots: 3, ...base });
+  closeTo(sigmaForGroup({ shots: 3, ...base, windSdMrad: 0.2 }), Math.sqrt(noWind ** 2 + 0.2 ** 2), 1e-12, 'one string: added in quadrature, undivided');
+  closeTo(sigmaForGroup({ shots: 9, ...base, windSdMrad: 0.2 }), Math.sqrt(sigmaForGroup({ shots: 9, ...base }) ** 2 + 0.2 ** 2 / 3), 1e-12, 'three strings, each in its own wind');
 });
 
 test('a zero fixed in the air it was set in: no zero conditions is the old behaviour, and colder air later moves the impact', () => {
@@ -771,10 +753,13 @@ test('nextShotDope: elevation and windage for the next shot, in that shot\'s air
   const exact = nextShotDope({ state, conditions, theta: { v0Ms: -10 }, rangeM: 700 });
   closeTo(exact.elevationMrad, comeUpMrad(truth, 700), 1e-9, 'a fit that equals the truth dials the true come-up');
 
-  // uncertainty: the elevation SD comes from the covariance, the windage SD from how well the crosswind is known
-  const cov = BASE_PARAMS.map((_, i) => BASE_PARAMS.map((__, j) => (i === j ? [0.05, 3, 2, 0.1, 0.5][i] ** 2 : 0)));
-  const withUncertainty = nextShotDope({ state, conditions, theta, cov, rangeM: 700, crosswindSigmaMs: 1.5 });
-  closeTo(withUncertainty.elevationSdMrad, predictiveComeUpSd({ state: shot, theta, cov, rangeM: 700 }), 1e-12, 'elevation SD');
+  // uncertainty: the elevation SD comes from the covariance (and the wind's error), the windage SD from how well the wind is known
+  const cov = BASE_PARAMS.map((_, i) => BASE_PARAMS.map((__, j) => (i === j ? [0.05, 3, 2, 0.1][i] ** 2 : 0)));
+  const withUncertainty = nextShotDope({ state, conditions, theta, cov, rangeM: 700, windSigma: { speedMs: 1.5, dirDeg: 0 } });
+  const fitSd = predictiveComeUpSd({ state: shot, theta, cov, rangeM: 700 });
+  const windSd = windErrorMrad({ state: applyParameters(shot, theta), rangeM: 700, speedSigmaMs: 1.5, dirSigmaDeg: 0 });
+  closeTo(withUncertainty.elevationSdMrad, Math.hypot(fitSd, windSd.verticalMrad), 1e-12, 'elevation SD: the fit and the wind\'s error');
+  closeTo(nextShotDope({ state, conditions, theta, cov, rangeM: 700 }).elevationSdMrad, fitSd, 1e-12, 'a wind taken as called adds nothing');
   // windage is close to proportional to the crosswind, so one m/s of doubt is about a sixth of the windage for a 6 m/s wind
   assert.ok(withUncertainty.windageSdMrad > 0 && Math.abs(withUncertainty.windageSdMrad - 1.5 * Math.abs(plain.windageMrad / 6)) < 0.1 * Math.abs(plain.windageMrad), `windage SD ${withUncertainty.windageSdMrad}`);
 });
@@ -810,7 +795,7 @@ test('the rifle is zeroed once, in the starting air and in calm air: neither lat
   const zeroCalm = solveZeroAngle(REF_STATE);
   for (const s of [{ ...REF_STATE, windSpeed: 8, windAngle: 0 }, { ...REF_STATE, windSpeed: 8, windAngle: 180 },
                    { ...REF_STATE, windSpeed: 8, windAngle: 0, zeroConditions: { tempC: REF_STATE.tempC } },
-                   applyParameters(REF_STATE, { windMs: 6 }), withConditions(REF_STATE, { windSpeed: 8, windAngle: 0 })]) {
+                   withConditions(REF_STATE, { windSpeed: 8, windAngle: 0 })]) {
     assert.equal(withFixedBore(s).launchAngle, zeroCalm, 'the bore is the calm-air one');
   }
   // an explicit zero wind is honoured
@@ -827,7 +812,7 @@ test('the kept integrator walks change nothing: come-ups equal a fresh computeIm
   const states = [
     REF_STATE, { ...REF_STATE, windSpeed: 4, windAngle: 0 }, { ...REF_STATE, losAngleDeg: 20 },
     { ...withConditions({ ...REF_STATE, zeroRange: 300 }, { tempC: -8, pressureHpa: 960, windSpeed: 3, windAngle: 90 }), losAngleDeg: -15 },
-    { ...REF_STATE, zeroConditions: { tempC: 30, losAngleDeg: 10 } }, applyParameters(REF_STATE, { v0Ms: 2, dragPct: 3, windMs: 1.5 })
+    { ...REF_STATE, zeroConditions: { tempC: 30, losAngleDeg: 10 } }, applyParameters(REF_STATE, { v0Ms: 2, dragPct: 3 })
   ];
   for (let pass = 0; pass < 2; pass++) {
     for (const state of states) {
@@ -907,9 +892,9 @@ test('a missed impact retreats, and after the next group the failed distance is 
 
 // ---- The whole-session planner ----
 const WHOLE_CANDIDATES = [100, 150, 200, 300, 400, 500, 600, 700, 800, 870];
-const wholeArgs = (extra = {}) => ({ state: REF_STATE, availableDistances: WHOLE_CANDIDATES, roundBudget: 12, priors: DEFAULT_PRIORS_UNCHECKED, r50Mrad: 0.14, ...extra });
+const wholeArgs = (extra = {}) => ({ state: REF_STATE, availableDistances: WHOLE_CANDIDATES, roundBudget: 12, priors: DEFAULT_PRIORS_UNCHECKED, r50Mrad: 0.14, mvSD: 6, ...extra });
 
-test('planWholeSession: the shots add up to the budget exactly, one shot at the near glance-read group, at most three target distances', () => {
+test('planWholeSession: the shots add up to the budget exactly, one round at the nearest distance, at most three target distances', () => {
   for (const roundBudget of [6, 9, 12, 20, 36]) {
     const p = planWholeSession(wholeArgs({ roundBudget }));
     assert.equal(p.shots.reduce((a, b) => a + b, 0), roundBudget, `budget ${roundBudget}`);
@@ -918,7 +903,7 @@ test('planWholeSession: the shots add up to the budget exactly, one shot at the 
     assert.ok(p.targets.every((r) => p.ranges.includes(r)));
     assert.ok(p.shots.every((n) => n >= 1));
     if (roundBudget >= 9) assert.equal(p.shots[0], 1, 'the near group is a glance: one shot sharpens as much as ten');
-    assert.ok(p.dragSd > 0 && p.cov.length === 5 && p.zeroDragCorr >= 0 && p.zeroDragCorr <= 1);
+    assert.ok(p.dragSd > 0 && p.cov.length === 4 && p.zeroDragCorr >= 0 && p.zeroDragCorr <= 1);
   }
   assert.equal(planWholeSession(wholeArgs({ roundBudget: 0 })), null, 'no rounds, no plan');
   assert.equal(planWholeSession(wholeArgs({ availableDistances: [2000, 3000] })), null, 'no distance inside the supersonic ceiling, no plan');
@@ -927,12 +912,13 @@ test('planWholeSession: the shots add up to the budget exactly, one shot at the 
 test('planWholeSession finds the optimum: the closed form agrees with an exhaustive search over every design and allocation', () => {
   const dist = [100, 200, 400, 600, 800];
   const roundBudget = 9;
-  const priors = DEFAULT_PRIORS_UNCHECKED;
-  for (const weight of [1, 4]) {
-    const plan = planWholeSession({ state: REF_STATE, availableDistances: dist, roundBudget, priors, r50Mrad: 0.14, criterionWeight: weight, backdropMarginM: 1e9 });
+  const windy = { expectedMs: 7, speedSigmaMs: 2, dirSigmaDeg: WIND_DIRECTION_SIGMA_DEG };
+  const scales2 = planObjectiveScales2(BASE_PARAMS, planningColumns(REF_STATE, 800));
+  for (const [priors, wind] of [[DEFAULT_PRIORS_UNCHECKED, null], [DEFAULT_PRIORS_CHECKED_NO_CHRONO, null], [DEFAULT_PRIORS_UNCHECKED, windy], [DEFAULT_PRIORS_CHECKED_NO_CHRONO, windy]]) {
+    const plan = planWholeSession({ state: REF_STATE, availableDistances: dist, roundBudget, priors, r50Mrad: 0.14, mvSD: 6, wind, backdropMarginM: 1e9 });
     const cost = (ranges, shots) => {
-      const post = posterior({ state: REF_STATE, groups: ranges.map((r, i) => ({ rangeM: r, shots: shots[i], r50Mrad: 0.14, resolved: i > 0, col: planningColumns(REF_STATE, r) })), priors });
-      return [0, 1, 2].reduce((s, i) => s + (i === 2 ? weight : 1) * post.cov[i][i] / priors[BASE_PARAMS[i]] ** 2, 0);
+      const post = posterior({ state: REF_STATE, groups: ranges.map((r, i) => ({ rangeM: r, shots: shots[i], r50Mrad: 0.14, mvSD: 6, windSdMrad: plannedWindSdMrad(planningColumns(REF_STATE, r), wind) })), priors });
+      return planCost(post.sd.map((x) => x * x), scales2);
     };
     let best = Infinity;
     const subsets = [];
@@ -944,18 +930,31 @@ test('planWholeSession finds the optimum: the closed form agrees with an exhaust
         if (idx === k - 1) { if (left >= 1) { shots[idx] = left; best = Math.min(best, cost(ranges, shots)); } return; }
         for (let n = 1; n <= left - (k - idx - 1); n++) { shots[idx] = n; alloc(idx + 1, left - n); }
       };
-      alloc(0, roundBudget);
+      // the nearest distance keeps the one round whenever there is a distance beyond it
+      if (k > 1) { shots[0] = 1; alloc(1, roundBudget - 1); } else alloc(0, roundBudget);
     }
-    closeTo(cost(plan.ranges, plan.shots), best, 1e-9, `weight ${weight}: the planner's design against the best of every design`);
+    closeTo(cost(plan.ranges, plan.shots), best, 1e-9, `${priors === DEFAULT_PRIORS_UNCHECKED ? 'unchecked' : 'checked'}${wind ? ', windy' : ''}: the planner's design against the best of every design`);
   }
 });
 
-test('planWholeSession: a bigger weight on the drag scale buys drag precision with zero precision', () => {
-  const light = planWholeSession(wholeArgs({ criterionWeight: 1 }));
-  const heavy = planWholeSession(wholeArgs({ criterionWeight: 4 }));
-  assert.ok(heavy.dragSd <= light.dragSd + 1e-9, `drag SD ${heavy.dragSd} against ${light.dragSd}`);
-  assert.ok(heavy.sd[0] >= light.sd[0] - 1e-9, `zero SD ${heavy.sd[0]} against ${light.sd[0]}`);
-  assert.ok(heavy.dragSd !== light.dragSd, 'the weight changes the plan');
+test('the plan\'s score: each cause against the size at which it matters at the farthest distance, drag against grade A, capped', () => {
+  const far = planningColumns(REF_STATE, 800);
+  const scales2 = planObjectiveScales2(BASE_PARAMS, far);
+  closeTo(Math.sqrt(scales2[0]), MATERIALITY_MRAD, 1e-12, 'the zero: 0.1 mrad');
+  closeTo(Math.sqrt(scales2[1]), MATERIALITY_MRAD / Math.abs(far.v0Ms), 1e-12, 'the velocity: what moves the come-up there by 0.1 mrad');
+  assert.equal(Math.sqrt(scales2[2]), 2, 'the drag scale: the grade-A limit');
+  assert.equal(planCost([0, 0, 0, 0], scales2), 0);
+  assert.equal(planCost([1e6, 1e6, 1e6, 1e6], scales2), 4 * PLAN_COST_CAP, 'an undetermined cause counts no more than the cap');
+});
+
+test('planWholeSession: homework never makes the plan worse on the drag scale', () => {
+  for (const roundBudget of [12, 20, 30]) {
+    const lazy = planWholeSession(wholeArgs({ roundBudget, priors: DEFAULT_PRIORS_UNCHECKED }));
+    for (const verified of [{ zeroMrad: 0.08 }, { v0Ms: 3 }, { zeroMrad: 0.08, v0Ms: 3 }]) {
+      const done = planWholeSession(wholeArgs({ roundBudget, priors: { ...DEFAULT_PRIORS_UNCHECKED, ...verified } }));
+      assert.ok(done.dragSd <= lazy.dragSd + 0.005, `${JSON.stringify(verified)} at ${roundBudget}: ${lazy.dragSd} -> ${done.dragSd}`);
+    }
+  }
 });
 
 test('planWholeSession puts the ladder\'s safety steps inside the budget: a small backdrop forces intermediate distances, each with its own shots', () => {
@@ -980,13 +979,6 @@ test('planWholeSession hands out copies, and the plan does not depend on the cal
   assert.deepEqual(planWholeSession(wholeArgs()), planWholeSession(wholeArgs()));
 });
 
-test('causesWeightFor: 4 only when the zero, the click value and the muzzle velocity are all checked', () => {
-  assert.equal(causesWeightFor({ zeroVerified: true, trackTested: true, mvAverageChecked: true }), 4);
-  assert.equal(causesWeightFor({ zeroVerified: true, trackTested: true, mvAverageChecked: false }), 1);
-  assert.equal(causesWeightFor({ zeroVerified: false, trackTested: true, mvAverageChecked: true }), 1);
-  assert.equal(causesWeightFor({}), 1);
-  assert.equal(causesWeightFor(null), 1);
-});
 
 test('predictiveComeUpSd with nothing to fold in is the same number from the memo as from the columns', () => {
   const cov = posterior({ state: REF_STATE, groups: [], priors: DEFAULT_PRIORS_UNCHECKED }).cov;
@@ -1018,4 +1010,31 @@ test('the zero is made in the cartridge\'s zero atmosphere, whatever air a group
   const donorViaGroup = predictedComeUp(withConditions(recipient, shotAir), 600, {});
   const ownViaGroup = predictedComeUp(withConditions(plain, shotAir), 600, {});
   assert.ok(Math.abs(donorViaGroup - ownViaGroup) > 0.05, 'the donor\'s slower zero shows up when a group carries its own air');
+});
+
+test('planWholeSession reaches beyond the near band whenever the location has a distance there', () => {
+  for (const priors of [DEFAULT_PRIORS_UNCHECKED, DEFAULT_PRIORS_CHECKED_NO_CHRONO]) {
+    const p = planWholeSession(wholeArgs({ availableDistances: [100, 860], roundBudget: 20, priors, backdropMarginM: 1e9 }));
+    assert.ok(Math.max(...p.ranges) > 300, `${JSON.stringify(p.ranges)} with ${JSON.stringify(priors)}`);
+  }
+  // a near-only location plans near-only, as before
+  assert.ok(planWholeSession(wholeArgs({ availableDistances: [100, 200, 300], roundBudget: 12 })));
+});
+
+test('a hypothesis whose fit runs away does not poison the joint analysis', () => {
+  // captured from a simulated session: a wide drag scale and two targets allowed to be mis-ranged at once ran one fit to NaN,
+  // which used to turn every estimate into NaN
+  const state = { zeroRange: 100, sightHeight: 50, tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50, windSpeed: 0, windAngle: 90, losAngleDeg: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
+  const g = (rangeM, observedComeUp, shots, sigmaMrad) => ({ rangeM, observedComeUp, shots, sigmaMrad, targetIndex: String(rangeM), knownLosDeg: 0 });
+  const observations = [
+    g(100, -0.5029620073218181, 1, 0.12899090581593903),
+    g(450, 3.828639969888308, 3, 0.0782480547928723), g(450, 3.781582595871951, 3, 0.0782480547928723),
+    g(450, 3.744957720999059, 3, 0.0782480547928723), g(450, 3.845934680832571, 3, 0.0782480547928723),
+    g(700, 7.750982091402584, 3, 0.09214680785168583), g(700, 7.570095592769659, 2, 0.1125504222421921), g(700, 7.5418084404421215, 2, 0.1125504222421921),
+    { kind: 'rangeCheck', targetIndex: '700', sigmaM: 1.4, residualM: -2.817773506539197 }
+  ];
+  const priors = { zeroMrad: 0.25, v0Ms: 20, trackPct: 1 };
+  const j = jointBlunderCheck({ state, observations, priors, params: BASE_PARAMS, targetIndices: ['100', '450', '700'], rechecked: false, dragAxis: true });
+  for (const k of BASE_PARAMS) assert.ok(Number.isFinite(j.theta[k]) && Number.isFinite(j.sd[k]), `${k}: ${j.theta[k]} ± ${j.sd[k]}`);
+  assert.ok(j.posteriorWeights.every(Number.isFinite));
 });
