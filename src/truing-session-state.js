@@ -17,30 +17,16 @@
 // realistic session (12 targets, 12 groups, 48 readings) measured ~4 KB
 // URL-encoded, right at the per-cookie browser limit, past which a cookie
 // write is silently dropped and a reload restores stale state. It also has
-// no reason to travel to the server with every request. A state cookie
-// left by an earlier version is migrated once and removed.
-import { getCookie, removeCookie } from './cookies.js';
+// no reason to travel to the server with every request.
 
 const STORAGE_KEY = 'ballistics_truing_session_state_v1';
-const LEGACY_COOKIE_NAME = 'ballistics_truing_session_state_v1';
 
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {
-    // unreadable or malformed -- fall through
-  }
-  try {
-    const legacy = getCookie(LEGACY_COOKIE_NAME);
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      removeCookie(LEGACY_COOKIE_NAME);
-      try { localStorage.setItem(STORAGE_KEY, legacy); } catch { /* best-effort */ }
-      return parsed;
-    }
-  } catch {
-    // malformed legacy cookie -- ignore it
+    // unreadable or malformed -- start afresh
   }
   return null;
 }

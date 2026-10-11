@@ -151,9 +151,8 @@ export function targetForRange(targets, rangeM) {
   return targets.find((tg) => tg.rangeM === rangeM) || null;
 }
 
-// Each planned distance tied to its target by key, when the session starts. A live re-check can correct a target's distance
-// while strings are still to be shot there; the planned distance then no longer matches the target's distance, and only the key
-// still finds it.
+// Each planned distance tied to its target by key, when the session starts, so a natural target at the same distance as a
+// registered one is never mistaken for it.
 export function withPlanKeys(plan, targets) {
   if (!plan) return plan;
   return { ...plan, keys: plan.ranges.map((r) => { const tg = targetForRange(targets, r); return tg ? tg.key : null; }) };
@@ -166,11 +165,12 @@ export function targetForStep(targets, plan, rangeM) {
   return keyed || targetForRange(targets, rangeM);
 }
 
-// A group persisted before targets were keyed carries only its range.
-export function groupTargetKey(group, targets) {
-  if (group.targetKey != null) return group.targetKey;
-  const tg = targetForRange(targets, group.rangeM);
-  return tg ? tg.key : naturalKey(group.rangeM);
+// The distance a target is shown at, and its next shot worked out for: the last reading a re-check took this session, else its
+// own. Its strings stay recorded at the distance the session started with, and every re-check is held against that distance, so
+// the fit keeps one anchor per target however often the target is re-measured.
+export function measuredRangeM(session, targetKey, rangeM) {
+  const m = session.measuredRanges && session.measuredRanges[targetKey];
+  return m != null ? m : rangeM;
 }
 
 // ---- muzzle-velocity SD provenance ----
@@ -193,20 +193,16 @@ export const statedMvSdShots = (homework) => (homework.muzzleVelocitySDPreset ==
 // sigma^2 = ((N0 - 1) sigma0^2 + (n - 1) s^2) / (N0 + n - 2), and the pooled figure counts as N0 + n - 1 shots, so the readings move the figure
 // smoothly from the first two on, in proportion to how much they know, and nothing happens when the recorded SD is right. The readings are
 // measured against the velocity the cartridge has in each group's own air, with their common offset removed, so a change of weather or a
-// wrong average velocity does not inflate the spread; without per-group readings (an older session) the raw list is used. `override` is
+// wrong average velocity does not inflate the spread. `override` is
 // kept for the notice and the Arsenal offer: past 10 readings, when an F-test says today's SD really differs from the recorded one.
-export function effectiveMvSd({ homework, velocities = [], state = null, groups = null }) {
+export function effectiveMvSd({ homework, state, groups }) {
   const recorded = { mvSD: homework.mvSD, mvSdSampleSize: mvSdSampleSizeFrom(homework), override: null };
   if (!homework.mvSD) return recorded;
   const values = [];
-  const perGroup = state && groups ? groups.filter((g) => g.chronoVelocities && g.chronoVelocities.length) : [];
-  if (perGroup.length) {
-    for (const g of perGroup) {
-      const expected = resolveMuzzleVelocity(withConditions(state, g.conditions));
-      for (const v of g.chronoVelocities) if (v != null && Number.isFinite(v)) values.push(v - expected);
-    }
-  } else {
-    for (const v of velocities) if (v != null && Number.isFinite(v)) values.push(v);
+  for (const g of groups) {
+    if (!g.chronoVelocities) continue;
+    const expected = resolveMuzzleVelocity(withConditions(state, g.conditions));
+    for (const v of g.chronoVelocities) if (v != null && Number.isFinite(v)) values.push(v - expected);
   }
   const n = values.length;
   if (n < 2) return recorded;
@@ -457,7 +453,7 @@ export function readShots(comeUps) {
 // and every live range re-check row.
 export function buildObservations({ state, session, targets, rangeDeclaredFlat, mvSD, mvSdSampleSize }) {
   let observations = session.groups.map((g) => {
-    const key = groupTargetKey(g, targets);
+    const key = g.targetKey;
     const tg = targets.find((t) => t.key === key);
     const recorded = tg && tg.losAngleDeg ? tg.losAngleDeg : 0;
     return {
@@ -474,18 +470,14 @@ export function buildObservations({ state, session, targets, rangeDeclaredFlat, 
   for (const [key, deg] of Object.entries(session.angleChecks || {})) {
     if (deg != null) observations = applyAngleCheck(observations, key, deg);
   }
-  // Chronograph readings observe the muzzle velocity directly, and the velocity depends on the powder temperature. When
-  // groups carry their own readings (and conditions), each group's readings are compared with the velocity the cartridge
-  // gives in THAT group's air; otherwise one pooled row, as always.
-  const chronoGroups = mvSD ? session.groups.filter((g) => g.chronoVelocities && g.chronoVelocities.length) : [];
-  if (chronoGroups.length) {
-    for (const g of chronoGroups) {
+  // Chronograph readings observe the muzzle velocity directly, and the velocity depends on the powder temperature: each
+  // group's readings are compared with the velocity the cartridge gives in THAT group's air.
+  if (mvSD) {
+    for (const g of session.groups) {
+      if (!g.chronoVelocities || !g.chronoVelocities.length) continue;
       const row = chronoObservation({ state: withConditions(state, g.conditions), velocitiesMs: g.chronoVelocities, mvSD, mvSdSampleSize });
       if (row) observations.push(row);
     }
-  } else {
-    const chrono = mvSD ? chronoObservation({ state, velocitiesMs: session.chronoVelocities || [], mvSD, mvSdSampleSize }) : null;
-    if (chrono) observations.push(chrono);
   }
   for (const rc of session.rangeChecks || []) {
     observations.push(rangeCheckObservation({ targetIndex: rc.targetKey, believedRangeM: rc.believedRangeM, newReadingM: rc.newReadingM }));
@@ -493,8 +485,9 @@ export function buildObservations({ state, session, targets, rangeDeclaredFlat, 
   return observations;
 }
 
+// The chronograph readings actually captured this session, over every group.
 export function chronoCount(session) {
-  return (session.chronoVelocities || []).filter((v) => v != null && Number.isFinite(v)).length;
+  return session.groups.reduce((n, g) => n + (g.chronoVelocities || []).filter((v) => v != null && Number.isFinite(v)).length, 0);
 }
 
 // ---- the analysis Conclude (and, provisionally, the live panel) reports ----

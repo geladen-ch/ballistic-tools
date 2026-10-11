@@ -18,7 +18,7 @@ import { locationPickerButton } from '../ui/locations/location-picker-button.js'
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
 import { loadTruingSessionState, saveTruingSessionState, clearTruingSessionKeys } from '../truing-session-state.js';
 import {
-  rangeAtMach, rangeSigmaM, SUPERSONIC_MACH, DEFAULT_LADDER_CONFIDENCE_Z
+  rangeAtMach, SUPERSONIC_MACH, DEFAULT_LADDER_CONFIDENCE_Z
 } from '../engine/truing-session.js';
 import { homeworkAndEquipmentPanel, locationIntakePanel } from '../ui/truing-session/entry-gate.js';
 import { optimalRangePanel, rangeGradingPanel, roundBudgetPanel, calculatingPanel } from '../ui/truing-session/range-grading.js';
@@ -31,7 +31,7 @@ import { conditionsCard, conditionsSummary } from '../ui/truing-session/conditio
 import { dist, angle, missExample } from '../ui/truing-session/units.js';
 import {
   sessionTargets, sessionParams, reportedCauses, livePriors, effectiveMvSd, buildObservations, wholePlan,
-  homeworkCheckAxes, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked, withPlanKeys, bcCorrectionOffer,
+  homeworkCheckAxes, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked, withPlanKeys, bcCorrectionOffer, measuredRangeM,
   DEFAULT_ROUND_BUDGET
 } from '../ui/truing-session/session-model.js';
 
@@ -58,9 +58,9 @@ function findActiveArsenalConfig() {
 
 function emptyShootSession() {
   return {
-    groups: [], chronoVelocities: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [],
+    groups: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [],
     farthestValidatedM: null, confidenceZ: DEFAULT_LADDER_CONFIDENCE_Z, retreatTo: null,
-    rangeChecks: [], angleChecks: {}, mvDecision: null
+    rangeChecks: [], angleChecks: {}, measuredRanges: {}, mvDecision: null
   };
 }
 
@@ -190,9 +190,7 @@ export function mount(container) {
   });
 
   function shootSession() {
-    const s = { ...emptyShootSession(), ...(getPersisted('shootSession', null) || {}) };
-    delete s.backdropMarginM; // read live from the homework slice now
-    return s;
+    return { ...emptyShootSession(), ...(getPersisted('shootSession', null) || {}) };
   }
 
   // A registered target's distance/angle corrected mid-session is kept for this session only; the notice saying so survives a
@@ -370,12 +368,8 @@ export function mount(container) {
     if (!plan) {
       const p = wholePlan({ state, availableDistances: tgs.map((tg) => tg.rangeM), homework: hw, roundBudget: hw.roundBudget || DEFAULT_ROUND_BUDGET, params });
       plan = p ? withPlanKeys({ ranges: p.ranges, shots: p.shots, targets: p.targets }, tgs) : { ranges: [], shots: [] };
-    } else if (!plan.keys) {
-      // a plan saved before plans carried their targets' keys: tie them now, before any further re-check can move a target
-      plan = withPlanKeys(plan, tgs);
-      setPersisted({ plan });
     }
-    const mvStatus = () => effectiveMvSd({ homework: hw, velocities: session.chronoVelocities, state, groups: session.groups });
+    const mvStatus = () => effectiveMvSd({ homework: hw, state, groups: session.groups });
     const observations = () => {
       const mv = mvStatus();
       return buildObservations({ state, session, targets: tgs, rangeDeclaredFlat, mvSD: mv.mvSD, mvSdSampleSize: mv.mvSdSampleSize });
@@ -398,25 +392,25 @@ export function mount(container) {
     return { hw, session, tgs, params, get priors() { return livePriors(hw, session, { state }); }, rangeDeclaredFlat, clickMrad, plan, mvStatus, observations, analyse, persistSession };
   }
 
-  // Record the re-check, and keep a registered target's corrected distance or angle for this session.
+  // Record the re-check: the new readings are what the target is shown at and its next shot worked out for from now on. A
+  // registered target's location is never written to; the notice says the corrected values hold for this session only.
+  // `believedRangeM` is the distance the target's strings are recorded at (see measuredRangeM).
   function handleRecheck(ctx, targetKey, believedRangeM, { newReadingM, angleDeg }) {
     const { session } = ctx;
+    const tg = ctx.tgs.find((x) => x.key === targetKey);
+    const fromRangeM = measuredRangeM(session, targetKey, believedRangeM);
+    const fromAngleDeg = session.angleChecks && session.angleChecks[targetKey] != null ? session.angleChecks[targetKey] : (tg ? tg.losAngleDeg || 0 : 0);
     session.rangeChecks.push({ targetKey, believedRangeM, newReadingM });
+    session.measuredRanges = { ...session.measuredRanges, [targetKey]: newReadingM };
     if (angleDeg != null) session.angleChecks = { ...session.angleChecks, [targetKey]: angleDeg };
     ctx.persistSession();
-    const tg = ctx.tgs.find((x) => x.key === targetKey);
-    const rangeChanged = Math.abs(newReadingM - believedRangeM) > 2 * rangeSigmaM(believedRangeM);
-    const angleChanged = angleDeg != null && Math.abs(angleDeg - (tg ? tg.losAngleDeg || 0 : 0)) >= 0.5;
+    const rangeChanged = dist(newReadingM) !== dist(fromRangeM);
+    const angleChanged = angleDeg != null && !ctx.rangeDeclaredFlat && angleDeg.toFixed(1) !== fromAngleDeg.toFixed(1);
     if (tg && tg.registered && (rangeChanged || angleChanged)) {
-      const edit = {};
-      const changes = [];
       const name = tg.name || formatTargetSummary(tg.rangeM, tg.losAngleDeg);
-      if (rangeChanged) { edit.rangeM = newReadingM; changes.push({ name, field: 'range', from: tg.rangeM, to: newReadingM }); }
-      if (angleChanged) { edit.losAngleDeg = angleDeg; changes.push({ name, field: 'angle', from: tg.losAngleDeg || 0, to: angleDeg }); }
-      // held for this session only: the location is never written to
-      const overrides = { ...getPersisted('targetOverrides', {}) };
-      overrides[targetKey] = { ...(overrides[targetKey] || {}), ...edit };
-      setPersisted({ targetOverrides: overrides });
+      const changes = [];
+      if (rangeChanged) changes.push({ name, field: 'range', from: fromRangeM, to: newReadingM });
+      if (angleChanged) changes.push({ name, field: 'angle', from: fromAngleDeg, to: angleDeg });
       pendingLocationNotice = () => sessionOnlyNotice({ changes, onDismiss: () => { pendingLocationNotice = null; renderPhase(); } }).node;
     }
     renderPhase();

@@ -654,6 +654,8 @@ a { color: var(--accent); }
    the re-check / location-choice blocks that act on it. */
 .truing-session-flag { border-left: 3px solid var(--danger); padding: 4px 0 4px 12px; margin: 12px 0; }
 .truing-session-recheck, .truing-session-choice { margin: 8px 0 12px; }
+/* The Shoot panel's target heading (distance, line of sight) with its Re-measure button beside it. */
+.truing-session-target-row h3 { margin: 0; }
 .truing-session-view .field-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
 .truing-session-view .field-row input:not([type="checkbox"]) { width: auto; flex: 1 1 8em; min-width: 6em; }
 .truing-session-conclusion-list > li { margin-bottom: 12px; }

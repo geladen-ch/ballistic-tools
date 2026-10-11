@@ -27,7 +27,7 @@ const units = await import('../src/ui/truing-session/units.js');
 const farCheckText = (key) => t(key, { far: units.dist(870), err: units.dist(20), cost: units.angle(0.3, 1), ...units.missExample() });
 const { resetShotStateForTests, saveRifleState } = await import('../src/shot-state.js');
 const { saveUserRifle, generateUserId } = await import('../src/user-library.js');
-const { resetLocationLibraryForTests, saveUserLocation } = await import('../src/location-library.js');
+const { resetLocationLibraryForTests, saveUserLocation, loadUserLocations } = await import('../src/location-library.js');
 const { saveRangeSolverLocationState, resetRangeSolverStateForTests } = await import('../src/range-solver-state.js');
 const { resetTruingSessionStateForTests, saveTruingSessionState } = await import('../src/truing-session-state.js');
 const { mountDialogRoot } = await import('../src/ui/app-dialog.js');
@@ -217,6 +217,13 @@ test('the Shoot phase mounts without throwing', async () => {
   assert.ok(container.textContent.includes(t('truingSession.shoot.liveHeading')));
 });
 
+// Strings as the Shoot screen records them, each under its target's key: the saved location's target at that distance, else
+// the natural target there.
+function keyed(groups) {
+  const targets = loadUserLocations()[0].targets;
+  return groups.map((g) => ({ targetKey: (targets.find((tg) => tg.rangeM === g.rangeM) || { id: `natural:${g.rangeM}` }).id, ...g }));
+}
+
 function findByTag(node, tag, out = []) {
   if (node.tagName === tag) out.push(node);
   for (const child of node.childNodes || []) findByTag(child, tag, out);
@@ -375,6 +382,134 @@ test('the Shoot phase follows the plan: each distance once, nearest first, then 
   assert.ok(!container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(600) })));
 });
 
+test('the shooter can re-measure the current target on their own: the heading shows its distance and angle, Cancel leaves everything as it was, Confirm records it like the prompted re-check', async () => {
+  setUpArsenalAndLocation([
+    { name: 'A', rangeM: 100, losAngleDeg: 2 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }, { name: 'C', rangeM: 800, losAngleDeg: 0 }
+  ]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300, 800], shots: [1, 5, 6], targets: [100, 300, 800] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const heading = (rangeM, angle) => t('truingSession.shoot.nextRangeWithAngle', { range: units.dist(rangeM), angle });
+  assert.ok(container.textContent.includes(heading(100, '+2.0°')), 'the heading shows the target\'s distance and line of sight');
+  const button = (label) => findByTag(container, 'BUTTON').find((b) => b.textContent === t(label));
+  const form = () => findByTag(container, 'DIV').find((d) => String(d.className).includes('truing-session-recheck'));
+  assert.equal(form(), undefined, 'no re-check is asked for here');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+
+  fireEvent(button('truingSession.shoot.remeasureButton'), 'click');
+  assert.ok(form(), 'Re-measure opens the re-check in place');
+  assert.equal(button('truingSession.shoot.remeasureButton').disabled, true);
+  fireEvent(button('truingSession.recheck.cancelButton'), 'click');
+  await settle();
+  assert.equal(form(), undefined, 'Cancel closes it');
+  assert.equal(button('truingSession.shoot.remeasureButton').disabled, false);
+  assert.equal(((loadTruingSessionState().shootSession || {}).rangeChecks || []).length, 0, 'and records nothing');
+
+  fireEvent(button('truingSession.shoot.remeasureButton'), 'click');
+  const [distance, angle] = findByTag(form(), 'INPUT').filter((i) => i.getAttribute('type') === 'number');
+  assert.ok(angle, 'the angle is asked for');
+  distance.value = '110';
+  angle.value = '4';
+  fireEvent(button('truingSession.recheck.confirmButton'), 'click');
+  await settle(200);
+  const persisted = loadTruingSessionState();
+  assert.equal(persisted.shootSession.rangeChecks.length, 1);
+  assert.equal(persisted.shootSession.rangeChecks[0].believedRangeM, 100);
+  assert.equal(persisted.shootSession.rangeChecks[0].newReadingM, 110);
+  assert.equal(persisted.shootSession.measuredRanges[persisted.shootSession.rangeChecks[0].targetKey], 110, 'held for this session');
+  assert.equal(Object.keys(persisted.targetOverrides || {}).length, 0, 'the target the strings are recorded at is left as it is');
+  assert.ok(container.textContent.includes(t('truingSession.choice.changedIntro')), 'the session-only notice, like a prompted re-check');
+  assert.ok(container.textContent.includes(heading(110, '+4.0°')), 'the heading shows the new readings');
+  assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotHeading', { range: units.dist(110) })), 'the dial is worked out for the new distance');
+
+  // an angle measured this session is asked for again when the shooter re-measures on their own
+  fireEvent(button('truingSession.shoot.remeasureButton'), 'click');
+  const again = findByTag(form(), 'INPUT').filter((i) => i.getAttribute('type') === 'number');
+  assert.equal(again.length, 2);
+  // a reading within the laser's own error moves the heading and the dial too, and a second re-check is held against the
+  // distance the strings are recorded at, not against the last reading
+  again[0].value = '111';
+  again[1].value = '4';
+  fireEvent(button('truingSession.recheck.confirmButton'), 'click');
+  await settle(200);
+  const checks = loadTruingSessionState().shootSession.rangeChecks;
+  assert.deepEqual(checks.map((rc) => [rc.believedRangeM, rc.newReadingM]), [[100, 110], [100, 111]]);
+  assert.ok(container.textContent.includes(heading(111, '+4.0°')));
+  assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotHeading', { range: units.dist(111) })));
+});
+
+test('off a flat range a re-check always takes the angle: there is no way round it, and nothing is recorded without it', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 800, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 800], shots: [3, 6], targets: [100, 800] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.remeasureButton')), 'click');
+  const box = findByTag(container, 'DIV').find((d) => String(d.className).includes('truing-session-recheck'));
+  assert.equal(findByTag(box, 'INPUT').filter((i) => i.getAttribute('type') === 'checkbox').length, 0, 'no "no way to measure the angle" option');
+  const [distance, angle] = findByTag(box, 'INPUT').filter((i) => i.getAttribute('type') === 'number');
+  distance.value = '102';
+  fireEvent(findByTag(box, 'BUTTON').find((b) => b.textContent === t('truingSession.recheck.confirmButton')), 'click');
+  await settle();
+  const warning = findByTag(box, 'P').find((p) => p.textContent === t('truingSession.recheck.needValues'));
+  assert.ok(warning && warning.style.display !== 'none', 'the missing angle is asked for');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.equal(((loadTruingSessionState().shootSession || {}).rangeChecks || []).length, 0, 'nothing recorded without the angle');
+  angle.value = '-1.5';
+  fireEvent(findByTag(box, 'BUTTON').find((b) => b.textContent === t('truingSession.recheck.confirmButton')), 'click');
+  await settle(200);
+  assert.equal(loadTruingSessionState().shootSession.rangeChecks.length, 1);
+});
+
+test('on a range declared flat no angle is ever asked for or shown during Shoot: not in the heading, the far target\'s re-range, or a re-measure', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 800, losAngleDeg: 4 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', rangeDeclaredFlat: true, plan: { ranges: [100, 800], shots: [1, 6], targets: [100, 800] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  const angleFields = () => findByTag(container, 'LABEL').filter((l) => l.textContent === t('truingSession.recheck.angleLabel')).length;
+  const noAngleShown = () => !findByTag(container, 'H3').some((h) => h.textContent.includes('°'));
+  assert.ok(noAngleShown());
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.remeasureButton')), 'click');
+  assert.equal(angleFields(), 0, 'a re-measure takes the distance only');
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.recheck.cancelButton')), 'click');
+  await settle();
+  // the one string at 100 m: then the far target's re-range is asked for, the distance only
+  const comeUp = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id)[0];
+  comeUp.value = '0'; fireEvent(comeUp, 'input');
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton')), 'click');
+  await settle(200);
+  assert.ok(findByTag(container, 'DIV').some((d) => String(d.className).includes('truing-session-recheck')), 'the far target\'s re-range is on screen');
+  assert.equal(angleFields(), 0, 'the far target\'s re-range takes the distance only');
+  assert.ok(noAngleShown(), 'a recorded 4° is not shown on a flat range');
+});
+
+test('a natural target re-measured during Shoot is shown and dialled at the new reading', async () => {
+  setUpArsenalAndLocation([{ name: 'Far', rangeM: 800, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({ phase: 'shoot', naturalTargets: [{ rangeM: 150 }], rangeDeclaredFlat: true, plan: { ranges: [150, 800], shots: [3, 6], targets: [150, 800] } });
+  const container = makeElement('main');
+  truingSessionView.mount(container);
+  await settle();
+  assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(150) })));
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.remeasureButton')), 'click');
+  const box = findByTag(container, 'DIV').find((d) => String(d.className).includes('truing-session-recheck'));
+  const inputs = findByTag(box, 'INPUT').filter((i) => i.getAttribute('type') === 'number');
+  assert.equal(inputs.length, 1, 'no angle on a range declared flat');
+  inputs[0].value = '156';
+  fireEvent(findByTag(box, 'BUTTON').find((b) => b.textContent === t('truingSession.recheck.confirmButton')), 'click');
+  await settle(200);
+  assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(156) })));
+  assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotHeading', { range: units.dist(156) })));
+  assert.ok(!container.textContent.includes(t('truingSession.choice.changedIntro')), 'a natural target has no location to leave alone');
+  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+  assert.deepEqual(loadTruingSessionState().shootSession.rangeChecks.map((rc) => [rc.targetKey, rc.believedRangeM, rc.newReadingM]), [['natural:150', 150, 156]]);
+});
+
 // Observations generated from the view's own bullet (resolved through the
 // same cartridge section the view uses) with a known drag error injected,
 // so the fixture stays consistent with whatever the catalog says about it.
@@ -402,11 +537,10 @@ async function concludeFixture({ velocities, rechecked = true }) {
     rangeRecheckedThisSession: rechecked,
     homeworkState: { chronographAvailable: true, mvSD: 3 },
     shootSession: {
-      groups: [
-        { rangeM: 100, observedComeUp: near, shots: 4, sigmaMrad: 0.15, resolved: false },
+      groups: keyed([
+        { rangeM: 100, observedComeUp: near, shots: 4, sigmaMrad: 0.15, resolved: false, chronoVelocities: velocities },
         { rangeM: 870, observedComeUp: far, shots: 8, sigmaMrad: 0.06, resolved: true }
-      ],
-      chronoVelocities: velocities,
+      ]),
       missedImpactCount: 0, triedRanges: [100, 870], farthestValidatedM: 870, confidenceZ: 2
     }
   });
@@ -525,7 +659,7 @@ test('homework answers survive a remount (they are read from the same slice they
 });
 
 function distanceInputs(container) {
-  return findByTag(container, 'TABLE').flatMap((tbl) => findByTag(tbl, 'INPUT')).filter((_, i) => i % 2 === 0);
+  return findByTag(container, 'TABLE').flatMap((tbl) => findByTag(tbl, 'TR')).map((tr) => findByTag(tr, 'TD')[1]).filter(Boolean).map((td) => findByTag(td, 'INPUT')[0]);
 }
 
 async function editFarDistanceAndConfirm(container, value) {
@@ -581,9 +715,13 @@ test('step 5a: declaring the range flat never writes an angle anywhere, even whe
   const flat = inputById(container, 'truingFlatRange');
   assert.ok(flat, 'a recorded angle of 3 degrees keeps the flat checkbox on offer');
   assert.equal(flat.checked, false, 'a nonzero recorded angle leaves it unticked by default');
+  assert.ok(container.textContent.includes(t('truingSession.location.angleColumn')), 'off a flat range every target has its angle');
   flat.checked = true;
   fireEvent(flat, 'change');
   await settle();
+  assert.ok(!container.textContent.includes(t('truingSession.location.angleColumn')), 'a range declared flat asks for no angle at all');
+  assert.ok(!container.textContent.includes(t('truingSession.location.recheckAngleInstructions')));
+  assert.equal(findByTag(container, 'TABLE').flatMap((tbl) => findByTag(tbl, 'INPUT')).length, 2, 'one distance field per target, no angle field');
 
   await editFarDistanceAndConfirm(container, 860);
 
@@ -701,7 +839,6 @@ test('a group records its own weather and chronograph readings; the next group c
   await recordGroupNow(container, 10);
   groups = loadTruingSessionState().shootSession.groups;
   assert.equal(groups[2].conditions.tempC, 24);
-  assert.equal(loadTruingSessionState().shootSession.chronoVelocities.length, 3, 'the pooled list still counts the readings');
 });
 
 test('the conditions card says where the zero comes from: the cartridge\'s zero atmosphere in Arsenal when it has one', async () => {
@@ -804,8 +941,8 @@ test('Conclude reminds that the stated uncertainties assume the ticked homework 
     phase: 'conclude', homeworkState: { zeroVerified: true },
     sessionConditions: { tempC: 15, pressureHpa: 1013.25, humidityPct: 50, windSpeed: 0, windAngle: 90, altitudeM: 0 },
     shootSession: {
-      groups: [{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05, resolved: true }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05, resolved: true }],
-      chronoVelocities: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
+      groups: keyed([{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05, resolved: true }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05, resolved: true }]),
+      missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
     }
   });
   const container = makeElement('main');
@@ -821,8 +958,8 @@ test('Conclude fits on the usual drag prior; an implausible result after a widen
     phase: 'conclude', homeworkState: { chronographAvailable: true, backdropHeightM: 4 },
     sessionConditions: { tempC: 15, pressureHpa: 1013.25, humidityPct: 50, windSpeed: 0, windAngle: 90, altitudeM: 0 },
     shootSession: {
-      groups: [{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05 }, { rangeM: 870, observedComeUp: 12.5, shots: 8, sigmaMrad: 0.05 }],
-      chronoVelocities: [792, 793, 791, 792, 792, 793], missedImpactCount: 1, missesAt: { 870: 1 }, missedRanges: [], retryRanges: [], retriedMisses: [870],
+      groups: keyed([{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05, chronoVelocities: [792, 793, 791, 792, 792, 793] }, { rangeM: 870, observedComeUp: 12.5, shots: 8, sigmaMrad: 0.05 }]),
+      missedImpactCount: 1, missesAt: { 870: 1 }, missedRanges: [], retryRanges: [], retriedMisses: [870],
       triedRanges: [100, 500, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
     }
   });
@@ -869,8 +1006,8 @@ test('the Conclude screen adds the click-value warning only when the click value
       phase: 'conclude', homeworkState,
       sessionConditions: { tempC: 15, pressureHpa: 1013.25, humidityPct: 50, windSpeed: 0, windAngle: 90, altitudeM: 0 },
       shootSession: {
-        groups: [{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05 }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05 }],
-        chronoVelocities: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
+        groups: keyed([{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05 }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05 }]),
+        missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
       }
     });
     const container = makeElement('main');
@@ -1057,7 +1194,7 @@ test('with imperial and MOA preferences, the Shoot screen takes readings in ft/s
     chrono.value = '2600 2602';
     await recordGroupNow(container, 0);
     const { loadTruingSessionState } = await import('../src/truing-session-state.js');
-    const v = loadTruingSessionState().shootSession.chronoVelocities;
+    const v = loadTruingSessionState().shootSession.groups.at(-1).chronoVelocities;
     assert.ok(Math.abs(v[0] - 2600 * 0.3048) < 1e-6, `2600 ft/s is ${2600 * 0.3048} m/s (${v[0]})`);
     text = container.textContent;
     assert.equal(text.match(METRIC_LEFTOVER), null, `no metric leftover after a group: ${text.match(METRIC_LEFTOVER)}`);
@@ -1071,8 +1208,8 @@ test('with imperial and MOA preferences, Conclude and the stalled-ladder message
     saveTruingSessionState({
       phase: 'conclude', homeworkState: { zeroVerified: true, chronographAvailable: true, mvSD: 6 }, sessionConditions: SESSION_AIR,
       shootSession: {
-        groups: [{ rangeM: 100, observedComeUp: 0.3, shots: 3, sigmaMrad: 0.05, resolved: true }, { rangeM: 870, observedComeUp: 11.6, shots: 8, sigmaMrad: 0.05, resolved: true }],
-        chronoVelocities: [800, 801, 799, 802, 800, 801], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
+        groups: keyed([{ rangeM: 100, observedComeUp: 0.3, shots: 3, sigmaMrad: 0.05, resolved: true, chronoVelocities: [800, 801, 799, 802, 800, 801] }, { rangeM: 870, observedComeUp: 11.6, shots: 8, sigmaMrad: 0.05, resolved: true }]),
+        missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
       }
     });
     const container = makeElement('main');
@@ -1427,14 +1564,13 @@ test('after a re-check corrected a planned target\'s distance, the rotation stil
   saveTruingSessionState({
     phase: 'shoot',
     plan: { ranges: [100, 300], shots: [1, 6], targets: [100, 300], keys: [idA, idB] },
-    targetOverrides: { [idB]: { rangeM: 312 } }, // the re-check found B at 312 m, for this session
     shootSession: {
       groups: [
         { rangeM: 100, targetKey: idA, observedComeUp: 0, shots: 1, sigmaMrad: 0.13 },
         { rangeM: 300, targetKey: idB, observedComeUp: 1.6, shots: 3, sigmaMrad: 0.08 }
       ],
-      chronoVelocities: [], missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 300], farthestValidatedM: 300,
-      rangeChecks: [{ targetKey: idB, believedRangeM: 300, newReadingM: 312 }], angleChecks: {}
+      missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 300], farthestValidatedM: 300,
+      rangeChecks: [{ targetKey: idB, believedRangeM: 300, newReadingM: 312 }], angleChecks: {}, measuredRanges: { [idB]: 312 } // the re-check found B at 312 m
     }
   });
   const container = makeElement('main');
@@ -1448,18 +1584,6 @@ test('after a re-check corrected a planned target\'s distance, the rotation stil
   assert.equal(g.targetKey, idB, 'recorded under B, not a phantom target at the old distance');
   assert.equal(g.rangeM, 300, 'at the planned distance, like B\'s earlier string, so the range check corrects both alike');
   assert.ok(container.textContent.includes(t('truingSession.shoot.ladderDone')), 'every planned round shot');
-});
-
-test('a plan saved without target keys gets them when the Shoot screen opens', async () => {
-  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 300, losAngleDeg: 0 }]);
-  await settle();
-  const { loadUserLocations } = await import('../src/location-library.js');
-  const ids = loadUserLocations()[0].targets.map((tg) => tg.id);
-  saveTruingSessionState({ phase: 'shoot', plan: { ranges: [100, 300], shots: [1, 6], targets: [100, 300] } });
-  truingSessionView.mount(makeElement('main'));
-  await settle();
-  const { loadTruingSessionState } = await import('../src/truing-session-state.js');
-  assert.deepEqual(loadTruingSessionState().plan.keys, ids);
 });
 
 test('the backdrop height field is in the location pane, not the equipment pane', async () => {

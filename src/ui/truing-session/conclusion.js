@@ -5,7 +5,7 @@
 // in its own units, and degenerate causes only ever as one joint finding.
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { bcCorrectionOffer, recommendedMvShots, HOMEWORK_DOUBT_SHOWN } from './session-model.js';
+import { bcCorrectionOffer, recommendedMvShots, measuredRangeM, HOMEWORK_DOUBT_SHOWN } from './session-model.js';
 import { recheckPrompt } from './recheck-prompt.js';
 import { flagText } from './shoot-panel.js';
 import { dist, angle, toDisplayAngle, angleLabel, vel, velLabel, toDisplayVelocityText } from './units.js';
@@ -99,10 +99,11 @@ export function conclusionPanel(ctx) {
         break;
       }
       case 7: {
+        const shownM = measuredRangeM(session, f.targetKey, f.rangeM);
         item([
-          el('p', { text: flagText(f) }),
+          el('p', { text: flagText({ ...f, rangeM: shownM }) }),
           recheckPrompt({
-            target: { rangeM: f.rangeM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
+            target: { rangeM: shownM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
             angleMeasured: session.angleChecks && session.angleChecks[f.targetKey] != null,
             onSubmit: (reading) => ctx.onRecheck(f.targetKey, f.rangeM, reading)
           }).node

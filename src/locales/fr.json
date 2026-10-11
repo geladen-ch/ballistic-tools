@@ -1096,6 +1096,8 @@
     },
     "shoot": {
       "nextRange": "Suivant : {{range}}",
+      "nextRangeWithAngle": "Suivant : {{range}}, angle de site {{angle}}",
+      "remeasureButton": "Remesurer",
       "comeUpLabel": "Hausse observée ({{unit}})",
       "chronoLabel": "Lectures du chronographe (séparées par des espaces, {{unit}})",
       "recordGroupButton": "Enregistrer la série",
@@ -1255,10 +1257,11 @@
       "promptDistanceOnly": "Re-télémétrez la cible à {{range}}.",
       "distanceLabel": "Nouvelle mesure de distance ({{unit}})",
       "angleLabel": "Angle mesuré (°, + vers le haut, − vers le bas)",
-      "noAngleTool": "Je n'ai aucun moyen de mesurer l'angle",
-      "noAngleCaveat": "Sans angle, on ne peut pas distinguer ici une distance erronée d'une pente ; les deux restent possibles.",
-      "needValues": "Saisissez la distance, et l'angle sauf si vous ne pouvez pas le mesurer.",
-      "submitButton": "Utiliser ces mesures"
+      "needValues": "Saisissez la distance et l'angle.",
+      "needDistance": "Saisissez la distance.",
+      "submitButton": "Utiliser ces mesures",
+      "confirmButton": "Confirmer",
+      "cancelButton": "Annuler"
     },
     "conditions": {
       "heading": "Conditions à la place de tir",

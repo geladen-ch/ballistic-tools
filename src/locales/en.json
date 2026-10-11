@@ -1096,6 +1096,8 @@
     },
     "shoot": {
       "nextRange": "Next: {{range}}",
+      "nextRangeWithAngle": "Next: {{range}}, line of sight {{angle}}",
+      "remeasureButton": "Re-measure",
       "comeUpLabel": "Observed come-up ({{unit}})",
       "chronoLabel": "Chronograph readings (space-separated, {{unit}})",
       "recordGroupButton": "Record string",
@@ -1255,10 +1257,11 @@
       "promptDistanceOnly": "Re-range the target at {{range}}.",
       "distanceLabel": "New distance reading ({{unit}})",
       "angleLabel": "Measured angle (°, + uphill, − downhill)",
-      "noAngleTool": "I have no way to measure the angle",
-      "noAngleCaveat": "Without an angle we can't separate a wrong distance from a slope here; both stay on the table.",
-      "needValues": "Enter the distance, and the angle unless you have no way to measure it.",
-      "submitButton": "Use these readings"
+      "needValues": "Enter the distance and the angle.",
+      "needDistance": "Enter the distance.",
+      "submitButton": "Use these readings",
+      "confirmButton": "Confirm",
+      "cancelButton": "Cancel"
     },
     "conditions": {
       "heading": "Conditions at the shooting range",

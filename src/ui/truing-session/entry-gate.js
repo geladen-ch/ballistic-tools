@@ -262,13 +262,13 @@ export function locationIntakePanel({ location, gaps, persisted, backdropNode, o
     table.appendChild(el('tr', {}, [
       el('th', { i18n: 'truingSession.location.targetColumn' }),
       el('th', { text: t('truingSession.location.rangeColumn', { unit: distLabel() }) }),
-      el('th', { i18n: 'truingSession.location.angleColumn' })
+      // a range declared flat takes no angles: the column is not there at all
+      rangeDeclaredFlat ? null : el('th', { i18n: 'truingSession.location.angleColumn' })
     ]));
     for (const tg of location.targets) {
       const eff = effectiveTarget(tg);
       const rangeInput = el('input', { type: 'number', step: 1, value: toDisplayDistance(eff.rangeM) });
       const angleInput = el('input', { type: 'number', step: 0.1, value: eff.losAngleDeg || 0 });
-      angleInput.disabled = rangeDeclaredFlat;
       const applyEdit = () => {
         // the field shows whole units: an untouched distance keeps the metres it had
         const rangeM = distanceFromField(rangeInput.value, eff.rangeM);
@@ -289,7 +289,7 @@ export function locationIntakePanel({ location, gaps, persisted, backdropNode, o
       table.appendChild(el('tr', {}, [
         el('td', { text: tg.name || formatTargetSummary(tg.rangeM, tg.losAngleDeg) }),
         el('td', {}, [rangeInput]),
-        el('td', {}, [angleInput])
+        rangeDeclaredFlat ? null : el('td', {}, [angleInput])
       ]));
     }
     node.appendChild(table);

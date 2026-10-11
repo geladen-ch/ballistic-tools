@@ -21,7 +21,7 @@ import { recheckPrompt } from './recheck-prompt.js';
 import { groupWeatherControl } from './conditions.js';
 import {
   targetForStep, naturalKey, backdropMarginFrom, nextShotFromAnalysis, ladderStallReason, WALK_OUT_SHOTS_PER_RUNG, RESOLUTION_FLOOR,
-  REPEAT_GROUP_SHOTS, roundsLeft, nextStringShots, splitIntoStrings, rotationNext, shotNoise, stringSigma, readShots, windSigmaFor
+  REPEAT_GROUP_SHOTS, roundsLeft, nextStringShots, splitIntoStrings, rotationNext, shotNoise, stringSigma, readShots, windSigmaFor, measuredRangeM
 } from './session-model.js';
 
 // After a missed impact and a group nearer, the failed distance gets another try (and keeps getting one while there is untried
@@ -78,7 +78,7 @@ export function shootPanel(ctx) {
     });
   }
 
-  // a planned target whose distance a re-check corrected stays at its planned distance here, so the ladder never offers it twice
+  // a planned target is offered at its planned distance only, so the ladder never offers it twice
   const plannedKeys = new Set((plan && plan.keys) || []);
   const candidates = [...new Set([...targets.filter((tg) => !plannedKeys.has(tg.key)).map((tg) => tg.rangeM), ...(plan ? plan.ranges : [])])]
     .filter((r) => r <= ceiling)
@@ -221,17 +221,24 @@ export function shootPanel(ctx) {
     const plannedIndex = plan ? plan.ranges.indexOf(next) : -1;
     const isPlanned = plannedIndex >= 0;
     const isRepeat = session.repeatAt === next;
-    // A planned distance finds its target by key, so a target whose distance a re-check corrected is still the one shot at. The
-    // string is recorded at the planned distance, like the strings shot there before the re-check, and the range-check row corrects
-    // them all alike; the heading and the dial use the corrected distance.
+    // A target re-measured this session is still the one shot at. The string is recorded at the distance the session started with
+    // (`next`), like the strings shot there before the re-check, and the range-check rows correct them all alike; the heading and
+    // the dial use the last distance read (measuredRangeM).
     const target = targetForStep(targets, plan, next);
     const targetKey = target ? target.key : naturalKey(next);
-    const shotRangeM = target ? target.rangeM : next;
+    const shotRangeM = measuredRangeM(session, targetKey, next);
     const left = isPlanned ? roundsLeft(plan, session).get(next) : 0;
     const stringShots = isRepeat ? REPEAT_GROUP_SHOTS : isPlanned ? Math.max(1, nextStringShots(left)) : WALK_OUT_SHOTS_PER_RUNG;
 
     firstRungPrompt(next);
-    ladderNode.appendChild(el('h3', { text: t('truingSession.shoot.nextRange', { range: dist(shotRangeM) }) }));
+    // the target's distance and line of sight as the shots are worked out with: the angle unless the range is flat or none is known
+    const losDeg = targetAngle(targetKey, target);
+    const losKnown = !ctx.rangeDeclaredFlat && (losDeg !== 0 || (session.angleChecks && session.angleChecks[targetKey] != null));
+    const headingText = losKnown
+      ? t('truingSession.shoot.nextRangeWithAngle', { range: dist(shotRangeM), angle: `${losDeg > 0 ? '+' : losDeg < 0 ? '−' : ''}${Math.abs(losDeg).toFixed(1)}°` })
+      : t('truingSession.shoot.nextRange', { range: dist(shotRangeM) });
+    const headingRow = el('div', { class: 'field-row truing-session-target-row' }, [el('h3', { text: headingText })]);
+    ladderNode.appendChild(headingRow);
     // Before the first string at the planned far target: one more reading of its distance (and its angle, unless the range is
     // declared flat), entered as a re-check. The result leans on that distance hardest, and a mis-ranged far target is what the
     // shots can least tell from a wrong drag scale; a second reading taken here settles most of it.
@@ -240,11 +247,27 @@ export function shootPanel(ctx) {
       ladderNode.appendChild(recheckPrompt({
         target: { rangeM: shotRangeM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
         angleMeasured: session.angleChecks && session.angleChecks[targetKey] != null,
-        onSubmit: (reading) => { ctx.onRecheck(targetKey, shotRangeM, reading); refreshAnalysis(); renderLadder(); renderLive(); }
+        onSubmit: (reading) => { ctx.onRecheck(targetKey, next, reading); refreshAnalysis(); renderLadder(); renderLive(); }
       }).node);
       ladderNode.appendChild(backdropControl());
       return;
     }
+    // The shooter may re-range the target on their own at any time: the same re-check as the one the tool asks for, so it
+    // corrects every string already shot there and the dial for the next one alike. Opened in place, so the fields below keep
+    // what has been typed into them; cancelling leaves everything as it was.
+    const remeasureHost = el('div');
+    const remeasure = el('button', { class: 'secondary', i18n: 'truingSession.shoot.remeasureButton' });
+    remeasure.addEventListener('click', () => {
+      remeasure.disabled = true;
+      remeasureHost.appendChild(recheckPrompt({
+        target: { rangeM: shotRangeM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
+        angleMeasured: session.angleChecks && session.angleChecks[targetKey] != null,
+        onSubmit: (reading) => { ctx.onRecheck(targetKey, next, reading); refreshAnalysis(); renderLadder(); renderLive(); },
+        onCancel: () => { clear(remeasureHost); remeasure.disabled = false; }
+      }).node);
+    });
+    headingRow.appendChild(remeasure);
+    ladderNode.appendChild(remeasureHost);
     let stepText;
     if (isRepeat) stepText = t('truingSession.shoot.repeatStep');
     else if (isPlanned) {
@@ -429,14 +452,13 @@ export function shootPanel(ctx) {
         // an extra group shot only to unlock a retry does not count against the distance's planned rounds
         ...(isRepeat ? { extra: true } : {}),
         // each group keeps its own readings, its own wind (always) and its own air, so its velocities are compared with the cartridge's velocity in
-        // that air (the pooled list stays for counting readings)
+        // that air
         conditions,
         ...(readings.length ? { chronoVelocities: readings } : {})
       });
       registerRecordedGroup(session, next, { retry: RETRY_MISSED_DISTANCE });
       session.repeatAt = null;
       session.lastStringMode = mode;
-      session.chronoVelocities.push(...readings);
       missMessage = null;
       ctx.onChange();
       refreshAnalysis();
@@ -559,9 +581,10 @@ export function shootPanel(ctx) {
     // still in hand.
     for (const f of analysis.findings.filter((x) => x.case === 7)) {
       const box = el('div', { class: 'truing-session-flag' });
-      box.appendChild(el('p', { text: flagText(f) }));
+      const shownM = measuredRangeM(session, f.targetKey, f.rangeM);
+      box.appendChild(el('p', { text: flagText({ ...f, rangeM: shownM }) }));
       box.appendChild(recheckPrompt({
-        target: { rangeM: f.rangeM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
+        target: { rangeM: shownM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
         angleMeasured: session.angleChecks && session.angleChecks[f.targetKey] != null,
         onSubmit: (reading) => { ctx.onRecheck(f.targetKey, f.rangeM, reading); refreshAnalysis(); renderLadder(); renderLive(); }
       }).node);

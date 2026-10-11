@@ -1096,6 +1096,8 @@
     },
     "shoot": {
       "nextRange": "Prossimo: {{range}}",
+      "nextRangeWithAngle": "Prossimo: {{range}}, angolo di sito {{angle}}",
+      "remeasureButton": "Rimisura",
       "comeUpLabel": "Alzo osservato ({{unit}})",
       "chronoLabel": "Letture del cronografo (separate da spazi, {{unit}})",
       "recordGroupButton": "Registra serie",
@@ -1255,10 +1257,11 @@
       "promptDistanceOnly": "Rimisurate il bersaglio a {{range}}.",
       "distanceLabel": "Nuova lettura della distanza ({{unit}})",
       "angleLabel": "Angolo misurato (°, + verso l'alto, − verso il basso)",
-      "noAngleTool": "Non ho modo di misurare l'angolo",
-      "noAngleCaveat": "Senza angolo non si può distinguere qui una distanza errata da un pendio; restano possibili entrambi.",
-      "needValues": "Inserite la distanza, e l'angolo a meno che non possiate misurarlo.",
-      "submitButton": "Usa queste letture"
+      "needValues": "Inserite la distanza e l'angolo.",
+      "needDistance": "Inserite la distanza.",
+      "submitButton": "Usa queste letture",
+      "confirmButton": "Conferma",
+      "cancelButton": "Annulla"
     },
     "conditions": {
       "heading": "Condizioni al poligono",

@@ -6,7 +6,7 @@ installFakeDom();
 
 const {
   sessionPriors, planningPriors, sessionParams, reportedCauses, mvSdSampleSizeFrom, effectiveMvSd, buildObservations,
-  sessionTargets, groupTargetKey, analyseSession, bcCorrectionOffer, MIN_CHRONO_READINGS_FOR_BC,
+  sessionTargets, analyseSession, bcCorrectionOffer, chronoCount, MIN_CHRONO_READINGS_FOR_BC,
   farTargetCheckPrompt, ZERO_FINDING_MIN_P, DIAL_TABLE_MIN_MRAD, DIAL_TABLE_MIN_SD_MULTIPLE, nextShotFromAnalysis,
   roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN, windStrengthOf, roundBudgetOrDefault, DEFAULT_ROUND_BUDGET, livePriors, MIN_CHRONO_READINGS_TRUSTED, missWidenedDragSigma, TOTALLY_IMPLAUSIBLE_DRAG_PCT, IMPLAUSIBLE_DRAG_SIGMAS
 } = await import('../src/ui/truing-session/session-model.js');
@@ -40,8 +40,8 @@ test('once the session has enough chronograph readings of its own, they replace 
   assert.equal(sessionPriors(hw, { chronoReadings: MIN_CHRONO_READINGS_TRUSTED }).v0Ms, 20);
   assert.equal(sessionPriors(hw, { chronoReadings: 4, minReadings: 5 }).v0Ms, checked);
   assert.equal(sessionPriors(hw, { chronoReadings: 5, minReadings: 5 }).v0Ms, 20);
-  assert.equal(livePriors(hw, { chronoVelocities: [] }).v0Ms, checked);
-  assert.equal(livePriors(hw, { chronoVelocities: [800, null] }).v0Ms, 20);
+  assert.equal(livePriors(hw, { groups: [] }).v0Ms, checked);
+  assert.equal(livePriors(hw, { groups: [{ chronoVelocities: [800, null] }] }).v0Ms, 20);
   // an unchecked average is untouched, and the planning priors follow the same rule: the chrono row alone, not the row and the average
   assert.equal(sessionPriors({ mvSD: 3 }, { chronoReadings: 10 }).v0Ms, 20);
   const row = v0MsCheckedSigma({ mvSD: 3, nToday: 12, mvSdSampleSize: 10 });
@@ -73,18 +73,21 @@ test('the SD sample size follows its provenance', () => {
   assert.equal(mvSdSampleSizeFrom({ muzzleVelocitySDPreset: 'factoryMatch' }), null);
 });
 
+// Readings as one string records them, in the reference air: measured around one velocity, so their spread is their own SD.
+const oneString = (velocities) => ({ state: REF_STATE, groups: [{ chronoVelocities: velocities }] });
+
 test('the session\'s velocity spread is the recorded SD and today\'s readings pooled by degrees of freedom', () => {
   const homework = { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY, mvSdShots: 10 }; // 6 m/s resting on 10 shots
-  assert.deepEqual(effectiveMvSd({ homework, velocities: [] }), { mvSD: 6, mvSdSampleSize: 10, override: null }, 'no readings: the recorded SD');
-  assert.equal(effectiveMvSd({ homework, velocities: [790] }).mvSD, 6, 'one reading says nothing about a spread');
+  assert.deepEqual(effectiveMvSd({ homework, ...oneString([]) }), { mvSD: 6, mvSdSampleSize: 10, override: null }, 'no readings: the recorded SD');
+  assert.equal(effectiveMvSd({ homework, ...oneString([790]) }).mvSD, 6, 'one reading says nothing about a spread');
   const readings = [0, 2, 4, 6, 8, 10].map((x) => 790 + x); // sample variance 14
-  const pooled = effectiveMvSd({ homework, velocities: readings });
+  const pooled = effectiveMvSd({ homework, ...oneString(readings) });
   assert.ok(Math.abs(pooled.mvSD - Math.sqrt((9 * 36 + 5 * 14) / 14)) < 1e-12);
   assert.equal(pooled.mvSdSampleSize, 15);
   assert.equal(pooled.override, null, 'six readings are never tested for a significant difference');
   // readings that agree with the recorded SD leave it where it is
   const alike = Array.from({ length: 20 }, (_, i) => 790 + (i % 2 ? 3 : -3)); // SD about 3.08, recorded 3
-  const same = effectiveMvSd({ homework: { mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY }, velocities: alike });
+  const same = effectiveMvSd({ homework: { mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY }, ...oneString(alike) });
   assert.ok(Math.abs(same.mvSD - 3) < 0.1 && same.override === null);
 });
 
@@ -92,11 +95,11 @@ test('an SD given without a shot count counts as 5 shots when pooled; one with i
   const readings = [0, 2, 4, 6, 8, 10].map((x) => 790 + x); // sample variance 14
   const at = (n0) => Math.sqrt(((n0 - 1) * 36 + 5 * 14) / (n0 + 4));
   for (const homework of [{ mvSD: 6, muzzleVelocitySDPreset: 'factoryMatch' }, { mvSD: 6, muzzleVelocitySDPreset: RIG_PRESET_KEY }, { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY }, { mvSD: 6 }]) {
-    const r = effectiveMvSd({ homework, velocities: readings });
+    const r = effectiveMvSd({ homework, ...oneString(readings) });
     assert.ok(Math.abs(r.mvSD - at(5)) < 1e-12, `${homework.muzzleVelocitySDPreset}`);
     assert.equal(r.mvSdSampleSize, 10);
   }
-  const typed = effectiveMvSd({ homework: { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY, mvSdShots: 25 }, velocities: readings });
+  const typed = effectiveMvSd({ homework: { mvSD: 6, muzzleVelocitySDPreset: CUSTOM_PRESET_KEY, mvSdShots: 25 }, ...oneString(readings) });
   assert.ok(Math.abs(typed.mvSD - at(25)) < 1e-12);
   assert.ok(at(5) < at(25), 'an SD without a count gives way to today\'s readings sooner');
 });
@@ -104,8 +107,8 @@ test('an SD given without a shot count counts as 5 shots when pooled; one with i
 test('past 10 readings a significantly different spread is announced, and the figure used is pooled, not replaced', () => {
   const homework = { mvSD: 3, muzzleVelocitySDPreset: RIG_PRESET_KEY };
   const wide = Array.from({ length: 20 }, (_, i) => 790 + (i % 2 ? 9 : -9));
-  assert.equal(effectiveMvSd({ homework, velocities: wide.slice(0, 10) }).override, null, '10 readings: never tested');
-  const over = effectiveMvSd({ homework, velocities: wide });
+  assert.equal(effectiveMvSd({ homework, ...oneString(wide.slice(0, 10)) }).override, null, '10 readings: never tested');
+  const over = effectiveMvSd({ homework, ...oneString(wide) });
   assert.ok(over.override && over.override.sd > 9 && over.override.sampleSize === 20 && over.override.recordedSd === 3);
   assert.ok(over.mvSD > 3 && over.mvSD < over.override.sd, `pooled between the two (${over.mvSD})`);
   assert.equal(over.override.usedSd, over.mvSD);
@@ -123,14 +126,14 @@ test('the spread is measured around each group\'s expected velocity, with a comm
     { conditions: cold, chronoVelocities: jitter.map((j) => vAt(cold) + j) },
     { conditions: warm, chronoVelocities: jitter.map((j) => vAt(warm) + j) }
   ];
-  const flat = groups.flatMap((g) => g.chronoVelocities);
-  const perGroup = effectiveMvSd({ homework, velocities: flat, state, groups });
-  const raw = effectiveMvSd({ homework, velocities: flat });
+  const perGroup = effectiveMvSd({ homework, state, groups });
+  // the same readings without their air: all measured around one velocity
+  const raw = effectiveMvSd({ homework, state, groups: groups.map(({ conditions, ...g }) => g) });
   assert.ok(raw.mvSD > perGroup.mvSD + 1, `raw ${raw.mvSD} against ${perGroup.mvSD}`);
   // all readings 15 m/s above the specified velocity: the offset is the fit's business, not spread
   const biased = [{ chronoVelocities: jitter.map((j) => vAt({}) + 15 + j) }];
-  const offset = effectiveMvSd({ homework, velocities: biased[0].chronoVelocities, state, groups: biased });
-  const centred = effectiveMvSd({ homework, velocities: jitter.map((j) => vAt({}) + j), state, groups: [{ chronoVelocities: jitter.map((j) => vAt({}) + j) }] });
+  const offset = effectiveMvSd({ homework, state, groups: biased });
+  const centred = effectiveMvSd({ homework, state, groups: [{ chronoVelocities: jitter.map((j) => vAt({}) + j) }] });
   assert.ok(Math.abs(offset.mvSD - centred.mvSD) < 1e-9);
 });
 
@@ -157,19 +160,16 @@ const LOCATION = {
 test('targets are keyed stably; session overrides and natural targets are folded in', () => {
   const targets = sessionTargets({ location: LOCATION, targetOverrides: { far: { rangeM: 850 } }, naturalTargets: [{ rangeM: 400 }] });
   assert.deepEqual(targets.map((tg) => [tg.key, tg.rangeM]), [['near', 100], ['slope', 600], ['far', 850], ['natural:400', 400]]);
-  assert.equal(groupTargetKey({ rangeM: 400 }, targets), 'natural:400');
-  assert.equal(groupTargetKey({ rangeM: 600, targetKey: 'slope' }, targets), 'slope');
 });
 
 test('observations carry the recorded angle, the flat declaration, measured angles, the chrono row and re-check rows', () => {
   const targets = sessionTargets({ location: LOCATION });
   const session = {
     groups: [
-      { rangeM: 100, targetKey: 'near', observedComeUp: 0, shots: 4, sigmaMrad: 0.15 },
+      { rangeM: 100, targetKey: 'near', observedComeUp: 0, shots: 4, sigmaMrad: 0.15, chronoVelocities: [792, null, 793] },
       { rangeM: 600, targetKey: 'slope', observedComeUp: 5.1, shots: 4, sigmaMrad: 0.08 },
       { rangeM: 860, targetKey: 'far', observedComeUp: 9.9, shots: 8, sigmaMrad: 0.06 }
     ],
-    chronoVelocities: [792, null, 793],
     angleChecks: { far: 0 },
     rangeChecks: [{ targetKey: 'far', believedRangeM: 860, newReadingM: 851 }]
   };
@@ -189,10 +189,10 @@ test('observations carry the recorded angle, the flat declaration, measured angl
 function referenceSession(dragPct, velocities) {
   const truth = { ...REF_STATE, bcGainFactor: 1 / (1 + dragPct / 100) };
   const groups = [
-    { rangeM: 100, targetKey: 'near', observedComeUp: comeUpMrad(truth, 100), shots: 4, sigmaMrad: 0.15 },
+    { rangeM: 100, targetKey: 'near', observedComeUp: comeUpMrad(truth, 100), shots: 4, sigmaMrad: 0.15, chronoVelocities: velocities },
     { rangeM: 860, targetKey: 'far', observedComeUp: comeUpMrad(truth, 860), shots: 8, sigmaMrad: sigmaForGroup({ shots: 8, r50Mrad: 0.14 }) }
   ];
-  return { groups, chronoVelocities: velocities };
+  return { groups };
 }
 
 function analyse(session) {
@@ -201,7 +201,7 @@ function analyse(session) {
   const observations = buildObservations({ state: REF_STATE, session, targets, rangeDeclaredFlat: true, mvSD: 3 });
   return analyseSession({
     state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true,
-    rMax: 860, chronoN: session.chronoVelocities.filter((v) => v != null).length, targets
+    rMax: 860, chronoN: chronoCount(session), targets
   });
 }
 
@@ -252,7 +252,7 @@ test('a missed impact widens the drag prior by what a drag error alone would nee
   closeTo(sigma({ missesAt: { 300: 1, 800: 2 } }), needed800 / 2, 1e-9, 'the widest of the misses');
   // livePriors: the widened prior for Shoot, the usual one when asked (Conclude) or when no state is given
   const hw = { zeroVerified: true, backdropHeightM: 2 };
-  const session = { chronoVelocities: [], missedImpactCount: 1, missesAt: { 800: 1 } };
+  const session = { groups: [], missedImpactCount: 1, missesAt: { 800: 1 } };
   closeTo(livePriors(hw, session, { state: REF_STATE }).dragPct, needed800 / 2, 1e-9, 'widened');
   assert.equal(livePriors(hw, session, { state: REF_STATE, widen: false }).dragPct, SIGMA_DRAG_PCT);
   assert.equal(livePriors(hw, session).dragPct, SIGMA_DRAG_PCT);
@@ -283,7 +283,7 @@ test('without chronograph readings a v0 shift is never reported as a measured mu
   const groups = [100, 200, 300].map((r) => ({ rangeM: r, targetKey: `t${r}`, observedComeUp: comeUpMrad(truth, r), shots: 4, sigmaMrad: 0.08 }));
   const targets = groups.map((g) => ({ key: g.targetKey, rangeM: g.rangeM, registered: true, losAngleDeg: 0 }));
   const homework = { zeroVerified: true, trackTested: true, windConfidenceMs: 0.5 };
-  const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: 3 });
+  const observations = buildObservations({ state: REF_STATE, session: { groups }, targets, rangeDeclaredFlat: true, mvSD: 3 });
   const result = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 300, chronoN: 0, targets });
   assert.ok(!result.findings.some((f) => f.case === 'measuredV0'));
 });
@@ -310,7 +310,7 @@ function nearOnly(observedComeUp) {
   const targets = [{ key: 'near', rangeM: 100, registered: true, losAngleDeg: 0 }];
   const groups = [{ rangeM: 100, targetKey: 'near', observedComeUp, shots: 4, sigmaMrad: 0.15 }];
   const homework = { trackTested: true };
-  const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
+  const observations = buildObservations({ state: REF_STATE, session: { groups }, targets, rangeDeclaredFlat: true, mvSD: null });
   return analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 100, chronoN: 0, targets });
 }
 
@@ -343,7 +343,7 @@ test('a recorded or measured angle keeps its sign from the target record through
   const location = { targets: [{ id: 'up', rangeM: 700, losAngleDeg: 30 }, { id: 'down', rangeM: 700, losAngleDeg: -30 }] };
   const targets = sessionTargets({ location });
   const groups = targets.map((tg) => ({ rangeM: 700, targetKey: tg.key, observedComeUp: 6, shots: 4, sigmaMrad: 0.1 }));
-  const obs = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: false, mvSD: null });
+  const obs = buildObservations({ state: REF_STATE, session: { groups }, targets, rangeDeclaredFlat: false, mvSD: null });
   const byKey = Object.fromEntries(obs.map((o) => [o.targetIndex, o]));
   assert.equal(byKey.up.knownLosDeg, 30);
   assert.equal(byKey.down.knownLosDeg, -30);
@@ -364,17 +364,17 @@ test('groups carry their own air and wind into the observations, and their chron
     { rangeM: 300, targetKey: 'a', observedComeUp: 1.6, shots: 4, sigmaMrad: 0.1, conditions: cold, chronoVelocities: [vAt(cold), vAt(cold), vAt(cold)] },
     { rangeM: 600, targetKey: 'b', observedComeUp: 5.3, shots: 4, sigmaMrad: 0.1, conditions: warm, chronoVelocities: [vAt(warm), vAt(warm), vAt(warm)] }
   ];
-  const obs = buildObservations({ state, session: { groups, chronoVelocities: groups.flatMap((g) => g.chronoVelocities) }, targets, rangeDeclaredFlat: true, mvSD: 3 });
+  const obs = buildObservations({ state, session: { groups }, targets, rangeDeclaredFlat: true, mvSD: 3 });
   assert.deepEqual(obs.filter((o) => o.rangeM != null).map((o) => o.conditions), [cold, warm]);
   const rows = obs.filter((o) => o.kind === 'chrono');
   assert.equal(rows.length, 2, 'one chronograph row per group that has readings');
   for (const row of rows) assert.ok(Math.abs(row.residualMs) < 1e-9, `a group's readings agree with the cartridge in that group's air (${row.residualMs})`);
   // one cold group only: compared at the base temperature its readings would look like an 8 m/s shift, the mistake being avoided
   const coldOnly = [groups[0]];
-  const perGroup = buildObservations({ state, session: { groups: coldOnly, chronoVelocities: coldOnly[0].chronoVelocities }, targets, rangeDeclaredFlat: true, mvSD: 3 }).find((o) => o.kind === 'chrono');
-  const pooled = buildObservations({ state, session: { groups: coldOnly.map(({ chronoVelocities, ...g }) => g), chronoVelocities: coldOnly[0].chronoVelocities }, targets, rangeDeclaredFlat: true, mvSD: 3 }).find((o) => o.kind === 'chrono');
+  const perGroup = buildObservations({ state, session: { groups: coldOnly }, targets, rangeDeclaredFlat: true, mvSD: 3 }).find((o) => o.kind === 'chrono');
+  const noAir = buildObservations({ state, session: { groups: coldOnly.map(({ conditions, ...g }) => g) }, targets, rangeDeclaredFlat: true, mvSD: 3 }).find((o) => o.kind === 'chrono');
   assert.ok(Math.abs(perGroup.residualMs) < 1e-9);
-  assert.ok(Math.abs(pooled.residualMs + 8) < 1e-9, `without per-group readings the old pooled row is kept, at the base temperature (${pooled.residualMs})`);
+  assert.ok(Math.abs(noAir.residualMs + 8) < 1e-9, `the same readings without their air are compared at the base temperature (${noAir.residualMs})`);
 });
 
 test('analyseSession accepts groups with their own conditions, and nextShotFromAnalysis dials from the fit in the next shot\'s air', () => {
@@ -387,7 +387,7 @@ test('analyseSession accepts groups with their own conditions, and nextShotFromA
     { rangeM: 700, targetKey: 'far', observedComeUp: comeUpMrad(withConditions(truth, c2), 700), shots: 8, sigmaMrad: 0.05, conditions: c2 }
   ];
   const homework = { zeroVerified: true, trackTested: true, mvSD: 3, chronographAvailable: false };
-  const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
+  const observations = buildObservations({ state: REF_STATE, session: { groups }, targets, rangeDeclaredFlat: true, mvSD: null });
   const analysis = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 700, chronoN: 0, targets });
   assert.ok(analysis.warm && analysis.cov);
   const next = nextShotFromAnalysis({ state: REF_STATE, analysis, rangeM: 500, conditions: { tempC: 24, pressureHpa: 1001, windSpeed: 4, windAngle: 90 }, windSigma: { speedMs: 1, dirDeg: 7.5 } });
@@ -491,7 +491,7 @@ test('each group\'s chronograph readings are compared with the velocity in that 
       { rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05, resolved: true, chronoVelocities: [792, 793, 792] },
       { rangeM: 300, observedComeUp: 1.6, shots: 3, sigmaMrad: 0.05, resolved: true, conditions: hot, chronoVelocities: [792, 793, 792] }
     ],
-    chronoVelocities: [792, 793, 792, 792, 793, 792], rangeChecks: [], angleChecks: {}
+    rangeChecks: [], angleChecks: {}
   };
   const obs = buildObservations({ state, session, targets: [], rangeDeclaredFlat: true, mvSD: 2, mvSdSampleSize: 20 });
   const rows = obs.filter((o) => o.kind === 'chrono');
@@ -619,7 +619,7 @@ test('homeworkCheckAxes: the zero and the velocity average, when ticked, each we
   assert.equal(axes[1].sigmas[1], 20);
   assert.deepEqual(homeworkCheckAxes({}, sessionPriors({})), [], 'nothing ticked, nothing to check');
   // once the session's own chronograph decides the velocity, its tick is not weighed any more
-  const trusted = livePriors(hw, { chronoVelocities: Array.from({ length: MIN_CHRONO_READINGS_TRUSTED }, () => 790) });
+  const trusted = livePriors(hw, { groups: [{ chronoVelocities: Array.from({ length: MIN_CHRONO_READINGS_TRUSTED }, () => 790) }] });
   assert.deepEqual(homeworkCheckAxes(hw, trusted).map((a) => a.key), ['zeroMrad']);
 });
 
@@ -629,7 +629,7 @@ test('a ticked zero the shots contradict is doubted, and the result allows for i
   const run = (zeroOffMrad) => {
     const truth = { ...REF_STATE };
     const groups = [100, 100, 300, 700, 700].map((r, i) => ({ rangeM: r, targetKey: ['near', 'near', 'mid', 'far', 'far'][i], observedComeUp: comeUpMrad(truth, r) + zeroOffMrad, shots: 3, sigmaMrad: 0.05 }));
-    const observations = buildObservations({ state: REF_STATE, session: { groups, chronoVelocities: [] }, targets, rangeDeclaredFlat: true, mvSD: null });
+    const observations = buildObservations({ state: REF_STATE, session: { groups }, targets, rangeDeclaredFlat: true, mvSD: null });
     const priors = sessionPriors(hw);
     return analyseSession({ state: REF_STATE, observations, priors, params: sessionParams(hw), causes: reportedCauses(hw), rechecked: true, rMax: 700, targets, extraAxes: homeworkCheckAxes(hw, priors) });
   };

@@ -1096,6 +1096,8 @@
     },
     "shoot": {
       "nextRange": "Nächstes: {{range}}",
+      "nextRangeWithAngle": "Nächstes: {{range}}, Schusswinkel {{angle}}",
+      "remeasureButton": "Neu messen",
       "comeUpLabel": "Beobachteter Haltepunkt ({{unit}})",
       "chronoLabel": "Chronograph-Messwerte (durch Leerzeichen getrennt, {{unit}})",
       "recordGroupButton": "Serie erfassen",
@@ -1255,10 +1257,11 @@
       "promptDistanceOnly": "Messen Sie das Ziel bei {{range}} neu an.",
       "distanceLabel": "Neue Distanzmessung ({{unit}})",
       "angleLabel": "Gemessener Winkel (°, + aufwärts, − abwärts)",
-      "noAngleTool": "Ich kann den Winkel nicht messen",
-      "noAngleCaveat": "Ohne Winkel lässt sich eine falsche Distanz hier nicht von einer Neigung trennen; beides bleibt offen.",
-      "needValues": "Geben Sie die Distanz ein, und den Winkel, sofern Sie ihn messen können.",
-      "submitButton": "Diese Messwerte verwenden"
+      "needValues": "Geben Sie die Distanz und den Winkel ein.",
+      "needDistance": "Geben Sie die Distanz ein.",
+      "submitButton": "Diese Messwerte verwenden",
+      "confirmButton": "Bestätigen",
+      "cancelButton": "Abbrechen"
     },
     "conditions": {
       "heading": "Bedingungen auf dem Schießplatz",

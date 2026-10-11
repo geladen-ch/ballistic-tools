@@ -9,9 +9,15 @@ import { t } from '../../i18n.js';
 import { dist, distLabel, fromDisplayDistance } from './units.js';
 
 // `onSubmit({ newReadingM, angleDeg })` -- angleDeg is null when no angle
-// was asked for or the user has no way to measure it.
-export function recheckPrompt({ target, rangeDeclaredFlat, angleMeasured, onSubmit }) {
-  const askAngle = !rangeDeclaredFlat && !angleMeasured;
+// was asked for: never on a range declared flat, where a clinometer is
+// not needed; off a flat range one is required, so an asked-for angle is
+// always given. `onCancel`, when
+// given, makes this a re-measure the shooter asked for on their own: it
+// takes the angle again even if one was measured this session (the
+// shooter chose to re-measure), and can be confirmed or cancelled.
+export function recheckPrompt({ target, rangeDeclaredFlat, angleMeasured, onSubmit, onCancel = null }) {
+  const userInitiated = onCancel != null;
+  const askAngle = !rangeDeclaredFlat && (!angleMeasured || userInitiated);
   const node = el('div', { class: 'truing-session-recheck' });
   node.appendChild(el('p', { text: t(askAngle ? 'truingSession.recheck.promptWithAngle' : 'truingSession.recheck.promptDistanceOnly', { range: dist(target.rangeM) }) }));
 
@@ -19,23 +25,19 @@ export function recheckPrompt({ target, rangeDeclaredFlat, angleMeasured, onSubm
   node.appendChild(el('div', { class: 'field' }, [el('label', { text: t('truingSession.recheck.distanceLabel', { unit: distLabel() }) }), distanceInput]));
 
   let angleInput = null;
-  let noToolCheckbox = null;
   if (askAngle) {
     angleInput = el('input', { type: 'number', step: 0.1 });
     node.appendChild(el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.recheck.angleLabel' }), angleInput]));
-    noToolCheckbox = el('input', { type: 'checkbox' });
-    noToolCheckbox.addEventListener('change', () => { angleInput.disabled = noToolCheckbox.checked; });
-    node.appendChild(el('label', { class: 'checkbox-field' }, [noToolCheckbox, el('span', { i18n: 'truingSession.recheck.noAngleTool' })]));
   }
 
-  const error = el('p', { class: 'hint warning', i18n: 'truingSession.recheck.needValues' });
+  const error = el('p', { class: 'hint warning', i18n: askAngle ? 'truingSession.recheck.needValues' : 'truingSession.recheck.needDistance' });
   error.style.display = 'none';
-  const submit = el('button', { i18n: 'truingSession.recheck.submitButton' });
+  const submit = el('button', { i18n: userInitiated ? 'truingSession.recheck.confirmButton' : 'truingSession.recheck.submitButton' });
   submit.addEventListener('click', () => {
     const shown = parseFloat(distanceInput.value);
     const newReadingM = Number.isFinite(shown) ? fromDisplayDistance(shown) : NaN;
     let angleDeg = null;
-    if (askAngle && !noToolCheckbox.checked) {
+    if (askAngle) {
       angleDeg = parseFloat(angleInput.value);
       if (!Number.isFinite(angleDeg)) { error.style.display = ''; return; }
     }
@@ -44,8 +46,11 @@ export function recheckPrompt({ target, rangeDeclaredFlat, angleMeasured, onSubm
     onSubmit({ newReadingM, angleDeg });
   });
   node.appendChild(error);
-  node.appendChild(submit);
-  if (askAngle) node.appendChild(el('p', { class: 'hint', i18n: 'truingSession.recheck.noAngleCaveat' }));
+  if (userInitiated) {
+    const cancel = el('button', { class: 'secondary', i18n: 'truingSession.recheck.cancelButton' });
+    cancel.addEventListener('click', onCancel);
+    node.appendChild(el('div', { class: 'field-row' }, [submit, cancel]));
+  } else node.appendChild(submit);
   return { node };
 }
 
