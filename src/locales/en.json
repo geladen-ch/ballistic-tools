@@ -1052,6 +1052,8 @@
       "gradeLine": "Best plan: {{ranges}} (shots {{shots}}) → drag-scale SD {{sd}} → grade {{letter}}.",
       "gradeA": "Grade A: a real BC correction.",
       "gradeB": "Grade B: a BC correction with a wide band.",
+      "gradeANoBc": "Grade A on the drag scale, but without a chronograph this session trues your come-ups and zero only: no BC correction is offered.",
+      "gradeBNoBc": "Grade B on the drag scale, but without a chronograph this session trues your come-ups and zero only: no BC correction is offered.",
       "gradeC": "Grade C: little more than the published BC.",
       "gradeD": "Grade D: a come-up correction for these ranges only — no BC conclusion.",
       "noChronoWarning": "No chronograph, no BC correction — this session will still true your come-ups and zero.",

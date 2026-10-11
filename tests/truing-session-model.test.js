@@ -6,11 +6,11 @@ installFakeDom();
 
 const {
   sessionPriors, planningPriors, sessionParams, reportedCauses, mvSdSampleSizeFrom, effectiveMvSd, buildObservations,
-  sessionTargets, analyseSession, bcCorrectionOffer, chronoCount, MIN_CHRONO_READINGS_FOR_BC,
+  sessionTargets, analyseSession, bcCorrectionOffer, chronoCount, MIN_CHRONO_READINGS_FOR_BC, bcOfferable,
   farTargetCheckPrompt, ZERO_FINDING_MIN_P, DIAL_TABLE_MIN_MRAD, DIAL_TABLE_MIN_SD_MULTIPLE, nextShotFromAnalysis,
   roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN, windStrengthOf, roundBudgetOrDefault, DEFAULT_ROUND_BUDGET, livePriors, MIN_CHRONO_READINGS_TRUSTED, missWidenedDragSigma, TOTALLY_IMPLAUSIBLE_DRAG_PCT, IMPLAUSIBLE_DRAG_SIGMAS
 } = await import('../src/ui/truing-session/session-model.js');
-const { v0MsCheckedSigma, comeUpMrad, sigmaForGroup, predictedComeUp, withConditions, BASE_PARAMS, SIGMA_DRAG_PCT, planningColumns } = await import('../src/engine/truing-session.js');
+const { v0MsCheckedSigma, comeUpMrad, sigmaForGroup, predictedComeUp, withConditions, BASE_PARAMS, SIGMA_DRAG_PCT, planningColumns, grade } = await import('../src/engine/truing-session.js');
 const { resolveMuzzleVelocity } = await import('../src/engine/trajectory.js');
 const { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } = await import('../src/ui/precision-preset-field.js');
 
@@ -638,4 +638,17 @@ test('a ticked zero the shots contradict is doubted, and the result allows for i
   assert.ok(held.homeworkDoubt.zeroMrad < 0.2, `a zero that holds: ${held.homeworkDoubt.zeroMrad}`);
   assert.ok(broken.homeworkDoubt.zeroMrad > 0.9, `a zero half a mrad off: ${broken.homeworkDoubt.zeroMrad}`);
   assert.ok(Math.abs(broken.theta.zeroMrad - 0.5) < 0.1, `and the zero is found rather than forced into the other causes: ${broken.theta.zeroMrad}`);
+});
+
+test('Prepare promises a BC only when Conclude would offer one: a grade-A plan on a checked average without a chronograph offers none', async () => {
+  const { computePrepare } = await import('../src/ui/truing-session/prepare-compute.js');
+  const full = { ...ADVICE_HW, zeroVerified: true, trackTested: true, mvAverageChecked: true };
+  const prepare = (homework) => computePrepare({ state: REF_STATE, homework, availableDistances: ADVICE_DISTANCES, registeredDistances: ADVICE_DISTANCES, roundBudget: 20 }).grading.current;
+  const noChrono = prepare({ ...full, chronographAvailable: false });
+  assert.equal(grade(noChrono.dragSd).letter, 'A', 'the drag SD alone grades it A');
+  assert.equal(noChrono.bcOffered, false);
+  assert.equal(prepare({ ...full, chronographAvailable: true }).bcOffered, true);
+  assert.equal(bcOfferable('A', MIN_CHRONO_READINGS_FOR_BC - 1), false);
+  assert.equal(bcOfferable('B', MIN_CHRONO_READINGS_FOR_BC), true);
+  assert.equal(bcOfferable('C', 30), false);
 });

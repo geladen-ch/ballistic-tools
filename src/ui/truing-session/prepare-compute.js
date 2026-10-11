@@ -6,7 +6,7 @@ import {
   rangeAtMach, grade, planPosterior, requiredFarDistance, invalidityFloor, SUPERSONIC_MACH, PLAN_NEAR_BAND_M
 } from '../../engine/truing-session.js';
 import {
-  planningPriors, planningNoise, sessionParams, wholePlan, roundBudgetAdvice, roundBudgetOrDefault, backdropMarginFrom,
+  bcOfferable, planningPriors, planningNoise, sessionParams, wholePlan, roundBudgetAdvice, roundBudgetOrDefault, backdropMarginFrom,
   DEFAULT_NEAR_SHOTS, DEFAULT_FAR_SHOTS
 } from './session-model.js';
 
@@ -121,7 +121,11 @@ function gradingData({ state, homework, availableDistances, usable, ceiling, rou
 
   return {
     excluded, roundBudget,
-    current: { ranges: current.ranges, shots: current.shots, targets: current.targets, dragSd: current.dragSd, zeroDragCorr: current.zeroDragCorr },
+    current: {
+      ranges: current.ranges, shots: current.shots, targets: current.targets, dragSd: current.dragSd, zeroDragCorr: current.zeroDragCorr,
+      // every planned round chronographed when there is a chronograph, as the plan's own priors assume
+      bcOffered: bcOfferable(grade(current.dragSd).letter, homework.chronographAvailable ? current.shots.reduce((a, b) => a + b, 0) : 0)
+    },
     machRows, roundsRows, advice, rungs, farM, idealFar: idealFar != null && idealFar > farM ? idealFar : null
   };
 }

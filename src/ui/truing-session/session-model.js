@@ -22,6 +22,11 @@ import { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } from '../preset-keys.js';
 // A/B and a resolved drag scale) -- a ticked "chronograph available" box
 // with no readings behind it proves nothing.
 export const MIN_CHRONO_READINGS_FOR_BC = 5;
+// The one rule for whether a BC correction is offered, shared by Conclude (the readings captured) and Prepare (the readings planned), so
+// the plan never promises a BC the conclusion will not offer: a grade-A drag SD resting on a velocity average from another day is not one.
+export function bcOfferable(letter, chronoReadings) {
+  return chronoReadings >= MIN_CHRONO_READINGS_FOR_BC && (letter === 'A' || letter === 'B');
+}
 // From this many chronograph readings taken during the session (the velocity measured in the very air and cartridge temperature of the dope
 // being fitted), the session's own measurement replaces the homework's checked average as the muzzle velocity's prior: the average was measured
 // on another occasion and, if the cartridge is temperature-sensitive or the lot differs, may simply be wrong, while the readings carry their own
@@ -588,7 +593,7 @@ export function analyseSession({ state, observations, priors, params, rechecked 
       continue;
     }
     if (k === 'dragPct') {
-      if (chronoN >= MIN_CHRONO_READINGS_FOR_BC && (g.letter === 'A' || g.letter === 'B')) {
+      if (bcOfferable(g.letter, chronoN)) {
         bcWritable = true;
         findings.push({ case: 3, grade: g.letter, ...base });
       } else {

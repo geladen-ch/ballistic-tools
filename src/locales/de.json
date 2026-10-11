@@ -1052,6 +1052,8 @@
       "gradeLine": "Bester Plan: {{ranges}} (Schüsse {{shots}}) → Streuung Luftwiderstands-Faktor {{sd}} → Note {{letter}}.",
       "gradeA": "Note A: eine echte BC-Korrektur.",
       "gradeB": "Note B: eine BC-Korrektur mit breitem Band.",
+      "gradeANoBc": "Note A beim Luftwiderstand, aber ohne Chronograph korrigiert diese Sitzung nur Ihre Haltepunkte und den Nullpunkt: Eine BC-Korrektur wird nicht angeboten.",
+      "gradeBNoBc": "Note B beim Luftwiderstand, aber ohne Chronograph korrigiert diese Sitzung nur Ihre Haltepunkte und den Nullpunkt: Eine BC-Korrektur wird nicht angeboten.",
       "gradeC": "Note C: kaum mehr als der veröffentlichte BC.",
       "gradeD": "Note D: nur eine Haltepunkt-Korrektur für diese Distanzen — keine BC-Aussage.",
       "noChronoWarning": "Kein Chronograph, keine BC-Korrektur — diese Sitzung korrigiert trotzdem Ihre Haltepunkte und den Nullpunkt.",

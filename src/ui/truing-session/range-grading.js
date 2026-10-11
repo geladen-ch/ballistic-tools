@@ -65,14 +65,16 @@ export function rangeGradingPanel({ homework, data }) {
   node.appendChild(el('p', {
     text: t('truingSession.rangeGrading.gradeLine', { letter: g.letter, ranges: distList(current.ranges, ' / '), shots: current.shots.join(' / '), sd: pct(current.dragSd) })
   }));
-  node.appendChild(el('p', { class: 'hint', text: t(`truingSession.rangeGrading.grade${g.letter}`) }));
+  // An A or B the conclusion will not turn into a BC correction (too few chronograph readings) says so in place of the BC promise.
+  const noBc = (g.letter === 'A' || g.letter === 'B') && !current.bcOffered;
+  node.appendChild(el('p', { class: noBc ? 'hint warning' : 'hint', text: t(`truingSession.rangeGrading.grade${g.letter}${noBc ? 'NoBc' : ''}`) }));
   // Every distance's rounds are shot as strings of at most three, rotated between the distances once each has been shot once.
   node.appendChild(el('p', { i18n: 'truingSession.rangeGrading.stringsHeading' }));
   node.appendChild(el('ul', {}, current.ranges.map((r, i) => el('li', {
     text: t('truingSession.rangeGrading.stringsLine', { range: dist(r), strings: splitIntoStrings(current.shots[i]).join(' + ') })
   }))));
   node.appendChild(el('p', { class: 'hint', text: t('truingSession.rangeGrading.zeroDragOverlap', { corr: current.zeroDragCorr.toFixed(2) }) }));
-  if (!homework.chronographAvailable) node.appendChild(el('p', { class: 'hint warning', i18n: 'truingSession.rangeGrading.noChronoWarning' }));
+  if (!homework.chronographAvailable && !noBc) node.appendChild(el('p', { class: 'hint warning', i18n: 'truingSession.rangeGrading.noChronoWarning' }));
 
   // The comparative-distance table: what the far target buys at a few Mach points, same near group.
   const table = el('table', { class: 'truing-session-table' });

@@ -1052,6 +1052,8 @@
       "gradeLine": "Meilleur plan : {{ranges}} (tirs {{shots}}) → écart-type du facteur de traînée {{sd}} → note {{letter}}.",
       "gradeA": "Note A : une vraie correction de BC.",
       "gradeB": "Note B : une correction de BC avec une marge large.",
+      "gradeANoBc": "Note A sur la traînée, mais sans chronographe cette séance ne corrige que vos hausses et votre zéro : aucune correction de BC n'est proposée.",
+      "gradeBNoBc": "Note B sur la traînée, mais sans chronographe cette séance ne corrige que vos hausses et votre zéro : aucune correction de BC n'est proposée.",
       "gradeC": "Note C : à peine plus que le BC publié.",
       "gradeD": "Note D : une correction de hausse pour ces distances seulement — aucune conclusion sur le BC.",
       "noChronoWarning": "Pas de chronographe, pas de correction de BC — cette séance corrigera quand même vos hausses et votre zéro.",

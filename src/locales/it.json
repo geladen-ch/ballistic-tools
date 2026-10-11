@@ -1052,6 +1052,8 @@
       "gradeLine": "Piano migliore: {{ranges}} (colpi {{shots}}) → deviazione standard del fattore di resistenza {{sd}} → voto {{letter}}.",
       "gradeA": "Voto A: una vera correzione del BC.",
       "gradeB": "Voto B: una correzione del BC con una banda ampia.",
+      "gradeANoBc": "Voto A sulla resistenza, ma senza cronografo questa sessione corregge solo i vostri alzi e lo zero: nessuna correzione del BC viene proposta.",
+      "gradeBNoBc": "Voto B sulla resistenza, ma senza cronografo questa sessione corregge solo i vostri alzi e lo zero: nessuna correzione del BC viene proposta.",
       "gradeC": "Voto C: poco più del BC pubblicato.",
       "gradeD": "Voto D: solo una correzione di alzo per queste distanze — nessuna conclusione sul BC.",
       "noChronoWarning": "Nessun cronografo, nessuna correzione del BC — questa sessione correggerà comunque i vostri alzi e lo zero.",
