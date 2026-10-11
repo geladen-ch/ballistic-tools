@@ -1173,6 +1173,8 @@
       "missedImpactCount": "Colpi non localizzati sul parapalle in questa sessione: {{n}}",
       "saveButton": "Salva sulla cartuccia",
       "implausibleWarning": "Questo risultato è molto al di fuori di ciò che un normale errore di misura del BC o della velocità alla volata produrrebbe — verificate BC e modello di resistenza aerodinamica della cartuccia prima di fidarvene.",
+      "implausibleFittedBc": "Il BC che corrisponde a questa sessione: {{model}} {{bc}} (fattore di guadagno BC {{factor}}, resistenza {{drag}}) — a titolo informativo, non salvato.",
+      "implausibleFittedCd": "La resistenza che corrisponde a questa sessione: fattore di guadagno BC {{factor}} (resistenza {{drag}}) — a titolo informativo, non salvata.",
       "planFarNotReached": "Il bersaglio lontano previsto ({{planned}}) non è stato raggiunto — la distanza più lontana tirata è {{farthest}}, e tutto ciò che segue è valutato su quanto effettivamente tirato.",
       "pMaterial": "Probabilità che conti alla vostra distanza più lunga: {{p}}",
       "case1NothingMaterial": "Niente di rilevante — la sessione convalida la vostra configurazione attuale. È un risultato vero.",

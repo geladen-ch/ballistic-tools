@@ -10,7 +10,7 @@ import {
   losUColumn, losUFromDeg, losDegFromU, SIGMA_LOS_INCLINED_U, SIGMA_DRAG_PCT, SIGMA_DRAG_PUBLISHED_PCT, SIGMA_DRAG_BARREL_PCT,
   BASE_PARAMS, predictiveComeUpSd, missMetres, nextLadderRange,
   retreatAfterMissedImpact, DEFAULT_PRIORS_UNCHECKED, DEFAULT_LADDER_MAX_JUMP_FACTOR, BEYOND_CAP_CONFIDENCE_Z,
-  ladderStartCheck, registerMissedImpact, registerRecordedGroup, planWholeSession, DEFAULT_PRIORS_CHECKED_NO_CHRONO, planCost, planObjectiveScales2, PLAN_COST_CAP, MATERIALITY_MRAD
+  ladderStartCheck, registerMissedImpact, registerRecordedGroup, MAX_MISSES_PER_DISTANCE, planWholeSession, DEFAULT_PRIORS_CHECKED_NO_CHRONO, planCost, planObjectiveScales2, PLAN_COST_CAP, MATERIALITY_MRAD
 } from '../src/engine/truing-session.js';
 
 // The reference .308 configuration these golden values are computed against.
@@ -878,15 +878,40 @@ test('a missed impact retreats, and after the next group the failed distance is 
   // it lands: nothing more to retry
   const landed = JSON.parse(JSON.stringify(session)); registerRecordedGroup(landed, 700, { retry: true });
   assert.deepEqual(landed.retryRanges, []); assert.equal(landed.farthestValidatedM, 700);
-  // it misses again: banned for good, whatever lands after
-  registerMissedImpact(session, 700, avail);
-  assert.deepEqual(session.missedRanges, [700]); assert.deepEqual(session.retryRanges, []);
+  // it misses again: with untried ground left below it (500 m), it stays in play -- a retreat there, then another try
+  assert.equal(session.farthestValidatedM, 300);
+  assert.equal(registerMissedImpact(session, 700, avail), 500);
+  assert.deepEqual(session.missesAt, { 700: 2 });
+  registerRecordedGroup(session, 500, { retry: true });
+  assert.deepEqual(session.missedRanges, [], 'a group has landed nearer: the twice-missed distance is released again');
+  assert.deepEqual(session.retryRanges, [700]);
+  // and again: nothing untried is left between 500 and 700, so now it is out for good, whatever lands after
+  assert.equal(registerMissedImpact(session, 700, avail), null);
   registerRecordedGroup(session, 300, { retry: true });
-  assert.deepEqual(session.missedRanges, [700], 'a second miss at the same distance is not released again');
+  assert.deepEqual(session.missedRanges, [700], 'with no ground left to learn from, a missed-again distance is not released');
   // with retry off (the default) the first miss is permanent too
   const s2 = { groups: [], missedImpactCount: 0, missedRanges: [], triedRanges: [], farthestValidatedM: 100, confidenceZ: 2, retreatTo: null };
   registerMissedImpact(s2, 700, avail); registerRecordedGroup(s2, 300);
   assert.deepEqual(s2.missedRanges, [700]);
+});
+
+test('a missed-again distance stays in play while there is ground below it, up to MAX_MISSES_PER_DISTANCE misses there', () => {
+  assert.equal(MAX_MISSES_PER_DISTANCE, 5);
+  const avail = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+  const session = { groups: [], missedImpactCount: 0, missedRanges: [], triedRanges: [], farthestValidatedM: null, confidenceZ: 2, retreatTo: null };
+  registerRecordedGroup(session, 100);
+  const attempts = [];
+  for (let k = 0; k < 10; k++) {
+    const retreat = registerMissedImpact(session, 1000, avail);
+    attempts.push(retreat);
+    if (retreat == null) break;
+    registerRecordedGroup(session, retreat, { retry: true });
+    if (!session.retryRanges.includes(1000)) break;
+  }
+  assert.equal(session.missesAt[1000], 5, 'given up at the fifth miss, with untried ground still left');
+  assert.ok(session.triedRanges.length < avail.length);
+  registerRecordedGroup(session, 100, { retry: true });
+  assert.ok(session.missedRanges.includes(1000), 'and not released again');
 });
 
 // ---- The whole-session planner ----

@@ -1173,6 +1173,8 @@
       "missedImpactCount": "Tirs non localisés sur le pare-balles durant cette séance : {{n}}",
       "saveButton": "Enregistrer sur la cartouche",
       "implausibleWarning": "Ce résultat est très en dehors de ce qu'une erreur de mesure de BC ou de vitesse initiale produirait normalement — vérifiez le BC et le modèle de traînée de la cartouche avant de lui faire confiance.",
+      "implausibleFittedBc": "Le BC qui correspond à cette session : {{model}} {{bc}} (facteur de gain BC {{factor}}, traînée {{drag}}) — pour information, non enregistré.",
+      "implausibleFittedCd": "La traînée qui correspond à cette session : facteur de gain BC {{factor}} (traînée {{drag}}) — pour information, non enregistrée.",
       "planFarNotReached": "La cible lointaine prévue ({{planned}}) n'a pas été atteinte — la plus longue distance tirée est {{farthest}}, et tout ce qui suit est évalué sur ce qui a réellement été tiré.",
       "pMaterial": "Probabilité que cela compte à votre plus longue distance : {{p}}",
       "case1NothingMaterial": "Rien de significatif — la séance valide votre configuration actuelle. C'est un vrai résultat.",

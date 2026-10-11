@@ -1173,6 +1173,8 @@
       "missedImpactCount": "Schüsse, die in dieser Sitzung im Kugelfang nicht gefunden wurden: {{n}}",
       "saveButton": "In der Patrone speichern",
       "implausibleWarning": "Dieses Ergebnis liegt weit außerhalb dessen, was ein normaler BC- oder Mündungsgeschwindigkeits-Messfehler erzeugen würde — prüfen Sie BC und Luftwiderstandsmodell der Patrone, bevor Sie es übernehmen.",
+      "implausibleFittedBc": "Der BC, der zu dieser Sitzung passt: {{model}} {{bc}} (BC-Verstärkungsfaktor {{factor}}, Luftwiderstand {{drag}}) — zur Information, nicht gespeichert.",
+      "implausibleFittedCd": "Der Luftwiderstand, der zu dieser Sitzung passt: BC-Verstärkungsfaktor {{factor}} (Luftwiderstand {{drag}}) — zur Information, nicht gespeichert.",
       "planFarNotReached": "Das geplante Fernziel ({{planned}}) wurde nicht erreicht — die weiteste beschossene Distanz ist {{farthest}}; alles Folgende ist nach dem bewertet, was tatsächlich geschossen wurde.",
       "pMaterial": "Wahrscheinlichkeit, dass es auf Ihrer weitesten Distanz ins Gewicht fällt: {{p}}",
       "case1NothingMaterial": "Nichts Wesentliches gefunden — die Sitzung bestätigt Ihre aktuelle Einstellung. Das ist ein echtes Ergebnis.",

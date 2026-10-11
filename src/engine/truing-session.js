@@ -978,8 +978,15 @@ export function snapRetreat({ lastSeenRangeM, failedRangeM, availableRanges, tri
 // A missed impact is counted, never reshot at once, the ladder's confidence is tightened, and the ladder retreats to real
 // ground between the last validated range and this one (`snapRetreat`), or to nothing when there is none. Nothing at or
 // beyond a missed range is proposed while it stays in `missedRanges`.
+// A distance that misses again after its retry stays in play as long as there is untried ground to retreat to below it, up to
+// MAX_MISSES_PER_DISTANCE misses there: every group that lands nearer shows the fit more of what is wrong, and the retry
+// after it dials that. Simulated with a BC 25 % too high on a 2 m backdrop, giving the far target up after its second miss
+// lost it in 92 sessions of 100 (the result, shrunk to two-thirds of the truth, was then offered for saving); keeping it in play
+// reached it in every session, with at most three misses.
+export const MAX_MISSES_PER_DISTANCE = 5;
 export function registerMissedImpact(session, rangeM, availableRanges) {
   session.missedImpactCount = (session.missedImpactCount || 0) + 1;
+  session.missesAt = { ...(session.missesAt || {}), [rangeM]: ((session.missesAt || {})[rangeM] || 0) + 1 };
   session.retryRanges = (session.retryRanges || []).filter((r) => r !== rangeM);
   session.missedRanges = [...(session.missedRanges || []), rangeM];
   if (!session.triedRanges.includes(rangeM)) session.triedRanges.push(rangeM);
@@ -988,15 +995,20 @@ export function registerMissedImpact(session, rangeM, availableRanges) {
     ? snapRetreat({ lastSeenRangeM: session.farthestValidatedM, failedRangeM: rangeM, availableRanges, triedRanges: session.triedRanges })
     : null;
   session.retreatTo = retreat;
+  const retried = session.retriedMisses || [];
+  if (retreat != null && retried.includes(rangeM) && session.missesAt[rangeM] < MAX_MISSES_PER_DISTANCE) {
+    session.retriedMisses = retried.filter((r) => r !== rangeM);
+  }
   return retreat;
 }
 
 // A group has landed at `rangeM`. It becomes the farthest validated range if it is, and clears any retreat. With `retry`
 // (off by default), every distance that missed once is now released for one more try: the miss was with the number dialed
-// before the fit had seen this group, and the fit has now been corrected. A distance that misses a second time stays
-// banned for the session. It only helps when the shooter dials the fit's own elevation for the retry; dialing the app's own
-// dope again gives the same miss (measured: no session that missed recovered without it, 82% did with it), so the live
-// panel keeps it off until the next-shot elevation from the fit is shown.
+// before the fit had seen this group, and the fit has now been corrected. A distance that misses again stays banned for the
+// session, unless registerMissedImpact kept it in play (untried ground below it, fewer than MAX_MISSES_PER_DISTANCE misses).
+// It only helps when the shooter dials the fit's own elevation for the retry; dialing the app's own dope again gives the same
+// miss (measured: no session that missed recovered without it, 82% did with it), which is why the Shoot screen shows the fit's
+// elevation for every string.
 export function registerRecordedGroup(session, rangeM, { retry = false } = {}) {
   if (!session.triedRanges.includes(rangeM)) session.triedRanges.push(rangeM);
   session.farthestValidatedM = session.farthestValidatedM == null ? rangeM : Math.max(session.farthestValidatedM, rangeM);

@@ -24,8 +24,9 @@ import {
   REPEAT_GROUP_SHOTS, roundsLeft, nextStringShots, splitIntoStrings, rotationNext, shotNoise, stringSigma, readShots, windSigmaFor
 } from './session-model.js';
 
-// After a missed impact and a group nearer, the failed distance gets one more try -- but only if the shooter dials the
-// fit's own elevation for it (shown on this screen); with the app's own dope the same number misses again.
+// After a missed impact and a group nearer, the failed distance gets another try (and keeps getting one while there is untried
+// ground below it to learn from, see registerMissedImpact) -- but only if the shooter dials the fit's own elevation for it
+// (shown on this screen); with the app's own dope the same number misses again.
 const RETRY_MISSED_DISTANCE = true;
 const STRING_MODES = ['average', 'shots'];
 

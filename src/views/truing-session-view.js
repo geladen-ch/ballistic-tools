@@ -31,7 +31,7 @@ import { conditionsCard, conditionsSummary } from '../ui/truing-session/conditio
 import { dist, angle, missExample } from '../ui/truing-session/units.js';
 import {
   sessionTargets, sessionParams, reportedCauses, livePriors, effectiveMvSd, buildObservations, wholePlan,
-  homeworkCheckAxes, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked, withPlanKeys,
+  homeworkCheckAxes, workingRangeMax, chronoCount, farTargetCheckPrompt, homeworkTicked, withPlanKeys, bcCorrectionOffer,
   DEFAULT_ROUND_BUDGET
 } from '../ui/truing-session/session-model.js';
 
@@ -381,9 +381,10 @@ export function mount(container) {
       return buildObservations({ state, session, targets: tgs, rangeDeclaredFlat, mvSD: mv.mvSD, mvSdSampleSize: mv.mvSdSampleSize });
     };
     // The analysis runs in the planning worker (it enumerates many hypotheses, more with every ticked homework item it checks):
-    // resolves with analyseSession's result.
-    const analyse = (obs) => {
-      const priors = livePriors(hw, session);
+    // resolves with analyseSession's result. `widen`: the drag prior as a missed impact has widened it (Shoot: the ladder and the
+    // dope), or as it was (Conclude); see livePriors.
+    const analyse = (obs, { widen = true } = {}) => {
+      const priors = livePriors(hw, session, { state, widen });
       return requestAnalysis({
         // the distances are taken as possibly mis-ranged (10 %) even once the shooter has confirmed them: simulated, the lower
         // 'rechecked' prior (2 %) was too confident even when true, and cost wrong BC corrections whenever mis-ranging was commoner
@@ -391,10 +392,10 @@ export function mount(container) {
         rMax: workingRangeMax({ state, targets: tgs, session }), clickMrad, chronoN: chronoCount(session),
         targets: tgs, plan, triedRanges: session.triedRanges, missedRanges: session.missedRanges, warm: liveWarm,
         extraAxes: homeworkCheckAxes(hw, priors), causes: reportedCauses(hw)
-      }).then((result) => { liveWarm = result.warm; return result; });
+      }).then((result) => { if (widen) liveWarm = result.warm; return result; });
     };
     const persistSession = () => setPersisted({ shootSession: session });
-    return { hw, session, tgs, params, get priors() { return livePriors(hw, session); }, rangeDeclaredFlat, clickMrad, plan, mvStatus, observations, analyse, persistSession };
+    return { hw, session, tgs, params, get priors() { return livePriors(hw, session, { state }); }, rangeDeclaredFlat, clickMrad, plan, mvStatus, observations, analyse, persistSession };
   }
 
   // Record the re-check, and keep a registered target's corrected distance or angle for this session.
@@ -456,18 +457,28 @@ export function mount(container) {
     const ticket = ++concludeTicket;
     const waiting = el('p', { class: 'hint', i18n: 'truingSession.prepare.calculating' });
     phaseContainer.appendChild(waiting);
-    ctx.analyse(ctx.observations()).then((analysis) => {
+    const observations = ctx.observations();
+    // Conclude fits on the usual drag prior. When that finds the drag scale implausible after a miss that widened the prior,
+    // the information line under the warning comes from a second fit on the widened prior: the usual one holds a grossly wrong
+    // BC back towards the published figure, and the number shown is there to help find the right one.
+    const widenedDrag = (analysis) => {
+      const f = analysis.findings.find((x) => x.case === 3);
+      if (!f || !bcCorrectionOffer({ state, dragPct: f.value }).implausible) return Promise.resolve(null);
+      if (!(livePriors(ctx.hw, ctx.session, { state }).dragPct > livePriors(ctx.hw, ctx.session, { state, widen: false }).dragPct)) return Promise.resolve(null);
+      return ctx.analyse(observations, { widen: true }).then((wide) => wide.theta.dragPct, () => null);
+    };
+    ctx.analyse(observations, { widen: false }).then((analysis) => widenedDrag(analysis).then((infoDragPct) => ({ analysis, infoDragPct }))).then(({ analysis, infoDragPct }) => {
       if (disposed || ticket !== concludeTicket || phase !== 'conclude') return;
       if (waiting.parentNode) waiting.parentNode.removeChild(waiting);
-      drawConclusion(state, ctx, analysis);
+      drawConclusion(state, ctx, analysis, infoDragPct);
     }, () => {
       if (disposed || ticket !== concludeTicket) return;
       waiting.textContent = t('truingSession.prepare.calculationFailed');
     });
   }
-  function drawConclusion(state, ctx, analysis) {
+  function drawConclusion(state, ctx, analysis, infoDragPct = null) {
     const panel = conclusionPanel({
-      analysis, state, clickMrad: ctx.clickMrad, session: ctx.session, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
+      analysis, state, infoDragPct, clickMrad: ctx.clickMrad, session: ctx.session, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
       rMax: workingRangeMax({ state, targets: ctx.tgs, session: ctx.session }),
       conditionsText: conditionsSummary(sessionConditionValues()), homeworkTicked: homeworkTicked(ctx.hw), mvSD: ctx.mvStatus().mvSD,
       cartridgeName: cartridge.name, bcDecision: getPersisted('bcDecision', null),

@@ -1173,6 +1173,8 @@
       "missedImpactCount": "Shots that couldn't be located on the backdrop this session: {{n}}",
       "saveButton": "Save this to the cartridge",
       "implausibleWarning": "This result is far outside anything a BC or MV measurement error would normally produce — check the cartridge's BC value and drag model before trusting it.",
+      "implausibleFittedBc": "The BC that fits this session: {{model}} {{bc}} (BC gain factor {{factor}}, drag {{drag}}) — for information, not saved.",
+      "implausibleFittedCd": "The drag that fits this session: BC gain factor {{factor}} (drag {{drag}}) — for information, not saved.",
       "planFarNotReached": "The planned far target ({{planned}}) was not reached — the farthest distance shot is {{farthest}}, and everything below is graded on what was actually shot.",
       "pMaterial": "Probability this matters at your longest distance: {{p}}",
       "case1NothingMaterial": "Nothing material found — the session validates your current setup. That is a real result.",

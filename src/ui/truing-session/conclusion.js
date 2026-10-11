@@ -178,8 +178,18 @@ function bcOffer(f, ctx, pLine) {
     el('p', { text: t('truingSession.conclusion.case3Resolved', { size: sizeText(f, ctx.clickMrad), grade: f.grade }) }),
     pLine(f.pMaterial)
   ];
-  if (!offer.inHardBounds) {
+  if (offer.implausible) {
     children.push(el('p', { class: 'hint warning', i18n: 'truingSession.conclusion.implausibleWarning' }));
+    // what the session fitted, for information only: never offered for saving (from the fit on the widened drag prior when a
+    // miss widened it, see renderConclude)
+    const info = ctx.infoDragPct != null ? bcCorrectionOffer({ state: ctx.state, dragPct: ctx.infoDragPct }) : offer;
+    const drag = `${info.dragChangePct >= 0 ? '+' : ''}${info.dragChangePct.toFixed(1)}%`;
+    children.push(el('p', {
+      class: 'hint',
+      text: info.isCdTable
+        ? t('truingSession.conclusion.implausibleFittedCd', { factor: info.newFactor.toFixed(3), drag })
+        : t('truingSession.conclusion.implausibleFittedBc', { model: info.dragModel, bc: info.newEffectiveBc.toFixed(4), factor: info.newFactor.toFixed(3), drag })
+    }));
     return children;
   }
   children.push(el('p', {

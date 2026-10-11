@@ -814,6 +814,53 @@ test('Conclude reminds that the stated uncertainties assume the ticked homework 
   assert.ok(container.textContent.includes(t('truingSession.conclusion.homeworkAssumed', { items: t('truingSession.homework.tick.zeroVerified') }).slice(0, 40)));
 });
 
+test('Conclude fits on the usual drag prior; an implausible result after a widening miss takes its information line from the widened fit', async () => {
+  setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 500, losAngleDeg: 0 }, { name: 'C', rangeM: 870, losAngleDeg: 0 }]);
+  await settle();
+  saveTruingSessionState({
+    phase: 'conclude', homeworkState: { chronographAvailable: true, backdropHeightM: 4 },
+    sessionConditions: { tempC: 15, pressureHpa: 1013.25, humidityPct: 50, windSpeed: 0, windAngle: 90, altitudeM: 0 },
+    shootSession: {
+      groups: [{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05 }, { rangeM: 870, observedComeUp: 12.5, shots: 8, sigmaMrad: 0.05 }],
+      chronoVelocities: [792, 793, 791, 792, 792, 793], missedImpactCount: 1, missesAt: { 870: 1 }, missedRanges: [], retryRanges: [], retriedMisses: [870],
+      triedRanges: [100, 500, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
+    }
+  });
+  // a scripted worker: the first (usual-prior) fit finds a drag scale of +30 %, the second (widened) one +33 %
+  const { SIGMA_DRAG_PCT } = await import('../src/engine/truing-session.js');
+  const requests = [];
+  const finding = (value) => ({ case: 3, grade: 'A', param: 'dragPct', pMaterial: 1, value, size: 1.4, resolution: 0.9 });
+  const result = (value) => ({ plannedFarReached: true, planFar: 870, farthestShot: 870, notMaterial: [], notDetermined: [], nothingMaterial: false, homeworkDoubt: {},
+    findings: [finding(value)], theta: { dragPct: value }, warm: null });
+  setPlannerTransport((type, request) => {
+    if (type !== 'truingAnalyse') return runInProcess(type, request);
+    requests.push(request);
+    return Promise.resolve(result(request.priors.dragPct === SIGMA_DRAG_PCT ? 30 : 33));
+  });
+  try {
+    const container = makeElement('main');
+    truingSessionView.mount(container);
+    await settle(200);
+    const usual = requests.filter((r) => r.priors.dragPct === SIGMA_DRAG_PCT).length;
+    const widened = requests.filter((r) => r.priors.dragPct > 2 * SIGMA_DRAG_PCT).length;
+    assert.ok(usual >= 1 && widened === usual && usual + widened === requests.length, `each conclusion: one fit on the usual prior, one on the widened (${usual}/${widened}/${requests.length})`);
+    const text = container.textContent;
+    assert.ok(text.includes(t('truingSession.conclusion.implausibleWarning')), 'the result is implausible');
+    assert.ok(text.includes(`${(1 / 1.33).toFixed(3)}, drag +33.0%`), 'the information line is the widened fit\'s');
+    assert.ok(!text.includes(', drag +30.0%'), 'not the usual-prior fit\'s');
+    // with no miss there is nothing widened, and no second fit
+    const { loadTruingSessionState } = await import('../src/truing-session-state.js');
+    const session = JSON.parse(JSON.stringify(loadTruingSessionState().shootSession));
+    saveTruingSessionState({ shootSession: { ...session, missedImpactCount: 0, missesAt: {}, retriedMisses: [] } });
+    requests.length = 0;
+    truingSessionView.mount(makeElement('main'));
+    await settle(200);
+    assert.ok(requests.length >= 1 && requests.every((r) => r.priors.dragPct === SIGMA_DRAG_PCT), 'only the usual prior');
+  } finally {
+    setPlannerTransport(runInProcess);
+  }
+});
+
 test('the Conclude screen adds the click-value warning only when the click value was ticked as done', async () => {
   const conclude = async (homeworkState) => {
     setUpArsenalAndLocation([{ name: 'A', rangeM: 100, losAngleDeg: 0 }, { name: 'B', rangeM: 870, losAngleDeg: 0 }]);
@@ -1727,6 +1774,27 @@ test('Conclude says which ticked item the shots do not bear out, and only above 
   assert.ok(draw({ zeroMrad: 0.93, v0Ms: 0.1 }).includes(zeroNote));
   assert.ok(!draw({ zeroMrad: 0.93, v0Ms: 0.1 }).includes(t('truingSession.homework.tick.mvAverageChecked') + ' tick'), 'the velocity, borne out, is not named');
   assert.ok(!draw({ zeroMrad: 0.3 }).includes(t('truingSession.conclusion.homeworkDoubt', { item: t('truingSession.homework.tick.zeroVerified'), p: '30%' })));
+});
+
+test('an implausible drag result is shown with the BC it fits, for information, and never offered for saving', async () => {
+  const { conclusionPanel } = await import('../src/ui/truing-session/conclusion.js');
+  const state = { dragModel: 'G7', bc: 0.2623, bcGainFactor: 1 };
+  const draw = (value) => conclusionPanel({
+    analysis: { plannedFarReached: true, planFar: 800, farthestShot: 800, notMaterial: [], notDetermined: [], nothingMaterial: false, homeworkDoubt: {},
+      findings: [{ case: 3, grade: 'A', param: 'dragPct', pMaterial: 1, value, size: 1.4, resolution: 0.9 }] },
+    state, clickMrad: 0.1, session: { groups: [{}], missedImpactCount: 0 }, rangeDeclaredFlat: true, rMax: 800,
+    cartridgeName: 'X', bcDecision: null, homeworkTicked: [], mvSD: 4, conditionsText: '', onNewSession() {}, onSaveBc() {}
+  }).node;
+  const saveOffered = (node) => findByTag(node, 'BUTTON').some((b) => b.textContent === t('truingSession.conclusion.saveButton'));
+  // 15 % is within the gain factor's 0.8-1.2, but more than three prior SDs out
+  const far = draw(15);
+  assert.ok(far.textContent.includes(t('truingSession.conclusion.implausibleWarning')));
+  const factor = 1 / 1.15;
+  assert.ok(far.textContent.includes(t('truingSession.conclusion.implausibleFittedBc', { model: 'G7', bc: (0.2623 * factor).toFixed(4), factor: factor.toFixed(3), drag: '+15.0%' })), 'the fitted BC, for information');
+  assert.ok(!saveOffered(far), 'not offered for saving');
+  const near = draw(5);
+  assert.ok(!near.textContent.includes(t('truingSession.conclusion.implausibleWarning')));
+  assert.ok(saveOffered(near), 'a plausible correction is offered as before');
 });
 
 test('the Shoot screen keeps the last analysis on screen, marked as updating, until the one for the newest group arrives', async () => {

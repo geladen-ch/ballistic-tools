@@ -8,9 +8,9 @@ const {
   sessionPriors, planningPriors, sessionParams, reportedCauses, mvSdSampleSizeFrom, effectiveMvSd, buildObservations,
   sessionTargets, groupTargetKey, analyseSession, bcCorrectionOffer, MIN_CHRONO_READINGS_FOR_BC,
   farTargetCheckPrompt, ZERO_FINDING_MIN_P, DIAL_TABLE_MIN_MRAD, DIAL_TABLE_MIN_SD_MULTIPLE, nextShotFromAnalysis,
-  roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN, windStrengthOf, roundBudgetOrDefault, DEFAULT_ROUND_BUDGET, livePriors, MIN_CHRONO_READINGS_TRUSTED
+  roundBudgetAdvice, wholePlan, stationPressureCheck, pickGroupConditions, conditionsChangedALot, ladderStallReason, recommendedMvShots, homeworkTicked, BUDGET_ADVICE_GRID, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN, windStrengthOf, roundBudgetOrDefault, DEFAULT_ROUND_BUDGET, livePriors, MIN_CHRONO_READINGS_TRUSTED, missWidenedDragSigma, TOTALLY_IMPLAUSIBLE_DRAG_PCT, IMPLAUSIBLE_DRAG_SIGMAS
 } = await import('../src/ui/truing-session/session-model.js');
-const { v0MsCheckedSigma, comeUpMrad, sigmaForGroup, predictedComeUp, withConditions, BASE_PARAMS } = await import('../src/engine/truing-session.js');
+const { v0MsCheckedSigma, comeUpMrad, sigmaForGroup, predictedComeUp, withConditions, BASE_PARAMS, SIGMA_DRAG_PCT, planningColumns } = await import('../src/engine/truing-session.js');
 const { resolveMuzzleVelocity } = await import('../src/engine/trajectory.js');
 const { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } = await import('../src/ui/precision-preset-field.js');
 
@@ -237,6 +237,36 @@ test('a cause the session did not determine is listed as not determined, never a
   assert.ok(result.notDetermined.includes('trackPct'), `notDetermined: ${result.notDetermined}`);
   assert.ok(!result.notMaterial.includes('trackPct'));
   for (const k of result.notMaterial) assert.ok(!result.notDetermined.includes(k));
+});
+
+test('a missed impact widens the drag prior by what a drag error alone would need to leave the backdrop there', () => {
+  const sigma = (session, backdropMarginM = 1) => missWidenedDragSigma({ state: REF_STATE, session, backdropMarginM });
+  const perPct = (r) => Math.abs(planningColumns(REF_STATE, r).dragPct);
+  assert.equal(sigma({ missesAt: { 300: 1 } }), SIGMA_DRAG_PCT, 'a near miss says nothing about the BC');
+  const needed800 = (1 / 800 * 1000) / perPct(800);
+  assert.ok(needed800 > 15 && needed800 < 30, `needed at 800 m on a 2 m backdrop: ${needed800}`);
+  closeTo(sigma({ missesAt: { 800: 1 } }), needed800 / 2, 1e-9, 'two standard deviations from the needed error');
+  assert.equal(sigma({ missesAt: { 600: 1 } }, 2), SIGMA_DRAG_PCT, 'beyond TOTALLY_IMPLAUSIBLE_DRAG_PCT: no widening');
+  assert.ok((2 / 600 * 1000) / perPct(600) > TOTALLY_IMPLAUSIBLE_DRAG_PCT);
+  closeTo(sigma({ missedRanges: [800] }), needed800 / 2, 1e-9, 'a session saved before missesAt: its missed distances');
+  closeTo(sigma({ missesAt: { 300: 1, 800: 2 } }), needed800 / 2, 1e-9, 'the widest of the misses');
+  // livePriors: the widened prior for Shoot, the usual one when asked (Conclude) or when no state is given
+  const hw = { zeroVerified: true, backdropHeightM: 2 };
+  const session = { chronoVelocities: [], missedImpactCount: 1, missesAt: { 800: 1 } };
+  closeTo(livePriors(hw, session, { state: REF_STATE }).dragPct, needed800 / 2, 1e-9, 'widened');
+  assert.equal(livePriors(hw, session, { state: REF_STATE, widen: false }).dragPct, SIGMA_DRAG_PCT);
+  assert.equal(livePriors(hw, session).dragPct, SIGMA_DRAG_PCT);
+  assert.equal(livePriors(hw, { ...session, missedImpactCount: 0, missesAt: {} }, { state: REF_STATE }).dragPct, SIGMA_DRAG_PCT);
+});
+
+test('a drag result beyond three prior SDs, or a factor outside 0.8-1.2, is implausible: never offered for saving', () => {
+  const limit = IMPLAUSIBLE_DRAG_SIGMAS * SIGMA_DRAG_PCT;
+  assert.ok(limit > 12 && limit < 12.5);
+  assert.equal(bcCorrectionOffer({ state: REF_STATE, dragPct: 11 }).implausible, false);
+  const far = bcCorrectionOffer({ state: REF_STATE, dragPct: 15 });
+  assert.ok(far.inHardBounds && far.implausible, 'within the factor bounds, but far beyond what the prior allows');
+  assert.equal(bcCorrectionOffer({ state: REF_STATE, dragPct: -15 }).implausible, true);
+  assert.equal(bcCorrectionOffer({ state: REF_STATE, dragPct: 33 }).inHardBounds, false);
 });
 
 test('bcCorrectionOffer compounds and shows the effective BC, or the Cd-table scaling', () => {

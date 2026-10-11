@@ -9,7 +9,7 @@ import {
   chronoObservation, rangeCheckObservation, applyAngleCheck, applyFlatRangeDeclaration,
   jointBlunderCheck, resolutionMatrix, sensitivityColumns, applyParameters, predictedComeUp,
   comeUpMrad, correlationOf, degenerateGroups, grade, sampleSD, sdDeviatesSignificantly, withConditions, nextShotDope,
-  planWholeSession, predictiveComeUpSd, DEFAULT_LADDER_MAX_JUMP_FACTOR, MAX_STRING_SHOTS,
+  planWholeSession, predictiveComeUpSd, planningColumns, DEFAULT_LADDER_MAX_JUMP_FACTOR, MAX_STRING_SHOTS,
   sigmaForGroup, perShotSigmaMrad, observationSigmaMrad, windErrorMrad, windSigmaMsFor, WIND_DIRECTION_SIGMA_DEG
 } from '../../engine/truing-session.js';
 import { erf } from '../../engine/target-shapes.js';
@@ -255,8 +255,33 @@ export function sessionPriors(homework, { chronoReadings = 0, minReadings = MIN_
 }
 
 // The priors for the fit of a running session: the checked-average prior gives way once the session's own chronograph readings suffice.
-export function livePriors(homework, session, minReadings = MIN_CHRONO_READINGS_TRUSTED) {
-  return sessionPriors(homework, { chronoReadings: chronoCount(session), minReadings });
+// A missed impact can widen the drag scale's prior, sized by what the miss says. The round left the backdrop, so the dope was
+// off by more than half its height there; a drag error alone does that only if it is at least the half-height over the
+// distance, divided by the come-up change of a 1 % drag change at that distance (on a 2 m backdrop, for a .308 at 792 m/s:
+// 22 % at 800 m, 38 % at 700 m, 68 % at 600 m, 815 % at 300 m). The prior is widened until that error is two standard
+// deviations away, and not at all when it would take more than TOTALLY_IMPLAUSIBLE_DRAG_PCT: no BC is that wrong, so such a
+// miss was something else (a gust, a dial, an impact simply not seen), and widening would only cost precision. (The linear
+// estimate is enough: solving the trajectory for the exact value changed no simulated outcome.) Kept at its usual width, the
+// prior holds a fit with a grossly wrong BC back towards the published figure, and the retry misses again by nearly as much.
+// The widened prior drives the ladder and the dope; Conclude fits on the usual one (see `widen`), since a miss that was only
+// an impact not seen would otherwise cost the result a grade in sessions without a chronograph, and the 3-sigma rule
+// (bcCorrectionOffer) already catches a grossly wrong BC there.
+export const TOTALLY_IMPLAUSIBLE_DRAG_PCT = 50;
+export function missWidenedDragSigma({ state, session, backdropMarginM, baseSigma = SIGMA_DRAG_PCT }) {
+  const missed = new Set([...Object.keys((session && session.missesAt) || {}).map(Number), ...((session && session.missedRanges) || [])]);
+  let sigma = baseSigma;
+  for (const rangeM of missed) {
+    const perPct = Math.abs(planningColumns(state, rangeM).dragPct);
+    if (!(perPct > 0)) continue;
+    const neededPct = (backdropMarginM / rangeM * 1000) / perPct;
+    if (neededPct <= TOTALLY_IMPLAUSIBLE_DRAG_PCT) sigma = Math.max(sigma, neededPct / 2);
+  }
+  return sigma;
+}
+export function livePriors(homework, session, { state = null, widen = true, minReadings = MIN_CHRONO_READINGS_TRUSTED } = {}) {
+  const priors = sessionPriors(homework, { chronoReadings: chronoCount(session), minReadings });
+  if (!widen || !state || !session || !(session.missedImpactCount > 0)) return priors;
+  return { ...priors, dragPct: missWidenedDragSigma({ state, session, backdropMarginM: backdropMarginFrom(homework), baseSigma: priors.dragPct }) };
 }
 
 // Planning priors (Prepare, before any shot exists): the fit priors with
@@ -654,14 +679,19 @@ export function analyseSession({ state, observations, priors, params, rechecked 
 // The resolved-drag-correction numbers: the compounded gain factor, and
 // what it means for this bullet -- an effective BC for a BC-profile
 // bullet, a percentage of Cd-table drag otherwise.
+// A drag scale this many prior SDs from the BC in use is taken as an input error (a wrong BC or drag model), not a correction:
+// the prior holds a fit that far out back towards the published BC, so the number is too small and its band too narrow (with
+// a BC 25 % off it was offered for saving at two-thirds of the truth). It is shown for information, never offered for saving.
+export const IMPLAUSIBLE_DRAG_SIGMAS = 3;
 export function bcCorrectionOffer({ state, dragPct }) {
   const oldFactor = state.bcGainFactor ?? 1;
   const newFactor = oldFactor / (1 + dragPct / 100);
   const inHardBounds = newFactor >= 0.8 && newFactor <= 1.2;
+  const implausible = !inHardBounds || Math.abs(dragPct) > IMPLAUSIBLE_DRAG_SIGMAS * SIGMA_DRAG_PCT;
   const inTypicalBand = newFactor >= 0.9 && newFactor <= 1.1;
   const isCdTable = !!state.cdTable;
   return {
-    oldFactor, newFactor, inHardBounds, inTypicalBand, isCdTable,
+    oldFactor, newFactor, inHardBounds, implausible, inTypicalBand, isCdTable,
     dragModel: state.dragModel,
     oldEffectiveBc: isCdTable ? null : state.bc * oldFactor,
     newEffectiveBc: isCdTable ? null : state.bc * newFactor,
