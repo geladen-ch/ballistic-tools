@@ -44,9 +44,9 @@ A few DOPE entries at a few distances look as if they should be enough to fit ev
 A chronograph is the most valuable thing you can bring. A velocity error and a drag error bend the trajectory in nearly the same way, so the shots alone cannot tell them apart. The chronograph measures the velocity directly, in the day's air and at the day's powder temperature, and this leaves the drag as the only large unknown.
 
 - **With a chronograph** that reports every shot as you fire (a Doppler radar or a muzzle-mounted unit), a session on a range reaching about 800 m measures a .308's drag to ±1.5–2 % with 20–30 rounds. That is grade A, and the tool offers to save the result to your cartridge. A BC correction needs at least five chronograph readings recorded during the session.
-- **Without a chronograph** the tool never offers a BC correction. The drag figure would then depend entirely on the velocity average you measured on another day, and nothing in the session can check that average. At 800 m, a 1 m/s error in it shifts the drag result by about 0.5 %. The Prepare page may still grade such a plan A; §8.7 explains why that grade is not enough for a BC. If you haven't checked the average either, the session ends at grade C whatever the round count, which is barely better than the published BC. In both cases you still get corrected come-ups for the distances you shot and a zero check. They hold only for those distances and similar air.
+- **Without a chronograph** the tool never offers a BC correction. The drag figure would then depend entirely on the velocity average you measured on another day, and nothing in the session can check that average. At 800 m, a 1 m/s error in it shifts the drag result by about 0.5 %. The Prepare page may still grade such a plan A; §8.8 explains why that grade is not enough for a BC. If you haven't checked the average either, the session ends at grade C whatever the round count, which is barely better than the published BC. In both cases you still get corrected come-ups for the distances you shot and a zero check. They hold only for those distances and similar air.
 
-Without a chronograph, a session is **much** less useful. If you can borrow one, do. The range matters almost as much: on a range that ends at 600 m, even a chronograph and full homework do not get a .308 past grade B (see §8.7).
+Without a chronograph, a session is **much** less useful. If you can borrow one, do. The range matters almost as much: on a range that ends at 600 m, even a chronograph and full homework do not get a .308 past grade B (see §8.8).
 
 ### 2.3 The grades
 
@@ -222,9 +222,9 @@ where $c_\text{app}$ is the app's own trajectory solution (the same integrator e
 | $\delta v$ | `v0Ms` | muzzle velocity error, m/s | added to $v_0$ inside the physics |
 | $\delta d$ | `dragPct` | drag scale, % | divides the BC gain factor $G$ inside the physics |
 | $\tau$ | `trackPct` | click value error, % | proportional to the come-up |
-| $\Delta R_t$ | `rangeErrM_t` | target $t$'s range error, m | per target, only in the blunder check (§8.9) |
+| $\Delta R_t$ | `rangeErrM_t` | target $t$'s range error, m | per target, only in the blunder check (§8.10) |
 | $u_t$ | `losU_t` | target $t$'s unrecorded slope, $u = 1-\cos\alpha$ | per target, only in the blunder check |
-| $\varepsilon$ | | the string's noise | Gaussian, $\sigma$ from §8.4 |
+| $\varepsilon$ | | the string's noise | Gaussian, $\sigma$ from §8.5 |
 
 $\delta d > 0$ means more drag than the BC in use predicts. Saving the result multiplies the cartridge's gain factor by $1/(1+\delta d/100)$, so a second truing compounds onto the first. The drag scale goes through the gain factor and not through `bc` itself, because 247 of the 385 bullets in the library are Cd-Mach tables and have no `bc` to scale.
 
@@ -275,11 +275,57 @@ Every input you supply also lands on these four causes. Expressed as the drag ch
 | temperature +3 °C | −0.9 % | −0.9 % | −0.9 % |
 | pressure +10 hPa | 1.0 % | 1.0 % | 1.0 % |
 
-The last two rows are flat for a reason. Drag force is proportional to air density, so an error of 1 % in the density is *exactly* an error of 1 % in the drag at every distance (apart from a small effect through the speed of sound). The session cannot detect a wrong temperature or pressure at all, and passes it straight into the BC. This is why the tool insists on station pressure and warns about QNH (§8.12), and why the Conclude page reminds you that the BC correction assumes the air you entered.
+The last two rows are flat for a reason. Drag force is proportional to air density, so an error of 1 % in the density is *exactly* an error of 1 % in the drag at every distance (apart from a small effect through the speed of sound). The session cannot detect a wrong temperature or pressure at all, and passes it straight into the BC. This is why the tool insists on station pressure and warns about QNH (§8.13), and why the Conclude page reminds you that the BC correction assumes the air you entered.
 
 The range row explains §3.5. At 800 m, 20 m of range error is 7 % of drag, more than the whole prior. Only a second target close by could notice it, and even then not reliably.
 
-### 8.3 Priors
+### 8.3 Two goals: prediction and attribution
+
+A session serves two goals, and the engine treats them differently.
+
+**Prediction**: the come-up at a given distance in given air. Its uncertainty is the predictive variance $J(R)^\top\Sigma J(R)$, which depends only on the combination of causes that column $J(R)$ sees.
+
+**Attribution**: how large each cause is. Its uncertainty is the marginal variance $\Sigma_{ii}$, and its separation from the others is the posterior correlation.
+
+When two causes are nearly collinear (§8.2), the posterior is a long, thin ellipse. The combination the shots see is tight; the combination they cannot see is about as wide as the prior. Inside the distances shot, $J(R)$ lies almost across the long axis, so prediction is good even when attribution is poor. Outside them, $J(R)$ turns towards the long axis and the prediction degrades. A plan to 600 m with 20 rounds on the reference .308:
+
+| | drag SD | velocity SD | come-up SD at 300 m | 600 m | 800 m | 1000 m |
+|---|---|---|---|---|---|---|
+| before the session (prior only) | 4.1 % | 20 m/s | 0.27 | 0.42 | 0.63 | 0.99 |
+| no homework, no chronograph | 3.85 % | 10.0 m/s | 0.06 | 0.07 | 0.16 | 0.33 |
+| no homework, chronograph | 3.20 % | 1.3 m/s | 0.06 | 0.06 | 0.15 | 0.32 |
+| full homework, chronograph | 2.91 % | 1.3 m/s | 0.05 | 0.06 | 0.14 | 0.31 |
+
+(come-up SDs in mrad)
+
+Without a chronograph, the session improves the come-up at 600 m six-fold and the drag scale hardly at all. The chronograph barely changes the predicted come-ups at the distances shot, but it cuts the velocity uncertainty almost eight-fold. Prediction is what the shots give almost for free; attribution is what the session has to be designed for.
+
+The two goals can also give contradictory answers that look identical in the data. A velocity 10 m/s below the recorded one, absorbed into a 6.4 % BC change, matches 600 m exactly. It is then 0.11 mrad off at 800 m, 0.16 mrad at 800 m on a −10 °C day, and 0.35 mrad at 1000 m. The fit residuals do not show it, because at 600 m the wrong attribution and the right one predict the same come-up.
+
+**What the engine does for prediction.** The dial value before every string and the come-up table at Conclude are predictions, each with its predictive SD (§8.14). The ladder's safety gate is a prediction at the next distance (§8.12). None of them needs the causes separated.
+
+**What the engine does for attribution.** Most of the machinery in this section exists for this goal:
+
+- *The plan scores attribution, not prediction.* The objective (§8.9) sums marginal variances $\Sigma_{ii}$, each measured after the other causes are accounted for, so a design that leaves two causes confused scores badly on both. A planner aiming at prediction would minimise $J(R)^\top\Sigma J(R)$ at the distances you shoot and would put its rounds there.
+- *Geometry chosen to separate.* One round near the zero range, where only the zero's column is non-zero. The far target as close to Mach 1.1 as the location allows, where the drag column differs most from the velocity column. A plan must reach beyond 300 m when the location allows it, so that it cannot score well by shooting only where everything is easy.
+- *Direct measurements for the collinear causes.* The chronograph observes $\delta v$ directly (§8.6), so the velocity–drag pair no longer has to be told apart by shape. A tall-target test does the same for the click value, which is almost exactly collinear with velocity (cosine −0.99993).
+- *Causes are fitted even when they are not reported.* A tested click value stays in the fit at its 0.15 % prior. Leaving it out would let any leftover tracking error be attributed to the drag (§8.4).
+- *Field mistakes get their own explanations.* A mis-ranged or sloped target is a competing hypothesis per target (§8.10), so that it cannot be attributed to the drag. Targets are decided jointly, so a shared cause is not attributed to one target. The angle measurement breaks the exact range–slope degeneracy.
+- *Doubtful homework widens the result.* A ticked zero or velocity average that the shots contradict widens the result (§8.11) instead of pushing the discrepancy into another cause.
+- *Inseparable causes are reported together.* Causes with posterior correlation above 0.8 are reported as one combined contribution, never as separate single-cause findings (§8.14).
+- *Prior shrinkage is not a measurement.* A cause whose resolution is below 0.2 is "not determined", never "checks out" (§8.14). A small fitted value means little when the prior put it there.
+- *A velocity finding needs readings.* Without chronograph readings, a fitted velocity is only another cause's error moved into the velocity, and it is reported as not determined.
+- *The BC is written only when attribution succeeded.* That means at least five chronograph readings, grade A or B, a result within 3σ of the prior, and a gain factor within 0.8–1.2 (§8.13). Prepare and Conclude share this rule, so a plan never promises a BC the conclusion would refuse.
+- *What no shot can attribute is guarded at the input.* Air density is exactly collinear with the drag (§8.2), so a wrong pressure or temperature cannot be separated afterwards. The QNH check and the "conditions assumed" note exist for that reason.
+
+**Where the two goals pull apart inside the engine.**
+
+- *The rounds go where the columns differ, not where you will shoot.* The come-ups at intermediate distances end up good anyway, because prediction inside the envelope is cheap.
+- *The miss-widened drag prior serves the ladder and the dial values, not Conclude* (§8.12). A prior widened after a miss predicts the retry better, but used for attribution it would let a single unseen impact lower the grade.
+- *The come-up table is offered only when no BC correction is.* When attribution succeeds, the corrected cartridge predicts every distance and the table adds nothing. When it fails, the table is the part of the result that still holds, and only at the distances shot.
+- *Findings are judged at $R_\text{max}$.* Attribution is reported in terms of its consequence for prediction at your longest working distance (§8.14), so a real but irrelevant cause is listed as not material rather than as a finding.
+
+### 8.4 Priors
 
 The fit is Bayesian: each cause starts from a zero-mean normal prior, and the shots narrow it.
 
@@ -296,7 +342,7 @@ The fit is Bayesian: each cause starts from a zero-mean normal prior, and the sh
 
 **Click value.** A tested click value is still fitted at its 0.15 % prior, but it is not reported. Leaving it out of the fit would put any residual tracking error into the drag: in a whole-session Monte Carlo, the drag's 95 % band then missed about a third of a percentage point more often. With it fitted, the band missed 5.0 % of the time.
 
-### 8.4 Noise
+### 8.5 Noise
 
 One round's vertical $\sigma$ has three independent parts:
 
@@ -320,13 +366,13 @@ $$\hat\sigma_v^2 = \frac{(N_0-1)\,\text{SD}_0^2 + (n-1)\,s^2}{N_0+n-2}$$
 
 $N_0$ is the stated shot count, or 5 when none is given. The pooled figure counts as $N_0+n-1$ shots. Each reading is first compared with the cartridge's velocity in its own group's air, and the mean offset is removed, so a weather change or a wrong average does not count as spread. Strings already recorded are re-weighted with every new figure. With more than ten readings, a two-sided F-test at 5 % ($s^2/\text{SD}_0^2$ against $F_{n-1,\,N_0-1}$) decides whether today's spread really differs. If it does, the tool says so and offers to update the cartridge. The F-test only drives that notice. The pooling runs regardless and changes nothing when the recorded SD is right.
 
-### 8.5 The chronograph
+### 8.6 The chronograph
 
 Each group's readings form one observation of $\delta v$ directly. The residual is (mean reading − the cartridge's velocity in that group's air), and its $\sigma$ is $t_{0.975,N-1}/z\cdot\hat\sigma_v/\sqrt n$, the same form as the velocity prior. A reading the unit missed is simply one fewer reading.
 
 From the first reading on, the session's own readings replace the checked average as the velocity's information. The average was measured on another occasion and may be wrong for a temperature-sensitive powder or another lot. The readings carry their own uncertainty, which is wide for one or two readings. Thresholds of one to five readings were compared, with the chronograph missing most shots. One reading left the least error whenever the checked average was wrong, and cost at most a thousandth of a mrad when it was right. The same evidence is never counted twice, as a tighter prior and as an observation at once.
 
-### 8.6 The fit
+### 8.7 The fit
 
 The estimate is the maximum a posteriori (MAP) point of
 
@@ -340,7 +386,7 @@ The residual of a chronograph or range re-check row is re-linearised like any ot
 
 The drag column is a centred difference over ±1 %. The come-up curves in the drag scale, so a one-sided +5 % step would read a slope 2.7 % steeper than the local one at 800 m, and the fit would claim the drag more tightly than it knows it: in a whole-session Monte Carlo its 95 % band missed 5.7 % of the time with the one-sided step, against 5.2 % with the centred one.
 
-### 8.7 What a session can resolve
+### 8.8 What a session can resolve
 
 Planner results for the reference .308 (R50 0.25 mrad, velocity SD 6 m/s, moderate wind). The numbers are the drag scale's posterior SD, with the grade:
 
@@ -359,13 +405,13 @@ What the table shows:
 
 - **Without a chronograph or a checked average, nothing works.** With a 20 m/s velocity prior, the velocity–drag correlation stays at 0.7–0.9, and 40 rounds do no better than 12. The drag barely moves from its 4.1 % prior.
 - **Distance beats rounds.** With full homework and a chronograph, 40 rounds to 600 m give 2.5 %. Twelve rounds to 800 m give 1.93 %. For this .308 at 600 m, the drag column is still too similar to the velocity column.
-- **The "average checked, no chronograph" row is grade A on paper**, and the tool still offers no BC correction for it. The plan takes the average at its stated uncertainty, but that average comes from another day. A wrong temperature drift, another lot or a tired chronograph shifts it, and at 800 m every 1 m/s goes straight into the drag as 0.5 %. Nothing in the session can see such a shift. The chronograph's five readings are the only evidence measured in the same air and at the same powder temperature as the shots.
+- **The "average checked, no chronograph" row is grade A on paper**, and the tool still offers no BC correction for it. The plan takes the average at its stated uncertainty, but that average comes from another day. A wrong temperature drift, another lot or a tired chronograph shifts it, and at 800 m every 1 m/s goes straight into the drag as 0.5 %. Nothing in the session can see such a shift. The chronograph's five readings are the only evidence measured in the same air and at the same powder temperature as the shots, and so the only evidence that attributes the come-up to velocity rather than drag in today's conditions.
 
 Two more Prepare-screen figures come from the same posterior. The **required far distance** is the nearest far target at which a near and a far group reach a given drag SD. The **invalidity floor** is the far distance below which even a reading as good as one click (σ = 0.1/√12 mrad), with any number of rounds, cannot get the drag under 4 %. Below that floor no plan escapes grade D, and the screen says so.
 
-### 8.8 The planner
+### 8.9 The planner
 
-For a design (a set of distances and the rounds at each), the posterior is that of the linearised model at the BC in use:
+The plan is designed for attribution (§8.3): it scores each cause's own variance, not the predicted come-up. For a design (a set of distances and the rounds at each), the posterior is that of the linearised model at the BC in use:
 
 $$\Sigma^{-1} = P_0 + \sum_g \frac{J_g J_g^\top}{\sigma_g^2}$$
 
@@ -385,7 +431,7 @@ Ladder steps get one round each: they are safety checks, not measurements, and t
 
 The planning wind and the planned chronograph readings enter exactly as they will in the fit, so a Prepare forecast and the final result agree on what each item is worth.
 
-### 8.9 Mis-ranged and sloped targets
+### 8.10 Mis-ranged and sloped targets
 
 A range error and a missed slope are the two field mistakes the shots can least tell from a wrong drag. Each target therefore gets one three-way choice, compared by evidence:
 
@@ -423,11 +469,11 @@ Exact joint enumeration grows exponentially with the number of targets $k$ (up t
 
 A target is flagged, and a re-check requested, once its "something is wrong" weight passes 20 %. In simulation, a 50 % threshold almost never fired. At 20 % it fires about once in ten sessions and improves both the dial values and the drag estimate. A re-range takes seconds.
 
-### 8.10 Checking the homework ticks
+### 8.11 Checking the homework ticks
 
-A ticked zero or velocity average is not taken purely on trust. Each becomes a two-way choice in the same enumeration: the verified prior at weight 0.9, the unverified prior (0.25 mrad, 20 m/s) at 0.1. If the shots contradict a tick, the merged result widens instead of forcing the discrepancy into another cause. The Conclude page names a tick once its "did not hold" weight passes 50 %. The velocity tick drops out as soon as the session's own chronograph takes over (§8.5). The click value is not checked this way. The shots say almost nothing about it (§8.2), and every extra axis doubles the computation.
+A ticked zero or velocity average is not taken purely on trust. Each becomes a two-way choice in the same enumeration: the verified prior at weight 0.9, the unverified prior (0.25 mrad, 20 m/s) at 0.1. If the shots contradict a tick, the merged result widens instead of forcing the discrepancy into another cause. The Conclude page names a tick once its "did not hold" weight passes 50 %. The velocity tick drops out as soon as the session's own chronograph takes over (§8.6). The click value is not checked this way. The shots say almost nothing about it (§8.2), and every extra axis doubles the computation.
 
-### 8.11 The ladder and missed impacts
+### 8.12 The ladder and missed impacts
 
 Each step must pass two gates.
 
@@ -450,9 +496,9 @@ A miss also says how large the drag error must at least be. The round left the b
 
 $$|\delta d| \ge \frac{h/2}{R}\Big/\frac{\partial c}{\partial d}$$
 
-On a 2 m backdrop for the .308 that is 22 % at 800 m, 38 % at 700 m, 68 % at 600 m and 815 % at 300 m. The drag prior used by the ladder and the dial values is widened until that size is two standard deviations away. A gross BC error is then followed instead of being pulled back to the published figure, which would make the retry miss again by nearly as much. If the required error exceeds 50 %, no BC is that wrong: the miss was something else (a gust, a dialing error, an impact simply not seen), and widening would only cost precision. The linear estimate is enough here; solving the trajectory exactly changed no simulated outcome. The Conclude fit uses the normal prior. Otherwise a miss that was only an unseen impact would cost a session without a chronograph a grade, and §8.12's 3σ rule catches a gross BC error anyway.
+On a 2 m backdrop for the .308 that is 22 % at 800 m, 38 % at 700 m, 68 % at 600 m and 815 % at 300 m. The drag prior used by the ladder and the dial values is widened until that size is two standard deviations away. A gross BC error is then followed instead of being pulled back to the published figure, which would make the retry miss again by nearly as much. If the required error exceeds 50 %, no BC is that wrong: the miss was something else (a gust, a dialing error, an impact simply not seen), and widening would only cost precision. The linear estimate is enough here; solving the trajectory exactly changed no simulated outcome. The Conclude fit uses the normal prior. Otherwise a miss that was only an unseen impact would cost a session without a chronograph a grade, and §8.13's 3σ rule catches a gross BC error anyway.
 
-### 8.12 Input guardrails
+### 8.13 Input guardrails
 
 None of these blocks you. Each one warns, explains, or holds back a result.
 
@@ -464,7 +510,7 @@ None of these blocks you. Each one warns, explains, or holds back a result.
 - **Velocity finding.** Reported as a measured correction only with chronograph readings behind it. Without them, a velocity derived from come-ups is just another cause's error moved into the velocity, and is listed as not determined.
 - **Planned far target not reached.** The Conclude page says so and grades only what was shot.
 
-### 8.13 What gets reported
+### 8.14 What gets reported
 
 $R_\text{max}$ is your longest working distance: the farthest supersonic distance at the location, or the farthest distance shot if that is greater. Every finding is judged at $R_\text{max}$.
 
@@ -474,7 +520,7 @@ $$P(\text{material}) = \Phi\!\left(\frac{-0.1-m}{s}\right) + 1 - \Phi\!\left(\fr
 
 Findings are ranked by this probability.
 
-**Resolution.** $\tilde R = I - \Sigma P_0$, scaled by the prior SDs. Its diagonal is $1 - \Sigma_{ii}/\sigma_{0,i}^2$, the share of the prior variance the shots removed. Below 0.2 the session did not measure that cause. It is then "not determined", or listed as unresolved if its fitted effect is still likely material, but never "checks out", because a value pulled back to its prior is not a measurement.
+**Resolution.** $\tilde R = I - \Sigma P_0$, scaled by the prior SDs. Its diagonal is $1 - \Sigma_{ii}/\sigma_{0,i}^2$, the share of the prior variance the shots removed. Below 0.2 the session did not measure that cause. It is then "not determined", or listed as unresolved if its fitted effect is still likely material, but never "checks out", because a value pulled back to its prior is not a measurement. This is the attribution counterpart of the dial table's predictive SD: a cause can be unresolved while the come-up it contributes to is tightly known.
 
 **Degeneracy.** Causes linked by a posterior correlation above 0.8 are grouped as connected components, so links can chain. Each group is reported as one combined contribution $m=\sum_{k} J_k\theta_k$ with variance $J^\top\Sigma J$ over its members. When the group is velocity and drag, the advice is to bring a chronograph. Correlations between 0.5 and 0.8 between reported causes get a note.
 
@@ -484,7 +530,7 @@ Findings are ranked by this probability.
 
 The zero and dial-table thresholds were chosen by sweeping candidate rules over thousands of simulated sessions. Together they roughly halve the sessions in which acting on the result leaves the come-ups worse than doing nothing, at a small cost when the zero really is slightly off.
 
-### 8.14 What the model leaves out
+### 8.15 What the model leaves out
 
 - **The drag curve's shape.** $\delta d$ scales the assumed drag curve and never reshapes it. A G1 BC used for a bullet whose drag follows G7 is a shape error. Above Mach 1.1 a single scale absorbs most of it over the distances shot, but not all, and it does not extrapolate into the transonic. This is the main reason the tool stays supersonic, and why the ladder's cap exists.
 - **Sight height** is not fitted. Past a few hundred metres its effect is almost constant (−0.020, −0.025 and −0.026 mrad at 300, 600 and 800 m for 3 mm), so it looks like a small zero offset, and the shots cannot tell the two apart. Measure it.

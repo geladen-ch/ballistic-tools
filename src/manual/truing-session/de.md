@@ -44,9 +44,9 @@ Ein paar DOPE-Einträge auf ein paar Distanzen sehen aus, als müssten sie genü
 Ein Chronograph ist das Wertvollste, was Sie mitbringen können. Ein Geschwindigkeitsfehler und ein Luftwiderstandsfehler krümmen die Flugbahn fast gleich, deshalb können die Schüsse allein sie nicht unterscheiden. Der Chronograph misst die Geschwindigkeit direkt, in der Luft des Tages und bei der Pulvertemperatur des Tages, und damit bleibt der Luftwiderstand als einzige große Unbekannte übrig.
 
 - **Mit einem Chronographen**, der jeden Schuss sofort meldet (ein Doppler-Radar oder ein Mündungsgerät), misst eine Sitzung auf einem Gelände bis etwa 800 m den Luftwiderstand einer .308 mit 20–30 Schuss auf ±1,5–2 %. Das ist Note A, und das Werkzeug bietet an, das Ergebnis in Ihrer Patrone zu speichern. Eine BC-Korrektur braucht mindestens fünf Chronographen-Messwerte aus der Sitzung.
-- **Ohne Chronograph** bietet das Werkzeug nie eine BC-Korrektur an. Der Luftwiderstand hinge dann ganz vom Geschwindigkeitsmittelwert ab, den Sie an einem anderen Tag gemessen haben, und nichts in der Sitzung kann diesen Mittelwert prüfen. Auf 800 m verschiebt ein Fehler von 1 m/s darin das Ergebnis für den Luftwiderstand um etwa 0,5 %. Die Seite „Vorbereiten“ kann einen solchen Plan trotzdem mit A bewerten; §8.7 erklärt, warum diese Note für einen BC nicht genügt. Haben Sie auch den Mittelwert nicht geprüft, endet die Sitzung unabhängig von der Schusszahl bei Note C, kaum besser als der veröffentlichte BC. In beiden Fällen erhalten Sie trotzdem korrigierte Höhenkorrekturen für die geschossenen Distanzen und eine Nullpunktkontrolle. Sie gelten nur für diese Distanzen und ähnliche Luft.
+- **Ohne Chronograph** bietet das Werkzeug nie eine BC-Korrektur an. Der Luftwiderstand hinge dann ganz vom Geschwindigkeitsmittelwert ab, den Sie an einem anderen Tag gemessen haben, und nichts in der Sitzung kann diesen Mittelwert prüfen. Auf 800 m verschiebt ein Fehler von 1 m/s darin das Ergebnis für den Luftwiderstand um etwa 0,5 %. Die Seite „Vorbereiten“ kann einen solchen Plan trotzdem mit A bewerten; §8.8 erklärt, warum diese Note für einen BC nicht genügt. Haben Sie auch den Mittelwert nicht geprüft, endet die Sitzung unabhängig von der Schusszahl bei Note C, kaum besser als der veröffentlichte BC. In beiden Fällen erhalten Sie trotzdem korrigierte Höhenkorrekturen für die geschossenen Distanzen und eine Nullpunktkontrolle. Sie gelten nur für diese Distanzen und ähnliche Luft.
 
-Ohne Chronograph ist eine Sitzung **viel** weniger nützlich. Wenn Sie sich einen leihen können, tun Sie es. Das Gelände zählt fast genauso viel: Auf einem Gelände, das bei 600 m endet, kommt eine .308 selbst mit Chronograph und vollständiger Vorbereitung nicht über Note B hinaus (siehe §8.7).
+Ohne Chronograph ist eine Sitzung **viel** weniger nützlich. Wenn Sie sich einen leihen können, tun Sie es. Das Gelände zählt fast genauso viel: Auf einem Gelände, das bei 600 m endet, kommt eine .308 selbst mit Chronograph und vollständiger Vorbereitung nicht über Note B hinaus (siehe §8.8).
 
 ### 2.3 Die Noten
 
@@ -222,9 +222,9 @@ wobei $c_\text{app}$ die eigene Flugbahnlösung der App ist (derselbe Integrator
 | $\delta v$ | `v0Ms` | Fehler der Mündungsgeschwindigkeit, m/s | in der Physik zu $v_0$ addiert |
 | $\delta d$ | `dragPct` | Luftwiderstands-Faktor, % | teilt in der Physik den BC-Verstärkungsfaktor $G$ |
 | $\tau$ | `trackPct` | Fehler des Klick-Werts, % | proportional zur Höhenkorrektur |
-| $\Delta R_t$ | `rangeErrM_t` | Distanzfehler von Ziel $t$, m | pro Ziel, nur in der Fehlerprüfung (§8.9) |
+| $\Delta R_t$ | `rangeErrM_t` | Distanzfehler von Ziel $t$, m | pro Ziel, nur in der Fehlerprüfung (§8.10) |
 | $u_t$ | `losU_t` | nicht erfasste Neigung von Ziel $t$, $u = 1-\cos\alpha$ | pro Ziel, nur in der Fehlerprüfung |
-| $\varepsilon$ | | Rauschen der Serie | normalverteilt, $\sigma$ aus §8.4 |
+| $\varepsilon$ | | Rauschen der Serie | normalverteilt, $\sigma$ aus §8.5 |
 
 $\delta d > 0$ bedeutet mehr Luftwiderstand, als der verwendete BC vorhersagt. Beim Speichern wird der Verstärkungsfaktor der Patrone mit $1/(1+\delta d/100)$ multipliziert, sodass ein zweites Einschießen auf dem ersten aufbaut. Der Luftwiderstands-Faktor wirkt über den Verstärkungsfaktor und nicht über `bc` selbst, weil 247 der 385 Geschosse in der Bibliothek Cd-Mach-Tabellen sind und kein `bc` zum Skalieren haben.
 
@@ -275,11 +275,57 @@ Auch jede Eingabe, die Sie liefern, landet in diesen vier Ursachen. Ausgedrückt
 | Temperatur +3 °C | −0,9 % | −0,9 % | −0,9 % |
 | Druck +10 hPa | 1,0 % | 1,0 % | 1,0 % |
 
-Die letzten beiden Zeilen sind nicht zufällig konstant. Die Widerstandskraft ist proportional zur Luftdichte, deshalb ist ein Fehler von 1 % in der Dichte *genau* ein Fehler von 1 % im Luftwiderstand, auf jeder Distanz (bis auf eine kleine Wirkung über die Schallgeschwindigkeit). Die Sitzung kann eine falsche Temperatur oder einen falschen Druck überhaupt nicht erkennen und gibt sie direkt an den BC weiter. Deshalb besteht das Werkzeug auf dem Stationsdruck und warnt vor QNH (§8.12), und deshalb erinnert die Seite „Abschluss“ daran, dass die BC-Korrektur die eingegebene Luft voraussetzt.
+Die letzten beiden Zeilen sind nicht zufällig konstant. Die Widerstandskraft ist proportional zur Luftdichte, deshalb ist ein Fehler von 1 % in der Dichte *genau* ein Fehler von 1 % im Luftwiderstand, auf jeder Distanz (bis auf eine kleine Wirkung über die Schallgeschwindigkeit). Die Sitzung kann eine falsche Temperatur oder einen falschen Druck überhaupt nicht erkennen und gibt sie direkt an den BC weiter. Deshalb besteht das Werkzeug auf dem Stationsdruck und warnt vor QNH (§8.13), und deshalb erinnert die Seite „Abschluss“ daran, dass die BC-Korrektur die eingegebene Luft voraussetzt.
 
 Die Zeile zur Distanz erklärt §3.5. Auf 800 m entsprechen 20 m Distanzfehler 7 % Luftwiderstand, mehr als die ganze Vorannahme. Nur ein zweites Ziel in der Nähe könnte das bemerken, und selbst dann nicht zuverlässig.
 
-### 8.3 Vorannahmen (Priors)
+### 8.3 Zwei Ziele: Vorhersage und Zuordnung
+
+Eine Sitzung dient zwei Zielen, und die Rechenmaschine behandelt sie unterschiedlich.
+
+**Vorhersage**: die Höhenkorrektur auf einer bestimmten Distanz in bestimmter Luft. Ihre Unsicherheit ist die Vorhersage-Varianz $J(R)^\top\Sigma J(R)$, die nur von der Kombination der Ursachen abhängt, die die Spalte $J(R)$ sieht.
+
+**Zuordnung**: wie groß jede einzelne Ursache ist. Ihre Unsicherheit ist die Randvarianz $\Sigma_{ii}$, und ihre Trennung von den anderen ist die Posterior-Korrelation.
+
+Sind zwei Ursachen fast kollinear (§8.2), ist die Posterior-Verteilung eine lange, schmale Ellipse. Die Kombination, die die Schüsse sehen, ist eng; die Kombination, die sie nicht sehen können, ist etwa so breit wie die Vorannahme. Innerhalb der geschossenen Distanzen liegt $J(R)$ fast quer zur langen Achse, deshalb ist die Vorhersage gut, auch wenn die Zuordnung schlecht ist. Außerhalb davon dreht sich $J(R)$ zur langen Achse hin, und die Vorhersage wird schlechter. Ein Plan bis 600 m mit 20 Schuss für die Referenz-.308:
+
+| | Std.-Abw. Luftwiderstand | Std.-Abw. Geschwindigkeit | Std.-Abw. Höhenkorrektur auf 300 m | 600 m | 800 m | 1000 m |
+|---|---|---|---|---|---|---|
+| vor der Sitzung (nur Vorannahme) | 4,1 % | 20 m/s | 0,27 | 0,42 | 0,63 | 0,99 |
+| keine Vorbereitung, kein Chronograph | 3,85 % | 10,0 m/s | 0,06 | 0,07 | 0,16 | 0,33 |
+| keine Vorbereitung, Chronograph | 3,20 % | 1,3 m/s | 0,06 | 0,06 | 0,15 | 0,32 |
+| vollständige Vorbereitung, Chronograph | 2,91 % | 1,3 m/s | 0,05 | 0,06 | 0,14 | 0,31 |
+
+(Standardabweichungen der Höhenkorrektur in mrad)
+
+Ohne Chronograph verbessert die Sitzung die Höhenkorrektur auf 600 m um das Sechsfache und den Luftwiderstands-Faktor kaum. Der Chronograph ändert die vorhergesagten Höhenkorrekturen auf den geschossenen Distanzen kaum, verringert aber die Unsicherheit der Geschwindigkeit fast um das Achtfache. Die Vorhersage liefern die Schüsse fast umsonst; für die Zuordnung muss die Sitzung entworfen werden.
+
+Die beiden Ziele können auch widersprüchliche Antworten geben, die in den Daten gleich aussehen. Eine Geschwindigkeit 10 m/s unter der erfassten, aufgefangen durch eine BC-Änderung von 6,4 %, trifft 600 m genau. Sie liegt dann auf 800 m um 0,11 mrad daneben, auf 800 m an einem Tag mit −10 °C um 0,16 mrad und auf 1000 m um 0,35 mrad. Die Residuen der Anpassung zeigen das nicht, weil auf 600 m die falsche Zuordnung und die richtige dieselbe Höhenkorrektur vorhersagen.
+
+**Was die Rechenmaschine für die Vorhersage tut.** Der Einstellwert vor jeder Serie und die Einstelltabelle im Abschluss sind Vorhersagen, jede mit ihrer Vorhersage-Standardabweichung (§8.14). Die Sicherheitsprüfung der Leiter ist eine Vorhersage auf der nächsten Distanz (§8.12). Keine davon braucht getrennte Ursachen.
+
+**Was die Rechenmaschine für die Zuordnung tut.** Der größte Teil der Mechanik in diesem Abschnitt dient diesem Ziel:
+
+- *Der Plan bewertet die Zuordnung, nicht die Vorhersage.* Die Zielfunktion (§8.9) summiert Randvarianzen $\Sigma_{ii}$, jede gemessen, nachdem die anderen Ursachen berücksichtigt sind, deshalb schneidet ein Entwurf, der zwei Ursachen vermischt lässt, bei beiden schlecht ab. Ein Planer, der auf Vorhersage zielt, würde $J(R)^\top\Sigma J(R)$ auf den Distanzen minimieren, auf denen Sie schießen, und seine Schüsse dorthin setzen.
+- *Eine Geometrie, die trennt.* Ein Schuss nahe der Nullpunktdistanz, wo nur die Spalte des Nullpunkts nicht null ist. Das ferne Ziel so nahe an Mach 1,1, wie der Standort es erlaubt, wo sich die Spalte des Luftwiderstands am stärksten von der der Geschwindigkeit unterscheidet. Ein Plan muss über 300 m hinausgehen, wenn der Standort es erlaubt, damit er nicht gut abschneiden kann, indem er nur dort schießt, wo alles leicht ist.
+- *Direkte Messungen für die kollinearen Ursachen.* Der Chronograph beobachtet $\delta v$ direkt (§8.6), sodass Geschwindigkeit und Luftwiderstand nicht mehr über die Form unterschieden werden müssen. Ein Tall-Target-Test leistet dasselbe für den Klick-Wert, der mit der Geschwindigkeit fast genau kollinear ist (Kosinus −0,99993).
+- *Ursachen werden angepasst, auch wenn sie nicht gemeldet werden.* Ein getesteter Klick-Wert bleibt mit seiner Vorannahme von 0,15 % in der Anpassung. Ließe man ihn weg, könnte jeder verbleibende Verstellfehler dem Luftwiderstand zugeordnet werden (§8.4).
+- *Fehler im Gelände bekommen eigene Erklärungen.* Ein falsch angemessenes oder geneigtes Ziel ist pro Ziel eine konkurrierende Hypothese (§8.10), damit es nicht dem Luftwiderstand zugeordnet werden kann. Die Ziele werden gemeinsam entschieden, damit eine gemeinsame Ursache nicht einem einzelnen Ziel zugeordnet wird. Die Winkelmessung bricht die exakte Entartung von Distanz und Neigung.
+- *Zweifelhafte Vorbereitung macht das Ergebnis breiter.* Ein abgehakter Nullpunkt oder Geschwindigkeitsmittelwert, dem die Schüsse widersprechen, macht das Ergebnis breiter (§8.11), statt die Abweichung in eine andere Ursache zu drängen.
+- *Untrennbare Ursachen werden gemeinsam gemeldet.* Ursachen mit einer Posterior-Korrelation über 0,8 werden als ein gemeinsamer Beitrag gemeldet, nie als getrennte Befunde einzelner Ursachen (§8.14).
+- *Rückzug zur Vorannahme ist keine Messung.* Eine Ursache mit einer Auflösung unter 0,2 ist „nicht bestimmt“, nie „unauffällig“ (§8.14). Ein kleiner angepasster Wert bedeutet wenig, wenn die Vorannahme ihn dorthin gesetzt hat.
+- *Ein Geschwindigkeitsbefund braucht Messwerte.* Ohne Chronographen-Messwerte ist eine angepasste Geschwindigkeit nur der Fehler einer anderen Ursache, in die Geschwindigkeit verschoben, und wird als nicht bestimmt gemeldet.
+- *Der BC wird nur geschrieben, wenn die Zuordnung gelungen ist.* Das heißt mindestens fünf Chronographen-Messwerte, Note A oder B, ein Ergebnis innerhalb von 3σ der Vorannahme und ein Verstärkungsfaktor innerhalb von 0,8–1,2 (§8.13). „Vorbereiten“ und „Abschluss“ teilen diese Regel, sodass ein Plan nie einen BC verspricht, den der Abschluss verweigern würde.
+- *Was kein Schuss zuordnen kann, wird bei der Eingabe abgesichert.* Die Luftdichte ist mit dem Luftwiderstand genau kollinear (§8.2), deshalb lässt sich ein falscher Druck oder eine falsche Temperatur im Nachhinein nicht trennen. Dafür gibt es die QNH-Prüfung und den Hinweis auf die vorausgesetzten Bedingungen.
+
+**Wo die beiden Ziele in der Rechenmaschine auseinandergehen.**
+
+- *Die Schüsse gehen dorthin, wo sich die Spalten unterscheiden, nicht dorthin, wo Sie schießen werden.* Die Höhenkorrekturen auf Zwischendistanzen werden trotzdem gut, weil die Vorhersage innerhalb des geschossenen Bereichs billig ist.
+- *Die nach einem Fehlschuss erweiterte Vorannahme für den Luftwiderstand dient der Leiter und den Einstellwerten, nicht dem Abschluss* (§8.12). Eine nach einem Fehlschuss erweiterte Vorannahme sagt den neuen Versuch besser voraus, würde aber, für die Zuordnung verwendet, einen einzigen nicht gesehenen Einschlag die Note senken lassen.
+- *Die Einstelltabelle wird nur angeboten, wenn keine BC-Korrektur angeboten wird.* Gelingt die Zuordnung, sagt die korrigierte Patrone jede Distanz voraus, und die Tabelle fügt nichts hinzu. Gelingt sie nicht, ist die Tabelle der Teil des Ergebnisses, der noch gilt, und nur auf den geschossenen Distanzen.
+- *Befunde werden auf $R_\text{max}$ beurteilt.* Die Zuordnung wird über ihre Folgen für die Vorhersage auf Ihrer längsten Einsatzdistanz gemeldet (§8.14), sodass eine echte, aber unerhebliche Ursache als nicht wesentlich geführt wird und nicht als Befund.
+
+### 8.4 Vorannahmen (Priors)
 
 Die Anpassung ist bayessch: Jede Ursache beginnt mit einer normalverteilten Vorannahme mit Mittelwert null, und die Schüsse grenzen sie ein.
 
@@ -296,7 +342,7 @@ Die Anpassung ist bayessch: Jede Ursache beginnt mit einer normalverteilten Vora
 
 **Klick-Wert.** Ein getesteter Klick-Wert wird mit seiner Vorannahme von 0,15 % trotzdem angepasst, aber nicht gemeldet. Ließe man ihn aus der Anpassung weg, landete jeder verbleibende Verstellfehler im Luftwiderstand: In einer Monte-Carlo-Simulation ganzer Sitzungen verfehlte das 95-%-Band des Luftwiderstands die Wahrheit dann um etwa ein Drittel Prozentpunkt häufiger. Mit angepasstem Klick-Wert verfehlte das Band sie in 5,0 % der Fälle.
 
-### 8.4 Rauschen
+### 8.5 Rauschen
 
 Das vertikale $\sigma$ eines Schusses hat drei unabhängige Anteile:
 
@@ -320,13 +366,13 @@ $$\hat\sigma_v^2 = \frac{(N_0-1)\,\text{SD}_0^2 + (n-1)\,s^2}{N_0+n-2}$$
 
 $N_0$ ist die angegebene Schusszahl, oder 5, wenn keine angegeben ist. Der gepoolte Wert zählt als $N_0+n-1$ Schuss. Jeder Messwert wird zuerst mit der Geschwindigkeit der Patrone in der Luft seiner Gruppe verglichen, und der mittlere Versatz wird abgezogen, sodass eine Wetteränderung oder ein falscher Mittelwert nicht als Streuung zählt. Bereits erfasste Serien werden mit jedem neuen Wert neu gewichtet. Bei mehr als zehn Messwerten entscheidet ein zweiseitiger F-Test auf 5 % ($s^2/\text{SD}_0^2$ gegen $F_{n-1,\,N_0-1}$), ob die heutige Streuung wirklich abweicht. Wenn ja, sagt das Werkzeug es und bietet an, die Patrone zu aktualisieren. Der F-Test steuert nur diesen Hinweis. Das Pooling läuft in jedem Fall und ändert nichts, wenn die erfasste Standardabweichung stimmt.
 
-### 8.5 Der Chronograph
+### 8.6 Der Chronograph
 
 Die Messwerte jeder Gruppe bilden eine direkte Beobachtung von $\delta v$. Das Residuum ist (mittlerer Messwert − Geschwindigkeit der Patrone in der Luft dieser Gruppe), und sein $\sigma$ ist $t_{0.975,N-1}/z\cdot\hat\sigma_v/\sqrt n$, dieselbe Form wie bei der Vorannahme der Geschwindigkeit. Ein Schuss, den das Gerät verpasst hat, ist einfach ein Messwert weniger.
 
 Ab dem ersten Messwert ersetzen die Messwerte der Sitzung den geprüften Mittelwert als Information über die Geschwindigkeit. Der Mittelwert wurde bei anderer Gelegenheit gemessen und kann bei einem temperaturempfindlichen Pulver oder einem anderen Los falsch sein. Die Messwerte tragen ihre eigene Unsicherheit, die bei einem oder zwei Messwerten groß ist. Schwellen von einem bis fünf Messwerten wurden verglichen, mit einem Chronographen, der die meisten Schüsse verpasste. Ein Messwert hinterließ den kleinsten Fehler, wann immer der geprüfte Mittelwert falsch war, und kostete höchstens ein Tausendstel mrad, wenn er stimmte. Dieselbe Information wird nie doppelt gezählt, als engere Vorannahme und zugleich als Beobachtung.
 
-### 8.6 Die Anpassung
+### 8.7 Die Anpassung
 
 Die Schätzung ist der Maximum-a-posteriori-Punkt (MAP) von
 
@@ -340,7 +386,7 @@ Das Residuum einer Chronographen- oder Neu-Anmessungs-Zeile wird wie jedes ander
 
 Die Spalte des Luftwiderstands ist eine zentrale Differenz über ±1 %. Die Höhenkorrektur ist im Luftwiderstands-Faktor gekrümmt, deshalb läse ein einseitiger Schritt von +5 % auf 800 m eine um 2,7 % steilere Steigung als die lokale, und die Anpassung würde den Luftwiderstand enger angeben, als sie ihn kennt: In einer Monte-Carlo-Simulation ganzer Sitzungen verfehlte ihr 95-%-Band die Wahrheit mit dem einseitigen Schritt in 5,7 % der Fälle, mit dem zentralen in 5,2 %.
 
-### 8.7 Was eine Sitzung auflösen kann
+### 8.8 Was eine Sitzung auflösen kann
 
 Ergebnisse des Planers für die Referenz-.308 (R50 0,25 mrad, Geschwindigkeitsstreuung 6 m/s, mäßiger Wind). Die Zahlen sind die Posterior-Standardabweichung des Luftwiderstands-Faktors mit der Note:
 
@@ -359,13 +405,13 @@ Was die Tabelle zeigt:
 
 - **Ohne Chronograph und ohne geprüften Mittelwert funktioniert nichts.** Mit einer Vorannahme von 20 m/s für die Geschwindigkeit bleibt die Korrelation zwischen Geschwindigkeit und Luftwiderstand bei 0,7–0,9, und 40 Schuss sind nicht besser als 12. Der Luftwiderstand bewegt sich kaum von seiner Vorannahme von 4,1 %.
 - **Distanz schlägt Schusszahl.** Mit vollständiger Vorbereitung und Chronograph ergeben 40 Schuss bis 600 m 2,5 %. Zwölf Schuss bis 800 m ergeben 1,93 %. Bei dieser .308 auf 600 m ist die Spalte des Luftwiderstands der Spalte der Geschwindigkeit noch zu ähnlich.
-- **Die Zeile „Mittelwert geprüft, ohne Chronograph“ ist auf dem Papier Note A**, und trotzdem bietet das Werkzeug dafür keine BC-Korrektur an. Der Plan nimmt den Mittelwert mit seiner angegebenen Unsicherheit, aber dieser Mittelwert stammt von einem anderen Tag. Eine falsche Temperaturdrift, ein anderes Los oder ein schwächelnder Chronograph verschieben ihn, und auf 800 m geht jeder m/s direkt als 0,5 % in den Luftwiderstand. Nichts in der Sitzung kann eine solche Verschiebung sehen. Die fünf Chronographen-Messwerte sind die einzige Information, die in derselben Luft und bei derselben Pulvertemperatur wie die Schüsse gemessen wurde.
+- **Die Zeile „Mittelwert geprüft, ohne Chronograph“ ist auf dem Papier Note A**, und trotzdem bietet das Werkzeug dafür keine BC-Korrektur an. Der Plan nimmt den Mittelwert mit seiner angegebenen Unsicherheit, aber dieser Mittelwert stammt von einem anderen Tag. Eine falsche Temperaturdrift, ein anderes Los oder ein schwächelnder Chronograph verschieben ihn, und auf 800 m geht jeder m/s direkt als 0,5 % in den Luftwiderstand. Nichts in der Sitzung kann eine solche Verschiebung sehen. Die fünf Chronographen-Messwerte sind die einzige Information, die in derselben Luft und bei derselben Pulvertemperatur wie die Schüsse gemessen wurde, und damit die einzige, die die Höhenkorrektur unter den heutigen Bedingungen der Geschwindigkeit statt dem Luftwiderstand zuordnet.
 
 Zwei weitere Zahlen der Seite „Vorbereiten“ stammen aus derselben Posterior-Verteilung. Die **erforderliche ferne Distanz** ist das nächstgelegene ferne Ziel, bei dem eine nahe und eine ferne Gruppe eine vorgegebene Standardabweichung des Luftwiderstands erreichen. Die **Unbrauchbarkeitsgrenze** ist die ferne Distanz, unterhalb derer selbst ein Ablesen so genau wie ein Klick (σ = 0,1/√12 mrad) mit beliebig vielen Schüssen den Luftwiderstand nicht unter 4 % bringt. Unterhalb dieser Grenze entkommt kein Plan der Note D, und die Seite sagt das.
 
-### 8.8 Der Planer
+### 8.9 Der Planer
 
-Für einen Entwurf (eine Menge von Distanzen und die Schüsse auf jeder) ist die Posterior-Verteilung die des linearisierten Modells beim verwendeten BC:
+Der Plan ist auf die Zuordnung ausgelegt (§8.3): Er bewertet die Varianz jeder einzelnen Ursache, nicht die vorhergesagte Höhenkorrektur. Für einen Entwurf (eine Menge von Distanzen und die Schüsse auf jeder) ist die Posterior-Verteilung die des linearisierten Modells beim verwendeten BC:
 
 $$\Sigma^{-1} = P_0 + \sum_g \frac{J_g J_g^\top}{\sigma_g^2}$$
 
@@ -385,7 +431,7 @@ Leiterstufen bekommen je einen Schuss: Sie sind Sicherheitskontrollen, keine Mes
 
 Planungswind und geplante Chronographen-Messwerte gehen genau so ein wie später in die Anpassung, sodass Prognose auf der Seite „Vorbereiten“ und Endergebnis darin übereinstimmen, was jeder Punkt wert ist.
 
-### 8.9 Falsch angemessene und geneigte Ziele
+### 8.10 Falsch angemessene und geneigte Ziele
 
 Ein Distanzfehler und eine übersehene Neigung sind die beiden Fehler im Gelände, die die Schüsse am wenigsten von einem falschen Luftwiderstand unterscheiden können. Jedes Ziel bekommt deshalb eine Auswahl aus drei Möglichkeiten, verglichen nach ihrer Evidenz:
 
@@ -423,11 +469,11 @@ Die exakte gemeinsame Aufzählung wächst exponentiell mit der Zahl der Ziele $k
 
 Ein Ziel wird markiert und eine Neu-Anmessung verlangt, sobald sein Gewicht für „etwas stimmt nicht“ 20 % übersteigt. In der Simulation löste eine Schwelle von 50 % fast nie aus. Bei 20 % löst sie etwa in jeder zehnten Sitzung aus und verbessert sowohl die Einstellwerte als auch die Schätzung des Luftwiderstands. Neu anmessen dauert Sekunden.
 
-### 8.10 Prüfung der Vorbereitungs-Haken
+### 8.11 Prüfung der Vorbereitungs-Haken
 
-Ein abgehakter Nullpunkt oder Geschwindigkeitsmittelwert wird nicht einfach geglaubt. Jeder wird in derselben Aufzählung zu einer Auswahl aus zwei Möglichkeiten: die geprüfte Vorannahme mit Gewicht 0,9, die ungeprüfte (0,25 mrad, 20 m/s) mit 0,1. Widersprechen die Schüsse einem Haken, wird das zusammengeführte Ergebnis breiter, statt die Abweichung in eine andere Ursache zu drängen. Die Seite „Abschluss“ nennt einen Haken, sobald sein Gewicht für „hat nicht gehalten“ 50 % übersteigt. Der Haken für die Geschwindigkeit entfällt, sobald der eigene Chronograph der Sitzung übernimmt (§8.5). Der Klick-Wert wird so nicht geprüft. Die Schüsse sagen fast nichts über ihn (§8.2), und jede zusätzliche Achse verdoppelt den Rechenaufwand.
+Ein abgehakter Nullpunkt oder Geschwindigkeitsmittelwert wird nicht einfach geglaubt. Jeder wird in derselben Aufzählung zu einer Auswahl aus zwei Möglichkeiten: die geprüfte Vorannahme mit Gewicht 0,9, die ungeprüfte (0,25 mrad, 20 m/s) mit 0,1. Widersprechen die Schüsse einem Haken, wird das zusammengeführte Ergebnis breiter, statt die Abweichung in eine andere Ursache zu drängen. Die Seite „Abschluss“ nennt einen Haken, sobald sein Gewicht für „hat nicht gehalten“ 50 % übersteigt. Der Haken für die Geschwindigkeit entfällt, sobald der eigene Chronograph der Sitzung übernimmt (§8.6). Der Klick-Wert wird so nicht geprüft. Die Schüsse sagen fast nichts über ihn (§8.2), und jede zusätzliche Achse verdoppelt den Rechenaufwand.
 
-### 8.11 Die Leiter und Fehlschüsse
+### 8.12 Die Leiter und Fehlschüsse
 
 Jeder Schritt muss zwei Prüfungen bestehen.
 
@@ -450,9 +496,9 @@ Ein Fehlschuss sagt auch, wie groß der Fehler im Luftwiderstand mindestens sein
 
 $$|\delta d| \ge \frac{h/2}{R}\Big/\frac{\partial c}{\partial d}$$
 
-Bei 2 m Kugelfang sind das für die .308 22 % auf 800 m, 38 % auf 700 m, 68 % auf 600 m und 815 % auf 300 m. Die Vorannahme für den Luftwiderstand, die Leiter und Einstellwerte verwenden, wird erweitert, bis diese Größe zwei Standardabweichungen entfernt liegt. Einem groben BC-Fehler wird dann gefolgt, statt ihn zum veröffentlichten Wert zurückzuziehen, was den neuen Versuch fast ebenso weit verfehlen ließe. Liegt der nötige Fehler über 50 %, ist kein BC so falsch: Der Fehlschuss war etwas anderes (eine Böe, ein Einstellfehler, ein einfach nicht gesehener Einschlag), und eine Erweiterung kostete nur Genauigkeit. Die lineare Abschätzung genügt hier; die exakte Lösung der Flugbahn änderte kein simuliertes Ergebnis. Die Anpassung für den Abschluss verwendet die normale Vorannahme. Sonst kostete ein Fehlschuss, der nur ein nicht gesehener Einschlag war, einer Sitzung ohne Chronograph eine Note, und die 3σ-Regel aus §8.12 fängt einen groben BC-Fehler ohnehin ab.
+Bei 2 m Kugelfang sind das für die .308 22 % auf 800 m, 38 % auf 700 m, 68 % auf 600 m und 815 % auf 300 m. Die Vorannahme für den Luftwiderstand, die Leiter und Einstellwerte verwenden, wird erweitert, bis diese Größe zwei Standardabweichungen entfernt liegt. Einem groben BC-Fehler wird dann gefolgt, statt ihn zum veröffentlichten Wert zurückzuziehen, was den neuen Versuch fast ebenso weit verfehlen ließe. Liegt der nötige Fehler über 50 %, ist kein BC so falsch: Der Fehlschuss war etwas anderes (eine Böe, ein Einstellfehler, ein einfach nicht gesehener Einschlag), und eine Erweiterung kostete nur Genauigkeit. Die lineare Abschätzung genügt hier; die exakte Lösung der Flugbahn änderte kein simuliertes Ergebnis. Die Anpassung für den Abschluss verwendet die normale Vorannahme. Sonst kostete ein Fehlschuss, der nur ein nicht gesehener Einschlag war, einer Sitzung ohne Chronograph eine Note, und die 3σ-Regel aus §8.13 fängt einen groben BC-Fehler ohnehin ab.
 
-### 8.12 Schutzmechanismen bei den Eingaben
+### 8.13 Schutzmechanismen bei den Eingaben
 
 Keiner davon blockiert Sie. Jeder warnt, erklärt oder hält ein Ergebnis zurück.
 
@@ -464,7 +510,7 @@ Keiner davon blockiert Sie. Jeder warnt, erklärt oder hält ein Ergebnis zurüc
 - **Geschwindigkeitsbefund.** Als gemessene Korrektur nur gemeldet, wenn Chronographen-Messwerte dahinterstehen. Ohne sie ist eine aus Höhenkorrekturen abgeleitete Geschwindigkeit nur der Fehler einer anderen Ursache, in die Geschwindigkeit verschoben, und wird als nicht bestimmt geführt.
 - **Geplantes fernes Ziel nicht erreicht.** Die Seite „Abschluss“ sagt das und bewertet nur, was geschossen wurde.
 
-### 8.13 Was gemeldet wird
+### 8.14 Was gemeldet wird
 
 $R_\text{max}$ ist Ihre längste Einsatzdistanz: die weiteste Überschalldistanz am Standort oder die weiteste geschossene Distanz, falls diese größer ist. Jeder Befund wird auf $R_\text{max}$ beurteilt.
 
@@ -474,7 +520,7 @@ $$P(\text{material}) = \Phi\!\left(\frac{-0.1-m}{s}\right) + 1 - \Phi\!\left(\fr
 
 Die Befunde werden nach dieser Wahrscheinlichkeit geordnet.
 
-**Auflösung.** $\tilde R = I - \Sigma P_0$, skaliert mit den Vorannahme-Standardabweichungen. Ihre Diagonale ist $1 - \Sigma_{ii}/\sigma_{0,i}^2$, der Anteil der Vorab-Varianz, den die Schüsse beseitigt haben. Unter 0,2 hat die Sitzung diese Ursache nicht gemessen. Sie ist dann „nicht bestimmt“, oder wird als ungeklärt geführt, wenn ihre angepasste Wirkung wahrscheinlich trotzdem zählt, aber nie als „unauffällig“, denn ein Wert, der zu seiner Vorannahme zurückgezogen wurde, ist keine Messung.
+**Auflösung.** $\tilde R = I - \Sigma P_0$, skaliert mit den Vorannahme-Standardabweichungen. Ihre Diagonale ist $1 - \Sigma_{ii}/\sigma_{0,i}^2$, der Anteil der Vorab-Varianz, den die Schüsse beseitigt haben. Unter 0,2 hat die Sitzung diese Ursache nicht gemessen. Sie ist dann „nicht bestimmt“, oder wird als ungeklärt geführt, wenn ihre angepasste Wirkung wahrscheinlich trotzdem zählt, aber nie als „unauffällig“, denn ein Wert, der zu seiner Vorannahme zurückgezogen wurde, ist keine Messung. Das ist das Gegenstück der Zuordnung zur Vorhersage-Standardabweichung der Einstelltabelle: Eine Ursache kann ungeklärt sein, während die Höhenkorrektur, zu der sie beiträgt, genau bekannt ist.
 
 **Entartung.** Ursachen, die durch eine Posterior-Korrelation über 0,8 verbunden sind, werden als Zusammenhangskomponenten gruppiert, sodass sich Verbindungen verketten können. Jede Gruppe wird als ein gemeinsamer Beitrag $m=\sum_{k} J_k\theta_k$ mit Varianz $J^\top\Sigma J$ über ihre Mitglieder gemeldet. Besteht die Gruppe aus Geschwindigkeit und Luftwiderstand, lautet der Rat, einen Chronographen mitzubringen. Korrelationen zwischen 0,5 und 0,8 zwischen gemeldeten Ursachen bekommen einen Hinweis.
 
@@ -484,7 +530,7 @@ Die Befunde werden nach dieser Wahrscheinlichkeit geordnet.
 
 Die Schwellen für Nullpunkt und Einstelltabelle wurden gewählt, indem Kandidatenregeln über Tausende simulierter Sitzungen durchgespielt wurden. Zusammen halbieren sie etwa die Sitzungen, in denen das Befolgen des Ergebnisses die Höhenkorrekturen schlechter macht als gar nichts zu tun, zu geringen Kosten, wenn der Nullpunkt wirklich leicht danebenliegt.
 
-### 8.14 Was das Modell auslässt
+### 8.15 Was das Modell auslässt
 
 - **Die Form der Widerstandskurve.** $\delta d$ skaliert die angenommene Widerstandskurve und formt sie nie um. Ein G1-BC für ein Geschoss, dessen Luftwiderstand G7 folgt, ist ein Formfehler. Über Mach 1,1 nimmt ein einzelner Faktor den größten Teil davon über die geschossenen Distanzen auf, aber nicht alles, und er lässt sich nicht in den transsonischen Bereich übertragen. Das ist der Hauptgrund, warum das Werkzeug im Überschall bleibt, und warum die Obergrenze der Leiter existiert.
 - **Die Visierhöhe** wird nicht angepasst. Jenseits einiger hundert Meter ist ihre Wirkung fast konstant (−0,020, −0,025 und −0,026 mrad auf 300, 600 und 800 m für 3 mm), sodass sie wie ein kleiner Nullpunktversatz aussieht und die Schüsse die beiden nicht trennen können. Messen Sie sie.

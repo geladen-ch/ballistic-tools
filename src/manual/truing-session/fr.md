@@ -44,9 +44,9 @@ Quelques relevés à quelques distances semblent suffire pour tout ajuster. Ce n
 Un chronographe est ce que vous pouvez apporter de plus précieux. Une erreur de vitesse et une erreur de traînée courbent la trajectoire presque de la même façon, si bien que les tirs seuls ne peuvent pas les distinguer. Le chronographe mesure la vitesse directement, dans l'air du jour et à la température de poudre du jour, et il ne reste alors que la traînée comme grande inconnue.
 
 - **Avec un chronographe** qui donne chaque tir au fur et à mesure (un radar Doppler ou un appareil monté à la bouche), une séance sur un terrain allant jusqu'à environ 800 m mesure la traînée d'une .308 à ±1,5–2 % avec 20–30 cartouches. C'est la note A, et l'outil propose d'enregistrer le résultat dans votre cartouche. Une correction de BC exige au moins cinq mesures de chronographe relevées pendant la séance.
-- **Sans chronographe**, l'outil ne propose jamais de correction de BC. La traînée dépendrait alors entièrement de la vitesse moyenne mesurée un autre jour, et rien dans la séance ne peut vérifier cette moyenne. À 800 m, une erreur de 1 m/s sur elle déplace le résultat de traînée d'environ 0,5 %. La page « Préparer » peut quand même attribuer la note A à un tel plan ; le §8.7 explique pourquoi cette note ne suffit pas pour un BC. Si vous n'avez pas non plus vérifié la moyenne, la séance s'arrête à la note C quel que soit le nombre de cartouches, à peine mieux que le BC publié. Dans les deux cas, vous obtenez quand même des hausses corrigées pour les distances tirées et un contrôle du zéro. Elles ne valent que pour ces distances et un air semblable.
+- **Sans chronographe**, l'outil ne propose jamais de correction de BC. La traînée dépendrait alors entièrement de la vitesse moyenne mesurée un autre jour, et rien dans la séance ne peut vérifier cette moyenne. À 800 m, une erreur de 1 m/s sur elle déplace le résultat de traînée d'environ 0,5 %. La page « Préparer » peut quand même attribuer la note A à un tel plan ; le §8.8 explique pourquoi cette note ne suffit pas pour un BC. Si vous n'avez pas non plus vérifié la moyenne, la séance s'arrête à la note C quel que soit le nombre de cartouches, à peine mieux que le BC publié. Dans les deux cas, vous obtenez quand même des hausses corrigées pour les distances tirées et un contrôle du zéro. Elles ne valent que pour ces distances et un air semblable.
 
-Sans chronographe, une séance est **beaucoup** moins utile. Si vous pouvez en emprunter un, faites-le. Le terrain compte presque autant : sur un terrain qui s'arrête à 600 m, même avec un chronographe et tous les préparatifs, une .308 ne dépasse pas la note B (voir §8.7).
+Sans chronographe, une séance est **beaucoup** moins utile. Si vous pouvez en emprunter un, faites-le. Le terrain compte presque autant : sur un terrain qui s'arrête à 600 m, même avec un chronographe et tous les préparatifs, une .308 ne dépasse pas la note B (voir §8.8).
 
 ### 2.3 Les notes
 
@@ -222,9 +222,9 @@ où $c_\text{app}$ est la solution de trajectoire de l'application elle-même (l
 | $\delta v$ | `v0Ms` | erreur de vitesse initiale, m/s | ajoutée à $v_0$ dans la physique |
 | $\delta d$ | `dragPct` | facteur de traînée, % | divise le facteur de gain BC $G$ dans la physique |
 | $\tau$ | `trackPct` | erreur de valeur de clic, % | proportionnelle à la hausse |
-| $\Delta R_t$ | `rangeErrM_t` | erreur de distance de la cible $t$, m | par cible, seulement dans le contrôle des bévues (§8.9) |
+| $\Delta R_t$ | `rangeErrM_t` | erreur de distance de la cible $t$, m | par cible, seulement dans le contrôle des bévues (§8.10) |
 | $u_t$ | `losU_t` | pente non saisie de la cible $t$, $u = 1-\cos\alpha$ | par cible, seulement dans le contrôle des bévues |
-| $\varepsilon$ | | bruit de la série | gaussien, $\sigma$ selon le §8.4 |
+| $\varepsilon$ | | bruit de la série | gaussien, $\sigma$ selon le §8.5 |
 
 $\delta d > 0$ signifie plus de traînée que ne le prédit le BC utilisé. L'enregistrement multiplie le facteur de gain de la cartouche par $1/(1+\delta d/100)$, de sorte qu'un second calibrage se cumule au premier. Le facteur de traînée passe par le facteur de gain et non par `bc` lui-même, car 247 des 385 balles de la bibliothèque sont des tables Cd-Mach et n'ont pas de `bc` à mettre à l'échelle.
 
@@ -275,11 +275,57 @@ Chaque donnée que vous fournissez se retrouve aussi dans ces quatre causes. Exp
 | température +3 °C | −0,9 % | −0,9 % | −0,9 % |
 | pression +10 hPa | 1,0 % | 1,0 % | 1,0 % |
 
-Les deux dernières lignes sont constantes pour une raison précise. La force de traînée est proportionnelle à la densité de l'air ; une erreur de 1 % sur la densité est donc *exactement* une erreur de 1 % sur la traînée à toute distance (à un petit effet près via la vitesse du son). La séance ne peut pas du tout détecter une température ou une pression fausse, et la transmet directement au BC. C'est pourquoi l'outil insiste sur la pression station et met en garde contre le QNH (§8.12), et pourquoi la page « Conclure » rappelle que la correction de BC suppose l'air que vous avez saisi.
+Les deux dernières lignes sont constantes pour une raison précise. La force de traînée est proportionnelle à la densité de l'air ; une erreur de 1 % sur la densité est donc *exactement* une erreur de 1 % sur la traînée à toute distance (à un petit effet près via la vitesse du son). La séance ne peut pas du tout détecter une température ou une pression fausse, et la transmet directement au BC. C'est pourquoi l'outil insiste sur la pression station et met en garde contre le QNH (§8.13), et pourquoi la page « Conclure » rappelle que la correction de BC suppose l'air que vous avez saisi.
 
 La ligne de distance explique le §3.5. À 800 m, 20 m d'erreur de distance valent 7 % de traînée, plus que tout l'a priori. Seule une seconde cible proche pourrait le remarquer, et même alors pas de façon fiable.
 
-### 8.3 Les a priori
+### 8.3 Deux objectifs : prédiction et attribution
+
+Une séance sert deux objectifs, et le moteur les traite différemment.
+
+**La prédiction** : la hausse à une distance donnée dans un air donné. Son incertitude est la variance prédictive $J(R)^\top\Sigma J(R)$, qui ne dépend que de la combinaison de causes que voit la colonne $J(R)$.
+
+**L'attribution** : la taille de chaque cause. Son incertitude est la variance marginale $\Sigma_{ii}$, et sa séparation des autres est la corrélation a posteriori.
+
+Quand deux causes sont presque colinéaires (§8.2), l'a posteriori est une ellipse longue et étroite. La combinaison que voient les tirs est serrée ; celle qu'ils ne peuvent pas voir est à peu près aussi large que l'a priori. Aux distances tirées, $J(R)$ est presque perpendiculaire au grand axe, si bien que la prédiction est bonne même quand l'attribution est mauvaise. En dehors, $J(R)$ tourne vers le grand axe et la prédiction se dégrade. Un plan jusqu'à 600 m avec 20 cartouches pour la .308 de référence :
+
+| | écart-type traînée | écart-type vitesse | écart-type de hausse à 300 m | 600 m | 800 m | 1000 m |
+|---|---|---|---|---|---|---|
+| avant la séance (a priori seul) | 4,1 % | 20 m/s | 0,27 | 0,42 | 0,63 | 0,99 |
+| aucun préparatif, sans chronographe | 3,85 % | 10,0 m/s | 0,06 | 0,07 | 0,16 | 0,33 |
+| aucun préparatif, avec chronographe | 3,20 % | 1,3 m/s | 0,06 | 0,06 | 0,15 | 0,32 |
+| tous les préparatifs, avec chronographe | 2,91 % | 1,3 m/s | 0,05 | 0,06 | 0,14 | 0,31 |
+
+(écarts-types de hausse en mrad)
+
+Sans chronographe, la séance améliore la hausse à 600 m d'un facteur six et le facteur de traînée presque pas. Le chronographe change à peine les hausses prédites aux distances tirées, mais il divise l'incertitude sur la vitesse par près de huit. La prédiction, les tirs la donnent presque gratuitement ; l'attribution est ce pour quoi la séance doit être conçue.
+
+Les deux objectifs peuvent aussi donner des réponses contradictoires qui se ressemblent dans les données. Une vitesse inférieure de 10 m/s à celle enregistrée, absorbée par un changement de BC de 6,4 %, colle exactement à 600 m. Elle est alors fausse de 0,11 mrad à 800 m, de 0,16 mrad à 800 m par −10 °C, et de 0,35 mrad à 1000 m. Les résidus de l'ajustement ne le montrent pas, car à 600 m la mauvaise attribution et la bonne prédisent la même hausse.
+
+**Ce que fait le moteur pour la prédiction.** La valeur à afficher avant chaque série et la table de réglage de la conclusion sont des prédictions, chacune avec son écart-type prédictif (§8.14). Le contrôle de sécurité de l'échelle est une prédiction à la distance suivante (§8.12). Aucun n'a besoin que les causes soient séparées.
+
+**Ce que fait le moteur pour l'attribution.** La plus grande partie des mécanismes de cette section existe pour cet objectif :
+
+- *Le plan évalue l'attribution, pas la prédiction.* L'objectif (§8.9) additionne des variances marginales $\Sigma_{ii}$, chacune mesurée une fois les autres causes prises en compte ; un dispositif qui laisse deux causes confondues obtient donc un mauvais score sur les deux. Un planificateur visant la prédiction minimiserait $J(R)^\top\Sigma J(R)$ aux distances où vous tirez et y placerait ses cartouches.
+- *Une géométrie choisie pour séparer.* Une cartouche près de la distance de zéro, où seule la colonne du zéro n'est pas nulle. La cible lointaine aussi près de Mach 1,1 que le lieu le permet, là où la colonne de la traînée diffère le plus de celle de la vitesse. Un plan doit aller au-delà de 300 m quand le lieu le permet, pour ne pas pouvoir bien noter en tirant seulement là où tout est facile.
+- *Des mesures directes pour les causes colinéaires.* Le chronographe observe $\delta v$ directement (§8.6), si bien que la paire vitesse–traînée n'a plus à être départagée par la forme. Un test tall-target fait de même pour la valeur de clic, presque exactement colinéaire avec la vitesse (cosinus −0,99993).
+- *Des causes ajustées même quand elles ne sont pas rapportées.* Une valeur de clic testée reste dans l'ajustement avec son a priori de 0,15 %. L'en retirer laisserait toute erreur de suivi résiduelle être attribuée à la traînée (§8.4).
+- *Les erreurs de terrain ont leurs propres explications.* Une cible mal télémétrée ou en pente est une hypothèse concurrente propre à chaque cible (§8.10), pour qu'elle ne puisse pas être attribuée à la traînée. Les cibles sont décidées conjointement, pour qu'une cause commune ne soit pas attribuée à une seule cible. La mesure d'angle lève la dégénérescence exacte entre distance et pente.
+- *Des préparatifs douteux élargissent le résultat.* Un zéro ou une vitesse moyenne cochés que les tirs contredisent élargissent le résultat (§8.11) au lieu de pousser l'écart vers une autre cause.
+- *Les causes inséparables sont rapportées ensemble.* Les causes dont la corrélation a posteriori dépasse 0,8 sont rapportées comme une seule contribution combinée, jamais comme des constats séparés (§8.14).
+- *Le retour vers l'a priori n'est pas une mesure.* Une cause dont la résolution est inférieure à 0,2 est « non déterminée », jamais « conforme » (§8.14). Une petite valeur ajustée ne veut pas dire grand-chose quand c'est l'a priori qui l'a placée là.
+- *Un constat de vitesse exige des mesures.* Sans mesures de chronographe, une vitesse ajustée n'est que l'erreur d'une autre cause déplacée vers la vitesse, et elle est rapportée comme non déterminée.
+- *Le BC n'est écrit que si l'attribution a réussi.* Cela signifie au moins cinq mesures de chronographe, la note A ou B, un résultat à moins de 3σ de l'a priori et un facteur de gain compris entre 0,8 et 1,2 (§8.13). « Préparer » et « Conclure » partagent cette règle, si bien qu'un plan ne promet jamais un BC que la conclusion refuserait.
+- *Ce qu'aucun tir ne peut attribuer est protégé à la saisie.* La densité de l'air est exactement colinéaire avec la traînée (§8.2) ; une pression ou une température fausse ne peut donc pas être séparée après coup. C'est la raison d'être du contrôle QNH et du rappel des conditions supposées.
+
+**Où les deux objectifs divergent dans le moteur.**
+
+- *Les cartouches vont là où les colonnes diffèrent, pas là où vous tirerez.* Les hausses aux distances intermédiaires sont bonnes quand même, car la prédiction à l'intérieur de la plage tirée ne coûte presque rien.
+- *L'a priori de traînée élargi après un tir non vu sert l'échelle et les valeurs à afficher, pas la conclusion* (§8.12). Un a priori élargi après un tir non vu prédit mieux la nouvelle tentative, mais utilisé pour l'attribution, il laisserait un seul impact non vu faire baisser la note.
+- *La table de réglage n'est proposée que si aucune correction de BC ne l'est.* Quand l'attribution réussit, la cartouche corrigée prédit toutes les distances et la table n'apporte rien. Quand elle échoue, la table est la partie du résultat qui reste valable, et seulement aux distances tirées.
+- *Les constats sont jugés à $R_\text{max}$.* L'attribution est rapportée selon sa conséquence sur la prédiction à votre plus grande distance d'utilisation (§8.14) ; une cause réelle mais sans importance est donc listée comme non significative plutôt que comme un constat.
+
+### 8.4 Les a priori
 
 L'ajustement est bayésien : chaque cause part d'un a priori normal de moyenne nulle, et les tirs le resserrent.
 
@@ -296,7 +342,7 @@ L'ajustement est bayésien : chaque cause part d'un a priori normal de moyenne n
 
 **Valeur de clic.** Une valeur de clic testée est quand même ajustée avec son a priori de 0,15 %, mais elle n'est pas rapportée. La laisser hors de l'ajustement ferait passer toute erreur de suivi résiduelle dans la traînée : dans une simulation Monte-Carlo de séances complètes, la marge à 95 % de la traînée manquait alors la vérité environ un tiers de point de pourcentage plus souvent. Avec la valeur de clic ajustée, la marge la manquait dans 5,0 % des cas.
 
-### 8.4 Le bruit
+### 8.5 Le bruit
 
 Le $\sigma$ vertical d'un coup a trois parts indépendantes :
 
@@ -320,13 +366,13 @@ $$\hat\sigma_v^2 = \frac{(N_0-1)\,\text{SD}_0^2 + (n-1)\,s^2}{N_0+n-2}$$
 
 $N_0$ est le nombre de tirs indiqué, ou 5 s'il n'est pas indiqué. La valeur combinée compte pour $N_0+n-1$ tirs. Chaque mesure est d'abord comparée à la vitesse de la cartouche dans l'air de son groupement, et le décalage moyen est retiré, de sorte qu'un changement de météo ou une moyenne fausse ne compte pas comme dispersion. Les séries déjà enregistrées sont repondérées à chaque nouvelle valeur. Au-delà de dix mesures, un test F bilatéral à 5 % ($s^2/\text{SD}_0^2$ contre $F_{n-1,\,N_0-1}$) décide si l'écart-type du jour diffère vraiment. Si c'est le cas, l'outil le signale et propose de mettre à jour la cartouche. Le test F ne pilote que ce signalement. La combinaison s'applique de toute façon et ne change rien quand l'écart-type enregistré est juste.
 
-### 8.5 Le chronographe
+### 8.6 Le chronographe
 
 Les mesures de chaque groupement forment une observation directe de $\delta v$. Le résidu est (mesure moyenne − vitesse de la cartouche dans l'air de ce groupement), et son $\sigma$ vaut $t_{0.975,N-1}/z\cdot\hat\sigma_v/\sqrt n$, la même forme que l'a priori de vitesse. Un tir que l'appareil a manqué est simplement une mesure de moins.
 
 Dès la première mesure, les mesures de la séance remplacent la moyenne vérifiée comme information sur la vitesse. La moyenne a été mesurée à une autre occasion et peut être fausse pour une poudre sensible à la température ou un autre lot. Les mesures portent leur propre incertitude, large pour une ou deux mesures. Des seuils d'une à cinq mesures ont été comparés, avec un chronographe manquant la plupart des tirs. Une seule mesure laissait l'erreur la plus faible chaque fois que la moyenne vérifiée était fausse, et coûtait au plus un millième de mrad quand elle était juste. La même information n'est jamais comptée deux fois, comme a priori resserré et comme observation à la fois.
 
-### 8.6 L'ajustement
+### 8.7 L'ajustement
 
 L'estimation est le point du maximum a posteriori (MAP) de
 
@@ -340,7 +386,7 @@ Le résidu d'une ligne de chronographe ou de retélémétrage est relinéarisé 
 
 La colonne de traînée est une différence centrée sur ±1 %. La hausse est courbe en fonction du facteur de traînée ; un pas unilatéral de +5 % lirait donc à 800 m une pente 2,7 % plus raide que la pente locale, et l'ajustement annoncerait la traînée plus serrée qu'il ne la connaît : dans une simulation Monte-Carlo de séances complètes, sa marge à 95 % manquait la vérité dans 5,7 % des cas avec le pas unilatéral, contre 5,2 % avec le pas centré.
 
-### 8.7 Ce qu'une séance peut résoudre
+### 8.8 Ce qu'une séance peut résoudre
 
 Résultats du planificateur pour la .308 de référence (R50 0,25 mrad, écart-type de vitesse 6 m/s, vent modéré). Les chiffres sont l'écart-type a posteriori du facteur de traînée, avec la note :
 
@@ -359,13 +405,13 @@ Ce que montre le tableau :
 
 - **Sans chronographe ni moyenne vérifiée, rien ne fonctionne.** Avec un a priori de vitesse de 20 m/s, la corrélation vitesse–traînée reste à 0,7–0,9, et 40 cartouches ne font pas mieux que 12. La traînée bouge à peine de son a priori de 4,1 %.
 - **La distance l'emporte sur le nombre de cartouches.** Avec tous les préparatifs et un chronographe, 40 cartouches jusqu'à 600 m donnent 2,5 %. Douze cartouches jusqu'à 800 m donnent 1,93 %. Pour cette .308 à 600 m, la colonne de traînée ressemble encore trop à celle de la vitesse.
-- **La ligne « moyenne vérifiée, sans chronographe » est notée A sur le papier**, et l'outil ne propose pourtant pas de correction de BC. Le plan prend la moyenne avec son incertitude annoncée, mais cette moyenne vient d'un autre jour. Une dérive en température fausse, un autre lot ou un chronographe fatigué la déplacent, et à 800 m chaque m/s passe directement dans la traînée à raison de 0,5 %. Rien dans la séance ne peut voir un tel déplacement. Les cinq mesures du chronographe sont la seule information mesurée dans le même air et à la même température de poudre que les tirs.
+- **La ligne « moyenne vérifiée, sans chronographe » est notée A sur le papier**, et l'outil ne propose pourtant pas de correction de BC. Le plan prend la moyenne avec son incertitude annoncée, mais cette moyenne vient d'un autre jour. Une dérive en température fausse, un autre lot ou un chronographe fatigué la déplacent, et à 800 m chaque m/s passe directement dans la traînée à raison de 0,5 %. Rien dans la séance ne peut voir un tel déplacement. Les cinq mesures du chronographe sont la seule information mesurée dans le même air et à la même température de poudre que les tirs, et donc la seule qui attribue la hausse à la vitesse plutôt qu'à la traînée dans les conditions du jour.
 
 Deux autres chiffres de la page « Préparer » viennent du même a posteriori. La **distance lointaine requise** est la cible lointaine la plus proche à laquelle un groupement proche et un groupement lointain atteignent un écart-type de traînée donné. Le **seuil d'invalidité** est la distance lointaine en deçà de laquelle même une lecture aussi bonne qu'un clic (σ = 0,1/√12 mrad), avec un nombre quelconque de cartouches, ne peut pas amener la traînée sous 4 %. Sous ce seuil, aucun plan n'échappe à la note D, et la page le dit.
 
-### 8.8 Le planificateur
+### 8.9 Le planificateur
 
-Pour un dispositif (un ensemble de distances et les cartouches à chacune), l'a posteriori est celui du modèle linéarisé au BC utilisé :
+Le plan est conçu pour l'attribution (§8.3) : il évalue la variance propre de chaque cause, pas la hausse prédite. Pour un dispositif (un ensemble de distances et les cartouches à chacune), l'a posteriori est celui du modèle linéarisé au BC utilisé :
 
 $$\Sigma^{-1} = P_0 + \sum_g \frac{J_g J_g^\top}{\sigma_g^2}$$
 
@@ -385,7 +431,7 @@ Les paliers de l'échelle reçoivent une cartouche chacun : ce sont des contrôl
 
 Le vent de planification et les mesures de chronographe prévues entrent exactement comme elles entreront dans l'ajustement ; la prévision de la page « Préparer » et le résultat final s'accordent donc sur ce que vaut chaque élément.
 
-### 8.9 Cibles mal télémétrées et en pente
+### 8.10 Cibles mal télémétrées et en pente
 
 Une erreur de distance et une pente oubliée sont les deux erreurs de terrain que les tirs distinguent le moins bien d'une traînée fausse. Chaque cible reçoit donc un choix à trois issues, comparées par leur évidence :
 
@@ -423,11 +469,11 @@ L'énumération conjointe exacte croît exponentiellement avec le nombre de cibl
 
 Une cible est signalée, et un retélémétrage demandé, dès que son poids « quelque chose cloche » dépasse 20 %. En simulation, un seuil de 50 % ne se déclenchait presque jamais. À 20 %, il se déclenche environ une séance sur dix et améliore à la fois les valeurs à afficher et l'estimation de la traînée. Retélémétrer prend quelques secondes.
 
-### 8.10 Vérification des coches de préparatifs
+### 8.11 Vérification des coches de préparatifs
 
-Un zéro ou une vitesse moyenne cochés ne sont pas crus sur parole. Chacun devient un choix à deux issues dans la même énumération : l'a priori vérifié avec un poids de 0,9, l'a priori non vérifié (0,25 mrad, 20 m/s) avec 0,1. Si les tirs contredisent une coche, le résultat fusionné s'élargit au lieu de pousser l'écart vers une autre cause. La page « Conclure » cite une coche dès que son poids « n'a pas tenu » dépasse 50 %. La coche de vitesse disparaît dès que le chronographe de la séance prend le relais (§8.5). La valeur de clic n'est pas vérifiée ainsi. Les tirs n'en disent presque rien (§8.2), et chaque axe supplémentaire double le calcul.
+Un zéro ou une vitesse moyenne cochés ne sont pas crus sur parole. Chacun devient un choix à deux issues dans la même énumération : l'a priori vérifié avec un poids de 0,9, l'a priori non vérifié (0,25 mrad, 20 m/s) avec 0,1. Si les tirs contredisent une coche, le résultat fusionné s'élargit au lieu de pousser l'écart vers une autre cause. La page « Conclure » cite une coche dès que son poids « n'a pas tenu » dépasse 50 %. La coche de vitesse disparaît dès que le chronographe de la séance prend le relais (§8.6). La valeur de clic n'est pas vérifiée ainsi. Les tirs n'en disent presque rien (§8.2), et chaque axe supplémentaire double le calcul.
 
-### 8.11 L'échelle et les tirs non vus
+### 8.12 L'échelle et les tirs non vus
 
 Chaque pas doit passer deux contrôles.
 
@@ -450,9 +496,9 @@ Un tir non vu dit aussi quelle taille l'erreur de traînée doit au moins avoir.
 
 $$|\delta d| \ge \frac{h/2}{R}\Big/\frac{\partial c}{\partial d}$$
 
-Pour un pare-balles de 2 m et la .308, cela fait 22 % à 800 m, 38 % à 700 m, 68 % à 600 m et 815 % à 300 m. L'a priori de traînée utilisé par l'échelle et les valeurs à afficher est élargi jusqu'à ce que cette taille soit à deux écarts-types. Une erreur de BC grossière est alors suivie au lieu d'être ramenée vers le chiffre publié, ce qui ferait manquer la nouvelle tentative presque d'autant. Si l'erreur requise dépasse 50 %, aucun BC n'est aussi faux : le tir non vu avait une autre cause (une rafale, une erreur de réglage, un impact simplement pas vu), et élargir ne ferait que coûter de la précision. L'estimation linéaire suffit ici ; résoudre exactement la trajectoire n'a changé aucun résultat simulé. L'ajustement de conclusion utilise l'a priori normal. Sinon, un tir qui n'était qu'un impact non vu coûterait une note à une séance sans chronographe, et la règle des 3σ du §8.12 rattrape de toute façon une erreur de BC grossière.
+Pour un pare-balles de 2 m et la .308, cela fait 22 % à 800 m, 38 % à 700 m, 68 % à 600 m et 815 % à 300 m. L'a priori de traînée utilisé par l'échelle et les valeurs à afficher est élargi jusqu'à ce que cette taille soit à deux écarts-types. Une erreur de BC grossière est alors suivie au lieu d'être ramenée vers le chiffre publié, ce qui ferait manquer la nouvelle tentative presque d'autant. Si l'erreur requise dépasse 50 %, aucun BC n'est aussi faux : le tir non vu avait une autre cause (une rafale, une erreur de réglage, un impact simplement pas vu), et élargir ne ferait que coûter de la précision. L'estimation linéaire suffit ici ; résoudre exactement la trajectoire n'a changé aucun résultat simulé. L'ajustement de conclusion utilise l'a priori normal. Sinon, un tir qui n'était qu'un impact non vu coûterait une note à une séance sans chronographe, et la règle des 3σ du §8.13 rattrape de toute façon une erreur de BC grossière.
 
-### 8.12 Garde-fous sur les saisies
+### 8.13 Garde-fous sur les saisies
 
 Aucun ne vous bloque. Chacun avertit, explique ou retient un résultat.
 
@@ -464,7 +510,7 @@ Aucun ne vous bloque. Chacun avertit, explique ou retient un résultat.
 - **Constat de vitesse.** Rapporté comme correction mesurée seulement s'il repose sur des mesures de chronographe. Sans elles, une vitesse déduite des hausses n'est que l'erreur d'une autre cause déplacée vers la vitesse, et elle est listée comme non déterminée.
 - **Cible lointaine prévue non atteinte.** La page « Conclure » le signale et ne note que ce qui a été tiré.
 
-### 8.13 Ce qui est rapporté
+### 8.14 Ce qui est rapporté
 
 $R_\text{max}$ est votre plus grande distance d'utilisation : la distance supersonique la plus lointaine du lieu, ou la plus grande distance tirée si elle est supérieure. Chaque constat est jugé à $R_\text{max}$.
 
@@ -474,7 +520,7 @@ $$P(\text{material}) = \Phi\!\left(\frac{-0.1-m}{s}\right) + 1 - \Phi\!\left(\fr
 
 Les constats sont classés selon cette probabilité.
 
-**Résolution.** $\tilde R = I - \Sigma P_0$, mis à l'échelle par les écarts-types a priori. Sa diagonale vaut $1 - \Sigma_{ii}/\sigma_{0,i}^2$, la part de la variance a priori que les tirs ont supprimée. Sous 0,2, la séance n'a pas mesuré cette cause. Elle est alors « non déterminée », ou listée comme non résolue si son effet ajusté compte probablement quand même, mais jamais « conforme », car une valeur ramenée vers son a priori n'est pas une mesure.
+**Résolution.** $\tilde R = I - \Sigma P_0$, mis à l'échelle par les écarts-types a priori. Sa diagonale vaut $1 - \Sigma_{ii}/\sigma_{0,i}^2$, la part de la variance a priori que les tirs ont supprimée. Sous 0,2, la séance n'a pas mesuré cette cause. Elle est alors « non déterminée », ou listée comme non résolue si son effet ajusté compte probablement quand même, mais jamais « conforme », car une valeur ramenée vers son a priori n'est pas une mesure. C'est le pendant, côté attribution, de l'écart-type prédictif de la table de réglage : une cause peut rester non résolue alors que la hausse à laquelle elle contribue est connue avec précision.
 
 **Dégénérescence.** Les causes liées par une corrélation a posteriori supérieure à 0,8 sont regroupées en composantes connexes, de sorte que les liens peuvent s'enchaîner. Chaque groupe est rapporté comme une seule contribution combinée $m=\sum_{k} J_k\theta_k$, de variance $J^\top\Sigma J$ sur ses membres. Quand le groupe réunit vitesse et traînée, le conseil est d'apporter un chronographe. Les corrélations entre 0,5 et 0,8 entre causes rapportées font l'objet d'une note.
 
@@ -484,7 +530,7 @@ Les constats sont classés selon cette probabilité.
 
 Les seuils du zéro et de la table de réglage ont été choisis en faisant varier des règles candidates sur des milliers de séances simulées. Ensemble, ils divisent environ par deux les séances où appliquer le résultat rend les hausses pires que ne rien faire, pour un faible coût quand le zéro est réellement un peu décalé.
 
-### 8.14 Ce que le modèle laisse de côté
+### 8.15 Ce que le modèle laisse de côté
 
 - **La forme de la courbe de traînée.** $\delta d$ met à l'échelle la courbe de traînée supposée et ne la remodèle jamais. Un BC G1 utilisé pour une balle dont la traînée suit G7 est une erreur de forme. Au-dessus de Mach 1,1, un seul facteur en absorbe l'essentiel sur les distances tirées, mais pas tout, et il ne s'extrapole pas au transsonique. C'est la raison principale pour laquelle l'outil reste supersonique, et la raison d'être du plafond de l'échelle.
 - **La hauteur de visée** n'est pas ajustée. Au-delà de quelques centaines de mètres, son effet est presque constant (−0,020, −0,025 et −0,026 mrad à 300, 600 et 800 m pour 3 mm) ; elle ressemble donc à un petit décalage de zéro, et les tirs ne peuvent pas distinguer les deux. Mesurez-la.

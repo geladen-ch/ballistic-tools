@@ -44,9 +44,9 @@ Qualche registrazione a qualche distanza sembra bastare per adattare tutto. Non 
 Un cronografo è la cosa più preziosa che potete portare. Un errore di velocità e un errore di resistenza curvano la traiettoria quasi allo stesso modo, quindi i colpi da soli non li distinguono. Il cronografo misura la velocità direttamente, nell'aria del giorno e alla temperatura della polvere del giorno, e lascia la resistenza come unica grande incognita.
 
 - **Con un cronografo** che riporta ogni colpo man mano (un radar Doppler o un apparecchio montato alla volata), una sessione su un campo fino a circa 800 m misura la resistenza di una .308 al ±1,5–2 % con 20–30 colpi. È il voto A, e lo strumento propone di salvare il risultato nella vostra cartuccia. Una correzione del BC richiede almeno cinque letture del cronografo registrate durante la sessione.
-- **Senza cronografo** lo strumento non propone mai una correzione del BC. La resistenza dipenderebbe allora interamente dalla velocità media misurata un altro giorno, e nulla nella sessione può verificare quella media. A 800 m, un errore di 1 m/s su di essa sposta il risultato della resistenza di circa lo 0,5 %. La pagina «Prepara» può comunque dare voto A a un piano del genere; il §8.7 spiega perché quel voto non basta per un BC. Se non avete verificato nemmeno la media, la sessione si ferma al voto C qualunque sia il numero di colpi, poco meglio del BC pubblicato. In entrambi i casi ottenete comunque alzi corretti per le distanze sparate e un controllo dello zero. Valgono solo per quelle distanze e per un'aria simile.
+- **Senza cronografo** lo strumento non propone mai una correzione del BC. La resistenza dipenderebbe allora interamente dalla velocità media misurata un altro giorno, e nulla nella sessione può verificare quella media. A 800 m, un errore di 1 m/s su di essa sposta il risultato della resistenza di circa lo 0,5 %. La pagina «Prepara» può comunque dare voto A a un piano del genere; il §8.8 spiega perché quel voto non basta per un BC. Se non avete verificato nemmeno la media, la sessione si ferma al voto C qualunque sia il numero di colpi, poco meglio del BC pubblicato. In entrambi i casi ottenete comunque alzi corretti per le distanze sparate e un controllo dello zero. Valgono solo per quelle distanze e per un'aria simile.
 
-Senza cronografo, una sessione è **molto** meno utile. Se potete farvene prestare uno, fatelo. Il campo conta quasi altrettanto: su un campo che finisce a 600 m, anche con cronografo e preparazione completa una .308 non supera il voto B (vedi §8.7).
+Senza cronografo, una sessione è **molto** meno utile. Se potete farvene prestare uno, fatelo. Il campo conta quasi altrettanto: su un campo che finisce a 600 m, anche con cronografo e preparazione completa una .308 non supera il voto B (vedi §8.8).
 
 ### 2.3 I voti
 
@@ -222,9 +222,9 @@ dove $c_\text{app}$ è la soluzione di traiettoria dell'app stessa (lo stesso in
 | $\delta v$ | `v0Ms` | errore di velocità alla volata, m/s | sommato a $v_0$ nella fisica |
 | $\delta d$ | `dragPct` | fattore di resistenza, % | divide il fattore di guadagno BC $G$ nella fisica |
 | $\tau$ | `trackPct` | errore del valore di click, % | proporzionale all'alzo |
-| $\Delta R_t$ | `rangeErrM_t` | errore di distanza del bersaglio $t$, m | per bersaglio, solo nel controllo degli errori grossolani (§8.9) |
+| $\Delta R_t$ | `rangeErrM_t` | errore di distanza del bersaglio $t$, m | per bersaglio, solo nel controllo degli errori grossolani (§8.10) |
 | $u_t$ | `losU_t` | pendenza non registrata del bersaglio $t$, $u = 1-\cos\alpha$ | per bersaglio, solo nel controllo degli errori grossolani |
-| $\varepsilon$ | | rumore della serie | gaussiano, $\sigma$ dal §8.4 |
+| $\varepsilon$ | | rumore della serie | gaussiano, $\sigma$ dal §8.5 |
 
 $\delta d > 0$ significa più resistenza di quanta ne preveda il BC in uso. Il salvataggio moltiplica il fattore di guadagno della cartuccia per $1/(1+\delta d/100)$, così una seconda taratura si somma alla prima. Il fattore di resistenza passa per il fattore di guadagno e non per `bc` stesso, perché 247 dei 385 proiettili della libreria sono tabelle Cd-Mach e non hanno un `bc` da scalare.
 
@@ -275,11 +275,57 @@ Anche ogni dato che fornite finisce in queste quattro cause. Espresso come la va
 | temperatura +3 °C | −0,9 % | −0,9 % | −0,9 % |
 | pressione +10 hPa | 1,0 % | 1,0 % | 1,0 % |
 
-Le ultime due righe sono costanti per un motivo preciso. La forza di resistenza è proporzionale alla densità dell'aria, quindi un errore dell'1 % sulla densità è *esattamente* un errore dell'1 % sulla resistenza a ogni distanza (a parte un piccolo effetto attraverso la velocità del suono). La sessione non può accorgersi affatto di una temperatura o di una pressione sbagliate e le passa direttamente al BC. Per questo lo strumento insiste sulla pressione di stazione e avvisa sul QNH (§8.12), e per questo la pagina «Conclusione» ricorda che la correzione del BC presuppone l'aria che avete inserito.
+Le ultime due righe sono costanti per un motivo preciso. La forza di resistenza è proporzionale alla densità dell'aria, quindi un errore dell'1 % sulla densità è *esattamente* un errore dell'1 % sulla resistenza a ogni distanza (a parte un piccolo effetto attraverso la velocità del suono). La sessione non può accorgersi affatto di una temperatura o di una pressione sbagliate e le passa direttamente al BC. Per questo lo strumento insiste sulla pressione di stazione e avvisa sul QNH (§8.13), e per questo la pagina «Conclusione» ricorda che la correzione del BC presuppone l'aria che avete inserito.
 
 La riga della distanza spiega il §3.5. A 800 m, 20 m di errore di distanza valgono il 7 % di resistenza, più dell'intero prior. Solo un secondo bersaglio vicino potrebbe accorgersene, e nemmeno allora in modo affidabile.
 
-### 8.3 I prior
+### 8.3 Due obiettivi: previsione e attribuzione
+
+Una sessione serve due obiettivi, e il motore li tratta in modo diverso.
+
+**Previsione**: l'alzo a una data distanza in una data aria. La sua incertezza è la varianza predittiva $J(R)^\top\Sigma J(R)$, che dipende solo dalla combinazione di cause che la colonna $J(R)$ vede.
+
+**Attribuzione**: quanto è grande ciascuna causa. La sua incertezza è la varianza marginale $\Sigma_{ii}$, e la sua separazione dalle altre è la correlazione a posteriori.
+
+Quando due cause sono quasi collineari (§8.2), l'a posteriori è un'ellisse lunga e stretta. La combinazione che i colpi vedono è stretta; quella che non possono vedere è larga circa quanto il prior. Alle distanze sparate, $J(R)$ è quasi trasversale all'asse lungo, quindi la previsione è buona anche quando l'attribuzione è scarsa. Fuori da quelle distanze, $J(R)$ ruota verso l'asse lungo e la previsione peggiora. Un piano fino a 600 m con 20 colpi per la .308 di riferimento:
+
+| | dev. std. resistenza | dev. std. velocità | dev. std. alzo a 300 m | 600 m | 800 m | 1000 m |
+|---|---|---|---|---|---|---|
+| prima della sessione (solo prior) | 4,1 % | 20 m/s | 0,27 | 0,42 | 0,63 | 0,99 |
+| nessuna preparazione, senza cronografo | 3,85 % | 10,0 m/s | 0,06 | 0,07 | 0,16 | 0,33 |
+| nessuna preparazione, con cronografo | 3,20 % | 1,3 m/s | 0,06 | 0,06 | 0,15 | 0,32 |
+| preparazione completa, con cronografo | 2,91 % | 1,3 m/s | 0,05 | 0,06 | 0,14 | 0,31 |
+
+(deviazioni standard dell'alzo in mrad)
+
+Senza cronografo, la sessione migliora l'alzo a 600 m di sei volte e il fattore di resistenza quasi per nulla. Il cronografo cambia appena gli alzi previsti alle distanze sparate, ma riduce l'incertezza sulla velocità di quasi otto volte. La previsione i colpi la danno quasi gratis; l'attribuzione è ciò per cui la sessione va progettata.
+
+I due obiettivi possono anche dare risposte contraddittorie che nei dati sembrano identiche. Una velocità di 10 m/s inferiore a quella registrata, assorbita da una variazione del BC del 6,4 %, coincide esattamente a 600 m. È poi sbagliata di 0,11 mrad a 800 m, di 0,16 mrad a 800 m in una giornata a −10 °C, e di 0,35 mrad a 1000 m. I residui dell'adattamento non lo mostrano, perché a 600 m l'attribuzione sbagliata e quella giusta prevedono lo stesso alzo.
+
+**Cosa fa il motore per la previsione.** Il valore da impostare prima di ogni serie e la tabella degli alzi nella conclusione sono previsioni, ciascuna con la propria deviazione standard predittiva (§8.14). Il controllo di sicurezza della scala è una previsione alla distanza successiva (§8.12). Nessuno di questi ha bisogno di cause separate.
+
+**Cosa fa il motore per l'attribuzione.** Gran parte dei meccanismi di questa sezione esiste per questo obiettivo:
+
+- *Il piano valuta l'attribuzione, non la previsione.* L'obiettivo (§8.9) somma varianze marginali $\Sigma_{ii}$, ciascuna misurata dopo aver tenuto conto delle altre cause, quindi un disegno che lascia confuse due cause ottiene un punteggio cattivo su entrambe. Un pianificatore orientato alla previsione minimizzerebbe $J(R)^\top\Sigma J(R)$ alle distanze a cui sparate e metterebbe lì i suoi colpi.
+- *Una geometria scelta per separare.* Un colpo vicino alla distanza di zero, dove solo la colonna dello zero è diversa da zero. Il bersaglio lontano il più vicino possibile a Mach 1,1 che la postazione consenta, dove la colonna della resistenza differisce di più da quella della velocità. Un piano deve andare oltre i 300 m quando la postazione lo consente, così da non poter ottenere un buon punteggio sparando solo dove tutto è facile.
+- *Misure dirette per le cause collineari.* Il cronografo osserva $\delta v$ direttamente (§8.6), quindi la coppia velocità–resistenza non deve più essere distinta dalla forma. Un test tall-target fa lo stesso per il valore di click, quasi esattamente collineare con la velocità (coseno −0,99993).
+- *Cause adattate anche quando non vengono riportate.* Un valore di click testato resta nell'adattamento con il suo prior dello 0,15 %. Toglierlo lascerebbe attribuire alla resistenza ogni errore residuo di tracking (§8.4).
+- *Gli errori sul campo hanno spiegazioni proprie.* Un bersaglio misurato male o in pendenza è un'ipotesi concorrente per ogni bersaglio (§8.10), così da non poter essere attribuito alla resistenza. I bersagli vengono decisi insieme, così una causa comune non viene attribuita a un solo bersaglio. La misura dell'angolo rompe l'esatta degenerazione tra distanza e pendenza.
+- *Una preparazione dubbia allarga il risultato.* Uno zero o una velocità media spuntati che i colpi contraddicono allargano il risultato (§8.11) invece di spingere la discrepanza su un'altra causa.
+- *Le cause inseparabili vengono riportate insieme.* Le cause con correlazione a posteriori superiore a 0,8 vengono riportate come un unico contributo combinato, mai come riscontri separati di singole cause (§8.14).
+- *Il ritorno verso il prior non è una misura.* Una causa con risoluzione inferiore a 0,2 è «non determinata», mai «nella norma» (§8.14). Un piccolo valore adattato significa poco quando è stato il prior a metterlo lì.
+- *Un riscontro sulla velocità richiede letture.* Senza letture del cronografo, una velocità adattata è solo l'errore di un'altra causa spostato sulla velocità, e viene riportata come non determinata.
+- *Il BC viene scritto solo se l'attribuzione è riuscita.* Cioè almeno cinque letture del cronografo, voto A o B, un risultato entro 3σ dal prior e un fattore di guadagno compreso tra 0,8 e 1,2 (§8.13). «Prepara» e «Conclusione» condividono questa regola, così un piano non promette mai un BC che la conclusione rifiuterebbe.
+- *Ciò che nessun colpo può attribuire viene protetto all'inserimento.* La densità dell'aria è esattamente collineare con la resistenza (§8.2), quindi una pressione o una temperatura sbagliate non si possono separare dopo. Per questo esistono il controllo del QNH e la nota sulle condizioni presupposte.
+
+**Dove i due obiettivi divergono nel motore.**
+
+- *I colpi vanno dove le colonne differiscono, non dove sparerete.* Gli alzi alle distanze intermedie risultano comunque buoni, perché la previsione all'interno dell'intervallo sparato costa poco.
+- *Il prior di resistenza allargato dopo un colpo non visto serve la scala e i valori da impostare, non la conclusione* (§8.12). Un prior allargato dopo un colpo non visto prevede meglio il nuovo tentativo, ma usato per l'attribuzione farebbe abbassare il voto da un singolo impatto non visto.
+- *La tabella degli alzi viene proposta solo quando non lo è una correzione del BC.* Quando l'attribuzione riesce, la cartuccia corretta prevede ogni distanza e la tabella non aggiunge nulla. Quando fallisce, la tabella è la parte del risultato che vale ancora, e solo alle distanze sparate.
+- *I riscontri vengono giudicati a $R_\text{max}$.* L'attribuzione viene riportata in base alle sue conseguenze sulla previsione alla vostra distanza d'impiego massima (§8.14), così una causa reale ma irrilevante viene elencata come non rilevante anziché come un riscontro.
+
+### 8.4 I prior
 
 L'adattamento è bayesiano: ogni causa parte da un prior normale a media nulla, e i colpi lo restringono.
 
@@ -296,7 +342,7 @@ L'adattamento è bayesiano: ogni causa parte da un prior normale a media nulla, 
 
 **Valore di click.** Un valore di click testato viene comunque adattato con il suo prior dello 0,15 %, ma non viene riportato. Lasciarlo fuori dall'adattamento farebbe finire ogni errore residuo di tracking nella resistenza: in una simulazione Monte Carlo di sessioni complete, la banda al 95 % della resistenza mancava allora la verità circa un terzo di punto percentuale più spesso. Con il valore di click adattato, la banda la mancava nel 5,0 % dei casi.
 
-### 8.4 Il rumore
+### 8.5 Il rumore
 
 Il $\sigma$ verticale di un colpo ha tre parti indipendenti:
 
@@ -320,13 +366,13 @@ $$\hat\sigma_v^2 = \frac{(N_0-1)\,\text{SD}_0^2 + (n-1)\,s^2}{N_0+n-2}$$
 
 $N_0$ è il numero di colpi indicato, oppure 5 se non è indicato. Il valore combinato vale come $N_0+n-1$ colpi. Ogni lettura viene prima confrontata con la velocità della cartuccia nell'aria della propria rosata, e lo scostamento medio viene tolto, così un cambio di tempo o una media sbagliata non contano come dispersione. Le serie già registrate vengono ripesate a ogni nuovo valore. Oltre dieci letture, un test F bilaterale al 5 % ($s^2/\text{SD}_0^2$ contro $F_{n-1,\,N_0-1}$) decide se la dispersione del giorno è davvero diversa. Se lo è, lo strumento lo dice e propone di aggiornare la cartuccia. Il test F guida solo questa segnalazione. La combinazione avviene comunque e non cambia nulla quando la deviazione standard registrata è giusta.
 
-### 8.5 Il cronografo
+### 8.6 Il cronografo
 
 Le letture di ogni rosata formano un'osservazione diretta di $\delta v$. Il residuo è (lettura media − velocità della cartuccia nell'aria di quella rosata), e il suo $\sigma$ è $t_{0.975,N-1}/z\cdot\hat\sigma_v/\sqrt n$, la stessa forma del prior di velocità. Un colpo che l'apparecchio ha mancato è semplicemente una lettura in meno.
 
 Dalla prima lettura in poi, le letture della sessione sostituiscono la media verificata come informazione sulla velocità. La media è stata misurata in un'altra occasione e può essere sbagliata per una polvere sensibile alla temperatura o un altro lotto. Le letture portano la propria incertezza, ampia con una o due letture. Sono state confrontate soglie da una a cinque letture, con un cronografo che mancava la maggior parte dei colpi. Una sola lettura lasciava l'errore più piccolo ogni volta che la media verificata era sbagliata, e costava al massimo un millesimo di mrad quando era giusta. La stessa informazione non viene mai contata due volte, come prior più stretto e come osservazione insieme.
 
-### 8.6 L'adattamento
+### 8.7 L'adattamento
 
 La stima è il punto di massimo a posteriori (MAP) di
 
@@ -340,7 +386,7 @@ Il residuo di una riga del cronografo o di una rimisura viene rilinearizzato com
 
 La colonna della resistenza è una differenza centrata su ±1 %. L'alzo è curvo rispetto al fattore di resistenza, quindi un passo unilaterale di +5 % leggerebbe a 800 m una pendenza più ripida del 2,7 % di quella locale, e l'adattamento dichiarerebbe la resistenza più stretta di quanto la conosca: in una simulazione Monte Carlo di sessioni complete, la sua banda al 95 % mancava la verità nel 5,7 % dei casi con il passo unilaterale, contro il 5,2 % con quello centrato.
 
-### 8.7 Cosa può risolvere una sessione
+### 8.8 Cosa può risolvere una sessione
 
 Risultati del pianificatore per la .308 di riferimento (R50 0,25 mrad, dispersione di velocità 6 m/s, vento moderato). I numeri sono la deviazione standard a posteriori del fattore di resistenza, con il voto:
 
@@ -359,13 +405,13 @@ Cosa mostra la tabella:
 
 - **Senza cronografo né media verificata non funziona nulla.** Con un prior di velocità di 20 m/s, la correlazione velocità–resistenza resta a 0,7–0,9, e 40 colpi non fanno meglio di 12. La resistenza si muove appena dal suo prior del 4,1 %.
 - **La distanza batte il numero di colpi.** Con preparazione completa e cronografo, 40 colpi fino a 600 m danno il 2,5 %. Dodici colpi fino a 800 m danno l'1,93 %. Per questa .308 a 600 m, la colonna della resistenza somiglia ancora troppo a quella della velocità.
-- **La riga «media verificata, senza cronografo» è voto A sulla carta**, eppure lo strumento non propone per essa alcuna correzione del BC. Il piano prende la media con la sua incertezza dichiarata, ma quella media viene da un altro giorno. Una deriva con la temperatura sbagliata, un altro lotto o un cronografo stanco la spostano, e a 800 m ogni m/s passa direttamente nella resistenza come 0,5 %. Nulla nella sessione può vedere uno spostamento del genere. Le cinque letture del cronografo sono l'unica informazione misurata nella stessa aria e alla stessa temperatura della polvere dei colpi.
+- **La riga «media verificata, senza cronografo» è voto A sulla carta**, eppure lo strumento non propone per essa alcuna correzione del BC. Il piano prende la media con la sua incertezza dichiarata, ma quella media viene da un altro giorno. Una deriva con la temperatura sbagliata, un altro lotto o un cronografo stanco la spostano, e a 800 m ogni m/s passa direttamente nella resistenza come 0,5 %. Nulla nella sessione può vedere uno spostamento del genere. Le cinque letture del cronografo sono l'unica informazione misurata nella stessa aria e alla stessa temperatura della polvere dei colpi, e quindi l'unica che attribuisce l'alzo alla velocità anziché alla resistenza nelle condizioni del giorno.
 
 Altri due numeri della pagina «Prepara» vengono dallo stesso a posteriori. La **distanza lontana richiesta** è il bersaglio lontano più vicino al quale una rosata vicina e una lontana raggiungono una data deviazione standard della resistenza. La **soglia di invalidità** è la distanza lontana sotto la quale nemmeno una lettura precisa quanto un click (σ = 0,1/√12 mrad), con un numero qualsiasi di colpi, può portare la resistenza sotto il 4 %. Sotto quella soglia nessun piano sfugge al voto D, e la pagina lo dice.
 
-### 8.8 Il pianificatore
+### 8.9 Il pianificatore
 
-Per un disegno (un insieme di distanze e i colpi su ciascuna), l'a posteriori è quello del modello linearizzato al BC in uso:
+Il piano è progettato per l'attribuzione (§8.3): valuta la varianza propria di ciascuna causa, non l'alzo previsto. Per un disegno (un insieme di distanze e i colpi su ciascuna), l'a posteriori è quello del modello linearizzato al BC in uso:
 
 $$\Sigma^{-1} = P_0 + \sum_g \frac{J_g J_g^\top}{\sigma_g^2}$$
 
@@ -385,7 +431,7 @@ I gradini della scala ricevono un colpo ciascuno: sono controlli di sicurezza, n
 
 Il vento di pianificazione e le letture del cronografo previste entrano esattamente come entreranno nell'adattamento, così la previsione della pagina «Prepara» e il risultato finale concordano su quanto vale ogni elemento.
 
-### 8.9 Bersagli misurati male e in pendenza
+### 8.10 Bersagli misurati male e in pendenza
 
 Un errore di distanza e una pendenza trascurata sono i due errori sul campo che i colpi distinguono meno da una resistenza sbagliata. Ogni bersaglio riceve quindi una scelta a tre esiti, confrontati in base all'evidenza:
 
@@ -423,11 +469,11 @@ L'enumerazione congiunta esatta cresce in modo esponenziale con il numero di ber
 
 Un bersaglio viene segnalato, e chiesta una rimisura, appena il suo peso «qualcosa non va» supera il 20 %. In simulazione, una soglia del 50 % non scattava quasi mai. Al 20 % scatta circa una sessione su dieci e migliora sia i valori da impostare sia la stima della resistenza. Rimisurare richiede pochi secondi.
 
-### 8.10 Verifica delle spunte di preparazione
+### 8.11 Verifica delle spunte di preparazione
 
-Uno zero o una velocità media spuntati non vengono presi sulla parola. Ciascuno diventa una scelta a due esiti nella stessa enumerazione: il prior verificato con peso 0,9, quello non verificato (0,25 mrad, 20 m/s) con 0,1. Se i colpi contraddicono una spunta, il risultato fuso si allarga invece di spingere la discrepanza su un'altra causa. La pagina «Conclusione» nomina una spunta appena il suo peso «non ha tenuto» supera il 50 %. La spunta della velocità decade appena subentra il cronografo della sessione (§8.5). Il valore di click non viene verificato così. I colpi non dicono quasi nulla su di esso (§8.2), e ogni asse aggiuntivo raddoppia il calcolo.
+Uno zero o una velocità media spuntati non vengono presi sulla parola. Ciascuno diventa una scelta a due esiti nella stessa enumerazione: il prior verificato con peso 0,9, quello non verificato (0,25 mrad, 20 m/s) con 0,1. Se i colpi contraddicono una spunta, il risultato fuso si allarga invece di spingere la discrepanza su un'altra causa. La pagina «Conclusione» nomina una spunta appena il suo peso «non ha tenuto» supera il 50 %. La spunta della velocità decade appena subentra il cronografo della sessione (§8.6). Il valore di click non viene verificato così. I colpi non dicono quasi nulla su di esso (§8.2), e ogni asse aggiuntivo raddoppia il calcolo.
 
-### 8.11 La scala e i colpi non visti
+### 8.12 La scala e i colpi non visti
 
 Ogni gradino deve superare due controlli.
 
@@ -450,9 +496,9 @@ Un colpo non visto dice anche quanto deve essere grande, come minimo, l'errore d
 
 $$|\delta d| \ge \frac{h/2}{R}\Big/\frac{\partial c}{\partial d}$$
 
-Su un parapalle di 2 m per la .308 questo vale il 22 % a 800 m, il 38 % a 700 m, il 68 % a 600 m e l'815 % a 300 m. Il prior di resistenza usato dalla scala e dai valori da impostare viene allargato finché quella grandezza non sta a due deviazioni standard. Un errore di BC grossolano viene allora seguito invece di essere riportato verso il valore pubblicato, cosa che farebbe mancare di nuovo il tentativo di quasi altrettanto. Se l'errore richiesto supera il 50 %, nessun BC è così sbagliato: il colpo non visto aveva un'altra causa (una raffica, un errore d'impostazione, un impatto semplicemente non visto), e allargare costerebbe solo precisione. La stima lineare qui basta; risolvere esattamente la traiettoria non ha cambiato alcun esito simulato. L'adattamento per la conclusione usa il prior normale. Altrimenti un colpo che era solo un impatto non visto costerebbe un voto a una sessione senza cronografo, e la regola dei 3σ del §8.12 intercetta comunque un errore di BC grossolano.
+Su un parapalle di 2 m per la .308 questo vale il 22 % a 800 m, il 38 % a 700 m, il 68 % a 600 m e l'815 % a 300 m. Il prior di resistenza usato dalla scala e dai valori da impostare viene allargato finché quella grandezza non sta a due deviazioni standard. Un errore di BC grossolano viene allora seguito invece di essere riportato verso il valore pubblicato, cosa che farebbe mancare di nuovo il tentativo di quasi altrettanto. Se l'errore richiesto supera il 50 %, nessun BC è così sbagliato: il colpo non visto aveva un'altra causa (una raffica, un errore d'impostazione, un impatto semplicemente non visto), e allargare costerebbe solo precisione. La stima lineare qui basta; risolvere esattamente la traiettoria non ha cambiato alcun esito simulato. L'adattamento per la conclusione usa il prior normale. Altrimenti un colpo che era solo un impatto non visto costerebbe un voto a una sessione senza cronografo, e la regola dei 3σ del §8.13 intercetta comunque un errore di BC grossolano.
 
-### 8.12 Salvaguardie sugli inserimenti
+### 8.13 Salvaguardie sugli inserimenti
 
 Nessuna vi blocca. Ciascuna avvisa, spiega o trattiene un risultato.
 
@@ -464,7 +510,7 @@ Nessuna vi blocca. Ciascuna avvisa, spiega o trattiene un risultato.
 - **Riscontro sulla velocità.** Riportato come correzione misurata solo se ci sono letture del cronografo dietro. Senza di esse, una velocità ricavata dagli alzi è solo l'errore di un'altra causa spostato sulla velocità, e viene elencata come non determinata.
 - **Bersaglio lontano pianificato non raggiunto.** La pagina «Conclusione» lo dice e valuta solo ciò che è stato sparato.
 
-### 8.13 Cosa viene riportato
+### 8.14 Cosa viene riportato
 
 $R_\text{max}$ è la vostra distanza d'impiego massima: la distanza supersonica più lontana della postazione, o la distanza più lontana sparata se è maggiore. Ogni riscontro viene giudicato a $R_\text{max}$.
 
@@ -474,7 +520,7 @@ $$P(\text{material}) = \Phi\!\left(\frac{-0.1-m}{s}\right) + 1 - \Phi\!\left(\fr
 
 I riscontri vengono ordinati in base a questa probabilità.
 
-**Risoluzione.** $\tilde R = I - \Sigma P_0$, scalata con le deviazioni standard del prior. La sua diagonale è $1 - \Sigma_{ii}/\sigma_{0,i}^2$, la quota della varianza a priori che i colpi hanno eliminato. Sotto 0,2 la sessione non ha misurato quella causa. È allora «non determinata», o elencata come irrisolta se il suo effetto adattato probabilmente conta comunque, ma mai «nella norma», perché un valore riportato verso il suo prior non è una misura.
+**Risoluzione.** $\tilde R = I - \Sigma P_0$, scalata con le deviazioni standard del prior. La sua diagonale è $1 - \Sigma_{ii}/\sigma_{0,i}^2$, la quota della varianza a priori che i colpi hanno eliminato. Sotto 0,2 la sessione non ha misurato quella causa. È allora «non determinata», o elencata come irrisolta se il suo effetto adattato probabilmente conta comunque, ma mai «nella norma», perché un valore riportato verso il suo prior non è una misura. È il corrispettivo, sul lato dell'attribuzione, della deviazione standard predittiva della tabella degli alzi: una causa può restare irrisolta mentre l'alzo a cui contribuisce è noto con precisione.
 
 **Degenerazione.** Le cause legate da una correlazione a posteriori superiore a 0,8 vengono raggruppate come componenti connesse, così i legami possono concatenarsi. Ogni gruppo viene riportato come un unico contributo combinato $m=\sum_{k} J_k\theta_k$ con varianza $J^\top\Sigma J$ sui suoi membri. Quando il gruppo è velocità e resistenza, il consiglio è portare un cronografo. Le correlazioni tra 0,5 e 0,8 tra cause riportate ricevono una nota.
 
@@ -484,7 +530,7 @@ I riscontri vengono ordinati in base a questa probabilità.
 
 Le soglie per lo zero e per la tabella degli alzi sono state scelte provando regole candidate su migliaia di sessioni simulate. Insieme dimezzano circa le sessioni in cui seguire il risultato rende gli alzi peggiori che non fare nulla, a un piccolo costo quando lo zero è davvero un po' spostato.
 
-### 8.14 Cosa il modello lascia fuori
+### 8.15 Cosa il modello lascia fuori
 
 - **La forma della curva di resistenza.** $\delta d$ scala la curva di resistenza assunta e non la rimodella mai. Un BC G1 usato per un proiettile la cui resistenza segue G7 è un errore di forma. Sopra Mach 1,1 un unico fattore ne assorbe la maggior parte sulle distanze sparate, ma non tutto, e non si estende al transonico. È la ragione principale per cui lo strumento resta nel supersonico, e il motivo del tetto della scala.
 - **L'altezza di mira** non viene adattata. Oltre qualche centinaio di metri il suo effetto è quasi costante (−0,020, −0,025 e −0,026 mrad a 300, 600 e 800 m per 3 mm), quindi somiglia a un piccolo scostamento dello zero, e i colpi non possono distinguerli. Misuratela.
