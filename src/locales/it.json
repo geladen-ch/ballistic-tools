@@ -1479,6 +1479,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v220": "Novità: strumento \"Sessione di taratura\" (+ molte correzioni di bug e miglioramenti dell’interfaccia)",
       "v219": "Correzione: probabilità di colpire un bersaglio in movimento, zero in piano. Novità: atmosfera dello zero, fattore di guadagno BC.",
       "v218": "Nuovo: \"Backup e sincronizzazione\" fa pulizia da sola (foto inutilizzate, file di backup duplicati, un registro di sincronizzazione persistente) e permette di eliminare un dispositivo fuori uso, da qualsiasi browser.",
       "v217": "Correzione: risolto l'output difettoso degli export SVG dei grafici (curva Cd-Mach, traiettoria, confronto Arsenale, grafico tracciato Labrabaco NG).",

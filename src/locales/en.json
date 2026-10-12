@@ -1479,6 +1479,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v220": "New: Truing Session tool (+ lot of bugfixes and UI enhancements)",
       "v219": "Fix: moving target probability, flat zero. New: zero atmosphere, BC gain factor.",
       "v218": "New: Backup & Sync cleans up after itself (unused photos, duplicate backup files, a persistent sync log) and lets you delete a device that is out of circulation, from any browser.",
       "v217": "Fix: fixed broken output of chart SVG exports (Cd–Mach curve, Trajectory, Arsenal comparison, Labrabaco NG track chart).",
