@@ -638,6 +638,20 @@ grille, options de l'image, position du curseur — est mémorisé et restauré
 la prochaine fois que vous ouvrez ce rapport, même après un redémarrage de
 l'application.
 
+## Session de calibrage
+
+*Expérimental.* Voir le [manuel détaillé](#/manual/truing-session) pour savoir quand l'outil vaut la peine, ce qu'une séance peut vous dire ou non, ainsi que le modèle complet et les statistiques qui le sous-tendent.
+
+Quand la carabine et l'application ne sont pas d'accord, un impact manqué ne dit pas à lui seul pourquoi : une vitesse initiale fausse, un BC faux, un zéro décalé, une lunette qui donne moins que la valeur de clic annoncée et une mauvaise lecture du vent peuvent tous produire le même écart. Cet outil planifie une courte séance qui distingue ces causes, vous guide pendant le tir et rapporte ce qu'il a trouvé. Lorsque deux causes ne peuvent pas être séparées, il le dit. C'est la dernière étape de la mise au point d'une carabine, pas la première : passez votre munition au chronographe, mesurez la hauteur de visée, vérifiez votre zéro et le suivi des clics de la lunette, et partez d'un BC fiable avant de vous lancer. Si vous pouvez mesurer le BC directement ([Labrabaco NG](#/manual/bc-labradar) ou deux chronographes dans les Outils BC), c'est généralement au moins aussi précis.
+
+L'outil travaille sur la carabine et la cartouche actives de l'Arsenal et sur le lieu de tir actif, et se déroule en trois étapes :
+
+- **Préparer** — saisissez la pression de station du jour (et non la pression ramenée au niveau de la mer qu'affiche un téléphone) et la température, cochez les préparatifs que vous avez réellement faits, et fixez le nombre total de cartouches. L'outil choisit la meilleure paire proche/lointaine parmi les cibles de votre lieu, y répartit les cartouches, propose des nombres de cartouches de minimal à deluxe et note le plan de A à D avant même le premier tir. Avant de commencer, il vous demande de retélémétrer la cible lointaine et, sauf si le stand est déclaré plat, d'en mesurer l'angle. Le résultat dépend de cette distance plus que de toute autre chose.
+- **Tirer** — l'outil vous fait avancer du proche au lointain une étape à la fois, chaque étape seulement après que la précédente a touché le pare-balles. Avant chaque série d'au plus trois cartouches, il indique ce qu'il faut afficher. Vous saisissez la correction en hausse qui mettrait les impacts sur le point visé, la qualité de votre lecture des impacts, le vent réglé et, avec un chronographe, la vitesse de chaque cartouche. Une série que vous n'avez pas pu voir est un résultat normal : l'outil recule d'une étape et réessaie. Un aperçu en direct montre ce qu'il a appris jusque-là.
+- **Conclure** — une liste de constats classés, chacun avec son ampleur et sa marge : une correction de traînée (BC), une correction de zéro, des corrections en hausse pour les distances tirées, la vitesse initiale, et tout ce que la séance n'a pas pu déterminer. Une correction de BC n'est proposée qu'aux notes A ou B avec au moins cinq mesures au chronographe pendant la séance. L'enregistrer écrit un **facteur de gain BC** dans la cartouche (1,00 par défaut ; les données de la balle elle-même ne changent pas), que Trajectoire, Calculateur de terrain et Probabilité de toucher utilisent ensuite.
+
+Un chronographe est ce que vous pouvez apporter de plus précieux : sans lui, l'outil ne propose jamais de correction de BC, et vous n'obtenez que des corrections en hausse et une vérification du zéro pour les distances tirées. Vol supersonique uniquement.
+
 ## Paramètres
 
 - **Langue** — English, Français, Русский, Deutsch, Italiano.

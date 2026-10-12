@@ -4,6 +4,6 @@
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
 export const CACHE_VERSION = 'v220';
-export const RELEASE_ID = '5.0.0';
+export const RELEASE_ID = '4.2.0';
 export const CODENAME_SHORT = 'BOOBS';
 export const CODENAME_LONG = 'Bullet Origin-to-Objective Ballistic Solver';

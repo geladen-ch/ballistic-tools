@@ -553,6 +553,20 @@ Every one of these settings — display units, which numbers show on the
 image, grid, image options, slider position — is remembered and restored
 the next time you open this report, even after restarting the app.
 
+## Truing Session
+
+*Experimental.* See the [detailed manual](#/manual/truing-session) for when the tool is worth using, what a session can and cannot tell you, and the full model and statistics behind it.
+
+When the rifle and the app disagree, a miss alone does not say why: a wrong muzzle velocity, a wrong BC, a shifted zero, a scope that gives less than its stated click value and a bad wind call can all produce the same miss. This tool plans a short session that tells those causes apart, guides you through shooting it, and reports what it found. When two causes cannot be separated, it says so. It is the last step of setting up a rifle, not the first: chronograph your load, measure the sight height, check your zero and your scope's tracking, and start from a reliable BC before you go truing. If you can measure the BC directly ([Labrabaco NG](#/manual/bc-labradar) or two chronographs in BC Tools), that is usually at least as precise.
+
+It works on the active Arsenal rifle and cartridge and the active shooting location, and runs in three steps:
+
+- **Prepare** — enter the day's station pressure (not the sea-level pressure a phone gives) and temperature, tick the homework you have really done, and set the total number of rounds. The tool picks the best near/far pair from your location's targets, splits the rounds between them, suggests round counts from minimal to deluxe, and grades the plan from A to D before you fire a shot. Before you start, it asks you to range the far target again and, unless the range is declared flat, to measure its angle. The result depends on that distance more than on anything else.
+- **Shoot** — the tool walks you out from near to far one step at a time, each step only after the previous one has landed on the backdrop. Before each string of at most three rounds it shows what to dial. You record the come-up that would put the impacts on the point of aim, how well you could read them, the wind you set, and, with a chronograph, each round's velocity. A string you could not see is a normal outcome: the tool steps back and retries. A live readout shows what it has learned so far.
+- **Conclude** — a ranked list of findings, each with its size and margin: a drag (BC) correction, a zero correction, corrected come-ups for the distances you shot, the muzzle velocity, and anything the session could not determine. A BC correction is offered only at grade A or B with at least five chronograph readings from the session. Saving it writes a **BC gain factor** to the cartridge (1.00 by default; the bullet's own data is unchanged), which Trajectory, Range Solver and Hit Probability then use.
+
+A chronograph is the most valuable thing you can bring: without one the tool never offers a BC correction, and you get only come-ups and a zero check for the distances you shot. Supersonic flight only.
+
 ## Settings
 
 - **Language** — English, Français, Русский, Deutsch, Italiano.

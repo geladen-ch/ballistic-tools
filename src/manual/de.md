@@ -646,6 +646,20 @@ erscheinen, Gitter, Bildoptionen, Position des Schiebereglers — wird
 gespeichert und beim nächsten Öffnen dieses Berichts wiederhergestellt,
 selbst nach einem Neustart der App.
 
+## Einschieß-Sitzung
+
+*Experimentell.* Siehe das [ausführliche Handbuch](#/manual/truing-session) dafür, wann sich das Werkzeug lohnt, was eine Sitzung leisten kann und was nicht, sowie für das vollständige Modell und die Statistik dahinter.
+
+Wenn Gewehr und App nicht übereinstimmen, sagt ein Fehlschuss allein nicht, warum: Eine falsche Mündungsgeschwindigkeit, ein falscher BC, ein verschobener Nullpunkt, ein Zielfernrohr, das weniger als den angegebenen Klickwert liefert, und eine falsch geschätzte Windstärke können alle denselben Fehlschuss ergeben. Dieses Werkzeug plant eine kurze Sitzung, die diese Ursachen auseinanderhält, führt Sie durch das Schießen und berichtet, was es gefunden hat. Lassen sich zwei Ursachen nicht trennen, sagt es das. Es ist der letzte Schritt beim Einrichten eines Gewehrs, nicht der erste: Messen Sie Ihre Laborierung mit dem Chronographen, messen Sie die Visierhöhe, prüfen Sie Nullpunkt und Klickwert des Zielfernrohrs und gehen Sie von einem verlässlichen BC aus, bevor Sie eine Sitzung beginnen. Wenn Sie den BC direkt messen können ([Labrabaco NG](#/manual/bc-labradar) oder zwei Chronographen in den BC-Werkzeugen), ist das meist mindestens ebenso genau.
+
+Das Werkzeug arbeitet mit dem aktiven Gewehr und Patrone aus dem Arsenal und dem aktiven Schießstandort und läuft in drei Schritten ab:
+
+- **Vorbereiten** — geben Sie den Stationsluftdruck des Tages (nicht den auf Meereshöhe reduzierten Druck, den ein Telefon anzeigt) und die Temperatur ein, haken Sie die Vorbereitung ab, die Sie wirklich erledigt haben, und legen Sie die Gesamtzahl der Schüsse fest. Das Werkzeug wählt das beste Nah-/Fern-Paar aus den Zielen Ihres Standorts, verteilt die Schüsse darauf, schlägt Schusszahlen von minimal bis deluxe vor und benotet den Plan von A bis D, noch bevor Sie einen Schuss abgeben. Vor dem Start bittet es Sie, das ferne Ziel erneut anzumessen und, sofern der Stand nicht als eben erklärt ist, seinen Winkel zu messen. Das Ergebnis hängt von dieser Entfernung mehr ab als von allem anderen.
+- **Schießen** — das Werkzeug führt Sie Schritt für Schritt von nah nach fern, jeden Schritt erst, nachdem der vorherige auf dem Kugelfang gelandet ist. Vor jeder Serie von höchstens drei Schüssen zeigt es, was einzustellen ist. Sie erfassen die Höhenverstellung, die die Treffer auf den Haltepunkt bringen würde, wie gut Sie die Treffer ablesen konnten, den eingestellten Wind und, mit Chronograph, die Geschwindigkeit jedes Schusses. Eine Serie, die Sie nicht sehen konnten, ist ein normales Ergebnis: Das Werkzeug geht einen Schritt zurück und versucht es erneut. Eine Live-Anzeige zeigt, was es bisher gelernt hat.
+- **Abschluss** — eine nach Bedeutung geordnete Liste von Befunden, jeder mit Größe und Spielraum: eine Korrektur des Luftwiderstands (BC), eine Nullpunktkorrektur, korrigierte Höhenverstellungen für die beschossenen Entfernungen, die Mündungsgeschwindigkeit und alles, was die Sitzung nicht bestimmen konnte. Eine BC-Korrektur wird nur bei Note A oder B und mindestens fünf Chronographenmessungen aus der Sitzung angeboten. Das Speichern schreibt einen **BC-Verstärkungsfaktor** in die Patrone (standardmäßig 1,00; die Daten des Geschosses selbst bleiben unverändert), den danach Flugbahn, Feldrechner und Trefferwahrscheinlichkeit verwenden.
+
+Ein Chronograph ist das Wertvollste, was Sie mitbringen können: Ohne ihn bietet das Werkzeug nie eine BC-Korrektur an, und Sie erhalten nur Höhenverstellungen und eine Nullpunktprüfung für die beschossenen Entfernungen. Nur Überschallflug.
+
 ## Einstellungen
 
 - **Sprache** — English, Français, Русский, Deutsch, Italiano.

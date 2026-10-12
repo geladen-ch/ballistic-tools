@@ -635,6 +635,20 @@ compaiono sull'immagine, griglia, opzioni immagine, posizione del cursore —
 viene ricordata e ripristinata la prossima volta che apri questo rapporto,
 anche dopo un riavvio dell'app.
 
+## Sessione di taratura
+
+*Sperimentale.* Vedi il [manuale dettagliato](#/manual/truing-session) per sapere quando vale la pena usare lo strumento, cosa una sessione può dirvi e cosa no, e per il modello completo e le statistiche che ci stanno dietro.
+
+Quando il fucile e l'app non concordano, un colpo fuori dal punto non dice da solo perché: una velocità alla volata sbagliata, un BC sbagliato, uno zero spostato, un'ottica che dà meno del valore di clic dichiarato e una cattiva lettura del vento possono produrre tutti lo stesso errore. Questo strumento pianifica una breve sessione che distingue queste cause, vi guida durante il tiro e riferisce cosa ha trovato. Quando due cause non si possono separare, lo dice. È l'ultimo passo nella messa a punto di un fucile, non il primo: misurate la vostra cartuccia al cronografo, misurate l'altezza di mira, verificate lo zero e la corrispondenza dei clic dell'ottica, e partite da un BC affidabile prima di passare alla taratura. Se potete misurare il BC direttamente ([Labrabaco NG](#/manual/bc-labradar) o due cronografi negli Strumenti BC), di solito è almeno altrettanto preciso.
+
+Lo strumento lavora sul fucile e sulla cartuccia attivi dell'Arsenale e sulla postazione di tiro attiva, e si svolge in tre passi:
+
+- **Prepara** — inserite la pressione di stazione del giorno (non la pressione riportata al livello del mare che mostra un telefono) e la temperatura, spuntate la preparazione che avete davvero fatto e impostate il numero totale di colpi. Lo strumento sceglie la migliore coppia vicino/lontano tra i bersagli della vostra postazione, vi ripartisce i colpi, suggerisce numeri di colpi da minimo a deluxe e assegna al piano un voto da A a D prima ancora del primo colpo. Prima di iniziare vi chiede di rimisurare il bersaglio lontano e, a meno che la linea di tiro non sia dichiarata piana, di misurarne l'angolo. Il risultato dipende da quella distanza più che da qualsiasi altra cosa.
+- **Spara** — lo strumento vi porta dal vicino al lontano un passo alla volta, ogni passo solo dopo che il precedente è arrivato sul parapalle. Prima di ogni serie di al massimo tre colpi mostra cosa impostare. Registrate la correzione in elevazione che porterebbe gli impatti sul punto mirato, quanto bene avete potuto leggerli, il vento impostato e, con un cronografo, la velocità di ogni colpo. Una serie che non avete potuto vedere è un esito normale: lo strumento torna indietro di un passo e riprova. Un'indicazione dal vivo mostra cosa ha imparato finora.
+- **Conclusione** — un elenco ordinato di risultati, ciascuno con la sua entità e il suo margine: una correzione della resistenza (BC), una correzione dello zero, correzioni in elevazione per le distanze tirate, la velocità alla volata e tutto ciò che la sessione non ha potuto determinare. Una correzione del BC viene proposta solo con voto A o B e almeno cinque letture del cronografo durante la sessione. Salvarla scrive un **fattore di guadagno BC** sulla cartuccia (1,00 per impostazione predefinita; i dati della palla stessa non cambiano), che poi Traiettoria, Calcolatore per il poligono e Probabilità di colpire utilizzano.
+
+Un cronografo è la cosa più preziosa che possiate portare: senza, lo strumento non propone mai una correzione del BC, e ottenete solo correzioni in elevazione e una verifica dello zero per le distanze tirate. Solo volo supersonico.
+
 ## Impostazioni
 
 - **Lingua** — English, Français, Русский, Deutsch, Italiano.

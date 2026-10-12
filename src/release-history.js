@@ -11,7 +11,7 @@
 export const RELEASE_HISTORY = [
   {
     cacheVersion: 'v220',
-    fullVersion: '5.0.0 (BOOBS — Bullet Origin-to-Objective Ballistic Solver)',
+    fullVersion: '4.2.0 (BOOBS — Bullet Origin-to-Objective Ballistic Solver)',
     date: '2026-10-12',
     descriptionKey: 'releaseHistory.entries.v220'
   },
