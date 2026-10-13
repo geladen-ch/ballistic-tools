@@ -25,8 +25,8 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 - ★ Muzzle velocity vs. powder temperature modeling, instead of one fixed MV
 - ★ Directly measured Cd-Mach drag tables as a drop-in alternative to BC + a standard drag model, per bullet
 - ★ Inclined shots get proper atmosphere along the whole flight, not just a tilted line of sight — pressure, temperature, air density and speed of sound are recomputed at every integration step from the bullet's own current altitude (muzzle altitude plus how far up or down it's actually flown), not held fixed at the muzzle's reading
-- A rifle's zero is always solved the way it was actually set: level, in calm air, and in the cartridge's own zero atmosphere when one is recorded — so the day's slope, wind and weather show up in the corrections instead of silently shifting the zero
-- ★ Trued cartridges — a cartridge's BC gain factor (a drag correction from a Truing Session, or entered by hand) is applied consistently by every tool that solves a trajectory, including cartridges zeroed off a donor's ballistics
+- Your zero is always worked out the way you actually set it: on the flat, with no wind, and in the weather you zeroed in (if you've recorded it). Today's uphill shot, wind or weather changes what you dial, never the zero itself
+- ★ Trued cartridges: a BC correction stored on a cartridge (the *BC gain factor*, from a Truing Session or typed in by hand) is used by every tool that computes a trajectory, including cartridges that borrow their zero from another one
 
 ## Trajectory
 
@@ -60,18 +60,18 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 
 ## Truing Session
 
-*Experimental* — the statistics are validated against simulated sessions with known, deliberately injected errors, but the tool hasn't yet had much real-world mileage.
+*Experimental:* the maths has been tested on many simulated range days, but the tool hasn't seen much real-world use yet.
 
-- ★ Tells apart *why* the rifle and the app disagree — muzzle velocity, drag (BC), zero, scope click value, and a mis-ranged or sloped target all produce the same miss, and the tool plans a short session designed to separate them rather than folding everything into one "fudge factor"; when two causes can't be separated, it says so
-- ★ **Prepare** — picks the best near/far targets from your saved location, splits the rounds between them, suggests Minimal / Optimal / Enhanced / Deluxe round counts from the knee of the precision-vs-rounds curve, and grades the plan A–D *before* the first shot is fired; credits the homework you've actually done (verified zero, checked MV average, tracked clicks), and asks you to re-range the far target and measure its angle first
-- ★ **Shoot** — a guided ladder from near to far, each step taken only when the forecast miss fits on the backdrop and the step is no more than 4× the farthest distance that has already landed; shows what to dial before each string of up to three rounds, with wind dialled per group at a stated confidence and chronograph readings recorded per string; a missed string is a normal outcome — the tool steps back, widens its drag assumption by what the miss implies, and retries the far target dialled from the corrected fit
-- Re-measure the current target's distance and angle on demand mid-session, without ever writing back to the saved location; a live readout shows what the session has learned so far
-- ★ Proper Bayesian fit, not a curve-fit to a DOPE log — a maximum a posteriori solve re-linearised through the app's own trajectory integrator, with each target's possible mis-ranging or unrecorded slope, and each ticked homework item that may not have held, weighed jointly by model evidence (Laplace approximation) instead of being trusted blindly
-- ★ **Conclude** — a ranked list of findings, each with its size and margin: a BC correction, a zero correction, corrected come-ups for the distances shot, and the muzzle velocity, plus an explicit list of what the session could not determine
-- ★ Refuses to overclaim — a BC correction is offered only at grade A or B with at least five chronograph readings taken during the session; an implausibly large result is shown for information but never saved
-- Saving writes a BC gain factor to the cartridge (the bullet's published data stays untouched) that Trajectory, Range Solver and Hit Probability then use; truing again compounds onto the previous correction
-- Even without a chronograph, a session still delivers corrected come-ups for the distances shot and a zero check
-- Supersonic flight only; planning and analysis run in a background worker so the UI stays responsive
+- ★ Finds out *why* your shots land somewhere other than where the app predicted. A wrong muzzle velocity, an optimistic BC, a slightly-off zero, a scope whose clicks aren't quite what the label says, or a target that's further away (or more uphill) than you think can all produce the same miss. The tool sorts out which one it really is, rather than lumping everything into one "fudge factor", and when it can't tell two causes apart it tells you so instead of guessing
+- ★ **Prepare:** you say how many rounds you're willing to spend. The tool picks which of your range's targets to shoot and how many rounds go at each, suggests sensible round counts (from "just enough" to "deluxe"), and tells you before you fire a single shot how good a result to expect, graded A to D. It gives you credit for the checks you've already done (a confirmed zero, a chronographed load, a scope tested for click accuracy), and reminds you to re-range the far target first, since that distance matters more than anything else
+- ★ **Shoot:** the tool walks you out from the near target to the far one step by step. It only moves further out once it's confident your next shots will still land on the backstop, and before every string of up to three rounds it tells you exactly what to dial. A string you can't find on the target is no failure: the tool steps back, learns from the miss, and has another go at the far target with a better dial setting
+- You can re-check a target's distance and angle at any point. The correction is used for the session only and never changes your saved range card. A live panel shows what the tool has worked out so far
+- ★ It doesn't take anything on trust, including you. If a distance looks mis-ranged, a target seems to be on a slope nobody recorded, or the "my zero is fine" box you ticked doesn't match the shots, the tool notices, factors it in, and asks you to double-check rather than quietly blaming your bullet's BC
+- ★ **Conclude:** a short report, most important finding first, each with how big it is and how sure the tool is about it. It can include how far your BC is off, whether your zero needs touching, corrected scope settings for the distances you shot, and your actual muzzle velocity, plus a plain list of what the session couldn't pin down
+- ★ It won't overpromise. It only offers to correct your BC when the session was good enough (grade A or B) and a chronograph recorded at least five shots on the day. A result so large it's more likely a mistake (a mis-typed number, say) is shown for your information but never saved
+- Saving stores the correction on the cartridge, as a percentage tweak to its BC (the *BC gain factor* field in Arsenal). The bullet's published data stays untouched, and Trajectory, Range Solver and Hit Probability all start using the corrected value. A later session refines the earlier correction rather than replacing it
+- No chronograph? You still come away with corrected scope settings for the distances you shot and a check of your zero, just no BC correction
+- Works while the bullet stays supersonic only. The heavy number-crunching runs in the background, so the screen never freezes
 
 ## Guns (rifle/bullet/cartridge library)
 
@@ -81,7 +81,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 - ★ Side-by-side trajectory comparison of two saved rifle+load configs on one chart — same full column choice as Trajectory's own chart, not just drop
 - Local-only storage (nothing ever leaves the browser), JSON backup/restore with per-item conflict resolution
 - ★ Zero with one cartridge (practice ammo, say), stay correct with all the others sharing the rifle — each recipient cartridge borrows its elevation solve from a designated donor's ballistics instead of assuming it was zeroed on its own
-- ★ Per-cartridge BC gain factor and zero atmosphere — record a trued drag correction and the weather a zero was set in, both honored everywhere the cartridge is used
+- ★ Each cartridge can remember a BC correction (the *BC gain factor*) and the weather you zeroed it in, and every tool that uses the cartridge takes both into account
 
 ## Backup & Sync
 
