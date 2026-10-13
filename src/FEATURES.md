@@ -1,7 +1,7 @@
-# geladen.ch ballistics — features as of 2026-09-14 11:14 CEST, v212 release 4.0.2
+# geladen.ch ballistics — features as of 2026-10-13 19:15 CEST, v220 release 4.2.0
 (updated from time to time, check the [release history](#/release-history) for the very latests and greatest)
 
-geladen.ch ballistics is a client-side external ballistics suite — trajectory integration, hit-probability analysis, BC and drag-curve tools, a field range solver, and a photo-based rifle precision calculator, plus your saved rifles, bullets, and locations, all running entirely in the browser with nothing ever sent to a server. Below is a quick bullet-point inventory of what each tool does. Items marked **★** are things you don't typically get in commodity ballistic solvers.
+geladen.ch ballistics is a client-side external ballistics suite — trajectory integration, hit-probability analysis, BC and drag-curve tools, a field range solver, a guided truing session, and a photo-based rifle precision calculator, plus your saved rifles, bullets, and locations, all running entirely in the browser with nothing ever sent to a server. Below is a quick bullet-point inventory of what each tool does. Items marked **★** are things you don't typically get in commodity ballistic solvers.
 
 ## Whole-app traits
 
@@ -16,7 +16,7 @@ geladen.ch ballistics is a client-side external ballistics suite — trajectory 
 
 ## Ballistic Engine
 
-Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, and Hit Probability — not tied to any one tool.
+Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, Hit Probability, and Truing Session — not tied to any one tool.
 
 - RK4 numerical integration for trajectory computation, not a coarser Euler/Heun-style stepper
 - ★ Optional 4DOF Modified Point Mass stepper alongside the standard 3DOF point-mass model
@@ -25,6 +25,8 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, a
 - ★ Muzzle velocity vs. powder temperature modeling, instead of one fixed MV
 - ★ Directly measured Cd-Mach drag tables as a drop-in alternative to BC + a standard drag model, per bullet
 - ★ Inclined shots get proper atmosphere along the whole flight, not just a tilted line of sight — pressure, temperature, air density and speed of sound are recomputed at every integration step from the bullet's own current altitude (muzzle altitude plus how far up or down it's actually flown), not held fixed at the muzzle's reading
+- A rifle's zero is always solved the way it was actually set: level, in calm air, and in the cartridge's own zero atmosphere when one is recorded — so the day's slope, wind and weather show up in the corrections instead of silently shifting the zero
+- ★ Trued cartridges — a cartridge's BC gain factor (a drag correction from a Truing Session, or entered by hand) is applied consistently by every tool that solves a trajectory, including cartridges zeroed off a donor's ballistics
 
 ## Trajectory
 
@@ -40,7 +42,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, a
 
 ## Hit Probability
 
-- ★ Closed-form analytical solve (error-function integration over target zones), not Monte Carlo sampling — exact and instant rather than a simulated approximation
+- ★ Deterministic analytical solve, not Monte Carlo sampling — error-function integration over rectangular zones, and Gauss–Legendre quadrature over circular rings, gongs and silhouette profiles (never an equal-area-square stand-in for a circle), so results are exact and instant rather than a simulated approximation
 - ★ Full uncertainty budget: muzzle velocity SD, bench precision, shooter skill, shooting position, range/temperature/pressure/wind estimation error, all decomposed per-source in the results
 - ★ Spotter-corrected shot scenario — models a called sighting shot canceling systematic offset, distinct residual error from a cold single shot
 - Moving-target support (lateral speed + estimation error)
@@ -56,14 +58,30 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, a
 - ★ Targets picked visually off a photo taken from the firing point — tap a pin on the photo instead of dialing range/angle by hand
 - Installable as its own home-screen icon, separate from the main app
 
+## Truing Session
+
+*Experimental* — the statistics are validated against simulated sessions with known, deliberately injected errors, but the tool hasn't yet had much real-world mileage.
+
+- ★ Tells apart *why* the rifle and the app disagree — muzzle velocity, drag (BC), zero, scope click value, and a mis-ranged or sloped target all produce the same miss, and the tool plans a short session designed to separate them rather than folding everything into one "fudge factor"; when two causes can't be separated, it says so
+- ★ **Prepare** — picks the best near/far targets from your saved location, splits the rounds between them, suggests Minimal / Optimal / Enhanced / Deluxe round counts from the knee of the precision-vs-rounds curve, and grades the plan A–D *before* the first shot is fired; credits the homework you've actually done (verified zero, checked MV average, tracked clicks), and asks you to re-range the far target and measure its angle first
+- ★ **Shoot** — a guided ladder from near to far, each step taken only when the forecast miss fits on the backdrop and the step is no more than 4× the farthest distance that has already landed; shows what to dial before each string of up to three rounds, with wind dialled per group at a stated confidence and chronograph readings recorded per string; a missed string is a normal outcome — the tool steps back, widens its drag assumption by what the miss implies, and retries the far target dialled from the corrected fit
+- Re-measure the current target's distance and angle on demand mid-session, without ever writing back to the saved location; a live readout shows what the session has learned so far
+- ★ Proper Bayesian fit, not a curve-fit to a DOPE log — a maximum a posteriori solve re-linearised through the app's own trajectory integrator, with each target's possible mis-ranging or unrecorded slope, and each ticked homework item that may not have held, weighed jointly by model evidence (Laplace approximation) instead of being trusted blindly
+- ★ **Conclude** — a ranked list of findings, each with its size and margin: a BC correction, a zero correction, corrected come-ups for the distances shot, and the muzzle velocity, plus an explicit list of what the session could not determine
+- ★ Refuses to overclaim — a BC correction is offered only at grade A or B with at least five chronograph readings taken during the session; an implausibly large result is shown for information but never saved
+- Saving writes a BC gain factor to the cartridge (the bullet's published data stays untouched) that Trajectory, Range Solver and Hit Probability then use; truing again compounds onto the previous correction
+- Even without a chronograph, a session still delivers corrected come-ups for the distances shot and a zero check
+- Supersonic flight only; planning and analysis run in a background worker so the UI stays responsive
+
 ## Guns (rifle/bullet/cartridge library)
 
-- One active configuration shared across Trajectory, Hit Probability, Range Solver
-- Built-in libraries: Geladen's own; Lapua Cd (radar-measured); Hornady Reverse, Berger Reverse, Sierra Reverse, and Lapua Reverse (all reverse-engineered from Hornady's own 4DOF calculator output); Berger Published BC (weight, diameter, OAL, and G7 — or G1 where Berger publishes no G7 — as published on Berger's own site); Swiss P (reverse-engineered from published tables)
+- One active configuration shared across Trajectory, Hit Probability, Range Solver, Truing Session
+- Built-in libraries: Geladen's own; Lapua Cd (radar-measured); Hornady Reverse (with bullet lengths cross-referenced from JBM's published bullet data), Berger Reverse, Sierra Reverse, and Lapua Reverse (all reverse-engineered from Hornady's own 4DOF calculator output); Berger Published BC (weight, diameter, OAL, and G7 — or G1 where Berger publishes no G7 — as published on Berger's own site); Swiss P (reverse-engineered from published tables)
 - Bullet pickers (custom entry and Arsenal alike) sorted by real caliber, then library, then manufacturer + name, with your own bullets listed ahead of the built-in libraries
 - ★ Side-by-side trajectory comparison of two saved rifle+load configs on one chart — same full column choice as Trajectory's own chart, not just drop
 - Local-only storage (nothing ever leaves the browser), JSON backup/restore with per-item conflict resolution
 - ★ Zero with one cartridge (practice ammo, say), stay correct with all the others sharing the rifle — each recipient cartridge borrows its elevation solve from a designated donor's ballistics instead of assuming it was zeroed on its own
+- ★ Per-cartridge BC gain factor and zero atmosphere — record a trued drag correction and the weather a zero was set in, both honored everywhere the cartridge is used
 
 ## Backup & Sync
 
@@ -72,6 +90,8 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, a
 - ★ Revision-based merge resolves what it safely can on its own; genuine conflicts land in a pending-review queue that names the library and device each side came from, so you pick "keep mine" or "take theirs" per item instead of guessing from a bare record name
 - ★ Local Change History — every recent edit or deletion across those three libraries, whether made on this device or merged in from another, can be reviewed and reverted independently of sync
 - Per-device naming, last-synced status per peer device, and clock-skew warnings when a peer's timestamps look wrong enough to make automatic resolution unsafe
+- ★ Retire a device from any browser — even one that can't delete files (Firefox, Safari, iOS): a clock-free tombstone makes every other device ignore its stale backup, and a Chromium device removes it
+- Cleans up after itself — unused photo files are pruned after a 30-day grace period (with consistency checks that stop the pass rather than delete on a doubt), duplicate backup files from one device count once, photos are written crash-safely and verified against their content hash, and a durable, rotated sync log survives restarts
 - Still experimental — the feature says so up front, and nudges you to export your existing libraries before turning it on
 
 ## BC Tools

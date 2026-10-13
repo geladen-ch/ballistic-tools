@@ -1479,6 +1479,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v221": "Änderung: Seite „Aktuelle Funktionen“ auf den Stand von 4.2.0 gebracht (Einschieß-Sitzung, eingeschossene Patronen, Aufräumen und Löschen von Geräten in Sicherung & Synchronisierung).",
       "v220": "Neu: Werkzeug „Einschieß-Sitzung“ (+ viele Fehlerbehebungen und UI-Verbesserungen)",
       "v219": "Fix: Trefferwahrscheinlichkeit bei beweglichem Ziel, flacher Nullpunkt. Neu: Nullpunkt-Atmosphäre, BC-Verstärkungsfaktor.",
       "v218": "Neu: „Sicherung & Synchronisierung“ räumt hinter sich selbst auf (ungenutzte Fotos, doppelte Sicherungsdateien, ein dauerhaftes Synchronisierungsprotokoll) und ermöglicht es, ein Gerät, das nicht mehr im Einsatz ist, aus jedem Browser zu löschen.",

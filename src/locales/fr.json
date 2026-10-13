@@ -1479,6 +1479,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v221": "Modification : page « Fonctionnalités actuelles » mise à jour pour la 4.2.0 (Session de calibrage, cartouches calibrées, nettoyage et suppression d’appareils dans Sauvegarde et synchronisation).",
       "v220": "Nouveau : outil « Session de calibrage » (+ de nombreuses corrections de bugs et améliorations de l’interface)",
       "v219": "Correction : probabilité de toucher une cible mobile, zéro à plat. Nouveau : atmosphère du zéro, facteur de gain BC.",
       "v218": "Nouveau : « Sauvegarde et synchronisation » fait le ménage toute seule (photos inutilisées, fichiers de sauvegarde en double, journal de synchronisation persistant) et permet de supprimer un appareil hors circulation, depuis n'importe quel navigateur.",
