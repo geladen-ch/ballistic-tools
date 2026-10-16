@@ -1097,8 +1097,8 @@
       "clicksUnit": "click"
     },
     "shoot": {
-      "nextRange": "Prossimo: {{range}}",
-      "nextRangeWithAngle": "Prossimo: {{range}}, angolo di sito {{angle}}",
+      "nextRange": "{{range}}",
+      "nextRangeWithAngle": "{{range}} · angolo di sito {{angle}}",
       "remeasureButton": "Rimisura",
       "comeUpLabel": "Alzo osservato ({{unit}})",
       "chronoLabel": "Letture del cronografo (separate da spazi, {{unit}})",
@@ -1144,8 +1144,12 @@
       "firstRungWarning": "Il primo tiro, a {{range}}, potrebbe uscire dal fondale: non è stato ancora sparato nulla, quindi lo strumento non può essere sicuro di dove cada (circa ± {{miss}} attesi, con un fondale alto {{backdrop}}), e non c'è nulla di più vicino su cui ripiegare. Una distanza più vicina è più sicura; quella di zero è la scelta naturale.",
       "firstRungNearer": "Inizia invece a {{range}}",
       "firstRungAnyway": "Prosegui comunque",
-      "plannedString": "Una distanza pianificata — serie {{k}} di {{n}} qui: {{shots}} colpi. Colpi rimanenti qui dopo questa: {{after}}.",
-      "stringRule": "Non sparate più di {{n}} colpi prima di registrare: il centro di una serie più lunga non si legge in modo affidabile.",
+      "shotsToShoot_one": "{{count}} colpo",
+      "shotsToShoot_other": "{{count}} colpi",
+      "progressNumbers": "{{done}} colpi registrati su {{total}} previsti",
+      "following": "A seguire, serie per serie:",
+      "programmeLine": "{{target}}: {{shots}}",
+      "followingNone": "Non segue altro: è l'ultima serie del programma.",
       "flyerRule": "Non inserite informazioni da flyer evidenti; sparate di nuovo il colpo.",
       "modeLabel": "Leggere la serie come",
       "mode": {
@@ -1267,14 +1271,14 @@
     },
     "conditions": {
       "heading": "Condizioni al poligono",
-      "intro": "Inserisci il meteo di dove stai sparando, adesso. Usa la pressione di stazione (quella che legge un barometro al poligono), mai un valore ridotto al livello del mare (QNH) preso da un telefono o da un'app meteo. Temperatura a circa 3 °C, misurata al poligono; l'umidità conta poco, lasciala se non la conosci. Il piano e ogni adattamento usano questi valori, e una correzione del BC li presuppone giusti: una temperatura o una pressione sbagliata viene assorbita dal termine di resistenza.",
+      "intro": "Inserisci il meteo medio che ti aspetti durante il tiro, non solo il valore del momento. Influenza come i colpi si distribuiscono sui bersagli e cosa puoi aspettarti dall'esercizio. Usa la pressione di stazione (quella che legge un barometro al poligono), mai un valore ridotto al livello del mare (QNH) preso da un telefono o da un'app meteo; senza una previsione chiara, va bene la pressione standard all'altitudine del poligono. Temperatura a circa 3 °C, misurata al poligono; l'umidità conta poco, lasciala se non la conosci.",
       "confirmLabel": "Queste sono le condizioni previste oggi al poligono",
       "pressureQnh": "{{entered}} è molto più alta di quanto sia normalmente l'aria a {{altitude}} (circa {{expected}}). Sembra un valore ridotto al livello del mare (QNH). Inserisci la pressione di stazione che legge il tuo barometro al poligono, altrimenti lo strumento darà la colpa al BC della tua palla.",
       "pressureLow": "{{entered}} è molto più bassa di quanto sia normalmente l'aria a {{altitude}} (circa {{expected}}). Controlla la pressione e l'altitudine del luogo.",
       "used": "Condizioni usate: {{summary}}",
       "groupChanged": "Il meteo a questo bersaglio è cambiato dall'inizio",
       "groupChangedAgain": "Il meteo è cambiato ancora dall'ultimo gruppo",
-      "groupSameAsLast": "Altrimenti questo gruppo conta come sparato in: {{summary}}",
+      "groupCurrent": "Condizioni attuali: {{summary}}",
       "changedALot": "Il meteo è ora molto diverso da quello dell'inizio, e il piano è stato fatto per l'inizio. L'adattamento usa il meteo di ogni gruppo, ma i colpi previsti per l'aria di prima potrebbero non essere più i migliori. Spara in fretta il resto della sessione.",
       "zeroFromArsenal": "Lo zero si considera fatto nell'atmosfera di zero della cartuccia (dall'Arsenale): {{summary}}.",
       "zeroFromConditions": "Lo zero si considera fatto una volta, nell'aria qui sopra. Se è stato fatto in un'altra aria (un altro giorno o un'altra altitudine), imposta l'atmosfera di zero della cartuccia nell'Arsenale; conta soprattutto per uno zero di {{long}} o più. Non conta praticamente per zeri di {{short}} o meno."
@@ -1479,6 +1483,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v222": "Correzione: rifiniture dell’interfaccia dello strumento \"Sessione di taratura\"",
       "v221": "Modifica: pagina \"Funzionalità attuali\" aggiornata alla 4.2.0 (Sessione di taratura, cartucce tarate, pulizia ed eliminazione dei dispositivi in Backup e sincronizzazione).",
       "v220": "Novità: strumento \"Sessione di taratura\" (+ molte correzioni di bug e miglioramenti dell’interfaccia)",
       "v219": "Correzione: probabilità di colpire un bersaglio in movimento, zero in piano. Novità: atmosfera dello zero, fattore di guadagno BC.",

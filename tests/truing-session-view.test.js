@@ -256,7 +256,7 @@ test('recording a group in the Shoot phase updates the live panel and persists t
   const persisted = loadTruingSessionState();
   assert.equal(persisted.shootSession.groups.length, 1);
   assert.equal(persisted.shootSession.groups[0].shots, 1, 'the recommended number of rounds: one at the first rung');
-  assert.equal(persisted.shootSession.groups[0].mode, 'average');
+  assert.equal(persisted.shootSession.groups[0].mode, 'shots', 'a one-round string is read round by round');
   assert.equal(persisted.shootSession.groups[0].certaintyKey, 'good', 'the reading is good unless said otherwise');
   assert.ok(Math.abs(persisted.shootSession.groups[0].observedComeUp - 10.1) < 1e-9, 'entered in clicks, stored in mrad');
 });
@@ -334,10 +334,15 @@ async function answerFarRecheck(container) {
   return true;
 }
 
+// The come-up field of the string on screen (then the backdrop field): a one-round string is read round by round, so its field is the
+// first round's; a longer one read at its centre has the one field without an id.
+const isComeUpOrBackdrop = (i) => i.getAttribute('type') === 'number' && (!i.id || i.id === 'truingShotComeUp0');
+
 async function recordGroupNow(container, comeUp, { dialog = 'continue' } = {}) {
   await answerFarRecheck(container);
-  // a string is always the recommended number of rounds; the come-up field has no id (the weather fields, when opened, do)
-  const numberInputs = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id);
+  // a string is always the recommended number of rounds; the string's come-up field has no id (the weather fields, when opened, do),
+  // except the first round's field of a string read round by round, which is the only one a one-round string has
+  const numberInputs = findByTag(container, 'INPUT').filter(isComeUpOrBackdrop);
   numberInputs[0].value = String(Number((comeUp / 0.1).toFixed(3))); fireEvent(numberInputs[0], 'input'); // the field takes clicks of 0.1 mrad
   const record = findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton'));
   assert.ok(record, 'expected a Record group button');
@@ -361,14 +366,23 @@ test('the Shoot phase follows the plan: each distance once, nearest first, then 
   await settle();
   const expectNext = (rangeM, k, n, shots, after) => {
     assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(rangeM) })), `next: ${rangeM}`);
-    assert.ok(container.textContent.includes(t('truingSession.shoot.plannedString', { k, n, shots, after })), `string ${k} of ${n} at ${rangeM}`);
-    assert.equal(findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id).length, 2, 'the come-up and the backdrop: there is no rounds field, the string is the recommended number');
+    assert.ok(container.textContent.includes(t('truingSession.shoot.shotsToShoot', { count: shots })), `${shots} shots at ${rangeM}`);
+    const afterList = after > 0 ? `${units.dist(rangeM)}: ${after}` : null;
+    if (afterList) assert.ok(container.textContent.includes(afterList), `${after} rounds still to come at ${rangeM}, in the programme's rest`);
+    // a one-round string has only its round's field (and the backdrop); a longer one the come-up field of its centre and the backdrop
+    assert.equal(findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id).length, shots === 1 ? 1 : 2, 'the come-up and the backdrop: there is no rounds field, the string is the recommended number');
   };
 
   expectNext(100, 1, 1, 1, 0);
   await recordGroupNow(container, 0);
   // the ladder alone would take the farthest safe distance (500 or more); the plan says 300, its five rounds as 3 + 2
   expectNext(300, 1, 2, 3, 2);
+  // the rest of the programme, string by string: the untried distance first, then the leftovers to the distance with most rounds left
+  assert.deepEqual(
+    findByTag(findByTag(container, 'OL').find((ol) => String(ol.className).includes('truing-session-programme')), 'LI').map((li) => li.textContent),
+    [800, 800, 300].map((r, i) => `${units.dist(r)}: ${t('truingSession.shoot.shotsToShoot', { count: i === 2 ? 2 : 3 })}`),
+    'the programme after the string being shot'
+  );
   await recordGroupNow(container, 1.6);
   expectNext(800, 1, 2, 3, 3);
   await recordGroupNow(container, 8.6);
@@ -479,7 +493,7 @@ test('on a range declared flat no angle is ever asked for or shown during Shoot:
   fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.recheck.cancelButton')), 'click');
   await settle();
   // the one string at 100 m: then the far target's re-range is asked for, the distance only
-  const comeUp = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id)[0];
+  const comeUp = findByTag(container, 'INPUT').filter(isComeUpOrBackdrop)[0];
   comeUp.value = '0'; fireEvent(comeUp, 'input');
   fireEvent(findByTag(container, 'BUTTON').find((b) => b.textContent === t('truingSession.shoot.recordGroupButton')), 'click');
   await settle(200);
@@ -814,13 +828,14 @@ test('a group records its own weather and chronograph readings; the next group c
 
   // the first group: no air change ticked, so only the wind (the starting one) is on the group; readings kept on the group
   const chronoField = () => findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
-  chronoField().value = '790 791 -';
+  const roundVelocity = () => findByTag(container, 'INPUT').find((i) => i.id === 'truingShotVelocity0');
+  roundVelocity().value = '790'; // the first string is one round, read round by round
   await recordGroupNow(container, 0);
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   let groups = loadTruingSessionState().shootSession.groups;
   assert.deepEqual(groups[0].conditions, { windSpeed: 0, windAngle: 90 });
   assert.equal(groups[0].windConfidenceKey, 'good', 'a wind reading is Good unless said otherwise');
-  assert.deepEqual(groups[0].chronoVelocities, [790, 791, null]);
+  assert.deepEqual(groups[0].chronoVelocities, [790]);
 
   // the second: the weather has changed (a warmer target)
   const changed = findByTag(container, 'INPUT').find((i) => i.id === 'truingGroupWeatherChanged');
@@ -872,7 +887,8 @@ test('the Shoot screen shows what to dial for the next shot: the app\'s own dope
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle();
-  const dopeLines = () => findByTag(container, 'P').filter((p) => String(p.className).includes('truing-session-next-shot-dope')).map((p) => p.textContent);
+  // the two big readouts (elevation, windage) of the next shot, in Range Solver's own readout classes
+  const dopeLines = () => findByTag(container, 'DIV').filter((d) => String(d.className).split(' ').includes('range-solver-stat')).map((d) => d.textContent);
 
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotHeading', { range: units.dist(100) })));
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextShotFromApp')));
@@ -1097,7 +1113,7 @@ test('changing the backdrop height on the Shoot screen keeps what was typed into
   const container = makeElement('main');
   truingSessionView.mount(container);
   await settle();
-  const fields = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id);
+  const fields = findByTag(container, 'INPUT').filter(isComeUpOrBackdrop);
   const comeUp = fields[0];
   comeUp.value = '1.25';
   fireEvent(comeUp, 'input');
@@ -1186,12 +1202,12 @@ test('with imperial and MOA preferences, the Shoot screen takes readings in ft/s
     await settle();
     let text = container.textContent;
     assert.ok(text.includes(t('truingSession.shoot.nextRange', { range: units.dist(100) })), 'the next distance in yards');
-    assert.ok(text.includes(t('truingSession.shoot.comeUpLabel', { unit: t('truingSession.shoot.nextShotClicks') })), 'the come-up is entered in clicks');
+    assert.ok(text.includes(t('truingSession.shoot.roundLabel', { n: 1, unit: t('truingSession.shoot.nextShotClicks') })), 'the come-up is entered in clicks');
     assert.ok(text.includes('MOA') && text.includes(t('truingSession.shoot.nextShotClicks')), 'the next shot is in MOA, with clicks as well');
     assert.equal(text.match(METRIC_LEFTOVER), null, `no metric leftover on Shoot: ${text.match(METRIC_LEFTOVER)}`);
 
-    const chrono = findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
-    chrono.value = '2600 2602';
+    const chrono = findByTag(container, 'INPUT').find((i) => i.id === 'truingShotVelocity0'); // the first string is one round
+    chrono.value = '2600';
     await recordGroupNow(container, 0);
     const { loadTruingSessionState } = await import('../src/truing-session-state.js');
     const v = loadTruingSessionState().shootSession.groups.at(-1).chronoVelocities;
@@ -1365,7 +1381,7 @@ test('a string read round by round records every come-up, averages them, and kee
   assert.ok(g.sigmaMrad > 0);
   assert.ok(g.noise && g.noise.sigmaObsMrad > 0 && Number.isFinite(g.noise.v0SensMrad) && 'r50Mrad' in g.noise, 'the string keeps the noise parts that do not depend on the velocity spread');
   // 9 rounds at 300 m: 3 + 3 + 3
-  assert.ok(container.textContent.includes(t('truingSession.shoot.plannedString', { k: 2, n: 3, shots: 3, after: 3 })), 'the next string at 300 m');
+  assert.ok(container.textContent.includes(t('truingSession.shoot.shotsToShoot', { count: 3 })), 'the next string at 300 m');
   assert.equal(findByTag(container, 'SELECT').find((s) => s.id === 'truingStringMode').value, 'shots', 'the reading choice stays');
 });
 
@@ -1423,7 +1439,7 @@ test('fewer velocities than rounds opens a question: go back and complete them, 
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   const groups = () => loadTruingSessionState().shootSession?.groups || [];
   const chronoField = () => findByTag(container, 'INPUT').find((i) => i.id === 'truingChronoReadings');
-  chronoField().value = '790';
+  findByTag(container, 'INPUT').find((i) => i.id === 'truingShotVelocity0').value = '790'; // the one-round string is read round by round
   await recordGroupNow(container, 0, { dialog: 'leave' });
   assert.equal(dialogOpen(), false, 'one velocity for one round: nothing to ask');
   assert.equal(groups().length, 1);
@@ -1577,7 +1593,7 @@ test('after a re-check corrected a planned target\'s distance, the rotation stil
   truingSessionView.mount(container);
   await settle();
   assert.ok(container.textContent.includes(t('truingSession.shoot.nextRange', { range: units.dist(312) })), 'the next string is at B, shown at its corrected distance');
-  assert.ok(container.textContent.includes(t('truingSession.shoot.plannedString', { k: 2, n: 2, shots: 3, after: 0 })), 'the second of B\'s two strings');
+  assert.ok(container.textContent.includes(t('truingSession.shoot.shotsToShoot', { count: 3 })), 'the second of B\'s two strings');
   await recordGroupNow(container, 1.7);
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   const g = loadTruingSessionState().shootSession.groups[2];
@@ -1731,7 +1747,7 @@ test('each group records the wind on its dial and the confidence in it; the next
   assert.equal(confidence().value, 'good');
 
   // a wind of 5 m/s moves the windage the screen recommends
-  const windage = () => findByTag(container, 'P').find((p) => String(p.className).includes('next-shot-dope') && p.textContent.startsWith(t('truingSession.shoot.nextShotWindage'))).textContent;
+  const windage = () => findByTag(container, 'DIV').find((d) => String(d.className).split(' ').includes('range-solver-stat') && d.textContent.includes(t('truingSession.shoot.nextShotWindage'))).textContent;
   const before = windage();
   const speed = findByTag(container, 'INPUT').find((i) => i.id === 'windSpeed');
   speed.value = '5';
@@ -1955,7 +1971,7 @@ test('before the first string at the planned far target, the Shoot screen asks f
   assert.ok(!asked() && record(), 'not at the near distances');
   // shoot the near and middle distances by hand, without answering anything
   for (const comeUp of [0, 1.6, 1.6]) {
-    const input = findByTag(container, 'INPUT').filter((i) => i.getAttribute('type') === 'number' && !i.id)[0];
+    const input = findByTag(container, 'INPUT').filter(isComeUpOrBackdrop)[0];
     if (!input) break;
     input.value = String(comeUp / 0.1); fireEvent(input, 'input');
     fireEvent(record(), 'click');

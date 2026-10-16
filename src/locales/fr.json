@@ -1097,8 +1097,8 @@
       "clicksUnit": "clics"
     },
     "shoot": {
-      "nextRange": "Suivant : {{range}}",
-      "nextRangeWithAngle": "Suivant : {{range}}, angle de site {{angle}}",
+      "nextRange": "{{range}}",
+      "nextRangeWithAngle": "{{range}} · angle de site {{angle}}",
       "remeasureButton": "Remesurer",
       "comeUpLabel": "Hausse observée ({{unit}})",
       "chronoLabel": "Lectures du chronographe (séparées par des espaces, {{unit}})",
@@ -1144,8 +1144,12 @@
       "firstRungWarning": "Le premier tir, à {{range}}, pourrait sortir du pare-balles : rien n'a encore été tiré, l'outil ne peut donc pas être sûr de l'endroit où il tombe (environ ± {{miss}} attendus, pour un pare-balles de {{backdrop}} de haut), et il n'y a rien de plus proche où se replier. Une distance plus proche est plus sûre ; la distance de zéro est la plus naturelle.",
       "firstRungNearer": "Commencer plutôt à {{range}}",
       "firstRungAnyway": "Continuer quand même",
-      "plannedString": "Une distance prévue — série {{k}} sur {{n}} ici : {{shots}} tirs. Tirs restants ici ensuite : {{after}}.",
-      "stringRule": "N'enchaînez pas plus de {{n}} tirs avant d'enregistrer : le centre d'une série plus longue ne se lit pas de façon fiable.",
+      "shotsToShoot_one": "{{count}} tir",
+      "shotsToShoot_other": "{{count}} tirs",
+      "progressNumbers": "{{done}} tirs enregistrés sur {{total}} prévus",
+      "following": "Ensuite, série par série :",
+      "programmeLine": "{{target}} : {{shots}}",
+      "followingNone": "Rien ne suit : c'est la dernière série du programme.",
       "flyerRule": "N'entrez pas d'informations issues des flyers évidents ; retirez le coup.",
       "modeLabel": "Lire la série par",
       "mode": {
@@ -1267,14 +1271,14 @@
     },
     "conditions": {
       "heading": "Conditions à la place de tir",
-      "intro": "Saisissez la météo là où vous tirez, maintenant. Utilisez la pression de station (ce que lit un baromètre à la place de tir), jamais une valeur ramenée au niveau de la mer (QNH) tirée d'un téléphone ou d'une appli météo. Température à environ 3 °C près, mesurée à la place de tir ; l'humidité compte peu, laissez-la si vous ne la connaissez pas. Le plan et chaque ajustement utilisent ces valeurs, et une correction de BC les suppose justes : une température ou une pression fausse est absorbée par le terme de traînée.",
+      "intro": "Saisissez la météo moyenne que vous attendez pendant le tir, pas seulement la valeur du moment. Elle influence la répartition des coups sur les cibles et ce que vous pouvez attendre de l'exercice. Utilisez la pression de station (ce que lit un baromètre à la place de tir), jamais une valeur ramenée au niveau de la mer (QNH) tirée d'un téléphone ou d'une appli météo ; sans prévision claire, la pression standard à l'altitude de la place de tir convient. Température à environ 3 °C près, mesurée à la place de tir ; l'humidité compte peu, laissez-la si vous ne la connaissez pas.",
       "confirmLabel": "Ce sont les conditions attendues aujourd'hui à la place de tir",
       "pressureQnh": "{{entered}} est bien plus élevée que l'air à {{altitude}} ne l'est normalement (environ {{expected}}). Cela ressemble à une valeur ramenée au niveau de la mer (QNH). Saisissez la pression de station que lit votre baromètre à la place de tir, sinon l'outil imputera la différence au BC de votre balle.",
       "pressureLow": "{{entered}} est bien plus basse que l'air à {{altitude}} ne l'est normalement (environ {{expected}}). Vérifiez la pression et l'altitude du lieu.",
       "used": "Conditions utilisées : {{summary}}",
       "groupChanged": "La météo à cette cible a changé depuis le début",
       "groupChangedAgain": "La météo a encore changé depuis le dernier groupe",
-      "groupSameAsLast": "Sinon ce groupe compte comme tiré dans : {{summary}}",
+      "groupCurrent": "Conditions actuelles : {{summary}}",
       "changedALot": "La météo est maintenant bien différente de celle du début, et le plan a été fait pour le début. L'ajustement utilise la météo de chaque groupe, mais les coups prévus pour l'ancien air ne sont peut-être plus les meilleurs. Tirez vite le reste de la séance.",
       "zeroFromArsenal": "Le zéro est supposé fait dans l'atmosphère de zéro de la cartouche (depuis l'Arsenal) : {{summary}}.",
       "zeroFromConditions": "Le zéro est supposé fait une fois, dans l'air ci-dessus. S'il a été fait dans un autre air (un autre jour ou une autre altitude), réglez l'atmosphère de zéro de la cartouche dans l'Arsenal ; cela compte surtout pour un zéro de {{long}} ou plus. Cela n'a pratiquement pas d'importance pour un zéro de {{short}} ou moins."
@@ -1479,6 +1483,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v222": "Correction : finitions de l’interface de l’outil « Session de calibrage »",
       "v221": "Modification : page « Fonctionnalités actuelles » mise à jour pour la 4.2.0 (Session de calibrage, cartouches calibrées, nettoyage et suppression d’appareils dans Sauvegarde et synchronisation).",
       "v220": "Nouveau : outil « Session de calibrage » (+ de nombreuses corrections de bugs et améliorations de l’interface)",
       "v219": "Correction : probabilité de toucher une cible mobile, zéro à plat. Nouveau : atmosphère du zéro, facteur de gain BC.",

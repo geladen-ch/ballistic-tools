@@ -135,9 +135,11 @@ export function groupWeatherControl({ start, last, lastWindConfidenceKey = null,
     refreshHint();
     notify();
   });
-  const airNode = el('div', {}, [
+  // the air this group counts as shot in unless the shooter says it changed: the previous group's, else the session's start
+  const currentAir = airOf(last) || airOf(start);
+  const airNode = el('div', { class: 'truing-session-group-air' }, [
+    currentAir ? el('p', { class: 'hint', text: t('truingSession.conditions.groupCurrent', { summary: conditionsSummary(currentAir) }) }) : null,
     el('label', { class: 'checkbox-field' }, [changed, el('span', { i18n: last ? 'truingSession.conditions.groupChangedAgain' : 'truingSession.conditions.groupChanged' })]),
-    last ? el('p', { class: 'hint', text: t('truingSession.conditions.groupSameAsLast', { summary: conditionsSummary(airOf(last)) }) }) : null,
     host, hintHost
   ].filter(Boolean));
 

@@ -1097,8 +1097,8 @@
       "clicksUnit": "Klicks"
     },
     "shoot": {
-      "nextRange": "Nächstes: {{range}}",
-      "nextRangeWithAngle": "Nächstes: {{range}}, Schusswinkel {{angle}}",
+      "nextRange": "{{range}}",
+      "nextRangeWithAngle": "{{range}} · Schusswinkel {{angle}}",
       "remeasureButton": "Neu messen",
       "comeUpLabel": "Beobachteter Haltepunkt ({{unit}})",
       "chronoLabel": "Chronograph-Messwerte (durch Leerzeichen getrennt, {{unit}})",
@@ -1144,8 +1144,12 @@
       "firstRungWarning": "Der erste Schuss auf {{range}} könnte die Kugelfang-Fläche verlassen: es wurde noch nichts geschossen, das Werkzeug kann also nicht sicher sagen, wo er trifft (etwa ± {{miss}} erwartet, bei {{backdrop}} Höhe), und es gibt nichts Näheres, auf das man ausweichen könnte. Eine nähere Distanz ist sicherer; die Nullentfernung ist die naheliegende.",
       "firstRungNearer": "Stattdessen bei {{range}} beginnen",
       "firstRungAnyway": "Trotzdem weiter",
-      "plannedString": "Eine geplante Distanz — Serie {{k}} von {{n}} hier: {{shots}} Schuss. Danach verbleiben hier: {{after}}.",
-      "stringRule": "Erfassen Sie spätestens nach {{n}} Schuss: Die Mitte einer längeren Serie lässt sich nicht zuverlässig ablesen.",
+      "shotsToShoot_one": "{{count}} Schuss",
+      "shotsToShoot_other": "{{count}} Schuss",
+      "progressNumbers": "{{done}} von {{total}} geplanten Schuss erfasst",
+      "following": "Danach, Serie für Serie:",
+      "programmeLine": "{{target}}: {{shots}}",
+      "followingNone": "Danach folgt nichts mehr: Das ist die letzte Serie des Programms.",
       "flyerRule": "Geben Sie keine Angaben von offensichtlichen Ausreißern ein; schießen Sie ihn noch einmal.",
       "modeLabel": "Serie ablesen als",
       "mode": {
@@ -1267,14 +1271,14 @@
     },
     "conditions": {
       "heading": "Bedingungen auf dem Schießplatz",
-      "intro": "Geben Sie das Wetter ein, in dem Sie jetzt schießen. Verwenden Sie den Stationsdruck (was ein Barometer auf dem Schießplatz anzeigt), niemals einen auf Meereshöhe umgerechneten Wert (QNH) aus einem Telefon oder einer Wetter-App. Temperatur auf etwa 3 °C genau, auf dem Schießplatz gemessen; die Luftfeuchtigkeit spielt kaum eine Rolle, lassen Sie sie stehen, wenn Sie sie nicht kennen. Der Plan und jede Anpassung verwenden diese Werte, und eine BC-Korrektur setzt sie als richtig voraus: eine falsche Temperatur oder ein falscher Druck wird vom Luftwiderstandsterm aufgenommen.",
+      "intro": "Geben Sie das durchschnittliche Wetter ein, das Sie während des Schießens erwarten, nicht nur den Augenblickswert. Es beeinflusst, wie sich die Schüsse auf die Ziele verteilen und was Sie von der Übung erwarten können. Verwenden Sie den Stationsdruck (was ein Barometer auf dem Schießplatz anzeigt), niemals einen auf Meereshöhe umgerechneten Wert (QNH) aus einem Telefon oder einer Wetter-App; ohne klare Vorhersage ist der Standarddruck auf der Höhe des Schießplatzes in Ordnung. Temperatur auf etwa 3 °C genau, auf dem Schießplatz gemessen; die Luftfeuchtigkeit spielt kaum eine Rolle, lassen Sie sie stehen, wenn Sie sie nicht kennen.",
       "confirmLabel": "Das sind die heute erwarteten Bedingungen auf dem Schießplatz",
       "pressureQnh": "{{entered}} ist viel höher als die Luft auf {{altitude}} normalerweise ist (etwa {{expected}}). Das sieht nach einem auf Meereshöhe umgerechneten Wert (QNH) aus. Geben Sie den Stationsdruck ein, den Ihr Barometer auf dem Schießplatz zeigt, sonst schiebt das Werkzeug den Unterschied auf den BC Ihres Geschosses.",
       "pressureLow": "{{entered}} ist viel niedriger als die Luft auf {{altitude}} normalerweise ist (etwa {{expected}}). Prüfen Sie den Druck und die Höhe des Ortes.",
       "used": "Verwendete Bedingungen: {{summary}}",
       "groupChanged": "Das Wetter an diesem Ziel hat sich seit dem Start geändert",
       "groupChangedAgain": "Das Wetter hat sich seit der letzten Gruppe erneut geändert",
-      "groupSameAsLast": "Sonst gilt diese Gruppe als geschossen bei: {{summary}}",
+      "groupCurrent": "Aktuelle Bedingungen: {{summary}}",
       "changedALot": "Das Wetter unterscheidet sich jetzt deutlich vom Start, und der Plan wurde für den Start gemacht. Die Anpassung verwendet das Wetter jeder Gruppe, aber für die alte Luft geplante Schüsse sind vielleicht nicht mehr die besten. Schießen Sie den Rest der Sitzung zügig.",
       "zeroFromArsenal": "Der Nullpunkt gilt als in der Null-Atmosphäre der Patrone (aus dem Arsenal) gemacht: {{summary}}.",
       "zeroFromConditions": "Der Nullpunkt gilt als einmal in der Luft oben gemacht. Wurde er in anderer Luft gemacht (anderer Tag oder andere Höhe), stellen Sie die Null-Atmosphäre der Patrone im Arsenal ein; es zählt vor allem ab {{long}} Nullentfernung. Bei Nullentfernungen von {{short}} und kürzer spielt es praktisch keine Rolle."
@@ -1479,6 +1483,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v222": "Fix: UI-Feinschliff beim Werkzeug „Einschieß-Sitzung“",
       "v221": "Änderung: Seite „Aktuelle Funktionen“ auf den Stand von 4.2.0 gebracht (Einschieß-Sitzung, eingeschossene Patronen, Aufräumen und Löschen von Geräten in Sicherung & Synchronisierung).",
       "v220": "Neu: Werkzeug „Einschieß-Sitzung“ (+ viele Fehlerbehebungen und UI-Verbesserungen)",
       "v219": "Fix: Trefferwahrscheinlichkeit bei beweglichem Ziel, flacher Nullpunkt. Neu: Nullpunkt-Atmosphäre, BC-Verstärkungsfaktor.",

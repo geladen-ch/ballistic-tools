@@ -8,7 +8,7 @@ import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
 import {
   posterior, fitSession, nextLadderRange, registerMissedImpact, registerRecordedGroup, nextShotDope, ladderStartCheck,
-  DEFAULT_LADDER_CONFIDENCE_Z, MAX_STRING_SHOTS
+  DEFAULT_LADDER_CONFIDENCE_Z
 } from '../../engine/truing-session.js';
 import { formatDope, formatDopeSpread } from '../dope-format.js';
 import { getOutputUnit } from '../../range-solver-prefs.js';
@@ -29,6 +29,8 @@ import {
 // (shown on this screen); with the app's own dope the same number misses again.
 const RETRY_MISSED_DISTANCE = true;
 const STRING_MODES = ['average', 'shots'];
+// stands in for the distance while the heading's words are split around it (the word order is the translation's)
+const RANGE_MARK = '\u0000';
 
 // "812 815 - 809": a "-" or "x" is a round the chronograph (or the
 // spotter) missed -- stored as null, never dropped silently from the shot
@@ -235,16 +237,28 @@ export function shootPanel(ctx) {
     const losDeg = targetAngle(targetKey, target);
     const losKnown = !ctx.rangeDeclaredFlat && (losDeg !== 0 || (session.angleChecks && session.angleChecks[targetKey] != null));
     const headingText = losKnown
-      ? t('truingSession.shoot.nextRangeWithAngle', { range: dist(shotRangeM), angle: `${losDeg > 0 ? '+' : losDeg < 0 ? '−' : ''}${Math.abs(losDeg).toFixed(1)}°` })
-      : t('truingSession.shoot.nextRange', { range: dist(shotRangeM) });
-    const headingRow = el('div', { class: 'field-row truing-session-target-row' }, [el('h3', { text: headingText })]);
-    ladderNode.appendChild(headingRow);
+      ? t('truingSession.shoot.nextRangeWithAngle', { range: RANGE_MARK, angle: `${losDeg > 0 ? '+' : losDeg < 0 ? '−' : ''}${Math.abs(losDeg).toFixed(1)}°` })
+      : t('truingSession.shoot.nextRange', { range: RANGE_MARK });
+    // the distance is the one number the shooter reads off at the firing line: set large, with the words around it small
+    const [headingBefore, headingAfter] = headingText.split(RANGE_MARK);
+    const heading = el('h3', { class: 'truing-session-target-heading' }, [
+      headingBefore ? el('span', { class: 'truing-session-target-heading-aside', text: headingBefore }) : null,
+      el('span', { class: 'truing-session-target-distance', text: dist(shotRangeM) }),
+      headingAfter ? el('span', { class: 'truing-session-target-heading-aside', text: headingAfter }) : null
+    ].filter(Boolean));
+    const headingRow = el('div', { class: 'field-row truing-session-target-row' }, [heading]);
+    // Everything about the target being shot at -- its name, its distance, the plan for it and the rules for the string -- in one
+    // block, apart from the weather and the entry fields below it.
+    const targetBlock = el('div', { class: 'truing-session-target-block' });
+    if (target && target.name) targetBlock.appendChild(el('div', { class: 'truing-session-target-name', text: target.name }));
+    targetBlock.appendChild(headingRow);
+    ladderNode.appendChild(targetBlock);
     // Before the first string at the planned far target: one more reading of its distance (and its angle, unless the range is
     // declared flat), entered as a re-check. The result leans on that distance hardest, and a mis-ranged far target is what the
     // shots can least tell from a wrong drag scale; a second reading taken here settles most of it.
     if (isPlanned && next === planFar && !(session.rangeChecks || []).some((rc) => rc.targetKey === targetKey)) {
-      ladderNode.appendChild(el('p', { class: 'hint warning', text: t('truingSession.shoot.farRecheck', { range: dist(shotRangeM) }) }));
-      ladderNode.appendChild(recheckPrompt({
+      targetBlock.appendChild(el('p', { class: 'hint warning', text: t('truingSession.shoot.farRecheck', { range: dist(shotRangeM) }) }));
+      targetBlock.appendChild(recheckPrompt({
         target: { rangeM: shotRangeM }, rangeDeclaredFlat: ctx.rangeDeclaredFlat,
         angleMeasured: session.angleChecks && session.angleChecks[targetKey] != null,
         onSubmit: (reading) => { ctx.onRecheck(targetKey, next, reading); refreshAnalysis(); renderLadder(); renderLive(); }
@@ -267,19 +281,18 @@ export function shootPanel(ctx) {
       }).node);
     });
     headingRow.appendChild(remeasure);
-    ladderNode.appendChild(remeasureHost);
-    let stepText;
-    if (isRepeat) stepText = t('truingSession.shoot.repeatStep');
-    else if (isPlanned) {
-      const done = session.groups.filter((g) => g.rangeM === next && !g.extra).length;
-      stepText = t('truingSession.shoot.plannedString', { k: done + 1, n: done + splitIntoStrings(left).length, shots: stringShots, after: Math.max(0, left - stringShots) });
-    } else stepText = t('truingSession.shoot.rungStep', { shots: WALK_OUT_SHOTS_PER_RUNG });
-    ladderNode.appendChild(el('p', { class: 'hint', text: stepText }));
-    ladderNode.appendChild(el('p', { class: 'hint', text: t('truingSession.shoot.stringRule', { n: MAX_STRING_SHOTS }) }));
-    ladderNode.appendChild(el('p', { class: 'hint', i18n: 'truingSession.shoot.flyerRule' }));
+    targetBlock.appendChild(remeasureHost);
+    // How many rounds to shoot now: the number alone for a planned string (the plan and the ladder decide it), the reason for the
+    // other steps, which are not part of the plan.
+    if (isPlanned && !isRepeat) targetBlock.appendChild(el('p', { class: 'truing-session-target-shots', text: t('truingSession.shoot.shotsToShoot', { count: stringShots }) }));
+    else targetBlock.appendChild(el('p', { class: 'hint', text: isRepeat ? t('truingSession.shoot.repeatStep') : t('truingSession.shoot.rungStep', { shots: WALK_OUT_SHOTS_PER_RUNG }) }));
+    targetBlock.appendChild(el('p', { class: 'hint', i18n: 'truingSession.shoot.flyerRule' }));
+    if (plan && plan.ranges.length) targetBlock.appendChild(programmeProgress({ stringShotsNow: isPlanned && !isRepeat ? stringShots : 0, nowM: next }));
 
     // How the string is read: its centre (one come-up and how many rounds) or every round (a come-up each). The last choice stays.
-    let mode = STRING_MODES.includes(session.lastStringMode) ? session.lastStringMode : 'average';
+    // A one-round string has no centre to read: it is read round by round, and the choice is not offered (nor changed).
+    const singleRound = stringShots === 1;
+    let mode = singleRound ? 'shots' : STRING_MODES.includes(session.lastStringMode) ? session.lastStringMode : 'average';
     const modeSelect = el('select', { id: 'truingStringMode' }, STRING_MODES.map((m) => el('option', { value: m, text: t(`truingSession.shoot.mode.${m}`) })));
     modeSelect.value = mode;
     const comeUpInput = el('input', { type: 'number', step: 0.1 }); // scope clicks, positive up
@@ -295,7 +308,7 @@ export function shootPanel(ctx) {
       comeUpWarn: warningHost(),
       velocityWarn: warningHost()
     }));
-    const shotsFields = el('div', {}, roundRows.map((row, i) => el('div', { class: 'field-row' }, [
+    const shotsFields = el('div', {}, roundRows.map((row, i) => el('div', { class: 'truing-session-round-row' }, [
       el('div', { class: 'field' }, [el('label', { text: t('truingSession.shoot.roundLabel', { n: i + 1, unit: t('truingSession.shoot.nextShotClicks') }) }), row.comeUp, row.comeUpWarn]),
       row.velocity ? el('div', { class: 'field' }, [el('label', { text: t('truingSession.shoot.roundVelocityLabel', { unit: velLabel() }) }), row.velocity, row.velocityWarn]) : null
     ])));
@@ -458,7 +471,7 @@ export function shootPanel(ctx) {
       });
       registerRecordedGroup(session, next, { retry: RETRY_MISSED_DISTANCE });
       session.repeatAt = null;
-      session.lastStringMode = mode;
+      if (!singleRound) session.lastStringMode = mode;
       missMessage = null;
       ctx.onChange();
       refreshAnalysis();
@@ -487,8 +500,8 @@ export function shootPanel(ctx) {
     for (const child of [
       weather.node,
       nextShotHost,
-      el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.shoot.modeLabel' }), modeSelect]),
-      averageFields,
+      singleRound ? null : el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.shoot.modeLabel' }), modeSelect]),
+      singleRound ? null : averageFields,
       shotsFields,
       picker.node,
       ctx.chronographAvailable ? chronoField : null,
@@ -522,23 +535,66 @@ export function shootPanel(ctx) {
     }
   }
 
+  // Where the session stands in its plan: the rounds recorded against the rounds planned (a bar and the numbers), and what is still
+  // to come after the string being shot now, by target.
+  function programmeProgress({ stringShotsNow, nowM }) {
+    const left = roundsLeft(plan, session);
+    const total = plan.shots.reduce((sum, n) => sum + (n || 0), 0);
+    const done = total - [...left.values()].reduce((sum, n) => sum + n, 0);
+    const fill = el('div', { class: 'truing-session-progress-fill' });
+    fill.style.width = `${total > 0 ? Math.min(100, Math.round((100 * done) / total)) : 0}%`;
+    const bar = el('div', { class: 'truing-session-progress', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(total), 'aria-valuenow': String(done) }, [fill]);
+    // The strings still to come after the one being shot, in the order the plan will take them: the distances not yet tried, nearest
+    // first, then the strings left over, each to the distance with the most rounds still to shoot (as proposeNext does it; the
+    // ladder's safety steps and a missed distance may change it on the day).
+    const missCeiling = (session.missedRanges || []).length ? Math.min(...session.missedRanges) : Infinity;
+    const rest = new Map(left);
+    if (stringShotsNow) rest.set(nowM, Math.max(0, (rest.get(nowM) || 0) - stringShotsNow));
+    const series = [];
+    const take = (r) => { const n = nextStringShots(rest.get(r) || 0); if (n > 0) { series.push({ rangeM: r, shots: n }); rest.set(r, rest.get(r) - n); } };
+    untriedPlanned(missCeiling).filter((r) => !(stringShotsNow && r === nowM)).forEach(take);
+    for (let r = rotationNext(rest, missCeiling); r != null && series.length < 200; r = rotationNext(rest, missCeiling)) take(r);
+    const labelOf = (r) => {
+      const i = plan.ranges.indexOf(r);
+      const key = plan.keys && plan.keys[i] != null ? plan.keys[i] : naturalKey(r);
+      const tg = targets.find((c) => c.key === key);
+      const where = dist(measuredRangeM(session, key, r));
+      return tg && tg.name ? `${tg.name} (${where})` : where;
+    };
+    return el('div', { class: 'truing-session-progress-block' }, [
+      el('div', { class: 'truing-session-progress-numbers', text: t('truingSession.shoot.progressNumbers', { done, total }) }),
+      bar,
+      el('p', { class: 'hint', i18n: series.length ? 'truingSession.shoot.following' : 'truingSession.shoot.followingNone' }),
+      series.length ? el('ol', { class: 'truing-session-programme' }, series.map((x) => el('li', { text: t('truingSession.shoot.programmeLine', { target: labelOf(x.rangeM), shots: t('truingSession.shoot.shotsToShoot', { count: x.shots }) }) }))) : null
+    ].filter(Boolean));
+  }
+
   function renderNextShot(host, next, targetKey, target, weather) {
     clear(host);
     const dope = currentDope(next, targetKey, target, weather);
     if (!dope) return;
     if (![dope.elevationMrad, dope.windageMrad].every(Number.isFinite)) return;
     const clicksLabel = t('truingSession.shoot.nextShotClicks');
-    // in Range Solver's own unit; when that is not clicks, the clicks as well, since a come-up is entered in clicks
-    const dopeText = (mrad, axis, clickMrad) => {
+    const spread = (sdMrad, clickMrad) => (Number.isFinite(sdMrad) && sdMrad > 0 ? `± ${formatDopeSpread({ mrad: 1.96 * sdMrad, clickMrad, clicksLabel })}` : '');
+    // The same readout as Range Solver's Target pane (its classes, so the size and the glyphs match): the number in Range Solver's
+    // own unit, huge, with its label below. When that unit is not clicks the clicks follow in small type, since a come-up is
+    // entered in clicks.
+    const stat = (labelKey, axis, mrad, clickMrad, sdMrad) => {
       const main = formatDope({ mrad, axis, clickMrad, clicksLabel });
-      return getOutputUnit() === 'clicks' ? main : { text: `${main.text} (${formatDope({ mrad, axis, clickMrad, clicksLabel, unit: 'clicks' }).text})` };
+      const inClicks = getOutputUnit() === 'clicks' ? '' : `= ${formatDope({ mrad, axis, clickMrad, clicksLabel, unit: 'clicks' }).text}`;
+      const band = spread(sdMrad, clickMrad);
+      return el('div', { class: 'range-solver-stat' }, [
+        el('div', { class: 'range-solver-click-value' }, [main.glyph ? el('span', { class: 'range-solver-click-glyph', text: main.glyph }) : null, main.number].filter(Boolean)),
+        el('div', { class: 'range-solver-click-label', text: `${t(labelKey)} (${main.unit})` }),
+        inClicks || band ? el('div', { class: 'hint truing-session-next-shot-detail', text: [inClicks, band].filter(Boolean).join(' ') }) : null
+      ].filter(Boolean));
     };
-    const elevation = dopeText(dope.elevationMrad, 'elevation', ctx.clickMrad);
-    const windage = dopeText(dope.windageMrad, 'windage', ctx.clickHorizontalMrad ?? ctx.clickMrad);
-    const spread = (sdMrad, clickMrad) => (Number.isFinite(sdMrad) && sdMrad > 0 ? ` (± ${formatDopeSpread({ mrad: 1.96 * sdMrad, clickMrad, clicksLabel })})` : '');
+    const clickHorizontalMrad = ctx.clickHorizontalMrad ?? ctx.clickMrad;
     host.appendChild(el('h4', { text: t('truingSession.shoot.nextShotHeading', { range: dist(next) }) }));
-    host.appendChild(el('p', { class: 'truing-session-next-shot-dope', text: `${t('truingSession.shoot.nextShotElevation')}: ${elevation.text}${spread(dope.elevationSdMrad, ctx.clickMrad)}` }));
-    host.appendChild(el('p', { class: 'truing-session-next-shot-dope', text: `${t('truingSession.shoot.nextShotWindage')}: ${windage.text}${spread(dope.windageSdMrad, ctx.clickHorizontalMrad ?? ctx.clickMrad)}` }));
+    host.appendChild(el('div', { class: 'range-solver-readout truing-session-next-shot-readout' }, [
+      stat('truingSession.shoot.nextShotElevation', 'elevation', dope.elevationMrad, ctx.clickMrad, dope.elevationSdMrad),
+      stat('truingSession.shoot.nextShotWindage', 'windage', dope.windageMrad, clickHorizontalMrad, dope.windageSdMrad)
+    ]));
     host.appendChild(el('p', { class: 'hint', i18n: analysis ? 'truingSession.shoot.nextShotFromFit' : 'truingSession.shoot.nextShotFromApp' }));
     if (analysisPending) host.appendChild(el('p', { class: 'hint', i18n: 'truingSession.shoot.nextShotUpdating' }));
     host.appendChild(el('p', { class: 'hint', i18n: 'truingSession.shoot.nextShotDialFull' }));

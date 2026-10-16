@@ -654,8 +654,31 @@ a { color: var(--accent); }
    the re-check / location-choice blocks that act on it. */
 .truing-session-flag { border-left: 3px solid var(--danger); padding: 4px 0 4px 12px; margin: 12px 0; }
 .truing-session-recheck, .truing-session-choice { margin: 8px 0 12px; }
+/* the air part of a group's weather, set apart from the wind confidence field above it */
+.truing-session-group-air { margin-top: 16px; }
 /* The Shoot panel's target heading (distance, line of sight) with its Re-measure button beside it. */
 .truing-session-target-row h3 { margin: 0; }
+/* The target block of the Shoot panel: name, distance, plan and rules for the string, set apart from the weather and entry fields. */
+.truing-session-target-block { background: var(--panel-raised); border-left: 4px solid var(--accent); border-radius: 4px; padding: 8px 12px 6px; margin: 8px 0 20px; }
+.truing-session-target-name { font-size: 16px; font-weight: 600; color: var(--text); }
+/* One round of a string read round by round: its come-up and (with a chronograph) its velocity side by side. The two fields share
+   their label, input and warning rows, so the inputs line up whatever the labels' lengths and wherever a warning shows. */
+.truing-session-round-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); grid-template-rows: auto auto auto; column-gap: 8px; margin: 8px 0; }
+.truing-session-round-row > .field { display: grid; grid-row: span 3; grid-template-rows: subgrid; margin-bottom: 0; }
+.truing-session-round-row > .field > label { align-self: end; }
+/* How many rounds to shoot now, in the Shoot panel's target block, and the programme's progress bar under it. */
+.truing-session-target-shots { margin: 4px 0 8px; font-size: 20px; font-weight: 700; color: var(--accent); }
+.truing-session-progress-numbers { font-size: 12px; font-weight: 600; color: var(--dim); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.truing-session-progress { height: 10px; border-radius: 5px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; margin-bottom: 8px; }
+.truing-session-progress-fill { height: 100%; background: var(--accent); }
+.truing-session-programme { margin: 0 0 8px; padding-left: 22px; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.truing-session-programme li { margin-bottom: 2px; }
+/* The next-shot readout reuses Range Solver's large readout; its spread and clicks line sits under the label. */
+.truing-session-next-shot-readout { margin: 4px 0 12px; }
+.truing-session-next-shot-detail { margin: 4px 0 0; }
+.truing-session-target-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.truing-session-target-heading-aside { font-size: 14px; font-weight: 600; color: var(--dim); }
+.truing-session-target-distance { text-transform: none; letter-spacing: normal; font-size: clamp(40px, 14vw, 64px); line-height: 1.05; font-weight: 800; color: var(--accent); }
 .truing-session-view .field-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
 .truing-session-view .field-row input:not([type="checkbox"]) { width: auto; flex: 1 1 8em; min-width: 6em; }
 .truing-session-conclusion-list > li { margin-bottom: 12px; }

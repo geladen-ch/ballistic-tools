@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v222',
+    fullVersion: '4.2.2 (BOOBS — Bullet Origin-to-Objective Ballistic Solver)',
+    date: '2026-10-16',
+    descriptionKey: 'releaseHistory.entries.v222'
+  },
+  {
     cacheVersion: 'v221',
     fullVersion: '4.2.1 (BOOBS — Bullet Origin-to-Objective Ballistic Solver)',
     date: '2026-10-13',

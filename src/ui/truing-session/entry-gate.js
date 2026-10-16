@@ -256,7 +256,7 @@ export function locationIntakePanel({ location, gaps, persisted, backdropNode, o
     // Re-check every target's distance and angle before planning around them.
     node.appendChild(el('p', { i18n: 'truingSession.location.recheckInstructions' }));
     node.appendChild(el('p', { class: 'hint prominent', i18n: 'truingSession.location.sessionOnlyHint' }));
-    node.appendChild(el('p', { class: 'hint', i18n: 'truingSession.location.backdropDistanceInstructions' }));
+    node.appendChild(el('p', { class: 'hint prominent', i18n: 'truingSession.location.backdropDistanceInstructions' }));
     if (!rangeDeclaredFlat) node.appendChild(el('p', { class: 'hint', i18n: 'truingSession.location.recheckAngleInstructions' }));
     const table = el('table', { class: 'truing-session-table' });
     table.appendChild(el('tr', {}, [
