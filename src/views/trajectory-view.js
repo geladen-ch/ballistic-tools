@@ -9,7 +9,7 @@ import { columnToggles } from '../ui/column-toggles.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
 import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, clicksForOffset, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
-import { degToRad, angleToLinearAtRange } from '../quantity.js';
+import { degToRad, radToDeg, radToMrad, angleToLinearAtRange } from '../quantity.js';
 import { getUnit } from '../prefs.js';
 import { sectionGroup } from '../ui/section.js';
 import { loadColumnVisibility, saveColumnVisibility } from '../table-columns.js';
@@ -164,7 +164,7 @@ export function mount(container) {
     saveTrajectoryInputsState({
       maxRange: maxRangeField.getEngineValue(),
       rangeStep: rangeStepField.getEngineValue(),
-      losAngleDeg: losAngleField.getEngineValue(),
+      losAngleRad: losAngleField.getEngineValue(),
       targetHeightM: targetHeightField.getEngineValue(),
       aimingPoint: aimingPointSelect.value,
       zeroRangeOverrideM: zeroRangeOverrideField.getEngineValue(),
@@ -210,7 +210,7 @@ export function mount(container) {
   // rangeStep above, not shared via shot-state.js — but still persisted
   // via trajectory-state.js, same as them.
   const losAngleField = unitField({
-    id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: 1, value: savedInputs.losAngleDeg ?? 0,
+    id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: savedInputs.losAngleRad ?? 0,
     onInput: () => { handleShotInputChange(); persistInputs(); }
   });
   // The target this shot is being sized against for the direct-hit solve
@@ -431,7 +431,7 @@ export function mount(container) {
 
   // === Info pane: zero angle, trajectory peak, and direct-hit readouts ===
   //
-  // Fed from the chart's own dense (1 m step) points/launchAngleDeg —
+  // Fed from the chart's own dense (1 m step) points/launchAngleRad —
   // not the table's coarser rangeStep rows — since the peak's height and
   // distance are derived client-side by scanning for the point with the
   // largest dropM (positive = above the line of sight, see toLOS() in
@@ -462,7 +462,7 @@ export function mount(container) {
   // configured for) — set alongside zeroAngleValue below and reused by
   // updateDirectHitPane() to report how far the direct-hit solve's own
   // (generally different) zero angle sits from it.
-  let lastLaunchAngleDeg = null;
+  let lastLaunchAngleRad = null;
   // The direct-hit solve and the trajectory run as separate worker jobs, so
   // either can finish first; the last direct-hit result is kept so the
   // elevation rows can be filled in once the zero angle they are measured
@@ -482,11 +482,11 @@ export function mount(container) {
     ], { nested: true })
   ]);
 
-  function updateInfoPane(points, launchAngleDeg) {
-    lastLaunchAngleDeg = launchAngleDeg;
+  function updateInfoPane(points, launchAngleRad) {
+    lastLaunchAngleRad = launchAngleRad;
     if (lastDirectHitResult) updateDirectHitPane(lastDirectHitResult);
-    const angleDisplay = convertAngularValue(launchAngleDeg, 'deg', angleUnit);
-    zeroAngleValue.textContent = `${launchAngleDeg.toFixed(3)}° (${angleDisplay.toFixed(2)} ${angleChoice.label})`;
+    const angleDisplay = convertAngularValue(launchAngleRad, 'rad', angleUnit);
+    zeroAngleValue.textContent = `${radToDeg(launchAngleRad).toFixed(3)}° (${angleDisplay.toFixed(2)} ${angleChoice.label})`;
 
     if (!points.length) return;
     const peak = points.reduce((best, p) => (p.dropM > best.dropM ? p : best), points[0]);
@@ -501,7 +501,7 @@ export function mount(container) {
   // solveDirectHit() (engine/trajectory.js) itself just returns the three
   // raw numbers (an optimal launch angle plus the two ranges it implies);
   // turning the angle *difference* from the rifle's current zero
-  // (lastLaunchAngleDeg, set by updateInfoPane() above — both are
+  // (lastLaunchAngleRad, set by updateInfoPane() above — both are
   // refreshed by the same input change, so they're always compared at the
   // same shot config) into clicks and into a linear offset at the new
   // zero distance is display-side work, same as every other unit
@@ -521,16 +521,16 @@ export function mount(container) {
     const zeroDistDisplay = engineToDisplay('range', result.zeroDistanceM, distanceUnit);
     directHitZeroDistanceValue.textContent = `${zeroDistDisplay.toFixed(RANGE_DECIMALS)} ${distanceChoice.label}`;
 
-    if (lastLaunchAngleDeg == null) {
+    if (lastLaunchAngleRad == null) {
       directHitElevationClicksValue.textContent = '—';
       directHitElevationAbsoluteValue.textContent = '—';
       return;
     }
-    const angleDiffDeg = result.launchAngleDeg - lastLaunchAngleDeg;
+    const angleDiffRad = result.launchAngleRad - lastLaunchAngleRad;
     const clickSettings = rifle.getClickSettings();
-    const clicks = convertAngularValue(angleDiffDeg, 'deg', clickSettings.unit) / clickSettings.vertical;
+    const clicks = convertAngularValue(angleDiffRad, 'rad', clickSettings.unit) / clickSettings.vertical;
     directHitElevationClicksValue.textContent = `${clicks >= 0 ? '+' : ''}${clicks.toFixed(1)}`;
-    const absoluteM = angleToLinearAtRange(degToRad(angleDiffDeg), result.zeroDistanceM);
+    const absoluteM = angleToLinearAtRange(angleDiffRad, result.zeroDistanceM);
     const absoluteDisplay = toDisplayUnit('smallLength', absoluteM);
     directHitElevationAbsoluteValue.textContent = `${absoluteDisplay >= 0 ? '+' : ''}${absoluteDisplay.toFixed(1)} ${smallLengthChoice.label}`;
   }
@@ -610,11 +610,11 @@ export function mount(container) {
   async function recomputeChart() {
     const id = ++latestChartRequestId;
     try {
-      const { points, launchAngleDeg } = await pool.run('trajectory', { ...readState(), rangeStep: CHART_DENSE_RANGE_STEP_M });
+      const { points, launchAngleRad } = await pool.run('trajectory', { ...readState(), rangeStep: CHART_DENSE_RANGE_STEP_M });
       if (id !== latestChartRequestId) return; // superseded by a newer input
       denseChartPoints = points;
       applyZoom();
-      updateInfoPane(points, launchAngleDeg);
+      updateInfoPane(points, launchAngleRad);
     } catch {
       if (id !== latestChartRequestId) return;
       // Leave the chart showing its last good state — the table's own
@@ -758,7 +758,7 @@ export function mount(container) {
     return {
       maxRange: maxRangeField.getEngineValue(),
       rangeStep: rangeStepField.getEngineValue(),
-      losAngleDeg: losAngleField.getEngineValue(),
+      losAngleRad: losAngleField.getEngineValue(),
       ...cartridge.getValues(),
       ...rifle.getValues(),
       ...atmosphere.getValues(),
@@ -916,11 +916,10 @@ export function mount(container) {
     applyI18nText(status, 'common.computing');
     status.className = 'status';
     try {
-      const { points, launchAngleDeg } = await pool.run('trajectory', readState());
+      const { points, launchAngleRad } = await pool.run('trajectory', readState());
       if (id !== latestRequestId) return; // superseded by a newer input
-      const launchAngleMrad = convertAngularValue(launchAngleDeg, 'deg', 'mrad');
       applyI18nText(status, 'trajectory.statusOk', {
-        count: points.length, angle: launchAngleDeg.toFixed(3), angleMrad: launchAngleMrad.toFixed(2)
+        count: points.length, angle: radToDeg(launchAngleRad).toFixed(3), angleMrad: radToMrad(launchAngleRad).toFixed(2)
       });
       status.className = 'status ok';
       render(points);

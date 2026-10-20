@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
 import { warmCatalogs } from './helpers/warm-catalogs.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -135,7 +136,7 @@ function confirmConditions(container) {
 
 test('the tool has its own conditions card, seeded once from the shared atmosphere and frozen into the session at Start', async () => {
   const { saveAtmosphereState } = await import('../src/shot-state.js');
-  saveAtmosphereState({ tempC: 4, pressurePa: 95000, humidity: 0.3, windSpeed: 0, windAngle: 90 });
+  saveAtmosphereState({ tempC: 4, pressurePa: 95000, humidity: 0.3, windSpeed: 0, windAngleRad: degToRad(90) });
   setUpArsenalAndLocation();
   await settle();
   const container = makeElement('main');
@@ -534,7 +535,7 @@ async function truthComeUps(dragPct, ranges) {
   await section.setLibraryCartridge({ muzzleVelocity: 792.48, bulletId: 'geladen-308-178-eld-m' });
   const state = {
     ...section.getValues(), zeroRange: 100, sightHeightM: 0.05,
-    tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0
+    tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), losAngleRad: 0
   };
   const truth = { ...state, bcGainFactor: 1 / (1 + dragPct / 100) };
   return ranges.map((r) => comeUpMrad(truth, r));
@@ -820,7 +821,7 @@ test('a group records its own weather and chronograph readings; the next group c
   saveTruingSessionState({
     phase: 'shoot', homeworkState: { chronographAvailable: true },
     plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] },
-    sessionConditions: { tempC: 10, pressurePa: 101300, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 10, pressurePa: 101300, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -833,7 +834,7 @@ test('a group records its own weather and chronograph readings; the next group c
   await recordGroupNow(container, 0);
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   let groups = loadTruingSessionState().shootSession.groups;
-  assert.deepEqual(groups[0].conditions, { windSpeed: 0, windAngle: 90 });
+  assert.deepEqual(groups[0].conditions, { windSpeed: 0, windAngleRad: degToRad(90) });
   assert.equal(groups[0].windConfidenceKey, 'good', 'a wind reading is Good unless said otherwise');
   assert.deepEqual(groups[0].chronoVelocities, [790]);
 
@@ -882,7 +883,7 @@ test('the Shoot screen shows what to dial for the next shot: the app\'s own dope
   await settle();
   saveTruingSessionState({
     phase: 'shoot', plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -917,7 +918,7 @@ test('a stalled ladder names the step cap, asks for an intermediate distance, an
   await settle();
   saveTruingSessionState({
     phase: 'shoot', homeworkState: { backdropHeightM: 1 }, plan: { ranges: [100, 870], shots: [1, 8], targets: [100, 870] },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -937,7 +938,7 @@ test('a first shot that may leave the backdrop is warned about, with the zero ra
   await settle();
   saveTruingSessionState({
     phase: 'shoot', homeworkState: { backdropHeightM: 1 }, plan: { ranges: [500, 870], shots: [4, 8], targets: [500, 870] },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -955,7 +956,7 @@ test('Conclude reminds that the stated uncertainties assume the ticked homework 
   await settle();
   saveTruingSessionState({
     phase: 'conclude', homeworkState: { zeroVerified: true },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 },
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 },
     shootSession: {
       groups: keyed([{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05, resolved: true }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05, resolved: true }]),
       missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
@@ -972,7 +973,7 @@ test('Conclude fits on the usual drag prior; an implausible result after a widen
   await settle();
   saveTruingSessionState({
     phase: 'conclude', homeworkState: { chronographAvailable: true, backdropHeightM: 4 },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 },
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 },
     shootSession: {
       groups: keyed([{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05, chronoVelocities: [792, 793, 791, 792, 792, 793] }, { rangeM: 870, observedComeUp: 12.5, shots: 8, sigmaMrad: 0.05 }]),
       missedImpactCount: 1, missesAt: { 870: 1 }, missedRanges: [], retryRanges: [], retriedMisses: [870],
@@ -1020,7 +1021,7 @@ test('the Conclude screen adds the click-value warning only when the click value
     await settle();
     saveTruingSessionState({
       phase: 'conclude', homeworkState,
-      sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 },
+      sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 },
       shootSession: {
         groups: keyed([{ rangeM: 100, observedComeUp: 0, shots: 3, sigmaMrad: 0.05 }, { rangeM: 870, observedComeUp: 10.2, shots: 8, sigmaMrad: 0.05 }]),
         missedImpactCount: 0, missedRanges: [], retryRanges: [], retriedMisses: [], triedRanges: [100, 870], farthestValidatedM: 870, rangeChecks: [], angleChecks: {}
@@ -1043,7 +1044,7 @@ test('after a missed impact with nothing to retreat to, an extra group at a vali
   await settle();
   saveTruingSessionState({
     phase: 'shoot', plan: { ranges: [100, 300], shots: [1, 6], targets: [100, 300] },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -1108,7 +1109,7 @@ test('changing the backdrop height on the Shoot screen keeps what was typed into
   await settle();
   saveTruingSessionState({
     phase: 'shoot', plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] },
-    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -1158,7 +1159,7 @@ async function withUnits(prefs, outputUnit, fn) {
   try { await fn(); } finally { resetUnits(); setOutputUnit('clicks'); }
 }
 const IMPERIAL = { distance: 'yd', velocity: 'ft/s', windSpeed: 'mph', altitude: 'ft', temperature: 'tempF', pressure: 'inHg', angleDispersion: 'arcmin' };
-const SESSION_AIR = { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 };
+const SESSION_AIR = { tempC: 15, pressurePa: 101325, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 };
 // a distance or speed left in metric units on screen: "870 m", "3 m/s", "0.14 mrad" -- never once a preference says otherwise
 const METRIC_LEFTOVER = /\d\s?m(?![\w/])|\d\s?m\/s|\d\s?mrad|\{\{/;
 
@@ -1736,7 +1737,7 @@ test('each group records the wind on its dial and the confidence in it; the next
   await settle();
   saveTruingSessionState({
     phase: 'shoot', plan: { ranges: [100, 300, 870], shots: [1, 4, 6], targets: [100, 300, 870] },
-    sessionConditions: { tempC: 10, pressurePa: 101300, humidity: 0.5, windSpeed: 0, windAngle: 90, altitudeM: 0 }
+    sessionConditions: { tempC: 10, pressurePa: 101300, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), altitudeM: 0 }
   });
   const container = makeElement('main');
   truingSessionView.mount(container);
@@ -1780,8 +1781,8 @@ test('the Prepare weather card is the air only: no wind dial there, and the cond
   await settle();
   assert.ok(findByTag(container, 'INPUT').some((i) => i.id === 'tempC'), 'the air is there');
   assert.ok(!findByTag(container, 'INPUT').some((i) => i.id === 'windSpeed'), 'the wind is not');
-  assert.equal(conditionsSummary({ tempC: 12, pressurePa: 92300, humidity: 0.4, windSpeed: 3, windAngle: 90 }), conditionsSummary({ tempC: 12, pressurePa: 92300, humidity: 0.4 }));
-  assert.ok(!conditionsSummary({ tempC: 12, windSpeed: 3, windAngle: 90 }).includes('3'), 'a wind in the values is not written out');
+  assert.equal(conditionsSummary({ tempC: 12, pressurePa: 92300, humidity: 0.4, windSpeed: 3, windAngleRad: degToRad(90) }), conditionsSummary({ tempC: 12, pressurePa: 92300, humidity: 0.4 }));
+  assert.ok(!conditionsSummary({ tempC: 12, windSpeed: 3, windAngleRad: degToRad(90) }).includes('3'), 'a wind in the values is not written out');
 });
 
 test('the expected wind strength sits in the conditions card, between the air fields and the confirmation', async () => {

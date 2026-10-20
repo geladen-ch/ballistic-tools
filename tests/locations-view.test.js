@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -186,7 +187,7 @@ test('clicking a Known-locations row activates it: moves it to Current, and the 
   fireEvent(rowByText(knownSection(container), 'To Activate'), 'click');
 
   assert.deepEqual(loadRangeSolverLocationState(), { locationId: toActivate.id, targetId: target.id });
-  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 777, losAngleDeg: 3 });
+  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 777, losAngleRad: degToRad(3) });
   assert.equal(location.hash, '', 'stays on the Locations page — activating no longer navigates away');
   assert.ok(currentSection(container).textContent.includes('To Activate'));
   assert.ok(knownSection(container).textContent.includes('Was Current'));

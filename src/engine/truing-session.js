@@ -20,7 +20,7 @@
 import { computeImpact, makeImpactWalker, resolveLaunchAngle, resolveMuzzleVelocity, solveZeroAngle } from './trajectory.js';
 import { speedOfSound } from './atmosphere.js';
 import { r50ToSD } from './dispersion-sources.js';
-import { radToMrad, linearToAngleAtRange } from '../quantity.js';
+import { radToMrad, linearToAngleAtRange, degToRad, radToDeg } from '../quantity.js';
 
 // ---- Constants and priors ----
 export const SIGMA_ROUND_MRAD = 0.1 / Math.sqrt(12); // 0.028868: a come-up known only to the nearest 0.1 mrad click
@@ -55,7 +55,7 @@ export const BASE_PARAMS = ['zeroMrad', 'v0Ms', 'dragPct', 'trackPct'];
 // ---- Conditions that change during a session, and the zero that does not ----
 // A group of shots may carry its own atmosphere and wind (`conditions`), because a session can last hours and the
 // air moves. Only these fields are ever taken from it; everything else about the shot is the rifle's and the bullet's.
-export const CONDITION_KEYS = ['tempC', 'pressurePa', 'humidity', 'altitudeM', 'windSpeed', 'windAngle'];
+export const CONDITION_KEYS = ['tempC', 'pressurePa', 'humidity', 'altitudeM', 'windSpeed', 'windAngleRad'];
 // What a state that names no air is taken to be in (the defaults makeStepper() itself falls back to).
 const AIR_DEFAULTS = { tempC: 15, pressurePa: 101300, humidity: 0, altitudeM: 0 };
 const AIR_KEYS = Object.keys(AIR_DEFAULTS);
@@ -84,7 +84,7 @@ export function withConditions(state, conditions) {
 }
 
 // The rifle's zero is set once, in whatever air it was set in; the turret keeps that setting. `state.zeroConditions`
-// (optional: any of the condition fields above, plus `losAngleDeg`, default 0 -- zeroed on the flat) says what that air
+// (optional: any of the condition fields above, plus `losAngleRad`, default 0 -- zeroed on the flat) says what that air
 // was, and the come-up is then measured against the bore angle that zero implies, not against a zero re-solved in
 // every shot's own air. Without it the zero is set in the state's own air (see pinZeroConditions). The zero is one bore
 // angle for the whole exercise: it is set on the level and in calm air, so neither the shot's wind (called or fitted) nor
@@ -96,11 +96,11 @@ export function withConditions(state, conditions) {
 export function withFixedBore(state) {
   if (state.launchAngle !== undefined) return state;
   if (!state.zeroConditions) {
-    if (!state.windSpeed && !state.losAngleDeg) return state;
+    if (!state.windSpeed && !state.losAngleRad) return state;
     state = pinZeroConditions(state);
   }
   const zc = state.zeroConditions;
-  const zeroState = { ...state, windSpeed: 0, windAngle: 90, losAngleDeg: zc.losAngleDeg ?? 0 };
+  const zeroState = { ...state, windSpeed: 0, windAngleRad: Math.PI / 2, losAngleRad: zc.losAngleRad ?? 0 };
   for (const k of CONDITION_KEYS) if (zc[k] != null) zeroState[k] = zc[k];
   delete zeroState.zeroConditions;
   // a cartridge zeroed with another one flies its own ballistics from the donor's zero angle (see resolveLaunchAngle)
@@ -229,23 +229,24 @@ export const windSigmaMsFor = (key) => WIND_CONFIDENCE_SIGMA_MS[key] ?? WIND_CON
 const WIND_DIRECTION_MEANINGLESS_MS = 0.5;
 const WIND_STEP_MS = 0.5;
 const WIND_STEP_DEG = 1;
+const WIND_STEP_RAD = degToRad(WIND_STEP_DEG);
 // How far the come-up (vertical) and the windage (horizontal) move, in mrad (1-sigma), for a wind of `state` read to `speedSigmaMs`
 // in speed and WIND_DIRECTION_SIGMA_DEG in direction (finite differences about the called wind).
 export function windErrorMrad({ state, rangeM, knownLosDeg = 0, speedSigmaMs, dirSigmaDeg = WIND_DIRECTION_SIGMA_DEG }) {
-  const base = knownLosDeg ? { ...state, losAngleDeg: knownLosDeg } : state;
+  const base = knownLosDeg ? { ...state, losAngleRad: degToRad(knownLosDeg) } : state;
   const speed = base.windSpeed || 0;
-  const angle = base.windAngle ?? 90;
+  const angle = base.windAngleRad ?? Math.PI / 2;
   const vertical = (st) => comeUpMrad(st, rangeM);
   const horizontal = (st) => windageMrad(st, rangeM);
   if (speed < WIND_DIRECTION_MEANINGLESS_MS) {
     // every direction alike: the root mean square of the head/tail and the cross sensitivities, per m/s
     const calm = { ...base, windSpeed: 0 };
-    const head = { ...calm, windSpeed: 5, windAngle: 0 }, cross = { ...calm, windSpeed: 5, windAngle: 90 };
+    const head = { ...calm, windSpeed: 5, windAngleRad: 0 }, cross = { ...calm, windSpeed: 5, windAngleRad: Math.PI / 2 };
     const sens = (f) => Math.sqrt(((f(head) - f(calm)) ** 2 + (f(cross) - f(calm)) ** 2) / 2) / 5;
     return { verticalMrad: sens(vertical) * speedSigmaMs, horizontalMrad: sens(horizontal) * speedSigmaMs };
   }
   const bySpeed = { ...base, windSpeed: speed + WIND_STEP_MS };
-  const byAngle = { ...base, windAngle: angle + WIND_STEP_DEG };
+  const byAngle = { ...base, windAngleRad: angle + WIND_STEP_RAD };
   const err = (f) => {
     const f0 = f(base);
     return Math.hypot((f(bySpeed) - f0) / WIND_STEP_MS * speedSigmaMs, (f(byAngle) - f0) / WIND_STEP_DEG * dirSigmaDeg);
@@ -256,7 +257,7 @@ export function windErrorMrad({ state, rangeM, knownLosDeg = 0, speedSigmaMs, di
 // The wind a plan is made for, before any wind has been read: `expectedMs` the typical speed, `speedSigmaMs` how well it is called, the
 // direction unknown (every direction alike). The come-up's error from one string's wind, in mrad, given the distance's sensitivity
 // columns (`col.windRms`: the come-up's sensitivity to a wind of any direction, per m/s).
-export const plannedWindSdMrad = (col, wind) => (wind && col ? col.windRms * Math.hypot(wind.speedSigmaMs, wind.expectedMs * wind.dirSigmaDeg * Math.PI / 180) : 0);
+export const plannedWindSdMrad = (col, wind) => (wind && col ? col.windRms * Math.hypot(wind.speedSigmaMs, wind.expectedMs * degToRad(wind.dirSigmaDeg)) : 0);
 
 // ---- The far-target distance ----
 // A small memo for the physics the Prepare screen asks for over and over -- the same state, the same distances --
@@ -372,7 +373,7 @@ export function applyParameters(state, theta = {}) {
 // flat/unmeasured target. A target never carries both: the losU_t mixture
 // is dropped entirely once the angle is measured and entered.
 export function predictedComeUp(appliedState, rangeM, theta = {}, targetTheta = {}) {
-  const baseState = targetTheta.knownLosDeg ? { ...appliedState, losAngleDeg: targetTheta.knownLosDeg } : appliedState;
+  const baseState = targetTheta.knownLosDeg ? { ...appliedState, losAngleRad: degToRad(targetTheta.knownLosDeg) } : appliedState;
   const rangeErr = targetTheta.rangeErrM || 0;
   const base = comeUpMrad(baseState, rangeM + rangeErr);
   const zero = theta.zeroMrad || 0;
@@ -384,7 +385,7 @@ export function predictedComeUp(appliedState, rangeM, theta = {}, targetTheta = 
   let losTerm = 0;
   if (targetTheta.losU) {
     const deg = (targetTheta.knownLosDeg || 0) + losDegFromU(targetTheta.losU);
-    losTerm = comeUpMrad({ ...baseState, losAngleDeg: deg }, rangeM) - believed();
+    losTerm = comeUpMrad({ ...baseState, losAngleRad: degToRad(deg) }, rangeM) - believed();
   }
   return base + zero + track + losTerm;
 }
@@ -396,7 +397,7 @@ export function predictedComeUp(appliedState, rangeM, theta = {}, targetTheta = 
 // recorded inclination into the baseline the derivatives are taken at, same
 // reasoning as predictedComeUp above.
 export function sensitivityColumns(state, rangeM, knownLosDeg = 0) {
-  const baseState = knownLosDeg ? { ...state, losAngleDeg: knownLosDeg } : state;
+  const baseState = knownLosDeg ? { ...state, losAngleRad: degToRad(knownLosDeg) } : state;
   const b = comeUpMrad(baseState, rangeM);
   return {
     zeroMrad: 1,
@@ -428,8 +429,8 @@ export function planningColumns(state, rangeM) {
 function windRmsMrad(state, rangeM) {
   const calm = { ...state, windSpeed: 0 };
   const c0 = comeUpMrad(calm, rangeM);
-  const head = comeUpMrad({ ...calm, windSpeed: 5, windAngle: 0 }, rangeM) - c0;
-  const cross = comeUpMrad({ ...calm, windSpeed: 5, windAngle: 90 }, rangeM) - c0;
+  const head = comeUpMrad({ ...calm, windSpeed: 5, windAngleRad: 0 }, rangeM) - c0;
+  const cross = comeUpMrad({ ...calm, windSpeed: 5, windAngleRad: Math.PI / 2 }, rangeM) - c0;
   return Math.sqrt((head * head + cross * cross) / 2) / 5;
 }
 
@@ -463,8 +464,8 @@ export function rangeErrColumn(state, rangeM, step = 10) {
 //
 // Angles are still what the USER sees: losDegFromU converts back at the
 // reporting boundary. Everything inside the estimator is u.
-export const losUFromDeg = (deg) => 1 - Math.cos(deg * Math.PI / 180);
-export const losDegFromU = (u) => Math.acos(Math.max(-1, Math.min(1, 1 - Math.max(u, 0)))) * 180 / Math.PI;
+export const losUFromDeg = (deg) => 1 - Math.cos(degToRad(deg));
+export const losDegFromU = (u) => radToDeg(Math.acos(Math.max(-1, Math.min(1, 1 - Math.max(u, 0)))));
 
 // The mixture's two components, stated in u directly -- NOT by converting
 // a "sigma = 2 deg / 8 deg" figure with losUFromDeg, which would be wrong.
@@ -484,7 +485,7 @@ export const SIGMA_LOS_INCLINED_U = losUFromDeg(20);  // 0.060307
 
 export function losUColumn(state, rangeM, currentU = 0, knownLosDeg = 0, refDeg = 10) {
   const stepU = losUFromDeg(refDeg);
-  const atU = (u) => comeUpMrad({ ...state, losAngleDeg: (knownLosDeg || 0) + losDegFromU(u) }, rangeM);
+  const atU = (u) => comeUpMrad({ ...state, losAngleRad: degToRad((knownLosDeg || 0) + losDegFromU(u)) }, rangeM);
   return (atU(Math.max(currentU, 0) + stepU) - atU(Math.max(currentU, 0))) / stepU;
 }
 
@@ -835,7 +836,7 @@ export const TIGHTENED_LADDER_CONFIDENCE_Z = 3; // adopted for the rest of the s
 export function nextShotDope({ state, conditions = null, theta = {}, cov = null, params = BASE_PARAMS, rangeM, knownLosDeg = 0, windSigma = null }) {
   const shot = withConditions(state, conditions);
   const applied = applyParameters(shot, theta);
-  const losState = knownLosDeg ? { ...applied, losAngleDeg: knownLosDeg } : applied;
+  const losState = knownLosDeg ? { ...applied, losAngleRad: degToRad(knownLosDeg) } : applied;
   const impact = computeImpact(withFixedBore(losState), rangeM);
   const elevationMrad = predictedComeUp(applied, rangeM, theta, { knownLosDeg });
   const windage = radToMrad(linearToAngleAtRange(impact.windageM, rangeM));

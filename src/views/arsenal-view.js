@@ -492,7 +492,7 @@ export function mount(container) {
       ...shared,
       sightHeightM: rifle.defaultSightHeightM,
       zeroRange: rifle.defaultZeroRangeM,
-      losAngleDeg: 0,
+      losAngleRad: 0,
       muzzleVelocity: cartridge.muzzleVelocity,
       referenceTempC: cartridge.referenceTempC,
       velocityTempSensitivity: cartridge.velocityTempSensitivity,

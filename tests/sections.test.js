@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
 import { warmCatalogs } from './helpers/warm-catalogs.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 
@@ -162,7 +163,7 @@ test('setLibraryCartridge(null) releases the lock back to manual entry', async (
 test('atmosphereSection includes wind fields by default', () => {
   const atmo = atmosphereSection();
   const values = atmo.getValues();
-  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'atmospherePreset', 'humidity', 'pressurePa', 'tempC', 'windAngle', 'windSpeed']);
+  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'atmospherePreset', 'humidity', 'pressurePa', 'tempC', 'windAngleRad', 'windSpeed']);
 });
 
 test('atmosphereSection omits wind fields when includeWind is false (matches BC Estimator\'s engine, which ignores wind)', () => {
@@ -363,10 +364,10 @@ test('windAngle, typed through the dial\'s own number input, flows through getVa
   const [windAngleInput] = findInputs(first.node).filter((n) => n.id === 'windAngle');
   windAngleInput.value = '270';
   fireEvent(windAngleInput, 'input');
-  assert.equal(first.getValues().windAngle, 270);
+  assert.ok(Math.abs(first.getValues().windAngleRad - degToRad(270)) < 1e-12);
 
   const second = atmosphereSection();
-  assert.equal(second.getValues().windAngle, 270);
+  assert.ok(Math.abs(second.getValues().windAngleRad - degToRad(270)) < 1e-12);
 });
 
 // combinedWind:true (src/ui/wind-control.js) is Trajectory's own opt-in —

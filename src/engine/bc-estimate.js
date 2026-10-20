@@ -18,7 +18,7 @@ const rangeOfT = (p) => p.t;
 // retained velocity and the elapsed time, so callers solving from either
 // measurement can share this one stepping helper.
 function flightAt(bc, dragModel, r1, v1, r2, atmo) {
-  const stepper = makeStepper({ bc, dragModel, windSpeed: 0, windAngle: 90, ...atmo });
+  const stepper = makeStepper({ bc, dragModel, windSpeed: 0, windAngleRad: Math.PI / 2, ...atmo });
   let older = null, prev = null, cur = { x: r1, y: 0, z: 0, vx: v1, vy: 0, vz: 0, t: 0 };
   let steps = 0;
   while (cur.x < r2 && steps < MAX_STEPS) {
@@ -72,7 +72,7 @@ export function estimateBC({
 // the same landOnRange() used above — just with rangeOfT instead of
 // rangeOfX — rather than a target range.
 function flightAtTime(bc, dragModel, v1, t2, atmo) {
-  const stepper = makeStepper({ bc, dragModel, windSpeed: 0, windAngle: 90, ...atmo });
+  const stepper = makeStepper({ bc, dragModel, windSpeed: 0, windAngleRad: Math.PI / 2, ...atmo });
   let older = null, prev = null, cur = { x: 0, y: 0, z: 0, vx: v1, vy: 0, vz: 0, t: 0 };
   let steps = 0;
   while (cur.t < t2 && steps < MAX_STEPS) {
@@ -127,7 +127,7 @@ export function estimateBCFromTimeWindow({
 // have a converged (bc, v1) and just want the curve it predicts (e.g.
 // the Labradar per-track chart's fitted-curve overlay).
 function flightVelocitiesAtTimes(bc, dragModel, v1, times, atmo) {
-  const stepper = makeStepper({ bc, dragModel, windSpeed: 0, windAngle: 90, ...atmo });
+  const stepper = makeStepper({ bc, dragModel, windSpeed: 0, windAngleRad: Math.PI / 2, ...atmo });
   let older = null, prev = null, cur = { x: 0, y: 0, z: 0, vx: v1, vy: 0, vz: 0, t: 0 };
   let steps = 0;
   const out = [];

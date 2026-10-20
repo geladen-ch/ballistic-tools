@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -146,7 +147,7 @@ test('tapping a pin in select mode selects that target immediately and navigates
 
   assert.equal(location.hash, '#/range-solver');
   assert.deepEqual(loadRangeSolverLocationState(), { locationId: loc.id, targetId: t2.id });
-  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 300, losAngleDeg: -5 });
+  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 300, losAngleRad: degToRad(-5) });
 
   cleanup();
 });
@@ -155,7 +156,7 @@ test('select mode: Done alone (no pin tapped) navigates back without changing th
   const target = makeTestTarget({ coords: { x: 0.5, y: 0.5 } });
   const loc = saveUserLocation(makeTestLocation({ photo: TEST_PHOTO, targets: [target] }));
   saveRangeSolverLocationState({ locationId: loc.id, targetId: target.id });
-  saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
   setPendingPlacement({ locationId: loc.id, targetId: null, returnPath: '/range-solver', selectMode: true });
 
   const container = makeElement('main');
@@ -165,7 +166,7 @@ test('select mode: Done alone (no pin tapped) navigates back without changing th
 
   assert.equal(location.hash, '#/range-solver');
   assert.deepEqual(loadRangeSolverLocationState(), { locationId: loc.id, targetId: target.id });
-  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
+  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
 
   cleanup();
 });

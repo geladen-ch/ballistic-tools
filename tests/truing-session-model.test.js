@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 
@@ -16,7 +17,7 @@ const { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } = await import('../src/ui/precision-
 
 const REF_STATE = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48, zeroRange: 100, sightHeightM: 0.05,
-  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0
+  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), losAngleRad: 0
 };
 
 test('the fit priors never switch v0Ms on the chronograph checkbox; a verified MV average uses the checked-sigma formula', () => {
@@ -356,7 +357,7 @@ test('a recorded or measured angle keeps its sign from the target record through
 test('groups carry their own air and wind into the observations, and their chronograph readings are compared in that air', () => {
   const state = { ...REF_STATE, referenceTempC: 15, velocityTempSensitivity: 0.8 };
   const targets = [{ key: 'a', rangeM: 300, registered: true, losAngleDeg: 0 }, { key: 'b', rangeM: 600, registered: true, losAngleDeg: 0 }];
-  const cold = { tempC: 5, pressurePa: 101200, windSpeed: 2, windAngle: 90 };
+  const cold = { tempC: 5, pressurePa: 101200, windSpeed: 2, windAngleRad: degToRad(90) };
   const warm = { tempC: 25, pressurePa: 100400 };
   // readings taken as the cartridge really behaves at each temperature (0.8 m/s per degree)
   const vAt = (c) => resolveMuzzleVelocity(withConditions(state, c));
@@ -379,8 +380,8 @@ test('groups carry their own air and wind into the observations, and their chron
 
 test('analyseSession accepts groups with their own conditions, and nextShotFromAnalysis dials from the fit in the next shot\'s air', () => {
   const targets = [{ key: 'near', rangeM: 100, registered: true, losAngleDeg: 0 }, { key: 'far', rangeM: 700, registered: true, losAngleDeg: 0 }];
-  const c1 = { tempC: 8, pressurePa: 101000, windSpeed: 1, windAngle: 90 };
-  const c2 = { tempC: 22, pressurePa: 100200, windSpeed: 3, windAngle: 90 };
+  const c1 = { tempC: 8, pressurePa: 101000, windSpeed: 1, windAngleRad: degToRad(90) };
+  const c2 = { tempC: 22, pressurePa: 100200, windSpeed: 3, windAngleRad: degToRad(90) };
   const truth = { ...REF_STATE, muzzleVelocity: 780 };
   const groups = [
     { rangeM: 100, targetKey: 'near', observedComeUp: comeUpMrad(withConditions(truth, c1), 100), shots: 4, sigmaMrad: 0.05, conditions: c1 },
@@ -390,7 +391,7 @@ test('analyseSession accepts groups with their own conditions, and nextShotFromA
   const observations = buildObservations({ state: REF_STATE, session: { groups }, targets, rangeDeclaredFlat: true, mvSD: null });
   const analysis = analyseSession({ state: REF_STATE, observations, priors: sessionPriors(homework), params: sessionParams(homework), causes: reportedCauses(homework), rechecked: true, rMax: 700, chronoN: 0, targets });
   assert.ok(analysis.warm && analysis.cov);
-  const next = nextShotFromAnalysis({ state: REF_STATE, analysis, rangeM: 500, conditions: { tempC: 24, pressurePa: 100100, windSpeed: 4, windAngle: 90 }, windSigma: { speedMs: 1, dirDeg: 7.5 } });
+  const next = nextShotFromAnalysis({ state: REF_STATE, analysis, rangeM: 500, conditions: { tempC: 24, pressurePa: 100100, windSpeed: 4, windAngleRad: degToRad(90) }, windSigma: { speedMs: 1, dirDeg: 7.5 } });
   assert.ok(Number.isFinite(next.elevationMrad) && next.elevationMrad > 2 && next.elevationMrad < 4, `elevation at 500 m ${next.elevationMrad}`);
   assert.ok(Math.abs(next.windageMrad) > 0.1, `windage from a 4 m/s crosswind ${next.windageMrad}`);
   assert.ok(next.elevationSdMrad > 0 && next.windageSdMrad > 0);
@@ -475,7 +476,7 @@ test('a station pressure well above the standard atmosphere at the location\'s a
 });
 
 test('a group carries only the weather the engine takes from it, and a large change since the start is noticed', () => {
-  assert.deepEqual(pickGroupConditions({ tempC: 20, pressurePa: 90000, altitudeM: 1200, atmospherePreset: 'custom', windSpeed: 2, windAngle: 45 }), { tempC: 20, pressurePa: 90000, windSpeed: 2, windAngle: 45 });
+  assert.deepEqual(pickGroupConditions({ tempC: 20, pressurePa: 90000, altitudeM: 1200, atmospherePreset: 'custom', windSpeed: 2, windAngleRad: degToRad(45) }), { tempC: 20, pressurePa: 90000, windSpeed: 2, windAngleRad: degToRad(45) });
   assert.equal(pickGroupConditions({}), null);
   const start = { tempC: 10, pressurePa: 100000 };
   assert.equal(conditionsChangedALot(start, { tempC: 14, pressurePa: 100500 }), false);

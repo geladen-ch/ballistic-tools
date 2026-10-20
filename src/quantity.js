@@ -48,8 +48,24 @@ const RATIO_UNITS = new Set(['1', '%']);
 
 const converterCache = new Map();
 
+// js-quantities defines the degree by a truncated factor (0.0174532925199433,
+// 3e-16 short of pi/180), so 90 degrees would not come out as exactly pi/2
+// and disagree in the last bit with angles written in radians. Degrees are
+// therefore converted through the exact pi/180, by way of radians.
+const DEGREE_RAD = Math.PI / 180;
+const DEGREE_UNITS = new Set(['deg', 'degree', 'degrees']);
+
 function buildConverter(from, to) {
   if (from === to) return (v) => v;
+  if (DEGREE_UNITS.has(from) && DEGREE_UNITS.has(to)) return (v) => v;
+  if (DEGREE_UNITS.has(from)) {
+    const radTo = converter('rad', to);
+    return (v) => radTo(v * DEGREE_RAD);
+  }
+  if (DEGREE_UNITS.has(to)) {
+    const toRad = converter(from, 'rad');
+    return (v) => toRad(v) / DEGREE_RAD;
+  }
   if (RATIO_UNITS.has(from) || RATIO_UNITS.has(to)) {
     if (!RATIO_UNITS.has(from) || !RATIO_UNITS.has(to)) {
       throw new Error(`incompatible units: ${from} -> ${to}`);

@@ -23,6 +23,7 @@ import { setPendingPlacement } from '../location-placement-nav.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
 import { formatQuantity } from '../display-units.js';
+import { degToRad } from '../quantity.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -146,7 +147,7 @@ export function mount(container) {
       // whatever was left over from before and immediately flag a false
       // "diverged from the target" state that was never really an edit.
       const target = activeLocation.targets.find((tg) => tg.id === targetId);
-      if (target) saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
+      if (target) saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
       applyLocationAltitudeDefault(activeLocation);
     }
     // The previous current location's own edit/target-edit state doesn't

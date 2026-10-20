@@ -132,7 +132,7 @@ function trueSupersonicRangeM(cdTable, massKg, caliberM) {
   const v1 = OPTIMAL_BC_START_MACH * STANDARD_SEA_LEVEL_SOUND_MS;
   const v2 = OPTIMAL_BC_END_MACH * STANDARD_SEA_LEVEL_SOUND_MS;
   const atmo = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0 };
-  const stepper = makeStepper({ cdTable, massKg, caliberM, windSpeed: 0, windAngle: 90, ...atmo });
+  const stepper = makeStepper({ cdTable, massKg, caliberM, windSpeed: 0, windAngleRad: Math.PI / 2, ...atmo });
   const speed = (p) => Math.hypot(p.vx, p.vy, p.vz);
 
   let older = null, prev = null, cur = { x: 0, y: 0, z: 0, vx: v1, vy: 0, vz: 0, t: 0 };

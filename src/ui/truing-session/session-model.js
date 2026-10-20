@@ -89,7 +89,7 @@ export function stationPressureCheck({ pressurePa, altitudeM }) {
 }
 
 // The keys a group's own weather carries into the engine (see withConditions); the altitude stays the session's own.
-export const GROUP_CONDITION_KEYS = ['tempC', 'pressurePa', 'humidity', 'windSpeed', 'windAngle'];
+export const GROUP_CONDITION_KEYS = ['tempC', 'pressurePa', 'humidity', 'windSpeed', 'windAngleRad'];
 export function pickGroupConditions(values) {
   if (!values) return null;
   const out = {};

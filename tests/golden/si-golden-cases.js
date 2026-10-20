@@ -24,7 +24,7 @@ import {
   airDensity, speedOfSound, icaoStandardPressurePa, temperatureAtHeightDelta, pressureAtAltitude,
   standardAtmosphereAt, altitudeFromPressurePa
 } from '../../src/engine/atmosphere.js';
-import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm } from '../../src/quantity.js';
+import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm, degToRad, radToDeg } from '../../src/quantity.js';
 import { computeMillerSg, canComputeStability } from '../../src/engine/stability.js';
 import { resolveSpinDrift, spinDriftM, resolveSpinDriftMode } from '../../src/engine/spin-drift.js';
 import { computeSingleShot } from '../../src/engine/single-shot.js';
@@ -395,8 +395,14 @@ const RENAMED_FIELDS = [
   ['windageCm', 'windageM', cmToM, mToCm],
   ['targetHeightCm', 'targetHeightM', cmToM, mToCm],
   ['aimOffsetXCm', 'aimOffsetXM', cmToM, mToCm],
-  ['aimOffsetYCm', 'aimOffsetYM', cmToM, mToCm]
+  ['aimOffsetYCm', 'aimOffsetYM', cmToM, mToCm],
+  ['losAngleDeg', 'losAngleRad', degToRad, radToDeg],
+  ['windAngle', 'windAngleRad', degToRad, radToDeg],
+  ['launchAngleDeg', 'launchAngleRad', degToRad, radToDeg]
 ];
+// Subtrees that are stored records rather than engine input, and keep the
+// record's own units until records are migrated: a location's targets.
+const KEEP_AS_STORED = new Set(['location']);
 const TO_CURRENT = new Map(RENAMED_FIELDS.map(([legacy, current, forward]) => [legacy, [current, forward]]));
 const TO_LEGACY = new Map(RENAMED_FIELDS.map(([legacy, current, , back]) => [current, [legacy, back]]));
 
@@ -405,6 +411,7 @@ function renameDeep(value, table) {
   if (value && typeof value === 'object') {
     const out = {};
     for (const [k, v] of Object.entries(value)) {
+      if (KEEP_AS_STORED.has(k)) { out[k] = v; continue; }
       const hit = table.get(k);
       if (hit && typeof v === 'number') out[hit[0]] = hit[1](v);
       else out[hit && v == null ? hit[0] : k] = renameDeep(v, table);

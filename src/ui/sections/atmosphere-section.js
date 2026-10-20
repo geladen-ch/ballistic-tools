@@ -8,7 +8,7 @@ import { loadAtmosphereState, saveAtmosphereState } from '../../shot-state.js';
 import { standardAtmosphereAt, altitudeFromPressurePa } from '../../engine/atmosphere.js';
 
 const DEFAULTS = {
-  windSpeed: 0, windAngle: 90, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
+  windSpeed: 0, windAngleRad: Math.PI / 2, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
   atmospherePreset: 'custom'
 };
 
@@ -77,14 +77,14 @@ export function atmosphereSection({
   // `slider` doesn't apply to it (there's no linear-range equivalent of a
   // dial), so it renders the same way regardless of that option.
   const windAngleDial = includeWind && !combinedWind
-    ? windDirectionDial({ id: 'windAngle', value: initial.windAngle, onInput: handleChange })
+    ? windDirectionDial({ id: 'windAngle', valueRad: initial.windAngleRad, onInput: handleChange })
     : null;
   // windControl() picks its own unit-aware step and decimals internally
   // (its own WIND_SPEED_STEPS table) — same stepping/precision as Range
   // Solver's own instance, not windSpeedField's flat 0.5 m/s above.
   const windCombined = includeWind && combinedWind
     ? windControl({
-      angle: initial.windAngle, speed: initial.windSpeed, ...FIELD_BOUNDS.windSpeed,
+      angleRad: initial.windAngleRad, speed: initial.windSpeed, ...FIELD_BOUNDS.windSpeed,
       label: true, hint: true, onInput: handleChange
     })
     : null;
@@ -199,8 +199,8 @@ export function atmosphereSection({
       : altitudeFromPressurePa(pressureField.getEngineValue());
     return {
       ...(combinedWind
-        ? { windSpeed: windCombined.getEngineSpeed(), windAngle: windCombined.getAngle() }
-        : includeWind ? { windSpeed: windSpeedField.getEngineValue(), windAngle: windAngleDial.getValue() } : {}),
+        ? { windSpeed: windCombined.getEngineSpeed(), windAngleRad: windCombined.getAngleRad() }
+        : includeWind ? { windSpeed: windSpeedField.getEngineValue(), windAngleRad: windAngleDial.getValueRad() } : {}),
       tempC: tempField.getEngineValue(),
       pressurePa: pressureField.getEngineValue(),
       altitudeM,

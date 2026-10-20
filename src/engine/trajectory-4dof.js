@@ -21,7 +21,7 @@
 // an open, unimplemented feature, not a bug in what's here.
 import { GRAVITY, LBIN2_TO_KGM2, TRANSONIC_LO, TRANSONIC_HI, H_COARSE, H_FINE } from './constants.js';
 import { DRAG_TABLES, makeCdLookup } from './drag-tables.js';
-import { airDensity, temperatureAtHeightDelta, icaoStandardPressurePa } from './atmosphere.js';
+import { airDensity, speedOfSound, temperatureAtHeightDelta, icaoStandardPressurePa } from './atmosphere.js';
 import { estimateAeroCoefficients, canEstimateAeroCoefficients } from './aero-coefficients.js';
 
 // Twist direction is this engine's own convention (spin-drift.js's own
@@ -50,7 +50,7 @@ export function makeStepper4dof(state) {
   const {
     bc, dragModel = 'G1', cdTable, massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM,
     twistDirection = 'right',
-    windSpeed = 0, windAngle = 90,
+    windSpeed = 0, windAngleRad = Math.PI / 2,
     tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0
   } = state;
 
@@ -92,13 +92,12 @@ export function makeStepper4dof(state) {
     const localTempC = temperatureAtHeightDelta(tempC, heightDeltaM);
     const localPressurePa = pressurePa * (icaoStandardPressurePa(altitudeM + heightDeltaM) / siteStdPressurePa);
     const rho = airDensity({ tempC: localTempC, pressurePa: localPressurePa, humidity });
-    const speedSound = Math.sqrt(1.4 * 287.05 * (localTempC + 273.15));
+    const speedSound = speedOfSound(localTempC);
     return { kConst: rho * kFactor, rho, speedSound };
   }
 
-  const windRad = (windAngle * Math.PI) / 180;
-  const windX = -windSpeed * Math.cos(windRad);
-  const windZ = windSpeed * Math.sin(windRad);
+  const windX = -windSpeed * Math.cos(windAngleRad);
+  const windZ = windSpeed * Math.sin(windAngleRad);
 
   function derivatives(vx, vy, vz, p, kConst, rho, speedSound) {
     const relVx = vx - windX, relVz = vz - windZ;

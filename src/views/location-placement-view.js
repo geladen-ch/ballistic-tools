@@ -22,6 +22,7 @@ import { crosshairGlyph, placedDot } from '../ui/locations/target-pin-glyphs.js'
 import {
   setPlacementMode, takePendingPlacement, registerPlacementHandlers
 } from '../location-placement-nav.js';
+import { degToRad } from '../quantity.js';
 
 // Select mode's own tap-to-select pins/chips — range/angle only, same as
 // the retired target-photo-overlay.js's original label, except a target's
@@ -85,7 +86,7 @@ export function mount(container) {
 
   function selectTarget(target) {
     saveRangeSolverLocationState({ locationId: loc.id, targetId: target.id });
-    saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
+    saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
     goBack();
   }
 

@@ -1030,7 +1030,7 @@ export function mount(container) {
       // dispersion model doesn't factor it in, and this is also what
       // keeps its Monte Carlo loop off the more expensive 4-DOF stepper
       // even when the user has that mode selected elsewhere.
-      windSpeed: 0, windAngle: 90
+      windSpeed: 0, windAngleRad: Math.PI / 2
     };
 
     const ownErrors = {

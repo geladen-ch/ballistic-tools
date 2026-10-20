@@ -92,7 +92,7 @@ const rangeOfX = (p) => p.x;
 function flightAt(cd, v1, dd, atmo, massKg, caliberM) {
   const stepper = makeStepper({
     cdTable: [[0, cd], [5, cd]], massKg, caliberM,
-    windSpeed: 0, windAngle: 90, ...atmo
+    windSpeed: 0, windAngleRad: Math.PI / 2, ...atmo
   });
   let older = null, prev = null, cur = { x: 0, y: 0, z: 0, vx: v1, vy: 0, vz: 0, t: 0 };
   let steps = 0;

@@ -28,7 +28,7 @@ test('every display unit in UNIT_GROUPS belongs to exactly the kind its group im
   const expectedKind = {
     velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
     altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy',
-    ratio: 'ratio'
+    ratio: 'ratio', angleDegrees: 'angle'
   };
   for (const [group, { choices }] of Object.entries(UNIT_GROUPS)) {
     for (const { unit } of choices) {
@@ -136,4 +136,11 @@ test('angle and linear offset at range: the small-angle definition shooting unit
   assert.ok(relClose(angleToLinearAtRange(mradToRad(1), 100), 0.1));
   assert.ok(relClose(linearToAngleAtRange(0.1, 100), mradToRad(1)));
   assert.equal(linearToAngleAtRange(0.1, 0), 0);
+});
+
+test('degrees convert through the exact pi/180, not js-quantities\' truncated degree factor', () => {
+  assert.equal(degToRad(90), Math.PI / 2);
+  assert.equal(degToRad(180), Math.PI);
+  assert.equal(radToDeg(Math.PI), 180);
+  assert.equal(convert(1, 'deg', 'arcmin'), 60);
 });

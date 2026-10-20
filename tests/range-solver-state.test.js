@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
 import { freshId } from './helpers/fresh-import.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 
@@ -30,24 +31,24 @@ test('all four slices start out null', () => {
 });
 
 test('saveRangeSolverTargetState persists and is readable back', () => {
-  saveRangeSolverTargetState({ rangeM: 500, losAngleDeg: 10 });
-  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 500, losAngleDeg: 10 });
+  saveRangeSolverTargetState({ rangeM: 500, losAngleRad: degToRad(10) });
+  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 500, losAngleRad: degToRad(10) });
 });
 
 test('each save merges into its own slice rather than replacing it outright', () => {
   saveRangeSolverTargetState({ rangeM: 500 });
-  saveRangeSolverTargetState({ losAngleDeg: 5 });
-  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 500, losAngleDeg: 5 });
+  saveRangeSolverTargetState({ losAngleRad: degToRad(5) });
+  assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 500, losAngleRad: degToRad(5) });
 });
 
 test('saving one slice never touches the others', () => {
   saveRangeSolverTargetState({ rangeM: 500 });
-  saveRangeSolverWindState({ speed: 2, angle: 45 });
+  saveRangeSolverWindState({ speed: 2, angleRad: Math.PI / 4 });
   saveRangeSolverAtmosphereState({ tempC: 10 });
   saveRangeSolverLocationState({ locationId: 'loc-1', targetId: 'tgt-1' });
 
   assert.deepEqual(loadRangeSolverTargetState(), { rangeM: 500 });
-  assert.deepEqual(loadRangeSolverWindState(), { speed: 2, angle: 45 });
+  assert.deepEqual(loadRangeSolverWindState(), { speed: 2, angleRad: Math.PI / 4 });
   assert.deepEqual(loadRangeSolverAtmosphereState(), { tempC: 10 });
   assert.deepEqual(loadRangeSolverLocationState(), { locationId: 'loc-1', targetId: 'tgt-1' });
 });
@@ -71,14 +72,15 @@ test('the atmosphere-touched flag is session-only — not written to the cookie'
 });
 
 test('persists to a single cookie a fresh module load would pick up', async () => {
-  saveRangeSolverTargetState({ rangeM: 777, losAngleDeg: 0 });
-  saveRangeSolverWindState({ speed: 1.5, angle: 90 });
+  saveRangeSolverTargetState({ rangeM: 777, losAngleRad: 0 });
+  saveRangeSolverWindState({ speed: 1.5, angleRad: Math.PI / 2 });
 
   assert.ok(getCookie(COOKIE_NAME), 'expected the state cookie to be written');
 
   const fresh = await import(`../src/range-solver-state.js?reload=${freshId()}`);
-  assert.deepEqual(fresh.loadRangeSolverTargetState(), { rangeM: 777, losAngleDeg: 0 });
-  assert.deepEqual(fresh.loadRangeSolverWindState(), { speed: 1.5, angle: 90 });
+  assert.deepEqual(fresh.loadRangeSolverTargetState(), { rangeM: 777, losAngleRad: 0 });
+  assert.deepEqual(fresh.loadRangeSolverWindState(), { speed: 1.5, angleRad: Math.PI / 2 });
+  assert.equal(JSON.parse(getCookie(COOKIE_NAME)).wind.angle, 90, 'stored in degrees');
 });
 
 test('resetRangeSolverStateForTests() clears every slice in memory (not the cookie), and the touched flag', () => {

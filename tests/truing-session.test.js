@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { computeImpact, solveZeroAngle } from '../src/engine/trajectory.js';
-import { radToMrad, linearToAngleAtRange } from '../src/quantity.js';
+import { radToMrad, linearToAngleAtRange, degToRad } from '../src/quantity.js';
 import {
   comeUpMrad, machAt, rangeAtMach, sigmaForGroup, observationSigmaMrad, sensitivityColumns, posterior, resolutionMatrix,
   requiredFarDistance, invalidityFloor, fitSession, fitSessionMixture,
@@ -19,8 +19,7 @@ const REF_STATE = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48,
   zeroRange: 100, sightHeightM: 0.05,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
-  windSpeed: 0, windAngle: 90, losAngleDeg: 0
-};
+  windSpeed: 0, windAngleRad: degToRad(90), losAngleRad: 0 };
 
 const CHECKED_PRIORS = { zeroMrad: 0.08, v0Ms: 3, dragPct: 5, trackPct: 0.15 };
 
@@ -219,8 +218,7 @@ test('dragPct sensitivity is non-zero for a real Cd-table library bullet', () =>
     cdTable: CD_TABLE_BULLET.profile.table, massKg: CD_TABLE_BULLET.massKg, caliberM: CD_TABLE_BULLET.caliberM,
     muzzleVelocity: 830, zeroRange: 100, sightHeightM: 0.05,
     tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
-    windSpeed: 0, windAngle: 0, losAngleDeg: 0
-  };
+    windSpeed: 0, windAngleRad: 0, losAngleRad: 0 };
   const cols = sensitivityColumns(state, 800);
   assert.notEqual(cols.dragPct, 0, 'a naive bc-only rescale is a silent no-op for a cdTable bullet -- 247 of 385 library bullets are this type');
   // v0Ms should behave normally either way (sanity check the fixture itself isn't broken).
@@ -267,8 +265,7 @@ test('bcGainFactor: BC-profile and Cd-table bullets get the same come-up change 
   const baseCd = {
     cdTable: CD_TABLE_BULLET.profile.table, massKg: CD_TABLE_BULLET.massKg, caliberM: CD_TABLE_BULLET.caliberM,
     muzzleVelocity: 830, zeroRange: 100, sightHeightM: 0.05,
-    tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 0, losAngleDeg: 0
-  };
+    tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngleRad: 0, losAngleRad: 0 };
   for (const range of [300, 600, 900]) {
     for (const factor of [1.0, 1.05, 0.95]) {
       const viaGainFactor = computeImpact({ ...baseCd, bcGainFactor: factor }, range).dropM * 100;
@@ -326,11 +323,10 @@ const SCEN_REF = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 2600 * 0.3048,
   zeroRange: 100, sightHeightM: 0.05,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
-  windSpeed: 0, windAngle: 0, losAngleDeg: 0
-};
+  windSpeed: 0, windAngleRad: 0, losAngleRad: 0 };
 function simulateObservation({ trueState, believedRangeM, trueRangeM = believedRangeM, trueLosDeg = 0, trueZeroMrad = 0, shots, r50Mrad = null, targetIndex, rng }) {
   const sigma = referenceSigma(shots, r50Mrad);
-  const trueComeUp = comeUpMrad({ ...trueState, losAngleDeg: trueLosDeg }, trueRangeM) + trueZeroMrad;
+  const trueComeUp = comeUpMrad({ ...trueState, losAngleRad: degToRad(trueLosDeg) }, trueRangeM) + trueZeroMrad;
   const observedComeUp = trueComeUp + gaussian(rng) * sigma;
   return { rangeM: believedRangeM, observedComeUp, shots, r50Mrad, targetIndex, sigmaMrad: sigma };
 }
@@ -521,7 +517,7 @@ test('degenerateGroups finds the un-chronographed v0/drag pair and nothing once 
 
 test('jointBlunderCheck: string target keys work, and a target on an unrecorded 25° slope is flagged by the summed probability even though "mis-ranged" alone stays under 50%', () => {
   const obs = [100, 400, 700].map((r) => ({
-    rangeM: r, observedComeUp: comeUpMrad({ ...REF_STATE, losAngleDeg: r === 700 ? 25 : 0 }, r),
+    rangeM: r, observedComeUp: comeUpMrad({ ...REF_STATE, losAngleRad: degToRad(r === 700 ? 25 : 0) }, r),
     shots: 8, sigmaMrad: referenceSigma(8), targetIndex: `t${r}`
   }));
   const chrono = chronoObservation({ state: REF_STATE, velocitiesMs: Array(10).fill(792.48), mvSD: 3 });
@@ -610,12 +606,12 @@ test('the evidence reused from a fit equals the evidence computed from scratch',
 
 test('predictedComeUp equals its original definition, with and without tracking, range error and inclination terms', () => {
   const original = (applied, rangeM, theta, tt) => {
-    const baseState = tt.knownLosDeg ? { ...applied, losAngleDeg: tt.knownLosDeg } : applied;
+    const baseState = tt.knownLosDeg ? { ...applied, losAngleRad: degToRad(tt.knownLosDeg) } : applied;
     const base = comeUpMrad(baseState, rangeM + (tt.rangeErrM || 0));
     const zero = theta.zeroMrad || 0;
     const track = (theta.trackPct || 0) * 0.01 * comeUpMrad(baseState, rangeM);
     let losTerm = 0;
-    if (tt.losU) losTerm = comeUpMrad({ ...baseState, losAngleDeg: (tt.knownLosDeg || 0) + losDegFromU(tt.losU) }, rangeM) - comeUpMrad(baseState, rangeM);
+    if (tt.losU) losTerm = comeUpMrad({ ...baseState, losAngleRad: degToRad((tt.knownLosDeg || 0) + losDegFromU(tt.losU))}, rangeM) - comeUpMrad(baseState, rangeM);
     return base + zero + track + losTerm;
   };
   for (const theta of [{}, { zeroMrad: 0.1 }, { trackPct: 1.5 }, { zeroMrad: -0.2, trackPct: -0.7 }]) {
@@ -643,7 +639,7 @@ test('jointBlunderCheck hands back a warm start; using it agrees with a cold run
 
 // ---- Per-group air and wind, the zero that stays put, and what to dial next ----
 test('the wind error: speed and direction sigma move the come-up and the windage, and an uncalled wind spreads over every direction', () => {
-  const at = (windSpeed, windAngle) => ({ ...REF_STATE, windSpeed, windAngle });
+  const at = (windSpeed, windAngle) => ({ ...REF_STATE, windSpeed, windAngleRad: degToRad(windAngle) });
   // no error, no effect; a larger speed error moves the impact proportionally
   const none = windErrorMrad({ state: at(5, 90), rangeM: 700, speedSigmaMs: 0, dirSigmaDeg: 0 });
   assert.equal(none.verticalMrad, 0); assert.equal(none.horizontalMrad, 0);
@@ -686,10 +682,10 @@ test('a zero fixed in the air it was set in: no zero conditions is the old behav
 });
 
 test('a zero set on the flat, shot at an incline: the come-up differs from a zero re-solved along the incline', () => {
-  const steep = { ...REF_STATE, losAngleDeg: 30 };
+  const steep = { ...REF_STATE, losAngleRad: degToRad(30) };
   const fixed = { ...steep, zeroConditions: {} };
   assert.equal(comeUpMrad(steep, 700), comeUpMrad(fixed, 700), 'the flat zero is the default for an inclined shot');
-  const atIncline = { ...steep, zeroConditions: { losAngleDeg: 30 } };
+  const atIncline = { ...steep, zeroConditions: { losAngleRad: degToRad(30) } };
   const diff = Math.abs(comeUpMrad(fixed, 700) - comeUpMrad(atIncline, 700));
   assert.ok(diff > 0.02 && diff < 0.4, `flat zero against slope-solved zero at 700 m and 30 degrees: ${diff} mrad`);
 });
@@ -698,8 +694,8 @@ function conditionsCase() {
   const state = { ...REF_STATE, referenceTempC: 15, velocityTempSensitivity: 0.8 };
   const truth = { ...state, muzzleVelocity: state.muzzleVelocity - 10 };
   const shots = [
-    [100, { tempC: 4, pressurePa: 101800, windSpeed: 0 }], [400, { tempC: 12, pressurePa: 101000, windSpeed: 2, windAngle: 0 }],
-    [700, { tempC: 22, pressurePa: 100200, windSpeed: 3, windAngle: 180 }], [850, { tempC: 29, pressurePa: 99800, windSpeed: 0 }]
+    [100, { tempC: 4, pressurePa: 101800, windSpeed: 0 }], [400, { tempC: 12, pressurePa: 101000, windSpeed: 2, windAngleRad: 0 }],
+    [700, { tempC: 22, pressurePa: 100200, windSpeed: 3, windAngleRad: degToRad(180) }], [850, { tempC: 29, pressurePa: 99800, windSpeed: 0 }]
   ];
   const observations = shots.map(([rangeM, conditions], i) => ({
     rangeM, observedComeUp: comeUpMrad(withConditions(truth, conditions), rangeM), shots: 4, sigmaMrad: 0.01, targetIndex: `t${i}`, knownLosDeg: 0, conditions
@@ -732,8 +728,8 @@ test('only air and wind fields are ever taken from a group\'s conditions', () =>
 });
 
 test('nextShotDope: elevation and windage for the next shot, in that shot\'s air and wind, with the fit folded in', () => {
-  const state = { ...REF_STATE, windSpeed: 0, windAngle: 90 };
-  const conditions = { tempC: 5, pressurePa: 100000, windSpeed: 6, windAngle: 90 };
+  const state = { ...REF_STATE, windSpeed: 0, windAngleRad: degToRad(90) };
+  const conditions = { tempC: 5, pressurePa: 100000, windSpeed: 6, windAngleRad: degToRad(90) };
   const shot = withConditions(state, conditions);
   const plain = nextShotDope({ state, conditions, rangeM: 700 });
   closeTo(plain.elevationMrad, comeUpMrad(shot, 700), 1e-9, 'elevation with no fit applied');
@@ -790,26 +786,26 @@ test('the rifle is zeroed once, in the starting air and in calm air: neither lat
   assert.equal(boreStart, withFixedBore(REF_STATE), 'a bare calm state is returned as it is');
   // wind never enters the zero, called or fitted, with or without other zero conditions
   const zeroCalm = solveZeroAngle(REF_STATE);
-  for (const s of [{ ...REF_STATE, windSpeed: 8, windAngle: 0 }, { ...REF_STATE, windSpeed: 8, windAngle: 180 },
-                   { ...REF_STATE, windSpeed: 8, windAngle: 0, zeroConditions: { tempC: REF_STATE.tempC } },
-                   withConditions(REF_STATE, { windSpeed: 8, windAngle: 0 })]) {
+  for (const s of [{ ...REF_STATE, windSpeed: 8, windAngleRad: 0 }, { ...REF_STATE, windSpeed: 8, windAngleRad: degToRad(180) },
+                   { ...REF_STATE, windSpeed: 8, windAngleRad: 0, zeroConditions: { tempC: REF_STATE.tempC } },
+                   withConditions(REF_STATE, { windSpeed: 8, windAngleRad: 0 })]) {
     assert.equal(withFixedBore(s).launchAngle, zeroCalm, 'the bore is the calm-air one');
   }
   // an explicit zero wind is honoured
-  assert.notEqual(withFixedBore({ ...REF_STATE, zeroConditions: { windSpeed: 8, windAngle: 0 } }).launchAngle, zeroCalm);
+  assert.notEqual(withFixedBore({ ...REF_STATE, zeroConditions: { windSpeed: 8, windAngleRad: 0 } }).launchAngle, zeroCalm);
   // the zero is one level bore angle: an incline never moves it, unless a zero angle is named
-  const steepShot = { ...REF_STATE, losAngleDeg: 25 };
+  const steepShot = { ...REF_STATE, losAngleRad: degToRad(25) };
   assert.equal(withFixedBore(steepShot).launchAngle, zeroCalm, 'an inclined shot uses the level zero');
   assert.equal(withFixedBore(withConditions(steepShot, { tempC: 0 })).launchAngle, zeroCalm);
-  assert.notEqual(withFixedBore({ ...steepShot, zeroConditions: { losAngleDeg: 25 } }).launchAngle, zeroCalm, 'a zero angle that was named is honoured');
+  assert.notEqual(withFixedBore({ ...steepShot, zeroConditions: { losAngleRad: degToRad(25) } }).launchAngle, zeroCalm, 'a zero angle that was named is honoured');
 });
 
 test('the kept integrator walks change nothing: come-ups equal a fresh computeImpact under the fixed bore, whatever was asked before', () => {
   clearWalkers();
   const states = [
-    REF_STATE, { ...REF_STATE, windSpeed: 4, windAngle: 0 }, { ...REF_STATE, losAngleDeg: 20 },
-    { ...withConditions({ ...REF_STATE, zeroRange: 300 }, { tempC: -8, pressurePa: 96000, windSpeed: 3, windAngle: 90 }), losAngleDeg: -15 },
-    { ...REF_STATE, zeroConditions: { tempC: 30, losAngleDeg: 10 } }, applyParameters(REF_STATE, { v0Ms: 2, dragPct: 3 })
+    REF_STATE, { ...REF_STATE, windSpeed: 4, windAngleRad: 0 }, { ...REF_STATE, losAngleRad: degToRad(20) },
+    { ...withConditions({ ...REF_STATE, zeroRange: 300 }, { tempC: -8, pressurePa: 96000, windSpeed: 3, windAngleRad: degToRad(90) }), losAngleRad: degToRad(-15) },
+    { ...REF_STATE, zeroConditions: { tempC: 30, losAngleRad: degToRad(10) } }, applyParameters(REF_STATE, { v0Ms: 2, dragPct: 3 })
   ];
   for (let pass = 0; pass < 2; pass++) {
     for (const state of states) {
@@ -1046,7 +1042,7 @@ test('planWholeSession reaches beyond the near band whenever the location has a 
 test('a hypothesis whose fit runs away does not poison the joint analysis', () => {
   // captured from a simulated session: a wide drag scale and two targets allowed to be mis-ranged at once ran one fit to NaN,
   // which used to turn every estimate into NaN
-  const state = { zeroRange: 100, sightHeightM: 0.05, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
+  const state = { zeroRange: 100, sightHeightM: 0.05, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngleRad: degToRad(90), losAngleRad: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
   const g = (rangeM, observedComeUp, shots, sigmaMrad) => ({ rangeM, observedComeUp, shots, sigmaMrad, targetIndex: String(rangeM), knownLosDeg: 0 });
   const observations = [
     g(100, -0.5029620073218181, 1, 0.12899090581593903),

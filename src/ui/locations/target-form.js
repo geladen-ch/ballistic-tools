@@ -2,6 +2,7 @@ import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { setPendingPlacement } from '../../location-placement-nav.js';
 import { FIELD_BOUNDS } from '../../units.js';
+import { degToRad, radToDeg } from '../../quantity.js';
 
 const DEFAULT_VALUES = { name: '', notes: '', rangeM: 400, losAngleDeg: 0 };
 
@@ -39,7 +40,9 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
   notesInput.value = values.notes || '';
 
   const rangeField = unitField({ id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10, value: values.rangeM });
-  const losAngleField = unitField({ id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: 1, value: values.losAngleDeg });
+  // A target record stores its line-of-sight angle in degrees; the field holds radians.
+  const initialLosRad = values.losAngleDeg == null ? values.losAngleDeg : degToRad(values.losAngleDeg);
+  const losAngleField = unitField({ id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: initialLosRad });
 
   const placeItButton = (locationPhoto && values.id) ? el('button', { type: 'button', class: 'secondary', i18n: 'rangeSolverLocations.placeItButton' }) : null;
   if (placeItButton) {
@@ -72,7 +75,8 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
         name: nameInput.value.trim() || null,
         notes: notesInput.value.trim() || null,
         rangeM: rangeField.getEngineValue(),
-        losAngleDeg: losAngleField.getEngineValue(),
+        // untouched, the record keeps its own degrees rather than a round trip through radians
+        losAngleDeg: losAngleField.getEngineValue() === initialLosRad ? values.losAngleDeg : radToDeg(losAngleField.getEngineValue()),
         coords: values.coords ?? null
       });
     }

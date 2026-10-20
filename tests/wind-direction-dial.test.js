@@ -7,7 +7,17 @@ installFakeDom();
 const { initI18n } = await import('../src/i18n.js');
 await initI18n();
 
-const { windDirectionDial } = await import('../src/ui/wind-direction-dial.js');
+const { windDirectionDial: windDirectionDialRad } = await import('../src/ui/wind-direction-dial.js');
+const { degToRad, radToDeg } = await import('../src/quantity.js');
+
+// The dial takes and gives radians; these tests are written in compass
+// degrees, so they go through this adapter (reading back to 1e-9 deg, and
+// normalized to 0..360 the way the dial shows it).
+function windDirectionDial({ value, ...rest }) {
+  const dial = windDirectionDialRad({ ...rest, valueRad: value == null ? value : degToRad(value) });
+  const deg = (rad) => { const d = Number(radToDeg(rad).toFixed(9)); return ((d % 360) + 360) % 360; };
+  return { ...dial, getValue: () => deg(dial.getValueRad()), setValue: (d) => dial.setValueRad(degToRad(d)) };
+}
 const { setWindDialAppearance } = await import('../src/wind-dial-prefs.js');
 const { removeCookie } = await import('../src/cookies.js');
 

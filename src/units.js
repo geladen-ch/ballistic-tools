@@ -4,7 +4,7 @@
 // unit and to turn typed input straight back into the engine unit. The
 // arithmetic itself is src/quantity.js's — this module never converts on
 // its own.
-import { converter, angleToLinearAtRange } from './quantity.js';
+import { converter, angleToLinearAtRange, degToRad } from './quantity.js';
 
 // Each group is one independently-selectable "preferred unit" — grouped by
 // how a shooter actually thinks about a measurement, not just by physical
@@ -109,6 +109,16 @@ export const UNIT_GROUPS = {
   // 0..1 and always shown in percent — not a choice anyone needs, so the
   // group is `fixed`: Settings doesn't offer it, and fields don't append a
   // unit suffix to their label (their translated labels already say "%").
+  // A direction or an incline (wind direction, line-of-sight angle) is
+  // held in radians and always shown in degrees, the way it is read off a
+  // compass or an inclinometer — `fixed` for the same reasons as `ratio`.
+  angleDegrees: {
+    defaultUnit: 'deg',
+    fixed: true,
+    choices: [
+      { unit: 'deg', label: '°', decimals: 1 }
+    ]
+  },
   ratio: {
     defaultUnit: '%',
     fixed: true,
@@ -134,14 +144,13 @@ export const UNIT_GROUPS = {
 export const GROUP_KINDS = {
   velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
   altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy',
-  ratio: 'ratio'
+  ratio: 'ratio', angleDegrees: 'angle'
 };
 
 // Maps each engine parameter to the group it belongs to and the exact unit
 // the engine functions expect for it. Anything not listed here (bc,
-// humidityPct, windAngle, shots, bcSDFracPct, ...) is dimensionless or a
-// fixed-unit value (a compass heading is always degrees) and passes
-// through unit fields unconverted.
+// shots, sighting shot count, ...) is a plain number with no unit and
+// passes through unit fields unconverted.
 export const FIELD_UNITS = {
   muzzleVelocity: { group: 'velocity', engineUnit: 'm/s' },
   windSpeed: { group: 'windSpeed', engineUnit: 'm/s' },
@@ -194,6 +203,8 @@ export const FIELD_UNITS = {
   pressure: { group: 'pressure', engineUnit: 'Pa' },
   pressureMedianError: { group: 'pressure', engineUnit: 'Pa' },
   humidity: { group: 'ratio', engineUnit: '1' },
+  losAngle: { group: 'angleDegrees', engineUnit: 'rad' },
+  windAngle: { group: 'angleDegrees', engineUnit: 'rad' },
   benchPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
   shooterSkill: { group: 'angleDispersion', engineUnit: 'mrad' },
   combinedPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
@@ -298,8 +309,8 @@ export function roundForDisplay(fieldId, displayUnit, value) {
 // below can run them through the exact same engineToDisplay()/
 // roundForDisplay() path as the field's own value), or in the field's
 // one-and-only raw unit for anything with no FIELD_UNITS entry (bc, mass
-// — always g regardless of prefs, scope clicks, losAngle, humidityPct,
-// tof, sightingShotCount, spotterMeasure, convBc, cdTableCd). Centralized
+// — always g regardless of prefs, scope clicks, tof, sightingShotCount,
+// convBc, cdTableCd). Centralized
 // here — not scattered as a literal min/max at each call site —
 // specifically so the same physical quantity can't quietly end up with
 // two different bounds in two views the way windSpeed (20 vs 30 m/s) and
@@ -321,7 +332,7 @@ export const FIELD_BOUNDS = {
   velocityTempSensitivity: { min: -5, max: 5 }, // m/s per °C, engine unit always — see velocityPerTempFactor() above
   altitudeM: { min: -500, max: 6000 }, // m
   targetRange: { min: 10, max: 5000 }, // m
-  losAngle: { min: -90, max: 90 }, // degrees, no FIELD_UNITS entry
+  losAngle: { min: degToRad(-90), max: degToRad(90) }, // rad
   windSpeed: { min: 0, max: 35 }, // m/s
   pressure: { min: 45000, max: 110000 }, // Pa
   humidity: { min: 0, max: 1 }, // fraction
@@ -361,7 +372,7 @@ export const FIELD_BOUNDS = {
 // "164 – 4921 ft/s" for a user who's switched to imperial, not a raw
 // metric number in a field that no longer shows metric anywhere else.
 // Falls back to the bare numbers, no unit suffix, for a field with no
-// FIELD_UNITS entry (bc, clicks, losAngle, ...) — exactly what
+// FIELD_UNITS entry (bc, clicks, ...) — exactly what
 // unitChoice() already returns null for.
 export function formatFieldRange(fieldId, min, max, displayUnit) {
   const choice = unitChoice(fieldId, displayUnit);

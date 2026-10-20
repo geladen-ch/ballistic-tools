@@ -8,7 +8,7 @@
 // The table is append-only and frozen in meaning: a row describes what a
 // field meant in data that already exists, which never changes, so a row
 // is never edited once released.
-import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm } from './quantity.js';
+import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm, degToRad, radToDeg } from './quantity.js';
 
 // [stored name, in-memory name, stored → in-memory, in-memory → stored]
 const RENAMED_FIELDS = [
@@ -19,7 +19,12 @@ const RENAMED_FIELDS = [
   ['sightHeight', 'sightHeightM', mmToM, mToMm],
   ['riflingTwist', 'riflingTwistM', mmToM, mToMm],
   // the Trajectory tool's own inputs
-  ['targetHeightCm', 'targetHeightM', cmToM, mToCm]
+  ['targetHeightCm', 'targetHeightM', cmToM, mToCm],
+  // line-of-sight and wind directions (Trajectory, Range Solver's target,
+  // wind and atmosphere slices)
+  ['losAngleDeg', 'losAngleRad', degToRad, radToDeg],
+  ['windAngle', 'windAngleRad', degToRad, radToDeg],
+  ['angle', 'angleRad', degToRad, radToDeg]
 ];
 
 const BY_STORED = new Map(RENAMED_FIELDS.map(([stored, current, decode]) => [stored, { name: current, convert: decode }]));

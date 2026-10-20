@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
 import { freshId } from './helpers/fresh-import.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 
@@ -22,8 +23,8 @@ test('starts out null (nothing restored on a first-ever visit)', () => {
 });
 
 test('save persists and is readable back', () => {
-  saveTrajectoryInputsState({ maxRange: 1500, rangeStep: 50, losAngleDeg: 10 });
-  assert.deepEqual(loadTrajectoryInputsState(), { maxRange: 1500, rangeStep: 50, losAngleDeg: 10 });
+  saveTrajectoryInputsState({ maxRange: 1500, rangeStep: 50, losAngleRad: degToRad(10) });
+  assert.deepEqual(loadTrajectoryInputsState(), { maxRange: 1500, rangeStep: 50, losAngleRad: degToRad(10) });
 });
 
 test('each save merges into the saved state rather than replacing it outright', () => {
@@ -33,11 +34,11 @@ test('each save merges into the saved state rather than replacing it outright', 
 });
 
 test('persists to a single cookie a fresh module load would pick up', async () => {
-  saveTrajectoryInputsState({ maxRange: 1800, rangeStep: 25, losAngleDeg: -5 });
+  saveTrajectoryInputsState({ maxRange: 1800, rangeStep: 25, losAngleRad: degToRad(-5) });
   assert.ok(getCookie(COOKIE_NAME), 'expected the state cookie to be written');
 
   const fresh = await import(`../src/trajectory-state.js?reload=${freshId()}`);
-  assert.deepEqual(fresh.loadTrajectoryInputsState(), { maxRange: 1800, rangeStep: 25, losAngleDeg: -5 });
+  assert.deepEqual(fresh.loadTrajectoryInputsState(), { maxRange: 1800, rangeStep: 25, losAngleRad: degToRad(-5) });
 });
 
 test('resetTrajectoryStateForTests() clears the saved state in memory (not the cookie)', () => {

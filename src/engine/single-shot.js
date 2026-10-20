@@ -84,6 +84,6 @@ export function computeSingleShot({
     offsetX: nominalImpact.windageM + aimOffsetXM,
     offsetY: nominalImpact.dropM + aimOffsetYM,
     contributions,
-    launchAngleDeg: (launchAngle * 180) / Math.PI
+    launchAngleRad: launchAngle
   };
 }

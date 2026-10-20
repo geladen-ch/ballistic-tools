@@ -88,15 +88,15 @@ export function conditionsCard({ load, save, getLocationAltitudeM, getConfirmed,
 // carries its own); `lastWindConfidenceKey` is the confidence of the previous group's wind. getValue() is what to store on the group
 // (always with a wind); getWindConfidenceKey() the confidence picked for it.
 export const WIND_CONFIDENCE_KEYS = ['excellent', 'good', 'fair', 'poor'];
-const WIND_KEYS = ['windSpeed', 'windAngle'];
+const WIND_KEYS = ['windSpeed', 'windAngleRad'];
 const airOf = (c) => (c ? pickGroupConditions(Object.fromEntries(Object.entries(c).filter(([k]) => !WIND_KEYS.includes(k)))) : null);
 export function groupWeatherControl({ start, last, lastWindConfidenceKey = null, onChange = null }) {
   const notify = () => { if (onChange) onChange(); };
   // the first group starts calm (a crosswind direction); every later one from the previous group's wind
-  const calledWind = { windSpeed: 0, windAngle: 90, ...(last ? pickGroupConditions(last) : {}) };
+  const calledWind = { windSpeed: 0, windAngleRad: Math.PI / 2, ...(last ? pickGroupConditions(last) : {}) };
 
   // ---- wind ----
-  const wind = windControl({ angle: calledWind.windAngle ?? 90, speed: calledWind.windSpeed ?? 0, ...FIELD_BOUNDS.windSpeed, label: true, hint: true, onInput: notify });
+  const wind = windControl({ angleRad: calledWind.windAngleRad ?? Math.PI / 2, speed: calledWind.windSpeed ?? 0, ...FIELD_BOUNDS.windSpeed, label: true, hint: true, onInput: notify });
   const confidence = el('select', { id: 'truingGroupWindConfidence' }, WIND_CONFIDENCE_KEYS.map((key) => el('option', {
     value: key, text: t('truingSession.windConfidence.option', { name: t(`truingSession.windConfidence.${key}`), sigma: windSpeedShort(WIND_CONFIDENCE_SIGMA_MS[key]) })
   })));
@@ -140,7 +140,7 @@ export function groupWeatherControl({ start, last, lastWindConfidenceKey = null,
 
   const getValue = () => pickGroupConditions({
     ...(changed.checked ? airOf(section.getValues()) : airOf(last)),
-    windSpeed: wind.getEngineSpeed(), windAngle: wind.getAngle()
+    windSpeed: wind.getEngineSpeed(), windAngleRad: wind.getAngleRad()
   });
   return { node: el('div', {}, [windNode, airNode]), getValue, getWindConfidenceKey: () => confidence.value };
 }

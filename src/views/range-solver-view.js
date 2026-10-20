@@ -41,10 +41,10 @@ import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
-import { fractionToPercent } from '../quantity.js';
+import { fractionToPercent, degToRad } from '../quantity.js';
 
-const DEFAULT_LOS_ANGLE_DEG = 0;
-const DEFAULT_WIND_ANGLE_DEG = 90;
+const DEFAULT_LOS_ANGLE_RAD = 0;
+const DEFAULT_WIND_ANGLE_RAD = Math.PI / 2; // full crosswind from the right
 const DEFAULT_WIND_SPEED_MS = 0;
 // <select>'s own sentinel for "not tracking any library target" — real
 // target ids (location-library.js) are never empty strings, so this can
@@ -106,7 +106,7 @@ export function mount(container) {
   // ---- Target tab ----
   const targetSaved = loadRangeSolverTargetState() || {};
   function saveTarget() {
-    saveRangeSolverTargetState({ rangeM: targetRangeField.getEngineValue(), losAngleDeg: losAngleField.getEngineValue() });
+    saveRangeSolverTargetState({ rangeM: targetRangeField.getEngineValue(), losAngleRad: losAngleField.getEngineValue() });
   }
   const distanceUnit = currentUnit('distance');
   const targetRangeField = inlineNumberField({
@@ -119,7 +119,7 @@ export function mount(container) {
   });
   const losAngleField = inlineNumberField({
     id: 'losAngle', ...FIELD_BOUNDS.losAngle, decimals: 0,
-    value: targetSaved.losAngleDeg ?? DEFAULT_LOS_ANGLE_DEG,
+    value: targetSaved.losAngleRad ?? DEFAULT_LOS_ANGLE_RAD,
     adornment: losAngleIcon(),
     ariaLabel: t('fields.losAngle'),
     onInput: () => { saveTarget(); recompute(); }
@@ -207,7 +207,7 @@ export function mount(container) {
     const target = resolvedActiveTarget();
     if (target) {
       targetRangeField.setEngineValue(target.rangeM);
-      losAngleField.setEngineValue(target.losAngleDeg);
+      losAngleField.setEngineValue(degToRad(target.losAngleDeg)); // location records hold degrees
       saveTarget();
     }
     recompute();
@@ -254,7 +254,7 @@ export function mount(container) {
     if (!target) return;
     const diverged = (
       targetRangeField.getEngineValue() !== targetRangeField.peekRoundTrip(target.rangeM) ||
-      losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(target.losAngleDeg)
+      losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(degToRad(target.losAngleDeg))
     );
     if (diverged) deselectTarget();
   }
@@ -271,10 +271,10 @@ export function mount(container) {
   // label-free range/LoS row just above it.
   const windSaved = loadRangeSolverWindState() || {};
   function saveWind() {
-    saveRangeSolverWindState({ speed: wind.getEngineSpeed(), angle: wind.getAngle() });
+    saveRangeSolverWindState({ speed: wind.getEngineSpeed(), angleRad: wind.getAngleRad() });
   }
   const wind = windControl({
-    angle: windSaved.angle ?? DEFAULT_WIND_ANGLE_DEG,
+    angleRad: windSaved.angleRad ?? DEFAULT_WIND_ANGLE_RAD,
     speed: windSaved.speed ?? DEFAULT_WIND_SPEED_MS,
     ...FIELD_BOUNDS.windSpeed,
     onInput: () => { saveWind(); recompute(); }
@@ -563,7 +563,7 @@ export function mount(container) {
     });
   }
 
-  // Everything computeImpact() needs except losAngleDeg/targetRangeM —
+  // Everything computeImpact() needs except losAngleRad/targetRangeM —
   // those two vary per target (the dialed one below, and every other
   // target's own stored values for the Range Card tab, see
   // buildRangeCardRows()), everything else is shared "current conditions."
@@ -582,7 +582,7 @@ export function mount(container) {
       spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled(),
       windSpeed: wind.getEngineSpeed(),
-      windAngle: wind.getAngle(),
+      windAngleRad: wind.getAngleRad(),
       // "Zeroed with a different cartridge" — see zero-donor.js and
       // rifle-section.js's own getZeroDonorBallistics(). null whenever the
       // selected cartridge doesn't borrow a sibling's zero.
@@ -592,12 +592,12 @@ export function mount(container) {
 
   // The one shot solve, factored out so both the Target tab's own single
   // readout and the Range Card tab's per-target rows (each with their own
-  // rangeM/losAngleDeg, same shared conditions otherwise) go through the
+  // rangeM/losAngleRad, same shared conditions otherwise) go through the
   // exact same math — returns null on anything unsolvable (same cases
   // showPlaceholder() used to catch inline) rather than throwing, so a
   // Range Card loop over several targets can skip just the bad one.
-  function solveClicks(nominalStateBase, targetRangeM, losAngleDeg) {
-    const nominalState = { ...nominalStateBase, losAngleDeg };
+  function solveClicks(nominalStateBase, targetRangeM, losAngleRad) {
+    const nominalState = { ...nominalStateBase, losAngleRad };
     let result;
     try {
       result = computeImpact(nominalState, targetRangeM);
@@ -642,7 +642,7 @@ export function mount(container) {
     if (!activeLocation) return [];
     return activeLocation.targets
       .map((target, index) => {
-        const solved = solveClicks(nominalStateBase, target.rangeM, target.losAngleDeg);
+        const solved = solveClicks(nominalStateBase, target.rangeM, degToRad(target.losAngleDeg));
         return {
           id: target.id,
           name: target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 }),

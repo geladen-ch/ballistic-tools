@@ -141,11 +141,15 @@ function buildFace(ticksG, labelsG, skin) {
   }));
 }
 
+// `angleRad` in and getAngleRad() out are radians, like every direction in
+// the app; the dial itself works in compass degrees, the unit it shows.
 export function windControl({
-  angle = 0, speed = 0, min, max, onInput, skin = getWindDialAppearance(),
+  angleRad = 0, speed = 0, min, max, onInput, skin = getWindDialAppearance(),
   label = false, hint = false
 }) {
-  let currentAngle = norm(angle);
+  let currentAngle = norm(radToDeg(angleRad));
+  // untouched, the angle reads back exactly as given rather than through degrees
+  const initialAngle = currentAngle;
   let dragging = false;
 
   // ---- direction ring ----
@@ -317,7 +321,7 @@ export function windControl({
 
   return {
     node,
-    getAngle: () => currentAngle,
+    getAngleRad: () => (currentAngle === initialAngle ? angleRad : degToRad(currentAngle)),
     getEngineSpeed: () => toEng(parseFloat(speedInput.value))
   };
 }

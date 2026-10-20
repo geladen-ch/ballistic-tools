@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
 import { warmCatalogs } from './helpers/warm-catalogs.js';
+import { degToRad } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -474,7 +475,7 @@ test('an active location shows its name and a target select populated from its o
   const t2 = makeTestTarget({ name: null }); // exercises the default-numbered label
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
-  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
 
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
@@ -501,7 +502,7 @@ test('picking a different target in the select copies its range/LoS into the fie
   const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: -5 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
-  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
 
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
@@ -534,7 +535,7 @@ test('picking a target with a fractional LOS angle stays selected — detachIfHa
   const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 5.5 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
-  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
 
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
@@ -557,7 +558,7 @@ test('hand-editing range after a target loads detaches it — the select falls b
   const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 0 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
-  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleDeg: t1.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
 
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
@@ -590,7 +591,7 @@ test('picking "Manual entry" explicitly detaches from the active target without 
   const target = makeTestTarget({ rangeM: 650, losAngleDeg: 12 });
   const location = saveUserLocation(makeTestLocation({ targets: [target] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: target.id });
-  saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleDeg: target.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
 
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
@@ -670,7 +671,7 @@ test('an active location with a photo shows the photo picker icon; clicking it h
   // otherwise shadow (see range-solver-view.js's own matching comment).
   const savedLocation = saveUserLocation(makeTestLocation({ photo: TEST_PHOTO, targets: [placed] }));
   saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: placed.id });
-  saveRangeSolverTargetState({ rangeM: placed.rangeM, losAngleDeg: placed.losAngleDeg });
+  saveRangeSolverTargetState({ rangeM: placed.rangeM, losAngleRad: degToRad(placed.losAngleDeg) });
 
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);

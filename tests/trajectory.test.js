@@ -5,11 +5,12 @@ import { displayToEngine, engineToDisplay } from '../src/units.js';
 import { G7_TABLE } from '../src/engine/drag-tables.js';
 import { LBIN2_TO_KGM2 } from '../src/engine/constants.js';
 import { speedOfSound, temperatureAtHeightDelta } from '../src/engine/atmosphere.js';
+import { degToRad } from '../src/quantity.js';
 
 const baseState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
   maxRange: 1000, rangeStep: 100, zeroRange: 100, sightHeightM: 0.05,
-  windSpeed: 0, windAngle: 90,
+  windSpeed: 0, windAngleRad: degToRad(90),
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };
 
@@ -118,8 +119,8 @@ test('BUG: zeroRange of 0 must not make the zero-angle solve diverge', () => {
 });
 
 test('zeroRange of 0 (or below) is treated as "no elevation correction": fire level down the bore', () => {
-  const { points, launchAngleDeg } = integrate({ ...baseState, maxRange: 300, rangeStep: 100, zeroRange: 0 });
-  assert.equal(launchAngleDeg, 0);
+  const { points, launchAngleRad } = integrate({ ...baseState, maxRange: 300, rangeStep: 100, zeroRange: 0 });
+  assert.equal(launchAngleRad, 0);
   for (const p of points) assert.ok(Number.isFinite(p.dropM * 100) && Number.isFinite(p.velocity));
 
   // At the muzzle (range 0) the bore is sightHeightM below the sight line,
@@ -166,14 +167,14 @@ test('resolveLaunchAngle: zeroDonorBallistics solves as if the donor\'s own ball
 test('integrate() flies the recipient\'s own ballistics from a donor-solved launch angle', () => {
   const donor = { muzzleVelocity: 900, bc: 0.9, dragModel: 'G7' };
   const withDonor = integrate({ ...baseState, maxRange: 300, rangeStep: 100, zeroDonorBallistics: donor });
-  const donorLaunchAngleDeg = (solveZeroAngle({ ...baseState, ...donor }) * 180) / Math.PI;
-  assert.ok(Math.abs(withDonor.launchAngleDeg - donorLaunchAngleDeg) < 1e-9);
+  const donorLaunchAngleRad = solveZeroAngle({ ...baseState, ...donor });
+  assert.ok(Math.abs(withDonor.launchAngleRad - donorLaunchAngleRad) < 1e-11);
   // Flown at the donor's angle but with this cartridge's own (lower-BC,
   // slower) ballistics, it should NOT land on the sight line at zeroRange
   // the way solving its own zero would — that's the whole point of the
   // feature (this cartridge is no longer independently zeroed).
   const ownZero = integrate({ ...baseState, maxRange: 300, rangeStep: 100 });
-  assert.notEqual(withDonor.launchAngleDeg, ownZero.launchAngleDeg);
+  assert.notEqual(withDonor.launchAngleRad, ownZero.launchAngleRad);
 });
 
 test('a library bullet\'s cdTable produces a finite, monotonically-decaying trajectory', () => {
@@ -215,13 +216,13 @@ test('a Cd-table bullet whose sectional density exactly matches a given BC repro
 
 test('losAngleDeg omitted behaves identically to losAngleDeg: 0 (flat-fire default is unaffected by the new parameter)', () => {
   const withDefault = integrate(baseState);
-  const explicitZero = integrate({ ...baseState, losAngleDeg: 0 });
+  const explicitZero = integrate({ ...baseState, losAngleRad: 0 });
   assert.deepEqual(withDefault, explicitZero);
 });
 
 test('the zero solve still sends the trajectory through the (inclined) sight line at zeroRange, uphill and downhill', () => {
   for (const losAngleDeg of [45, -45, 20]) {
-    const state = { ...baseState, losAngleDeg };
+    const state = { ...baseState, losAngleRad: degToRad(losAngleDeg) };
     const launchAngle = solveZeroAngle(state);
     const impact = computeImpact({ ...state, launchAngle }, baseState.zeroRange);
     assert.ok(Math.abs(impact.dropM * 100) < 0.1, `losAngleDeg=${losAngleDeg}: drop at zero was ${impact.dropM * 100} cm`);
@@ -233,7 +234,7 @@ test('an inclined shot (uphill or downhill) drops less than a level shot at the 
   const level = computeImpact({ ...baseState, launchAngle: solveZeroAngle(baseState) }, target);
 
   for (const losAngleDeg of [45, -45]) {
-    const state = { ...baseState, losAngleDeg };
+    const state = { ...baseState, losAngleRad: degToRad(losAngleDeg) };
     const inclined = computeImpact({ ...state, launchAngle: solveZeroAngle(state) }, target);
     assert.ok(
       Math.abs(inclined.dropM * 100) < Math.abs(level.dropM * 100),
@@ -250,12 +251,12 @@ const coldHighAir = { tempC: -10, pressurePa: 85000, humidity: 0.2, altitudeM: 1
 test('resolveLaunchAngle: the zero angle ignores the shot\'s line-of-sight angle (uphill and downhill alike)', () => {
   const flat = solveZeroAngle(baseState);
   for (const losAngleDeg of [45, -45, 20]) {
-    assert.equal(resolveLaunchAngle({ ...baseState, losAngleDeg }), flat, `losAngleDeg=${losAngleDeg}`);
+    assert.equal(resolveLaunchAngle({ ...baseState, losAngleRad: degToRad(losAngleDeg) }), flat, `losAngleDeg=${losAngleDeg}`);
   }
 });
 
 test('an inclined shot is flown from the flat zero: its impact matches a shot given the flat zero angle explicitly', () => {
-  const state = { ...baseState, losAngleDeg: 30 };
+  const state = { ...baseState, losAngleRad: degToRad(30) };
   const viaResolve = computeImpact(state, 400);
   const explicit = computeImpact({ ...state, launchAngle: solveZeroAngle(baseState) }, 400);
   assert.deepEqual(viaResolve, explicit);
@@ -266,8 +267,8 @@ test('an inclined shot is flown from the flat zero: its impact matches a shot gi
 
 test('resolveLaunchAngle: the zero angle ignores the shot\'s wind', () => {
   const calm = solveZeroAngle(baseState);
-  assert.equal(resolveLaunchAngle({ ...baseState, windSpeed: 10, windAngle: 0 }), calm);
-  assert.equal(resolveLaunchAngle({ ...baseState, windSpeed: 10, windAngle: 90 }), calm);
+  assert.equal(resolveLaunchAngle({ ...baseState, windSpeed: 10, windAngleRad: 0 }), calm);
+  assert.equal(resolveLaunchAngle({ ...baseState, windSpeed: 10, windAngleRad: degToRad(90) }), calm);
 });
 
 test('resolveLaunchAngle: a zero atmosphere replaces the shot\'s own air for the zero solve only', () => {
@@ -295,7 +296,7 @@ test('resolveLaunchAngle: with no zero atmosphere the zero is solved in the shot
 
 test('resolveLaunchAngle: a recipient takes its zero atmosphere from the donor, flat and calm like any other zero', () => {
   const donor = { muzzleVelocity: 800, bc: 0.5, dragModel: 'G1', zeroAtmosphere: coldHighAir };
-  const recipient = { ...baseState, zeroRange: 300, losAngleDeg: 25, windSpeed: 8, windAngle: 0, zeroAtmosphere: null };
+  const recipient = { ...baseState, zeroRange: 300, losAngleRad: degToRad(25), windSpeed: 8, windAngleRad: 0, zeroAtmosphere: null };
   const expected = solveZeroAngle({ ...baseState, zeroRange: 300, ...donor, ...coldHighAir });
   assert.equal(resolveLaunchAngle({ ...recipient, zeroDonorBallistics: donor }), expected);
   // donor without a zero atmosphere: the shot's own air
@@ -310,7 +311,7 @@ test('solveHorizontalZeroAngle is solved in the same flat, calm zero state: the 
   const state = { ...spinDriftState, ...zeroingOn };
   const flatCalm = solveHorizontalZeroAngle(state);
   assert.ok(flatCalm !== 0, 'spin drift zeroing must have something to solve for');
-  assert.equal(solveHorizontalZeroAngle({ ...state, losAngleDeg: 30, windSpeed: 6, windAngle: 90 }), flatCalm);
+  assert.equal(solveHorizontalZeroAngle({ ...state, losAngleRad: degToRad(30), windSpeed: 6, windAngleRad: degToRad(90) }), flatCalm);
 });
 
 test('the same real station pressure gives identical density at the muzzle regardless of site elevation — pressurePa is taken at face value, never sea-level-corrected', () => {
@@ -326,7 +327,7 @@ test('site elevation still shapes the trajectory during a climbing shot, even wi
   // perfectly self-similar) standard pressure-vs-altitude curve a 60°,
   // 800m-slant climb sweeps through: starting from sea level, or starting
   // already 3000m up.
-  const state = { ...baseState, maxRange: 800, rangeStep: 800, losAngleDeg: 60 };
+  const state = { ...baseState, maxRange: 800, rangeStep: 800, losAngleRad: degToRad(60) };
   const lowSite = integrate(state);
   const highSite = integrate({ ...state, altitudeM: 3000 });
   const lastLow = lowSite.points[lowSite.points.length - 1];
@@ -439,8 +440,8 @@ test('without spin drift, windage stays exactly 0 at every range with no wind �
 test('solveHorizontalZeroAngle holds the already-solved vertical zero angle fixed rather than perturbing it', () => {
   const state = { ...spinDriftState, ...zeroingOn };
   const verticalOnly = solveZeroAngle(state);
-  const { launchAngleDeg } = integrate(state);
-  assert.ok(Math.abs(launchAngleDeg - (verticalOnly * 180) / Math.PI) < 1e-9);
+  const { launchAngleRad } = integrate(state);
+  assert.ok(Math.abs(launchAngleRad - verticalOnly) < 1e-11);
 });
 
 // spinDriftMode: 'mccoy4dof' dispatches to the full 4-DOF stepper.
@@ -497,8 +498,8 @@ test('regression: full bullet data with neither calculateSpinDrift nor spinDrift
 test('makeImpactWalker: every range comes out bit for bit as computeImpact gives it, in any order, for any state', () => {
   const states = [
     baseState,
-    { ...baseState, windSpeed: 6, windAngle: 45, tempC: -5, pressurePa: 93000, altitudeM: 800, humidity: 0.6 },
-    { ...baseState, losAngleDeg: 25 }, { ...baseState, losAngleDeg: -30, muzzleVelocity: 600 },
+    { ...baseState, windSpeed: 6, windAngleRad: degToRad(45), tempC: -5, pressurePa: 93000, altitudeM: 800, humidity: 0.6 },
+    { ...baseState, losAngleRad: degToRad(25) }, { ...baseState, losAngleRad: degToRad(-30), muzzleVelocity: 600 },
     { ...baseState, dragModel: 'G7', bc: 0.25, muzzleVelocity: 790, zeroRange: 300 },
     { ...baseState, launchAngle: 0.0031 }, { ...baseState, muzzleVelocity: 320 } // never reaches the far ranges quickly
   ];

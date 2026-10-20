@@ -24,7 +24,7 @@ import { makeStepper4dof } from './trajectory-4dof.js';
 export function makeStepper(state) {
   const {
     bc, dragModel = 'G1', cdTable, massKg, caliberM,
-    windSpeed = 0, windAngle = 90,
+    windSpeed = 0, windAngleRad = Math.PI / 2,
     tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0,
     bcGainFactor = 1
   } = state;
@@ -101,14 +101,13 @@ export function makeStepper(state) {
     return { kConst, speedSound };
   }
 
-  // Wind angle convention: 0deg = headwind, 90deg = full crosswind from the
+  // Wind angle convention: 0 = headwind, pi/2 (90 deg) = full crosswind from the
   // right (pushes impact left, +z). Pin this down in the UI copy too — it's
   // the #1 source of "windage is backwards" bugs in ballistics apps. Wind
   // always blows horizontally in the world frame, regardless of any
   // line-of-sight incline the shot itself is fired at.
-  const windRad = (windAngle * Math.PI) / 180;
-  const windX = -windSpeed * Math.cos(windRad);
-  const windZ = windSpeed * Math.sin(windRad);
+  const windX = -windSpeed * Math.cos(windAngleRad);
+  const windZ = windSpeed * Math.sin(windAngleRad);
 
   function derivatives(vx, vy, vz, kConst, speedSound) {
     const relVx = vx - windX, relVz = vz - windZ;
@@ -167,7 +166,7 @@ export function makeStepper(state) {
 }
 
 // Everything below the muzzle-velocity resolver deals with an optional
-// line-of-sight angle (state.losAngleDeg, degrees, +up — a shot at an
+// line-of-sight angle (state.losAngleRad, radians, +up — a shot at an
 // inclined target): the shooter tilts the whole rifle, scope included, to
 // look along that incline, so the sight line itself becomes a straight ray
 // tilted losAngle from horizontal, and the bore is tilted a bit further
@@ -267,7 +266,7 @@ function stepperForMode(state, mode) {
 // minima) over the small angles real zeroing needs, so secant is enough —
 // no need for anything fancier.
 export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
-  const { zeroRange, sightHeightM, losAngleDeg = 0 } = state;
+  const { zeroRange, sightHeightM, losAngleRad: losAngle = 0 } = state;
 
   // A zero range of 0 (or below) isn't a distance the bullet can actually
   // travel to, so there's no height error to null out — the secant solve
@@ -278,7 +277,6 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
   // along the line of sight itself, whatever its incline).
   if (zeroRange <= 0) return 0;
 
-  const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const muzzleVelocity = resolveMuzzleVelocity(state);
   const stepper = makeStepper(state);
@@ -324,7 +322,7 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
 // zero solve.
 const ZERO_AIR_KEYS = ['tempC', 'pressurePa', 'humidity', 'altitudeM'];
 
-// The state a rifle's zero is solved in: always the flat (losAngleDeg 0),
+// The state a rifle's zero is solved in: always the flat (losAngleRad 0),
 // calm-air one — a rifle is zeroed on the level, before any incline or
 // wind of a later shot exists, and the turret then keeps that setting, so
 // neither the tool's own line-of-sight angle nor its wind may leak into
@@ -338,7 +336,7 @@ const ZERO_AIR_KEYS = ['tempC', 'pressurePa', 'humidity', 'altitudeM'];
 // state with the donor's ballistics merged over it; everything else,
 // sight height and zero range included, is `state`'s own.
 function flatCalmZeroState(state, base = state) {
-  const zeroState = { ...base, losAngleDeg: 0, windSpeed: 0, windAngle: 90 };
+  const zeroState = { ...base, losAngleRad: 0, windSpeed: 0, windAngleRad: Math.PI / 2 };
   const zeroAtmosphere = base.zeroAtmosphere;
   if (zeroAtmosphere) {
     for (const k of ZERO_AIR_KEYS) if (zeroAtmosphere[k] != null) zeroState[k] = zeroAtmosphere[k];
@@ -357,7 +355,7 @@ function flatCalmZeroState(state, base = state) {
 //    cartridge" recipient (see arsenal-view.js's cartridge form) — solve as
 //    if the donor's own muzzle velocity/temperature-sensitivity/bullet
 //    profile were being fired, holding everything else (zeroRange,
-//    sightHeight, losAngleDeg, atmosphere, wind) fixed at the recipient's
+//    sightHeightM, losAngleRad, atmosphere, wind) fixed at the recipient's
 //    own values, then fly the *recipient's* actual ballistics from that
 //    borrowed angle. Deliberately vertical-only — solveHorizontalZeroAngle()
 //    is never called with the donor swapped in, so windage/spin-drift
@@ -410,7 +408,7 @@ export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 
   // Solved in the same flat, calm, zero-atmosphere state the vertical zero
   // is (see flatCalmZeroState()) — the yaw belongs to the same one setting.
   const state = flatCalmZeroState(shotState);
-  const { zeroRange, sightHeightM, losAngleDeg = 0 } = state;
+  const { zeroRange, sightHeightM, losAngleRad: losAngle = 0 } = state;
   if (zeroRange <= 0 || !state.zeroForSpinDrift) return 0;
 
   const muzzleVelocity = resolveMuzzleVelocity(state);
@@ -421,7 +419,6 @@ export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 
   // still only ever answers for the Litz path (see its own doc comment).
   const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
 
-  const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const theta = solveZeroAngle(state);
   const { step, initialExtra } = stepperForMode(state, mode);
@@ -609,8 +606,7 @@ function toTablePoint(p, tempC, cosL, sinL, spinDrift, exactRange) {
 // of the known point values, which is all that matters for rotation to
 // commute with them).
 export function integrate(state) {
-  const { maxRange, sightHeightM, rangeStep, tempC = 15, losAngleDeg = 0 } = state;
-  const losAngle = (losAngleDeg * Math.PI) / 180;
+  const { maxRange, sightHeightM, rangeStep, tempC = 15, losAngleRad: losAngle = 0 } = state;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const rangeOf = (pt) => pt.x * cosL + pt.y * sinL;
 
@@ -688,14 +684,13 @@ export function integrate(state) {
     points.push(toTablePoint(landOnRange(older, prev, cur, getFinalNext, rangeOf, maxRange), tempC, cosL, sinL, spinDrift, maxRange));
   }
 
-  return { points, launchAngleDeg: (launchAngle * 180) / Math.PI };
+  return { points, launchAngleRad: launchAngle };
 }
 
 // Everything computeImpact() and makeImpactWalker() do before the first integration step: the frame, the resolved
 // muzzle velocity, launch angle, spin-drift mode and stepper, and the muzzle point. One place, so the two cannot drift.
 function impactSetup(state) {
-  const { sightHeightM, losAngleDeg = 0 } = state;
-  const losAngle = (losAngleDeg * Math.PI) / 180;
+  const { sightHeightM, losAngleRad: losAngle = 0 } = state;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const rangeOf = (pt) => rangeAlongLOS(pt, cosL, sinL);
 
@@ -871,7 +866,7 @@ function findPeak(state, theta, searchMaxM) {
 // cartridge is actually being fired.
 export function solveDirectHit(state, { maxIter = 30, tolM = 1e-4 } = {}) {
   const { targetHeightM, aimingPoint, maxRange } = state;
-  const NO_SOLUTION = { launchAngleDeg: null, zeroDistanceM: null, maxDirectHitDistanceM: null };
+  const NO_SOLUTION = { launchAngleRad: null, zeroDistanceM: null, maxDirectHitDistanceM: null };
   if (!(targetHeightM > 0)) return NO_SOLUTION;
 
   const bandTop = aimingPoint === 'bottomEdge' ? targetHeightM : targetHeightM / 2;
@@ -916,7 +911,7 @@ export function solveDirectHit(state, { maxIter = 30, tolM = 1e-4 } = {}) {
   }
 
   return {
-    launchAngleDeg: (theta1 * 180) / Math.PI,
+    launchAngleRad: theta1,
     zeroDistanceM: solveFallThrough(0),
     maxDirectHitDistanceM: solveFallThrough(bandBottom)
   };

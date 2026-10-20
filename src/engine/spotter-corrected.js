@@ -138,6 +138,6 @@ export function computeSpotterCorrected({
       contributions: correctedContributions
     },
     sightingShotCount: n,
-    launchAngleDeg: (launchAngle * 180) / Math.PI
+    launchAngleRad: launchAngle
   };
 }

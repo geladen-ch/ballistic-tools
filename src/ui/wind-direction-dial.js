@@ -108,8 +108,12 @@ function buildFace(ticksG, labelsG, skin) {
   }));
 }
 
-export function windDirectionDial({ id, value = 0, onInput, skin = getWindDialAppearance() }) {
-  let angle = norm(value);
+// `valueRad` in and getValueRad() out are radians, like every direction in
+// the app; the dial itself works in compass degrees, the unit it shows.
+export function windDirectionDial({ id, valueRad = 0, onInput, skin = getWindDialAppearance() }) {
+  let angle = norm(radToDeg(valueRad));
+  // the value as last set, read back exactly while the dial still shows it
+  let lastSet = { rad: valueRad, deg: angle };
   let dragging = false;
 
   const ticksG = svgEl('g');
@@ -204,11 +208,12 @@ export function windDirectionDial({ id, value = 0, onInput, skin = getWindDialAp
 
   return {
     node,
-    getValue: () => angle,
+    getValueRad: () => (angle === lastSet.deg ? lastSet.rad : degToRad(angle)),
     // Programmatic write path — mirrors unitField()'s setEngineValue: never
     // fires onInput itself, the caller decides when to recompute.
-    setValue(deg) {
-      angle = norm(deg);
+    setValueRad(rad) {
+      angle = norm(radToDeg(rad));
+      lastSet = { rad, deg: angle };
       renderHandle();
       numberInput.value = String(Math.round(angle));
     }
