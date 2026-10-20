@@ -401,7 +401,8 @@ const RENAMED_FIELDS = [
   ['launchAngleDeg', 'launchAngleRad', degToRad, radToDeg],
   ['distanceMedianErrorPct', 'distanceMedianError', percentToFraction, fractionToPercent],
   ['speedMedianErrorPct', 'speedMedianError', percentToFraction, fractionToPercent],
-  ['spotterMeasureMrad', 'spotterMeasureRad', mradToRad, radToMrad]
+  ['spotterMeasureMrad', 'spotterMeasureRad', mradToRad, radToMrad],
+  ['ci95PctBc', 'ci95RelBc', percentToFraction, fractionToPercent]
 ];
 
 // Rifle precision inputs whose unit changed but whose names did not (mrad

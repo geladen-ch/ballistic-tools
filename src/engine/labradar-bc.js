@@ -175,14 +175,14 @@ export function aggregateTracks(results, { r2GateThreshold = null, sigmaClip = n
   // handful-of-shots sample sizes this tool sees. Needs at least two
   // valid tracks; a single track carries no interval at all.
   let ci95Bc = null;
-  let ci95PctBc = null;
+  let ci95RelBc = null; // the 95% CI half-width as a fraction of the mean BC
   if (validBcs.length >= 2) {
     const n = validBcs.length;
     const sampleStdev = Math.sqrt(
       validBcs.reduce((a, b) => a + (b - meanBc) ** 2, 0) / (n - 1)
     );
     ci95Bc = tCritical95(n) * sampleStdev / Math.sqrt(n);
-    if (meanBc !== 0) ci95PctBc = 100 * ci95Bc / Math.abs(meanBc);
+    if (meanBc !== 0) ci95RelBc = ci95Bc / Math.abs(meanBc);
   }
 
   return {
@@ -192,6 +192,6 @@ export function aggregateTracks(results, { r2GateThreshold = null, sigmaClip = n
     meanBc,
     stdevBc,
     ci95Bc,
-    ci95PctBc
+    ci95RelBc
   };
 }

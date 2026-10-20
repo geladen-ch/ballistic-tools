@@ -12,7 +12,7 @@ import { trueStateAtTimes, timeToRange } from './synthetic-track.js';
 import { BULLET_LIBRARIES } from '../../src/bullets/bullet-libraries.js';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-export const ATMO = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0 };
+export const ATMO = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0 };
 export const EXTRAPOLATION_RANGE_M = 300;
 
 const LIBRARY_BY_ID = new Map(BULLET_LIBRARIES.flatMap((lib) => lib.ids.map((id) => [id, lib])));

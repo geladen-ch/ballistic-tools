@@ -5,6 +5,7 @@
 // own report.
 import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
+import { fractionToPercent } from '../../quantity.js';
 
 export function resultsSummary() {
   const countEl = el('span', { class: 'labradar-summary-value', text: '—' });
@@ -40,8 +41,8 @@ export function resultsSummary() {
     // A single valid track has no interval to report (and no spread to
     // compute one from), so the suffix is simply left off rather than
     // shown as a misleading ±0%.
-    if (agg.meanBc !== null && agg.ci95PctBc !== null && agg.ci95PctBc !== undefined) {
-      ciEl.textContent = t('bcToolsLabradar.ci95Value', { pct: agg.ci95PctBc.toFixed(1) });
+    if (agg.meanBc !== null && agg.ci95RelBc !== null && agg.ci95RelBc !== undefined) {
+      ciEl.textContent = t('bcToolsLabradar.ci95Value', { pct: fractionToPercent(agg.ci95RelBc).toFixed(1) });
       ciEl.title = t('bcToolsLabradar.ci95Title');
       bcEl.appendChild(ciEl);
     }

@@ -22,7 +22,7 @@ const rangeOfT = (p) => p.t;
 const rangeOfX = (p) => p.x;
 
 function walkStepper(trueState, v1) {
-  const stepper = makeStepper({ windSpeed: 0, windAngle: 90, ...trueState });
+  const stepper = makeStepper({ windSpeed: 0, windAngleRad: Math.PI / 2, ...trueState });
   return {
     cur: { x: 0, y: 0, z: 0, vx: v1, vy: 0, vz: 0, t: 0 },
     prev: null,
@@ -72,8 +72,8 @@ export function timeToRange(trueState, v1, targetRangeM) {
   return landed.t;
 }
 
-// `trueState`: { bc, dragModel, tempC, pressureHpa, altitudeM,
-// humidityPct } or { cdTable, massKg, caliberM, ...atmo } — passed
+// `trueState`: { bc, dragModel, tempC, pressurePa, altitudeM,
+// humidity } or { cdTable, massKg, caliberM, ...atmo } — passed
 // straight through to makeStepper, so either ground-truth shape (BC/G7
 // or a bundled bullet's own measured Cd table) works unchanged.
 // `donor`: one entry from donor-corpus.js's loadDonorCorpus().

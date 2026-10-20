@@ -216,7 +216,7 @@ test('aggregateTracks: the 95% confidence interval uses the sample stdev and a S
   // t(0.975, 4) = 2.7764451 -> half-width 2.7764451 * 0.0079057 / sqrt(5).
   const expected = 2.7764451052 * Math.sqrt(0.00025 / 4) / Math.sqrt(5);
   assert.ok(Math.abs(agg.ci95Bc - expected) < 1e-12, `got ${agg.ci95Bc}, expected ${expected}`);
-  assert.ok(Math.abs(agg.ci95PctBc - (100 * expected / 0.3)) < 1e-9);
+  assert.ok(Math.abs(agg.ci95RelBc - expected / 0.3) < 1e-11);
 });
 
 test('aggregateTracks: the confidence interval is computed over the surviving tracks only', () => {
@@ -234,14 +234,14 @@ test('aggregateTracks: a wider spread of the same mean gives a proportionally wi
   const tight = aggregateTracks([fixture('a', 0.299, 0.99), fixture('b', 0.301, 0.99), fixture('c', 0.300, 0.99)]);
   const loose = aggregateTracks([fixture('a', 0.290, 0.99), fixture('b', 0.310, 0.99), fixture('c', 0.300, 0.99)]);
   assert.ok(Math.abs(tight.meanBc - loose.meanBc) < 1e-12);
-  assert.ok(Math.abs(loose.ci95PctBc - 10 * tight.ci95PctBc) < 1e-9, 'a 10x spread should give a 10x interval');
+  assert.ok(Math.abs(loose.ci95RelBc - 10 * tight.ci95RelBc) < 1e-9, 'a 10x spread should give a 10x interval');
 });
 
 test('aggregateTracks: fewer tracks give a wider interval for the same spread', () => {
   const bcs = [0.290, 0.295, 0.300, 0.305, 0.310, 0.290, 0.295, 0.300, 0.305, 0.310];
   const few = aggregateTracks(bcs.slice(0, 5).map((bc, i) => fixture(`t${i}`, bc, 0.99)));
   const many = aggregateTracks(bcs.map((bc, i) => fixture(`t${i}`, bc, 0.99)));
-  assert.ok(few.ci95PctBc > many.ci95PctBc);
+  assert.ok(few.ci95RelBc > many.ci95RelBc);
 });
 
 test('aggregateTracks: a single valid track reports no confidence interval rather than a zero-width one', () => {
@@ -249,13 +249,13 @@ test('aggregateTracks: a single valid track reports no confidence interval rathe
   assert.equal(agg.validCount, 1);
   assert.equal(agg.meanBc, 0.30);
   assert.equal(agg.ci95Bc, null);
-  assert.equal(agg.ci95PctBc, null);
+  assert.equal(agg.ci95RelBc, null);
 });
 
 test('aggregateTracks: an empty valid set reports a null confidence interval rather than NaN', () => {
   const agg = aggregateTracks([fixture('a', 0.30, 0.20)], { r2GateThreshold: 0.95 });
   assert.equal(agg.ci95Bc, null);
-  assert.equal(agg.ci95PctBc, null);
+  assert.equal(agg.ci95RelBc, null);
 });
 
 test('aggregateTracks: past its table, the interval multiplier stays close to the true Student-t quantile', () => {
