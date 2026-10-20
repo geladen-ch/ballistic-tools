@@ -24,9 +24,9 @@ import {
   airDensity, speedOfSound, icaoStandardPressurePa, temperatureAtHeightDelta, pressureAtAltitude,
   standardAtmosphereAt, altitudeFromPressurePa
 } from '../../src/engine/atmosphere.js';
-import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm } from '../../src/quantity.js';
+import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm } from '../../src/quantity.js';
 import { computeMillerSg, canComputeStability } from '../../src/engine/stability.js';
-import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from '../../src/engine/spin-drift.js';
+import { resolveSpinDrift, spinDriftM, resolveSpinDriftMode } from '../../src/engine/spin-drift.js';
 import { computeSingleShot } from '../../src/engine/single-shot.js';
 import { computeSpotterCorrected } from '../../src/engine/spotter-corrected.js';
 import {
@@ -390,7 +390,12 @@ const RENAMED_FIELDS = [
   ['humidityPct', 'humidity', percentToFraction, fractionToPercent],
   ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa],
   ['sightHeight', 'sightHeightM', mmToM, mToMm],
-  ['riflingTwistMm', 'riflingTwistM', mmToM, mToMm]
+  ['riflingTwistMm', 'riflingTwistM', mmToM, mToMm],
+  ['dropCm', 'dropM', cmToM, mToCm],
+  ['windageCm', 'windageM', cmToM, mToCm],
+  ['targetHeightCm', 'targetHeightM', cmToM, mToCm],
+  ['aimOffsetXCm', 'aimOffsetXM', cmToM, mToCm],
+  ['aimOffsetYCm', 'aimOffsetYM', cmToM, mToCm]
 ];
 const TO_CURRENT = new Map(RENAMED_FIELDS.map(([legacy, current, forward]) => [legacy, [current, forward]]));
 const TO_LEGACY = new Map(RENAMED_FIELDS.map(([legacy, current, , back]) => [current, [legacy, back]]));
@@ -411,6 +416,20 @@ function renameDeep(value, table) {
 export const toCurrentUnits = (input) => renameDeep(input, TO_CURRENT);
 export const toLegacyUnits = (output) => renameDeep(output, TO_LEGACY);
 
+// Hit-probability results carry their linear SDs and offsets under generic
+// names (sdX, offsetY, a contribution's x/y, ...); the fixtures hold them
+// in cm.
+const LINEAR_RESULT_KEY = /^(?:sd[XY]|offset[XY]|x|y|ownSd[XY]|conditionSd[XY])$/;
+function linearToCm(value) {
+  if (Array.isArray(value)) return value.map(linearToCm);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = typeof v === 'number' && LINEAR_RESULT_KEY.test(k) ? mToCm(v) : linearToCm(v);
+    return out;
+  }
+  return value;
+}
+
 // One case, the way capture and replay both run it: fixture input in, engine
 // output back in fixture units.
 export async function runCase(kind, input) {
@@ -426,13 +445,13 @@ export const RUNNERS = {
   },
   directHit: (s) => solveDirectHit(s),
   dangerZone: (s) => solveDangerZone(s),
-  singleShot: (input) => computeSingleShot(input),
-  spotterCorrected: (input) => computeSpotterCorrected(input),
+  singleShot: (input) => linearToCm(computeSingleShot(input)),
+  spotterCorrected: (input) => linearToCm(computeSpotterCorrected(input)),
   stability: (s) => {
     const can = canComputeStability(s);
     const sg = can ? computeMillerSg(s) : null;
     const drift = resolveSpinDrift(s, s.muzzleVelocity);
-    return { can, sg, mode: resolveSpinDriftMode(s, s.muzzleVelocity), drift, driftCm: drift ? spinDriftCm(drift, s.tof) : null };
+    return { can, sg, mode: resolveSpinDriftMode(s, s.muzzleVelocity), drift, driftCm: drift ? mToCm(spinDriftM(drift, s.tof)) : null };
   },
   atmosphere: (a) => ({
     density: airDensity(a),
@@ -462,8 +481,8 @@ export const RUNNERS = {
   dispersion: (i) => ({
     r50: precisionToR50Mrad(i.precision),
     convention: conventionValueToR50Mrad(i.valueMrad, i.convention),
-    linear: angularSDToLinear(i.sdMrad, i.rangeM),
-    lead: movingTargetLeadSD(i.speedMs, i.speedErrorPct, i.tof)
+    linear: mToCm(angularSDToLinear(i.sdMrad, i.rangeM)),
+    lead: linearToCm(movingTargetLeadSD(i.speedMs, i.speedErrorPct, i.tof))
   }),
   riflePrecision: ({ project, percent, unit }) => {
     const combined = computeCombinedStats(project);

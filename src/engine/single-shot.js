@@ -3,7 +3,7 @@
 // the nominal vertical offset is ~0 by construction), builds every active
 // uncertainty source's own (x,y) contribution, combines them, and returns
 // the (sdX, sdY, offsetX, offsetY) a target's own hitProbability()
-// function consumes. All linear values are cm, angles are mrad — the
+// function consumes. All linear values are m, angles are mrad — the
 // caller (the view) converts whatever display unit the user typed into
 // these engine units first, same as every other tool in this app.
 import { solveZeroAngle, computeImpact } from './trajectory.js';
@@ -14,7 +14,7 @@ import {
 
 export function computeSingleShot({
   nominalState, targetRange, battleZeroRange,
-  aimOffsetXCm = 0, aimOffsetYCm = 0,
+  aimOffsetXM = 0, aimOffsetYM = 0,
   ownErrors, conditionErrors
 }) {
   const zeroRange = battleZeroRange ?? targetRange;
@@ -81,8 +81,8 @@ export function computeSingleShot({
 
   return {
     sdX, sdY,
-    offsetX: nominalImpact.windageCm + aimOffsetXCm,
-    offsetY: nominalImpact.dropCm + aimOffsetYCm,
+    offsetX: nominalImpact.windageM + aimOffsetXM,
+    offsetY: nominalImpact.dropM + aimOffsetYM,
     contributions,
     launchAngleDeg: (launchAngle * 180) / Math.PI
   };

@@ -9,12 +9,12 @@
 //   A: (2,1.5) -> (5,12.5)  -> (5,18)  -> (2,23)
 import { profileHitProbability, polylineHalfWidth } from '../engine/target-shapes.js';
 
-const TOP_Y = 37.5; // cm, overall target height (D-zone's own extent)
-const D = polylineHalfWidth([[0, 5], [12.5, 15], [25, 15], [37.5, 5]]);
-const C = polylineHalfWidth([[0, 5], [12.5, 10], [22, 10], [30, 3.5]]);
-const A = polylineHalfWidth([[1.5, 2], [12.5, 5], [18, 5], [23, 2]]);
+const TOP_Y = 0.375; // m, overall target height (D-zone's own extent)
+const D = polylineHalfWidth([[0, 0.05], [0.125, 0.15], [0.25, 0.15], [0.375, 0.05]]);
+const C = polylineHalfWidth([[0, 0.05], [0.125, 0.1], [0.22, 0.1], [0.3, 0.035]]);
+const A = polylineHalfWidth([[0.015, 0.02], [0.125, 0.05], [0.18, 0.05], [0.23, 0.02]]);
 // A-zone's own vertical center — see ipsc-target.js's own comment for why.
-const CENTER_Y = (1.5 + 23) / 2;
+const CENTER_Y = (0.015 + 0.23) / 2;
 
 export function hitProbability(sdX, sdY, offsetX, offsetY) {
   const rawOffsetY = CENTER_Y - offsetY;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from '../src/engine/spin-drift.js';
+import { resolveSpinDrift, spinDriftM, resolveSpinDriftMode } from '../src/engine/spin-drift.js';
 
 const FULL_INPUTS = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.2794 };
 
@@ -11,20 +11,20 @@ function driftInchesReference(sg, tofSec) {
 test('spinDriftCm matches the imperial reference formula (scaled to cm)', () => {
   const sg = 1.8, tof = 0.85;
   const expectedCm = driftInchesReference(sg, tof) * 2.54;
-  const actual = spinDriftCm({ sg, twistDirection: 'left' }, tof);
+  const actual = (spinDriftM({ sg, twistDirection: 'left' }, tof) * 100);
   assert.ok(Math.abs(actual - expectedCm) < 1e-9, `got ${actual}, expected ~${expectedCm}`);
 });
 
 test('right-hand twist drifts negative (this engine\'s +z is left); left-hand is the mirror', () => {
-  const right = spinDriftCm({ sg: 1.8, twistDirection: 'right' }, 0.85);
-  const left = spinDriftCm({ sg: 1.8, twistDirection: 'left' }, 0.85);
+  const right = (spinDriftM({ sg: 1.8, twistDirection: 'right' }, 0.85) * 100);
+  const left = (spinDriftM({ sg: 1.8, twistDirection: 'left' }, 0.85) * 100);
   assert.ok(right < 0);
   assert.ok(left > 0);
   assert.equal(right, -left);
 });
 
 test('an unrecognized/missing twistDirection defaults to right (negative)', () => {
-  const result = spinDriftCm({ sg: 1.8, twistDirection: undefined }, 0.5);
+  const result = (spinDriftM({ sg: 1.8, twistDirection: undefined }, 0.5) * 100);
   assert.ok(result < 0);
 });
 

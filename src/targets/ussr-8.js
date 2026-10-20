@@ -11,16 +11,16 @@ import { rectangleHitProbability } from '../engine/target-shapes.js';
 const STEPS = 50;
 
 export function hitProbability(sdX, sdY, offsetX, offsetY) {
-  const dx = 12.5 / STEPS;
-  const dy = 50.0 / STEPS;
+  const dx = 0.125 / STEPS;
+  const dy = 0.5 / STEPS;
   let outL = 0;
   let outR = 0;
   for (let i = 0; i < STEPS; i++) {
-    outL += rectangleHitProbability(-25.0, -75.0 + dy * i, dx * (STEPS - i - 0.5), dy, sdX, sdY, offsetX, offsetY);
-    outR += rectangleHitProbability(12.5 + dx * (i + 0.5), -75.0 + dy * i, dx * (STEPS - i - 0.5), dy, sdX, sdY, offsetX, offsetY);
+    outL += rectangleHitProbability(-0.25, -0.75 + dy * i, dx * (STEPS - i - 0.5), dy, sdX, sdY, offsetX, offsetY);
+    outR += rectangleHitProbability(0.125 + dx * (i + 0.5), -0.75 + dy * i, dx * (STEPS - i - 0.5), dy, sdX, sdY, offsetX, offsetY);
   }
 
-  const head = rectangleHitProbability(-11.5, 57.0, 23.0, 18.0, sdX, sdY, offsetX, offsetY);
-  const body = rectangleHitProbability(-25.0, -75.0, 50.0, 132.0, sdX, sdY, offsetX, offsetY);
+  const head = rectangleHitProbability(-0.115, 0.57, 0.23, 0.18, sdX, sdY, offsetX, offsetY);
+  const body = rectangleHitProbability(-0.25, -0.75, 0.5, 1.32, sdX, sdY, offsetX, offsetY);
   return [{ zoneId: 'hit', probability: head + body - outL - outR }];
 }

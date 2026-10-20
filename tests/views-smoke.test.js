@@ -118,7 +118,7 @@ test('trajectory table includes elevation and windage click columns', () => {
   const headerCells = findByTag(container, 'TH').map((th) => th.textContent);
   const rangeUnitLabel = unitChoice('range', 'm').label; // default distance pref is metric
   const velocityUnitLabel = unitChoice('velocity', 'm/s').label; // default velocity pref is metric
-  const smallLengthUnitLabel = unitChoice('dropCm', 'mm').label; // default smallLength pref is mm
+  const smallLengthUnitLabel = unitChoice('sightHeight', 'mm').label; // default smallLength pref is mm
   assert.deepEqual(headerCells, [
     `${t('trajectory.colRange')} (${rangeUnitLabel})`,
     `${t('trajectory.colDrop')} (${smallLengthUnitLabel})`, `${t('trajectory.colWindage')} (${smallLengthUnitLabel})`,
@@ -288,11 +288,11 @@ test('the trajectory chart has a column selector offering every table column, de
 
   const select = findById(container, 'trajectoryChartColumn');
   assert.ok(select, 'expected a select with id="trajectoryChartColumn"');
-  assert.equal(select.value, 'dropCm');
+  assert.equal(select.value, 'drop');
 
   const optionValues = select.childNodes.map((o) => o.attributes.value);
   assert.deepEqual(optionValues, [
-    'dropCm', 'windageCm', 'elevClicks', 'windClicks', 'elevMrad', 'windMrad',
+    'drop', 'windage', 'elevClicks', 'windClicks', 'elevMrad', 'windMrad',
     'elevMOA', 'windMOA', 'velocity', 'tof', 'mach', 'energy'
   ]);
 });

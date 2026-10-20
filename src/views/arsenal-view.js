@@ -7,6 +7,7 @@ import {
 } from '../user-library.js';
 import { loadCaliberDesignations, designationFor, caliberMmLabel, loadBullet } from '../bullets.js';
 import { kgToGrain, mToMm, mmToM } from '../quantity.js';
+import { displayChoice } from '../display-units.js';
 import { takePendingBulletPrefill, takePendingRiflePrefill, takePendingCartridgeActivation } from '../arsenal-prefill.js';
 import { loadRifleState, saveRifleState } from '../shot-state.js';
 import { registerArsenalDoneHandler } from '../guns-nav.js';
@@ -568,7 +569,7 @@ export function mount(container) {
     const distanceChoice = unitChoice('range', distanceUnit);
     const energyChoice = unitChoice('energy', getUnit('energy'));
     const velocityChoice = unitChoice('velocity', getUnit('velocity'));
-    const smallLengthChoice = unitChoice('dropCm', getUnit('smallLength'));
+    const smallLengthChoice = displayChoice('smallLength');
 
     const summaryRows = configs.map(({ rifle, cartridge }) => el('p', { class: 'hint' }, [
       el('strong', { text: rifle.name }),
@@ -594,7 +595,7 @@ export function mount(container) {
 
     const chartContainer = el('div', { class: 'chart-container' });
     const columnSelect = buildChartColumnSelect(COLUMNS, {
-      id: 'comparisonChartColumn', energyChoice, velocityChoice, smallLengthChoice, defaultColumnId: 'dropCm'
+      id: 'comparisonChartColumn', energyChoice, velocityChoice, smallLengthChoice, defaultColumnId: 'drop'
     });
 
     let zoomRafScheduled = false;

@@ -3,7 +3,7 @@
 import { GRAVITY, LBIN2_TO_KGM2, TRANSONIC_LO, TRANSONIC_HI, H_COARSE, H_FINE, MAX_STEPS } from './constants.js';
 import { DRAG_TABLES, makeCdLookup } from './drag-tables.js';
 import { airDensity, speedOfSound, temperatureAtHeightDelta, icaoStandardPressurePa } from './atmosphere.js';
-import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from './spin-drift.js';
+import { resolveSpinDrift, spinDriftM, resolveSpinDriftMode } from './spin-drift.js';
 import { makeStepper4dof } from './trajectory-4dof.js';
 
 // Builds the RK4 step function for one fixed set of shot conditions (bc,
@@ -228,9 +228,9 @@ export function resolveMuzzleVelocity(state) {
 // resolveSpinDriftMode in spin-drift.js) should actually fly with.
 // 'mccoy4dof' gets the full 4-DOF/MPM stepper — its own z comes out of
 // integrating an actual lift force, already including spin drift
-// physically, so callers must NOT also add Litz's spinDriftCm() on top.
+// physically, so callers must NOT also add Litz's spinDriftM() on top.
 // 'litz' and 'off' both fly the plain 3-DOF stepper, unchanged from
-// before this dispatch existed; 'litz' callers add spinDriftCm()
+// before this dispatch existed; 'litz' callers add spinDriftM()
 // themselves afterward, from the {sg, twistDirection} resolveSpinDrift()
 // already gives them.
 //
@@ -375,7 +375,7 @@ export function resolveLaunchAngle(state) {
 }
 
 // Secant-method solve for the launch yaw (radians, sign whatever
-// self-consistently nulls windageCm — see windageErrorAt() below) that
+// self-consistently nulls windageM — see windageErrorAt() below) that
 // sends the bullet through zero windage *at zeroRange*, canceling out
 // spin drift (see spin-drift.js) by the time it gets there. This is what
 // a real rifle's windage turret already does for free: dialing the scope
@@ -436,9 +436,7 @@ export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 
   const vxy = muzzleVelocity * Math.cos(boreAngle);
   const vy = muzzleVelocity * Math.sin(boreAngle);
 
-  // In meters (matching heightErrorAt()'s own drop, not the cm windageCm
-  // consumers like toTablePoint()/computeImpact() display) — spinDriftCm
-  // is folded in directly for the 'litz' mode, so the target this drives
+  // In metres, like every windage — spinDriftM is folded in directly for the 'litz' mode, so the target this drives
   // to 0 is exactly "raw windage plus spin drift," the same combined
   // value those two functions compute, at zeroRange's own time of flight
   // specifically. For 'mccoy4dof', raw.z already includes physically-
@@ -464,7 +462,7 @@ export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 
     const raw = prev === null
       ? cur
       : landOnRange(older, prev, cur, () => (steps < MAX_STEPS ? step(cur) : null), rangeOf, zeroRange);
-    return raw.z + (spinDrift ? spinDriftCm(spinDrift, raw.t) / 100 : 0);
+    return raw.z + (spinDrift ? spinDriftM(spinDrift, raw.t) : 0);
   }
 
   let phi0 = 0, phi1 = 0.001;
@@ -566,8 +564,8 @@ export function landOnRange(older, prev, cur, getNext, rangeOf, targetRange) {
   return lerpPoint(prev, cur, frac);
 }
 
-// `range`/`dropCm` are along/perpendicular to the (possibly inclined)
-// line of sight, not raw world x/y — see toLOS() above. `windageCm` is
+// `range`/`dropM` are along/perpendicular to the (possibly inclined)
+// line of sight, not raw world x/y — see toLOS() above. `windageM` is
 // untouched by that rotation (the world Z axis is always horizontal,
 // perpendicular to the vertical plane the incline tilts), and `velocity`
 // is a magnitude, also rotation-invariant. `mach` needs the speed of sound
@@ -577,8 +575,8 @@ export function landOnRange(older, prev, cur, getNext, rangeOf, targetRange) {
 // way makeStepper's own per-step atmosphere does. `spinDrift` is null
 // (spin drift off, or its own required data missing — see spin-drift.js's
 // resolveSpinDrift()) or the {sg, twistDirection} it resolved once for
-// this whole shot; when present, its cm contribution (which grows with
-// this point's own time of flight) is folded into windageCm right here,
+// this whole shot; when present, its contribution (which grows with
+// this point's own time of flight) is folded into windageM right here,
 // so every consumer of a table point already sees the combined value.
 // `exactRange`, when given, overrides the range derived from `p` itself —
 // used when `p` was just landed by landOnRange() at a specific requested
@@ -590,9 +588,9 @@ function toTablePoint(p, tempC, cosL, sinL, spinDrift, exactRange) {
   const { range, drop } = toLOS(p, cosL, sinL);
   const velocity = Math.sqrt(p.vx * p.vx + p.vy * p.vy + p.vz * p.vz);
   const localTempC = temperatureAtHeightDelta(tempC, p.y);
-  const windageCm = p.z * 100 + (spinDrift ? spinDriftCm(spinDrift, p.t) : 0);
+  const windageM = p.z + (spinDrift ? spinDriftM(spinDrift, p.t) : 0);
   return {
-    range: exactRange !== undefined ? exactRange : range, dropCm: drop * 100, windageCm,
+    range: exactRange !== undefined ? exactRange : range, dropM: drop, windageM,
     velocity, tof: p.t, mach: velocity / speedOfSound(localTempC)
   };
 }
@@ -620,7 +618,7 @@ export function integrate(state) {
   const mode = resolveSpinDriftMode(state, muzzleVelocity);
   // mccoy4dof's own trajectory already includes physically-integrated
   // drift in z (see stepperForMode/toTablePoint below) — spinDrift stays
-  // null there so toTablePoint()'s `spinDrift ? spinDriftCm(...) : 0`
+  // null there so toTablePoint()'s `spinDrift ? spinDriftM(...) : 0`
   // adds nothing on top of it.
   const spinDrift = mode === 'litz' ? resolveSpinDrift(state, muzzleVelocity) : null;
   const launchAngle = resolveLaunchAngle(state); // radians above the line of sight
@@ -730,10 +728,10 @@ function impactSetup(state) {
 // The impact reported for a landed raw point: relative to the sight line, spin drift folded into the windage.
 function impactFromRaw(raw, cosL, sinL, spinDrift) {
   const los = toLOS(raw, cosL, sinL);
-  const windageCm = raw.z * 100 + (spinDrift ? spinDriftCm(spinDrift, raw.t) : 0);
+  const windageM = raw.z + (spinDrift ? spinDriftM(spinDrift, raw.t) : 0);
   return {
-    dropCm: los.drop * 100,
-    windageCm,
+    dropM: los.drop,
+    windageM,
     velocity: los.velocity,
     tof: raw.t
   };
@@ -831,9 +829,9 @@ export function makeImpactWalker(state) {
 // trajectory peak exactly touches the top of the target's allowed
 // vertical band, aimed per `state.aimingPoint` —
 //  - 'center': the point of aim is the target's vertical middle, so the
-//    band is [-targetHeightCm/2, +targetHeightCm/2] around it.
+//    band is [-targetHeightM/2, +targetHeightM/2] around it.
 //  - anything else ('bottomEdge'): the point of aim is the target's own
-//    bottom edge, so the band is [0, +targetHeightCm] above it.
+//    bottom edge, so the band is [0, +targetHeightM] above it.
 // Any smaller angle peaks below the band's top, giving up range for no
 // reason (the trajectory would fall out through the band's bottom
 // sooner); any larger angle peaks above it, opening a "miss high" gap
@@ -850,7 +848,7 @@ export function makeImpactWalker(state) {
 // solveDangerZone() below — both need "where does this one trajectory
 // crest, and how high" before doing anything else.
 function findPeak(state, theta, searchMaxM) {
-  const dropAt = (rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropCm;
+  const dropAt = (rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropM;
   let lo = 0, hi = searchMaxM;
   const gr = (Math.sqrt(5) - 1) / 2;
   let x1 = hi - gr * (hi - lo), x2 = lo + gr * (hi - lo);
@@ -859,7 +857,7 @@ function findPeak(state, theta, searchMaxM) {
     if (f1 < f2) { lo = x1; x1 = x2; f1 = f2; x2 = lo + gr * (hi - lo); f2 = dropAt(x2); }
     else { hi = x2; x2 = x1; f2 = f1; x1 = hi - gr * (hi - lo); f1 = dropAt(x1); }
   }
-  return f1 > f2 ? { rangeM: x1, dropCm: f1 } : { rangeM: x2, dropCm: f2 };
+  return f1 > f2 ? { rangeM: x1, dropM: f1 } : { rangeM: x2, dropM: f2 };
 }
 
 // Built entirely on computeImpact()'s cheap single-point solve (no
@@ -871,13 +869,13 @@ function findPeak(state, theta, searchMaxM) {
 // resolveLaunchAngle() (see its own comment above) — zeroRange/donor
 // ballistics play no part here, this always solves fresh for whatever
 // cartridge is actually being fired.
-export function solveDirectHit(state, { maxIter = 30, tolCm = 0.01 } = {}) {
-  const { targetHeightCm, aimingPoint, maxRange } = state;
+export function solveDirectHit(state, { maxIter = 30, tolM = 1e-4 } = {}) {
+  const { targetHeightM, aimingPoint, maxRange } = state;
   const NO_SOLUTION = { launchAngleDeg: null, zeroDistanceM: null, maxDirectHitDistanceM: null };
-  if (!(targetHeightCm > 0)) return NO_SOLUTION;
+  if (!(targetHeightM > 0)) return NO_SOLUTION;
 
-  const bandTop = aimingPoint === 'bottomEdge' ? targetHeightCm : targetHeightCm / 2;
-  const bandBottom = aimingPoint === 'bottomEdge' ? 0 : -targetHeightCm / 2;
+  const bandTop = aimingPoint === 'bottomEdge' ? targetHeightM : targetHeightM / 2;
+  const bandBottom = aimingPoint === 'bottomEdge' ? 0 : -targetHeightM / 2;
   // Generous relative to any realistic MPBR — just needs to comfortably
   // bracket the true peak/fall-through ranges, never to be tight. Unlike
   // solveDangerZone() below, there's no single row range to scale this
@@ -885,12 +883,12 @@ export function solveDirectHit(state, { maxIter = 30, tolCm = 0.01 } = {}) {
   // that maximizes it.
   const searchMaxM = Math.max(maxRange || 0, 500) * 3;
 
-  const dropAt = (theta, rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropCm;
+  const dropAt = (theta, rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropM;
 
   let theta0 = 0, theta1 = 0.001;
-  let f0 = findPeak(state, theta0, searchMaxM).dropCm - bandTop;
-  let f1 = findPeak(state, theta1, searchMaxM).dropCm - bandTop;
-  for (let i = 0; i < maxIter && Math.abs(f1) >= tolCm; i++) {
+  let f0 = findPeak(state, theta0, searchMaxM).dropM - bandTop;
+  let f1 = findPeak(state, theta1, searchMaxM).dropM - bandTop;
+  for (let i = 0; i < maxIter && Math.abs(f1) >= tolM; i++) {
     const denom = (f1 - f0) || 1e-12;
     let theta2 = theta1 - (f1 * (theta1 - theta0)) / denom;
     // Keeps a diverging secant step from feeding an absurd angle into the
@@ -898,7 +896,7 @@ export function solveDirectHit(state, { maxIter = 30, tolCm = 0.01 } = {}) {
     // degrees either way.
     theta2 = Math.max(-0.5, Math.min(0.5, theta2));
     theta0 = theta1; f0 = f1;
-    theta1 = theta2; f1 = findPeak(state, theta1, searchMaxM).dropCm - bandTop;
+    theta1 = theta2; f1 = findPeak(state, theta1, searchMaxM).dropM - bandTop;
   }
   if (!Number.isFinite(theta1) || Math.abs(f1) >= 1) return NO_SOLUTION; // didn't converge — target height unreachable at this angle range
 
@@ -907,12 +905,12 @@ export function solveDirectHit(state, { maxIter = 30, tolCm = 0.01 } = {}) {
   // Beyond the peak, drop(range) falls monotonically — bisection alone
   // (no derivative, can't overshoot into the still-rising side) finds
   // exactly where it crosses any given target height.
-  function solveFallThrough(targetCm) {
+  function solveFallThrough(targetM) {
     let lo = peak.rangeM, hi = searchMaxM;
-    if (dropAt(theta1, hi) > targetCm) return null; // never falls that far within the search bound
+    if (dropAt(theta1, hi) > targetM) return null; // never falls that far within the search bound
     for (let i = 0; i < 60 && hi - lo > 0.01; i++) {
       const mid = (lo + hi) / 2;
-      if (dropAt(theta1, mid) > targetCm) lo = mid; else hi = mid;
+      if (dropAt(theta1, mid) > targetM) lo = mid; else hi = mid;
     }
     return (lo + hi) / 2;
   }
@@ -953,15 +951,15 @@ export function solveDirectHit(state, { maxIter = 30, tolCm = 0.01 } = {}) {
 // so keeping each row's own search net small is what keeps a few hundred
 // rows affordable.
 export function solveDangerZone(state) {
-  const { targetHeightCm, aimingPoint, zeroRange, maxRange } = state;
+  const { targetHeightM, aimingPoint, zeroRange, maxRange } = state;
   const NO_SOLUTION = { enterM: null, leaveM: null, lengthM: null };
-  if (!(targetHeightCm > 0) || !(zeroRange >= 0)) return NO_SOLUTION;
+  if (!(targetHeightM > 0) || !(zeroRange >= 0)) return NO_SOLUTION;
 
-  const bandTop = aimingPoint === 'bottomEdge' ? targetHeightCm : targetHeightCm / 2;
-  const bandBottom = aimingPoint === 'bottomEdge' ? 0 : -targetHeightCm / 2;
+  const bandTop = aimingPoint === 'bottomEdge' ? targetHeightM : targetHeightM / 2;
+  const bandBottom = aimingPoint === 'bottomEdge' ? 0 : -targetHeightM / 2;
 
   const theta = resolveLaunchAngle(state);
-  const dropAt = (rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropCm;
+  const dropAt = (rangeM) => computeImpact({ ...state, launchAngle: theta }, rangeM).dropM;
 
   // zeroRange is *a* crossing of the sight line, but solveZeroAngle() (via
   // resolveLaunchAngle()) has no reason to prefer the far one over the
@@ -982,7 +980,7 @@ export function solveDangerZone(state) {
   const peakSearchMaxM = stillRisingAtZero ? wideSearchMaxM : Math.max(zeroRange, 1);
 
   const peak = findPeak(state, theta, peakSearchMaxM);
-  if (peak.dropCm < bandBottom) return NO_SOLUTION; // never reaches the band at all
+  if (peak.dropM < bandBottom) return NO_SOLUTION; // never reaches the band at all
 
   // Zeroed beyond this target's own direct-hit (MPBR) distance: the
   // trajectory crests above the band's top and has already fallen back
@@ -995,7 +993,7 @@ export function solveDangerZone(state) {
   // *second* one: from where the trajectory drops back through the top
   // (after the peak, before zeroRange) to where it finally falls out
   // through the bottom (beyond zeroRange).
-  if (peak.dropCm > bandTop && zeroRange > peak.rangeM) {
+  if (peak.dropM > bandTop && zeroRange > peak.rangeM) {
     let lo = peak.rangeM, hi = zeroRange;
     for (let i = 0; i < 50 && hi - lo > 0.01; i++) {
       const mid = (lo + hi) / 2;
@@ -1028,7 +1026,7 @@ export function solveDangerZone(state) {
   }
 
   let leaveM;
-  if (peak.dropCm > bandTop) {
+  if (peak.dropM > bandTop) {
     // Only reachable here for the still-rising-at-zero anomaly (the
     // ordinary case was already handled above) — zeroRange <= peak.rangeM,
     // so the ascending interval already contains it, making it the right

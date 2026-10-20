@@ -8,11 +8,11 @@
 import { rectangleHitProbability } from '../engine/target-shapes.js';
 
 export function hitProbability(sdX, sdY, offsetX, offsetY) {
-  const x = rectangleHitProbability(-15, -17.7, 30, 34.7, sdX, sdY, offsetX, offsetY);
-  const y = rectangleHitProbability(-15, -32.8, 30, 10, sdX, sdY, offsetX, offsetY);
+  const x = rectangleHitProbability(-0.15, -0.177, 0.3, 0.347, sdX, sdY, offsetX, offsetY);
+  const y = rectangleHitProbability(-0.15, -0.328, 0.3, 0.1, sdX, sdY, offsetX, offsetY);
   const outer =
-    rectangleHitProbability(-22.5, -36.8, 45, 58.5, sdX, sdY, offsetX, offsetY) +
-    rectangleHitProbability(-7.5, 21.7, 15, 15, sdX, sdY, offsetX, offsetY);
+    rectangleHitProbability(-0.225, -0.368, 0.45, 0.585, sdX, sdY, offsetX, offsetY) +
+    rectangleHitProbability(-0.075, 0.217, 0.15, 0.15, sdX, sdY, offsetX, offsetY);
   const z = outer - x - y;
   return [
     { zoneId: 'x', probability: x },

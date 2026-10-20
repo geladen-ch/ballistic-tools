@@ -7,6 +7,6 @@
 import { circleHitProbability } from '../engine/target-shapes.js';
 
 export function hitProbability(sdX, sdY, offsetX, offsetY, dims) {
-  const probability = circleHitProbability(0, 0, dims.diameterCm / 2, sdX, sdY, offsetX, offsetY);
+  const probability = circleHitProbability(0, 0, dims.diameterM / 2, sdX, sdY, offsetX, offsetY);
   return [{ zoneId: 'hit', probability }];
 }

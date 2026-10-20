@@ -17,8 +17,10 @@
 // through this.
 import { canComputeStability, computeMillerSg } from './stability.js';
 import { canMakeStepper4dof } from './trajectory-4dof.js';
+import { inToM } from '../quantity.js';
 
-const LITZ_COEFFICIENT_CM = 1.25 * 2.54; // 3.175
+// Litz's fit is stated in inches: drift = 1.25 in * (Sg + 1.2) * tof^1.83.
+const LITZ_COEFFICIENT_M = inToM(1.25);
 
 // Whether/what to compute: null when the setting is off or any of the
 // same five inputs stability.js needs (mass, caliber, length, muzzle
@@ -50,12 +52,12 @@ export function resolveSpinDrift(state, muzzleVelocity) {
 
 // Physically, a right-hand twist drifts right; trajectory.js's own
 // windage axis is +z = left (see its wind-angle comment, and
-// trajectory-columns.js's windClicks, which uses windageCm's sign as-is —
+// trajectory-columns.js's windClicks, which uses windageM's sign as-is —
 // positive windage means "impact shifted left, dial right to correct").
-// So a right-hand twist subtracts from windageCm; left-hand adds to it.
-export function spinDriftCm({ sg, twistDirection }, tof) {
-  const magnitudeCm = LITZ_COEFFICIENT_CM * (sg + 1.2) * tof ** 1.83;
-  return twistDirection === 'left' ? magnitudeCm : -magnitudeCm;
+// So a right-hand twist subtracts from windageM; left-hand adds to it.
+export function spinDriftM({ sg, twistDirection }, tof) {
+  const magnitudeM = LITZ_COEFFICIENT_M * (sg + 1.2) * tof ** 1.83;
+  return twistDirection === 'left' ? magnitudeM : -magnitudeM;
 }
 
 // Resolves the *requested* mode ('off' | 'litz' | 'mccoy4dof') down to
@@ -74,7 +76,7 @@ export function spinDriftCm({ sg, twistDirection }, tof) {
 // trajectory.js's three windage-aware call sites
 // (solveHorizontalZeroAngle, integrate, computeImpact) dispatch on this
 // via their own stepperForMode(): 'litz' uses the plain 3-DOF stepper
-// with spinDriftCm() added afterward; 'mccoy4dof' uses the full 4-DOF
+// with spinDriftM() added afterward; 'mccoy4dof' uses the full 4-DOF
 // stepper (trajectory-4dof.js), whose own integrated windage already
 // includes physically-derived drift, so nothing is added on top of it.
 //

@@ -19,7 +19,7 @@ import {
 
 export function computeSpotterCorrected({
   nominalState, targetRange, battleZeroRange,
-  aimOffsetXCm = 0, aimOffsetYCm = 0,
+  aimOffsetXM = 0, aimOffsetYM = 0,
   ownErrors, conditionErrors,
   sightingShotCount, spotterMeasureMrad
 }) {
@@ -122,8 +122,8 @@ export function computeSpotterCorrected({
   return {
     sighting: {
       sdX: sighting.sdX, sdY: sighting.sdY,
-      offsetX: nominalImpact.windageCm + aimOffsetXCm,
-      offsetY: nominalImpact.dropCm + aimOffsetYCm,
+      offsetX: nominalImpact.windageM + aimOffsetXM,
+      offsetY: nominalImpact.dropM + aimOffsetYM,
       contributions: [...ownContributions, ...conditionContributions],
       ownSdX: own.sdX, ownSdY: own.sdY,
       conditionSdX: condition.sdX, conditionSdY: condition.sdY
@@ -134,7 +134,7 @@ export function computeSpotterCorrected({
     // corrected for, whatever caused them.
     corrected: {
       sdX: correctedSdX, sdY: correctedSdY,
-      offsetX: aimOffsetXCm, offsetY: aimOffsetYCm,
+      offsetX: aimOffsetXM, offsetY: aimOffsetYM,
       contributions: correctedContributions
     },
     sightingShotCount: n,

@@ -11,7 +11,7 @@
 // 120x180 rect for a real 400x600mm plate) — only the dimension label is
 // ever the real value.
 
-import { converter, cmToM } from '../quantity.js';
+import { mToMm } from '../quantity.js';
 
 // Schematic drawing conventions shared with the (now-static) -detail.svg
 // files this replaces: a 300x280 viewBox, the shape centered on the point
@@ -37,25 +37,23 @@ const DETAIL_LABEL_COLOR = '#d9e0e6';
 const RESULT_RECT_STROKE_MM = 6;
 const RESULT_RECT_INSET_MM = 3;
 
-const cmToMm = converter('cm', 'mm');
-
-export function circleGongGeometry(diameterCm) {
-  const diameterMm = cmToMm(diameterCm);
+export function circleGongGeometry(diameterM) {
+  const diameterMm = mToMm(diameterM);
   return {
-    widthM: cmToM(diameterCm),
-    heightM: cmToM(diameterCm),
+    widthM: diameterM,
+    heightM: diameterM,
     aspectRatio: 1,
     resultSvg: { pointOfAim: { x: diameterMm / 2, y: diameterMm / 2 }, pxPerMeter: 1000 }
   };
 }
 
-export function rectPlateGeometry(widthCm, heightCm) {
-  const widthMm = cmToMm(widthCm);
-  const heightMm = cmToMm(heightCm);
+export function rectPlateGeometry(widthM, heightM) {
+  const widthMm = mToMm(widthM);
+  const heightMm = mToMm(heightM);
   return {
-    widthM: cmToM(widthCm),
-    heightM: cmToM(heightCm),
-    aspectRatio: heightCm / widthCm,
+    widthM,
+    heightM,
+    aspectRatio: heightM / widthM,
     resultSvg: { pointOfAim: { x: widthMm / 2, y: heightMm / 2 }, pxPerMeter: 1000 }
   };
 }

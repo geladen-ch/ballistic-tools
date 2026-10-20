@@ -22,10 +22,10 @@ test('with every uncertainty source at zero, both shots have zero dispersion and
   assert.equal(result.sighting.sdY, 0);
   assert.equal(result.corrected.sdX, 0);
   assert.equal(result.corrected.sdY, 0);
-  assert.ok(Math.abs(result.sighting.offsetX) < 1e-3);
-  assert.ok(Math.abs(result.sighting.offsetY) < 1e-3);
-  assert.ok(Math.abs(result.corrected.offsetX) < 1e-3);
-  assert.ok(Math.abs(result.corrected.offsetY) < 1e-3);
+  assert.ok(Math.abs(result.sighting.offsetX) < 1e-5);
+  assert.ok(Math.abs(result.sighting.offsetY) < 1e-5);
+  assert.ok(Math.abs(result.corrected.offsetX) < 1e-5);
+  assert.ok(Math.abs(result.corrected.offsetY) < 1e-5);
 });
 
 test('condition errors drive the sighting shot but never appear in the corrected shot\'s contributions', () => {
@@ -118,13 +118,13 @@ test('a perfect spotter (median error 0) adds no spotterEye contribution', () =>
 test('battle zero produces a real systematic offset for the sighting shot, but the corrected shot only carries the deliberate aim offset', () => {
   const result = computeSpotterCorrected({
     nominalState, targetRange: 500, battleZeroRange: 100,
-    aimOffsetXCm: 3, aimOffsetYCm: -4,
+    aimOffsetXM: 0.03, aimOffsetYM: -0.04,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors,
     sightingShotCount: 1, spotterMeasureMrad: 0
   });
-  assert.ok(result.sighting.offsetY < -10, 'sighting shot should show the uncorrected battle-zero drop');
-  assert.ok(Math.abs(result.corrected.offsetX - 3) < 1e-3, 'corrected shot keeps only the deliberate aim offset');
-  assert.ok(Math.abs(result.corrected.offsetY - (-4)) < 1e-3, 'battle-zero bias should not leak into the corrected shot');
+  assert.ok(result.sighting.offsetY < -0.1, 'sighting shot should show the uncorrected battle-zero drop');
+  assert.ok(Math.abs(result.corrected.offsetX - 0.03) < 1e-5, 'corrected shot keeps only the deliberate aim offset');
+  assert.ok(Math.abs(result.corrected.offsetY - (-0.04)) < 1e-5, 'battle-zero bias should not leak into the corrected shot');
 });
 
 test('sighting.ownSdX/Y and conditionSdX/Y combine back into sighting.sdX/Y', () => {

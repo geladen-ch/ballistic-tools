@@ -4,7 +4,7 @@
 // unit and to turn typed input straight back into the engine unit. The
 // arithmetic itself is src/quantity.js's — this module never converts on
 // its own.
-import { converter, mToCm, angleToLinearAtRange } from './quantity.js';
+import { converter, angleToLinearAtRange } from './quantity.js';
 
 // Each group is one independently-selectable "preferred unit" — grouped by
 // how a shooter actually thinks about a measurement, not just by physical
@@ -172,28 +172,18 @@ export const FIELD_UNITS = {
 
   sightHeight: { group: 'smallLength', engineUnit: 'm' },
   riflingTwist: { group: 'riflingTwist', engineUnit: 'm' },
-  aimOffsetX: { group: 'smallLength', engineUnit: 'cm' },
-  aimOffsetY: { group: 'smallLength', engineUnit: 'cm' },
+  aimOffsetX: { group: 'smallLength', engineUnit: 'm' },
+  aimOffsetY: { group: 'smallLength', engineUnit: 'm' },
   // The two user-sizeable targets' own dimension fields (Circle gong,
   // Rectangle plate) — same group/engineUnit as the aim-offset fields
   // just above, since these are all "how big is this thing, in cm-ish
   // terms" inputs a shooter thinks about the same way.
-  circleGongDiameter: { group: 'smallLength', engineUnit: 'cm' },
-  rectPlateWidth: { group: 'smallLength', engineUnit: 'cm' },
-  rectPlateHeight: { group: 'smallLength', engineUnit: 'cm' },
+  circleGongDiameter: { group: 'smallLength', engineUnit: 'm' },
+  rectPlateWidth: { group: 'smallLength', engineUnit: 'm' },
+  rectPlateHeight: { group: 'smallLength', engineUnit: 'm' },
   // Trajectory's own Target section (direct-hit distance) — same
   // "how big is this thing, in cm-ish terms" shape as the two above.
-  targetHeight: { group: 'smallLength', engineUnit: 'cm' },
-  // Not form fields — the trajectory table/chart's own drop and windage
-  // columns (dropCm/windageCm on each engine point) convert through these
-  // for display the same way `energy`/`velocity` do below. The engine
-  // value itself must stay in cm wherever it's consumed for math (see
-  // clicksForOffset() in trajectory-columns.js's elevClicks/windClicks/
-  // elevMrad/etc. columns, which read p.dropCm/p.windageCm directly, not
-  // through these entries) — only the two "absolute" cm columns display
-  // through the user's smallLength preference.
-  dropCm: { group: 'smallLength', engineUnit: 'cm' },
-  windageCm: { group: 'smallLength', engineUnit: 'cm' },
+  targetHeight: { group: 'smallLength', engineUnit: 'm' },
 
   altitudeM: { group: 'altitude', engineUnit: 'm' },
   tempC: { group: 'temperature', engineUnit: 'tempC' },
@@ -354,12 +344,12 @@ export const FIELD_BOUNDS = {
   movingTargetSpeedError: { min: 0, max: 100 }, // %, no FIELD_UNITS entry
   muzzleVelocitySD: { min: 0, max: 20 }, // m/s
   spotterMeasure: { min: 0, max: 5 }, // mrad — matches FIELD_UNITS.spotterMeasure's own engine unit
-  aimOffsetX: { min: -100, max: 100 }, // cm
-  aimOffsetY: { min: -100, max: 100 }, // cm
-  circleGongDiameter: { min: 1, max: 200 }, // cm
-  targetHeight: { min: 1, max: 300 }, // cm — matches rectPlateHeight, same kind of quantity
-  rectPlateWidth: { min: 1, max: 300 }, // cm
-  rectPlateHeight: { min: 1, max: 300 }, // cm
+  aimOffsetX: { min: -1, max: 1 }, // m
+  aimOffsetY: { min: -1, max: 1 }, // m
+  circleGongDiameter: { min: 0.01, max: 2 }, // m
+  targetHeight: { min: 0.01, max: 3 }, // m — matches rectPlateHeight, same kind of quantity
+  rectPlateWidth: { min: 0.01, max: 3 }, // m
+  rectPlateHeight: { min: 0.01, max: 3 }, // m
   bcGainFactor: { min: 0.8, max: 1.2 }, // unitless multiplier, no FIELD_UNITS entry — see makeStepper() in engine/trajectory.js
   truingBackdropHeight: { min: 1, max: 40 } // m, total height -- see engine/truing-session.js's own "each way" margin, which this is divided by 2 to produce
 };
@@ -439,17 +429,17 @@ export function convertAngularValue(value, fromUnit, toUnit) {
   return converter(fromUnit, toUnit)(value);
 }
 
-// Lateral displacement (cm) produced by one unit of angle (1 MOA or 1
+// Lateral displacement (m) produced by one unit of angle (1 MOA or 1
 // mrad) at a given range (m) — the standard small-angle approximation.
-export function angularUnitToCmAtRange(unit, rangeM) {
-  return mToCm(angleToLinearAtRange(converter(unit, 'rad')(1), rangeM));
+export function angularUnitToLinearAtRange(unit, rangeM) {
+  return angleToLinearAtRange(converter(unit, 'rad')(1), rangeM);
 }
 
 // How many scope clicks of `clickValue` (in `unit`) are needed to correct
-// a lateral offset of `offsetCm` at `rangeM`. Guards against Infinity/NaN
+// a lateral offset of `offsetM` at `rangeM`. Guards against Infinity/NaN
 // reaching the UI if the click value or range is zero.
-export function clicksForOffset(offsetCm, clickValue, unit, rangeM) {
+export function clicksForOffset(offsetM, clickValue, unit, rangeM) {
   if (!clickValue || rangeM <= 0) return 0;
-  const cmPerClick = clickValue * angularUnitToCmAtRange(unit, rangeM);
-  return cmPerClick === 0 ? 0 : offsetCm / cmPerClick;
+  const metresPerClick = clickValue * angularUnitToLinearAtRange(unit, rangeM);
+  return metresPerClick === 0 ? 0 : offsetM / metresPerClick;
 }

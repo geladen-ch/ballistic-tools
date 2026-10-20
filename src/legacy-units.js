@@ -8,7 +8,7 @@
 // The table is append-only and frozen in meaning: a row describes what a
 // field meant in data that already exists, which never changes, so a row
 // is never edited once released.
-import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm } from './quantity.js';
+import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm } from './quantity.js';
 
 // [stored name, in-memory name, stored → in-memory, in-memory → stored]
 const RENAMED_FIELDS = [
@@ -17,7 +17,9 @@ const RENAMED_FIELDS = [
   ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa],
   // the active rifle in the gun cookie
   ['sightHeight', 'sightHeightM', mmToM, mToMm],
-  ['riflingTwist', 'riflingTwistM', mmToM, mToMm]
+  ['riflingTwist', 'riflingTwistM', mmToM, mToMm],
+  // the Trajectory tool's own inputs
+  ['targetHeightCm', 'targetHeightM', cmToM, mToCm]
 ];
 
 const BY_STORED = new Map(RENAMED_FIELDS.map(([stored, current, decode]) => [stored, { name: current, convert: decode }]));
@@ -51,7 +53,12 @@ export function encodeLegacy(obj) {
 // id, only the unit its value is stored in differs from memory.
 // [field id, stored unit, in-memory unit]
 const FIELD_KEYED_UNITS = [
-  ['pressureMedianError', 'hPa', 'Pa']
+  ['pressureMedianError', 'hPa', 'Pa'],
+  ['aimOffsetX', 'cm', 'm'],
+  ['aimOffsetY', 'cm', 'm'],
+  ['circleGongDiameter', 'cm', 'm'],
+  ['rectPlateWidth', 'cm', 'm'],
+  ['rectPlateHeight', 'cm', 'm']
 ];
 const FIELD_KEYED = new Map(FIELD_KEYED_UNITS.map(([id, stored, current]) => [id, { decode: converter(stored, current), encode: converter(current, stored) }]));
 

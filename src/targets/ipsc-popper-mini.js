@@ -4,18 +4,18 @@
 // steel target diagram: base 100mm wide, circle
 // 200mm diameter (R100mm) centered 460mm above the base, taper widening to
 // 135mm wide where it meets the circle, total height 560mm (base to top of
-// circle). All figures below converted to centimeters. hitProbability's own
+// circle). All figures below in metres. hitProbability's own
 // y=0 is the center of the circular head — see ipsc-popper.js's own
 // comment for why.
 import { profileHitProbability, polylineHalfWidth, circularArcHalfWidth, unionHalfWidth } from '../engine/target-shapes.js';
 
-const R = 10; // cm, circle radius
-const CIRCLE_CENTER_Y = 46; // cm, base to circle center
-const CHORD_HALF_WIDTH = 6.75; // cm, half of the labeled 135mm taper/circle junction width
-const BASE_HALF_WIDTH = 5; // cm, half of the labeled 100mm base width
+const R = 0.1; // m, circle radius
+const CIRCLE_CENTER_Y = 0.46; // m, base to circle center
+const CHORD_HALF_WIDTH = 0.0675; // m, half of the labeled 135mm taper/circle junction width
+const BASE_HALF_WIDTH = 0.05; // m, half of the labeled 100mm base width
 const CHORD_Y = CIRCLE_CENTER_Y - Math.sqrt(R * R - CHORD_HALF_WIDTH * CHORD_HALF_WIDTH);
-const TOP_Y = CIRCLE_CENTER_Y + R; // cm, = 56, matches the drawing's labeled 560mm total height
-const CENTER_Y = CIRCLE_CENTER_Y; // cm, base to hitProbability's own y=0
+const TOP_Y = CIRCLE_CENTER_Y + R; // m, = 0.56, matches the drawing's labeled 560mm total height
+const CENTER_Y = CIRCLE_CENTER_Y; // m, base to hitProbability's own y=0
 
 const halfWidthAt = unionHalfWidth(
   polylineHalfWidth([[0, BASE_HALF_WIDTH], [CHORD_Y, CHORD_HALF_WIDTH]]),

@@ -604,23 +604,23 @@ export function mount(container) {
     } catch {
       return null;
     }
-    if (![result.dropCm, result.windageCm, result.velocity, result.tof].every(Number.isFinite)) return null;
+    if (![result.dropM, result.windageM, result.velocity, result.tof].every(Number.isFinite)) return null;
 
     let elevValue;
     let windValue;
     let decimals;
     if (outputUnit === 'clicks') {
       const clickSettings = rifle.getClickSettings();
-      elevValue = Math.round(-clicksForOffset(result.dropCm, clickSettings.vertical, clickSettings.unit, targetRangeM));
-      windValue = Math.round(clicksForOffset(result.windageCm, clickSettings.horizontal, clickSettings.unit, targetRangeM));
+      elevValue = Math.round(-clicksForOffset(result.dropM, clickSettings.vertical, clickSettings.unit, targetRangeM));
+      windValue = Math.round(clicksForOffset(result.windageM, clickSettings.horizontal, clickSettings.unit, targetRangeM));
       decimals = 0;
     } else {
       // Click value of 1 in the fixed angular unit — same trick
       // trajectory-columns.js's own elevMrad/elevMOA columns use, sidestepping
       // the rifle's own scope click value entirely.
       const angularUnit = OUTPUT_ANGULAR_UNIT[outputUnit];
-      elevValue = -clicksForOffset(result.dropCm, 1, angularUnit, targetRangeM);
-      windValue = clicksForOffset(result.windageCm, 1, angularUnit, targetRangeM);
+      elevValue = -clicksForOffset(result.dropM, 1, angularUnit, targetRangeM);
+      windValue = clicksForOffset(result.windageM, 1, angularUnit, targetRangeM);
       decimals = 1;
     }
     if (![elevValue, windValue].every(Number.isFinite)) return null;

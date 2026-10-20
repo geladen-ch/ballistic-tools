@@ -1,8 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { erf } from '../src/engine/target-shapes.js';
-import { hitProbability as targetHitProbability } from '../src/targets/ipsc-target.js';
-import { hitProbability as miniTargetHitProbability } from '../src/targets/ipsc-target-mini.js';
+import { hitProbability as targetHitProbabilityM } from '../src/targets/ipsc-target.js';
+import { hitProbability as miniTargetHitProbabilityM } from '../src/targets/ipsc-target-mini.js';
+
+// The target functions take metres; these tests (and their independent
+// brute-force references) are written in centimetres, so they go through
+// this adapter.
+const inCm = (fn) => (sdX, sdY, offsetX, offsetY, dims) => fn(sdX / 100, sdY / 100, offsetX / 100, offsetY / 100, dims);
+const targetHitProbability = inCm(targetHitProbabilityM);
+const miniTargetHitProbability = inCm(miniTargetHitProbabilityM);
 
 // An independent (non-quadrature) ground truth: a plain fine-grained
 // Riemann sum in y, re-deriving each zone's own taper/flat/taper profile

@@ -45,3 +45,10 @@ test('resetTrajectoryStateForTests() clears the saved state in memory (not the c
   resetTrajectoryStateForTests();
   assert.equal(loadTrajectoryInputsState(), null);
 });
+
+test('the target height is stored in cm under its stored name, and read back in metres', async () => {
+  saveTrajectoryInputsState({ targetHeightM: 0.5 });
+  assert.equal(JSON.parse(getCookie(COOKIE_NAME)).targetHeightCm, 50);
+  const fresh = await import(`../src/trajectory-state.js?reload=${freshId()}`);
+  assert.equal(fresh.loadTrajectoryInputsState().targetHeightM, 0.5);
+});

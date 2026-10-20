@@ -7,24 +7,24 @@
 import { circleHitProbability } from '../engine/target-shapes.js';
 
 const RINGS = [
-  { id: '1', outerCm: 50 },
-  { id: '2', outerCm: 45 },
-  { id: '3', outerCm: 40 },
-  { id: '4', outerCm: 35 },
-  { id: '5', outerCm: 30 },
-  { id: '6', outerCm: 25 },
-  { id: '7', outerCm: 20 },
-  { id: '8', outerCm: 15 },
-  { id: '9', outerCm: 10 },
-  { id: '10', outerCm: 5 },
-  { id: '10x', outerCm: 2.5 }
+  { id: '1', outerM: 0.5 },
+  { id: '2', outerM: 0.45 },
+  { id: '3', outerM: 0.4 },
+  { id: '4', outerM: 0.35 },
+  { id: '5', outerM: 0.3 },
+  { id: '6', outerM: 0.25 },
+  { id: '7', outerM: 0.2 },
+  { id: '8', outerM: 0.15 },
+  { id: '9', outerM: 0.1 },
+  { id: '10', outerM: 0.05 },
+  { id: '10x', outerM: 0.025 }
 ];
 
 export function hitProbability(sdX, sdY, offsetX, offsetY) {
   return RINGS.map((ring, i) => {
-    const outerP = circleHitProbability(0, 0, ring.outerCm, sdX, sdY, offsetX, offsetY);
+    const outerP = circleHitProbability(0, 0, ring.outerM, sdX, sdY, offsetX, offsetY);
     const nextRing = RINGS[i + 1];
-    const innerP = nextRing ? circleHitProbability(0, 0, nextRing.outerCm, sdX, sdY, offsetX, offsetY) : 0;
+    const innerP = nextRing ? circleHitProbability(0, 0, nextRing.outerM, sdX, sdY, offsetX, offsetY) : 0;
     return { zoneId: ring.id, probability: outerP - innerP };
   });
 }

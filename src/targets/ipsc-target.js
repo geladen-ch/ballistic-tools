@@ -10,7 +10,7 @@
 // zone C's is (C's own region minus A's); zone D's is (D's own region
 // minus C's).
 //
-// Geometry (cm, y measured down from the very top, the D-zone's own top
+// Geometry (metres, y measured down from the very top, the D-zone's own top
 // edge) transcribed directly from the official drawing's dimensions —
 // each zone is a taper up to full width, a flat run at full width, then a
 // taper back down:
@@ -27,14 +27,14 @@
 // and scoreMinor).
 import { profileHitProbability, polylineHalfWidth } from '../engine/target-shapes.js';
 
-const TOP_Y = 57; // cm, overall target height (D-zone's own extent)
-const D = polylineHalfWidth([[0, 7.5], [19, 22.5], [38, 22.5], [57, 7.5]]);
-const C = polylineHalfWidth([[0, 7.5], [19, 15], [33.5, 15], [45, 5]]);
-const A = polylineHalfWidth([[2.5, 2.5], [19, 7.5], [27.5, 7.5], [35, 2.5]]);
+const TOP_Y = 0.57; // m, overall target height (D-zone's own extent)
+const D = polylineHalfWidth([[0, 0.075], [0.19, 0.225], [0.38, 0.225], [0.57, 0.075]]);
+const C = polylineHalfWidth([[0, 0.075], [0.19, 0.15], [0.335, 0.15], [0.45, 0.05]]);
+const A = polylineHalfWidth([[0.025, 0.025], [0.19, 0.075], [0.275, 0.075], [0.35, 0.025]]);
 // A-zone's own vertical center — the natural real-world point of aim
 // (center of the highest-scoring zone), matching the reasoning behind the
 // IPSC poppers' own y=0 (their circular head's center).
-const CENTER_Y = (2.5 + 35) / 2;
+const CENTER_Y = (0.025 + 0.35) / 2;
 
 export function hitProbability(sdX, sdY, offsetX, offsetY) {
   // offsetY is "up positive" (the app-wide convention), but this module's

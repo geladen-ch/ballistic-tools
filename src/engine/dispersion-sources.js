@@ -7,6 +7,7 @@
 // single-shot.js, not here — this module only holds the shared, reusable
 // per-source primitives.
 import { computeImpact, solveZeroAngle } from './trajectory.js';
+import { angleToLinearAtRange, mradToRad, percentToFraction } from '../quantity.js';
 
 // "Median error" as used throughout this feature's uncertainty fields is
 // the probable error (PE): the value within +/- which 50% of outcomes
@@ -97,10 +98,10 @@ export function precisionToR50Mrad({ precisionMode, detailed, simplified }) {
 
 // A dispersion already expressed as an angle (mrad) — bench rifle
 // precision, shooter skill, the simplified combined-precision field —
-// converted to linear cm at the target range via the standard small-angle
-// approximation: 1 mrad subtends rangeM/1000 m, i.e. rangeM/10 cm.
+// converted to a linear SD (m) at the target range via the standard
+// small-angle definition (1 mrad subtends 1 mm per metre of range).
 export function angularSDToLinear(sdMrad, rangeM) {
-  return (sdMrad * rangeM) / 10;
+  return angleToLinearAtRange(mradToRad(sdMrad), rangeM);
 }
 
 // Evaluates the trajectory-implied (x,y) miss at `paramName` = nominal±sd
@@ -115,8 +116,8 @@ export function trajectoryPerturbationSD(nominalState, paramName, nominalValue, 
   if (!sd) return { x: 0, y: 0 };
   const plus = computeImpact({ ...nominalState, [paramName]: nominalValue + sd, launchAngle }, targetRange);
   const minus = computeImpact({ ...nominalState, [paramName]: nominalValue - sd, launchAngle }, targetRange);
-  const x = (Math.abs(plus.windageCm - nominalImpact.windageCm) + Math.abs(nominalImpact.windageCm - minus.windageCm)) / 2;
-  const y = (Math.abs(plus.dropCm - nominalImpact.dropCm) + Math.abs(nominalImpact.dropCm - minus.dropCm)) / 2;
+  const x = (Math.abs(plus.windageM - nominalImpact.windageM) + Math.abs(nominalImpact.windageM - minus.windageM)) / 2;
+  const y = (Math.abs(plus.dropM - nominalImpact.dropM) + Math.abs(nominalImpact.dropM - minus.dropM)) / 2;
   return { x, y };
 }
 
@@ -132,26 +133,25 @@ export function rangeEstimationSD(nominalState, sd, targetRange, nominalImpact) 
   const angleMinus = solveZeroAngle({ ...nominalState, zeroRange: targetRange - sd });
   const plus = computeImpact({ ...nominalState, launchAngle: anglePlus }, targetRange);
   const minus = computeImpact({ ...nominalState, launchAngle: angleMinus }, targetRange);
-  const y = (Math.abs(plus.dropCm - nominalImpact.dropCm) + Math.abs(nominalImpact.dropCm - minus.dropCm)) / 2;
+  const y = (Math.abs(plus.dropM - nominalImpact.dropM) + Math.abs(nominalImpact.dropM - minus.dropM)) / 2;
   return { x: 0, y };
 }
 
 // A shooter leading a laterally-moving target by `estimatedSpeed * tof`
 // (correctly, for their own estimate) misses by the error in that speed
-// estimate alone: SD_x = estimatedSpeed * tof * SD(speedErrorPct). The
-// *100 converts the meters this gives (m/s * s) to cm, matching every
-// other contribution in this module.
+// estimate alone: SD_x = estimatedSpeed * tof * SD(speedErrorPct), in
+// metres like every other contribution in this module.
 // Horizontal only — target motion is lateral-only in this model, mirroring
 // wind's own lateral-only treatment.
 export function movingTargetLeadSD(estimatedSpeed, speedErrorPct, tof) {
   if (!estimatedSpeed || !speedErrorPct) return { x: 0, y: 0 };
-  const x = estimatedSpeed * tof * probableErrorToSD(speedErrorPct / 100) * 100;
+  const x = estimatedSpeed * tof * probableErrorToSD(percentToFraction(speedErrorPct));
   return { x, y: 0 };
 }
 
 // Independent sources' variances add — this is the only place that
 // assumption is used, so it's centralized here. `contributions` is a list
-// of { id, x, y } (each source's own linear SD, cm, from the functions
+// of { id, x, y } (each source's own linear SD, m, from the functions
 // above); the same list is returned alongside the combined totals so
 // callers can build a contribution-% breakdown without recomputing
 // anything.

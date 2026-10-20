@@ -21,8 +21,8 @@ test('with every uncertainty source at zero, sdX/sdY are exactly zero and the of
   assert.equal(result.sdY, 0);
   // solveZeroAngle's own root-finding tolerance is 1e-5 m = 1e-3 cm, so
   // "dialed in" only holds to that precision, not bit-for-bit zero.
-  assert.ok(Math.abs(result.offsetX) < 1e-3);
-  assert.ok(Math.abs(result.offsetY) < 1e-3, `expected ~0 vertical offset (dialed for target range), got ${result.offsetY}`);
+  assert.ok(Math.abs(result.offsetX) < 1e-5);
+  assert.ok(Math.abs(result.offsetY) < 1e-5, `expected ~0 vertical offset (dialed for target range), got ${result.offsetY}`);
 });
 
 test('a battle zero different from the target range produces a nonzero vertical offset, uncorrected', () => {
@@ -30,17 +30,17 @@ test('a battle zero different from the target range produces a nonzero vertical 
     nominalState, targetRange: 500, battleZeroRange: 100,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors
   });
-  assert.ok(result.offsetY < -10, `expected a substantial uncorrected drop offset, got ${result.offsetY}`);
+  assert.ok(result.offsetY < -0.1, `expected a substantial uncorrected drop offset, got ${result.offsetY}`);
 });
 
 test('aiming point offset passes straight through into offsetX/offsetY', () => {
   const result = computeSingleShot({
     nominalState, targetRange: 500,
-    aimOffsetXCm: 3, aimOffsetYCm: -4,
+    aimOffsetXM: 0.03, aimOffsetYM: -0.04,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors
   });
-  assert.ok(Math.abs(result.offsetX - 3) < 1e-3);
-  assert.ok(Math.abs(result.offsetY - (-4)) < 1e-3);
+  assert.ok(Math.abs(result.offsetX - 0.03) < 1e-5);
+  assert.ok(Math.abs(result.offsetY - (-0.04)) < 1e-5);
 });
 
 test('detailed precision mode: bench and shooter each contribute, shooter scaled by position multipliers', () => {

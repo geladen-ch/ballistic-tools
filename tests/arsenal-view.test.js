@@ -2444,10 +2444,10 @@ test('the Comparison chart offers the same column choices as the Trajectory char
   assert.ok(select, 'expected a select with id="comparisonChartColumn"');
   const optionValues = select.childNodes.map((o) => o.attributes.value);
   assert.deepEqual(optionValues, [
-    'dropCm', 'windageCm', 'elevClicks', 'windClicks', 'elevMrad', 'windMrad',
+    'drop', 'windage', 'elevClicks', 'windClicks', 'elevMrad', 'windMrad',
     'elevMOA', 'windMOA', 'velocity', 'tof', 'mach', 'energy'
   ]);
-  assert.equal(select.value, 'dropCm');
+  assert.equal(select.value, 'drop');
 
   const energyOption = select.childNodes.find((o) => o.attributes.value === 'energy');
   assert.ok(energyOption.textContent.includes('(J)'), `expected the energy option to show its unit, got "${energyOption.textContent}"`);

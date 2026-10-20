@@ -1,8 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { erf } from '../src/engine/target-shapes.js';
-import { hitProbability as popperHitProbability } from '../src/targets/ipsc-popper.js';
-import { hitProbability as miniPopperHitProbability } from '../src/targets/ipsc-popper-mini.js';
+import { hitProbability as popperHitProbabilityM } from '../src/targets/ipsc-popper.js';
+import { hitProbability as miniPopperHitProbabilityM } from '../src/targets/ipsc-popper-mini.js';
+
+// The target functions take metres; these tests (and their independent
+// brute-force references) are written in centimetres, so they go through
+// this adapter.
+const inCm = (fn) => (sdX, sdY, offsetX, offsetY, dims) => fn(sdX / 100, sdY / 100, offsetX / 100, offsetY / 100, dims);
+const popperHitProbability = inCm(popperHitProbabilityM);
+const miniPopperHitProbability = inCm(miniPopperHitProbabilityM);
 
 // An independent (non-quadrature) ground truth for the popper's own
 // geometry: a plain fine-grained Riemann sum in y, re-deriving the taper/

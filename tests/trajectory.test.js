@@ -16,7 +16,7 @@ const baseState = {
 test('zero angle sends the trajectory through the sight line at zeroRange', () => {
   const launchAngle = solveZeroAngle(baseState);
   const impact = computeImpact({ ...baseState, launchAngle }, baseState.zeroRange);
-  assert.ok(Math.abs(impact.dropCm) < 0.1, `drop at zero was ${impact.dropCm} cm`);
+  assert.ok(Math.abs(impact.dropM * 100) < 0.1, `drop at zero was ${impact.dropM * 100} cm`);
 });
 
 test('integrate produces monotonically increasing range samples', () => {
@@ -42,7 +42,7 @@ test('mach number matches velocity / speed of sound at that point\'s own (altitu
     // line) and world-frame height gained since the muzzle are the same
     // thing — exactly the height delta the standard atmosphere model
     // applies the lapse rate to (see temperatureAtHeightDelta).
-    const localTempC = temperatureAtHeightDelta(baseState.tempC, p.dropCm / 100);
+    const localTempC = temperatureAtHeightDelta(baseState.tempC, p.dropM * 100 / 100);
     const speedSound = speedOfSound(localTempC);
     assert.ok(Math.abs(p.mach - p.velocity / speedSound) < 1e-9);
   }
@@ -51,7 +51,7 @@ test('mach number matches velocity / speed of sound at that point\'s own (altitu
 test('bullet drops below the sight line well past the zero range', () => {
   const { points } = integrate({ ...baseState, maxRange: 600 });
   const last = points[points.length - 1];
-  assert.ok(last.dropCm < 0);
+  assert.ok(last.dropM * 100 < 0);
 });
 
 test('a higher BC sheds less velocity over the same distance', () => {
@@ -103,8 +103,8 @@ test('the stepped table matches the unstepped physics at a shared range (interpo
   const { points } = integrate({ ...baseState, maxRange: 500, rangeStep: 500 });
   const atFiveHundred = points.find((p) => p.range === 500);
   const direct = computeImpact({ ...baseState, launchAngle: solveZeroAngle(baseState) }, 500);
-  assert.ok(Math.abs(atFiveHundred.dropCm - direct.dropCm) < 1e-6);
-  assert.ok(Math.abs(atFiveHundred.windageCm - direct.windageCm) < 1e-6);
+  assert.ok(Math.abs(atFiveHundred.dropM * 100 - direct.dropM * 100) < 1e-6);
+  assert.ok(Math.abs(atFiveHundred.windageM * 100 - direct.windageM * 100) < 1e-6);
 });
 
 test('BUG: zeroRange of 0 must not make the zero-angle solve diverge', () => {
@@ -120,15 +120,15 @@ test('BUG: zeroRange of 0 must not make the zero-angle solve diverge', () => {
 test('zeroRange of 0 (or below) is treated as "no elevation correction": fire level down the bore', () => {
   const { points, launchAngleDeg } = integrate({ ...baseState, maxRange: 300, rangeStep: 100, zeroRange: 0 });
   assert.equal(launchAngleDeg, 0);
-  for (const p of points) assert.ok(Number.isFinite(p.dropCm) && Number.isFinite(p.velocity));
+  for (const p of points) assert.ok(Number.isFinite(p.dropM * 100) && Number.isFinite(p.velocity));
 
   // At the muzzle (range 0) the bore is sightHeightM below the sight line,
   // with no compensation applied — drop should be exactly -sightHeightM.
-  assert.ok(Math.abs(points[0].dropCm - -baseState.sightHeightM * 100) < 1e-6);
+  assert.ok(Math.abs(points[0].dropM * 100 - -baseState.sightHeightM * 100) < 1e-6);
   // With no elevation and no wind, windage is exactly 0 throughout.
-  for (const p of points) assert.equal(p.windageCm, 0);
+  for (const p of points) assert.equal(p.windageM * 100, 0);
   // Gravity is uncompensated, so drop only ever gets worse downrange.
-  for (let i = 1; i < points.length; i++) assert.ok(points[i].dropCm < points[i - 1].dropCm);
+  for (let i = 1; i < points.length; i++) assert.ok(points[i].dropM * 100 < points[i - 1].dropM * 100);
 });
 
 test('a negative zeroRange degrades the same way as 0, rather than diverging', () => {
@@ -138,7 +138,7 @@ test('a negative zeroRange degrades the same way as 0, rather than diverging', (
 
 test('computeImpact with zeroRange 0 in state (no explicit launchAngle) stays finite', () => {
   const impact = computeImpact({ ...baseState, zeroRange: 0 }, 200);
-  assert.ok(Number.isFinite(impact.dropCm));
+  assert.ok(Number.isFinite(impact.dropM * 100));
   assert.ok(Number.isFinite(impact.velocity));
 });
 
@@ -182,7 +182,7 @@ test('a library bullet\'s cdTable produces a finite, monotonically-decaying traj
     cdTable: G7_TABLE, massKg: 0.01088622, caliberM: 0.0078232 // .308, 168gr
   });
   assert.ok(points.length > 2);
-  for (const p of points) assert.ok(Number.isFinite(p.dropCm) && Number.isFinite(p.velocity));
+  for (const p of points) assert.ok(Number.isFinite(p.dropM * 100) && Number.isFinite(p.velocity));
   for (let i = 1; i < points.length; i++) assert.ok(points[i].velocity < points[i - 1].velocity);
 });
 
@@ -208,7 +208,7 @@ test('a Cd-table bullet whose sectional density exactly matches a given BC repro
 
   assert.equal(bcBased.points.length, cdTableBased.points.length);
   for (let i = 0; i < bcBased.points.length; i++) {
-    assert.ok(Math.abs(bcBased.points[i].dropCm - cdTableBased.points[i].dropCm) < 1e-6);
+    assert.ok(Math.abs(bcBased.points[i].dropM * 100 - cdTableBased.points[i].dropM * 100) < 1e-6);
     assert.ok(Math.abs(bcBased.points[i].velocity - cdTableBased.points[i].velocity) < 1e-6);
   }
 });
@@ -224,7 +224,7 @@ test('the zero solve still sends the trajectory through the (inclined) sight lin
     const state = { ...baseState, losAngleDeg };
     const launchAngle = solveZeroAngle(state);
     const impact = computeImpact({ ...state, launchAngle }, baseState.zeroRange);
-    assert.ok(Math.abs(impact.dropCm) < 0.1, `losAngleDeg=${losAngleDeg}: drop at zero was ${impact.dropCm} cm`);
+    assert.ok(Math.abs(impact.dropM * 100) < 0.1, `losAngleDeg=${losAngleDeg}: drop at zero was ${impact.dropM * 100} cm`);
   }
 });
 
@@ -236,8 +236,8 @@ test('an inclined shot (uphill or downhill) drops less than a level shot at the 
     const state = { ...baseState, losAngleDeg };
     const inclined = computeImpact({ ...state, launchAngle: solveZeroAngle(state) }, target);
     assert.ok(
-      Math.abs(inclined.dropCm) < Math.abs(level.dropCm),
-      `losAngleDeg=${losAngleDeg}: inclined drop ${inclined.dropCm}cm should be smaller in magnitude than the level shot's ${level.dropCm}cm`
+      Math.abs(inclined.dropM * 100) < Math.abs(level.dropM * 100),
+      `losAngleDeg=${losAngleDeg}: inclined drop ${inclined.dropM * 100}cm should be smaller in magnitude than the level shot's ${level.dropM * 100}cm`
     );
   }
 });
@@ -261,7 +261,7 @@ test('an inclined shot is flown from the flat zero: its impact matches a shot gi
   assert.deepEqual(viaResolve, explicit);
   // and it is not the old behavior (zero re-solved along the inclined line), which lands on the sight line at 100 m
   const atZeroRange = computeImpact(state, baseState.zeroRange);
-  assert.ok(Math.abs(atZeroRange.dropCm) > 0.1, 'an inclined shot is no longer forced through the sight line at the zero range');
+  assert.ok(Math.abs(atZeroRange.dropM * 100) > 0.1, 'an inclined shot is no longer forced through the sight line at the zero range');
 });
 
 test('resolveLaunchAngle: the zero angle ignores the shot\'s wind', () => {
@@ -411,29 +411,29 @@ test('solveHorizontalZeroAngle is nonzero when spin drift is enabled, computable
 test('with zeroForSpinDrift on, windage is nulled exactly at zeroRange — computeImpact and the stepped table agree', () => {
   const state = { ...spinDriftState, ...zeroingOn };
   const atZero = computeImpact(state, state.zeroRange);
-  assert.ok(Math.abs(atZero.windageCm) < 1e-6, `expected ~0 windage at zeroRange, got ${atZero.windageCm}`);
+  assert.ok(Math.abs(atZero.windageM * 100) < 1e-6, `expected ~0 windage at zeroRange, got ${atZero.windageM * 100}`);
 
   const { points } = integrate(state);
   const tableRow = points.find((p) => p.range === state.zeroRange);
-  assert.ok(Math.abs(tableRow.windageCm) < 1e-6, `expected ~0 windage at the zeroRange table row, got ${tableRow.windageCm}`);
+  assert.ok(Math.abs(tableRow.windageM * 100) < 1e-6, `expected ~0 windage at the zeroRange table row, got ${tableRow.windageM * 100}`);
 });
 
 test('with zeroForSpinDrift on, windage is genuinely nonzero away from zeroRange (a residual, not zeroed everywhere)', () => {
   const state = { ...spinDriftState, ...zeroingOn };
   const beyondZero = computeImpact(state, 500);
-  assert.ok(Math.abs(beyondZero.windageCm) > 0.01, `expected a real residual well past zeroRange, got ${beyondZero.windageCm}`);
+  assert.ok(Math.abs(beyondZero.windageM * 100) > 0.01, `expected a real residual well past zeroRange, got ${beyondZero.windageM * 100}`);
 });
 
 test('spin drift enabled but zeroForSpinDrift off (the default combination): windage at zeroRange is still the raw spin-drift value, not nulled', () => {
   const state = { ...spinDriftState, calculateSpinDrift: true }; // zeroForSpinDrift left unset — the default
   const atZero = computeImpact(state, state.zeroRange);
-  assert.ok(Math.abs(atZero.windageCm) > 0.01, `expected spin drift to still show up at zeroRange, got ${atZero.windageCm}`);
+  assert.ok(Math.abs(atZero.windageM * 100) > 0.01, `expected spin drift to still show up at zeroRange, got ${atZero.windageM * 100}`);
 });
 
 test('without spin drift, windage stays exactly 0 at every range with no wind — unchanged from before this feature', () => {
   const state = { ...spinDriftState, calculateSpinDrift: false, windSpeed: 0 };
   const { points } = integrate(state);
-  for (const p of points) assert.equal(p.windageCm, 0);
+  for (const p of points) assert.equal(p.windageM * 100, 0);
 });
 
 test('solveHorizontalZeroAngle holds the already-solved vertical zero angle fixed rather than perturbing it', () => {
@@ -446,38 +446,38 @@ test('solveHorizontalZeroAngle holds the already-solved vertical zero angle fixe
 // spinDriftMode: 'mccoy4dof' dispatches to the full 4-DOF stepper.
 // Unlike 'litz', the 4-DOF stepper's own integrated z already includes
 // physically-derived spin drift, so windage comes straight out of the
-// trajectory itself, with no separate spinDriftCm() addition layered on
+// trajectory itself, with no separate spinDriftM() addition layered on
 // top.
 test('spinDriftMode: mccoy4dof produces nonzero windage directly from integration, with no wind and calculateSpinDrift unset', () => {
   const state = { ...spinDriftState, spinDriftMode: 'mccoy4dof' };
   const { points } = integrate(state);
   const last = points[points.length - 1];
-  assert.ok(Math.abs(last.windageCm) > 0.01, `expected real spin drift from the 4-DOF path, got ${last.windageCm}`);
+  assert.ok(Math.abs(last.windageM * 100) > 0.01, `expected real spin drift from the 4-DOF path, got ${last.windageM * 100}`);
 });
 
 test('spinDriftMode: mccoy4dof and litz agree on the sign of drift and roughly its order of magnitude, for the same bullet', () => {
   const range = 500;
   const litz = computeImpact({ ...spinDriftState, calculateSpinDrift: true }, range);
   const mccoy = computeImpact({ ...spinDriftState, spinDriftMode: 'mccoy4dof' }, range);
-  assert.equal(Math.sign(litz.windageCm), Math.sign(mccoy.windageCm));
-  const ratio = mccoy.windageCm / litz.windageCm;
-  assert.ok(ratio > 0.2 && ratio < 5, `expected the same rough order of magnitude, got litz=${litz.windageCm}cm mccoy4dof=${mccoy.windageCm}cm (ratio ${ratio})`);
+  assert.equal(Math.sign(litz.windageM * 100), Math.sign(mccoy.windageM * 100));
+  const ratio = mccoy.windageM / litz.windageM;
+  assert.ok(ratio > 0.2 && ratio < 5, `expected the same rough order of magnitude, got litz=${litz.windageM * 100}cm mccoy4dof=${mccoy.windageM * 100}cm (ratio ${ratio})`);
 });
 
 test('spinDriftMode: mccoy4dof zeroing nulls windage exactly at zeroRange, same as litz does', () => {
   const state = { ...spinDriftState, spinDriftMode: 'mccoy4dof', zeroForSpinDrift: true };
   const atZero = computeImpact(state, state.zeroRange);
-  assert.ok(Math.abs(atZero.windageCm) < 1e-3, `expected ~0 windage at zeroRange, got ${atZero.windageCm}`);
+  assert.ok(Math.abs(atZero.windageM * 100) < 1e-3, `expected ~0 windage at zeroRange, got ${atZero.windageM * 100}`);
 
   const beyondZero = computeImpact(state, 500);
-  assert.ok(Math.abs(beyondZero.windageCm) > 0.01, `expected a real residual well past zeroRange, got ${beyondZero.windageCm}`);
+  assert.ok(Math.abs(beyondZero.windageM * 100) > 0.01, `expected a real residual well past zeroRange, got ${beyondZero.windageM * 100}`);
 });
 
 test('spinDriftMode: mccoy4dof falls back to litz, and then to off, exactly like resolveSpinDriftMode says it should', () => {
   const { caliberM, ...withoutCaliber } = spinDriftState; // blocks canMakeStepper4dof but not canComputeStability... actually blocks both (same 5 inputs)
   const state = { ...withoutCaliber, spinDriftMode: 'mccoy4dof', windSpeed: 0 };
   const { points } = integrate(state);
-  for (const p of points) assert.equal(p.windageCm, 0); // falls all the way to 'off' — see spin-drift.test.js
+  for (const p of points) assert.equal(p.windageM * 100, 0); // falls all the way to 'off' — see spin-drift.test.js
 });
 
 // The regression Phase 3's own completion note called for: confirms
@@ -491,7 +491,7 @@ test('regression: full bullet data with neither calculateSpinDrift nor spinDrift
   assert.equal(calculateSpinDrift, undefined);
   const state = { ...fullDataNoMode, windSpeed: 0 };
   const impact = computeImpact(state, 500);
-  assert.equal(impact.windageCm, 0);
+  assert.equal(impact.windageM * 100, 0);
 });
 
 test('makeImpactWalker: every range comes out bit for bit as computeImpact gives it, in any order, for any state', () => {

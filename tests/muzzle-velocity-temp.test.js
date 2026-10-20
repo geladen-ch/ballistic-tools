@@ -38,7 +38,7 @@ test('integrate() shows a warmer cartridge going faster and flatter than an unco
   assert.ok(lastWarm.velocity > lastUncorrected.velocity, 'higher effective V0 should retain more velocity downrange');
   // A faster bullet needs less time in flight to reach the same range, so
   // less time for gravity to pull it down: shallower drop at maxRange.
-  assert.ok(lastWarm.dropCm > lastUncorrected.dropCm, 'faster bullet should drop less (dropCm is negative, so "more")');
+  assert.ok(lastWarm.dropM * 100 > lastUncorrected.dropM * 100, 'faster bullet should drop less (dropCm is negative, so "more")');
 });
 
 test('zero angle shifts (flattens) for a temperature-corrected higher velocity', () => {

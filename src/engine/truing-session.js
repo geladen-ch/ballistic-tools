@@ -20,6 +20,7 @@
 import { computeImpact, makeImpactWalker, resolveLaunchAngle, resolveMuzzleVelocity, solveZeroAngle } from './trajectory.js';
 import { speedOfSound } from './atmosphere.js';
 import { r50ToSD } from './dispersion-sources.js';
+import { radToMrad, linearToAngleAtRange } from '../quantity.js';
 
 // ---- Constants and priors ----
 export const SIGMA_ROUND_MRAD = 0.1 / Math.sqrt(12); // 0.028868: a come-up known only to the nearest 0.1 mrad click
@@ -178,10 +179,10 @@ function impactAt(state, rangeM) {
 }
 export function clearWalkers() { walkers.clear(); zeroAngles.clear(); }
 
-export const comeUpMrad = (state, rangeM) => -impactAt(state, rangeM).dropCm * 10 / rangeM;
+export const comeUpMrad = (state, rangeM) => radToMrad(linearToAngleAtRange(-impactAt(state, rangeM).dropM, rangeM));
 // The sideways displacement at `rangeM` in mrad, with the engine's own sign (the same number Range Solver turns into
 // windage clicks): wind, and spin drift when the state has it switched on.
-export const windageMrad = (state, rangeM) => impactAt(state, rangeM).windageCm * 10 / rangeM;
+export const windageMrad = (state, rangeM) => radToMrad(linearToAngleAtRange(impactAt(state, rangeM).windageM, rangeM));
 // Mach against the speed of sound in the state's own air (15 C when it names none): the supersonic ceiling moves 25 to 55 m
 // in the cold and the heat, so a fixed sea-level reference put it in the wrong place.
 export const machAt = (state, rangeM) => computeImpact(state, rangeM).velocity / speedOfSound(state.tempC ?? 15);
@@ -837,7 +838,7 @@ export function nextShotDope({ state, conditions = null, theta = {}, cov = null,
   const losState = knownLosDeg ? { ...applied, losAngleDeg: knownLosDeg } : applied;
   const impact = computeImpact(withFixedBore(losState), rangeM);
   const elevationMrad = predictedComeUp(applied, rangeM, theta, { knownLosDeg });
-  const windage = impact.windageCm * 10 / rangeM;
+  const windage = radToMrad(linearToAngleAtRange(impact.windageM, rangeM));
   const windError = windSigma ? windErrorMrad({ state: losState, rangeM, speedSigmaMs: windSigma.speedMs, dirSigmaDeg: windSigma.dirDeg }) : { verticalMrad: 0, horizontalMrad: 0 };
   const fitSd = cov ? predictiveComeUpSd({ state: shot, theta, cov, params, rangeM, knownLosDeg }) : null;
   return {

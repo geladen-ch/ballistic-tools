@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canMakeStepper4dof, makeStepper4dof } from '../src/engine/trajectory-4dof.js';
 import { makeStepper } from '../src/engine/trajectory.js';
-import { resolveSpinDrift, spinDriftCm } from '../src/engine/spin-drift.js';
+import { resolveSpinDrift, spinDriftM } from '../src/engine/spin-drift.js';
 
 const YARD_M = 0.9144;
 
@@ -263,7 +263,7 @@ test('right-hand twist drifts in the same direction (sign) as the existing Litz-
 
   const litzState = { massKg: state4dof.massKg, caliberM: state4dof.caliberM, lengthM: state4dof.lengthM, riflingTwistM: state4dof.riflingTwistM, calculateSpinDrift: true, twistDirection: 'right' };
   const spinDrift = resolveSpinDrift(litzState, state4dof.muzzleVelocity);
-  const litzWindageCm = spinDriftCm(spinDrift, 1000 * YARD_M / state4dof.muzzleVelocity); // rough TOF estimate is fine — sign is what matters
+  const litzWindageCm = (spinDriftM(spinDrift, 1000 * YARD_M / state4dof.muzzleVelocity) * 100); // rough TOF estimate is fine — sign is what matters
 
   // Both should agree that right-hand twist drifts to the same side —
   // spinDriftCm's own convention: negative = right (this engine's -z).

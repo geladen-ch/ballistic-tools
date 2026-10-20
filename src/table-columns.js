@@ -6,6 +6,17 @@ import { getCookie, setCookie } from './cookies.js';
 
 const COOKIE_NAME = 'ballistics_trajectory_columns_v1';
 
+// Column ids that were renamed (they used to carry their unit: the
+// drop/windage values are now held in metres, not cm), so a visibility
+// saved under the old id still applies.
+const RENAMED_COLUMN_IDS = { dropCm: 'drop', windageCm: 'windage' };
+
+function renameRetiredIds(visibility) {
+  const out = {};
+  for (const [id, visible] of Object.entries(visibility)) out[RENAMED_COLUMN_IDS[id] ?? id] = visible;
+  return out;
+}
+
 function defaultsFrom(columns) {
   const d = {};
   for (const col of columns) d[col.id] = col.default;
@@ -19,7 +30,7 @@ export function loadColumnVisibility(columns) {
   const defaults = defaultsFrom(columns);
   try {
     const raw = getCookie(COOKIE_NAME);
-    if (raw) return { ...defaults, ...JSON.parse(raw) };
+    if (raw) return { ...defaults, ...renameRetiredIds(JSON.parse(raw)) };
   } catch {
     // malformed cookie — fall through to defaults
   }

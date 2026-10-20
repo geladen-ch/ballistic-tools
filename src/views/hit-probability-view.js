@@ -29,9 +29,7 @@ import {
   MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY
 } from '../ui/precision-preset-field.js';
 import { riflePrecisionInputs } from '../ui/rifle-precision-inputs.js';
-import { converter, cmToM, fractionToPercent } from '../quantity.js';
-
-const cmToMm = converter('cm', 'mm');
+import { mToMm, fractionToPercent } from '../quantity.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
@@ -170,8 +168,8 @@ function roundDistanceDefault(fieldId, metricValue, yardValue) {
 // targets' own dimension fields: a shooter on inches gets a round
 // inch-based default (e.g. 10 in diameter) rather than whatever a straight
 // cm conversion of the metric default happens to land on.
-function roundSmallLengthDefault(fieldId, metricValueCm, imperialValueIn) {
-  return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueCm;
+function roundSmallLengthDefault(fieldId, metricValueM, imperialValueIn) {
+  return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueM;
 }
 
 // A unitField() with no preset selector, still persisted across
@@ -341,8 +339,8 @@ export function mount(container) {
   const battleZeroField = persistedUnitField('battleZeroRange', { min: 0, max: 5000, step: 10, value: 100, onInput: () => recompute() });
   battleZeroField.node.style.display = battleZeroToggle.checked ? '' : 'none';
 
-  const aimOffsetXField = persistedUnitField('aimOffsetX', { min: -100, max: 100, step: 0.5, value: 0, onInput: () => recompute() });
-  const aimOffsetYField = persistedUnitField('aimOffsetY', { min: -100, max: 100, step: 0.5, value: 0, onInput: () => recompute() });
+  const aimOffsetXField = persistedUnitField('aimOffsetX', { ...FIELD_BOUNDS.aimOffsetX, step: 0.005, value: 0, onInput: () => recompute() });
+  const aimOffsetYField = persistedUnitField('aimOffsetY', { ...FIELD_BOUNDS.aimOffsetY, step: 0.005, value: 0, onInput: () => recompute() });
 
   // Dimension field(s) for the two user-sizeable targets (Circle gong,
   // Rectangle plate) — only one of these is ever shown at a time (or
@@ -353,15 +351,15 @@ export function mount(container) {
   // image, the result illustration's underlying shape) are all derived
   // from these values too — see refreshCustomTargetArtwork() below.
   const circleGongDiameterField = persistedUnitField('circleGongDiameter', {
-    min: 1, max: 200, step: 0.5, value: roundSmallLengthDefault('circleGongDiameter', 25, 10),
+    ...FIELD_BOUNDS.circleGongDiameter, step: 0.005, value: roundSmallLengthDefault('circleGongDiameter', 0.25, 10),
     onInput: () => { refreshCustomTargetArtwork(); recompute(); }
   });
   const rectPlateWidthField = persistedUnitField('rectPlateWidth', {
-    min: 1, max: 300, step: 0.5, value: roundSmallLengthDefault('rectPlateWidth', 40, 15),
+    ...FIELD_BOUNDS.rectPlateWidth, step: 0.005, value: roundSmallLengthDefault('rectPlateWidth', 0.4, 15),
     onInput: () => { refreshCustomTargetArtwork(); recompute(); }
   });
   const rectPlateHeightField = persistedUnitField('rectPlateHeight', {
-    min: 1, max: 300, step: 0.5, value: roundSmallLengthDefault('rectPlateHeight', 50, 20),
+    ...FIELD_BOUNDS.rectPlateHeight, step: 0.005, value: roundSmallLengthDefault('rectPlateHeight', 0.5, 20),
     onInput: () => { refreshCustomTargetArtwork(); recompute(); }
   });
   circleGongDiameterField.node.style.display = 'none';
@@ -636,8 +634,8 @@ export function mount(container) {
   function currentCustomDims() {
     if (!targetData || !targetData.custom) return null;
     return targetData.custom.shape === 'circle'
-      ? { diameterCm: circleGongDiameterField.getEngineValue() }
-      : { widthCm: rectPlateWidthField.getEngineValue(), heightCm: rectPlateHeightField.getEngineValue() };
+      ? { diameterM: circleGongDiameterField.getEngineValue() }
+      : { widthM: rectPlateWidthField.getEngineValue(), heightM: rectPlateHeightField.getEngineValue() };
   }
 
   function setTargetDetailSvgText(svgText) {
@@ -646,17 +644,17 @@ export function mount(container) {
     targetDetailImg.src = targetDetailObjectUrl;
   }
 
-  function formatCircleGongLabel(diameterCm) {
+  function formatCircleGongLabel(diameterM) {
     const displayUnit = getUnit('smallLength');
-    const value = roundForDisplay('circleGongDiameter', displayUnit, engineToDisplay('circleGongDiameter', diameterCm, displayUnit));
+    const value = roundForDisplay('circleGongDiameter', displayUnit, engineToDisplay('circleGongDiameter', diameterM, displayUnit));
     const choice = unitChoice('circleGongDiameter', displayUnit);
     return `Ø ${value}${choice ? ` ${choice.label}` : ''}`;
   }
 
-  function formatRectPlateLabel(widthCm, heightCm) {
+  function formatRectPlateLabel(widthM, heightM) {
     const displayUnit = getUnit('smallLength');
-    const w = roundForDisplay('rectPlateWidth', displayUnit, engineToDisplay('rectPlateWidth', widthCm, displayUnit));
-    const h = roundForDisplay('rectPlateHeight', displayUnit, engineToDisplay('rectPlateHeight', heightCm, displayUnit));
+    const w = roundForDisplay('rectPlateWidth', displayUnit, engineToDisplay('rectPlateWidth', widthM, displayUnit));
+    const h = roundForDisplay('rectPlateHeight', displayUnit, engineToDisplay('rectPlateHeight', heightM, displayUnit));
     const choice = unitChoice('rectPlateWidth', displayUnit);
     return `${w} × ${h}${choice ? ` ${choice.label}` : ''}`;
   }
@@ -677,16 +675,16 @@ export function mount(container) {
     const dims = currentCustomDims();
     let geometry, resultSvgText, detailSvgText;
     if (targetData.custom.shape === 'circle') {
-      const diameterMm = cmToMm(dims.diameterCm);
-      geometry = circleGongGeometry(dims.diameterCm);
+      const diameterMm = mToMm(dims.diameterM);
+      geometry = circleGongGeometry(dims.diameterM);
       resultSvgText = circleGongResultSvg(diameterMm);
-      detailSvgText = circleGongDetailSvg(formatCircleGongLabel(dims.diameterCm));
+      detailSvgText = circleGongDetailSvg(formatCircleGongLabel(dims.diameterM));
     } else {
-      const widthMm = cmToMm(dims.widthCm);
-      const heightMm = cmToMm(dims.heightCm);
-      geometry = rectPlateGeometry(dims.widthCm, dims.heightCm);
+      const widthMm = mToMm(dims.widthM);
+      const heightMm = mToMm(dims.heightM);
+      geometry = rectPlateGeometry(dims.widthM, dims.heightM);
       resultSvgText = rectPlateResultSvg(widthMm, heightMm);
-      detailSvgText = rectPlateDetailSvg(widthMm, heightMm, formatRectPlateLabel(dims.widthCm, dims.heightCm));
+      detailSvgText = rectPlateDetailSvg(widthMm, heightMm, formatRectPlateLabel(dims.widthM, dims.heightM));
     }
     Object.assign(targetData, geometry);
     baseHalfExtent = computeBaseHalfExtent();
@@ -811,12 +809,12 @@ export function mount(container) {
   // in the given color; returns the ellipse's own center in SVG units plus
   // the <ellipse> element itself, for drawImpactsAndMarker() to reuse and
   // applyImpactColor() to restroke in place.
-  function drawEllipse(pointOfAim, pxPerCm, sdX, sdY, offsetX, offsetY, color) {
-    const cx = pointOfAim.x + offsetX * pxPerCm;
-    const cy = pointOfAim.y - offsetY * pxPerCm; // SVG y grows downward, drop is stored as "up positive"
+  function drawEllipse(pointOfAim, pxPerMeter, sdX, sdY, offsetX, offsetY, color) {
+    const cx = pointOfAim.x + offsetX * pxPerMeter;
+    const cy = pointOfAim.y - offsetY * pxPerMeter; // SVG y grows downward, drop is stored as "up positive"
     const ellipseEl = svgEl('ellipse', {
       cx: cx.toFixed(1), cy: cy.toFixed(1),
-      rx: (sdX * ELLIPSE_95_FACTOR * pxPerCm).toFixed(1), ry: (sdY * ELLIPSE_95_FACTOR * pxPerCm).toFixed(1),
+      rx: (sdX * ELLIPSE_95_FACTOR * pxPerMeter).toFixed(1), ry: (sdY * ELLIPSE_95_FACTOR * pxPerMeter).toFixed(1),
       fill: 'none', stroke: color, 'stroke-width': '1.6', 'stroke-dasharray': '5 4'
     });
     overlayGroup.appendChild(ellipseEl);
@@ -828,10 +826,10 @@ export function mount(container) {
   // dark/white/fill trio (outer to inner) rather than a single circle, so
   // its edge holds up against any target background — see IMPACT_DOT_*_
   // RING_RATIO above.
-  function drawImpactsAndMarker(pxPerCm, sdX, sdY, cx, cy, sampleImpactColor, analysisColor) {
+  function drawImpactsAndMarker(pxPerMeter, sdX, sdY, cx, cy, sampleImpactColor, analysisColor) {
     for (let i = 0; i < SAMPLE_IMPACT_COUNT; i++) {
-      const x = cx + sampleGaussian() * sdX * pxPerCm;
-      const y = cy + sampleGaussian() * sdY * pxPerCm;
+      const x = cx + sampleGaussian() * sdX * pxPerMeter;
+      const y = cy + sampleGaussian() * sdY * pxPerMeter;
       const dark = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: IMPACT_DOT_DARK_RING_COLOR, opacity: '0.85' });
       const white = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: IMPACT_DOT_WHITE_RING_COLOR, opacity: '0.9' });
       const fill = svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), fill: sampleImpactColor, opacity: '0.92' });
@@ -848,7 +846,6 @@ export function mount(container) {
     clear(overlayGroup);
     sampleCircles = [];
     const { pointOfAim, pxPerMeter } = targetData.resultSvg;
-    const pxPerCm = pxPerMeter * cmToM(1);
 
     // Read fresh every render rather than once at module load — see
     // cssVar()'s own comment above.
@@ -868,17 +865,17 @@ export function mount(container) {
       // on point of aim (their own contribution to the systematic offset
       // is, by construction, unknown-direction noise, so its expectation
       // is zero), outline only, no sample dots.
-      drawEllipse(pointOfAim, pxPerCm, sighting.conditionSdX, sighting.conditionSdY, 0, 0, conditionsErrorColor);
-      drawEllipse(pointOfAim, pxPerCm, sighting.ownSdX, sighting.ownSdY, 0, 0, ownPrecisionErrorColor);
+      drawEllipse(pointOfAim, pxPerMeter, sighting.conditionSdX, sighting.conditionSdY, 0, 0, conditionsErrorColor);
+      drawEllipse(pointOfAim, pxPerMeter, sighting.ownSdX, sighting.ownSdY, 0, 0, ownPrecisionErrorColor);
       // The corrected shot's own ellipse + sample impacts — same
       // presentation as Single Shot's.
-      const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerCm, corrected.sdX, corrected.sdY, corrected.offsetX, corrected.offsetY, sampleImpactColor);
+      const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerMeter, corrected.sdX, corrected.sdY, corrected.offsetX, corrected.offsetY, sampleImpactColor);
       sampleEllipseEl = ellipseEl;
-      drawImpactsAndMarker(pxPerCm, corrected.sdX, corrected.sdY, cx, cy, sampleImpactColor, analysisColor);
+      drawImpactsAndMarker(pxPerMeter, corrected.sdX, corrected.sdY, cx, cy, sampleImpactColor, analysisColor);
     } else {
-      const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerCm, scenarioResult.sdX, scenarioResult.sdY, scenarioResult.offsetX, scenarioResult.offsetY, sampleImpactColor);
+      const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerMeter, scenarioResult.sdX, scenarioResult.sdY, scenarioResult.offsetX, scenarioResult.offsetY, sampleImpactColor);
       sampleEllipseEl = ellipseEl;
-      drawImpactsAndMarker(pxPerCm, scenarioResult.sdX, scenarioResult.sdY, cx, cy, sampleImpactColor, analysisColor);
+      drawImpactsAndMarker(pxPerMeter, scenarioResult.sdX, scenarioResult.sdY, cx, cy, sampleImpactColor, analysisColor);
     }
 
     // Drawn last (appended after the ellipse and sample-impact dots) so it
@@ -1053,14 +1050,14 @@ export function mount(container) {
 
     const targetRange = targetRangeField.getEngineValue();
     const battleZeroRange = battleZeroToggle.checked ? battleZeroField.getEngineValue() : null;
-    const aimOffsetXCm = aimOffsetXField.getEngineValue();
-    const aimOffsetYCm = aimOffsetYField.getEngineValue();
+    const aimOffsetXM = aimOffsetXField.getEngineValue();
+    const aimOffsetYM = aimOffsetYField.getEngineValue();
 
     if (currentScenario === 'spotterCorrected') {
       let result;
       try {
         result = computeSpotterCorrected({
-          nominalState, targetRange, battleZeroRange, aimOffsetXCm, aimOffsetYCm,
+          nominalState, targetRange, battleZeroRange, aimOffsetXM, aimOffsetYM,
           ownErrors, conditionErrors,
           sightingShotCount: sightingShotCountField.getEngineValue(),
           spotterMeasureMrad: spotterMeasureField.getEngineValue()
@@ -1087,7 +1084,7 @@ export function mount(container) {
       let result;
       try {
         result = computeSingleShot({
-          nominalState, targetRange, battleZeroRange, aimOffsetXCm, aimOffsetYCm,
+          nominalState, targetRange, battleZeroRange, aimOffsetXM, aimOffsetYM,
           ownErrors, conditionErrors
         });
       } catch {

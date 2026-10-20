@@ -4,7 +4,16 @@ import { installFakeDom } from './helpers/fake-dom.js';
 
 installFakeDom();
 
-const { loadTargetCatalog, loadTarget, loadTargetFunction, targetThumbUrl, targetDetailUrl, targetResultUrl } = await import('../src/targets.js');
+const { loadTargetCatalog, loadTarget, loadTargetFunction: loadTargetFunctionM, targetThumbUrl, targetDetailUrl, targetResultUrl } = await import('../src/targets.js');
+// The target functions take metres (SDs, offsets and custom dims); these
+// tests are written in centimetres, so they go through this adapter.
+const loadTargetFunction = async (id) => {
+  const fn = await loadTargetFunctionM(id);
+  if (!fn) return fn;
+  return (sdX, sdY, offsetX, offsetY, dims) => fn(sdX / 100, sdY / 100, offsetX / 100, offsetY / 100, dims && {
+    diameterM: dims.diameterCm / 100, widthM: dims.widthCm / 100, heightM: dims.heightCm / 100
+  });
+};
 
 test('loadTargetCatalog resolves a plain list of target ids', () => {
   const catalog = loadTargetCatalog();

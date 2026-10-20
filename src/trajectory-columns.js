@@ -7,6 +7,7 @@
 // the other one's internals.
 import { clicksForOffset, engineToDisplay } from './units.js';
 import { getUnit } from './prefs.js';
+import { toDisplayUnit } from './display-units.js';
 
 // `value` returns the raw number (a table's own rendering derives its
 // displayed text from it; a chart plots it directly) given the engine
@@ -31,21 +32,21 @@ import { getUnit } from './prefs.js';
 // offset, not a position relative to the sight line, so they're excluded.
 export const COLUMNS = [
   // Converted through the user's smallLength unit preference — the raw
-  // p.dropCm/p.windageCm engine values (always cm) are still what every
+  // p.dropM/p.windageM engine values are still what every
   // clicksForOffset() call below reads directly, so this conversion only
   // affects what's displayed, never the click/mrad/MOA math.
-  { id: 'dropCm', headerKey: 'trajectory.colDrop', default: true, decimals: 1, showLineOfSight: true, value: (p) => engineToDisplay('dropCm', p.dropCm, getUnit('smallLength')) },
-  { id: 'windageCm', headerKey: 'trajectory.colWindage', default: true, decimals: 1, value: (p) => engineToDisplay('windageCm', p.windageCm, getUnit('smallLength')) },
-  // Sign inverted relative to dropCm itself — a shooter reads this as
+  { id: 'drop', headerKey: 'trajectory.colDrop', default: true, decimals: 1, showLineOfSight: true, value: (p) => toDisplayUnit('smallLength', p.dropM) },
+  { id: 'windage', headerKey: 'trajectory.colWindage', default: true, decimals: 1, value: (p) => toDisplayUnit('smallLength', p.windageM) },
+  // Sign inverted relative to drop itself — a shooter reads this as
   // "dial up N clicks to compensate," so a bullet that's dropped below
-  // the line of sight (dropCm negative) should show as a positive click
+  // the line of sight (dropM negative) should show as a positive click
   // correction, not a negative one.
-  { id: 'elevClicks', headerKey: 'trajectory.colElevClicks', default: true, decimals: 1, showLineOfSight: true, value: (p, ctx) => -clicksForOffset(p.dropCm, ctx.clickSettings.vertical, ctx.clickSettings.unit, p.range) },
-  { id: 'windClicks', headerKey: 'trajectory.colWindClicks', default: true, decimals: 1, value: (p, ctx) => clicksForOffset(p.windageCm, ctx.clickSettings.horizontal, ctx.clickSettings.unit, p.range) },
-  { id: 'elevMrad', headerKey: 'trajectory.colElevMrad', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropCm, 1, 'mrad', p.range) },
-  { id: 'windMrad', headerKey: 'trajectory.colWindMrad', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageCm, 1, 'mrad', p.range) },
-  { id: 'elevMOA', headerKey: 'trajectory.colElevMOA', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropCm, 1, 'arcmin', p.range) },
-  { id: 'windMOA', headerKey: 'trajectory.colWindMOA', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageCm, 1, 'arcmin', p.range) },
+  { id: 'elevClicks', headerKey: 'trajectory.colElevClicks', default: true, decimals: 1, showLineOfSight: true, value: (p, ctx) => -clicksForOffset(p.dropM, ctx.clickSettings.vertical, ctx.clickSettings.unit, p.range) },
+  { id: 'windClicks', headerKey: 'trajectory.colWindClicks', default: true, decimals: 1, value: (p, ctx) => clicksForOffset(p.windageM, ctx.clickSettings.horizontal, ctx.clickSettings.unit, p.range) },
+  { id: 'elevMrad', headerKey: 'trajectory.colElevMrad', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropM, 1, 'mrad', p.range) },
+  { id: 'windMrad', headerKey: 'trajectory.colWindMrad', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageM, 1, 'mrad', p.range) },
+  { id: 'elevMOA', headerKey: 'trajectory.colElevMOA', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropM, 1, 'arcmin', p.range) },
+  { id: 'windMOA', headerKey: 'trajectory.colWindMOA', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageM, 1, 'arcmin', p.range) },
   // Converted through the user's velocity unit preference the same way
   // `energy` converts through the energy preference below — getUnit() is
   // read fresh on every call for the same reason.

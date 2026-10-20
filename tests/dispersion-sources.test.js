@@ -62,8 +62,8 @@ test('the ES factors match the simulation figures they are quoted from', () => {
   assert.ok(es10ToSD(3.0658795) < 1);
 });
 
-test('angularSDToLinear: 1 mrad at 1000m is 100cm (the standard "mrad at range" rule)', () => {
-  assert.ok(Math.abs(angularSDToLinear(1, 1000) - 100) < 1e-9);
+test('angularSDToLinear: 1 mrad at 1000m is 1 m (the standard "mrad at range" rule)', () => {
+  assert.ok(Math.abs(angularSDToLinear(1, 1000) - 1) < 1e-12);
 });
 
 test('trajectoryPerturbationSD returns zero when sd is zero, without evaluating the trajectory', () => {
@@ -90,9 +90,9 @@ test('rangeEstimationSD is vertical-only and zero when sd is zero', () => {
   assert.ok(y > 0, 'dialing for the wrong range should produce a vertical miss');
 });
 
-test('movingTargetLeadSD matches estimatedSpeed * tof * SD(speedErrorPct) converted to cm, horizontal only', () => {
+test('movingTargetLeadSD matches estimatedSpeed * tof * SD(speedErrorPct) in metres, horizontal only', () => {
   const { x, y } = movingTargetLeadSD(10, 10, 1);
-  const expected = 10 * 1 * probableErrorToSD(10 / 100) * 100;
+  const expected = 10 * 1 * probableErrorToSD(10 / 100);
   assert.ok(Math.abs(x - expected) < 1e-9);
   assert.equal(y, 0);
 });

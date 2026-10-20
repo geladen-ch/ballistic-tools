@@ -4,12 +4,11 @@
 // summing their probabilities is safe). See src/targets/ussr-4.json for
 // the target's own data and src/engine/target-shapes.js for the shared
 // rectangleHitProbability math. Ported from the legacy target definition
-// (coordinates converted from meters to centimeters, poa split into
-// offsetX/offsetY).
+// (coordinates in metres, poa split into offsetX/offsetY).
 import { rectangleHitProbability } from '../engine/target-shapes.js';
 
 export function hitProbability(sdX, sdY, offsetX, offsetY) {
-  const head = rectangleHitProbability(-11.5, 7.0, 23.0, 18.0, sdX, sdY, offsetX, offsetY);
-  const body = rectangleHitProbability(-25.0, -25.0, 50.0, 32.0, sdX, sdY, offsetX, offsetY);
+  const head = rectangleHitProbability(-0.115, 0.07, 0.23, 0.18, sdX, sdY, offsetX, offsetY);
+  const body = rectangleHitProbability(-0.25, -0.25, 0.5, 0.32, sdX, sdY, offsetX, offsetY);
   return [{ zoneId: 'hit', probability: head + body }];
 }

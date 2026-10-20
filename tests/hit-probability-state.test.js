@@ -52,3 +52,12 @@ test('the pressure estimation error is stored in hPa under its field id, and rea
   const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
   assert.equal(fresh.loadHitProbabilityState().pressureMedianError, 700);
 });
+
+test('aim offsets and custom target sizes are stored in cm under their field ids, and read back in metres', async () => {
+  saveHitProbabilityState({ aimOffsetX: 0.03, aimOffsetY: -0.04, circleGongDiameter: 0.25, rectPlateWidth: 0.4, rectPlateHeight: 0.5 });
+  const stored = JSON.parse(getCookie(COOKIE_NAME));
+  assert.deepEqual([stored.aimOffsetX, stored.aimOffsetY, stored.circleGongDiameter, stored.rectPlateWidth, stored.rectPlateHeight], [3, -4, 25, 40, 50]);
+  const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
+  const state = fresh.loadHitProbabilityState();
+  assert.deepEqual([state.aimOffsetX, state.aimOffsetY, state.circleGongDiameter, state.rectPlateWidth, state.rectPlateHeight], [0.03, -0.04, 0.25, 0.4, 0.5]);
+});

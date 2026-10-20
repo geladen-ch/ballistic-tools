@@ -6,8 +6,8 @@ import {
   circleGongDetailSvg, rectPlateDetailSvg
 } from '../src/targets/custom-target-render.js';
 
-test('circleGongGeometry derives widthM/heightM/aspectRatio/resultSvg from a diameter in cm', () => {
-  const geometry = circleGongGeometry(25);
+test('circleGongGeometry derives widthM/heightM/aspectRatio/resultSvg from a diameter in metres', () => {
+  const geometry = circleGongGeometry(0.25);
   assert.equal(geometry.widthM, 0.25);
   assert.equal(geometry.heightM, 0.25);
   assert.equal(geometry.aspectRatio, 1);
@@ -16,8 +16,8 @@ test('circleGongGeometry derives widthM/heightM/aspectRatio/resultSvg from a dia
   assert.equal(geometry.resultSvg.pxPerMeter, 1000);
 });
 
-test('rectPlateGeometry derives widthM/heightM/aspectRatio/resultSvg from width/height in cm', () => {
-  const geometry = rectPlateGeometry(40, 50);
+test('rectPlateGeometry derives widthM/heightM/aspectRatio/resultSvg from width/height in metres', () => {
+  const geometry = rectPlateGeometry(0.4, 0.5);
   assert.equal(geometry.widthM, 0.4);
   assert.equal(geometry.heightM, 0.5);
   assert.equal(geometry.aspectRatio, 1.25);

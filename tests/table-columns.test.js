@@ -32,3 +32,10 @@ test('persists under the documented cookie name', () => {
   const raw = getCookie('ballistics_trajectory_columns_v1');
   assert.deepEqual(JSON.parse(raw), { a: true, b: true, c: false });
 });
+
+test('a visibility saved under a renamed column id (dropCm/windageCm) applies to the column\'s current id', async () => {
+  const { setCookie } = await import('../src/cookies.js');
+  setCookie('ballistics_trajectory_columns_v1', JSON.stringify({ dropCm: false, windageCm: false, tof: true }));
+  const visibility = loadColumnVisibility([{ id: 'drop', default: true }, { id: 'windage', default: true }, { id: 'tof', default: false }]);
+  assert.deepEqual(visibility, { drop: false, windage: false, tof: true });
+});

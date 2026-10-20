@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { computeImpact, solveZeroAngle } from '../src/engine/trajectory.js';
+import { radToMrad, linearToAngleAtRange } from '../src/quantity.js';
 import {
   comeUpMrad, machAt, rangeAtMach, sigmaForGroup, observationSigmaMrad, sensitivityColumns, posterior, resolutionMatrix,
   requiredFarDistance, invalidityFloor, fitSession, fitSessionMixture,
@@ -270,16 +271,16 @@ test('bcGainFactor: BC-profile and Cd-table bullets get the same come-up change 
   };
   for (const range of [300, 600, 900]) {
     for (const factor of [1.0, 1.05, 0.95]) {
-      const viaGainFactor = computeImpact({ ...baseCd, bcGainFactor: factor }, range).dropCm;
-      const viaMassScale = computeImpact({ ...baseCd, massKg: baseCd.massKg * factor }, range).dropCm;
+      const viaGainFactor = computeImpact({ ...baseCd, bcGainFactor: factor }, range).dropM * 100;
+      const viaMassScale = computeImpact({ ...baseCd, massKg: baseCd.massKg * factor }, range).dropM * 100;
       assert.equal(viaGainFactor, viaMassScale, `range ${range}m factor ${factor}: bcGainFactor must agree with the equivalent mass scaling to the last digit`);
     }
   }
 });
 
 test('bcGainFactor: a missing field reads as exactly 1.0', () => {
-  const withoutField = computeImpact(REF_STATE, 600).dropCm;
-  const explicit1 = computeImpact({ ...REF_STATE, bcGainFactor: 1 }, 600).dropCm;
+  const withoutField = computeImpact(REF_STATE, 600).dropM * 100;
+  const explicit1 = computeImpact({ ...REF_STATE, bcGainFactor: 1 }, 600).dropM * 100;
   assert.equal(withoutField, explicit1);
 });
 
@@ -736,7 +737,7 @@ test('nextShotDope: elevation and windage for the next shot, in that shot\'s air
   const shot = withConditions(state, conditions);
   const plain = nextShotDope({ state, conditions, rangeM: 700 });
   closeTo(plain.elevationMrad, comeUpMrad(shot, 700), 1e-9, 'elevation with no fit applied');
-  closeTo(plain.windageMrad, computeImpact(withFixedBore(shot), 700).windageCm * 10 / 700, 1e-12, 'windage, the engine\'s own sign');
+  closeTo(plain.windageMrad, computeImpact(withFixedBore(shot), 700).windageM * 100 * 10 / 700, 1e-12, 'windage, the engine\'s own sign');
   assert.ok(Math.abs(plain.windageMrad) > 0.3, 'a 6 m/s crosswind at 700 m is worth more than a third of a mrad');
   assert.equal(plain.windageSdMrad, 0, 'crosswind taken as called');
   assert.equal(plain.elevationSdMrad, null, 'no covariance, no uncertainty claimed');
@@ -782,7 +783,7 @@ test('the rifle is zeroed once, in the starting air and in calm air: neither lat
   assert.equal(boreCold.launchAngle, solveZeroAngle(REF_STATE), 'the bore is the one solved in the starting air');
   assert.ok(comeUpMrad(cold, 700) > comeUpMrad(REF_STATE, 700) - 5, 'sanity: the come-up itself does change with the air');
   // against the old behaviour (zero re-solved in the cold air) the come-up differs at long range
-  const reSolved = computeImpact({ ...cold300, zeroConditions: undefined }, 700).dropCm * -10 / 700;
+  const reSolved = computeImpact({ ...cold300, zeroConditions: undefined }, 700).dropM * 100 * -10 / 700;
   assert.ok(Math.abs(comeUpMrad(cold300, 700) - reSolved) > 0.02, 'a 300 m zero re-solved in the cold air would differ');
   // explicit zero conditions still win
   assert.equal(withConditions({ ...REF_STATE, zeroConditions: { tempC: 30 } }, { tempC: 0 }).zeroConditions.tempC, 30);
@@ -813,8 +814,8 @@ test('the kept integrator walks change nothing: come-ups equal a fresh computeIm
   for (let pass = 0; pass < 2; pass++) {
     for (const state of states) {
       for (const r of pass ? [900, 250, 100, 640] : [100, 250, 640, 900]) {
-        assert.equal(comeUpMrad(state, r), -computeImpact(withFixedBore(state), r).dropCm * 10 / r, `come-up at ${r}`);
-        assert.equal(windageMrad(state, r), computeImpact(withFixedBore(state), r).windageCm * 10 / r, `windage at ${r}`);
+        assert.equal(comeUpMrad(state, r), radToMrad(linearToAngleAtRange(-computeImpact(withFixedBore(state), r).dropM, r)), `come-up at ${r}`);
+        assert.equal(windageMrad(state, r), radToMrad(linearToAngleAtRange(computeImpact(withFixedBore(state), r).windageM, r)), `windage at ${r}`);
       }
     }
   }
@@ -822,7 +823,7 @@ test('the kept integrator walks change nothing: come-ups equal a fresh computeIm
   assert.equal(comeUpMrad({ ...REF_STATE }, 500), comeUpMrad(REF_STATE, 500));
   // more distinct states than the walks kept: the oldest go, the answers do not change
   for (let i = 0; i < 300; i++) comeUpMrad({ ...REF_STATE, muzzleVelocity: 700 + i * 0.37 }, 400);
-  assert.equal(comeUpMrad(REF_STATE, 400), -computeImpact(REF_STATE, 400).dropCm * 10 / 400);
+  assert.equal(comeUpMrad(REF_STATE, 400), radToMrad(linearToAngleAtRange(-computeImpact(REF_STATE, 400).dropM, 400)));
 });
 
 test('the ladder: cap 4, a step beyond the cap only when nothing nearer is left and the fit says it is safe', () => {

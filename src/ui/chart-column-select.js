@@ -11,7 +11,7 @@ import { t } from '../i18n.js';
 // so their unit suffix has to be folded into one plain-text label
 // instead of the usual `i18n` prop live-binding.
 export function chartColumnSelect(columns, { id, energyChoice, velocityChoice, smallLengthChoice, defaultColumnId } = {}) {
-  const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
+  const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, drop: smallLengthChoice, windage: smallLengthChoice };
   // `chartable: false` (trajectory-columns.js's own dangerZone column) —
   // a combined, already-formatted string, not a number a line chart can
   // plot, so it never belongs in this picker at all.

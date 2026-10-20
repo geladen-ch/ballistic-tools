@@ -7,7 +7,9 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { columnToggles } from '../ui/column-toggles.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
-import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, clicksForOffset, angularUnitToCmAtRange, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
+import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, clicksForOffset, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
+import { displayChoice, toDisplayUnit } from '../display-units.js';
+import { degToRad, angleToLinearAtRange } from '../quantity.js';
 import { getUnit } from '../prefs.js';
 import { sectionGroup } from '../ui/section.js';
 import { loadColumnVisibility, saveColumnVisibility } from '../table-columns.js';
@@ -154,8 +156,8 @@ export function mount(container) {
 
   // Same idea as roundDistanceDefault() above, for the smallLength group
   // (mm/cm/in) instead of distance — used by targetHeightField below.
-  function roundSmallLengthDefault(fieldId, metricValueCm, imperialValueIn) {
-    return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueCm;
+  function roundSmallLengthDefault(fieldId, metricValueM, imperialValueIn) {
+    return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueM;
   }
 
   function persistInputs() {
@@ -163,7 +165,7 @@ export function mount(container) {
       maxRange: maxRangeField.getEngineValue(),
       rangeStep: rangeStepField.getEngineValue(),
       losAngleDeg: losAngleField.getEngineValue(),
-      targetHeightCm: targetHeightField.getEngineValue(),
+      targetHeightM: targetHeightField.getEngineValue(),
       aimingPoint: aimingPointSelect.value,
       zeroRangeOverrideM: zeroRangeOverrideField.getEngineValue(),
       useOwnZero: useOwnZeroCheckbox.checked
@@ -217,8 +219,8 @@ export function mount(container) {
   // live and persist alongside maxRange/rangeStep/losAngle above rather
   // than in shot-state.js.
   const targetHeightField = unitField({
-    id: 'targetHeight', ...FIELD_BOUNDS.targetHeight, step: 0.5,
-    value: savedInputs.targetHeightCm ?? roundSmallLengthDefault('targetHeight', 50, 20),
+    id: 'targetHeight', ...FIELD_BOUNDS.targetHeight, step: 0.005,
+    value: savedInputs.targetHeightM ?? roundSmallLengthDefault('targetHeight', 0.5, 20),
     onInput: () => { scheduleRecomputeDirectHit(); scheduleRecomputeDangerZone(); persistInputs(); }
   });
   // A plain enum, not a unit-bearing quantity — same "always has a real
@@ -309,7 +311,7 @@ export function mount(container) {
   // next navigation to this view, like every other unit-aware field here.
   const energyChoice = unitChoice('energy', getUnit('energy'));
   const velocityChoice = unitChoice('velocity', getUnit('velocity'));
-  const smallLengthChoice = unitChoice('dropCm', getUnit('smallLength'));
+  const smallLengthChoice = displayChoice('smallLength');
 
   // Column visibility only needs the header rebuilt plus the existing
   // points re-rendered — no worker round-trip, since toggling a column
@@ -346,7 +348,7 @@ export function mount(container) {
   // irregular tail gap the old per-window engine call produced.
   const chartContainer = el('div', { class: 'chart-container' });
   const chartColumnSelect = buildChartColumnSelect(COLUMNS, {
-    id: 'trajectoryChartColumn', energyChoice, velocityChoice, smallLengthChoice, defaultColumnId: 'dropCm'
+    id: 'trajectoryChartColumn', energyChoice, velocityChoice, smallLengthChoice, defaultColumnId: 'drop'
   });
   // Empty and hidden until renderChart() finds the selected column is a
   // drop-family one (see COLUMNS' showLineOfSight) — this is the only
@@ -432,7 +434,7 @@ export function mount(container) {
   // Fed from the chart's own dense (1 m step) points/launchAngleDeg —
   // not the table's coarser rangeStep rows — since the peak's height and
   // distance are derived client-side by scanning for the point with the
-  // largest dropCm (positive = above the line of sight, see toLOS() in
+  // largest dropM (positive = above the line of sight, see toLOS() in
   // the engine), and the table's own step could easily skip straight over
   // the true peak. zeroAngleValue is refreshed from this same call rather
   // than recompute()'s (physically identical, since both solve the same
@@ -481,9 +483,9 @@ export function mount(container) {
     zeroAngleValue.textContent = `${launchAngleDeg.toFixed(3)}° (${angleDisplay.toFixed(2)} ${angleChoice.label})`;
 
     if (!points.length) return;
-    const peak = points.reduce((best, p) => (p.dropCm > best.dropCm ? p : best), points[0]);
-    const peakHeightDisplay = engineToDisplay('dropCm', peak.dropCm, getUnit('smallLength'));
-    const peakAngular = clicksForOffset(peak.dropCm, 1, angleUnit, peak.range);
+    const peak = points.reduce((best, p) => (p.dropM > best.dropM ? p : best), points[0]);
+    const peakHeightDisplay = toDisplayUnit('smallLength', peak.dropM);
+    const peakAngular = clicksForOffset(peak.dropM, 1, angleUnit, peak.range);
     peakHeightValue.textContent = `${peakHeightDisplay.toFixed(1)} ${smallLengthChoice.label} (${peakAngular.toFixed(2)} ${angleChoice.label})`;
     const peakDistanceDisplay = engineToDisplay('range', peak.range, distanceUnit);
     peakDistanceValue.textContent = `${peakDistanceDisplay.toFixed(RANGE_DECIMALS)} ${distanceChoice.label}`;
@@ -521,8 +523,8 @@ export function mount(container) {
     const clickSettings = rifle.getClickSettings();
     const clicks = convertAngularValue(angleDiffDeg, 'deg', clickSettings.unit) / clickSettings.vertical;
     directHitElevationClicksValue.textContent = `${clicks >= 0 ? '+' : ''}${clicks.toFixed(1)}`;
-    const absoluteCm = convertAngularValue(angleDiffDeg, 'deg', 'mrad') * angularUnitToCmAtRange('mrad', result.zeroDistanceM);
-    const absoluteDisplay = engineToDisplay('dropCm', absoluteCm, getUnit('smallLength'));
+    const absoluteM = angleToLinearAtRange(degToRad(angleDiffDeg), result.zeroDistanceM);
+    const absoluteDisplay = toDisplayUnit('smallLength', absoluteM);
     directHitElevationAbsoluteValue.textContent = `${absoluteDisplay >= 0 ? '+' : ''}${absoluteDisplay.toFixed(1)} ${smallLengthChoice.label}`;
   }
 
@@ -532,7 +534,7 @@ export function mount(container) {
     try {
       const result = await pool.run('directHit', {
         ...readState(),
-        targetHeightCm: targetHeightField.getEngineValue(),
+        targetHeightM: targetHeightField.getEngineValue(),
         aimingPoint: aimingPointSelect.value
       });
       if (id !== latestDirectHitRequestId) return; // superseded by a newer input
@@ -566,10 +568,10 @@ export function mount(container) {
       renderDangerZoneChart();
       return;
     }
-    const targetHeightCm = targetHeightField.getEngineValue();
+    const targetHeightM = targetHeightField.getEngineValue();
     const aimingPoint = aimingPointSelect.value;
     const baseState = readBaseState();
-    const payloads = lastPoints.map((p) => ({ ...baseState, zeroRange: p.range, targetHeightCm, aimingPoint }));
+    const payloads = lastPoints.map((p) => ({ ...baseState, zeroRange: p.range, targetHeightM, aimingPoint }));
     try {
       const results = await pool.runAll('dangerZone', payloads);
       if (id !== latestDangerZoneRequestId) return; // superseded by a newer input
@@ -786,7 +788,7 @@ export function mount(container) {
       i18nSpan('trajectory.colRange'),
       document.createTextNode(` (${distanceChoice.label})`)
     ]));
-    const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
+    const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, drop: smallLengthChoice, windage: smallLengthChoice };
     for (const col of COLUMNS) {
       if (!toggles.isVisible(col.id)) continue;
       const choice = unitChoiceById[col.id];
@@ -846,7 +848,7 @@ export function mount(container) {
     const fieldSeparator = getFieldSeparator();
     const decimalSeparator = getDecimalSeparator();
 
-    const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, dropCm: smallLengthChoice, windageCm: smallLengthChoice };
+    const unitChoiceById = { energy: energyChoice, velocity: velocityChoice, drop: smallLengthChoice, windage: smallLengthChoice };
     // The Danger zone column shows one combined "84–412 m (328 m)" cell
     // on screen, but a CSV consumer wants the three figures as their own
     // numeric columns rather than having to parse that string back apart

@@ -10,7 +10,8 @@
 // photoHeight + the calibration ruler to get real millimetres, replacing
 // legacy's absolute-pixel-coordinate model.
 import { RAYLEIGH_COEFF, CONF_LOWER, CONF_UPPER, TDIST_QUANTILE } from './rifle-precision-constants.js';
-import { angularUnitToCmAtRange } from '../units.js';
+import { angularUnitToLinearAtRange } from '../units.js';
+import { mToMm, mmToM } from '../quantity.js';
 
 // Pixels-per-mm for a target, from its 2-point calibration ruler. null if
 // calibration isn't complete yet (no ruler placed, or a real length of 0
@@ -252,13 +253,13 @@ export function confidenceScaleFraction(confidenceLower, confidenceUpper) {
 // hand-rolled constant, though for MOA specifically the two agree to 4
 // decimal places (legacy's mrad constant does not — see mmToAngularUnit).
 export function oneMoaWidthMm(rangeM) {
-  return angularUnitToCmAtRange('arcmin', rangeM) * 10;
+  return mToMm(angularUnitToLinearAtRange('arcmin', rangeM));
 }
 
 // Same idea as oneMoaWidthMm() above, for 1 mrad — used by the analysis
 // diagram's own mrad-spaced grid options.
 export function oneMradWidthMm(rangeM) {
-  return angularUnitToCmAtRange('mrad', rangeM) * 10;
+  return mToMm(angularUnitToLinearAtRange('mrad', rangeM));
 }
 
 // Converts a real-world length (mm) at a given range into an angular unit
@@ -267,7 +268,7 @@ export function oneMradWidthMm(rangeM) {
 // constant was off by a factor of 10 (a dropped-decimal bug), so this is a
 // deliberate correction, not a byte-for-byte port, for that one unit.
 export function mmToAngularUnit(valueMm, unit, rangeM) {
-  const cmPerUnit = angularUnitToCmAtRange(unit, rangeM);
-  if (!cmPerUnit) return 0;
-  return valueMm / 10 / cmPerUnit;
+  const metresPerUnit = angularUnitToLinearAtRange(unit, rangeM);
+  if (!metresPerUnit) return 0;
+  return mmToM(valueMm) / metresPerUnit;
 }
