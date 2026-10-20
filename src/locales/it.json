@@ -1486,6 +1486,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v224": "Modifica: tutta l'elaborazione interna avviene ora in unità SI, tranne la temperatura (°C) e il BC (lb/in²). Conversione uniforme e con nome, solo al bordo della presentazione.",
       "v223": "Modifica: il README descrive ora lo strumento \"Sessione di taratura\".",
       "v222": "Correzione: rifiniture dell’interfaccia dello strumento \"Sessione di taratura\"",
       "v221": "Modifica: pagina \"Funzionalità attuali\" aggiornata alla 4.2.0 (Sessione di taratura, cartucce tarate, pulizia ed eliminazione dei dispositivi in Backup e sincronizzazione).",

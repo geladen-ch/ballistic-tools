@@ -1486,6 +1486,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v224": "Änderung: Die gesamte interne Verarbeitung erfolgt jetzt in SI-Einheiten, außer Temperatur (°C) und BC (lb/in²). Einheitliche, benannte Umrechnung nur noch an der Darstellungsgrenze.",
       "v223": "Änderung: README beschreibt jetzt das Werkzeug „Einschieß-Sitzung“.",
       "v222": "Fix: UI-Feinschliff beim Werkzeug „Einschieß-Sitzung“",
       "v221": "Änderung: Seite „Aktuelle Funktionen“ auf den Stand von 4.2.0 gebracht (Einschieß-Sitzung, eingeschossene Patronen, Aufräumen und Löschen von Geräten in Sicherung & Synchronisierung).",
