@@ -858,7 +858,7 @@ test('Save on the rifle form is blocked while a field is out of range, and unblo
   fireEvent(rifleNameInput, 'input');
 
   const sightHeightInput = byId(container, 'sightHeight');
-  sightHeightInput.value = '9999'; // FIELD_BOUNDS.sightHeight is 0–500mm
+  sightHeightInput.value = '9999'; // FIELD_BOUNDS.sightHeight is 0–0.5 m (0–500 mm)
   fireEvent(sightHeightInput, 'input');
   assert.equal(sightHeightInput.classList.contains('field-invalid'), true, 'expected live red-border feedback while typing');
 

@@ -164,11 +164,11 @@ function interp(table, mach) {
   return y0 + (y1 - y0) * (mach - x0) / (x1 - x0);
 }
 
-// riflingTwistMm is already "mm of barrel per one full bullet rotation"
-// (same convention stability.js's own `t` uses, just not yet divided
-// down to calibers) — so twist length in meters is riflingTwistMm/1000.
-function spinRateRadS(muzzleVelocity, riflingTwistMm) {
-  return (2 * Math.PI * muzzleVelocity) / (riflingTwistMm / 1000);
+// riflingTwistM is the barrel length per one full bullet rotation (same
+// convention stability.js's own `t` uses, just not yet divided down to
+// calibers), so one turn every riflingTwistM metres at muzzleVelocity.
+function spinRateRadS(muzzleVelocity, riflingTwistM) {
+  return (2 * Math.PI * muzzleVelocity) / riflingTwistM;
 }
 
 export function canEstimateAeroCoefficients(inputs) {
@@ -176,15 +176,15 @@ export function canEstimateAeroCoefficients(inputs) {
 }
 
 export function estimateAeroCoefficients({
-  massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm,
+  massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM,
   tempC = 15, pressurePa = 101325, humidity = 0
 }) {
   const Ix = KX2_REFERENCE * massKg * caliberM * caliberM;
   const ky2 = interp(KY2_BY_LD_TABLE, lengthM / caliberM);
   const Iy = ky2 * massKg * caliberM * caliberM;
 
-  const sg = computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC, pressurePa, humidity });
-  const p0 = spinRateRadS(muzzleVelocity, riflingTwistMm);
+  const sg = computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM, tempC, pressurePa, humidity });
+  const p0 = spinRateRadS(muzzleVelocity, riflingTwistM);
   const rho = airDensity({ tempC, pressurePa, humidity });
   const mach0 = muzzleVelocity / speedOfSound(tempC);
 

@@ -93,3 +93,14 @@ test('a malformed cookie value falls back to defaults rather than throwing', asy
   assert.equal(fresh.loadCartridgeState(), null);
   resetShotStateForTests();
 });
+
+test('the gun cookie keeps the rifle\'s stored field names and units (mm), and reads them back in metres', async () => {
+  saveRifleState({ sightHeightM: 0.07, riflingTwistM: 0.27, zeroRange: 100 });
+  const stored = JSON.parse(getCookie('ballistics_gun_state_v1'));
+  assert.equal(stored.rifle.sightHeight, 70);
+  assert.equal(stored.rifle.riflingTwist, 270);
+  assert.equal(stored.rifle.sightHeightM, undefined);
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
+  assert.equal(fresh.loadRifleState().sightHeightM, 0.07);
+  assert.equal(fresh.loadRifleState().riflingTwistM, 0.27);
+});

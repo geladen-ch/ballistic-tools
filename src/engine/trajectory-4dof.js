@@ -32,8 +32,8 @@ import { estimateAeroCoefficients, canEstimateAeroCoefficients } from './aero-co
 // existing, already-shipped Litz-based spin-drift.js already produces
 // for the same rifle, rather than re-derived from the papers' own frame.
 // See trajectory-4dof.test.js's directional-agreement test.
-function spinRateRadS(muzzleVelocity, riflingTwistMm, twistDirection) {
-  const magnitude = (2 * Math.PI * muzzleVelocity) / (riflingTwistMm / 1000);
+function spinRateRadS(muzzleVelocity, riflingTwistM, twistDirection) {
+  const magnitude = (2 * Math.PI * muzzleVelocity) / riflingTwistM;
   return twistDirection === 'left' ? magnitude : -magnitude;
 }
 
@@ -48,7 +48,7 @@ export function canMakeStepper4dof(state) {
 // once here rather than per step.
 export function makeStepper4dof(state) {
   const {
-    bc, dragModel = 'G1', cdTable, massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm,
+    bc, dragModel = 'G1', cdTable, massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM,
     twistDirection = 'right',
     windSpeed = 0, windAngle = 90,
     tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0
@@ -77,8 +77,8 @@ export function makeStepper4dof(state) {
   // atmosphereAt() comment), not sea-level-equivalent — exactly what
   // estimateAeroCoefficients wants for its own Sg/CMalpha atmosphere
   // correction (aero-coefficients.js, stability.js).
-  const aero = estimateAeroCoefficients({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC, pressurePa, humidity });
-  const p0 = spinRateRadS(muzzleVelocity, riflingTwistMm, twistDirection);
+  const aero = estimateAeroCoefficients({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM, tempC, pressurePa, humidity });
+  const p0 = spinRateRadS(muzzleVelocity, riflingTwistM, twistDirection);
 
   const siteStdPressurePa = icaoStandardPressurePa(altitudeM);
 

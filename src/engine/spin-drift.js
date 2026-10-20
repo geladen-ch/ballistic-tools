@@ -42,8 +42,8 @@ const LITZ_COEFFICIENT_CM = 1.25 * 2.54; // 3.175
 export function resolveSpinDrift(state, muzzleVelocity) {
   const requested = state.spinDriftMode ?? (state.calculateSpinDrift ? 'litz' : 'off');
   if (requested === 'off') return null;
-  const { massKg, caliberM, lengthM, riflingTwistMm } = state;
-  const inputs = { massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm };
+  const { massKg, caliberM, lengthM, riflingTwistM } = state;
+  const inputs = { massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM };
   if (!canComputeStability(inputs)) return null;
   return { sg: computeMillerSg(inputs), twistDirection: state.twistDirection === 'left' ? 'left' : 'right' };
 }
@@ -88,8 +88,8 @@ export function spinDriftCm({ sg, twistDirection }, tof) {
 // because of where the two gates happen to sit, not because they're
 // the same check.
 export function resolveSpinDriftMode(state, muzzleVelocity) {
-  const { massKg, caliberM, lengthM, riflingTwistMm } = state;
-  const inputs = { massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm };
+  const { massKg, caliberM, lengthM, riflingTwistM } = state;
+  const inputs = { massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM };
   // Back-compat: every current caller (trajectory-view.js,
   // range-solver-view.js, arsenal-view.js) sets spinDriftMode directly
   // (via spin-drift-prefs.js's getSpinDriftMode(), itself backed by

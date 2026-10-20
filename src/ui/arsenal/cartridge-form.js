@@ -50,7 +50,7 @@ const NEW_BULLET_VALUE = '__new__';
 // one-time snapshot: later changes to the built-in library (there are
 // none today, but the built-in JSON files could in principle be corrected/
 // updated) won't retroactively change a cartridge that already copied one.
-// `riflingTwistMm` is the parent rifle's own twist rate (null if left
+// `riflingTwistM` is the parent rifle's own twist rate (null if left
 // blank there) — fixed for the lifetime of this form, since twist isn't
 // itself editable here; it's only read for the live stability indicator
 // below, resolved together with whichever bullet/velocity are currently
@@ -67,7 +67,7 @@ const NEW_BULLET_VALUE = '__new__';
 // overwrite warning further down, which really does describe a save-time
 // overwrite).
 export function cartridgeForm({
-  initialValues = {}, riflingTwistMm = null, lockedCaliberM = null, siblingNames = [],
+  initialValues = {}, riflingTwistM = null, lockedCaliberM = null, siblingNames = [],
   siblingCartridges = [], isZeroDonorForOthers = false, onSave, onCancel
 } = {}) {
   const values = { ...DEFAULT_VALUES, ...initialValues };
@@ -346,7 +346,7 @@ export function cartridgeForm({
 
   // Miller's-formula stability for this cartridge's bullet + velocity
   // combined with the parent rifle's own twist — see the class comment
-  // above for why riflingTwistMm is fixed rather than read live.
+  // above for why riflingTwistM is fixed rather than read live.
   const stability = stabilityIndicator();
   function refreshStability() {
     const bullet = findOfferedBullet(bulletSelect.value);
@@ -355,7 +355,7 @@ export function cartridgeForm({
       caliberM: bullet ? bullet.caliberM : null,
       lengthM: bullet ? bullet.lengthM : null,
       muzzleVelocity: muzzleVelocityField.getEngineValue(),
-      riflingTwistMm
+      riflingTwistM
     });
   }
 

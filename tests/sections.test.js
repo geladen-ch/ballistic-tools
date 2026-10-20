@@ -53,7 +53,7 @@ test('sectionGroup renders a translated heading and marks nested sections', () =
 
 test('rifleSection exposes zeroRange and sightHeight in engine units', () => {
   const rifle = rifleSection();
-  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeight: 70 });
+  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeightM: 0.07 });
 });
 
 test('rifleSection also exposes scope click settings, independent of getValues()', () => {

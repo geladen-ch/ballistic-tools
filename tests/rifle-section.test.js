@@ -98,7 +98,7 @@ test('selecting a library rifle pre-fills zeroRange/sightHeight/click settings a
   fireEvent(rifleSelect, 'change');
   await settle();
 
-  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeight: 45 }); // 0.045m -> 45mm
+  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeightM: 0.045 }); // 0.045m -> 45mm
   assert.deepEqual(rifle.getClickSettings(), { unit: 'mrad', horizontal: 0.1, vertical: 0.1 });
 
   const cartridgeSelect = byId(rifle.node, 'rifleCartridgeSelect');
@@ -281,7 +281,7 @@ test('a rifle+cartridge selected in one rifleSection instance is restored (and r
   assert.equal(secondRifleSelect.value, TEST_RIFLE_ID);
   assert.equal(secondCartridgeSelect.value, 'handload-175smk-example');
   assert.equal(reportedCartridge.bulletId, 'hrr-30-eldm-208');
-  assert.deepEqual(second.getValues(), { zeroRange: 100, sightHeight: 45 });
+  assert.deepEqual(second.getValues(), { zeroRange: 100, sightHeightM: 0.045 });
 });
 
 test('the "Show built-in rifles library" checkbox is always present, even with nothing to offer', async () => {
@@ -301,7 +301,7 @@ test('the rifle picker (but not the checkbox) is hidden when the built-in librar
 
   const rifleSelect = byId(rifle.node, 'rifleSelect');
   assert.equal(rifleSelect.parentNode.style.display, 'none');
-  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeight: 70 });
+  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeightM: 0.07 });
 });
 
 test('a user Arsenal rifle appears in the picker, prefixed "* ", and pre-fills fields when selected', async () => {
@@ -324,7 +324,7 @@ test('a user Arsenal rifle appears in the picker, prefixed "* ", and pre-fills f
   fireEvent(rifleSelect, 'change');
   await settle();
 
-  assert.deepEqual(rifle.getValues(), { zeroRange: 150, sightHeight: 60 });
+  assert.deepEqual(rifle.getValues(), { zeroRange: 150, sightHeightM: 0.06 });
   assert.deepEqual(rifle.getClickSettings(), { unit: 'arcmin', horizontal: 0.25, vertical: 0.25 });
 });
 
@@ -398,7 +398,7 @@ test('rifling twist starts pre-filled with the K31-derived default (250mm), excl
   const rifle = rifleSection();
   const twistInput = byId(rifle.node, 'riflingTwist');
   assert.equal(twistInput.value, '250');
-  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeight: 70 });
+  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeightM: 0.07 });
   assert.ok(Math.abs(rifle.getArsenalPrefill().defaultRiflingTwistM - 0.25) < 1e-9);
 });
 
@@ -462,7 +462,7 @@ test('twist direction defaults to "right", excluded from getValues(), included i
   const rifle = rifleSection();
   const directionSelect = byId(rifle.node, 'twistDirection');
   assert.equal(directionSelect.value, 'right');
-  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeight: 70 });
+  assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeightM: 0.07 });
   assert.equal(rifle.getArsenalPrefill().defaultTwistDirection, 'right');
 });
 

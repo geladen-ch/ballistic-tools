@@ -16,7 +16,7 @@ import {
 // The reference .308 configuration these golden values are computed against.
 const REF_STATE = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48,
-  zeroRange: 100, sightHeight: 50,
+  zeroRange: 100, sightHeightM: 0.05,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
   windSpeed: 0, windAngle: 90, losAngleDeg: 0
 };
@@ -216,7 +216,7 @@ assert.ok(CD_TABLE_BULLET && CD_TABLE_BULLET.profile.type === 'cdTable', 'fixtur
 test('dragPct sensitivity is non-zero for a real Cd-table library bullet', () => {
   const state = {
     cdTable: CD_TABLE_BULLET.profile.table, massKg: CD_TABLE_BULLET.massKg, caliberM: CD_TABLE_BULLET.caliberM,
-    muzzleVelocity: 830, zeroRange: 100, sightHeight: 50,
+    muzzleVelocity: 830, zeroRange: 100, sightHeightM: 0.05,
     tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
     windSpeed: 0, windAngle: 0, losAngleDeg: 0
   };
@@ -250,17 +250,14 @@ test('the losU_t column is non-zero at u=0, and a negative-u hypothesis is rejec
   assert.deepEqual(mix.posteriorWeights, [1, 0]);
 });
 
-test('sightHeight is consumed in millimetres, not metres', () => {
-  // The historical bug: passing a metres value (e.g. 0.07) straight
-  // through where the engine expects millimetres. A real view built from
-  // cartridge.getValues()/rifle.getValues() (whose
-  // engine unit for sightHeight is mm, per src/units.js's FIELD_UNITS)
-  // never produces the metres value -- this pins the consequence down
-  // directly, against the actual physics.
-  const correctMm = comeUpMrad({ ...REF_STATE, sightHeight: 50 }, 300); // 50 mm, a realistic scope height
-  const wrongAsMetres = comeUpMrad({ ...REF_STATE, sightHeight: 0.05 }, 300); // the historical metres-instead-of-mm bug
-  assert.ok(Math.abs(correctMm - wrongAsMetres) > 0.01, 'a 1000x sightHeight error must move the come-up meaningfully -- the units are load-bearing, not cosmetic');
-  closeTo(correctMm, 1.5804, 0.0001, 'the correct (mm) come-up must match the golden value above, which is itself computed with sightHeight: 50');
+test('sight height is consumed in metres (sightHeightM)', () => {
+  // A 1000x unit slip (millimetres passed where the engine takes metres,
+  // or the reverse) must move the come-up meaningfully -- this pins the
+  // consequence down directly, against the actual physics.
+  const correct = comeUpMrad({ ...REF_STATE, sightHeightM: 0.05 }, 300); // 50 mm, a realistic scope height
+  const slipped = comeUpMrad({ ...REF_STATE, sightHeightM: 0.00005 }, 300); // the same number taken as the wrong unit
+  assert.ok(Math.abs(correct - slipped) > 0.01, 'a 1000x sight height error must move the come-up meaningfully -- the units are load-bearing, not cosmetic');
+  closeTo(correct, 1.5804, 0.0001, 'the come-up must match the golden value above, which is itself computed with sightHeightM: 0.05');
 });
 
 // ---- bcGainFactor ----
@@ -268,7 +265,7 @@ test('sightHeight is consumed in millimetres, not metres', () => {
 test('bcGainFactor: BC-profile and Cd-table bullets get the same come-up change for the same factor', () => {
   const baseCd = {
     cdTable: CD_TABLE_BULLET.profile.table, massKg: CD_TABLE_BULLET.massKg, caliberM: CD_TABLE_BULLET.caliberM,
-    muzzleVelocity: 830, zeroRange: 100, sightHeight: 50,
+    muzzleVelocity: 830, zeroRange: 100, sightHeightM: 0.05,
     tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 0, losAngleDeg: 0
   };
   for (const range of [300, 600, 900]) {
@@ -326,7 +323,7 @@ function gaussian(rng) {
 // figure.
 const SCEN_REF = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 2600 * 0.3048,
-  zeroRange: 100, sightHeight: 50,
+  zeroRange: 100, sightHeightM: 0.05,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
   windSpeed: 0, windAngle: 0, losAngleDeg: 0
 };
@@ -1048,7 +1045,7 @@ test('planWholeSession reaches beyond the near band whenever the location has a 
 test('a hypothesis whose fit runs away does not poison the joint analysis', () => {
   // captured from a simulated session: a wide drag scale and two targets allowed to be mis-ranged at once ran one fit to NaN,
   // which used to turn every estimate into NaN
-  const state = { zeroRange: 100, sightHeight: 50, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
+  const state = { zeroRange: 100, sightHeightM: 0.05, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
   const g = (rangeM, observedComeUp, shots, sigmaMrad) => ({ rangeM, observedComeUp, shots, sigmaMrad, targetIndex: String(rangeM), knownLosDeg: 0 });
   const observations = [
     g(100, -0.5029620073218181, 1, 0.12899090581593903),

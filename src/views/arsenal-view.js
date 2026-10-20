@@ -429,8 +429,8 @@ export function mount(container) {
     return { horizontal: rifle.defaultClickHorizontal, vertical: rifle.defaultClickVertical, unit: rifle.defaultClickUnit };
   }
 
-  function rifleTwistMm(rifle) {
-    return rifle.defaultRiflingTwistM != null ? mToMm(rifle.defaultRiflingTwistM) : null;
+  function rifleTwistM(rifle) {
+    return rifle.defaultRiflingTwistM ?? null;
   }
 
   // A rifle chambers one caliber — once any of its cartridges already has
@@ -475,7 +475,7 @@ export function mount(container) {
       caliberM: bullet ? bullet.caliberM : null,
       lengthM: bullet ? bullet.lengthM : null,
       muzzleVelocity: cartridge.muzzleVelocity,
-      riflingTwistMm: rifleTwistMm(rifle)
+      riflingTwistM: rifleTwistM(rifle)
     };
   }
 
@@ -489,7 +489,7 @@ export function mount(container) {
   function buildComparisonState(rifle, cartridge, bullet, shared, zeroDonorBallistics) {
     return {
       ...shared,
-      sightHeight: mToMm(rifle.defaultSightHeightM), // stored in m; sightHeight's engine unit is mm
+      sightHeightM: rifle.defaultSightHeightM,
       zeroRange: rifle.defaultZeroRangeM,
       losAngleDeg: 0,
       muzzleVelocity: cartridge.muzzleVelocity,
@@ -505,7 +505,7 @@ export function mount(container) {
       // own getStabilityValues() for why that gap exists).
       caliberM: bullet.caliberM,
       lengthM: bullet.lengthM,
-      riflingTwistMm: rifleTwistMm(rifle),
+      riflingTwistM: rifleTwistM(rifle),
       twistDirection: rifle.defaultTwistDirection,
       spinDriftMode: getSpinDriftMode(),
       zeroForSpinDrift: isZeroForSpinDriftEnabled(),
@@ -1078,7 +1078,7 @@ export function mount(container) {
         : null;
       const form = cartridgeForm({
         initialValues: editingCartridge ? { ...editingCartridge, ...(precisionOverride ? { precision: precisionOverride } : {}) } : {},
-        riflingTwistMm: rifleTwistMm(rifle),
+        riflingTwistM: rifleTwistM(rifle),
         lockedCaliberM: lockedCaliberMForRifle(rifle, userBullets, cartridgeFormState.id),
         siblingNames: rifle.cartridges.filter((c) => c.id !== cartridgeFormState.id).map((c) => c.name),
         // "Zeroed with a different cartridge" (zero-donor.js) — every other

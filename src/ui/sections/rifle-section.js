@@ -1,6 +1,5 @@
 import { el, clear } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
-import { mToMm, mmToM } from '../../quantity.js';
 import { decodeLegacy } from '../../legacy-units.js';
 import { unitField } from '../unit-field.js';
 import { scopeClicksField } from '../scope-clicks-field.js';
@@ -19,7 +18,7 @@ const OTHER_VALUE = '__other__';
 // throughout this section, cartridge-section.js and bullet-section.js
 // (zeroRange/clicks/twistDirection already matched K31 before this).
 const DEFAULT_STATE = {
-  zeroRange: 100, sightHeight: 70, riflingTwist: 250, twistDirection: 'right',
+  zeroRange: 100, sightHeightM: 0.07, riflingTwistM: 0.25, twistDirection: 'right',
   clicks: { unit: 'mrad', horizontal: 0.1, vertical: 0.1 }, library: null
 };
 
@@ -66,8 +65,8 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   function saveManualRifle() {
     saveRifleState({
       zeroRange: zeroRangeField.getEngineValue(),
-      sightHeight: sightHeightField.getEngineValue(),
-      riflingTwist: twistField.getEngineValue(),
+      sightHeightM: sightHeightField.getEngineValue(),
+      riflingTwistM: twistField.getEngineValue(),
       twistDirection: twistDirectionSelect.value,
       clicks: clicks.getSettings()
     });
@@ -82,7 +81,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     onInput: () => { saveManualRifle(); if (onInput) onInput(); }
   });
   const sightHeightField = unitField({
-    id: 'sightHeight', ...FIELD_BOUNDS.sightHeight, step: 1, value: initial.sightHeight, slider,
+    id: 'sightHeight', ...FIELD_BOUNDS.sightHeight, step: 0.001, value: initial.sightHeightM, slider,
     onInput: () => { saveManualRifle(); if (onInput) onInput(); }
   });
   // Not currently read by getValues() — no ballistic factor this app
@@ -90,7 +89,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   // real, persisted rifle parameter carried through the same way
   // zeroRange/sightHeight are, and included in getArsenalPrefill() below.
   const twistField = unitField({
-    id: 'riflingTwist', ...FIELD_BOUNDS.riflingTwist, step: 1, optional: true, value: initial.riflingTwist,
+    id: 'riflingTwist', ...FIELD_BOUNDS.riflingTwist, step: 0.001, optional: true, value: initial.riflingTwistM,
     onInput: () => { saveManualRifle(); if (onInput) onInput(); }
   });
   // A plain enum, not a unit-bearing quantity — always has a real value
@@ -224,8 +223,8 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     if (!rifle) return; // not resolvable yet (shouldn't happen once catalogReady has settled) — nothing to apply
     selectedRifle = rifle;
     zeroRangeField.setEngineValue(rifle.defaultZeroRangeM);
-    sightHeightField.setEngineValue(mToMm(rifle.defaultSightHeightM)); // stored in m; sightHeight's engine unit is mm
-    twistField.setEngineValue(rifle.defaultRiflingTwistM != null ? mToMm(rifle.defaultRiflingTwistM) : null);
+    sightHeightField.setEngineValue(rifle.defaultSightHeightM);
+    twistField.setEngineValue(rifle.defaultRiflingTwistM ?? null);
     twistDirectionSelect.value = rifle.defaultTwistDirection || 'right'; // older/built-in records predating this field default to "right"
     clicks.setSettings({
       unit: rifle.defaultClickUnit,
@@ -314,7 +313,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   function getValues() {
     return {
       zeroRange: zeroRangeField.getEngineValue(),
-      sightHeight: sightHeightField.getEngineValue()
+      sightHeightM: sightHeightField.getEngineValue()
     };
   }
 
@@ -325,12 +324,11 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   // editable fields regardless of selection.
   function getArsenalPrefill() {
     const clickSettings = clicks.getSettings();
-    const twistMm = twistField.getEngineValue();
     return {
       name: selectedRifle ? selectedRifle.name : '',
-      defaultSightHeightM: mmToM(sightHeightField.getEngineValue()),
+      defaultSightHeightM: sightHeightField.getEngineValue(),
       defaultZeroRangeM: zeroRangeField.getEngineValue(),
-      defaultRiflingTwistM: twistMm != null ? mmToM(twistMm) : null,
+      defaultRiflingTwistM: twistField.getEngineValue(),
       defaultTwistDirection: twistDirectionSelect.value,
       defaultClickUnit: clickSettings.unit,
       defaultClickHorizontal: clickSettings.horizontal,
@@ -340,13 +338,13 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
 
   // For stability.js's Miller's-formula indicator and spin-drift.js's own
   // resolveSpinDrift() — the two consumers of rifling twist so far (see
-  // the hint text just above). riflingTwistMm is null when the optional
+  // the hint text just above). riflingTwistM is null when the optional
   // field is left blank, same as twistField.getEngineValue() itself
   // already reports; twistDirection always has a real value ('right' by
   // default), so unlike the twist rate it's never the reason stability/
   // spin drift can't be computed.
   function getStabilityValues() {
-    return { riflingTwistMm: twistField.getEngineValue(), twistDirection: twistDirectionSelect.value };
+    return { riflingTwistM: twistField.getEngineValue(), twistDirection: twistDirectionSelect.value };
   }
 
   return {

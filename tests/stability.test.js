@@ -19,10 +19,10 @@ test('computeMillerSg matches the imperial reference formula', () => {
   const massKg = grains / 15432.358352941432;
   const caliberM = dIn * 0.0254;
   const lengthM = lengthIn * 0.0254;
-  const riflingTwistMm = twistIn * 25.4;
+  const riflingTwistM = twistIn * 0.0254;
   const muzzleVelocity = fps * 0.3048;
 
-  const sg = computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm });
+  const sg = computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM });
   assert.ok(Math.abs(sg - expected) < 1e-9, `got ${sg}, expected ~${expected}`);
 });
 
@@ -35,28 +35,28 @@ test('stabilityStatus thresholds', () => {
 });
 
 test('computeMillerSg with explicit standard-atmosphere args matches the no-args default exactly', () => {
-  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistMm: 304.8 };
+  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.3048 };
   const withDefaults = computeMillerSg(bullet);
   const withExplicitStandard = computeMillerSg({ ...bullet, tempC: 15, pressurePa: 101325, humidity: 0 });
   assert.equal(withExplicitStandard, withDefaults);
 });
 
 test('thinner air (high altitude / hot day) raises Sg above the standard-atmosphere value', () => {
-  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistMm: 304.8 };
+  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.3048 };
   const standard = computeMillerSg(bullet);
   const highAltitudeHot = computeMillerSg({ ...bullet, tempC: 35, pressurePa: 85000 }); // ~5000ft, hot day
   assert.ok(highAltitudeHot > standard, `expected thinner-air Sg (${highAltitudeHot}) > standard Sg (${standard})`);
 });
 
 test('denser air (cold day, sea level) lowers Sg below the standard-atmosphere value', () => {
-  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistMm: 304.8 };
+  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.3048 };
   const standard = computeMillerSg(bullet);
   const cold = computeMillerSg({ ...bullet, tempC: -20, pressurePa: 103000 });
   assert.ok(cold < standard, `expected denser-air Sg (${cold}) < standard Sg (${standard})`);
 });
 
 test('Sg scales exactly as standard-density / actual-density, matching the exact stability relation\'s rho dependence', () => {
-  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistMm: 304.8 };
+  const bullet = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.3048 };
   const standard = computeMillerSg(bullet);
   const conditions = { tempC: 35, pressurePa: 85000, humidity: 0.2 };
   const corrected = computeMillerSg({ ...bullet, ...conditions });
@@ -69,7 +69,7 @@ test('Sg scales exactly as standard-density / actual-density, matching the exact
 });
 
 test('canComputeStability requires every input as a positive number', () => {
-  const full = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistMm: 304.8 };
+  const full = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.3048 };
   assert.equal(canComputeStability(full), true);
 
   for (const key of Object.keys(full)) {

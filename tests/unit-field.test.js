@@ -105,25 +105,25 @@ test('setEngineValue updates both the range and its paired number box in slider 
 });
 
 test('optional: true starts blank when value is null, and getEngineValue() reports null rather than NaN', () => {
-  const field = unitField({ id: 'sightHeight', min: 0, max: 100, step: 1, value: null, optional: true });
+  const field = unitField({ id: 'sightHeight', min: 0, max: 0.1, step: 0.001, value: null, optional: true });
   const [number] = findInputs(field.node);
   assert.equal(number.value, '');
   assert.equal(field.getEngineValue(), null);
 });
 
 test('optional: true still displays and round-trips a real value normally', () => {
-  const field = unitField({ id: 'sightHeight', min: 0, max: 100, step: 1, value: 45, optional: true });
+  const field = unitField({ id: 'sightHeight', min: 0, max: 0.1, step: 0.001, value: 0.045, optional: true });
   const [number] = findInputs(field.node);
-  assert.equal(number.value, '45');
-  assert.equal(field.getEngineValue(), 45);
+  assert.equal(number.value, '45'); // shown in mm, held in m
+  assert.equal(field.getEngineValue(), 0.045);
 
   number.value = '60';
   fireEvent(number, 'input');
-  assert.equal(field.getEngineValue(), 60);
+  assert.equal(field.getEngineValue(), 0.06);
 });
 
 test('optional: true — setEngineValue(null) clears the field back to blank', () => {
-  const field = unitField({ id: 'sightHeight', min: 0, max: 100, step: 1, value: 45, optional: true });
+  const field = unitField({ id: 'sightHeight', min: 0, max: 0.1, step: 0.001, value: 0.045, optional: true });
   field.setEngineValue(null);
   const [number] = findInputs(field.node);
   assert.equal(number.value, '');
@@ -131,7 +131,7 @@ test('optional: true — setEngineValue(null) clears the field back to blank', (
 });
 
 test('optional: true — a value of 0 is a real value, not treated as blank', () => {
-  const field = unitField({ id: 'sightHeight', min: 0, max: 100, step: 1, value: 0, optional: true });
+  const field = unitField({ id: 'sightHeight', min: 0, max: 0.1, step: 0.001, value: 0, optional: true });
   const [number] = findInputs(field.node);
   assert.equal(number.value, '0');
   assert.equal(field.getEngineValue(), 0);
@@ -154,7 +154,7 @@ test('regression: non-slider mode does not fire onInput for a blank/invalid valu
 
 test('regression: non-slider optional field still fires onInput on blank (a legitimate "unset" state)', () => {
   let calls = 0;
-  const field = unitField({ id: 'sightHeight', min: 0, max: 100, step: 1, value: 45, optional: true, onInput: () => { calls++; } });
+  const field = unitField({ id: 'sightHeight', min: 0, max: 0.1, step: 0.001, value: 0.045, optional: true, onInput: () => { calls++; } });
   const [number] = findInputs(field.node);
 
   number.value = '';
@@ -199,7 +199,7 @@ test('a blank non-optional field is invalid once touched; a blank optional field
   fireEvent(requiredInput, 'input');
   assert.equal(requiredInput.classList.contains('field-invalid'), true);
 
-  const optional = unitField({ id: 'riflingTwist', min: 1, max: 1000, step: 1, value: 250, optional: true });
+  const optional = unitField({ id: 'riflingTwist', min: 0.001, max: 1, step: 0.001, value: 0.25, optional: true });
   const [optionalInput] = findInputs(optional.node);
   optionalInput.value = '';
   fireEvent(optionalInput, 'input');

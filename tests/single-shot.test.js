@@ -4,7 +4,7 @@ import { computeSingleShot } from '../src/engine/single-shot.js';
 
 const nominalState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
-  sightHeight: 50,
+  sightHeightM: 0.05,
   windSpeed: 0, windAngle: 90,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };

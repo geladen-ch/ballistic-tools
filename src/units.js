@@ -170,8 +170,8 @@ export const FIELD_UNITS = {
   battleZeroRange: { group: 'distance', engineUnit: 'm' },
   truingBackdropHeight: { group: 'distance', engineUnit: 'm' },
 
-  sightHeight: { group: 'smallLength', engineUnit: 'mm' },
-  riflingTwist: { group: 'riflingTwist', engineUnit: 'mm' },
+  sightHeight: { group: 'smallLength', engineUnit: 'm' },
+  riflingTwist: { group: 'riflingTwist', engineUnit: 'm' },
   aimOffsetX: { group: 'smallLength', engineUnit: 'cm' },
   aimOffsetY: { group: 'smallLength', engineUnit: 'cm' },
   // The two user-sizeable targets' own dimension fields (Circle gong,
@@ -321,9 +321,9 @@ export const FIELD_BOUNDS = {
   bulletMass: { min: 1, max: 121 }, // g, always — mass-field.js's own gram/grain pair
   bc: { min: 0.05, max: 1.5 },
   cdTableCd: { min: 0.05, max: 3.0 }, // a single Cd-vs-Mach table row's own Cd value
-  sightHeight: { min: 0, max: 500 }, // mm
+  sightHeight: { min: 0, max: 0.5 }, // m
   zeroRange: { min: 0, max: 5000 }, // m
-  riflingTwist: { min: 1, max: 1000 }, // mm — optional (blank) is handled separately; 0 itself is a Miller's-formula divisor
+  riflingTwist: { min: 0.001, max: 1 }, // m — optional (blank) is handled separately; 0 itself is a Miller's-formula divisor
   scopeClick: { min: 0.01, max: 5 }, // click value, unit-agnostic by design (see CLICK_UNITS above)
   muzzleVelocity: { min: 50, max: 1500 }, // m/s — also reused for BC Tools' v1/v2/conversion velocity
   referenceTempC: { min: -90, max: 60 }, // °C — also reused for tempC

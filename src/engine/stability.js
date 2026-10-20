@@ -1,6 +1,6 @@
 // Gyroscopic bullet stability (Sg) via Miller's Twist Rule, re-derived
-// directly in this app's own engine units (massKg, caliberM/lengthM in
-// meters, muzzleVelocity in m/s, riflingTwistMm in mm) instead of
+// directly in this app's own engine units (massKg, caliberM/lengthM/
+// riflingTwistM in metres, muzzleVelocity in m/s) instead of
 // converting to/from the formula's usual imperial inputs (grains, inches,
 // ft/s) on every call.
 //
@@ -8,8 +8,8 @@
 // W = grains, d = diameter (in), t = twist (calibers/turn), L = length
 // (calibers), V = fps. t and L are already dimensionless ratios, so they
 // carry over unchanged; only the W/d^3 and V/2800 terms need re-scaling.
-// C = 30 * KG_TO_GRAIN / (1/0.0254)^3, V0 = 2800 * 0.3048 (m/s) — verified
-// to reproduce the imperial formula bit-for-bit on a cross-check case.
+// C = 30 grains-per-kg / (inches-per-metre)^3 and V0 = 2800 ft/s in m/s,
+// both derived below through the app's own exact conversions.
 //
 // Miller's own published formula has no altitude/density term at all —
 // it's implicitly a standard-sea-level-only estimate. But the exact
@@ -27,14 +27,14 @@
 // bit-for-bit when no atmosphere is given — every existing caller is
 // unaffected unless it opts in.
 import { airDensity } from './atmosphere.js';
+import { kgToGrain, mToIn, convert } from '../quantity.js';
 
-const KG_TO_GRAIN = 15432.358352941432; // matches bullet-section.js's own constant
-const MILLER_C = 7.5867313200175746;
-const MILLER_V0 = 853.44; // 2800 fps in m/s
+const MILLER_C = 30 * kgToGrain(1) / mToIn(1) ** 3;
+const MILLER_V0 = convert(2800, 'ft/s', 'm/s');
 const STANDARD_SEA_LEVEL_DENSITY = airDensity({ tempC: 15, pressurePa: 101325, humidity: 0 });
 
-export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC = 15, pressurePa = 101325, humidity = 0 }) {
-  const t = riflingTwistMm / (caliberM * 1000);
+export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM, tempC = 15, pressurePa = 101325, humidity = 0 }) {
+  const t = riflingTwistM / caliberM;
   const L = lengthM / caliberM;
   const sgStandardAtmo = (MILLER_C * massKg) / (t * t * caliberM ** 3 * L * (1 + L * L)) * (muzzleVelocity / MILLER_V0) ** (1 / 3);
   const rho = airDensity({ tempC, pressurePa, humidity });
@@ -45,8 +45,8 @@ export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, rif
 // (allowed by the field's own min=0) or a missing caliber/length (always
 // true for a manually-entered "Other" bullet) would otherwise divide by
 // zero or silently propagate NaN into the UI.
-export function canComputeStability({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm }) {
-  return [massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm].every((v) => v != null && v > 0);
+export function canComputeStability({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM }) {
+  return [massKg, caliberM, lengthM, muzzleVelocity, riflingTwistM].every((v) => v != null && v > 0);
 }
 
 export function stabilityStatus(sg) {

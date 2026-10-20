@@ -88,9 +88,9 @@ test('energy converts J to ft-lb correctly and round-trips', () => {
 test('FIELD_BOUNDS carries the approved bound for every field this session widened or newly bounded', () => {
   assert.deepEqual(FIELD_BOUNDS.caliberM, { min: 0.004, max: 0.021 });
   assert.deepEqual(FIELD_BOUNDS.bulletMass, { min: 1, max: 121 });
-  assert.deepEqual(FIELD_BOUNDS.sightHeight, { min: 0, max: 500 });
+  assert.deepEqual(FIELD_BOUNDS.sightHeight, { min: 0, max: 0.5 });
   assert.deepEqual(FIELD_BOUNDS.zeroRange, { min: 0, max: 5000 });
-  assert.deepEqual(FIELD_BOUNDS.riflingTwist, { min: 1, max: 1000 });
+  assert.deepEqual(FIELD_BOUNDS.riflingTwist, { min: 0.001, max: 1 });
   assert.deepEqual(FIELD_BOUNDS.muzzleVelocity, { min: 50, max: 1500 });
   assert.deepEqual(FIELD_BOUNDS.tempC, { min: -90, max: 60 });
   assert.deepEqual(FIELD_BOUNDS.windSpeed, { min: 0, max: 35 });

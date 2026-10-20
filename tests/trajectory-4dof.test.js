@@ -33,7 +33,7 @@ function referenceBullet(twistIn, twistDirection = 'right') {
     caliberM: 0.308 * 0.0254,
     lengthM: 1.226 * 0.0254,
     muzzleVelocity: 2600 * 0.3048,
-    riflingTwistMm: twistIn * 25.4,
+    riflingTwistM: twistIn * 0.0254,
     twistDirection
   };
 }
@@ -136,7 +136,7 @@ function driftCmAtRangeForState(state, targetM) {
 }
 
 function lapuaBulletState({ caliberM, lengthM, massKg, twistIn, cdTable }) {
-  return { cdTable, massKg, caliberM, lengthM, muzzleVelocity: 800, riflingTwistMm: twistIn * 25.4,
+  return { cdTable, massKg, caliberM, lengthM, muzzleVelocity: 800, riflingTwistM: twistIn * 0.0254,
     twistDirection: 'right', tempC: 15, pressurePa: 100000, humidity: 0 };
 }
 
@@ -261,7 +261,7 @@ test('right-hand twist drifts in the same direction (sign) as the existing Litz-
   const state4dof = referenceBullet(twistIn, 'right');
   const drift4dof = driftInchesAtRange(twistIn, 1000 * YARD_M, 'right');
 
-  const litzState = { massKg: state4dof.massKg, caliberM: state4dof.caliberM, lengthM: state4dof.lengthM, riflingTwistMm: state4dof.riflingTwistMm, calculateSpinDrift: true, twistDirection: 'right' };
+  const litzState = { massKg: state4dof.massKg, caliberM: state4dof.caliberM, lengthM: state4dof.lengthM, riflingTwistM: state4dof.riflingTwistM, calculateSpinDrift: true, twistDirection: 'right' };
   const spinDrift = resolveSpinDrift(litzState, state4dof.muzzleVelocity);
   const litzWindageCm = spinDriftCm(spinDrift, 1000 * YARD_M / state4dof.muzzleVelocity); // rough TOF estimate is fine — sign is what matters
 
@@ -344,7 +344,7 @@ test('non-standard shooting-site atmosphere changes drift output end-to-end', ()
 test('canMakeStepper4dof mirrors canEstimateAeroCoefficients/canComputeStability', () => {
   const full = referenceBullet(12);
   assert.equal(canMakeStepper4dof(full), true);
-  for (const key of ['massKg', 'caliberM', 'lengthM', 'muzzleVelocity', 'riflingTwistMm']) {
+  for (const key of ['massKg', 'caliberM', 'lengthM', 'muzzleVelocity', 'riflingTwistM']) {
     assert.equal(canMakeStepper4dof({ ...full, [key]: null }), false, `${key}: null should be unknown`);
   }
 });

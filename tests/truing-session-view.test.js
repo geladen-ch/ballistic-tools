@@ -533,7 +533,7 @@ async function truthComeUps(dragPct, ranges) {
   const section = cartridgeSection({});
   await section.setLibraryCartridge({ muzzleVelocity: 792.48, bulletId: 'geladen-308-178-eld-m' });
   const state = {
-    ...section.getValues(), zeroRange: 100, sightHeight: 50,
+    ...section.getValues(), zeroRange: 100, sightHeightM: 0.05,
     tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0
   };
   const truth = { ...state, bcGainFactor: 1 / (1 + dragPct / 100) };

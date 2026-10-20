@@ -17,7 +17,7 @@ function toEngineUnits({ dIn, LIn, grains, twistIn, fps }) {
     caliberM: dIn * IN_TO_M,
     lengthM: LIn * IN_TO_M,
     muzzleVelocity: fps * 0.3048,
-    riflingTwistMm: twistIn * 25.4
+    riflingTwistM: twistIn * IN_TO_M
   };
 }
 
@@ -87,9 +87,9 @@ function checkCMalphaRoundTrip(state, atmo) {
   const { Ix, Iy, sg, cMAlpha } = estimateAeroCoefficients({ ...state, ...atmo });
   const rho = airDensity(atmo ?? { tempC: 15, pressurePa: 101325, humidity: 0 });
   const speedSound = speedOfSound(atmo?.tempC ?? 15);
-  const { muzzleVelocity, riflingTwistMm, caliberM } = state;
+  const { muzzleVelocity, riflingTwistM, caliberM } = state;
 
-  const p0 = (2 * Math.PI * muzzleVelocity) / (riflingTwistMm / 1000);
+  const p0 = (2 * Math.PI * muzzleVelocity) / riflingTwistM;
   const mach0 = muzzleVelocity / speedSound;
   const sgRoundTrip = (2 * Ix * Ix * p0 * p0) /
     (Math.PI * rho * caliberM ** 3 * Iy * cMAlpha(mach0) * muzzleVelocity * muzzleVelocity);

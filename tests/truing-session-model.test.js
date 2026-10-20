@@ -15,7 +15,7 @@ const { resolveMuzzleVelocity } = await import('../src/engine/trajectory.js');
 const { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } = await import('../src/ui/precision-preset-field.js');
 
 const REF_STATE = {
-  dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48, zeroRange: 100, sightHeight: 50,
+  dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48, zeroRange: 100, sightHeightM: 0.05,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0
 };
 

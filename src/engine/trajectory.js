@@ -204,8 +204,8 @@ function rangeAlongLOS(p, cosL, sinL) {
 // The muzzle's world position: sightHeight below the sight line, rotated
 // the same way the sight line itself is tilted (the inverse of toLOS() at
 // range=0, drop=-sightHeight).
-function losMuzzlePosition(sightHeight, cosL, sinL) {
-  const drop = -sightHeight / 1000;
+function losMuzzlePosition(sightHeightM, cosL, sinL) {
+  const drop = -sightHeightM;
   return { x: -drop * sinL, y: drop * cosL };
 }
 
@@ -267,7 +267,7 @@ function stepperForMode(state, mode) {
 // minima) over the small angles real zeroing needs, so secant is enough —
 // no need for anything fancier.
 export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
-  const { zeroRange, sightHeight, losAngleDeg = 0 } = state;
+  const { zeroRange, sightHeightM, losAngleDeg = 0 } = state;
 
   // A zero range of 0 (or below) isn't a distance the bullet can actually
   // travel to, so there's no height error to null out — the secant solve
@@ -282,7 +282,7 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const muzzleVelocity = resolveMuzzleVelocity(state);
   const stepper = makeStepper(state);
-  const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
+  const muzzle = losMuzzlePosition(sightHeightM, cosL, sinL);
 
   function heightErrorAt(theta) {
     const boreAngle = losAngle + theta;
@@ -410,7 +410,7 @@ export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 
   // Solved in the same flat, calm, zero-atmosphere state the vertical zero
   // is (see flatCalmZeroState()) — the yaw belongs to the same one setting.
   const state = flatCalmZeroState(shotState);
-  const { zeroRange, sightHeight, losAngleDeg = 0 } = state;
+  const { zeroRange, sightHeightM, losAngleDeg = 0 } = state;
   if (zeroRange <= 0 || !state.zeroForSpinDrift) return 0;
 
   const muzzleVelocity = resolveMuzzleVelocity(state);
@@ -425,7 +425,7 @@ export function solveHorizontalZeroAngle(shotState, { maxIter = 20, tolM = 1e-5 
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const theta = solveZeroAngle(state);
   const { step, initialExtra } = stepperForMode(state, mode);
-  const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
+  const muzzle = losMuzzlePosition(sightHeightM, cosL, sinL);
   const boreAngle = losAngle + theta;
   // The already-solved vertical pitch fixes how much of muzzleVelocity
   // lies in the vertical plane (vy) vs. available to yaw horizontally
@@ -611,7 +611,7 @@ function toTablePoint(p, tempC, cosL, sinL, spinDrift, exactRange) {
 // of the known point values, which is all that matters for rotation to
 // commute with them).
 export function integrate(state) {
-  const { maxRange, sightHeight, rangeStep, tempC = 15, losAngleDeg = 0 } = state;
+  const { maxRange, sightHeightM, rangeStep, tempC = 15, losAngleDeg = 0 } = state;
   const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const rangeOf = (pt) => pt.x * cosL + pt.y * sinL;
@@ -626,7 +626,7 @@ export function integrate(state) {
   const launchAngle = resolveLaunchAngle(state); // radians above the line of sight
   const horizontalZeroAngle = solveHorizontalZeroAngle(state); // radians, bore yaw that nulls spin drift at zeroRange
   const { step: stepFn, initialExtra } = stepperForMode(state, mode);
-  const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
+  const muzzle = losMuzzlePosition(sightHeightM, cosL, sinL);
   const boreAngle = losAngle + launchAngle;
   const vxy = muzzleVelocity * Math.cos(boreAngle);
 
@@ -696,7 +696,7 @@ export function integrate(state) {
 // Everything computeImpact() and makeImpactWalker() do before the first integration step: the frame, the resolved
 // muzzle velocity, launch angle, spin-drift mode and stepper, and the muzzle point. One place, so the two cannot drift.
 function impactSetup(state) {
-  const { sightHeight, losAngleDeg = 0 } = state;
+  const { sightHeightM, losAngleDeg = 0 } = state;
   const losAngle = (losAngleDeg * Math.PI) / 180;
   const cosL = Math.cos(losAngle), sinL = Math.sin(losAngle);
   const rangeOf = (pt) => rangeAlongLOS(pt, cosL, sinL);
@@ -713,7 +713,7 @@ function impactSetup(state) {
   const theta = resolveLaunchAngle(state); // radians above the line of sight
   const horizontalZeroAngle = solveHorizontalZeroAngle(state); // radians, bore yaw that nulls spin drift at zeroRange
   const { step, initialExtra } = stepperForMode(state, mode);
-  const muzzle = losMuzzlePosition(sightHeight, cosL, sinL);
+  const muzzle = losMuzzlePosition(sightHeightM, cosL, sinL);
   const boreAngle = losAngle + theta;
   const vxy = muzzleVelocity * Math.cos(boreAngle);
 

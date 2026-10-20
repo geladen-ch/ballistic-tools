@@ -19,7 +19,7 @@ const REFERENCE_BULLET = {
   caliberM: 0.308 * 0.0254,
   lengthM: 1.226 * 0.0254,
   muzzleVelocity: 792.48,
-  riflingTwistMm: 12 * 25.4,
+  riflingTwistM: 0.012 * 25.4,
   twistDirection: 'right',
   bc: 0.462, dragModel: 'G7'
 };

@@ -1,6 +1,5 @@
 {
   "inlineConversions": [
-    "src/engine/aero-coefficients.js: return (2 * Math.PI * muzzleVelocity) / (riflingTwistMm / 1000);",
     "src/engine/dispersion-sources.js: const x = estimatedSpeed * tof * probableErrorToSD(speedErrorPct / 100) * 100;",
     "src/engine/dispersion-sources.js: return (sdMrad * rangeM) / 10;",
     "src/engine/rifle-precision-stats.js: return angularUnitToCmAtRange('arcmin', rangeM) * 10;",
@@ -10,9 +9,6 @@
     "src/engine/single-shot.js: launchAngleDeg: (launchAngle * 180) / Math.PI",
     "src/engine/spotter-corrected.js: const sdMeters = probableErrorToSD(distanceMedianErrorPct / 100) * targetRange;",
     "src/engine/spotter-corrected.js: launchAngleDeg: (launchAngle * 180) / Math.PI",
-    "src/engine/stability.js: const KG_TO_GRAIN = 15432.358352941432;",
-    "src/engine/stability.js: const t = riflingTwistMm / (caliberM * 1000);",
-    "src/engine/trajectory-4dof.js: const magnitude = (2 * Math.PI * muzzleVelocity) / (riflingTwistMm / 1000);",
     "src/engine/trajectory-4dof.js: const speedSound = Math.sqrt(1.4 * 287.05 * (localTempC + 273.15));",
     "src/engine/trajectory-4dof.js: const windRad = (windAngle * Math.PI) / 180;",
     "src/engine/trajectory.js: const losAngle = (losAngleDeg * Math.PI) / 180;",

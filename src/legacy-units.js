@@ -8,13 +8,16 @@
 // The table is append-only and frozen in meaning: a row describes what a
 // field meant in data that already exists, which never changes, so a row
 // is never edited once released.
-import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent } from './quantity.js';
+import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm } from './quantity.js';
 
 // [stored name, in-memory name, stored → in-memory, in-memory → stored]
 const RENAMED_FIELDS = [
   ['pressureHpa', 'pressurePa', hpaToPa, paToHpa],
   ['humidityPct', 'humidity', percentToFraction, fractionToPercent],
-  ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa]
+  ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa],
+  // the active rifle in the gun cookie
+  ['sightHeight', 'sightHeightM', mmToM, mToMm],
+  ['riflingTwist', 'riflingTwistM', mmToM, mToMm]
 ];
 
 const BY_STORED = new Map(RENAMED_FIELDS.map(([stored, current, decode]) => [stored, { name: current, convert: decode }]));

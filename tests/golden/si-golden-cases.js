@@ -24,7 +24,7 @@ import {
   airDensity, speedOfSound, icaoStandardPressurePa, temperatureAtHeightDelta, pressureAtAltitude,
   standardAtmosphereAt, altitudeFromPressurePa
 } from '../../src/engine/atmosphere.js';
-import { hpaToPa, paToHpa, percentToFraction, fractionToPercent } from '../../src/quantity.js';
+import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm } from '../../src/quantity.js';
 import { computeMillerSg, canComputeStability } from '../../src/engine/stability.js';
 import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from '../../src/engine/spin-drift.js';
 import { computeSingleShot } from '../../src/engine/single-shot.js';
@@ -388,7 +388,9 @@ export async function generateInput(kind, rng) {
 const RENAMED_FIELDS = [
   ['pressureHpa', 'pressurePa', hpaToPa, paToHpa],
   ['humidityPct', 'humidity', percentToFraction, fractionToPercent],
-  ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa]
+  ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa],
+  ['sightHeight', 'sightHeightM', mmToM, mToMm],
+  ['riflingTwistMm', 'riflingTwistM', mmToM, mToMm]
 ];
 const TO_CURRENT = new Map(RENAMED_FIELDS.map(([legacy, current, forward]) => [legacy, [current, forward]]));
 const TO_LEGACY = new Map(RENAMED_FIELDS.map(([legacy, current, , back]) => [current, [legacy, back]]));

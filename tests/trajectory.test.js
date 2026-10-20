@@ -8,7 +8,7 @@ import { speedOfSound, temperatureAtHeightDelta } from '../src/engine/atmosphere
 
 const baseState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
-  maxRange: 1000, rangeStep: 100, zeroRange: 100, sightHeight: 50,
+  maxRange: 1000, rangeStep: 100, zeroRange: 100, sightHeightM: 0.05,
   windSpeed: 0, windAngle: 90,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };
@@ -122,9 +122,9 @@ test('zeroRange of 0 (or below) is treated as "no elevation correction": fire le
   assert.equal(launchAngleDeg, 0);
   for (const p of points) assert.ok(Number.isFinite(p.dropCm) && Number.isFinite(p.velocity));
 
-  // At the muzzle (range 0) the bore is sightHeight below the sight line,
-  // with no compensation applied — drop should be exactly -sightHeight.
-  assert.ok(Math.abs(points[0].dropCm - -baseState.sightHeight / 10) < 1e-6);
+  // At the muzzle (range 0) the bore is sightHeightM below the sight line,
+  // with no compensation applied — drop should be exactly -sightHeightM.
+  assert.ok(Math.abs(points[0].dropCm - -baseState.sightHeightM * 100) < 1e-6);
   // With no elevation and no wind, windage is exactly 0 throughout.
   for (const p of points) assert.equal(p.windageCm, 0);
   // Gravity is uncompensated, so drop only ever gets worse downrange.
@@ -368,7 +368,7 @@ const spinDriftState = {
   ...baseState,
   bc: 0.274, dragModel: 'G7', muzzleVelocity: 786.4,
   massKg: 0.0113, caliberM: 0.00778, lengthM: 0.035,
-  riflingTwistMm: 279.4, twistDirection: 'right',
+  riflingTwistM: 0.2794, twistDirection: 'right',
   zeroRange: 100, maxRange: 600, rangeStep: 100
 };
 

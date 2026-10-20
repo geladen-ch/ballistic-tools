@@ -5,7 +5,7 @@ const { comeUpEnvelope, comeUpPlausibility, velocityEnvelope, velocityPlausibili
 const { resolveMuzzleVelocity } = await import('../src/engine/trajectory.js');
 
 const STATE = {
-  dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48, zeroRange: 100, sightHeight: 50,
+  dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48, zeroRange: 100, sightHeightM: 0.05,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0
 };
 const ARGS = { state: STATE, rangeM: 600, r50Mrad: 0.14, mvSD: 6, certaintyKey: 'good', shots: 3, clickMrad: 0.1 };

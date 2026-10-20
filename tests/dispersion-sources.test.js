@@ -10,7 +10,7 @@ import { solveZeroAngle, computeImpact } from '../src/engine/trajectory.js';
 
 const baseState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
-  zeroRange: 100, sightHeight: 50,
+  zeroRange: 100, sightHeightM: 0.05,
   windSpeed: 0, windAngle: 90,
   tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };

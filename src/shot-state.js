@@ -18,13 +18,17 @@
 // save from there must not erase a windSpeed/windAngle a wind-aware view
 // stored earlier.
 import { getCookie, setCookie, removeCookie } from './cookies.js';
+import { decodeLegacy, encodeLegacy } from './legacy-units.js';
 
 const GUN_COOKIE_NAME = 'ballistics_gun_state_v1';
 
 function loadGunCookie() {
   try {
     const raw = getCookie(GUN_COOKIE_NAME);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      return { cartridge: decodeLegacy(stored.cartridge ?? null), rifle: decodeLegacy(stored.rifle ?? null) };
+    }
   } catch {
     // malformed cookie value — fall through to defaults
   }
@@ -33,7 +37,9 @@ function loadGunCookie() {
 
 function saveGunCookie() {
   try {
-    setCookie(GUN_COOKIE_NAME, JSON.stringify({ cartridge: cartridgeState, rifle: rifleState }));
+    // In memory in internal units; the cookie keeps the stored names and
+    // units (legacy-units.js).
+    setCookie(GUN_COOKIE_NAME, JSON.stringify({ cartridge: encodeLegacy(cartridgeState), rifle: encodeLegacy(rifleState) }));
   } catch {
     // best-effort — losing persistence isn't fatal
   }

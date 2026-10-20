@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from '../src/engine/spin-drift.js';
 
-const FULL_INPUTS = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistMm: 279.4 };
+const FULL_INPUTS = { massKg: 0.0109, caliberM: 0.00782, lengthM: 0.0305, muzzleVelocity: 807, riflingTwistM: 0.2794 };
 
 function driftInchesReference(sg, tofSec) {
   return 1.25 * (sg + 1.2) * tofSec ** 1.83;
