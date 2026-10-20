@@ -271,3 +271,10 @@ test('planImportBatch gives sequential, non-colliding copy names to two conflict
   assert.equal(result.bulletResults[0].resolved.record.name, 'Dup - copy (1)');
   assert.equal(result.bulletResults[1].resolved.record.name, 'Dup - copy (2)');
 });
+
+test('parseImportPayload refuses a file from a newer format version, with code "unsupported-version"', () => {
+  const file = (version) => JSON.stringify({ format: 'ebalka2-arsenal', version, bullets: [], rifles: [] });
+  assert.throws(() => parseImportPayload(file(2)), (err) => err.code === 'unsupported-version');
+  assert.deepEqual(parseImportPayload(file(1)), { bullets: [], rifles: [] });
+  assert.deepEqual(parseImportPayload(JSON.stringify({ format: 'ebalka2-arsenal', bullets: [], rifles: [] })), { bullets: [], rifles: [] }, 'no version: read as the oldest format');
+});

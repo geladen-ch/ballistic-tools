@@ -47,6 +47,13 @@ export function parseImportPayload(text) {
   if (!looksRight) {
     throw Object.assign(new Error('not a recognized Rifle Precision export'), { code: 'invalid-format' });
   }
+  // A file from a newer build may hold fields this build can't read
+  // correctly, so it is refused outright rather than half-imported. A file
+  // with no version at all (hand-edited, or from before the field existed)
+  // is read as the oldest format.
+  if (typeof payload.version === 'number' && payload.version > FILE_VERSION) {
+    throw Object.assign(new Error(`export format version ${payload.version} is newer than this build supports`), { code: 'unsupported-version' });
+  }
   return { projects: payload.projects };
 }
 

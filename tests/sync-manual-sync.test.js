@@ -10,7 +10,8 @@ const {
   exportOwnBundle, importPickedFiles, syncViaPickedFiles
 } = await import('../src/sync/manual-sync.js');
 const { buildBackupBundle, serializeBackupBundle } = await import('../src/sync/backup-bundle.js');
-const { getDeviceLabel } = await import('../src/sync/device-registry.js');
+const { getDeviceLabel, getPeerAppVersion } = await import('../src/sync/device-registry.js');
+const { RELEASE_ID } = await import('../src/version.js');
 const { listPendingReviews, resetPendingReviewForTests } = await import('../src/sync/pending-review.js');
 const { saveUserBullet, loadUserBullets, generateUserId } = await import('../src/user-library.js');
 const { resetLocationLibraryForTests } = await import('../src/location-library.js');
@@ -89,6 +90,16 @@ test('importPeerBundleText imports a new record and records the peer device', as
   assert.equal(loadUserBullets().length, 1);
   assert.equal(loadUserBullets()[0].name, 'Peer Bullet');
   assert.equal(getDeviceLabel('peer-device'), 'Peer Device');
+});
+
+test('importPeerBundleText records which app version wrote the peer\'s bundle', async () => {
+  localStorage.setItem('ballistics_device_id_v1', 'peer-device');
+  const peerBundleText = serializeBackupBundle(buildBackupBundle());
+  localStorage.clear();
+
+  localStorage.setItem('ballistics_device_id_v1', 'my-device');
+  await importPeerBundleText(peerBundleText);
+  assert.equal(getPeerAppVersion('peer-device'), RELEASE_ID);
 });
 
 test('importPeerBundleText records a pending review on diverged content', async () => {

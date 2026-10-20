@@ -552,6 +552,7 @@
     "importSummary": "{{saved}} importiert, {{skipped}} übersprungen.",
     "importFileErrorInvalidJson": "Diese Datei ist kein gültiges JSON.",
     "importFileErrorInvalidFormat": "Diese Datei ist kein erkannter Export der Standorte-Bibliothek.",
+    "importFileErrorNewerVersion": "Diese Datei wurde mit einer neueren Version der App gespeichert. Aktualisieren Sie die App und versuchen Sie es dann erneut.",
     "manageButtonLabel": "Standorte verwalten",
     "manualEntryOption": "Manuelle Eingabe",
     "photoPickerButtonLabel": "Ziel per Foto auswählen",
@@ -709,6 +710,7 @@
     "importSummary": "{{saved}} Eintrag/Einträge importiert, {{skipped}} übersprungen.",
     "importFileErrorInvalidJson": "Diese Datei ist kein gültiges JSON.",
     "importFileErrorInvalidFormat": "Diese Datei sieht nicht wie ein Präzisionsrechner-Export aus.",
+    "importFileErrorNewerVersion": "Diese Datei wurde mit einer neueren Version der App gespeichert. Aktualisieren Sie die App und versuchen Sie es dann erneut.",
     "resultsUnitsLabel": "Anzeigeeinheiten der Ergebnisse",
     "numbersHeading": "Zahlen",
     "numbersDescriptionHeader": "Beschreibung",
@@ -1424,6 +1426,7 @@
     "importConflictBadge": "Konflikt — {{comparison}}",
     "importFileErrorInvalidJson": "Diese Datei ist kein gültiges JSON.",
     "importFileErrorInvalidFormat": "Diese Datei sieht nicht wie ein Arsenal-Export aus.",
+    "importFileErrorNewerVersion": "Diese Datei wurde mit einer neueren Version der App gespeichert. Aktualisieren Sie die App und versuchen Sie es dann erneut.",
     "importSummary": "{{saved}} Eintrag/Einträge importiert, {{skipped}} übersprungen."
   },
   "stability": {

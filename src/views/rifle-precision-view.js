@@ -207,7 +207,9 @@ export function mount(container) {
       importErrorKey = null;
     } catch (err) {
       importState = null;
-      importErrorKey = err.code === 'invalid-json' ? 'riflePrecision.importFileErrorInvalidJson' : 'riflePrecision.importFileErrorInvalidFormat';
+      importErrorKey = err.code === 'invalid-json' ? 'riflePrecision.importFileErrorInvalidJson'
+        : err.code === 'unsupported-version' ? 'riflePrecision.importFileErrorNewerVersion'
+          : 'riflePrecision.importFileErrorInvalidFormat';
     }
     importSummary = null;
     renderImportArea();

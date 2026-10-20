@@ -2085,6 +2085,18 @@ test('picking well-formed JSON that isn\'t an Arsenal export shows the "wrong fo
   assert.ok(container.textContent.includes(t('arsenal.importFileErrorInvalidFormat')));
 });
 
+test('picking an export from a newer format version shows the "newer version" error', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+
+  const input = findByTag(container, 'INPUT').find((n) => n.attributes.type === 'file');
+  input.files = [new Blob([JSON.stringify({ format: 'ebalka2-arsenal', version: 99, bullets: [], rifles: [] })], { type: 'application/json' })];
+  fireEvent(input, 'change');
+  await settle();
+
+  assert.ok(container.textContent.includes(t('arsenal.importFileErrorNewerVersion')));
+});
+
 test('importing a new bullet and rifle (no conflicts) adds them to the library, unsaved, with modifiedAt preserved from the file', async () => {
   const container = makeElement('main');
   arsenalView.mount(container);

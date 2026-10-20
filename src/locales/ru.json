@@ -552,6 +552,7 @@
     "importSummary": "Импортировано: {{saved}}, пропущено: {{skipped}}.",
     "importFileErrorInvalidJson": "Этот файл не является корректным JSON.",
     "importFileErrorInvalidFormat": "Этот файл не распознан как экспорт библиотеки мест.",
+    "importFileErrorNewerVersion": "Этот файл сохранён более новой версией приложения. Обновите приложение и попробуйте снова.",
     "manageButtonLabel": "Управление местами",
     "manualEntryOption": "Ручной ввод",
     "photoPickerButtonLabel": "Выбрать цель по фото",
@@ -709,6 +710,7 @@
     "importSummary": "Импортировано элементов: {{saved}}, пропущено: {{skipped}}.",
     "importFileErrorInvalidJson": "Этот файл не является корректным JSON.",
     "importFileErrorInvalidFormat": "Этот файл не похож на экспорт Целкометра.",
+    "importFileErrorNewerVersion": "Этот файл сохранён более новой версией приложения. Обновите приложение и попробуйте снова.",
     "resultsUnitsLabel": "Единицы отображения результатов",
     "numbersHeading": "Показатели",
     "numbersDescriptionHeader": "Описание",
@@ -1426,6 +1428,7 @@
     "importConflictBadge": "Конфликт — {{comparison}}",
     "importFileErrorInvalidJson": "Этот файл не является корректным JSON.",
     "importFileErrorInvalidFormat": "Этот файл не похож на экспорт Арсенала.",
+    "importFileErrorNewerVersion": "Этот файл сохранён более новой версией приложения. Обновите приложение и попробуйте снова.",
     "importSummary": "Импортировано элементов: {{saved}}, пропущено: {{skipped}}."
   },
   "stability": {

@@ -552,6 +552,7 @@
     "importSummary": "Imported {{saved}}, skipped {{skipped}}.",
     "importFileErrorInvalidJson": "That file isn't valid JSON.",
     "importFileErrorInvalidFormat": "That file isn't a recognized Locations library export.",
+    "importFileErrorNewerVersion": "That file was saved by a newer version of this app. Update the app, then try again.",
     "manageButtonLabel": "Manage locations",
     "manualEntryOption": "Manual entry",
     "photoPickerButtonLabel": "Pick target from photo",
@@ -709,6 +710,7 @@
     "importSummary": "{{saved}} item(s) imported, {{skipped}} skipped.",
     "importFileErrorInvalidJson": "That file isn't valid JSON.",
     "importFileErrorInvalidFormat": "That file doesn't look like a Rifle Precision export.",
+    "importFileErrorNewerVersion": "That file was saved by a newer version of this app. Update the app, then try again.",
     "resultsUnitsLabel": "Results display units",
     "numbersHeading": "Numbers",
     "numbersDescriptionHeader": "Description",
@@ -1424,6 +1426,7 @@
     "importConflictBadge": "Conflict — {{comparison}}",
     "importFileErrorInvalidJson": "That file isn't valid JSON.",
     "importFileErrorInvalidFormat": "That file doesn't look like an Arsenal export.",
+    "importFileErrorNewerVersion": "That file was saved by a newer version of this app. Update the app, then try again.",
     "importSummary": "{{saved}} item(s) imported, {{skipped}} skipped."
   },
   "stability": {

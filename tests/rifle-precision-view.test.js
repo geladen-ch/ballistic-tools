@@ -719,6 +719,18 @@ test('picking well-formed JSON that isn\'t a Rifle Precision export shows the "w
   assert.ok(container.textContent.includes(t('riflePrecision.importFileErrorInvalidFormat')));
 });
 
+test('picking an export from a newer format version shows the "newer version" error', async () => {
+  const container = makeElement('main');
+  riflePrecisionView.mount(container);
+
+  const input = findByTag(container, 'INPUT').find((n) => n.attributes.type === 'file');
+  input.files = [new Blob([JSON.stringify({ format: 'ebalka2-rifle-precision', version: 99, projects: [] })], { type: 'application/json' })];
+  fireEvent(input, 'change');
+  await settle();
+
+  assert.ok(container.textContent.includes(t('riflePrecision.importFileErrorNewerVersion')));
+});
+
 test('importing a new project (no conflicts) adds it to the library, unsaved, with modifiedAt/createdAt preserved from the file', async () => {
   const container = makeElement('main');
   riflePrecisionView.mount(container);

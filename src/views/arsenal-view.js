@@ -1396,7 +1396,9 @@ export function mount(container) {
       importErrorKey = null;
     } catch (err) {
       importState = null;
-      importErrorKey = err.code === 'invalid-json' ? 'arsenal.importFileErrorInvalidJson' : 'arsenal.importFileErrorInvalidFormat';
+      importErrorKey = err.code === 'invalid-json' ? 'arsenal.importFileErrorInvalidJson'
+        : err.code === 'unsupported-version' ? 'arsenal.importFileErrorNewerVersion'
+          : 'arsenal.importFileErrorInvalidFormat';
     }
     importSummary = null;
     renderImportArea();

@@ -593,7 +593,9 @@ export function mount(container) {
       importErrorKey = null;
     } catch (err) {
       importState = null;
-      importErrorKey = err.code === 'invalid-json' ? 'rangeSolverLocations.importFileErrorInvalidJson' : 'rangeSolverLocations.importFileErrorInvalidFormat';
+      importErrorKey = err.code === 'invalid-json' ? 'rangeSolverLocations.importFileErrorInvalidJson'
+        : err.code === 'unsupported-version' ? 'rangeSolverLocations.importFileErrorNewerVersion'
+          : 'rangeSolverLocations.importFileErrorInvalidFormat';
     }
     importSummary = null;
     renderImportArea();

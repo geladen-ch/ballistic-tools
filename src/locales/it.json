@@ -552,6 +552,7 @@
     "importSummary": "{{saved}} importati, {{skipped}} saltati.",
     "importFileErrorInvalidJson": "Questo file non è JSON valido.",
     "importFileErrorInvalidFormat": "Questo file non è un export riconosciuto della libreria delle postazioni.",
+    "importFileErrorNewerVersion": "Questo file è stato salvato da una versione più recente dell'app. Aggiorna l'app, poi riprova.",
     "manageButtonLabel": "Gestisci postazioni",
     "manualEntryOption": "Inserimento manuale",
     "photoPickerButtonLabel": "Scegli bersaglio dalla foto",
@@ -709,6 +710,7 @@
     "importSummary": "{{saved}} elemento/i importati, {{skipped}} saltati.",
     "importFileErrorInvalidJson": "Questo file non è un JSON valido.",
     "importFileErrorInvalidFormat": "Questo file non sembra un export del Calcolatore di precisione.",
+    "importFileErrorNewerVersion": "Questo file è stato salvato da una versione più recente dell'app. Aggiorna l'app, poi riprova.",
     "resultsUnitsLabel": "Unità di visualizzazione dei risultati",
     "numbersHeading": "Numeri",
     "numbersDescriptionHeader": "Descrizione",
@@ -1424,6 +1426,7 @@
     "importConflictBadge": "Conflitto — {{comparison}}",
     "importFileErrorInvalidJson": "Questo file non è un JSON valido.",
     "importFileErrorInvalidFormat": "Questo file non sembra un export dell'Arsenale.",
+    "importFileErrorNewerVersion": "Questo file è stato salvato da una versione più recente dell'app. Aggiorna l'app, poi riprova.",
     "importSummary": "{{saved}} elemento/i importati, {{skipped}} saltati."
   },
   "stability": {

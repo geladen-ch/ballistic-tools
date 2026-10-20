@@ -16,6 +16,7 @@ const { getDeviceId } = await import('../src/sync/device-id.js');
 const { getDeviceName } = await import('../src/sync/device-name.js');
 const { buildBackupBundle, serializeBackupBundle, parseBackupBundle, backupFileName } =
   await import('../src/sync/backup-bundle.js');
+const { RELEASE_ID } = await import('../src/version.js');
 
 test.beforeEach(async () => {
   localStorage.clear();
@@ -136,4 +137,14 @@ test('the bundle strips the local-only `unsaved` flag from every library, but ke
   const tomb = bundle.arsenal.bullets.find((b) => b.id === bulletId);
   assert.ok(tomb.deletedAt && tomb.deletedBy);
   assert.equal(tomb.revision, 2, 'the deletion is its own local write, one more than the create it replaced');
+});
+
+test('buildBackupBundle stamps the device block with the build\'s own release id', () => {
+  assert.equal(buildBackupBundle().device.appVersion, RELEASE_ID);
+});
+
+test('parseBackupBundle still accepts a bundle from a build that predates device.appVersion', () => {
+  const bundle = buildBackupBundle();
+  delete bundle.device.appVersion;
+  assert.equal(parseBackupBundle(JSON.stringify(bundle)).device.appVersion, undefined);
 });

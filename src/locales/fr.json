@@ -552,6 +552,7 @@
     "importSummary": "{{saved}} importé(s), {{skipped}} ignoré(s).",
     "importFileErrorInvalidJson": "Ce fichier n'est pas un JSON valide.",
     "importFileErrorInvalidFormat": "Ce fichier n'est pas un export reconnu de la bibliothèque d'emplacements.",
+    "importFileErrorNewerVersion": "Ce fichier a été enregistré par une version plus récente de l'application. Mettez l'application à jour, puis réessayez.",
     "manageButtonLabel": "Gérer les emplacements",
     "manualEntryOption": "Saisie manuelle",
     "photoPickerButtonLabel": "Choisir la cible sur la photo",
@@ -709,6 +710,7 @@
     "importSummary": "{{saved}} élément(s) importé(s), {{skipped}} ignoré(s).",
     "importFileErrorInvalidJson": "Ce fichier n'est pas un JSON valide.",
     "importFileErrorInvalidFormat": "Ce fichier ne ressemble pas à un export de la Calculette de précision.",
+    "importFileErrorNewerVersion": "Ce fichier a été enregistré par une version plus récente de l'application. Mettez l'application à jour, puis réessayez.",
     "resultsUnitsLabel": "Unités d'affichage des résultats",
     "numbersHeading": "Chiffres",
     "numbersDescriptionHeader": "Description",
@@ -1424,6 +1426,7 @@
     "importConflictBadge": "Conflit — {{comparison}}",
     "importFileErrorInvalidJson": "Ce fichier n'est pas un JSON valide.",
     "importFileErrorInvalidFormat": "Ce fichier ne ressemble pas à un export de l'Arsenal.",
+    "importFileErrorNewerVersion": "Ce fichier a été enregistré par une version plus récente de l'application. Mettez l'application à jour, puis réessayez.",
     "importSummary": "{{saved}} élément(s) importé(s), {{skipped}} ignoré(s)."
   },
   "stability": {

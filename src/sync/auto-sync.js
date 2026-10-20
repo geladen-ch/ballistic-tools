@@ -10,7 +10,7 @@ import { buildBackupBundle, serializeBackupBundle, parseBackupBundle, backupFile
 import { getDeviceId } from './device-id.js';
 import { selectLatestPerDevice } from './duplicate-bundles.js';
 import {
-  recordPeerDevice, getPeerExportedAt, recordPeerExportedAtSeen,
+  recordPeerDevice, getPeerExportedAt, recordPeerExportedAtSeen, recordPeerAppVersionSeen,
   mergeDeviceTombstones, classifyDeletedPeerBundle
 } from './device-registry.js';
 import { mergeRecords, detectFutureExport, detectBackwardExport } from './merge.js';
@@ -333,6 +333,7 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
       const futureMs = detectFutureExport(bundle.exportedAt);
       const backwardMs = detectBackwardExport(bundle.exportedAt, previousExportedAt);
       recordPeerExportedAtSeen(bundle.device.id, bundle.exportedAt);
+      recordPeerAppVersionSeen(bundle.device.id, bundle.device.appVersion);
       if (futureMs !== null || backwardMs !== null) {
         const detail = futureMs !== null ? `future by ${futureMs}ms` : `jumped backward by ${backwardMs}ms`;
         logSyncEvent('debug', 'sync: clock anomaly detected for', peerLabel, `(${detail})`);

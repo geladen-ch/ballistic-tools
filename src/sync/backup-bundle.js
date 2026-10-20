@@ -17,6 +17,7 @@ import { loadRiflePrecisionProjectsWithTombstones } from '../rifle-precision-lib
 import { getDeviceId } from './device-id.js';
 import { ensureDeviceNameRecord } from './device-name.js';
 import { getDeviceTombstones } from './device-registry.js';
+import { RELEASE_ID } from '../version.js';
 
 const FILE_FORMAT = 'ebalka2-backup';
 const FILE_VERSION = 1;
@@ -70,7 +71,11 @@ export function buildBackupBundle() {
     // Deliberately no separate top-level deviceId alongside device.id —
     // two fields carrying the same value invites divergence; device.id is
     // the single source of truth, and the filename is derived from it.
-    device: { id: getDeviceId(), name, modifiedAt },
+    // appVersion: the build that wrote this bundle, so peers can tell when
+    // every device can read a newer record format (see device-registry.js's
+    // recordPeerAppVersionSeen). Optional and additive, like devicesDeleted
+    // below.
+    device: { id: getDeviceId(), name, modifiedAt, appVersion: RELEASE_ID },
     exportedAt: new Date().toISOString(),
     // Device deletions this device knows about, so a machine retired on
     // one device disappears from every device's list rather than only the

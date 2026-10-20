@@ -1,6 +1,6 @@
 // A local, persisted cache of every peer device this installation has ever
 // seen a `device` block from in a synced bundle (Phase 3) —
-// `{ [deviceId]: { name, modifiedAt, lastExportedAt?, deletedUpTo? } }`. Populated
+// `{ [deviceId]: { name, modifiedAt, lastExportedAt?, lastAppVersion?, deletedUpTo? } }`. Populated
 // opportunistically as runSyncCycle() (Phase 5) reads each peer's
 // backup-*.json file each cycle; survives even if that peer's bundle file
 // is later removed from the folder. This registry — not the bundle — is
@@ -110,6 +110,27 @@ export function recordPeerExportedAtSeen(deviceId, exportedAt) {
     logSyncEvent('info', 'device tombstone cleared, it published again:', deviceId);
   }
   registry[deviceId] = entry;
+  save(registry);
+}
+
+// The app version (RELEASE_ID) a peer's most recently admitted bundle was
+// written by — what lets a format change wait until every peer can read
+// the new format before this device stops writing the old one. Same
+// cadence and "always overwrite with what was just read" rule as
+// lastExportedAt above, including null when the bundle carries no version:
+// a peer that rolls back to a build from before the field existed must
+// read as old again, not keep its last newer version.
+export function getPeerAppVersion(deviceId) {
+  const entry = load()[deviceId];
+  return (entry && entry.lastAppVersion) || null;
+}
+
+export function recordPeerAppVersionSeen(deviceId, appVersion) {
+  if (!deviceId) return;
+  const registry = load();
+  if (!registry[deviceId]) return; // only ever annotates an entry recordPeerExportedAtSeen() already made
+  const { lastAppVersion: _previous, ...rest } = registry[deviceId];
+  registry[deviceId] = typeof appVersion === 'string' && appVersion ? { ...rest, lastAppVersion: appVersion } : rest;
   save(registry);
 }
 

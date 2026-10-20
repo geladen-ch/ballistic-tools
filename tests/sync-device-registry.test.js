@@ -6,7 +6,7 @@ installFakeDom();
 
 const {
   recordPeerDevice, getKnownDevices, getDeviceLabel, forgetDevice,
-  getPeerExportedAt, recordPeerExportedAtSeen
+  getPeerExportedAt, recordPeerExportedAtSeen, getPeerAppVersion, recordPeerAppVersionSeen
 } = await import('../src/sync/device-registry.js');
 
 test('recordPeerDevice adds a new device, readable by getDeviceLabel', () => {
@@ -88,4 +88,32 @@ test('regression: recordPeerDevice still un-forgets a retired device even with l
 
   recordPeerDevice({ id: 'dev-1', name: 'Retired', modifiedAt: '2022-01-01T00:00:00.000Z' });
   assert.equal(getDeviceLabel('dev-1'), 'Retired', 'still un-forgets on a real, fresh sighting');
+});
+
+test('recordPeerAppVersionSeen keeps the version of the peer\'s latest bundle, overwriting either way', () => {
+  localStorage.clear();
+  recordPeerExportedAtSeen('dev-1', '2026-10-01T00:00:00.000Z');
+  recordPeerAppVersionSeen('dev-1', '4.3.0');
+  assert.equal(getPeerAppVersion('dev-1'), '4.3.0');
+  recordPeerAppVersionSeen('dev-1', '4.2.3');
+  assert.equal(getPeerAppVersion('dev-1'), '4.2.3', 'a rollback is recorded too, not just upgrades');
+});
+
+test('recordPeerAppVersionSeen clears the version when a bundle carries none (a peer back on a build from before the field)', () => {
+  localStorage.clear();
+  recordPeerExportedAtSeen('dev-1', '2026-10-01T00:00:00.000Z');
+  recordPeerAppVersionSeen('dev-1', '4.3.0');
+  recordPeerAppVersionSeen('dev-1', undefined);
+  assert.equal(getPeerAppVersion('dev-1'), null);
+  assert.equal(getPeerExportedAt('dev-1'), '2026-10-01T00:00:00.000Z', 'the rest of the entry is untouched');
+});
+
+test('recordPeerAppVersionSeen never creates an entry on its own, and survives a later name update', () => {
+  localStorage.clear();
+  recordPeerAppVersionSeen('dev-unknown', '4.3.0');
+  assert.deepEqual(getKnownDevices(), {});
+  recordPeerExportedAtSeen('dev-1', '2026-10-01T00:00:00.000Z');
+  recordPeerAppVersionSeen('dev-1', '4.3.0');
+  recordPeerDevice({ id: 'dev-1', name: 'Renamed', modifiedAt: '2026-10-02T00:00:00.000Z' });
+  assert.equal(getPeerAppVersion('dev-1'), '4.3.0');
 });

@@ -163,3 +163,10 @@ test('resolveImportItem carries a location\'s nested targets through untouched',
   );
   assert.deepEqual(result.record.targets, targets);
 });
+
+test('parseImportPayload refuses a file from a newer format version, with code "unsupported-version"', () => {
+  const file = (version) => JSON.stringify({ format: 'ebalka2-locations', version, locations: [] });
+  assert.throws(() => parseImportPayload(file(2)), (err) => err.code === 'unsupported-version');
+  assert.deepEqual(parseImportPayload(file(1)), { locations: [] });
+  assert.deepEqual(parseImportPayload(JSON.stringify({ format: 'ebalka2-locations', locations: [] })), { locations: [] }, 'no version: read as the oldest format');
+});
