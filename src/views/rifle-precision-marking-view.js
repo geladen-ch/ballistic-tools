@@ -53,13 +53,14 @@ import {
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
 } from '../ui/rifle-precision/marker-style.js';
 import { exportGroupOverviewImage } from '../rifle-precision-photo-export.js';
+import { mmToM } from '../quantity.js';
 
 const smallLengthChoice = () => displayChoice('smallLength');
 const smallLengthDecimals = fineLengthDecimals;
 
 // Used for the extreme-spread line's own legend.
-function formatLengthMm(valueMm) {
-  return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
+function formatLength(valueM) {
+  return formatQuantity('smallLength', valueM, { decimals: fineLengthDecimals });
 }
 
 // The calibration length round-trip: stored on the target in millimetres
@@ -283,7 +284,7 @@ export function mount(container) {
 
   // A plain circle sized to the rifle's own caliber, not a fixed on-screen
   // size — see .rp-impact-marker's own CSS comment for the full reasoning.
-  // `scale` (px/mm, computeScale(t2)) and `caliberMm` are both guaranteed
+  // `scale` (px/m, computeScale(t2)) and `caliberMm` are both guaranteed
   // by the time shots are ever placed: calibration always completes
   // before 'shot' mode is reachable (see initialMode()), and caliberMm is
   // a required field on every saved project (project-form.js's own
@@ -326,7 +327,7 @@ export function mount(container) {
     const scale = computeScale(t2);
     const caliberMm = project.caliberMm;
     if (scale && caliberMm > 0) {
-      const diameterPx = caliberMm * scale;
+      const diameterPx = mmToM(caliberMm) * scale;
       marker.style.width = `${(diameterPx / t2.photoWidth) * 100}%`;
       marker.style.height = `${(diameterPx / t2.photoHeight) * 100}%`;
     } else {
@@ -384,7 +385,7 @@ export function mount(container) {
     // marker rendered before renderGroupOverlay() is ever called (see
     // renderActiveAndReferenceGroups() below), so it reads clearly
     // regardless of what else is under it.
-    const label = el('div', { class: 'rp-extreme-spread-length-label', text: `${t('riflePrecision.esLabel')} ${formatLengthMm(stats.extremeSpreadMm)}` });
+    const label = el('div', { class: 'rp-extreme-spread-length-label', text: `${t('riflePrecision.esLabel')} ${formatLength(stats.extremeSpreadM)}` });
     positionAt(label, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
     viewport.markersLayer.appendChild(label);
   }
@@ -622,7 +623,7 @@ export function mount(container) {
     if (!activeGroup) return;
     const groupIndex = t2.groups.findIndex((g) => g.id === activeGroupId);
     const stats = computeGroupStats(activeGroup, t2);
-    const extremeSpreadLabelText = stats ? `${t('riflePrecision.esLabel')} ${formatLengthMm(stats.extremeSpreadMm)}` : null;
+    const extremeSpreadLabelText = stats ? `${t('riflePrecision.esLabel')} ${formatLength(stats.extremeSpreadM)}` : null;
     const calibrationLabelText = t2.calibration && t2.calibration.realLengthMm
       ? formatCalibrationLength(calibrationLengthToDisplay(t2.calibration.realLengthMm))
       : null;

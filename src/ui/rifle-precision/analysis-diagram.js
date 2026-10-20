@@ -6,8 +6,10 @@
 // legacy's synth-pane.js (a scatter of pooled shots plus overlay circles
 // around the pooled POI) but as a fresh, composable element-tree builder,
 // not a byte-for-byte port — legacy's own drawing code is canvas-based and
-// pixel-space, this is SVG and millimetre-space (pooledShots/poiMm are
-// already in mm, POA-relative — see rifle-precision-stats.js).
+// pixel-space, this is SVG and millimetre-space: one SVG unit is one
+// millimetre. The statistics and options come in metres, POA-relative (see
+// rifle-precision-stats.js), and are turned into that drawing space once,
+// by drawingInMm() below.
 //
 // Colors are hardcoded hex (not CSS custom properties) on purpose: the
 // exported .svg file has no stylesheet of its own, so anything driven by
@@ -22,6 +24,7 @@ import {
 } from '../../hit-probability-prefs.js';
 import { wrapText, estimateTextWidth } from './svg-text-wrap.js';
 import { buildConfidenceGaugeSvg, GAUGE_TITLE_SIZE, GAUGE_BLOCK_H, GAUGE_WIDGET_W } from './confidence-gauge-svg.js';
+import { mToMm } from '../../quantity.js';
 
 export { wrapText, estimateTextWidth };
 
@@ -213,7 +216,30 @@ function scaleBar(poiMm, half, strokeWidth) {
 // cloneNode, and reparenting the live on-page node would blank the
 // screen) renders pixel-for-pixel the same content as the on-page one,
 // from the same drawing code, rather than a second hand-kept copy.
-function renderDiagramContent(svg, stats, options = {}) {
+// The combined statistics and drawing options (metres) as the drawing's
+// own millimetre-space copy, under the names the drawing code uses.
+function drawingInMm(stats, options) {
+  const mm = (m) => (m == null ? m : mToMm(m));
+  return {
+    stats: {
+      ...stats,
+      poiMm: { x: mm(stats.poiM.x), y: mm(stats.poiM.y) },
+      poiCiMm: { x: mm(stats.poiCiM.x), y: mm(stats.poiCiM.y) },
+      pooledShots: stats.pooledShots.map((p) => ({ ...p, xMm: mm(p.xM), yMm: mm(p.yM) })),
+      sigma: mm(stats.sigma), r50: mm(stats.r50), r95: mm(stats.r95), r99: mm(stats.r99),
+      r95LowerBound: mm(stats.r95LowerBound), r95UpperBound: mm(stats.r95UpperBound)
+    },
+    options: {
+      ...options,
+      hitProbabilityRadiusMm: mm(options.hitProbabilityRadiusM), oneMoaRadiusMm: mm(options.oneMoaRadiusM),
+      caliberMm: mm(options.caliberM), gridSpacingMm: mm(options.gridSpacingM),
+      d5xMm: mm(options.d5xM), d10xMm: mm(options.d10xM)
+    }
+  };
+}
+
+function renderDiagramContent(svg, statsM, optionsM = {}) {
+  const { stats, options } = drawingInMm(statsM, optionsM);
   const {
     showSigma, showR50, showR99, hitProbabilityRadiusMm, oneMoaRadiusMm = 0,
     impactsToScale = false, caliberMm = 0, gridSpacingMm = 0, showScale = false,

@@ -30,16 +30,16 @@ function findByTag(node, tag, out = []) {
 
 function makeStats() {
   return {
-    poiMm: { x: 1, y: -1 },
-    poiCiMm: { x: 0.3, y: 0.4 },
-    sigma: 10, r50: 12, r95: 25, r95LowerBound: 20, r95UpperBound: 32, r99: 30,
-    pooledShots: [{ xMm: 0, yMm: 0 }, { xMm: 2, yMm: 1 }, { xMm: -1, yMm: 3 }]
+    poiM: { x: 0.001, y: -0.001 },
+    poiCiM: { x: 0.0003, y: 0.0004 },
+    sigma: 0.01, r50: 0.012, r95: 0.025, r95LowerBound: 0.02, r95UpperBound: 0.032, r99: 0.03,
+    pooledShots: [{ xM: 0, yM: 0 }, { xM: 0.002, yM: 0.001 }, { xM: -0.001, yM: 0.003 }]
   };
 }
 
 test('buildStandaloneDiagramSvg renders the same permanent + optional content as analysisDiagram()\'s own live update() for identical stats/options', () => {
   const stats = makeStats();
-  const options = { showSigma: true, showR50: true, showR99: true, showEs5x: true, showEs10x: true, d5xMm: 40, d10xMm: 50 };
+  const options = { showSigma: true, showR50: true, showR99: true, showEs5x: true, showEs10x: true, d5xM: 0.04, d10xM: 0.05 };
 
   const live = analysisDiagram();
   live.update(stats, options);
@@ -73,13 +73,13 @@ test('buildStandaloneDiagramSvg adds a white background rect behind the graphics
 
 test('ES5x/ES10x circles only render when their own toggle is on and the value is positive, with radius = value / 2', () => {
   const stats = makeStats();
-  const svg = buildStandaloneDiagramSvg(stats, { showEs5x: true, showEs10x: true, d5xMm: 40, d10xMm: 50 });
+  const svg = buildStandaloneDiagramSvg(stats, { showEs5x: true, showEs10x: true, d5xM: 0.04, d10xM: 0.05 });
   const es5x = findByAttr(svg, 'data-role', 'es5x-circle')[0];
   const es10x = findByAttr(svg, 'data-role', 'es10x-circle')[0];
   assert.equal(Number(es5x.getAttribute('r')), 20);
   assert.equal(Number(es10x.getAttribute('r')), 25);
 
-  const svgOff = buildStandaloneDiagramSvg(stats, { showEs5x: false, showEs10x: false, d5xMm: 40, d10xMm: 50 });
+  const svgOff = buildStandaloneDiagramSvg(stats, { showEs5x: false, showEs10x: false, d5xM: 0.04, d10xM: 0.05 });
   assert.equal(findByAttr(svgOff, 'data-role', 'es5x-circle').length, 0);
   assert.equal(findByAttr(svgOff, 'data-role', 'es10x-circle').length, 0);
 });
@@ -215,7 +215,7 @@ test('buildExportSvgWithLegend stacks a wrapped row\'s swatch with its first lin
 test('each impact is drawn in the user\'s own Settings impact color, behind the shared white/dark edge', () => {
   setImpactColor('amber');
   const stats = makeStats();
-  const svg = buildStandaloneDiagramSvg(stats, { impactsToScale: true, caliberMm: 6 });
+  const svg = buildStandaloneDiagramSvg(stats, { impactsToScale: true, caliberM: 0.006 });
 
   const fills = findByAttr(svg, 'data-role', 'pooled-shot');
   assert.equal(fills.length, stats.pooledShots.length, 'still exactly one "pooled-shot" node per shot');

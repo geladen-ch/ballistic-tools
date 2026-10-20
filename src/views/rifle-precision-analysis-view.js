@@ -14,9 +14,9 @@ import { el, clear } from '../dom.js';
 import { t } from '../i18n.js';
 import { findRiflePrecisionProjectById } from '../rifle-precision-library.js';
 import { getActiveProjectId } from '../rifle-precision-nav.js';
-import { computeCombinedStats, mmToAngularUnit, oneMoaWidthMm, oneMradWidthMm, toShooterFrame } from '../engine/rifle-precision-stats.js';
-import { displayChoice, toDisplayUnit, formatQuantity, fineLengthDecimals } from '../display-units.js';
-import { fractionToPercent } from '../quantity.js';
+import { computeCombinedStats, linearToAngularUnit, oneMoaWidthM, oneMradWidthM, toShooterFrame } from '../engine/rifle-precision-stats.js';
+import { displayChoice, toDisplayUnit, formatQuantity, fineLengthDecimals, toFixedDisplay } from '../display-units.js';
+import { fractionToPercent, mmToM } from '../quantity.js';
 import { analysisDiagram, buildStandaloneDiagramSvg, buildExportSvgWithLegend } from '../ui/rifle-precision/analysis-diagram.js';
 import { confidenceOMeter } from '../ui/rifle-precision/confidence-o-meter.js';
 import { hitProbabilitySlider } from '../ui/rifle-precision/hit-probability-slider.js';
@@ -35,20 +35,24 @@ import { downloadButton } from '../ui/download-button.js';
 function formatDistance(distanceM) {
   return formatQuantity('distance', distanceM);
 }
-function formatLengthMm(valueMm) {
+function formatLength(valueM) {
+  return formatQuantity('smallLength', valueM, { decimals: fineLengthDecimals });
+}
+// The project record keeps its caliber in mm.
+function formatCaliberMm(valueMm) {
   return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
 }
 
 // The diagram's optional reference grid — each option's real-world
-// spacing (mm) depends on the project's own distanceM (mrad/MOA are
-// angular units), so spacingMm() is computed at selection time, not
+// spacing (m) depends on the project's own distanceM (mrad/MOA are
+// angular units), so spacingM() is computed at selection time, not
 // baked into a fixed table here.
 const GRID_OPTIONS = [
-  { value: 'none', labelKey: 'riflePrecision.gridOffLabel', spacingMm: () => 0 },
-  { value: 'mrad-0.1', labelKey: 'riflePrecision.gridOption01MradLabel', spacingMm: (rangeM) => oneMradWidthMm(rangeM) * 0.1 },
-  { value: 'mrad-0.05', labelKey: 'riflePrecision.gridOption005MradLabel', spacingMm: (rangeM) => oneMradWidthMm(rangeM) * 0.05 },
-  { value: 'moa-0.25', labelKey: 'riflePrecision.gridOptionQuarterMoaLabel', spacingMm: (rangeM) => oneMoaWidthMm(rangeM) * 0.25 },
-  { value: 'moa-0.125', labelKey: 'riflePrecision.gridOptionEighthMoaLabel', spacingMm: (rangeM) => oneMoaWidthMm(rangeM) * 0.125 }
+  { value: 'none', labelKey: 'riflePrecision.gridOffLabel', spacingM: () => 0 },
+  { value: 'mrad-0.1', labelKey: 'riflePrecision.gridOption01MradLabel', spacingM: (rangeM) => oneMradWidthM(rangeM) * 0.1 },
+  { value: 'mrad-0.05', labelKey: 'riflePrecision.gridOption005MradLabel', spacingM: (rangeM) => oneMradWidthM(rangeM) * 0.05 },
+  { value: 'moa-0.25', labelKey: 'riflePrecision.gridOptionQuarterMoaLabel', spacingM: (rangeM) => oneMoaWidthM(rangeM) * 0.25 },
+  { value: 'moa-0.125', labelKey: 'riflePrecision.gridOptionEighthMoaLabel', spacingM: (rangeM) => oneMoaWidthM(rangeM) * 0.125 }
 ];
 
 // Lowercase-and-underscore project name for a download filename, falling
@@ -89,7 +93,7 @@ export function mount(container) {
   }
   const subheading = el('p', {
     class: 'hint',
-    text: `${formatDistance(project.distanceM)}, ${formatLengthMm(project.caliberMm)}, ${shotCountText()}`
+    text: `${formatDistance(project.distanceM)}, ${formatCaliberMm(project.caliberMm)}, ${shotCountText()}`
   });
 
   // Restored once at mount — every report input setting below is
@@ -103,10 +107,10 @@ export function mount(container) {
   let resultsUnitMode = saved.resultsUnitMode ?? 'absolute';
   const absoluteChoice = displayChoice('smallLength');
 
-  function formatResultValue(valueMm) {
-    if (resultsUnitMode === 'mrad') return `${mmToAngularUnit(valueMm, 'mrad', project.distanceM).toFixed(3)} mrad`;
-    if (resultsUnitMode === 'moa') return `${mmToAngularUnit(valueMm, 'arcmin', project.distanceM).toFixed(2)} MOA`;
-    return formatLengthMm(valueMm);
+  function formatResultValue(valueM) {
+    if (resultsUnitMode === 'mrad') return `${toFixedDisplay(linearToAngularUnit(valueM, 'mrad', project.distanceM), 3)} mrad`;
+    if (resultsUnitMode === 'moa') return `${toFixedDisplay(linearToAngularUnit(valueM, 'arcmin', project.distanceM), 2)} MOA`;
+    return formatLength(valueM);
   }
 
   function confidenceIntervalText() {
@@ -141,9 +145,9 @@ export function mount(container) {
   let showScale = saved.showScale ?? false;
   let includeLegendInExport = saved.includeLegendInExport ?? true;
   let hitProbabilityPercent = saved.hitProbabilityPercent ?? 0;
-  let hitProbabilityRadiusMm = 0;
+  let hitProbabilityRadiusM = 0;
   let gridValue = saved.gridValue ?? 'none';
-  let gridSpacingMm = (GRID_OPTIONS.find((o) => o.value === gridValue) || GRID_OPTIONS[0]).spacingMm(project.distanceM);
+  let gridSpacingM = (GRID_OPTIONS.find((o) => o.value === gridValue) || GRID_OPTIONS[0]).spacingM(project.distanceM);
 
   const diagram = analysisDiagram();
   const legend = diagramLegend();
@@ -159,15 +163,15 @@ export function mount(container) {
   function currentOptions() {
     return {
       showSigma, showR50, showR99, showR95, showR95Ci, showPoiCi, showEs5x, showEs10x,
-      hitProbabilityRadiusMm, hitProbabilityPercent, oneMoaRadiusMm: showOneMoa ? oneMoaWidthMm(project.distanceM) / 2 : 0,
-      impactsToScale, caliberMm: project.caliberMm, gridSpacingMm, showScale,
-      d5xMm: stats.d5x, d10xMm: stats.d10x
+      hitProbabilityRadiusM, hitProbabilityPercent, oneMoaRadiusM: showOneMoa ? oneMoaWidthM(project.distanceM) / 2 : 0,
+      impactsToScale, caliberM: project.caliberMm != null ? mmToM(project.caliberMm) : 0, gridSpacingM, showScale,
+      d5xM: stats.d5x, d10xM: stats.d10x
     };
   }
 
   function refreshOneMoaCaption() {
     oneMoaCaption.textContent = showOneMoa
-      ? t('riflePrecision.oneMoaLabel', { value: formatResultValue(oneMoaWidthMm(project.distanceM)) })
+      ? t('riflePrecision.oneMoaLabel', { value: formatResultValue(oneMoaWidthM(project.distanceM)) })
       : '';
   }
 
@@ -182,7 +186,7 @@ export function mount(container) {
   function buildNumbersRows() {
     const r95CiLowerDelta = formatResultValue(stats.r95 - stats.r95LowerBound);
     const r95CiUpperDelta = formatResultValue(stats.r95UpperBound - stats.r95);
-    const poi = toShooterFrame(stats.poiMm);
+    const poi = toShooterFrame(stats.poiM);
     return [
       { descriptionKey: 'riflePrecision.shotCountLabel', value: String(stats.shotCount) },
       { descriptionKey: 'riflePrecision.confidenceIntervalLabel', value: confidenceIntervalText() },
@@ -192,11 +196,11 @@ export function mount(container) {
         // error is read against a turret, so V has to be positive *up*
         // (see toShooterFrame()). The diagram keeps drawing from the raw
         // image-frame value; only this text is converted.
-        value: `H ${formatResultValue(poi.rightMm)}, V ${formatResultValue(poi.upMm)}`
+        value: `H ${formatResultValue(poi.right)}, V ${formatResultValue(poi.up)}`
       },
       {
         descriptionKey: 'riflePrecision.legendPoiCi',
-        value: `H ±${formatResultValue(stats.poiCiMm.x)}, V ±${formatResultValue(stats.poiCiMm.y)}`,
+        value: `H ±${formatResultValue(stats.poiCiM.x)}, V ±${formatResultValue(stats.poiCiM.y)}`,
         show: { checked: showPoiCi, onChange: (v) => { showPoiCi = v; redrawDiagram(); } }
       },
       {
@@ -252,10 +256,10 @@ export function mount(container) {
   const slider = hitProbabilitySlider({
     sigma: stats.sigma,
     distanceM: project.distanceM,
-    formatLengthMm,
+    formatLength,
     initialPercent: hitProbabilityPercent,
-    onChange: (percent, radiusMm) => {
-      hitProbabilityRadiusMm = radiusMm;
+    onChange: (percent, radiusM) => {
+      hitProbabilityRadiusM = radiusM;
       hitProbabilityPercent = percent;
       redrawDiagram();
     }
@@ -277,7 +281,7 @@ export function mount(container) {
   gridSelect.addEventListener('change', () => {
     const opt = GRID_OPTIONS.find((o) => o.value === gridSelect.value) || GRID_OPTIONS[0];
     gridValue = opt.value;
-    gridSpacingMm = opt.spacingMm(project.distanceM);
+    gridSpacingM = opt.spacingM(project.distanceM);
     redrawDiagram();
   });
   const gridField = el('div', { class: 'field rp-grid-field' }, [
@@ -360,10 +364,10 @@ export function mount(container) {
     ];
     const rows = stats.pooledShots.map((shot) => {
       const groupIndex = groupIndexByTarget.get(shot.targetId)?.get(shot.groupId) ?? shot.groupId;
-      const { rightMm, upMm } = toShooterFrame({ x: shot.xMm, y: shot.yMm });
+      const { right, up } = toShooterFrame({ x: shot.xM, y: shot.yM });
       return [
-        formatCsvNumber(toDisplayUnit('smallLength', rightMm, 'mm'), lengthDecimals, decimalSeparator),
-        formatCsvNumber(toDisplayUnit('smallLength', upMm, 'mm'), lengthDecimals, decimalSeparator),
+        formatCsvNumber(toDisplayUnit('smallLength', right), lengthDecimals, decimalSeparator),
+        formatCsvNumber(toDisplayUnit('smallLength', up), lengthDecimals, decimalSeparator),
         shot.targetName || '',
         String(groupIndex),
         formatCsvNumber(toDisplayUnit('distance', project.distanceM), rangeChoice.decimals, decimalSeparator),
@@ -387,7 +391,7 @@ export function mount(container) {
       // confidence-interval/rating information visually, so no text lines
       // for those are built here any more.
       const headerLines = [
-        { text: `${project.name} — ${formatDistance(project.distanceM)}, ${formatLengthMm(project.caliberMm)}`, weight: 'bold', size: 24 },
+        { text: `${project.name} — ${formatDistance(project.distanceM)}, ${formatCaliberMm(project.caliberMm)}`, weight: 'bold', size: 24 },
         { text: shotCountText(), weight: 'normal', size: 15 }
       ];
       svgNode = buildExportSvgWithLegend(stats, options, legendRows, headerLines, stats.confidenceLower, stats.confidenceUpper);

@@ -11,13 +11,13 @@ const { setImpactColor, getImpactColorHex, resetImpactColorForTests } = await im
 
 test.beforeEach(() => resetImpactColorForTests());
 
-const identity = (mm) => `${mm.toFixed(2)}mm`;
+const identity = (m) => `${(m * 1000).toFixed(2)}mm`;
 
 function baseStats() {
   return {
-    poiMm: { x: 1, y: -2 },
-    poiCiMm: { x: 0.3, y: 0.4 },
-    sigma: 10, r50: 12, r95: 25, r95LowerBound: 20, r95UpperBound: 32, r99: 30
+    poiM: { x: 0.001, y: -0.002 },
+    poiCiM: { x: 0.0003, y: 0.0004 },
+    sigma: 0.01, r50: 0.012, r95: 0.025, r95LowerBound: 0.02, r95UpperBound: 0.032, r99: 0.03
   };
 }
 
@@ -28,7 +28,7 @@ test('computeLegendRows always includes all-impacts/POA/average-POI, in that ord
   assert.equal(rows[1].label, t('riflePrecision.legendPoa'));
   assert.equal(rows[1].value, null);
   assert.equal(rows[2].label, t('riflePrecision.legendPoi'));
-  // baseStats()'s poiMm is in the engine's image frame (+y downward), so
+  // baseStats()'s poiM is in the engine's image frame (+y downward), so
   // y:-2 is a group 2mm ABOVE the point of aim and the row — which a human
   // reads against a turret — reports it as +2. See toShooterFrame().
   assert.equal(rows[2].value, 'H +1.00mm, V +2.00mm');
@@ -40,16 +40,16 @@ test('"All impacts" is the current translated text for the pooled-shot row (rena
 
 test('grid/POI-CI/sigma/R50/R99/ES5x/ES10x/1-MOA/hit-probability rows only appear when their option is truthy', () => {
   const rowsOff = computeLegendRows(baseStats(), {
-    gridSpacingMm: 0, showPoiCi: false, showSigma: false, showR50: false, showR99: false,
-    showEs5x: false, showEs10x: false, oneMoaRadiusMm: 0, hitProbabilityRadiusMm: 0
+    gridSpacingM: 0, showPoiCi: false, showSigma: false, showR50: false, showR99: false,
+    showEs5x: false, showEs10x: false, oneMoaRadiusM: 0, hitProbabilityRadiusM: 0
   }, identity);
   for (const key of ['legendGrid', 'legendPoiCi', 'legendSigma', 'legendR50', 'legendR99', 'legendEs5x', 'legendEs10x', 'legendOneMoa', 'legendHitProbability']) {
     assert.ok(!rowsOff.some((r) => r.label === t(`riflePrecision.${key}`)), key);
   }
 
   const rowsOn = computeLegendRows(baseStats(), {
-    gridSpacingMm: 5, showPoiCi: true, showSigma: true, showR50: true, showR99: true,
-    showEs5x: true, showEs10x: true, d5xMm: 40, d10xMm: 50, oneMoaRadiusMm: 8, hitProbabilityRadiusMm: 6
+    gridSpacingM: 0.005, showPoiCi: true, showSigma: true, showR50: true, showR99: true,
+    showEs5x: true, showEs10x: true, d5xM: 0.04, d10xM: 0.05, oneMoaRadiusM: 0.008, hitProbabilityRadiusM: 0.006
   }, identity);
   for (const key of ['legendGrid', 'legendPoiCi', 'legendSigma', 'legendR50', 'legendR99', 'legendEs5x', 'legendEs10x', 'legendOneMoa', 'legendHitProbability']) {
     assert.ok(rowsOn.some((r) => r.label === t(`riflePrecision.${key}`)), key);
@@ -73,7 +73,7 @@ test('R95 and R95-CI are independent rows, each gated by its own flag, R95-CI va
 });
 
 test('hit-probability row\'s value leads with the percent, before the radius, matching the slider\'s own readout style', () => {
-  const rows = computeLegendRows(baseStats(), { hitProbabilityRadiusMm: 15, hitProbabilityPercent: 62 }, identity);
+  const rows = computeLegendRows(baseStats(), { hitProbabilityRadiusM: 0.015, hitProbabilityPercent: 62 }, identity);
   const row = rows.find((r) => r.label === t('riflePrecision.legendHitProbability'));
   assert.ok(row);
   assert.equal(row.value, '62%: 15.00mm');
@@ -83,14 +83,14 @@ test('average-PoI row prepends "+" for zero/positive coordinates and keeps the f
   // y:+3.5 is image-frame, i.e. 3.5mm BELOW the point of aim — a rifle
   // shooting low, which the row reports as -3.50 after toShooterFrame().
   // Zero H and negative V exercise both branches of withSign() at once.
-  const stats = { ...baseStats(), poiMm: { x: 0, y: 3.5 } };
+  const stats = { ...baseStats(), poiM: { x: 0, y: 0.0035 } };
   const rows = computeLegendRows(stats, {}, identity);
   const row = rows.find((r) => r.label === t('riflePrecision.legendPoi'));
   assert.equal(row.value, 'H +0.00mm, V -3.50mm');
 });
 
 test('average-PoI row never prints a negated zero as "-0.00"', () => {
-  const rows = computeLegendRows({ ...baseStats(), poiMm: { x: 0, y: 0 } }, {}, identity);
+  const rows = computeLegendRows({ ...baseStats(), poiM: { x: 0, y: 0 } }, {}, identity);
   const row = rows.find((r) => r.label === t('riflePrecision.legendPoi'));
   assert.equal(row.value, 'H +0.00mm, V +0.00mm');
 });

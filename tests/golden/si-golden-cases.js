@@ -40,7 +40,7 @@ import { bcSegmentsToCdCurve, machForVelocityMs, velocityMsForMach, optimalSuper
 import { computeCdMachCurve } from '../../src/engine/cd-mach-curve.js';
 import { estimateTrackBCWholeWindow, aggregateTracks } from '../../src/engine/labradar-bc.js';
 import {
-  computeGroupStats, computeCombinedStats, hitProbabilityRadiusMm, oneMoaWidthMm, oneMradWidthMm, mmToAngularUnit
+  computeGroupStats, computeCombinedStats, hitProbabilityRadius, oneMoaWidthM, oneMradWidthM, linearToAngularUnit
 } from '../../src/engine/rifle-precision-stats.js';
 import { DRAG_TABLES } from '../../src/engine/drag-tables.js';
 
@@ -506,13 +506,24 @@ export const RUNNERS = {
   }),
   riflePrecision: ({ project, percent, unit }) => {
     const combined = computeCombinedStats(project);
+    // the fixtures hold every length in mm, under the old mm names
+    const point = (p) => ({ x: mToMm(p.x), y: mToMm(p.y) });
+    const groupInMm = (g) => g && { extremeSpreadMm: mToMm(g.extremeSpreadM), extremePairIndices: g.extremePairIndices, poiMm: point(g.poiM) };
+    const { poiM, poiCiM, pooledShots, ...rest } = combined;
+    const combinedInMm = {
+      ...rest,
+      pooledShots: pooledShots.map(({ xM, yM, ...shot }) => ({ xMm: mToMm(xM), yMm: mToMm(yM), ...shot })),
+      ...(poiM ? { poiMm: point(poiM), poiCiMm: point(poiCiM) } : {}),
+      ...Object.fromEntries(['sigma', 'r50', 'r95', 'r95LowerBound', 'r95UpperBound', 'r99', 'd5x', 'd10x']
+        .filter((k) => rest[k] != null).map((k) => [k, mToMm(rest[k])]))
+    };
     return {
-      groups: project.targets.flatMap((t) => t.groups.map((g) => computeGroupStats(g, t))),
-      combined,
-      hitRadius: combined.sigma ? hitProbabilityRadiusMm(combined.sigma, percent) : null,
-      oneMoa: oneMoaWidthMm(project.distanceM),
-      oneMrad: oneMradWidthMm(project.distanceM),
-      angular: combined.r50 ? mmToAngularUnit(combined.r50, unit, project.distanceM) : null
+      groups: project.targets.flatMap((t) => t.groups.map((g) => groupInMm(computeGroupStats(g, t)))),
+      combined: combinedInMm,
+      hitRadius: combined.sigma ? mToMm(hitProbabilityRadius(combined.sigma, percent)) : null,
+      oneMoa: mToMm(oneMoaWidthM(project.distanceM)),
+      oneMrad: mToMm(oneMradWidthM(project.distanceM)),
+      angular: combined.r50 ? linearToAngularUnit(combined.r50, unit, project.distanceM) : null
     };
   },
   truingComeUp: async ({ state, ranges }) => {

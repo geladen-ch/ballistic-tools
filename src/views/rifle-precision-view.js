@@ -19,7 +19,7 @@ import { riflePrecisionExportDialog } from '../ui/rifle-precision/export-dialog.
 import { riflePrecisionImportDialog } from '../ui/rifle-precision/import-dialog.js';
 import { buildExportPayload, serializeExport, parseImportPayload, resolveImportItem } from '../rifle-precision-export.js';
 import { downloadFile } from '../download.js';
-import { computeGroupStats, targetUsabilityGaps, computeCombinedStats, mmToAngularUnit } from '../engine/rifle-precision-stats.js';
+import { computeGroupStats, targetUsabilityGaps, computeCombinedStats, linearToAngularUnit } from '../engine/rifle-precision-stats.js';
 import { confidenceBadge } from '../ui/rifle-precision/confidence-o-meter.js';
 import { formatQuantity, fineLengthDecimals } from '../display-units.js';
 import { getActiveProjectId, setActiveProjectId, setPendingMarking } from '../rifle-precision-nav.js';
@@ -45,7 +45,11 @@ function formatDistance(distanceM) {
 // Finer precision than the smallLength group's own coarse default decimals
 // (mm:0): a caliber or an extreme-spread reading in whole millimeters loses
 // exactly the resolution a shooter cares about here.
-function formatLengthMm(valueMm) {
+function formatLength(valueM) {
+  return formatQuantity('smallLength', valueM, { decimals: fineLengthDecimals });
+}
+// The project record keeps its caliber in mm.
+function formatCaliberMm(valueMm) {
   return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
 }
 
@@ -228,7 +232,7 @@ export function mount(container) {
     const label = t('riflePrecision.groupLabel', { n: index + 1 });
     const shots = t('riflePrecision.shotCount', { count: group.shots.length });
     const stats = computeGroupStats(group, target);
-    return stats ? `${label}: ${shots} — ${t('riflePrecision.esLabel')} ${formatLengthMm(stats.extremeSpreadMm)}` : `${label}: ${shots}`;
+    return stats ? `${label}: ${shots} — ${t('riflePrecision.esLabel')} ${formatLength(stats.extremeSpreadM)}` : `${label}: ${shots}`;
   }
 
   // Same badge shape/color as arsenal-view.js's own unusableBadge() (a
@@ -430,8 +434,8 @@ export function mount(container) {
   // the one place a shooter compares this number against an Arsenal
   // cartridge's own precision field (which lets the user pick either).
   function formatR50Angular(stats, distanceM) {
-    const mrad = mmToAngularUnit(stats.r50, 'mrad', distanceM).toFixed(3);
-    const moa = mmToAngularUnit(stats.r50, 'arcmin', distanceM).toFixed(2);
+    const mrad = linearToAngularUnit(stats.r50, 'mrad', distanceM).toFixed(3);
+    const moa = linearToAngularUnit(stats.r50, 'arcmin', distanceM).toFixed(2);
     return `${t('riflePrecision.r50Label')}: ${mrad} mrad / ${moa} MOA`;
   }
 
@@ -441,7 +445,7 @@ export function mount(container) {
     return [
       el('strong', { text: (labels && labels.get(proj.id)) || proj.name }),
       unsavedBadge(proj),
-      el('span', { class: 'hint', text: ` — ${formatDistance(proj.distanceM)}, ${formatLengthMm(proj.caliberMm)}` }),
+      el('span', { class: 'hint', text: ` — ${formatDistance(proj.distanceM)}, ${formatCaliberMm(proj.caliberMm)}` }),
       el('span', { class: 'hint', text: t('riflePrecision.targetCount', { count: proj.targets.length }) }),
       projectUsabilityHint(proj),
       stats ? el('div', { class: 'hint' }, [
@@ -536,7 +540,7 @@ export function mount(container) {
             onPick: (rifleId, cartridgeId) => {
               setPendingCartridgeActivation({
                 rifleId, cartridgeId,
-                precisionR50Mrad: mmToAngularUnit(stats.r50, 'mrad', proj.distanceM)
+                precisionR50Mrad: linearToAngularUnit(stats.r50, 'mrad', proj.distanceM)
               });
               location.hash = '#/guns/arsenal';
             }

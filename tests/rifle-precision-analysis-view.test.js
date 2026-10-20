@@ -271,7 +271,7 @@ test('Numbers-table "Confidence interval" and "R95 confidence interval" rows use
   assert.match(r95CiCell.textContent, /^-.+\/\+.+$/, r95CiCell.textContent);
 
   const es5xCell = numbersRowByDescriptionKey(container, 'riflePrecision.es5xDescription').childNodes[2];
-  assert.ok(es5xCell.textContent.includes(stats.d5x.toFixed(2)), 'ES5x reports the corrected full diameter, not a halved radius');
+  assert.ok(es5xCell.textContent.includes((stats.d5x * 1000).toFixed(2)), 'ES5x reports the corrected full diameter, not a halved radius');
 });
 
 test('toggling each Numbers-table "show" checkbox adds/removes the corresponding SVG element', () => {
@@ -626,7 +626,7 @@ test('a group shot low reads negative in the Numbers table, the legend and the C
   // cy stays positive — the picture was never wrong and must not "get
   // fixed" along with the text.
   const poiMarker = findByAttr(container, 'data-role', 'poi-marker')[0];
-  assert.equal(Number(poiMarker.getAttribute('cy')), 10, 'diagram still draws the group below the point of aim');
+  assert.ok(Math.abs(Number(poiMarker.getAttribute('cy')) - 10) < 1e-9, 'diagram still draws the group below the point of aim');
 });
 
 test('the "Export target image" button is gone — its functionality is covered elsewhere; only CSV export remains in the bottom actions row', () => {
@@ -668,7 +668,7 @@ test('the diagram viewBox is centered on POI, not the origin/POA, for an off-ori
   const project = makeAnalyzableProject({}, [[0, 0], [4, 0], [0, 4], [4, 4], [2, 2]]);
   const stats = computeCombinedStats(project);
   assert.equal(stats.status, 'ok');
-  assert.ok(Math.abs(stats.poiMm.x - 2) < 1e-9 && Math.abs(stats.poiMm.y - 2) < 1e-9, 'sanity: POI is off-origin');
+  assert.ok(Math.abs(stats.poiM.x * 1000 - 2) < 1e-9 && Math.abs(stats.poiM.y * 1000 - 2) < 1e-9, 'sanity: POI is off-origin');
   setActiveProjectId(project.id);
   const container = makeElement('main');
   analysisView.mount(container);
@@ -677,7 +677,7 @@ test('the diagram viewBox is centered on POI, not the origin/POA, for an off-ori
   assert.ok(svgNode, 'diagram svg renders');
   const [minX, minY, width, height] = svgNode.getAttribute('viewBox').split(' ').map(Number);
 
-  assert.ok(Math.abs((minX + width / 2) - stats.poiMm.x) < 1e-9, 'viewBox x-center is POI.x');
-  assert.ok(Math.abs((minY + height / 2) - stats.poiMm.y) < 1e-9, 'viewBox y-center is POI.y');
+  assert.ok(Math.abs((minX + width / 2) - stats.poiM.x * 1000) < 1e-9, 'viewBox x-center is POI.x');
+  assert.ok(Math.abs((minY + height / 2) - stats.poiM.y * 1000) < 1e-9, 'viewBox y-center is POI.y');
   assert.equal(width, height, 'square viewBox');
 });

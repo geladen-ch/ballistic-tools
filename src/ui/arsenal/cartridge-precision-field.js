@@ -1,7 +1,7 @@
 import { el } from '../../dom.js';
 import { CLICK_UNITS, convertAngularValue } from '../../units.js';
 import { conventionValueToR50 } from '../../engine/dispersion-sources.js';
-import { computeCombinedStats, mmToAngularUnit } from '../../engine/rifle-precision-stats.js';
+import { computeCombinedStats, linearToAngularUnit } from '../../engine/rifle-precision-stats.js';
 import { loadRiflePrecisionProjects } from '../../rifle-precision-library.js';
 import { confidenceBadge } from '../rifle-precision/confidence-o-meter.js';
 import { showDialog, hideDialog } from '../app-dialog.js';
@@ -46,8 +46,8 @@ function riflePrecisionProjectPickerBody({ onPick }) {
 
   const list = el('div', {});
   for (const { project, stats } of entries) {
-    const r50Mrad = mmToAngularUnit(stats.r50, 'mrad', project.distanceM);
-    const r50Moa = mmToAngularUnit(stats.r50, 'arcmin', project.distanceM);
+    const r50Mrad = linearToAngularUnit(stats.r50, 'mrad', project.distanceM);
+    const r50Moa = linearToAngularUnit(stats.r50, 'arcmin', project.distanceM);
     const row = el('div', { class: 'arsenal-row row-clickable' }, [
       el('div', { class: 'arsenal-row-info' }, [
         el('strong', { text: project.name }),

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const {
   computeScale, computeGroupStats, computeCombinedStats,
-  hitProbabilityRadiusMm, confidenceLevel, confidenceScaleFraction, mmToAngularUnit, oneMoaWidthMm, oneMradWidthMm,
+  hitProbabilityRadius, confidenceLevel, confidenceScaleFraction, linearToAngularUnit, oneMoaWidthM, oneMradWidthM,
   targetUsabilityGaps, toShooterFrame
 } = await import('../src/engine/rifle-precision-stats.js');
 const { RAYLEIGH_COEFF, CONF_LOWER, CONF_UPPER, TDIST_QUANTILE } = await import('../src/engine/rifle-precision-constants.js');
@@ -22,8 +22,8 @@ function makeTarget(overrides = {}) {
   };
 }
 
-test('computeScale: 1000px across 100mm gives 10 px/mm', () => {
-  assert.equal(computeScale(makeTarget()), 10);
+test('computeScale: 1000px across 100mm gives 10 px/mm (10000 px/m)', () => {
+  assert.equal(computeScale(makeTarget()), 10000);
 });
 
 test('computeScale: returns null when calibration is incomplete or degenerate', () => {
@@ -78,10 +78,10 @@ test('computeGroupStats: extreme spread, pair indices, and POI for a hand-comput
     ]
   };
   const stats = computeGroupStats(group, target);
-  closeTo(stats.extremeSpreadMm, Math.sqrt(5), 1e-9, 'ES between shot1 (+1,0) and shot2 (0,-2mm from poa) = sqrt(1^2+2^2)');
+  closeTo(stats.extremeSpreadM * 1000, Math.sqrt(5), 1e-9, 'ES between shot1 (+1,0) and shot2 (0,-2mm from poa) = sqrt(1^2+2^2)');
   assert.deepEqual(stats.extremePairIndices, [1, 2]);
-  closeTo(stats.poiMm.x, 50 + 1 / 3, 1e-9, 'POI x = mean of (0,+1,0) offsets from 50');
-  closeTo(stats.poiMm.y, 50 - 2 / 3, 1e-9, 'POI y = mean of (0,0,-2) offsets from 50');
+  closeTo(stats.poiM.x * 1000, 50 + 1 / 3, 1e-9, 'POI x = mean of (0,+1,0) offsets from 50');
+  closeTo(stats.poiM.y * 1000, 50 - 2 / 3, 1e-9, 'POI y = mean of (0,0,-2) offsets from 50');
   // No hOffsetMm/vOffsetMm any more: they were unused, and their
   // "up is positive" vertical contradicted computeCombinedStats()'s own
   // image-frame convention. See toShooterFrame() for the one place a
@@ -94,9 +94,9 @@ test('toShooterFrame: negates the vertical, passes the horizontal through', () =
   // computeCombinedStats() pools in the photo's own frame, where +y is
   // *downward*. A shot 14mm below the point of aim is a rifle shooting 14
   // low, which a shooter reads against a turret as -14.
-  assert.deepEqual(toShooterFrame({ x: 6, y: 14 }), { rightMm: 6, upMm: -14 });
-  assert.deepEqual(toShooterFrame({ x: -6, y: -14 }), { rightMm: -6, upMm: 14 });
-  assert.equal(toShooterFrame({ x: 0, y: 0 }).upMm.toFixed(2), '0.00', 'negating a zero never formats as "-0.00"');
+  assert.deepEqual(toShooterFrame({ x: 6, y: 14 }), { right: 6, up: -14 });
+  assert.deepEqual(toShooterFrame({ x: -6, y: -14 }), { right: -6, up: 14 });
+  assert.equal(toShooterFrame({ x: 0, y: 0 }).up.toFixed(2), '0.00', 'negating a zero never formats as "-0.00"');
 });
 
 test('toShooterFrame: round-trips the pooled POI of a group shot low', () => {
@@ -109,8 +109,8 @@ test('toShooterFrame: round-trips the pooled POI of a group shot low', () => {
     }]
   });
   const stats = computeCombinedStats({ targets: [target] });
-  closeTo(stats.poiMm.y, 2, 1e-9, 'image frame: +2mm means 2mm DOWN');
-  closeTo(toShooterFrame(stats.poiMm).upMm, -2, 1e-9, 'shooter frame: the same group reads -2mm');
+  closeTo(stats.poiM.y * 1000, 2, 1e-9, 'image frame: +2mm means 2mm DOWN');
+  closeTo(toShooterFrame(stats.poiM).up * 1000, -2, 1e-9, 'shooter frame: the same group reads -2mm');
 });
 
 test('computeGroupStats: returns null with fewer than 2 shots or no scale/POA yet', () => {
@@ -167,20 +167,20 @@ test('computeCombinedStats: n=3 pooled dispersion matches the Rayleigh/chi-squar
   const confidenceUpper = (RAYLEIGH_COEFF[n] * Math.sqrt(CONF_UPPER[n] * v)) / sigma;
   const tdistc = TDIST_QUANTILE[n] / Math.sqrt(n);
 
-  closeTo(result.poiMm.x, avgX, 1e-9, 'pooled POI x');
-  closeTo(result.poiMm.y, avgY, 1e-9, 'pooled POI y');
-  closeTo(result.sigma, sigma, 1e-9, 'sigma');
+  closeTo(result.poiM.x * 1000, avgX, 1e-9, 'pooled POI x');
+  closeTo(result.poiM.y * 1000, avgY, 1e-9, 'pooled POI y');
+  closeTo(result.sigma * 1000, sigma, 1e-9, 'sigma');
   closeTo(result.confidenceLower, confidenceLower, 1e-9, 'confidenceLower');
   closeTo(result.confidenceUpper, confidenceUpper, 1e-9, 'confidenceUpper');
-  closeTo(result.poiCiMm.x, Math.sqrt(vx) * tdistc, 1e-9, 'poiCi x');
-  closeTo(result.poiCiMm.y, Math.sqrt(vy) * tdistc, 1e-9, 'poiCi y');
-  closeTo(result.r50, sigma * 1.18, 1e-9, 'R50');
-  closeTo(result.r95, sigma * 2.45, 1e-9, 'R95');
-  closeTo(result.r95LowerBound, sigma * 2.45 * confidenceLower, 1e-9, 'R95 lower bound');
-  closeTo(result.r95UpperBound, sigma * 2.45 * confidenceUpper, 1e-9, 'R95 upper bound');
-  closeTo(result.r99, sigma * 3.03, 1e-9, 'R99');
-  closeTo(result.d5x, sigma * 3.06, 1e-9, 'D5x');
-  closeTo(result.d10x, sigma * 3.79, 1e-9, 'D10x');
+  closeTo(result.poiCiM.x * 1000, Math.sqrt(vx) * tdistc, 1e-9, 'poiCi x');
+  closeTo(result.poiCiM.y * 1000, Math.sqrt(vy) * tdistc, 1e-9, 'poiCi y');
+  closeTo(result.r50 * 1000, sigma * 1.18, 1e-9, 'R50');
+  closeTo(result.r95 * 1000, sigma * 2.45, 1e-9, 'R95');
+  closeTo(result.r95LowerBound * 1000, sigma * 2.45 * confidenceLower, 1e-9, 'R95 lower bound');
+  closeTo(result.r95UpperBound * 1000, sigma * 2.45 * confidenceUpper, 1e-9, 'R95 upper bound');
+  closeTo(result.r99 * 1000, sigma * 3.03, 1e-9, 'R99');
+  closeTo(result.d5x * 1000, sigma * 3.06, 1e-9, 'D5x');
+  closeTo(result.d10x * 1000, sigma * 3.79, 1e-9, 'D10x');
 });
 
 test('computeCombinedStats: shots are re-centered per their own group POA before pooling', () => {
@@ -207,14 +207,14 @@ test('computeCombinedStats: shots are re-centered per their own group POA before
   const result = computeCombinedStats(project);
   assert.equal(result.status, 'ok');
   assert.equal(result.shotCount, 6);
-  closeTo(result.poiMm.x, 0, 1e-9, 'pooled POI stays near zero across both re-centered groups');
-  closeTo(result.poiMm.y, 0, 1e-9, 'pooled POI stays near zero across both re-centered groups');
+  closeTo(result.poiM.x * 1000, 0, 1e-9, 'pooled POI stays near zero across both re-centered groups');
+  closeTo(result.poiM.y * 1000, 0, 1e-9, 'pooled POI stays near zero across both re-centered groups');
 });
 
-test('hitProbabilityRadiusMm matches the Rayleigh-quantile formula directly, 0% giving a zero radius', () => {
-  closeTo(hitProbabilityRadiusMm(5, 0), 0, 1e-9); // -0 for v=1 (log(1)=0), same magnitude as 0
-  closeTo(hitProbabilityRadiusMm(2, 50), 2 * Math.sqrt(-Math.log(0.5 * 0.5)), 1e-9, '50%');
-  closeTo(hitProbabilityRadiusMm(2, 99), 2 * Math.sqrt(-Math.log(0.01 * 0.01)), 1e-9, '99%');
+test('hitProbabilityRadius matches the Rayleigh-quantile formula directly, 0% giving a zero radius', () => {
+  closeTo(hitProbabilityRadius(5, 0), 0, 1e-9); // -0 for v=1 (log(1)=0), same magnitude as 0
+  closeTo(hitProbabilityRadius(2, 50), 2 * Math.sqrt(-Math.log(0.5 * 0.5)), 1e-9, '50%');
+  closeTo(hitProbabilityRadius(2, 99), 2 * Math.sqrt(-Math.log(0.01 * 0.01)), 1e-9, '99%');
 });
 
 test('confidenceLevel scans the 8 thresholds in the same order as legacy CONFI_LEVELS', () => {
@@ -247,18 +247,18 @@ test('confidenceScaleFraction: continuous 0..1, clamped beyond ci=0.2 and ci=1.5
   closeTo(confidenceScaleFraction(0, 0.35), 0.6, 1e-9);
 });
 
-test('oneMoaWidthMm / mmToAngularUnit round-trip through the app\'s own exact unit conversion', () => {
+test('oneMoaWidthM / linearToAngularUnit round-trip through the app\'s own exact unit conversion', () => {
   const rangeM = 100;
-  const moaWidthMm = oneMoaWidthMm(rangeM);
-  closeTo(moaWidthMm, 29.0888, 1e-3, '1 MOA at 100m is ~29.09mm');
-  closeTo(mmToAngularUnit(moaWidthMm, 'arcmin', rangeM), 1, 1e-9, 'converting that width back gives exactly 1 MOA');
-  closeTo(mmToAngularUnit(moaWidthMm * 2, 'arcmin', rangeM), 2, 1e-9);
+  const moaWidthM = oneMoaWidthM(rangeM);
+  closeTo(moaWidthM, 0.0290888, 1e-6, '1 MOA at 100m is ~29.09mm');
+  closeTo(linearToAngularUnit(moaWidthM, 'arcmin', rangeM), 1, 1e-9, 'converting that width back gives exactly 1 MOA');
+  closeTo(linearToAngularUnit(moaWidthM * 2, 'arcmin', rangeM), 2, 1e-9);
 });
 
-test('oneMradWidthMm / mmToAngularUnit round-trip, same shape as oneMoaWidthMm\'s own test', () => {
+test('oneMradWidthM / linearToAngularUnit round-trip, same shape as oneMoaWidthM\'s own test', () => {
   const rangeM = 100;
-  const mradWidthMm = oneMradWidthMm(rangeM);
-  closeTo(mradWidthMm, 100, 1e-6, '1 mrad at 100m is exactly 100mm by the small-angle definition');
-  closeTo(mmToAngularUnit(mradWidthMm, 'mrad', rangeM), 1, 1e-9, 'converting that width back gives exactly 1 mrad');
-  closeTo(mmToAngularUnit(mradWidthMm * 2, 'mrad', rangeM), 2, 1e-9);
+  const mradWidthM = oneMradWidthM(rangeM);
+  closeTo(mradWidthM, 0.1, 1e-12, '1 mrad at 100m is exactly 100mm by the small-angle definition');
+  closeTo(linearToAngularUnit(mradWidthM, 'mrad', rangeM), 1, 1e-9, 'converting that width back gives exactly 1 mrad');
+  closeTo(linearToAngularUnit(mradWidthM * 2, 'mrad', rangeM), 2, 1e-9);
 });

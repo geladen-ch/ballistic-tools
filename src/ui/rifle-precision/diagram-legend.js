@@ -26,31 +26,31 @@ function withSign(formattedText) {
 // carry an associated number (grid, all impacts, POA).
 export function computeLegendRows(stats, options = {}, formatResultValue) {
   const {
-    gridSpacingMm = 0, showPoiCi = false, showSigma = false, showR50 = false,
+    gridSpacingM = 0, showPoiCi = false, showSigma = false, showR50 = false,
     showR95 = true, showR95Ci = true, showR99 = false, showEs5x = false, showEs10x = false,
-    oneMoaRadiusMm = 0, hitProbabilityRadiusMm = 0, hitProbabilityPercent = 0, d5xMm = 0, d10xMm = 0
+    oneMoaRadiusM = 0, hitProbabilityRadiusM = 0, hitProbabilityPercent = 0, d5xM = 0, d10xM = 0
   } = options;
 
   const rows = [];
-  if (gridSpacingMm > 0) rows.push({ color: COLOR_GRID, shape: 'grid', label: t('riflePrecision.legendGrid'), value: null });
+  if (gridSpacingM > 0) rows.push({ color: COLOR_GRID, shape: 'grid', label: t('riflePrecision.legendGrid'), value: null });
   // Read per call, not captured at import time — the impacts' color is
   // the user's own Settings pick (see pooledShotColor()), so the swatch
   // has to follow whatever the diagram itself just drew.
   rows.push({ color: pooledShotColor(), shape: 'dot', label: t('riflePrecision.legendPooledShot'), value: null });
   rows.push({ color: COLOR_POA, shape: 'ring', label: t('riflePrecision.legendPoa'), value: null });
-  // Converted out of the image frame first — stats.poiMm.y is positive
+  // Converted out of the image frame first — stats.poiM.y is positive
   // *downward* (see toShooterFrame()), and this row is read by a human
   // against a turret. The diagram itself keeps drawing from the raw
   // image-frame value, which is why only the text goes through here.
-  const poi = toShooterFrame(stats.poiMm);
+  const poi = toShooterFrame(stats.poiM);
   rows.push({
     color: COLOR_POI, shape: 'dot', label: t('riflePrecision.legendPoi'),
-    value: `H ${withSign(formatResultValue(poi.rightMm))}, V ${withSign(formatResultValue(poi.upMm))}`
+    value: `H ${withSign(formatResultValue(poi.right))}, V ${withSign(formatResultValue(poi.up))}`
   });
   if (showPoiCi) {
     rows.push({
       color: COLOR_POI, shape: 'box', label: t('riflePrecision.legendPoiCi'),
-      value: `H ±${formatResultValue(stats.poiCiMm.x)}, V ±${formatResultValue(stats.poiCiMm.y)}`
+      value: `H ±${formatResultValue(stats.poiCiM.x)}, V ±${formatResultValue(stats.poiCiM.y)}`
     });
   }
   if (showSigma) rows.push({ color: COLOR_SIGMA, shape: 'ring', label: t('riflePrecision.legendSigma'), value: formatResultValue(stats.sigma) });
@@ -62,15 +62,15 @@ export function computeLegendRows(stats, options = {}, formatResultValue) {
     rows.push({ color: COLOR_R95, shape: 'fill-pale', label: t('riflePrecision.legendR95Ci'), value: `-${lowerDelta}/+${upperDelta}` });
   }
   if (showR99) rows.push({ color: COLOR_R99, shape: 'ring', label: t('riflePrecision.legendR99'), value: formatResultValue(stats.r99) });
-  if (showEs5x) rows.push({ color: COLOR_ES5X, shape: 'ring', label: t('riflePrecision.legendEs5x'), value: formatResultValue(d5xMm) });
-  if (showEs10x) rows.push({ color: COLOR_ES10X, shape: 'ring', label: t('riflePrecision.legendEs10x'), value: formatResultValue(d10xMm) });
-  if (oneMoaRadiusMm > 0) {
-    rows.push({ color: COLOR_ONE_MOA, shape: 'ring-dashed', label: t('riflePrecision.legendOneMoa'), value: formatResultValue(oneMoaRadiusMm * 2) });
+  if (showEs5x) rows.push({ color: COLOR_ES5X, shape: 'ring', label: t('riflePrecision.legendEs5x'), value: formatResultValue(d5xM) });
+  if (showEs10x) rows.push({ color: COLOR_ES10X, shape: 'ring', label: t('riflePrecision.legendEs10x'), value: formatResultValue(d10xM) });
+  if (oneMoaRadiusM > 0) {
+    rows.push({ color: COLOR_ONE_MOA, shape: 'ring-dashed', label: t('riflePrecision.legendOneMoa'), value: formatResultValue(oneMoaRadiusM * 2) });
   }
-  if (hitProbabilityRadiusMm > 0) {
+  if (hitProbabilityRadiusM > 0) {
     rows.push({
       color: COLOR_HIT_PROBABILITY, shape: 'ring', label: t('riflePrecision.legendHitProbability'),
-      value: `${hitProbabilityPercent}%: ${formatResultValue(hitProbabilityRadiusMm)}`
+      value: `${hitProbabilityPercent}%: ${formatResultValue(hitProbabilityRadiusM)}`
     });
   }
   return rows;

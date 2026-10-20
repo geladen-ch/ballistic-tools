@@ -7,13 +7,14 @@
 // Coordinates on a target are relative 0..1 fractions of the photo's
 // natural pixel size (see rifle-precision-library.js's data-model
 // comment); every function below converts through target.photoWidth/
-// photoHeight + the calibration ruler to get real millimetres, replacing
+// photoHeight + the calibration ruler to get real metres, replacing
 // legacy's absolute-pixel-coordinate model.
 import { RAYLEIGH_COEFF, CONF_LOWER, CONF_UPPER, TDIST_QUANTILE } from './rifle-precision-constants.js';
 import { angularUnitToLinearAtRange } from '../units.js';
-import { mToMm, mmToM } from '../quantity.js';
+import { mmToM, percentToFraction } from '../quantity.js';
 
-// Pixels-per-mm for a target, from its 2-point calibration ruler. null if
+// Pixels per metre for a target, from its 2-point calibration ruler (whose
+// real length the target record keeps in mm). null if
 // calibration isn't complete yet (no ruler placed, or a real length of 0
 // was entered — legacy's own scale-reset button clears exactly this way).
 export function computeScale(target) {
@@ -24,7 +25,7 @@ export function computeScale(target) {
   const dy = (calibration.point1.y - calibration.point2.y) * photoHeight;
   const pixelDist = Math.sqrt(dx * dx + dy * dy);
   if (pixelDist <= 0) return null;
-  return pixelDist / calibration.realLengthMm;
+  return pixelDist / mmToM(calibration.realLengthMm);
 }
 
 // Whether a target can actually be analyzed — the same three
@@ -44,9 +45,9 @@ export function targetUsabilityGaps(target) {
   return gaps;
 }
 
-// Relative 0..1 point -> real millimetres, using the target's own natural
-// pixel size and calibration scale (px/mm).
-function toMm(point, target, scale) {
+// Relative 0..1 point -> real metres, using the target's own natural
+// pixel size and calibration scale (px/m).
+function toM(point, target, scale) {
   return { x: (point.x * target.photoWidth) / scale, y: (point.y * target.photoHeight) / scale };
 }
 
@@ -58,7 +59,7 @@ function distance(a, b) {
 
 // Per-group stats: extreme spread (max pairwise distance among shots,
 // legacy's own brute-force O(n^2) — groups are small, no need for
-// anything smarter) and point of impact (centroid), both in mm. Returns
+// anything smarter) and point of impact (centroid), both in m. Returns
 // null if the target has no scale yet or the group has fewer than 2 shots
 // (nothing to measure an extreme spread from), matching legacy's
 // updateStatsGroup().
@@ -67,7 +68,7 @@ function distance(a, b) {
 // aim. It used to, under the opposite ("up is positive") vertical
 // convention to computeCombinedStats() below, while being consumed by
 // nobody — both callers (rifle-precision-marking-view.js,
-// rifle-precision-photo-export.js) use only extremeSpreadMm/
+// rifle-precision-photo-export.js) use only extremeSpreadM/
 // extremePairIndices and recompute the centroid themselves in relative
 // coordinates. Two contradictory conventions in one module is a trap, so
 // the unused half is gone; anything needing a shooter-facing offset
@@ -76,14 +77,14 @@ export function computeGroupStats(group, target) {
   const scale = computeScale(target);
   if (!scale || !group.poa || group.shots.length < 2) return null;
 
-  const shotsMm = group.shots.map((s) => toMm(s, target, scale));
+  const shotsM = group.shots.map((s) => toM(s, target, scale));
 
   let maxDist = 0;
   let m1 = null;
   let m2 = null;
-  for (let i = 0; i < shotsMm.length - 1; i++) {
-    for (let j = i + 1; j < shotsMm.length; j++) {
-      const d = distance(shotsMm[i], shotsMm[j]);
+  for (let i = 0; i < shotsM.length - 1; i++) {
+    for (let j = i + 1; j < shotsM.length; j++) {
+      const d = distance(shotsM[i], shotsM[j]);
       if (d > maxDist) {
         maxDist = d;
         m1 = i;
@@ -92,12 +93,12 @@ export function computeGroupStats(group, target) {
     }
   }
 
-  const poiMm = shotsMm.reduce((acc, s) => ({ x: acc.x + s.x / shotsMm.length, y: acc.y + s.y / shotsMm.length }), { x: 0, y: 0 });
+  const poiM = shotsM.reduce((acc, s) => ({ x: acc.x + s.x / shotsM.length, y: acc.y + s.y / shotsM.length }), { x: 0, y: 0 });
 
   return {
-    extremeSpreadMm: maxDist,
+    extremeSpreadM: maxDist,
     extremePairIndices: [m1, m2],
-    poiMm
+    poiM
   };
 }
 
@@ -120,7 +121,7 @@ export function computeGroupStats(group, target) {
 // ShotUp column — converts here first, and nothing else in the app negates
 // a y on its own.
 export function toShooterFrame({ x, y }) {
-  return { rightMm: x, upMm: -y };
+  return { right: x, up: -y };
 }
 
 // Pools every shot across every target/group in the project, each shot
@@ -143,12 +144,12 @@ export function computeCombinedStats(project) {
     if (!scale) continue;
     for (const group of target.groups) {
       if (!group.poa) continue;
-      const poaMm = toMm(group.poa, target, scale);
+      const poaM = toM(group.poa, target, scale);
       for (const shot of group.shots) {
-        const shotMm = toMm(shot, target, scale);
+        const shotM = toM(shot, target, scale);
         pooledShots.push({
-          xMm: shotMm.x - poaMm.x,
-          yMm: shotMm.y - poaMm.y,
+          xM: shotM.x - poaM.x,
+          yM: shotM.y - poaM.y,
           targetId: target.id,
           targetName: target.name,
           groupId: group.id
@@ -164,8 +165,8 @@ export function computeCombinedStats(project) {
   let avgX = 0;
   let avgY = 0;
   for (const p of pooledShots) {
-    avgX += p.xMm;
-    avgY += p.yMm;
+    avgX += p.xM;
+    avgY += p.yM;
   }
   avgX /= shotCount;
   avgY /= shotCount;
@@ -173,8 +174,8 @@ export function computeCombinedStats(project) {
   let vx = 0;
   let vy = 0;
   for (const p of pooledShots) {
-    const dx = p.xMm - avgX;
-    const dy = p.yMm - avgY;
+    const dx = p.xM - avgX;
+    const dy = p.yM - avgY;
     vx += dx * dx;
     vy += dy * dy;
   }
@@ -187,7 +188,7 @@ export function computeCombinedStats(project) {
   const confidenceUpper = (RAYLEIGH_COEFF[shotCount] * Math.sqrt(CONF_UPPER[shotCount] * v)) / sigma;
 
   const tdistc = TDIST_QUANTILE[shotCount] / Math.sqrt(shotCount);
-  const poiCiMm = { x: Math.sqrt(vx) * tdistc, y: Math.sqrt(vy) * tdistc };
+  const poiCiM = { x: Math.sqrt(vx) * tdistc, y: Math.sqrt(vy) * tdistc };
 
   const r95 = sigma * 2.45;
 
@@ -195,8 +196,8 @@ export function computeCombinedStats(project) {
     status: 'ok',
     shotCount,
     pooledShots,
-    poiMm: { x: avgX, y: avgY },
-    poiCiMm,
+    poiM: { x: avgX, y: avgY },
+    poiCiM,
     sigma,
     confidenceLower,
     confidenceUpper,
@@ -210,12 +211,12 @@ export function computeCombinedStats(project) {
   };
 }
 
-// Radius (mm) containing `percent`% of shots under the fitted Rayleigh
-// model — the interactive "hit probability" slider. percent is 0..99 in
-// the UI (matching legacy's own slider range); 100 would divide by zero
-// inside the log and is deliberately not a valid input.
-export function hitProbabilityRadiusMm(sigma, percent) {
-  const v = 1 - percent / 100;
+// Radius containing `percent`% of shots under the fitted Rayleigh model,
+// in sigma's own unit — the interactive "hit probability" slider. percent
+// is 0..99 in the UI (matching legacy's own slider range); 100 would
+// divide by zero inside the log and is deliberately not a valid input.
+export function hitProbabilityRadius(sigma, percent) {
+  const v = 1 - percentToFraction(percent);
   return sigma * Math.sqrt(-Math.log(v * v));
 }
 
@@ -248,27 +249,27 @@ export function confidenceScaleFraction(confidenceLower, confidenceUpper) {
   return Math.max(0, Math.min(1, raw));
 }
 
-// One MOA's real-world width (mm) at a given range — reuses this app's
+// One MOA's real-world width (m) at a given range — reuses this app's
 // own exact angular-unit conversion (src/units.js) rather than legacy's
 // hand-rolled constant, though for MOA specifically the two agree to 4
-// decimal places (legacy's mrad constant does not — see mmToAngularUnit).
-export function oneMoaWidthMm(rangeM) {
-  return mToMm(angularUnitToLinearAtRange('arcmin', rangeM));
+// decimal places (legacy's mrad constant does not — see linearToAngularUnit).
+export function oneMoaWidthM(rangeM) {
+  return angularUnitToLinearAtRange('arcmin', rangeM);
 }
 
-// Same idea as oneMoaWidthMm() above, for 1 mrad — used by the analysis
+// Same idea as oneMoaWidthM() above, for 1 mrad — used by the analysis
 // diagram's own mrad-spaced grid options.
-export function oneMradWidthMm(rangeM) {
-  return mToMm(angularUnitToLinearAtRange('mrad', rangeM));
+export function oneMradWidthM(rangeM) {
+  return angularUnitToLinearAtRange('mrad', rangeM);
 }
 
-// Converts a real-world length (mm) at a given range into an angular unit
+// Converts a real-world length (m) at a given range into an angular unit
 // ('arcmin' for MOA, or 'mrad') — replaces legacy's printInMOA/printInMrad.
 // Legacy's own MOA constant checks out exactly against this; its mrad
 // constant was off by a factor of 10 (a dropped-decimal bug), so this is a
 // deliberate correction, not a byte-for-byte port, for that one unit.
-export function mmToAngularUnit(valueMm, unit, rangeM) {
+export function linearToAngularUnit(valueM, unit, rangeM) {
   const metresPerUnit = angularUnitToLinearAtRange(unit, rangeM);
   if (!metresPerUnit) return 0;
-  return mmToM(valueMm) / metresPerUnit;
+  return valueM / metresPerUnit;
 }

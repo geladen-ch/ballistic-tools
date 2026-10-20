@@ -41,13 +41,21 @@ export function fromDisplayUnit(group, value, to = defaultUnitOf(group)) {
   return converter(displayChoice(group).unit, to)(value);
 }
 
+// A number to fixed decimals, without the "-0.00" toFixed() gives for a
+// tiny negative (float residue of a value that is zero to the shown
+// precision).
+export function toFixedDisplay(value, places) {
+  const text = value.toFixed(places);
+  return /^-0(\.0*)?$/.test(text) ? text.slice(1) : text;
+}
+
 // "12.3 cm" — `decimals` is a number, or a function of the display choice
 // (for groups whose precision depends on the unit), defaulting to the
 // choice's own display decimals.
 export function formatQuantity(group, value, { from = defaultUnitOf(group), decimals } = {}) {
   const choice = displayChoice(group);
   const places = typeof decimals === 'function' ? decimals(choice) : (decimals ?? choice.decimals);
-  return `${converter(from, choice.unit)(value).toFixed(places)} ${choice.label}`;
+  return `${toFixedDisplay(converter(from, choice.unit)(value), places)} ${choice.label}`;
 }
 
 // The finer per-unit precision small lengths need where they are measured

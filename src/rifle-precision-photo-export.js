@@ -17,6 +17,7 @@ import {
   pooledShotColor, COLOR_POA, COLOR_POI, COLOR_CALIBRATION,
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
 } from './ui/rifle-precision/marker-style.js';
+import { mmToM } from './quantity.js';
 
 function loadImage(dataUrl) {
   return new Promise((resolve, reject) => {
@@ -147,11 +148,11 @@ export async function exportGroupOverviewImage({
   // Impacts: a fixed *physical* diameter (the rifle's own caliber),
   // unlike every other marker here — see .rp-impact-marker's own CSS
   // comment for why this one deliberately isn't sized off the canvas/
-  // viewport at all. computeScale() is native px-per-mm, and this canvas
+  // viewport at all. computeScale() is native px-per-metre, and this canvas
   // is native photo pixels 1:1 within the crop (no separate rescale), so
   // the physical radius in native px *is* the radius in canvas px.
-  const pxPerMm = computeScale(target);
-  const impactRadius = pxPerMm && project.caliberMm > 0 ? (project.caliberMm / 2) * pxPerMm : canvas.width * 0.007;
+  const pxPerM = computeScale(target);
+  const impactRadius = pxPerM && project.caliberMm > 0 ? (mmToM(project.caliberMm) / 2) * pxPerM : canvas.width * 0.007;
   // Each impact is drawn outside-in — dark ring, white ring, then the
   // fill in the user's own impact color — so the colored dot itself
   // stays exactly the bullet hole's true diameter and the shared

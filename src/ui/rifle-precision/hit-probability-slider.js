@@ -9,9 +9,9 @@
 // (default 0) lets the caller restore a previously-saved position.
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { hitProbabilityRadiusMm, mmToAngularUnit } from '../../engine/rifle-precision-stats.js';
+import { hitProbabilityRadius, linearToAngularUnit } from '../../engine/rifle-precision-stats.js';
 
-export function hitProbabilitySlider({ sigma, distanceM, formatLengthMm, onChange, initialPercent = 0 } = {}) {
+export function hitProbabilitySlider({ sigma, distanceM, formatLength, onChange, initialPercent = 0 } = {}) {
   const slider = el('input', {
     type: 'range', min: '0', max: '99', step: '1', value: String(initialPercent), id: 'riflePrecisionHitProbability'
   });
@@ -19,14 +19,14 @@ export function hitProbabilitySlider({ sigma, distanceM, formatLengthMm, onChang
 
   function refresh() {
     const percent = parseInt(slider.value, 10) || 0;
-    const radiusMm = hitProbabilityRadiusMm(sigma, percent);
+    const radiusM = hitProbabilityRadius(sigma, percent);
     readout.textContent = t('riflePrecision.hitProbabilityReadout', {
       percent,
-      radius: formatLengthMm(radiusMm),
-      mrad: mmToAngularUnit(radiusMm, 'mrad', distanceM).toFixed(2),
-      moa: mmToAngularUnit(radiusMm, 'arcmin', distanceM).toFixed(2)
+      radius: formatLength(radiusM),
+      mrad: linearToAngularUnit(radiusM, 'mrad', distanceM).toFixed(2),
+      moa: linearToAngularUnit(radiusM, 'arcmin', distanceM).toFixed(2)
     });
-    if (onChange) onChange(percent, radiusMm);
+    if (onChange) onChange(percent, radiusM);
   }
 
   slider.addEventListener('input', refresh);
