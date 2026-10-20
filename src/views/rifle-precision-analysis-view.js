@@ -15,8 +15,8 @@ import { t } from '../i18n.js';
 import { findRiflePrecisionProjectById } from '../rifle-precision-library.js';
 import { getActiveProjectId } from '../rifle-precision-nav.js';
 import { computeCombinedStats, mmToAngularUnit, oneMoaWidthMm, oneMradWidthMm, toShooterFrame } from '../engine/rifle-precision-stats.js';
-import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay } from '../units.js';
-import { getUnit } from '../prefs.js';
+import { displayChoice, toDisplayUnit, formatQuantity, fineLengthDecimals } from '../display-units.js';
+import { fractionToPercent } from '../quantity.js';
 import { analysisDiagram, buildStandaloneDiagramSvg, buildExportSvgWithLegend } from '../ui/rifle-precision/analysis-diagram.js';
 import { confidenceOMeter } from '../ui/rifle-precision/confidence-o-meter.js';
 import { hitProbabilitySlider } from '../ui/rifle-precision/hit-probability-slider.js';
@@ -28,34 +28,15 @@ import { getFieldSeparator, getDecimalSeparator } from '../csv-prefs.js';
 import { downloadFile } from '../download.js';
 import { downloadButton } from '../ui/download-button.js';
 
-// Same formatDistance()/formatLengthMm() display-unit conversion pattern
-// as rifle-precision-view.js's own pair (not imported — that module
-// doesn't export them, and they're small enough pure functions that a
-// second copy here matches this app's existing per-view convention rather
-// than introducing a new shared module for two four-line functions). See
-// that module's own comment for why `targetRange`/`bulletLength` are
-// reused purely for their unit-math. These two stay tied to the user's
-// global preferences regardless of the page-local "Results display units"
-// selector below — that selector only governs the legend/Numbers-table
-// values, not the page identity or the scale bar.
-function distanceChoice() {
-  const displayUnit = getUnit('distance');
-  return unitChoice('targetRange', displayUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
-}
-function smallLengthChoice() {
-  const displayUnit = getUnit('smallLength');
-  return unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
-}
-function smallLengthDecimals(choice) {
-  return SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
-}
+// These two stay tied to the user's global preferences regardless of the
+// page-local "Results display units" selector below — that selector only
+// governs the legend/Numbers-table values, not the page identity or the
+// scale bar.
 function formatDistance(distanceM) {
-  const choice = distanceChoice();
-  return `${engineToDisplay('targetRange', distanceM, choice.unit).toFixed(choice.decimals)} ${choice.label}`;
+  return formatQuantity('distance', distanceM);
 }
 function formatLengthMm(valueMm) {
-  const choice = smallLengthChoice();
-  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(smallLengthDecimals(choice))} ${choice.label}`;
+  return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
 }
 
 // The diagram's optional reference grid — each option's real-world
@@ -120,7 +101,7 @@ export function mount(container) {
 
   // ---- results display units ----
   let resultsUnitMode = saved.resultsUnitMode ?? 'absolute';
-  const absoluteChoice = smallLengthChoice();
+  const absoluteChoice = displayChoice('smallLength');
 
   function formatResultValue(valueMm) {
     if (resultsUnitMode === 'mrad') return `${mmToAngularUnit(valueMm, 'mrad', project.distanceM).toFixed(3)} mrad`;
@@ -129,8 +110,8 @@ export function mount(container) {
   }
 
   function confidenceIntervalText() {
-    const lowerPct = (stats.confidenceLower - 1) * 100;
-    const upperPct = (stats.confidenceUpper - 1) * 100;
+    const lowerPct = fractionToPercent(stats.confidenceLower - 1);
+    const upperPct = fractionToPercent(stats.confidenceUpper - 1);
     return `-${Math.abs(lowerPct).toFixed(0)}%/+${upperPct.toFixed(0)}%`;
   }
 
@@ -350,9 +331,9 @@ export function mount(container) {
   function exportCsv() {
     const fieldSeparator = getFieldSeparator();
     const decimalSeparator = getDecimalSeparator();
-    const lengthChoice = smallLengthChoice();
-    const lengthDecimals = smallLengthDecimals(lengthChoice);
-    const rangeChoice = distanceChoice();
+    const lengthChoice = displayChoice('smallLength');
+    const lengthDecimals = fineLengthDecimals(lengthChoice);
+    const rangeChoice = displayChoice('distance');
     const groupIndexByTarget = new Map();
     for (const target of project.targets) {
       const byGroup = new Map();
@@ -381,11 +362,11 @@ export function mount(container) {
       const groupIndex = groupIndexByTarget.get(shot.targetId)?.get(shot.groupId) ?? shot.groupId;
       const { rightMm, upMm } = toShooterFrame({ x: shot.xMm, y: shot.yMm });
       return [
-        formatCsvNumber(engineToDisplay('bulletLength', rightMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
-        formatCsvNumber(engineToDisplay('bulletLength', upMm, lengthChoice.unit), lengthDecimals, decimalSeparator),
+        formatCsvNumber(toDisplayUnit('smallLength', rightMm, 'mm'), lengthDecimals, decimalSeparator),
+        formatCsvNumber(toDisplayUnit('smallLength', upMm, 'mm'), lengthDecimals, decimalSeparator),
         shot.targetName || '',
         String(groupIndex),
-        formatCsvNumber(engineToDisplay('targetRange', project.distanceM, rangeChoice.unit), rangeChoice.decimals, decimalSeparator),
+        formatCsvNumber(toDisplayUnit('distance', project.distanceM), rangeChoice.decimals, decimalSeparator),
         project.name
       ];
     });

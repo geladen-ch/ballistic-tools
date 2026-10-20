@@ -64,6 +64,13 @@ export function unitField({ id, min, max, step, value, slider = false, isSpan = 
   const dStep = step !== undefined ? spanToDisp(step) : undefined;
   const dValue = optional && value == null ? '' : toDisp(value);
 
+  // The engine value the field was last given, and the exact text it was
+  // shown as. While the input still holds that text, getEngineValue()
+  // returns the value itself rather than the engine value of its rounded
+  // display — otherwise every save from a converted display (100 m shown as
+  // 109.4 yd) would quietly move the stored number (to 100.03 m).
+  let lastSet = { engineValue: value, shown: String(dValue) };
+
   const number = el('input', {
     type: 'number',
     class: slider ? 'val-input' : undefined,
@@ -153,6 +160,7 @@ export function unitField({ id, min, max, step, value, slider = false, isSpan = 
     getEngineValue: () => {
       const raw = (slider ? range : number).value;
       if (optional && raw.trim() === '') return null;
+      if (lastSet.engineValue != null && String(raw).trim() === lastSet.shown) return lastSet.engineValue;
       return toEng(parseFloat(raw));
     },
     // Programmatic write path (e.g. pre-filling from a library entry) —
@@ -162,6 +170,7 @@ export function unitField({ id, min, max, step, value, slider = false, isSpan = 
       const dv = optional && v == null ? '' : String(toDisp(v));
       number.value = dv;
       if (slider) range.value = dv;
+      lastSet = { engineValue: v, shown: dv };
     },
     setDisabled(disabled) {
       number.disabled = disabled;

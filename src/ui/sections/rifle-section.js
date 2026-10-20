@@ -1,5 +1,6 @@
 import { el, clear } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
+import { mToMm, mmToM } from '../../quantity.js';
 import { unitField } from '../unit-field.js';
 import { scopeClicksField } from '../scope-clicks-field.js';
 import { sectionGroup } from '../section.js';
@@ -222,8 +223,8 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     if (!rifle) return; // not resolvable yet (shouldn't happen once catalogReady has settled) — nothing to apply
     selectedRifle = rifle;
     zeroRangeField.setEngineValue(rifle.defaultZeroRangeM);
-    sightHeightField.setEngineValue(rifle.defaultSightHeightM * 1000); // stored in m; sightHeight's engine unit is mm
-    twistField.setEngineValue(rifle.defaultRiflingTwistM != null ? rifle.defaultRiflingTwistM * 1000 : null);
+    sightHeightField.setEngineValue(mToMm(rifle.defaultSightHeightM)); // stored in m; sightHeight's engine unit is mm
+    twistField.setEngineValue(rifle.defaultRiflingTwistM != null ? mToMm(rifle.defaultRiflingTwistM) : null);
     twistDirectionSelect.value = rifle.defaultTwistDirection || 'right'; // older/built-in records predating this field default to "right"
     clicks.setSettings({
       unit: rifle.defaultClickUnit,
@@ -326,9 +327,9 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     const twistMm = twistField.getEngineValue();
     return {
       name: selectedRifle ? selectedRifle.name : '',
-      defaultSightHeightM: sightHeightField.getEngineValue() / 1000,
+      defaultSightHeightM: mmToM(sightHeightField.getEngineValue()),
       defaultZeroRangeM: zeroRangeField.getEngineValue(),
-      defaultRiflingTwistM: twistMm != null ? twistMm / 1000 : null,
+      defaultRiflingTwistM: twistMm != null ? mmToM(twistMm) : null,
       defaultTwistDirection: twistDirectionSelect.value,
       defaultClickUnit: clickSettings.unit,
       defaultClickHorizontal: clickSettings.horizontal,

@@ -104,3 +104,19 @@ test('highlightRequired: true shows a required-mark on the label; omitted/false 
   const unmarked = massDualField();
   assert.equal(findByClass(unmarked.node, 'field-required-mark'), null);
 });
+
+test('a mass that was set and never edited comes back exactly, not as the kg of its rounded gram display', () => {
+  const kg175gr = 0.011339809; // 175 gr, shown as 11.34 g
+  const field = massDualField({ value: kg175gr });
+  assert.equal(field.getMassKg(), kg175gr);
+  field.setMassKg(0.0113398093);
+  assert.equal(field.getMassKg(), 0.0113398093);
+});
+
+test('grains typed by hand keep their own precision rather than passing through the gram box\'s two decimals', () => {
+  const field = massDualField({ value: 0.01 });
+  const [, grainsInput] = findByTag(field.node, 'INPUT');
+  grainsInput.value = '175';
+  fireEvent(grainsInput, 'input');
+  assert.ok(Math.abs(field.getMassKg() - 175 * 64.79891e-6) < 1e-15);
+});

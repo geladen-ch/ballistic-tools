@@ -1,9 +1,8 @@
 import { el } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { i18nSpan, t } from '../../i18n.js';
+import { kgToG, gToKg, kgToGrain, grainToKg } from '../../quantity.js';
 
-const KG_TO_GRAIN = 15432.358352941432; // matches bullet-section.js's own constant
-const GRAMS_PER_KG = 1000;
 const DECIMALS_G = 2;
 const DECIMALS_GR = 1;
 
@@ -30,13 +29,13 @@ function round(value, decimals) {
 export function massDualField({ value = null, onInput, highlightRequired = false } = {}) {
   const gramsInput = el('input', {
     type: 'number', id: 'massGrams', step: 0.01, min: FIELD_BOUNDS.bulletMass.min, max: FIELD_BOUNDS.bulletMass.max,
-    value: value != null ? round(value * GRAMS_PER_KG, DECIMALS_G) : ''
+    value: value != null ? round(kgToG(value), DECIMALS_G) : ''
   });
   const grainsInput = el('input', {
     type: 'number', id: 'massGrains', step: 0.1,
-    min: round(FIELD_BOUNDS.bulletMass.min * (KG_TO_GRAIN / GRAMS_PER_KG), DECIMALS_GR),
-    max: round(FIELD_BOUNDS.bulletMass.max * (KG_TO_GRAIN / GRAMS_PER_KG), DECIMALS_GR),
-    value: value != null ? round(value * KG_TO_GRAIN, DECIMALS_GR) : ''
+    min: round(kgToGrain(gToKg(FIELD_BOUNDS.bulletMass.min)), DECIMALS_GR),
+    max: round(kgToGrain(gToKg(FIELD_BOUNDS.bulletMass.max)), DECIMALS_GR),
+    value: value != null ? round(kgToGrain(value), DECIMALS_GR) : ''
   });
 
   // getMassKg() is read on every keystroke by callers that persist it
@@ -45,21 +44,24 @@ export function massDualField({ value = null, onInput, highlightRequired = false
   // intermediate state (<input type=number> reports '' e.g. while text is
   // selected mid-retype) must not fire onInput, and getMassKg() itself
   // falls back to the last real mass rather than a physically-meaningless
-  // 0 kg.
+  // 0 kg. It is also the mass itself, not a re-reading of the rounded gram
+  // box: a mass that was set and never edited must come back exactly as it
+  // went in, and grains typed by hand must not lose precision by passing
+  // through the gram box's two decimals.
   let lastValidKg = value;
 
   gramsInput.addEventListener('input', () => {
     const grams = parseFloat(gramsInput.value);
     if (Number.isNaN(grams)) return;
-    grainsInput.value = round((grams / GRAMS_PER_KG) * KG_TO_GRAIN, DECIMALS_GR);
-    lastValidKg = grams / GRAMS_PER_KG;
+    lastValidKg = gToKg(grams);
+    grainsInput.value = round(kgToGrain(lastValidKg), DECIMALS_GR);
     if (onInput) onInput();
   });
   grainsInput.addEventListener('input', () => {
     const grains = parseFloat(grainsInput.value);
     if (Number.isNaN(grains)) return;
-    gramsInput.value = round((grains / KG_TO_GRAIN) * GRAMS_PER_KG, DECIMALS_G);
-    lastValidKg = grains / KG_TO_GRAIN;
+    lastValidKg = grainToKg(grains);
+    gramsInput.value = round(kgToG(lastValidKg), DECIMALS_G);
     if (onInput) onInput();
   });
 
@@ -113,13 +115,12 @@ export function massDualField({ value = null, onInput, highlightRequired = false
   ]);
 
   function getMassKg() {
-    const grams = parseFloat(gramsInput.value);
-    return Number.isNaN(grams) ? lastValidKg : grams / GRAMS_PER_KG;
+    return lastValidKg;
   }
 
   function setMassKg(kg) {
-    gramsInput.value = round(kg * GRAMS_PER_KG, DECIMALS_G);
-    grainsInput.value = round(kg * KG_TO_GRAIN, DECIMALS_GR);
+    gramsInput.value = round(kgToG(kg), DECIMALS_G);
+    grainsInput.value = round(kgToGrain(kg), DECIMALS_GR);
     lastValidKg = kg;
   }
 

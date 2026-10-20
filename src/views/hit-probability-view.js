@@ -29,6 +29,9 @@ import {
   MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY
 } from '../ui/precision-preset-field.js';
 import { riflePrecisionInputs } from '../ui/rifle-precision-inputs.js';
+import { converter, cmToM, fractionToPercent } from '../quantity.js';
+
+const cmToMm = converter('cm', 'mm');
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
@@ -674,13 +677,13 @@ export function mount(container) {
     const dims = currentCustomDims();
     let geometry, resultSvgText, detailSvgText;
     if (targetData.custom.shape === 'circle') {
-      const diameterMm = dims.diameterCm * 10;
+      const diameterMm = cmToMm(dims.diameterCm);
       geometry = circleGongGeometry(dims.diameterCm);
       resultSvgText = circleGongResultSvg(diameterMm);
       detailSvgText = circleGongDetailSvg(formatCircleGongLabel(dims.diameterCm));
     } else {
-      const widthMm = dims.widthCm * 10;
-      const heightMm = dims.heightCm * 10;
+      const widthMm = cmToMm(dims.widthCm);
+      const heightMm = cmToMm(dims.heightCm);
       geometry = rectPlateGeometry(dims.widthCm, dims.heightCm);
       resultSvgText = rectPlateResultSvg(widthMm, heightMm);
       detailSvgText = rectPlateDetailSvg(widthMm, heightMm, formatRectPlateLabel(dims.widthCm, dims.heightCm));
@@ -845,7 +848,7 @@ export function mount(container) {
     clear(overlayGroup);
     sampleCircles = [];
     const { pointOfAim, pxPerMeter } = targetData.resultSvg;
-    const pxPerCm = pxPerMeter / 100;
+    const pxPerCm = pxPerMeter * cmToM(1);
 
     // Read fresh every render rather than once at module load — see
     // cssVar()'s own comment above.
@@ -977,7 +980,7 @@ export function mount(container) {
     const total = zones.reduce((sum, z) => sum + z.probability, 0);
     const rows = [...zones, { zoneId: '__miss', probability: Math.max(0, 1 - total) }];
     for (const zone of rows) {
-      const pct = zone.probability * 100;
+      const pct = fractionToPercent(zone.probability);
       const zoneDef = targetData ? targetData.zones.find((zd) => zd.id === zone.zoneId) : null;
       const nameKey = zone.zoneId === '__miss' ? 'hitProbability.zoneMiss' : (zoneDef ? zoneDef.nameKey : zone.zoneId);
       section.zoneBars.appendChild(el('div', { class: 'zone-bar-row' }, [
@@ -992,7 +995,7 @@ export function mount(container) {
       const zoneDef = targetData.zones.find((zd) => zd.id === z.zoneId);
       return sum + (zoneDef ? zoneDef.score * z.probability : 0);
     }, 0);
-    const scoreOfMax = bestScore > 0 ? (expectedScore / bestScore) * 100 : 0;
+    const scoreOfMax = bestScore > 0 ? fractionToPercent(expectedScore / bestScore) : 0;
     section.scoreOfMaxValue.querySelector('.value').textContent = `${scoreOfMax.toFixed(1)}%`;
 
     clear(section.contributionBody);
@@ -1000,8 +1003,8 @@ export function mount(container) {
     const varY = contributions.reduce((s, c) => s + c.y * c.y, 0) || 1;
     const aspect = targetData ? targetData.aspectRatio : 1;
     for (const c of contributions) {
-      const hPct = (c.x * c.x / varX) * 100;
-      const vPct = (c.y * c.y / varY) * 100;
+      const hPct = fractionToPercent(c.x * c.x / varX);
+      const vPct = fractionToPercent(c.y * c.y / varY);
       // The spec calls for a "total" contribution "estimated from total
       // (simply by factoring in the target's aspect ratio)" without a
       // precise formula. This is a first-pass interpretation (an
@@ -1102,7 +1105,7 @@ export function mount(container) {
 
   function setTotalProbability(total) {
     clear(totalProbabilityValue);
-    totalProbabilityValue.appendChild(document.createTextNode(`${(total * 100).toFixed(1)}%`));
+    totalProbabilityValue.appendChild(document.createTextNode(`${fractionToPercent(total).toFixed(1)}%`));
   }
 
   // Toggles every scenario-specific input and output between what Single

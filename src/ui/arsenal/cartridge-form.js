@@ -5,7 +5,7 @@ import { cartridgePrecisionField } from './cartridge-precision-field.js';
 import { cartridgeZeroAtmosphereField } from './cartridge-zero-atmosphere-field.js';
 import { stabilityIndicator } from '../stability-indicator.js';
 import { bulletForm } from './bullet-form.js';
-import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor, compareBulletsForPicker } from '../../bullets.js';
+import { loadBulletCatalog, loadBullet, bulletLibraryForBullet, loadCaliberDesignations, designationFor, caliberMmLabel, compareBulletsForPicker } from '../../bullets.js';
 import { logDiagnostic } from '../../debug-log.js';
 import { loadUserBullets, saveUserBullet, findUserBulletByName, generateUserId } from '../../user-library.js';
 import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
@@ -13,6 +13,7 @@ import { t } from '../../i18n.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
 import { disambiguateByName } from '../../sync/disambiguate-by-name.js';
+import { fractionToPercent } from '../../quantity.js';
 
 const DEFAULT_VALUES = {
   name: '', muzzleVelocity: 800, referenceTempC: null, velocityTempSensitivity: null, bulletId: '',
@@ -140,7 +141,7 @@ export function cartridgeForm({
     if (factor == null || !bullet || !bullet.profile) {
       bcGainReadout.textContent = '';
     } else if (bullet.profile.type === 'cdTable') {
-      const pct = Math.abs((factor - 1) * 100).toFixed(1);
+      const pct = Math.abs(fractionToPercent(factor - 1)).toFixed(1);
       bcGainReadout.textContent = factor >= 1
         ? t('arsenal.bcGainFactorReadoutCdTableLess', { pct })
         : t('arsenal.bcGainFactorReadoutCdTableMore', { pct });
@@ -205,7 +206,7 @@ export function cartridgeForm({
   caliberLockedHint.style.display = 'none';
   let designations = [];
   function caliberLabelFor(bullet) {
-    return designations.length ? designationFor(bullet.caliberM, designations) : `${(bullet.caliberM * 1000).toFixed(2)}mm`;
+    return designations.length ? designationFor(bullet.caliberM, designations) : caliberMmLabel(bullet.caliberM);
   }
 
   const bulletSelect = el('select', { id: 'arsenalCartridgeBullet' });

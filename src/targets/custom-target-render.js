@@ -11,6 +11,8 @@
 // 120x180 rect for a real 400x600mm plate) — only the dimension label is
 // ever the real value.
 
+import { converter, cmToM } from '../quantity.js';
+
 // Schematic drawing conventions shared with the (now-static) -detail.svg
 // files this replaces: a 300x280 viewBox, the shape centered on the point
 // of aim at (150,110), capped at 180 schematic units in its longer
@@ -35,22 +37,24 @@ const DETAIL_LABEL_COLOR = '#d9e0e6';
 const RESULT_RECT_STROKE_MM = 6;
 const RESULT_RECT_INSET_MM = 3;
 
+const cmToMm = converter('cm', 'mm');
+
 export function circleGongGeometry(diameterCm) {
-  const diameterMm = diameterCm * 10;
+  const diameterMm = cmToMm(diameterCm);
   return {
-    widthM: diameterCm / 100,
-    heightM: diameterCm / 100,
+    widthM: cmToM(diameterCm),
+    heightM: cmToM(diameterCm),
     aspectRatio: 1,
     resultSvg: { pointOfAim: { x: diameterMm / 2, y: diameterMm / 2 }, pxPerMeter: 1000 }
   };
 }
 
 export function rectPlateGeometry(widthCm, heightCm) {
-  const widthMm = widthCm * 10;
-  const heightMm = heightCm * 10;
+  const widthMm = cmToMm(widthCm);
+  const heightMm = cmToMm(heightCm);
   return {
-    widthM: widthCm / 100,
-    heightM: heightCm / 100,
+    widthM: cmToM(widthCm),
+    heightM: cmToM(heightCm),
     aspectRatio: heightCm / widthCm,
     resultSvg: { pointOfAim: { x: widthMm / 2, y: heightMm / 2 }, pxPerMeter: 1000 }
   };

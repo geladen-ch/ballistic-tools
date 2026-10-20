@@ -9,8 +9,9 @@ import { bcCorrectionOffer, recommendedMvShots, measuredRangeM, HOMEWORK_DOUBT_S
 import { recheckPrompt } from './recheck-prompt.js';
 import { flagText } from './shoot-panel.js';
 import { dist, angle, toDisplayAngle, angleLabel, vel, velLabel, toDisplayVelocityText } from './units.js';
+import { fractionToPercent } from '../../quantity.js';
 
-const pctP = (p) => `${Math.round(p * 100)}%`;
+const pctP = (p) => `${Math.round(fractionToPercent(p))}%`;
 const paramName = (k) => t(`truingSession.params.${k}`);
 
 // A fitted quantity as value (confidence ±size), in the shooter's own units: the precision unit for angles, the velocity and wind units for

@@ -47,54 +47,35 @@ import {
   setMarkingMode, takePendingMarking, registerMarkingHandlers, setActiveProjectId
 } from '../rifle-precision-nav.js';
 import { computeGroupStats, computeScale } from '../engine/rifle-precision-stats.js';
-import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../units.js';
-import { getUnit } from '../prefs.js';
+import { displayChoice, toDisplayUnit, fromDisplayUnit, formatQuantity, fineLengthDecimals } from '../display-units.js';
 import {
   pooledShotColor, COLOR_POA, COLOR_POI, COLOR_CALIBRATION,
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
 } from '../ui/rifle-precision/marker-style.js';
 import { exportGroupOverviewImage } from '../rifle-precision-photo-export.js';
 
-// The user's currently-preferred small-length unit (mm/cm/in), resolved
-// the same way rifle-precision-view.js's/rifle-precision-analysis-view.js's
-// own copies do — `bulletLength` is borrowed purely for its unit-math
-// (mm engine unit, smallLength group), not because any of this is about a
-// bullet. Falls back to the group default for a stale/unknown pref, same
-// as unitField() itself.
-function smallLengthChoice() {
-  const displayUnit = getUnit('smallLength');
-  return unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
-}
+const smallLengthChoice = () => displayChoice('smallLength');
+const smallLengthDecimals = fineLengthDecimals;
 
-// Decimal places for one small-length display unit — the same tighter
-// per-unit precision the Arsenal bullet-geometry fields use, since a
-// group size or a ruler length needs finer resolution than the
-// smallLength group's own coarser default.
-function smallLengthDecimals(choice) {
-  return SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
-}
-
-// Same formatLengthMm() display-unit conversion pattern as
-// rifle-precision-view.js's/rifle-precision-analysis-view.js's own copies
-// (not imported — small enough pure functions that a third copy here
-// matches this app's existing per-view convention). Used for the extreme-
-// spread line's own legend.
+// Used for the extreme-spread line's own legend.
 function formatLengthMm(valueMm) {
-  const choice = smallLengthChoice();
-  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(smallLengthDecimals(choice))} ${choice.label}`;
+  return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
 }
 
 // The calibration length round-trip: stored on the target in millimetres
-// (the engine unit every measurement downstream of the scale is derived
-// in), typed and shown in whatever small-length unit the user prefers.
-// Rounded to that unit's own display precision on the way out so the
-// input never shows a 3.9370078740157481-style conversion artifact.
+// (the unit every measurement downstream of the scale is derived in),
+// typed and shown in whatever small-length unit the user prefers. Rounded
+// to that unit's own display precision on the way out so the input never
+// shows a 3.9370078740157481-style conversion artifact.
 function calibrationLengthToDisplay(valueMm) {
-  const choice = smallLengthChoice();
-  return Number(engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(smallLengthDecimals(choice)));
+  return Number(toDisplayUnit('smallLength', valueMm, 'mm').toFixed(smallLengthDecimals(smallLengthChoice())));
 }
-function calibrationLengthToMm(displayValue) {
-  return displayToEngine('bulletLength', displayValue, smallLengthChoice().unit);
+// A typed value equal to the stored length's own rounded display is the
+// stored length, not the millimetres of its rounding (a 100 mm ruler shown
+// as "3.937 in" must not be re-saved as 99.9998 mm).
+function calibrationLengthToMm(displayValue, originalMm) {
+  if (originalMm && displayValue === calibrationLengthToDisplay(originalMm)) return originalMm;
+  return fromDisplayUnit('smallLength', displayValue, 'mm');
 }
 
 // Unlike formatLengthMm() above (a computed statistic, always printed to
@@ -575,7 +556,7 @@ export function mount(container) {
       if (!(len > 0)) return;
       const fresh = currentTarget();
       if (!fresh) return;
-      persistTarget({ ...fresh, calibration: { ...fresh.calibration, realLengthMm: calibrationLengthToMm(len) } });
+      persistTarget({ ...fresh, calibration: { ...fresh.calibration, realLengthMm: calibrationLengthToMm(len, fresh.calibration.realLengthMm) } });
       render();
     });
 

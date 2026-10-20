@@ -6,7 +6,7 @@
 // metric": it's the ingestion boundary, converting whatever units a
 // track's own header declares into metric before anything past this
 // point ever sees the data.
-import Qty from '../vendor/js-quantities/quantities.mjs';
+import { convert } from '../quantity.js';
 
 const TRACK_HEADER_RE = /Time \(s\);[\s\S]+/m;
 const VEL_UNIT_RE = /Vel\s+\(([^)]+)\)/;
@@ -51,8 +51,8 @@ export function parseLabradarTrack(text) {
     if (i > 1 && !isNumericStr(snrRaw)) continue;
 
     const t = parseFloat(tRaw);
-    const v = Qty(parseFloat(vRaw), sniffed.velUnit).to('m/s').scalar;
-    const dist = sniffed.distUnit ? Qty(parseFloat(dRaw), sniffed.distUnit).to('m').scalar : parseFloat(dRaw);
+    const v = convert(parseFloat(vRaw), sniffed.velUnit, 'm/s');
+    const dist = sniffed.distUnit ? convert(parseFloat(dRaw), sniffed.distUnit, 'm') : parseFloat(dRaw);
     const snr = isNumericStr(snrRaw) ? parseFloat(snrRaw) : 0;
     const a = snr ? Math.pow(10, snr / 10) : 0;
     points.push({ t, v, dist, snr, a });

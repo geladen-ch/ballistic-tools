@@ -7,6 +7,7 @@
 // (locationPhotoField) and Rifle Precision (photo-add-flow.js) — so a
 // photo looks the same whichever tool encoded it.
 import { FULL_CROP_RECT, isFullCropRect } from './ui/image-crop-geometry.js';
+import { degToRad } from './quantity.js';
 
 export const MAX_DIMENSION_PX = 2400;
 export const JPEG_QUALITY = 0.9;
@@ -110,7 +111,7 @@ export function renderPhoto(img, rawDataUrl, { quarterTurns = 0, cropRect = FULL
     rotatedCanvas.height = rotatedNatural.height;
     const rctx = rotatedCanvas.getContext('2d');
     rctx.translate(rotatedNatural.width / 2, rotatedNatural.height / 2);
-    rctx.rotate((turns * 90 * Math.PI) / 180);
+    rctx.rotate(degToRad(turns * 90));
     rctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
     source = rotatedCanvas;
   }

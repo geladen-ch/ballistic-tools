@@ -8,13 +8,13 @@ import {
   DEFAULT_PRIORS_UNCHECKED, BASE_PARAMS
 } from '../../engine/truing-session.js';
 import { resolveMuzzleVelocity } from '../../engine/trajectory.js';
+import { convert } from '../../quantity.js';
 
 // How many standard deviations either side of the expected value still count as reasonable.
 export const PLAUSIBILITY_Z = 4;
 // Physical bounds on a muzzle velocity reading, whatever the cartridge (m/s).
 export const VELOCITY_FLOOR_MS = 150;
 export const VELOCITY_CEILING_MS = 1500;
-const MOA_MRAD = Math.PI / 10800 * 1000; // one minute of arc, in mrad
 
 // The covariance of the come-up's causes for a shooter who has checked nothing: one per state object, since it depends on the state alone.
 const covCache = new WeakMap();
@@ -51,7 +51,7 @@ export function comeUpPlausibility({ enteredClicks, clickMrad, recommendedMrad =
   const tests = [
     ['delta', rec + x * clickMrad],
     ['mrad', x],
-    ['moa', x * MOA_MRAD],
+    ['moa', convert(x, 'arcmin', 'mrad')],
     ['sign', -x * clickMrad],
     ['tenth', x * 10 * clickMrad],
     ['tenth', x / 10 * clickMrad]

@@ -6,6 +6,7 @@
 // re-selecting a bullet never re-fetches.
 import { BULLET_LIBRARIES } from './bullets/bullet-libraries.js';
 import { logDiagnostic } from './debug-log.js';
+import { mToMm } from './quantity.js';
 
 const CALIBER_DESIGNATIONS_URL = new URL('./bullets/caliber-designations.json', import.meta.url);
 
@@ -123,7 +124,14 @@ export function matchCaliberDesignation(caliberM, designations) {
 // to a raw-mm label for a caliber the table doesn't know yet.
 export function designationFor(caliberM, designations) {
   const match = matchCaliberDesignation(caliberM, designations);
-  return match ? match.designation : `${(caliberM * 1000).toFixed(2)}mm`;
+  return match ? match.designation : caliberMmLabel(caliberM);
+}
+
+// A caliber as a raw millimetre label ("7.82mm") — the fallback naming
+// for a diameter with no conventional designation, always in mm since
+// that is how such calibers are spoken of.
+export function caliberMmLabel(caliberM) {
+  return `${mToMm(caliberM).toFixed(2)}mm`;
 }
 
 // Registry declaration order doubles as the picker's own library

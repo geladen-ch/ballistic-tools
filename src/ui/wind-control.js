@@ -40,6 +40,7 @@ import { t } from '../i18n.js';
 import { getWindDialAppearance } from '../wind-dial-prefs.js';
 import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, displaySpanToEngine } from '../units.js';
 import { getUnit } from '../prefs.js';
+import { degToRad, radToDeg } from '../quantity.js';
 
 // One round step per display unit — a shooter thinking in mph wants ±1
 // mph, not whatever a flat 0.5 m/s happens to convert to. Units without
@@ -69,7 +70,7 @@ function angularDist(a, b) {
 }
 
 function pointOn(deg, r) {
-  const rad = (deg * Math.PI) / 180;
+  const rad = degToRad(deg);
   return { x: CX + r * Math.sin(rad), y: CY - r * Math.cos(rad) };
 }
 
@@ -190,7 +191,7 @@ export function windControl({
     const scale = VIEW / rect.width;
     const x = (evt.clientX - rect.left) * scale - CX;
     const y = (evt.clientY - rect.top) * scale - CY;
-    return norm((Math.atan2(x, -y) * 180) / Math.PI);
+    return norm(radToDeg(Math.atan2(x, -y)));
   }
 
   function updateFromPointer(evt) {

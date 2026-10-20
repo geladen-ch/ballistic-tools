@@ -5,7 +5,8 @@ import {
   loadUserRifles, saveUserRifle, deleteUserRifle, findUserRifleByName, markUserRiflesSaved, importUserRifle,
   generateUserId
 } from '../user-library.js';
-import { loadCaliberDesignations, designationFor, loadBullet } from '../bullets.js';
+import { loadCaliberDesignations, designationFor, caliberMmLabel, loadBullet } from '../bullets.js';
+import { kgToGrain, mToMm, mmToM } from '../quantity.js';
 import { takePendingBulletPrefill, takePendingRiflePrefill, takePendingCartridgeActivation } from '../arsenal-prefill.js';
 import { loadRifleState, saveRifleState } from '../shot-state.js';
 import { registerArsenalDoneHandler } from '../guns-nav.js';
@@ -38,7 +39,6 @@ import { downloadFile } from '../download.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
 
-const KG_TO_GRAIN = 15432.358352941432;
 const ALL_VALUE = '__all__';
 
 function downloadJsonFile(filename, text) {
@@ -210,7 +210,7 @@ export function mount(container) {
   const comparisonSectionEl = el('div', { id: 'comparison-section' });
 
   function bulletCaliberLabel(bullet) {
-    return designations.length ? designationFor(bullet.caliberM, designations) : `${(bullet.caliberM * 1000).toFixed(2)}mm`;
+    return designations.length ? designationFor(bullet.caliberM, designations) : caliberMmLabel(bullet.caliberM);
   }
 
   // === Caliber/manufacturer filters, shared by the rifle and bullet lists ===
@@ -430,7 +430,7 @@ export function mount(container) {
   }
 
   function rifleTwistMm(rifle) {
-    return rifle.defaultRiflingTwistM != null ? rifle.defaultRiflingTwistM * 1000 : null;
+    return rifle.defaultRiflingTwistM != null ? mToMm(rifle.defaultRiflingTwistM) : null;
   }
 
   // A rifle chambers one caliber — once any of its cartridges already has
@@ -489,7 +489,7 @@ export function mount(container) {
   function buildComparisonState(rifle, cartridge, bullet, shared, zeroDonorBallistics) {
     return {
       ...shared,
-      sightHeight: rifle.defaultSightHeightM * 1000, // stored in m; sightHeight's engine unit is mm
+      sightHeight: mToMm(rifle.defaultSightHeightM), // stored in m; sightHeight's engine unit is mm
       zeroRange: rifle.defaultZeroRangeM,
       losAngleDeg: 0,
       muzzleVelocity: cartridge.muzzleVelocity,
@@ -658,16 +658,16 @@ export function mount(container) {
     // correctly aligned to one X axis regardless.
     function unionRangesM(pointsList) {
       const set = new Set();
-      for (const points of pointsList) for (const p of points) set.add(Math.round(p.range * 1000));
-      return [...set].sort((a, b) => a - b).map((mm) => mm / 1000);
+      for (const points of pointsList) for (const p of points) set.add(Math.round(mToMm(p.range)));
+      return [...set].sort((a, b) => a - b).map((mm) => mmToM(mm));
     }
 
     function seriesFor(points, labelsM, col, ctx) {
-      const byRange = new Map(points.map((p) => [Math.round(p.range * 1000), p]));
+      const byRange = new Map(points.map((p) => [Math.round(mToMm(p.range)), p]));
       // Full precision, not rounded to col.decimals — see the matching
       // comment on trajectory-view.js's own renderChart().
       return labelsM.map((rM) => {
-        const p = byRange.get(Math.round(rM * 1000));
+        const p = byRange.get(Math.round(mToMm(rM)));
         if (!p) return null; // this config has no sample at this range — Chartist treats null as a data hole
         try {
           return col.value(p, ctx);
@@ -786,7 +786,7 @@ export function mount(container) {
       bulletsListEl.appendChild(el('p', { class: 'hint', i18n: emptyKey }));
     }
     for (const bullet of bullets) {
-      const grains = Math.round(bullet.massKg * KG_TO_GRAIN);
+      const grains = Math.round(kgToGrain(bullet.massKg));
       const modifiedLabel = lastModifiedLabel(bullet);
       const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
       editButton.addEventListener('click', () => {

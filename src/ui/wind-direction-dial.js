@@ -12,6 +12,7 @@ import { el } from '../dom.js';
 import { svgEl } from '../svg.js';
 import { t } from '../i18n.js';
 import { getWindDialAppearance } from '../wind-dial-prefs.js';
+import { degToRad, radToDeg } from '../quantity.js';
 
 const VIEW = 220;
 const CX = VIEW / 2;
@@ -29,7 +30,7 @@ function angularDist(a, b) {
 }
 
 function pointOn(deg, r) {
-  const rad = (deg * Math.PI) / 180;
+  const rad = degToRad(deg);
   return { x: CX + r * Math.sin(rad), y: CY - r * Math.cos(rad) };
 }
 
@@ -156,7 +157,7 @@ export function windDirectionDial({ id, value = 0, onInput, skin = getWindDialAp
     const scale = VIEW / rect.width;
     const x = (evt.clientX - rect.left) * scale - CX;
     const y = (evt.clientY - rect.top) * scale - CY;
-    return norm((Math.atan2(x, -y) * 180) / Math.PI);
+    return norm(radToDeg(Math.atan2(x, -y)));
   }
 
   function updateFromPointer(evt) {

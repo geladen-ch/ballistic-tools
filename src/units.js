@@ -1,9 +1,10 @@
-// Unit metadata and conversion for display purposes only. The engine
-// (src/engine/*) always works in fixed metric units — nothing here ever
-// crosses into that layer. Views convert an engine value to the user's
-// preferred display unit for rendering, and convert typed input straight
-// back to the engine unit before it's used in a calculation.
-import Qty from './vendor/js-quantities/quantities.mjs';
+// Unit metadata for the presentation edge: which display units each
+// quantity offers, which engine unit each field holds, and the field-level
+// conversions views use to show an engine value in the user's preferred
+// unit and to turn typed input straight back into the engine unit. The
+// arithmetic itself is src/quantity.js's — this module never converts on
+// its own.
+import { converter, mToCm, angleToLinearAtRange } from './quantity.js';
 
 // Each group is one independently-selectable "preferred unit" — grouped by
 // how a shooter actually thinks about a measurement, not just by physical
@@ -114,6 +115,14 @@ export const UNIT_GROUPS = {
       { unit: 'ft*lbf', label: 'ft·lb', decimals: 0 }
     ]
   }
+};
+
+// The quantity kind (src/quantity.js's QUANTITY_KINDS) every unit in each
+// display group belongs to — what lets a group be converted from any
+// engine unit of the same kind.
+export const GROUP_KINDS = {
+  velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
+  altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy'
 };
 
 // Maps each engine parameter to the group it belongs to and the exact unit
@@ -246,13 +255,13 @@ export function unitChoice(fieldId, unit) {
 export function engineToDisplay(fieldId, engineValue, displayUnit) {
   const meta = FIELD_UNITS[fieldId];
   if (!meta || meta.engineUnit === displayUnit) return engineValue;
-  return Qty(engineValue, meta.engineUnit).to(displayUnit).scalar;
+  return converter(meta.engineUnit, displayUnit)(engineValue);
 }
 
 export function displayToEngine(fieldId, displayValue, displayUnit) {
   const meta = FIELD_UNITS[fieldId];
   if (!meta || meta.engineUnit === displayUnit) return displayValue;
-  return Qty(displayValue, displayUnit).to(meta.engineUnit).scalar;
+  return converter(displayUnit, meta.engineUnit)(displayValue);
 }
 
 // For converting a step size or a min/max span rather than an absolute
@@ -260,7 +269,7 @@ export function displayToEngine(fieldId, displayValue, displayUnit) {
 export function engineSpanToDisplay(fieldId, span, displayUnit) {
   const meta = FIELD_UNITS[fieldId];
   if (!meta || meta.engineUnit === displayUnit) return span;
-  return Qty(span, deltaUnit(meta.engineUnit)).to(deltaUnit(displayUnit)).scalar;
+  return converter(deltaUnit(meta.engineUnit), deltaUnit(displayUnit))(span);
 }
 
 // The reverse of engineSpanToDisplay() — for a field whose *value itself*
@@ -271,7 +280,7 @@ export function engineSpanToDisplay(fieldId, span, displayUnit) {
 export function displaySpanToEngine(fieldId, span, displayUnit) {
   const meta = FIELD_UNITS[fieldId];
   if (!meta || meta.engineUnit === displayUnit) return span;
-  return Qty(span, deltaUnit(displayUnit)).to(deltaUnit(meta.engineUnit)).scalar;
+  return converter(deltaUnit(displayUnit), deltaUnit(meta.engineUnit))(span);
 }
 
 export function roundForDisplay(fieldId, displayUnit, value) {
@@ -384,11 +393,11 @@ export function velocityPerTempSymbol(velocityUnit, tempUnit) {
 }
 
 function velocityPerTempFactor(velocityUnit, tempUnit) {
-  const velocityFactor = Qty(1, SENSITIVITY_ENGINE_VELOCITY_UNIT).to(velocityUnit).scalar;
+  const velocityFactor = converter(SENSITIVITY_ENGINE_VELOCITY_UNIT, velocityUnit)(1);
   // The temperature axis here is an interval (a slope's run), not a point
   // on the scale, so it goes through the same offset-free 'deg' unit as
   // engineSpanToDisplay() uses for slider steps — see deltaUnit() above.
-  const tempIntervalFactor = Qty(1, deltaUnit(SENSITIVITY_ENGINE_TEMP_UNIT)).to(deltaUnit(tempUnit)).scalar;
+  const tempIntervalFactor = converter(deltaUnit(SENSITIVITY_ENGINE_TEMP_UNIT), deltaUnit(tempUnit))(1);
   return velocityFactor / tempIntervalFactor;
 }
 
@@ -414,13 +423,13 @@ export const CLICK_UNITS = [
 
 export function convertAngularValue(value, fromUnit, toUnit) {
   if (fromUnit === toUnit) return value;
-  return Qty(value, fromUnit).to(toUnit).scalar;
+  return converter(fromUnit, toUnit)(value);
 }
 
 // Lateral displacement (cm) produced by one unit of angle (1 MOA or 1
 // mrad) at a given range (m) — the standard small-angle approximation.
 export function angularUnitToCmAtRange(unit, rangeM) {
-  return Qty(1, unit).to('rad').scalar * rangeM * 100;
+  return mToCm(angleToLinearAtRange(converter(unit, 'rad')(1), rangeM));
 }
 
 // How many scope clicks of `clickValue` (in `unit`) are needed to correct

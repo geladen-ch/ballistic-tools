@@ -9,7 +9,7 @@ import { convertBallisticCoefficient } from '../engine/bc-convert.js';
 import { getUnit } from '../prefs.js';
 import { FIELD_BOUNDS } from '../units.js';
 import { fieldValidity } from '../ui/field-validity.js';
-import Qty from '../vendor/js-quantities/quantities.mjs';
+import { convert } from '../quantity.js';
 import { openTrackBatch } from '../labradar/zip-batch.js';
 import { parseLabradarTrack } from '../labradar/track-parse.js';
 import { aggregateTracks } from '../engine/labradar-bc.js';
@@ -754,7 +754,7 @@ export function mount(container) {
   // Same physical bound as muzzle velocity elsewhere (FIELD_BOUNDS.
   // muzzleVelocity, m/s) — re-expressed in whichever of this field's own
   // two local units (m/s/ft/s, independent of the app-wide velocity
-  // preference) is currently selected, via the same Qty conversion the
+  // preference) is currently selected, via the same conversion the
   // unit-toggle handler below already uses to restate the typed value.
   function computeConvVelocityMessage() {
     const raw = convVelocityInput.value.trim();
@@ -762,8 +762,8 @@ export function mount(container) {
     const parsed = parseFloat(raw);
     if (Number.isNaN(parsed)) return t('fields.errorRequired');
     const decimals = convVelocityUnit === 'ft/s' ? 0 : 1;
-    const min = Qty(FIELD_BOUNDS.muzzleVelocity.min, 'm/s').to(convVelocityUnit).scalar;
-    const max = Qty(FIELD_BOUNDS.muzzleVelocity.max, 'm/s').to(convVelocityUnit).scalar;
+    const min = convert(FIELD_BOUNDS.muzzleVelocity.min, 'm/s', convVelocityUnit);
+    const max = convert(FIELD_BOUNDS.muzzleVelocity.max, 'm/s', convVelocityUnit);
     if (parsed < min || parsed > max) {
       return t('fields.errorRange', { range: `${min.toFixed(decimals)} – ${max.toFixed(decimals)} ${convVelocityUnit}` });
     }
@@ -783,7 +783,7 @@ export function mount(container) {
       convResult.appendChild(document.createTextNode('—'));
       return;
     }
-    const velocityMs = Qty(velocityValue, convVelocityUnit).to('m/s').scalar;
+    const velocityMs = convert(velocityValue, convVelocityUnit, 'm/s');
     const converted = convertBallisticCoefficient({
       bc: bcValue,
       sourceModel: convSourceSelect.value,
@@ -816,7 +816,7 @@ export function mount(container) {
     const newUnit = convVelocityUnitSelect.value;
     const current = parseFloat(convVelocityInput.value);
     if (Number.isFinite(current) && current > 0) {
-      const restated = Qty(current, convVelocityUnit).to(newUnit).scalar;
+      const restated = convert(current, convVelocityUnit, newUnit);
       convVelocityInput.value = restated.toFixed(newUnit === 'ft/s' ? 0 : 1);
     }
     convVelocityUnit = newUnit;

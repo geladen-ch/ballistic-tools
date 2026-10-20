@@ -16,6 +16,7 @@ import { erf } from '../../engine/target-shapes.js';
 import { standardAtmosphereAt } from '../../engine/atmosphere.js';
 import { resolveMuzzleVelocity } from '../../engine/trajectory.js';
 import { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } from '../preset-keys.js';
+import { radToMrad, linearToAngleAtRange, percentToFraction, fractionToPercent } from '../../quantity.js';
 
 // A BC correction is only ever offered for saving with at least this many
 // chronograph velocities actually captured this session (on top of grade
@@ -274,7 +275,7 @@ export function missWidenedDragSigma({ state, session, backdropMarginM, baseSigm
   for (const rangeM of missed) {
     const perPct = Math.abs(planningColumns(state, rangeM).dragPct);
     if (!(perPct > 0)) continue;
-    const neededPct = (backdropMarginM / rangeM * 1000) / perPct;
+    const neededPct = radToMrad(linearToAngleAtRange(backdropMarginM, rangeM)) / perPct;
     if (neededPct <= TOTALLY_IMPLAUSIBLE_DRAG_PCT) sigma = Math.max(sigma, neededPct / 2);
   }
   return sigma;
@@ -683,7 +684,7 @@ export function analyseSession({ state, observations, priors, params, rechecked 
 export const IMPLAUSIBLE_DRAG_SIGMAS = 3;
 export function bcCorrectionOffer({ state, dragPct }) {
   const oldFactor = state.bcGainFactor ?? 1;
-  const newFactor = oldFactor / (1 + dragPct / 100);
+  const newFactor = oldFactor / (1 + percentToFraction(dragPct));
   const inHardBounds = newFactor >= 0.8 && newFactor <= 1.2;
   const implausible = !inHardBounds || Math.abs(dragPct) > IMPLAUSIBLE_DRAG_SIGMAS * SIGMA_DRAG_PCT;
   const inTypicalBand = newFactor >= 0.9 && newFactor <= 1.1;
@@ -693,7 +694,7 @@ export function bcCorrectionOffer({ state, dragPct }) {
     dragModel: state.dragModel,
     oldEffectiveBc: isCdTable ? null : state.bc * oldFactor,
     newEffectiveBc: isCdTable ? null : state.bc * newFactor,
-    dragChangePct: (1 / newFactor - 1) * 100
+    dragChangePct: fractionToPercent(1 / newFactor - 1)
   };
 }
 

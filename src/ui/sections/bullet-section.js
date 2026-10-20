@@ -13,10 +13,10 @@ import { loadCartridgeState, saveCartridgeState } from '../../shot-state.js';
 import { isBulletLibraryVisible } from '../../bullet-library-prefs.js';
 import { bulletLibraryCheckboxRows } from '../bullet-library-checkboxes.js';
 import { setDragModelSelectValue } from '../drag-model-select.js';
+import { kgToGrain, kgToG, mToMm } from '../../quantity.js';
 
 const OTHER_VALUE = '__other__';
 const ALL_VALUE = '__all__';
-const KG_TO_GRAIN = 15432.358352941432; // display-only — bullet weights are conventionally published in grains
 // GP11's own BC/model/mass (the built-in K31 entry's cartridge) — used
 // whenever a shooter manually enters bc/dragModel without picking a
 // library bullet, so kinetic energy (which BC alone can't derive — mass
@@ -280,7 +280,7 @@ export function bulletSection({ slider = false, onInput } = {}) {
       (manufacturer === ALL_VALUE || b.manufacturer === manufacturer)
     ).sort((a, b) => compareBulletsForPicker(a, b, cachedDesignations));
     for (const b of filtered) {
-      const grains = Math.round(b.massKg * KG_TO_GRAIN);
+      const grains = Math.round(kgToGrain(b.massKg));
       // "* " marks a user's own Arsenal entry; a built-in bullet instead
       // gets its owning library's own bracketed prefix (e.g. "[LCd] ") —
       // the two are mutually exclusive, and both conventions are shared
@@ -318,14 +318,14 @@ export function bulletSection({ slider = false, onInput } = {}) {
     infoBox.style.display = '';
     manualMassField.node.style.display = 'none';
     manualCaliberLengthFields.style.display = 'none';
-    const grains = Math.round(bullet.massKg * KG_TO_GRAIN);
-    const grams = (bullet.massKg * 1000).toFixed(2);
+    const grains = Math.round(kgToGrain(bullet.massKg));
+    const grams = kgToG(bullet.massKg).toFixed(2);
     // Length is optional for a user's own Arsenal bullet (see
     // bullet-form.js) — the built-in library always has it, but this
     // must not assume that, or a missing lengthM becomes a literal "NaNmm"
     // in the summary below.
-    const lengthPart = bullet.lengthM != null ? `${(bullet.lengthM * 1000).toFixed(2)}mm, ` : '';
-    const caliberMm = (bullet.caliberM * 1000).toFixed(4);
+    const lengthPart = bullet.lengthM != null ? `${mToMm(bullet.lengthM).toFixed(2)}mm, ` : '';
+    const caliberMm = mToMm(bullet.caliberM).toFixed(4);
     const namePrefix = bullet.isUser ? '* ' : (bullet.libraryPrefix ? `[${bullet.libraryPrefix}] ` : '');
     const sourceText = bullet.source ? ` ${t('fields.bulletSource')}: ${bullet.source}` : '';
     infoBox.textContent =

@@ -478,7 +478,8 @@ export function mount(container) {
       cartridgeName: cartridge.name, bcDecision: getPersisted('bcDecision', null),
       mvOverride: ctx.mvStatus().override, mvSdSaved: ctx.session.mvDecision === 'arsenal',
       onMvSdToArsenal: (sd) => {
-        saveCartridgePatch({ muzzleVelocitySD: Math.round(sd * 10) / 10 });
+        // Stored as measured; rounding is for display only, in whatever velocity unit is shown.
+        saveCartridgePatch({ muzzleVelocitySD: sd });
         ctx.session.mvDecision = 'arsenal';
         ctx.persistSession();
         renderPhase();

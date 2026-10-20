@@ -11,6 +11,10 @@ import { LineChart, AutoScaleAxis } from '../../vendor/chartist/index.js';
 import { downloadButton } from '../download-button.js';
 import { exportChartSvg } from '../../chart-svg-export.js';
 import { predictVelocityAtTimes } from '../../engine/bc-estimate.js';
+import { converter } from '../../quantity.js';
+
+// The chart's time axis reads in milliseconds; track times are seconds.
+const sToMs = converter('s', 'ms');
 
 const FITTED_CURVE_SAMPLES = 50;
 
@@ -29,7 +33,7 @@ function fittedCurveSeries(track) {
 
   const relTimes = Array.from({ length: FITTED_CURVE_SAMPLES }, (_, i) => (i / (FITTED_CURVE_SAMPLES - 1)) * (maxT - anchorT));
   const velocities = predictVelocityAtTimes({ bc: track.bc, v1: track.v1, times: relTimes, dragModel: track.dragModel, ...track.atmo });
-  return relTimes.map((relT, i) => ({ x: (anchorT + relT) * 1000, y: velocities[i] }));
+  return relTimes.map((relT, i) => ({ x: sToMs(anchorT + relT), y: velocities[i] }));
 }
 
 function legendItem(letter, key, params) {
@@ -90,10 +94,10 @@ export function trackChart() {
     // themselves don't need sorting for correct placement, only for a
     // sane left-to-right line if one were ever drawn.
     const series = [
-      { name: 'kept', data: isErrorTrack ? [] : track.keptPoints.map((p) => ({ x: p.t * 1000, y: p.v })) },
+      { name: 'kept', data: isErrorTrack ? [] : track.keptPoints.map((p) => ({ x: sToMs(p.t), y: p.v })) },
       {
         name: 'discarded',
-        data: (isErrorTrack ? track.points.slice(1) : track.discardedPoints).map((p) => ({ x: p.t * 1000, y: p.v }))
+        data: (isErrorTrack ? track.points.slice(1) : track.discardedPoints).map((p) => ({ x: sToMs(p.t), y: p.v }))
       },
       { name: 'fitted', data: isErrorTrack ? [] : fittedCurveSeries(track) }
     ];

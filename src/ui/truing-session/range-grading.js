@@ -9,6 +9,7 @@ import { grade, DEFAULT_LADDER_MAX_JUMP_FACTOR } from '../../engine/truing-sessi
 import { splitIntoStrings, BUDGET_ADVICE_STEPS, BUDGET_MINIMAL_WITHIN } from './session-model.js';
 import { ALTITUDE_EXAMPLE, NEAR_BAND_HIGH_M } from './prepare-compute.js';
 import { dist, distList, altitude, temperature, pressure, angle } from './units.js';
+import { fractionToPercent } from '../../quantity.js';
 
 const pct = (sd) => `±${sd.toFixed(2)}%`;
 const m = (x) => Math.round(x);
@@ -32,7 +33,7 @@ export function optimalRangePanel({ state, data }) {
   }));
   if (altCeiling > ceiling * 1.02) {
     node.appendChild(el('p', { class: 'hint', text: t('truingSession.prepare.altitudeLine', {
-      from: dist(ceiling), to: dist(altCeiling), pct: m((altCeiling / ceiling - 1) * 100),
+      from: dist(ceiling), to: dist(altCeiling), pct: m(fractionToPercent(altCeiling / ceiling - 1)),
       alt: altitude(ALTITUDE_EXAMPLE.altitudeM), air: `${pressure(ALTITUDE_EXAMPLE.pressureHpa)}, ${temperature(ALTITUDE_EXAMPLE.tempC)}`
     }) }));
   }

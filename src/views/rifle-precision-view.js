@@ -21,8 +21,7 @@ import { buildExportPayload, serializeExport, parseImportPayload, resolveImportI
 import { downloadFile } from '../download.js';
 import { computeGroupStats, targetUsabilityGaps, computeCombinedStats, mmToAngularUnit } from '../engine/rifle-precision-stats.js';
 import { confidenceBadge } from '../ui/rifle-precision/confidence-o-meter.js';
-import { UNIT_GROUPS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay } from '../units.js';
-import { getUnit } from '../prefs.js';
+import { formatQuantity, fineLengthDecimals } from '../display-units.js';
 import { getActiveProjectId, setActiveProjectId, setPendingMarking } from '../rifle-precision-nav.js';
 import { showDialog } from '../ui/app-dialog.js';
 import { rifleCartridgePickerBody } from '../ui/rifle-cartridge-picker.js';
@@ -40,27 +39,14 @@ function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'project';
 }
 
-// Same FIELD_UNITS/getUnit() display convention every other tool in this
-// app uses (see locations-view.js's own formatWithUnit()) — `targetRange`
-// and `bulletLength` are reused purely for their unit-math (meters and mm
-// engine units respectively, both an exact match for how distanceM/
-// caliberMm/extremeSpreadMm are actually stored), not because this is
-// literally a "target range" or "bullet length" value; see
-// project-form.js's own identical reuse and its comment for why.
 function formatDistance(distanceM) {
-  const displayUnit = getUnit('distance');
-  const choice = unitChoice('targetRange', displayUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
-  return `${engineToDisplay('targetRange', distanceM, choice.unit).toFixed(choice.decimals)} ${choice.label}`;
+  return formatQuantity('distance', distanceM);
 }
 // Finer precision than the smallLength group's own coarse default decimals
-// (mm:0) — same SMALL_LENGTH_PRECISION_DECIMALS reasoning as project-form.js's
-// own caliber field: a caliber or an extreme-spread reading in whole
-// millimeters loses exactly the resolution a shooter cares about here.
+// (mm:0): a caliber or an extreme-spread reading in whole millimeters loses
+// exactly the resolution a shooter cares about here.
 function formatLengthMm(valueMm) {
-  const displayUnit = getUnit('smallLength');
-  const choice = unitChoice('bulletLength', displayUnit) || UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
-  const decimals = SMALL_LENGTH_PRECISION_DECIMALS[choice.unit] ?? choice.decimals;
-  return `${engineToDisplay('bulletLength', valueMm, choice.unit).toFixed(decimals)} ${choice.label}`;
+  return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
 }
 
 export function mount(container) {

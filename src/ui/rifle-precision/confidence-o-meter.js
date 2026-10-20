@@ -14,6 +14,7 @@
 import { el, clear } from '../../dom.js';
 import { t, tOptional } from '../../i18n.js';
 import { confidenceLevel, confidenceScaleFraction } from '../../engine/rifle-precision-stats.js';
+import { fractionToPercent } from '../../quantity.js';
 
 // Legacy's own CONFI_LEVELS colors (from the TARAN app's synth-pane.js),
 // index 0 (worst/"Useless") through 7 (best/"Awesome") — same order
@@ -69,9 +70,9 @@ export function computeConfidenceFacts(confidenceLower, confidenceUpper) {
   // below, in update(), for why a genuinely-empty Line2 needs this.
   const line2 = tOptional(`riflePrecision.confidenceLevel${level}Line2`);
   const line1 = t(`riflePrecision.confidenceLevel${level}Line1`);
-  const marginPercent = (confidenceUpper - confidenceLower) * 100;
-  const lowerBoundPercent = (confidenceLower - 1) * 100;
-  const upperBoundPercent = (confidenceUpper - 1) * 100;
+  const marginPercent = fractionToPercent(confidenceUpper - confidenceLower);
+  const lowerBoundPercent = fractionToPercent(confidenceLower - 1);
+  const upperBoundPercent = fractionToPercent(confidenceUpper - 1);
   return {
     level, fraction, color: LEVEL_COLORS[level],
     quality: line2 ? `${line1} ${line2}` : line1,

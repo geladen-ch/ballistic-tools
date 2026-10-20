@@ -254,3 +254,34 @@ test('slider mode reflects a range drag onto the validation state even though it
 
   assert.equal(number.classList.contains('field-invalid'), true);
 });
+
+test('an untouched field returns exactly the engine value it was given, not the engine value of its rounded display', () => {
+  setUnit('distance', 'yd');
+  const field = unitField({ id: 'zeroRange', min: 0, max: 5000, step: 5, value: 100 });
+  const [number] = findInputs(field.node);
+  assert.equal(number.value, '109.4');
+  assert.equal(field.getEngineValue(), 100);
+  field.setEngineValue(300);
+  assert.equal(field.getEngineValue(), 300);
+  resetUnits();
+});
+
+test('a typed value — even one equal to the old display after an edit elsewhere — converts from the display unit', () => {
+  setUnit('distance', 'yd');
+  const field = unitField({ id: 'zeroRange', min: 0, max: 5000, step: 5, value: 100 });
+  const [number] = findInputs(field.node);
+  number.value = '200';
+  fireEvent(number, 'input');
+  assert.ok(Math.abs(field.getEngineValue() - 182.88) < 1e-9);
+  number.value = '109.4';
+  fireEvent(number, 'input');
+  assert.equal(field.getEngineValue(), 100, 'typing the original display back restores the original value');
+  resetUnits();
+});
+
+test('an untouched slider field also returns its exact value', () => {
+  setUnit('velocity', 'ft/s');
+  const field = unitField({ id: 'muzzleVelocity', min: 200, max: 1200, step: 1, value: 792.48, slider: true });
+  assert.equal(field.getEngineValue(), 792.48);
+  resetUnits();
+});

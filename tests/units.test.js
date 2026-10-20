@@ -2,8 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, unitChoice,
-  FIELD_BOUNDS, FIELD_UNITS, UNIT_GROUPS, formatFieldRange, formatFieldValue
+  FIELD_BOUNDS, FIELD_UNITS, UNIT_GROUPS, GROUP_KINDS, formatFieldRange, formatFieldValue
 } from '../src/units.js';
+import { kindOfUnit } from '../src/quantity.js';
+
+test('every field\'s engine unit, and every display choice of its group, is of the group\'s quantity kind', () => {
+  assert.deepEqual(Object.keys(GROUP_KINDS).sort(), Object.keys(UNIT_GROUPS).sort());
+  for (const [id, { group, engineUnit }] of Object.entries(FIELD_UNITS)) {
+    assert.equal(kindOfUnit(engineUnit), GROUP_KINDS[group], `${id}: ${engineUnit} in ${group}`);
+  }
+  for (const [group, { choices }] of Object.entries(UNIT_GROUPS)) {
+    for (const { unit } of choices) assert.equal(kindOfUnit(unit), GROUP_KINDS[group], `${group}: ${unit}`);
+  }
+});
 
 test('windSpeed has its own unit group, independent of velocity, with the same choices', () => {
   assert.equal(FIELD_UNITS.windSpeed.group, 'windSpeed');

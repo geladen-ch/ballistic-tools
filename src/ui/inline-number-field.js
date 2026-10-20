@@ -53,6 +53,11 @@ export function inlineNumberField({ id, min, max, decimals, value, adornment, ar
   // The value blur reverts to on an unparseable/empty box — kept current
   // by every successful blur commit and every setEngineValue() call.
   let committed = toDisp(value);
+  // The engine value the field was last given and the exact text it showed
+  // for it: while the input still holds that text, getEngineValue() returns
+  // the value itself, not the engine value of its rounded display (see
+  // unit-field.js's identical rule).
+  let lastSet = { engineValue: value, shown: String(committed) };
 
   const input = el('input', {
     id, class: 'inline-number-input', type: 'text', inputmode: 'decimal',
@@ -98,21 +103,25 @@ export function inlineNumberField({ id, min, max, decimals, value, adornment, ar
 
   return {
     node,
-    getEngineValue: () => toEng(parseFloat(input.value)),
+    getEngineValue: () => (lastSet.engineValue != null && String(input.value).trim() === lastSet.shown
+      ? lastSet.engineValue
+      : toEng(parseFloat(input.value))),
     // Programmatic write path (e.g. copying in a saved target's values) —
     // never fires onInput itself; the caller decides when to recompute.
     // Also becomes the new blur-revert target, same as a user-typed commit.
     setEngineValue(v) {
       committed = toDisp(v);
       input.value = String(committed);
+      lastSet = { engineValue: v, shown: input.value };
     },
-    // "If I called setEngineValue(v) right now, what would getEngineValue()
-    // then report?" — without touching the field. Exposes this field's own
-    // engine<->display round-trip (unit conversion, if any, plus its own
-    // `decimals`) as the single source of truth for that rounding, so a
-    // caller comparing "did the loaded value actually change" (e.g. Range
-    // Solver's own detachIfHandEdited()) can't drift out of sync with a
-    // second, hand-rolled copy of the same rounding.
-    peekRoundTrip: (v) => toEng(toDisp(v))
+    // What getEngineValue() reports while the field shows `v`'s display —
+    // without touching the field: the value the field was last given, when
+    // that shows the same, otherwise `v` itself. Lets a caller comparing
+    // "did the loaded value actually change" (e.g. Range Solver's own
+    // detachIfHandEdited()) compare what is on screen, so two engine values
+    // that only differ below the display's rounding (a target and a value
+    // saved by a build that stored the rounded round-trip) count as the
+    // same.
+    peekRoundTrip: (v) => (String(toDisp(v)) === lastSet.shown && lastSet.engineValue != null ? lastSet.engineValue : v)
   };
 }

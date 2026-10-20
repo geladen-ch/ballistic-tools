@@ -1,4 +1,5 @@
 import { el } from '../../dom.js';
+import { mToMm, mmToM } from '../../quantity.js';
 import { t } from '../../i18n.js';
 import { unitField } from '../unit-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
@@ -36,7 +37,7 @@ export function projectForm({ initialValues = {}, excludeId, onSave, onCancel } 
   // dropdown + linked manual-entry number, src/ui/arsenal/caliber-field.js)
   // — its own value/getCaliberM() are meters, this project's own
   // caliberMm is millimetres, so convert at both boundaries here.
-  const caliber = caliberField({ value: values.caliberMm != null ? values.caliberMm / 1000 : null, required: true });
+  const caliber = caliberField({ value: values.caliberMm != null ? mmToM(values.caliberMm) : null, required: true });
 
   const saveButton = el('button', { i18n: 'riflePrecision.saveProjectButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'riflePrecision.cancelButton' });
@@ -59,7 +60,7 @@ export function projectForm({ initialValues = {}, excludeId, onSave, onCancel } 
       onSave({
         name: nameInput.value.trim(),
         distanceM: distanceField.getEngineValue(),
-        caliberMm: caliberM != null ? caliberM * 1000 : null
+        caliberMm: caliberM != null ? mToMm(caliberM) : null
       });
     }
   });

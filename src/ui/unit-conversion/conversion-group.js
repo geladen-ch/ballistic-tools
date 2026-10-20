@@ -1,5 +1,5 @@
 import { el } from '../../dom.js';
-import Qty from '../../vendor/js-quantities/quantities.mjs';
+import { convert } from '../../quantity.js';
 
 function round(value, decimals) {
   const factor = 10 ** decimals;
@@ -8,14 +8,13 @@ function round(value, decimals) {
 
 // One category's worth of live-linked unit fields — N-unit generalization
 // of mass-field.js's own gram/grain pair (src/ui/arsenal/mass-field.js):
-// editing any one input converts its value (via the vendored js-quantities
-// `Qty`, same library units.js's own engineToDisplay()/displayToEngine()
-// use) and fills in every sibling input in the group. There's no
+// editing any one input converts its value (via src/quantity.js, like every
+// other conversion in the app) and fills in every sibling input in the group. There's no
 // "engine unit" here the way a form field has one — every unit in the
 // group is an equal peer, and conversion always goes straight from
 // whichever input the user is typing in to every other one.
 //
-// `units`: [{ unit, label, decimals }] — `unit` is the Qty unit string
+// `units`: [{ unit, label, decimals }] — `unit` is a js-quantities unit string
 // (e.g. 'mrad', 'arcmin', 'fps', 'grain', 'tempC'), `label` is the plain
 // unit symbol shown above the input (untranslated — see units.js's own
 // comment on UNIT_GROUPS choices for why: "MOA"/"°C" are internationally
@@ -34,7 +33,7 @@ export function conversionGroup({ titleKey, units, initialValue, initialUnit, on
     const sourceUnit = units[sourceIndex].unit;
     for (let i = 0; i < units.length; i++) {
       if (i === sourceIndex) continue;
-      const converted = Qty(rawValue, sourceUnit).to(units[i].unit).scalar;
+      const converted = convert(rawValue, sourceUnit, units[i].unit);
       inputs[i].value = round(converted, units[i].decimals);
     }
     if (onChange) onChange(sourceUnit, rawValue);

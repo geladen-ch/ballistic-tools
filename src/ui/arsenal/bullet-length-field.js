@@ -1,6 +1,7 @@
 import { el } from '../../dom.js';
-import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
+import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice } from '../../units.js';
 import { getUnit } from '../../prefs.js';
+import { converter, mmToM } from '../../quantity.js';
 import { i18nSpan, t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
 
@@ -24,15 +25,22 @@ export function bulletLengthField({ value = null, id = 'bulletLength', onInput }
   if (!unitChoice('bulletLength', displayUnit)) displayUnit = 'mm';
   const decimals = SMALL_LENGTH_PRECISION_DECIMALS[displayUnit];
   const unitLabel = unitChoice('bulletLength', displayUnit).label;
-  const toDisplay = (mm) => engineToDisplay('bulletLength', mm, displayUnit);
-  const toEngine = (d) => displayToEngine('bulletLength', d, displayUnit);
+  // The record holds the length in metres; FIELD_BOUNDS.bulletLength is in mm.
+  const toDisplay = converter('m', displayUnit);
+  const toMetres = converter(displayUnit, 'm');
+  const minM = mmToM(FIELD_BOUNDS.bulletLength.min);
+  const maxM = mmToM(FIELD_BOUNDS.bulletLength.max);
+  // The value as last set, so an untouched field returns it exactly rather
+  // than the metres of its rounded display.
+  let setM = value;
+  const shown = (m) => (m != null ? toDisplay(m).toFixed(decimals) : '');
 
   const input = el('input', {
     type: 'number', id,
-    min: toDisplay(FIELD_BOUNDS.bulletLength.min).toFixed(decimals),
-    max: toDisplay(FIELD_BOUNDS.bulletLength.max).toFixed(decimals),
+    min: toDisplay(minM).toFixed(decimals),
+    max: toDisplay(maxM).toFixed(decimals),
     step: 1 / 10 ** decimals,
-    value: value != null ? toDisplay(value * 1000).toFixed(decimals) : ''
+    value: shown(value)
   });
 
   function computeMessage() {
@@ -40,10 +48,9 @@ export function bulletLengthField({ value = null, id = 'bulletLength', onInput }
     if (raw === '') return null;
     const parsed = parseFloat(raw);
     if (Number.isNaN(parsed)) return null;
-    const { min, max } = FIELD_BOUNDS.bulletLength;
-    const mm = toEngine(parsed);
-    if (mm < min || mm > max) {
-      return t('fields.errorRange', { range: `${toDisplay(min).toFixed(decimals)} – ${toDisplay(max).toFixed(decimals)} ${unitLabel}` });
+    const m = toMetres(parsed);
+    if (m < minM || m > maxM) {
+      return t('fields.errorRange', { range: `${toDisplay(minM).toFixed(decimals)} – ${toDisplay(maxM).toFixed(decimals)} ${unitLabel}` });
     }
     return null;
   }
@@ -59,12 +66,14 @@ export function bulletLengthField({ value = null, id = 'bulletLength', onInput }
   function getLengthM() {
     const raw = input.value.trim();
     if (raw === '') return null;
+    if (setM != null && raw === shown(setM)) return setM;
     const parsed = parseFloat(raw);
-    return Number.isNaN(parsed) ? null : toEngine(parsed) / 1000;
+    return Number.isNaN(parsed) ? null : toMetres(parsed);
   }
 
   function setLengthM(lengthM) {
-    input.value = lengthM != null ? toDisplay(lengthM * 1000).toFixed(decimals) : '';
+    setM = lengthM;
+    input.value = shown(lengthM);
   }
 
   return { node, getLengthM, setLengthM, validate: validity.validate };

@@ -1,6 +1,7 @@
 import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { CLICK_UNITS, FIELD_BOUNDS } from '../../units.js';
+import { mToMm, mmToM } from '../../quantity.js';
 import { findUserRifleByName } from '../../user-library.js';
 import { t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
@@ -32,11 +33,11 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
   nameInput.addEventListener('input', refreshDuplicateWarning);
   const nameValidity = fieldValidity(nameInput, () => (nameInput.value.trim() ? null : t('arsenal.errorNameRequired')));
 
-  const sightHeightField = unitField({ id: 'sightHeight', ...FIELD_BOUNDS.sightHeight, step: 1, value: values.defaultSightHeightM * 1000 });
+  const sightHeightField = unitField({ id: 'sightHeight', ...FIELD_BOUNDS.sightHeight, step: 1, value: mToMm(values.defaultSightHeightM) });
   const zeroRangeField = unitField({ id: 'zeroRange', ...FIELD_BOUNDS.zeroRange, step: 5, value: values.defaultZeroRangeM });
   const twistField = unitField({
     id: 'riflingTwist', ...FIELD_BOUNDS.riflingTwist, step: 1, optional: true,
-    value: values.defaultRiflingTwistM != null ? values.defaultRiflingTwistM * 1000 : null
+    value: values.defaultRiflingTwistM != null ? mToMm(values.defaultRiflingTwistM) : null
   });
   // A plain enum, not a unit-bearing quantity — "Right" first since it's
   // by far the more common real-world direction and this field's own
@@ -82,13 +83,13 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
     const twistMm = twistField.getEngineValue(); // null when left blank
     return {
       name: nameInput.value.trim(),
-      defaultSightHeightM: sightHeightField.getEngineValue() / 1000,
+      defaultSightHeightM: mmToM(sightHeightField.getEngineValue()),
       defaultZeroRangeM: zeroRangeField.getEngineValue(),
       // Omitted entirely (not set to null) when blank — same convention as
       // bullet-form.js's optional length field, so editing an existing
       // rifle without touching this field never clobbers a previously
       // stored value with null.
-      ...(twistMm == null ? {} : { defaultRiflingTwistM: twistMm / 1000 }),
+      ...(twistMm == null ? {} : { defaultRiflingTwistM: mmToM(twistMm) }),
       // Always saved explicitly (a <select> always has a real value, no
       // blank state the way the twist rate field has) — "optional" here
       // just means the default ("right") never has to be touched.

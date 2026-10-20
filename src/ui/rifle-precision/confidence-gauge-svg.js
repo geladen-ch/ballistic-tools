@@ -18,6 +18,7 @@ import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
 import { wrapText } from './svg-text-wrap.js';
 import { computeConfidenceFacts, BANDS, THRESHOLD_LINE_BOTTOM_PERCENT } from './confidence-o-meter.js';
+import { percentToFraction } from '../../quantity.js';
 
 export const GAUGE_TITLE_SIZE = 14;
 export const BAR_W = 150;
@@ -67,7 +68,7 @@ export function buildConfidenceGaugeSvg(confidenceLower, confidenceUpper, { x = 
   g.appendChild(svgEl('rect', { x: 0, y: barY, width: BAR_W, height: BAR_H, rx: 5, fill: 'url(#rp-gauge-gradient)' }));
 
   for (const band of BANDS) {
-    const labelY = barY + BAR_H - (band.bottomPercent / 100) * BAR_H;
+    const labelY = barY + BAR_H - percentToFraction(band.bottomPercent) * BAR_H;
     g.appendChild(svgText(
       {
         x: BAR_W / 2, y: labelY, 'font-size': BAND_LABEL_SIZE, 'font-weight': 700, 'font-family': 'sans-serif',
@@ -77,7 +78,7 @@ export function buildConfidenceGaugeSvg(confidenceLower, confidenceUpper, { x = 
     ));
   }
 
-  const thresholdY = barY + BAR_H - (THRESHOLD_LINE_BOTTOM_PERCENT / 100) * BAR_H;
+  const thresholdY = barY + BAR_H - percentToFraction(THRESHOLD_LINE_BOTTOM_PERCENT) * BAR_H;
   g.appendChild(svgEl('line', {
     x1: 0, y1: thresholdY, x2: BAR_W, y2: thresholdY, stroke: 'rgba(255,255,255,0.9)', 'stroke-width': 2, 'stroke-dasharray': '5 3'
   }));

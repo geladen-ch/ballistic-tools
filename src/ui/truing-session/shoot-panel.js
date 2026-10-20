@@ -23,6 +23,8 @@ import {
   targetForStep, naturalKey, backdropMarginFrom, nextShotFromAnalysis, ladderStallReason, WALK_OUT_SHOTS_PER_RUNG, RESOLUTION_FLOOR,
   REPEAT_GROUP_SHOTS, roundsLeft, nextStringShots, splitIntoStrings, rotationNext, shotNoise, stringSigma, readShots, windSigmaFor, measuredRangeM
 } from './session-model.js';
+import { convert, fractionToPercent } from '../../quantity.js';
+import { UNIT_GROUPS } from '../../units.js';
 
 // After a missed impact and a group nearer, the failed distance gets another try (and keeps getting one while there is untried
 // ground below it to learn from, see registerMissedImpact) -- but only if the shooter dials the fit's own elevation for it
@@ -357,7 +359,6 @@ export function shootPanel(ctx) {
     // Advice about implausible entries (plausibility.js): a warning beside the field, never a block -- whatever was typed is recorded.
     const setWarning = (host, text) => { host.textContent = text || ''; host.style.display = text ? '' : 'none'; };
     const clicksText = (mrad) => { const c = mrad / ctx.clickMrad; return String(Math.abs(c) >= 100 ? Math.round(c) : Number(c.toFixed(1))); };
-    const SPEED_UNITS = [{ unit: 'm/s', factor: 1 }, { unit: 'ft/s', factor: 0.3048 }, { unit: 'mph', factor: 0.44704 }, { unit: 'km/h', factor: 1 / 3.6 }];
     const comeUpWarning = (input, shots) => {
       const typed = input.value.trim();
       const x = parseFloat(typed);
@@ -381,7 +382,7 @@ export function shootPanel(ctx) {
       const here = getUnit('velocity');
       const r = velocityPlausibility({
         enteredMs: fromDisplayVelocity(raw), state, conditions: weather.getValue(), mvSD: ctx.mvStatus().mvSD,
-        readAs: SPEED_UNITS.filter((u) => u.unit !== here).map((u) => ({ label: u.unit, ms: raw * u.factor }))
+        readAs: UNIT_GROUPS.velocity.choices.filter((c) => c.unit !== here).map((c) => ({ label: c.label, ms: convert(raw, c.unit, 'm/s') }))
       });
       if (r.ok) return null;
       const hints = r.hints.slice(0, 2).map((h) => (h.type === 'unit' ? t('truingSession.shoot.plausibleHint.unit', { other: h.label }) : t('truingSession.shoot.plausibleHint.digit')));
@@ -663,7 +664,7 @@ export function shootPanel(ctx) {
 }
 
 export function flagText(f) {
-  const vars = { range: dist(f.rangeM), p: `${Math.round(f.pSomethingWrong * 100)}%` };
+  const vars = { range: dist(f.rangeM), p: `${Math.round(fractionToPercent(f.pSomethingWrong))}%` };
   const key = f.slopePossible && f.pInclined >= 0.05 ? 'truingSession.flag.distanceOrAngle' : 'truingSession.flag.distance';
   const text = t(key, vars);
   return f.exact ? text : `${text} ${t('truingSession.flag.screened')}`;

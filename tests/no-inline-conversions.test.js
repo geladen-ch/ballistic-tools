@@ -51,7 +51,8 @@ const PERMANENT_EXEMPTIONS = [
   { file: 'src/engine/constants.js', pattern: /^export const LBIN2_TO_KGM2 = / }, // the drag model's sanctioned BC conversion constant
   { file: 'src/labradar/track-parse.js', pattern: /Math\.pow\(10, snr \/ 10\)/ }, // decibels, not a unit
   { file: 'src/ui/arsenal/caliber-field.js', pattern: /step: 1 \/ 10 \*\* decimals/ }, // an input's step from a decimal count
-  { file: 'src/ui/image-cropper.js', pattern: /^const leftPct = rect\.x0 \* 100/ } // photo-fraction → CSS percentage geometry
+  { file: 'src/ui/image-cropper.js', pattern: /^const leftPct = rect\.x0 \* 100/ }, // photo-fraction → CSS percentage geometry
+  { file: 'src/ui/truing-session/plausibility.js', pattern: /^\['tenth', x [*/] 10 \* clickMrad\]/ } // a tenfold slip in the typed clicks, not a unit
 ];
 
 function listJsFiles(dir) {

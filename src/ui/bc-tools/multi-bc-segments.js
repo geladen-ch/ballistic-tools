@@ -31,7 +31,7 @@ import { bcSegmentsToCdCurve, machForVelocityMs, velocityMsForMach, validateSegm
 import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
 import { t, i18nSpan } from '../../i18n.js';
-import Qty from '../../vendor/js-quantities/quantities.mjs';
+import { convert } from '../../quantity.js';
 
 const MIN_SEGMENTS = 2;
 const MAX_SEGMENTS = 5;
@@ -43,10 +43,10 @@ const BC_BOUNDS = FIELD_BOUNDS.bc;
 const BORDER_BOUNDS_MS = FIELD_BOUNDS.muzzleVelocity;
 
 function toDisplay(velocityMs, unit) {
-  return unit === 'm/s' ? velocityMs : Qty(velocityMs, 'm/s').to(unit).scalar;
+  return convert(velocityMs, 'm/s', unit);
 }
 function toMs(value, unit) {
-  return unit === 'm/s' ? value : Qty(value, unit).to('m/s').scalar;
+  return convert(value, unit, 'm/s');
 }
 // Rounds in the *display* unit first, then converts that rounded value
 // back to m/s for storage — never the other way around (a locked-in
