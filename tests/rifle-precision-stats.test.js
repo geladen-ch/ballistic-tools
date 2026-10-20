@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mmToM } from '../src/quantity.js';
 
 const {
   computeScale, computeGroupStats, computeCombinedStats,
@@ -16,7 +17,7 @@ function makeTarget(overrides = {}) {
   return {
     id: 't1', name: 'Target', notes: '', photo: null,
     photoWidth: 1000, photoHeight: 1000,
-    calibration: { point1: { x: 0, y: 0.5 }, point2: { x: 1, y: 0.5 }, realLengthMm: 100 }, // scale = 1000px / 100mm = 10 px/mm
+    calibration: { point1: { x: 0, y: 0.5 }, point2: { x: 1, y: 0.5 }, realLengthM: 0.1 }, // scale = 1000px / 0.1 m = 10000 px/m
     groups: [],
     ...overrides
   };
@@ -27,13 +28,13 @@ test('computeScale: 1000px across 100mm gives 10 px/mm (10000 px/m)', () => {
 });
 
 test('computeScale: returns null when calibration is incomplete or degenerate', () => {
-  assert.equal(computeScale(makeTarget({ calibration: { point1: null, point2: null, realLengthMm: null } })), null);
-  assert.equal(computeScale(makeTarget({ calibration: { point1: { x: 0, y: 0 }, point2: { x: 1, y: 0 }, realLengthMm: 0 } })), null);
+  assert.equal(computeScale(makeTarget({ calibration: { point1: null, point2: null, realLengthM: null } })), null);
+  assert.equal(computeScale(makeTarget({ calibration: { point1: { x: 0, y: 0 }, point2: { x: 1, y: 0 }, realLengthM: 0 } })), null);
   assert.equal(computeScale(makeTarget({ photoWidth: null })), null);
 });
 
 test('targetUsabilityGaps: a freshly-created target (no calibration, no groups) is missing all three', () => {
-  assert.deepEqual(targetUsabilityGaps(makeTarget({ calibration: { point1: null, point2: null, realLengthMm: null } })), ['calibration', 'poa', 'impact']);
+  assert.deepEqual(targetUsabilityGaps(makeTarget({ calibration: { point1: null, point2: null, realLengthM: null } })), ['calibration', 'poa', 'impact']);
 });
 
 test('targetUsabilityGaps: calibrated with a group that has a POA but no shots yet is only missing "impact"', () => {
@@ -58,7 +59,7 @@ test('targetUsabilityGaps: fully calibrated with a POA and at least one shot in 
 
 test('targetUsabilityGaps: a degenerate (zero-length) calibration ruler still counts as missing calibration', () => {
   const target = makeTarget({
-    calibration: { point1: { x: 0.5, y: 0.5 }, point2: { x: 0.5, y: 0.5 }, realLengthMm: 100 },
+    calibration: { point1: { x: 0.5, y: 0.5 }, point2: { x: 0.5, y: 0.5 }, realLengthM: 0.1 },
     groups: [{ id: 'g1', poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.5, y: 0.5 }] }]
   });
   assert.deepEqual(targetUsabilityGaps(target), ['calibration']);
@@ -117,7 +118,7 @@ test('computeGroupStats: returns null with fewer than 2 shots or no scale/POA ye
   const target = makeTarget();
   assert.equal(computeGroupStats({ id: 'g1', poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.5, y: 0.5 }] }, target), null);
   assert.equal(computeGroupStats({ id: 'g1', poa: null, shots: [{ x: 0.5, y: 0.5 }, { x: 0.6, y: 0.5 }] }, target), null);
-  assert.equal(computeGroupStats({ id: 'g1', poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.5, y: 0.5 }, { x: 0.6, y: 0.5 }] }, makeTarget({ calibration: { point1: null, point2: null, realLengthMm: null } })), null);
+  assert.equal(computeGroupStats({ id: 'g1', poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.5, y: 0.5 }, { x: 0.6, y: 0.5 }] }, makeTarget({ calibration: { point1: null, point2: null, realLengthM: null } })), null);
 });
 
 // Builds a project with one target/group whose shots produce exactly the
@@ -132,7 +133,7 @@ function projectWithPooledOffsets(offsetsMm) {
     y: ((poaMm.y + dy) * scale) / 1000
   }));
   return {
-    id: 'p1', name: 'Project', distanceM: 100, caliberMm: 7.62,
+    id: 'p1', name: 'Project', distanceM: 100, caliberM: mmToM(7.62),
     targets: [makeTarget({ groups: [{ id: 'g1', poa: poaRel, shots }] })],
     createdAt: '2020-01-01T00:00:00.000Z'
   };
@@ -203,7 +204,7 @@ test('computeCombinedStats: shots are re-centered per their own group POA before
       ] }
     ]
   });
-  const project = { id: 'p1', name: 'P', distanceM: 100, caliberMm: 7.62, targets: [target], createdAt: '2020-01-01T00:00:00.000Z' };
+  const project = { id: 'p1', name: 'P', distanceM: 100, caliberM: mmToM(7.62), targets: [target], createdAt: '2020-01-01T00:00:00.000Z' };
   const result = computeCombinedStats(project);
   assert.equal(result.status, 'ok');
   assert.equal(result.shotCount, 6);

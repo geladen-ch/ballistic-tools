@@ -95,8 +95,8 @@ export function encodeFieldValues(obj) {
 
 // A rifle's scope click settings: in memory { unit, horizontalRad,
 // verticalRad } (unit is the turret's engraved unit, kept for display); as
-// stored, the click sizes in that unit — { unit, horizontal, vertical } in
-// the gun cookie, defaultClickUnit/Horizontal/Vertical on an Arsenal rifle.
+// stored by earlier builds, the click sizes in that unit —
+// { unit, horizontal, vertical } in the v1 gun cookie.
 export function clickSettingsFromStored(stored) {
   if (!stored) return stored;
   const toRad = converter(stored.unit, 'rad');
@@ -106,13 +106,4 @@ export function clickSettingsFromStored(stored) {
 export function clickSettingsToStored(settings) {
   if (!settings) return settings;
   return { unit: settings.unit, horizontal: clickValueInUnit(settings.horizontalRad, settings.unit), vertical: clickValueInUnit(settings.verticalRad, settings.unit) };
-}
-
-export function clickSettingsFromRifleRecord(rifle) {
-  return clickSettingsFromStored({ unit: rifle.defaultClickUnit, horizontal: rifle.defaultClickHorizontal, vertical: rifle.defaultClickVertical });
-}
-
-export function clickSettingsToRifleRecord(settings) {
-  const stored = clickSettingsToStored(settings);
-  return { defaultClickUnit: stored.unit, defaultClickHorizontal: stored.horizontal, defaultClickVertical: stored.vertical };
 }

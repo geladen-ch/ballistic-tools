@@ -16,7 +16,7 @@ import { findRiflePrecisionProjectById } from '../rifle-precision-library.js';
 import { getActiveProjectId } from '../rifle-precision-nav.js';
 import { computeCombinedStats, linearToAngularUnit, oneMoaWidthM, oneMradWidthM, toShooterFrame } from '../engine/rifle-precision-stats.js';
 import { displayChoice, toDisplayUnit, formatQuantity, fineLengthDecimals, toFixedDisplay } from '../display-units.js';
-import { fractionToPercent, mmToM } from '../quantity.js';
+import { fractionToPercent } from '../quantity.js';
 import { analysisDiagram, buildStandaloneDiagramSvg, buildExportSvgWithLegend } from '../ui/rifle-precision/analysis-diagram.js';
 import { confidenceOMeter } from '../ui/rifle-precision/confidence-o-meter.js';
 import { hitProbabilitySlider } from '../ui/rifle-precision/hit-probability-slider.js';
@@ -39,8 +39,8 @@ function formatLength(valueM) {
   return formatQuantity('smallLength', valueM, { decimals: fineLengthDecimals });
 }
 // The project record keeps its caliber in mm.
-function formatCaliberMm(valueMm) {
-  return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
+function formatCaliber(caliberM) {
+  return formatQuantity('smallLength', caliberM, { decimals: fineLengthDecimals });
 }
 
 // The diagram's optional reference grid — each option's real-world
@@ -93,7 +93,7 @@ export function mount(container) {
   }
   const subheading = el('p', {
     class: 'hint',
-    text: `${formatDistance(project.distanceM)}, ${formatCaliberMm(project.caliberMm)}, ${shotCountText()}`
+    text: `${formatDistance(project.distanceM)}, ${formatCaliber(project.caliberM)}, ${shotCountText()}`
   });
 
   // Restored once at mount — every report input setting below is
@@ -164,7 +164,7 @@ export function mount(container) {
     return {
       showSigma, showR50, showR99, showR95, showR95Ci, showPoiCi, showEs5x, showEs10x,
       hitProbabilityRadiusM, hitProbabilityPercent, oneMoaRadiusM: showOneMoa ? oneMoaWidthM(project.distanceM) / 2 : 0,
-      impactsToScale, caliberM: project.caliberMm != null ? mmToM(project.caliberMm) : 0, gridSpacingM, showScale,
+      impactsToScale, caliberM: project.caliberM ?? 0, gridSpacingM, showScale,
       d5xM: stats.d5x, d10xM: stats.d10x
     };
   }
@@ -391,7 +391,7 @@ export function mount(container) {
       // confidence-interval/rating information visually, so no text lines
       // for those are built here any more.
       const headerLines = [
-        { text: `${project.name} — ${formatDistance(project.distanceM)}, ${formatCaliberMm(project.caliberMm)}`, weight: 'bold', size: 24 },
+        { text: `${project.name} — ${formatDistance(project.distanceM)}, ${formatCaliber(project.caliberM)}`, weight: 'bold', size: 24 },
         { text: shotCountText(), weight: 'normal', size: 15 }
       ];
       svgNode = buildExportSvgWithLegend(stats, options, legendRows, headerLines, stats.confidenceLower, stats.confidenceUpper);

@@ -39,7 +39,7 @@ import { exportChartSvg } from '../chart-svg-export.js';
 import { downloadFile } from '../download.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
-import { clickSettingsFromRifleRecord } from '../legacy-units.js';
+import { clickSettingsFromRifleRecord } from '../units.js';
 
 const ALL_VALUE = '__all__';
 
@@ -486,7 +486,7 @@ export function mount(container) {
   // being compared (maxRange + the chart's dense sampling resolution,
   // atmosphere+wind from the Comparison section's own control). No line-of-sight
   // incline input here — the Comparison section doesn't offer one, so
-  // every comparison is a flat (losAngleDeg: 0) shot, the same engine
+  // every comparison is a flat (losAngleRad: 0) shot, the same engine
   // default used anywhere else that field isn't shown.
   function buildComparisonState(rifle, cartridge, bullet, shared, zeroDonorBallistics) {
     return {
@@ -1577,7 +1577,7 @@ export function mount(container) {
       cartridgeFormState = { id: pendingCartridgeActivation.cartridgeId };
       pendingPrecisionOverride = {
         cartridgeId: pendingCartridgeActivation.cartridgeId,
-        precision: { mode: 'own', r50Mrad: pendingCartridgeActivation.precisionR50Mrad }
+        precision: { mode: 'own', r50Rad: pendingCartridgeActivation.precisionR50Rad }
       };
       renderRifleForm();
       renderBulletForm();

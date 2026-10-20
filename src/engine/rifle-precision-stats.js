@@ -11,21 +11,21 @@
 // legacy's absolute-pixel-coordinate model.
 import { RAYLEIGH_COEFF, CONF_LOWER, CONF_UPPER, TDIST_QUANTILE } from './rifle-precision-constants.js';
 import { angularUnitToLinearAtRange } from '../units.js';
-import { mmToM, percentToFraction } from '../quantity.js';
+import { percentToFraction } from '../quantity.js';
 
 // Pixels per metre for a target, from its 2-point calibration ruler (whose
-// real length the target record keeps in mm). null if
+// real length, in metres). null if
 // calibration isn't complete yet (no ruler placed, or a real length of 0
 // was entered — legacy's own scale-reset button clears exactly this way).
 export function computeScale(target) {
   const { calibration, photoWidth, photoHeight } = target;
-  if (!calibration || !calibration.point1 || !calibration.point2 || !calibration.realLengthMm) return null;
-  if (!photoWidth || !photoHeight || calibration.realLengthMm <= 0) return null;
+  if (!calibration || !calibration.point1 || !calibration.point2 || !calibration.realLengthM) return null;
+  if (!photoWidth || !photoHeight || calibration.realLengthM <= 0) return null;
   const dx = (calibration.point1.x - calibration.point2.x) * photoWidth;
   const dy = (calibration.point1.y - calibration.point2.y) * photoHeight;
   const pixelDist = Math.sqrt(dx * dx + dy * dy);
   if (pixelDist <= 0) return null;
-  return pixelDist / mmToM(calibration.realLengthMm);
+  return pixelDist / calibration.realLengthM;
 }
 
 // Whether a target can actually be analyzed — the same three
@@ -35,7 +35,7 @@ export function computeScale(target) {
 // of the three are still missing ('calibration'/'poa'/'impact'), in that
 // order; an empty array means the target is fully usable. Calibration
 // completeness is computeScale() returning a real scale rather than a
-// looser point1/point2/realLengthMm presence check, so a degenerate
+// looser point1/point2/realLengthM presence check, so a degenerate
 // ruler (e.g. both points on the same pixel) still counts as missing.
 export function targetUsabilityGaps(target) {
   const gaps = [];

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
+import { mmToM } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -98,7 +99,7 @@ const PHOTO_H = 800;
 
 function makeTestProject(overrides = {}) {
   return {
-    id: generateUserId('rp-project'), name: 'Home Range', distanceM: 100, caliberMm: 7.62,
+    id: generateUserId('rp-project'), name: 'Home Range', distanceM: 100, caliberM: mmToM(7.62),
     targets: [], createdAt: new Date().toISOString(), ...overrides
   };
 }
@@ -107,7 +108,7 @@ function makeTestTarget(overrides = {}) {
   return {
     id: generateUserId('rp-target'), name: null, notes: null,
     photo: TEST_PHOTO, photoWidth: PHOTO_W, photoHeight: PHOTO_H,
-    calibration: { point1: null, point2: null, realLengthMm: null },
+    calibration: { point1: null, point2: null, realLengthM: null },
     groups: [],
     ...overrides
   };
@@ -233,7 +234,7 @@ test('calibration: tapping the photo places point 1 immediately (no confirm step
 });
 
 test('calibration: dragging an already-placed point updates its persisted coordinates', () => {
-  const target = makeTestTarget({ calibration: { point1: { x: 0.2, y: 0.2 }, point2: null, realLengthMm: null } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.2, y: 0.2 }, point2: null, realLengthM: null } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -251,7 +252,7 @@ test('calibration: dragging an already-placed point updates its persisted coordi
 });
 
 test('calibration: once both points exist, a connecting line and (once a length is set) its legend render, updating live as the length is typed', () => {
-  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: null } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: null } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -272,14 +273,14 @@ test('calibration: once both points exist, a connecting line and (once a length 
   assert.ok(label, 'the legend appears as soon as a valid length is typed');
   assert.equal(label.textContent, '200 mm');
   let stored = findRiflePrecisionProjectById(project.id).targets[0];
-  assert.equal(stored.calibration.realLengthMm, null, 'not persisted yet — only committed on change/blur');
+  assert.equal(stored.calibration.realLengthM, null, 'not persisted yet — only committed on change/blur');
 
   // Committing (change/blur) persists it but does NOT auto-advance —
   // calibration only ends when the user explicitly presses "Done
   // calibrating", so a value can still be double-checked/edited.
   fireEvent(lengthInput, 'change');
   stored = findRiflePrecisionProjectById(project.id).targets[0];
-  assert.equal(stored.calibration.realLengthMm, 200);
+  assert.ok(Math.abs(stored.calibration.realLengthM - 0.2) < 1e-15);
   assert.ok(container.textContent.includes(t('riflePrecision.stepCalibration')), 'stays on the calibration step');
   assert.ok(!container.textContent.includes(t('riflePrecision.stepPointOfAim')));
 
@@ -293,7 +294,7 @@ test('calibration: once both points exist, a connecting line and (once a length 
 
 test('calibration: the real-world length is labeled, typed, shown and stored in the user\'s preferred small-length unit', () => {
   setUnit('smallLength', 'in');
-  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: null } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: null } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -314,7 +315,7 @@ test('calibration: the real-world length is labeled, typed, shown and stored in 
 
   fireEvent(lengthInput, 'change');
   const stored = findRiflePrecisionProjectById(project.id).targets[0];
-  assert.ok(Math.abs(stored.calibration.realLengthMm - 101.6) < 1e-9, `stored in mm regardless of the display unit (got ${stored.calibration.realLengthMm})`);
+  assert.ok(Math.abs(stored.calibration.realLengthM - 0.1016) < 1e-12, `stored in metres regardless of the display unit (got ${stored.calibration.realLengthM})`);
 
   // ...and converts straight back on the re-render, rather than showing
   // the raw stored millimetres.
@@ -327,7 +328,7 @@ test('calibration: the real-world length is labeled, typed, shown and stored in 
 
 test('calibration: an existing millimetre length renders in the preferred unit, trimmed of trailing zeros', () => {
   setUnit('smallLength', 'cm');
-  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: 200 } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: 0.2 } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -341,7 +342,7 @@ test('calibration: an existing millimetre length renders in the preferred unit, 
 });
 
 test('calibration: the Done button does not appear until both points and a length are all set, and re-typing a length after Done was already available does not auto-advance', () => {
-  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: null } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: null } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -359,7 +360,7 @@ test('calibration: the Done button does not appear until both points and a lengt
 });
 
 test('calibration: the Done button\'s visibility updates live as the length is typed, without waiting for change/blur', () => {
-  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: null } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: null } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -373,7 +374,7 @@ test('calibration: the Done button\'s visibility updates live as the length is t
   lengthInput.value = '1';
   fireEvent(lengthInput, 'input');
   assert.ok(!isHidden(doneButton), 'a single valid digit already shows Done live, before change/blur');
-  assert.equal(findRiflePrecisionProjectById(project.id).targets[0].calibration.realLengthMm, null, 'not persisted yet — this is a live display-only update');
+  assert.equal(findRiflePrecisionProjectById(project.id).targets[0].calibration.realLengthM, null, 'not persisted yet — this is a live display-only update');
 
   lengthInput.value = '';
   fireEvent(lengthInput, 'input');
@@ -391,7 +392,7 @@ test('calibration: the Done button\'s visibility updates live as the length is t
 });
 
 test('point of aim: tapping the photo places the group\'s POA immediately and auto-advances into shot mode', () => {
-  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 } });
+  const target = makeTestTarget({ calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 } });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
   setPendingMarking({ projectId: project.id, targetId: target.id });
   const container = makeElement('main');
@@ -414,7 +415,7 @@ test('point of aim: tapping the photo places the group\'s POA immediately and au
 test('shots: tapping appends immediately and stays draggable; dragging one updates only its own coordinates', () => {
   const group = { id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -451,7 +452,7 @@ test('delete impact: ignores taps on empty space, deletes only the tapped impact
     shots: [{ x: 0.51, y: 0.49 }, { x: 0.49, y: 0.51 }, { x: 0.52, y: 0.52 }]
   };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -498,7 +499,7 @@ test('only the active group\'s own point of aim is draggable; switching groups f
   const groupA = { id: generateUserId('rp-group'), poa: { x: 0.3, y: 0.3 }, shots: [{ x: 0.31, y: 0.31 }] };
   const groupB = { id: generateUserId('rp-group'), poa: { x: 0.7, y: 0.7 }, shots: [] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [groupA, groupB]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -526,7 +527,7 @@ test('only the active group\'s own point of aim is draggable; switching groups f
 test('adding a second group renders the first group\'s point of aim as a static reference dot, with Cancel offered', () => {
   const existingGroup = { id: generateUserId('rp-group'), poa: { x: 0.3, y: 0.3 }, shots: [{ x: 0.31, y: 0.31 }, { x: 0.29, y: 0.29 }] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [existingGroup]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -550,7 +551,7 @@ test('adding a second group renders the first group\'s point of aim as a static 
 test('Recalibrate re-enters the calibration step with the existing points and length already displayed, not wiped, and leaves groups/shots untouched', () => {
   const existingGroup = { id: generateUserId('rp-group'), poa: { x: 0.3, y: 0.3 }, shots: [{ x: 0.31, y: 0.31 }] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [existingGroup]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -563,7 +564,7 @@ test('Recalibrate re-enters the calibration step with the existing points and le
   // Nothing was persisted/cleared just by entering the step — the stored
   // calibration and groups are exactly what they were before.
   const stored = findRiflePrecisionProjectById(project.id).targets[0];
-  assert.deepEqual(stored.calibration, { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 });
+  assert.deepEqual(stored.calibration, { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 });
   assert.equal(stored.groups.length, 1, 'recalibrating does not touch existing groups/shots');
 
   assert.ok(container.textContent.includes(t('riflePrecision.stepCalibration')));
@@ -627,14 +628,14 @@ test('zoom/pan carries over when re-entering the same target\'s photo, but not t
 
 test('impact markers are sized to the rifle\'s own caliber (not a fixed size), and colored to match the precision-report diagram\'s own impacts', () => {
   // point1/point2 800px apart horizontally (1000px-wide photo) for a
-  // 200mm real length -> 4 px/mm. caliberMm 7.62 (makeTestProject's own
+  // 200mm real length -> 4 px/mm. caliber 7.62 mm (makeTestProject's own
   // default) -> diameter = 30.48px -> 3.048% of width, 3.81% of height
   // (PHOTO_W/PHOTO_H differ, so the two percentages must differ too — see
   // renderImpactMarker()'s own comment on why one shared % would be an
   // ellipse whenever the photo isn't square).
   const group = { id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -671,7 +672,7 @@ test('impacts (and the extreme-spread line between them) follow the user\'s Sett
     shots: [{ x: 0.51, y: 0.49 }, { x: 0.3, y: 0.3 }]
   };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -695,7 +696,7 @@ test('impacts (and the extreme-spread line between them) follow the user\'s Sett
 test('the point-of-aim marker and calibration markers/line are colored to match the precision-report diagram (red PoA, green calibration)', () => {
   const group = { id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -717,7 +718,7 @@ test('the point-of-aim marker and calibration markers/line are colored to match 
 test('the extreme-spread line/label and average-POI marker render live once a group has 2+ shots, and update as shots are added', () => {
   const group = { id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -765,7 +766,7 @@ test('the extreme-spread line/label and average-POI marker render live once a gr
 test('"Save group overview image" appears alongside the group selector in idle mode, and clicking it does not throw', () => {
   const group = { id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }, { x: 0.49, y: 0.51 }] };
   const target = makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.1 }, point2: { x: 0.9, y: 0.1 }, realLengthM: 0.2 },
     groups: [group]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));

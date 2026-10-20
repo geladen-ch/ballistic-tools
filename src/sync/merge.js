@@ -152,7 +152,11 @@ function isUsableRecord(record) {
 // undefined if this device has never seen it) and the incoming remote
 // record, decide what to do. See the plan's own pseudocode and per-branch
 // notes for why each of these exists.
-export function resolveRecord(local, remote) {
+// `decode` (record-codec.js, by record type) turns each side into the
+// form the app holds before comparing contents, so a record stored by an
+// earlier build and the same record stored with its SI fields alongside
+// compare equal.
+export function resolveRecord(local, remote, decode = (r) => r) {
   if (!local) {
     if (remote.deletedAt) return { action: 'store-tombstone', record: remote };
     return { action: 'import', record: remote };
@@ -174,7 +178,7 @@ export function resolveRecord(local, remote) {
   if (cmp === 'unknown') return { action: 'skip-review', reason: 'unresolvable-timestamp' };
   if (cmp === 'older') return { action: 'skip', reason: 'local-is-newer' };
   if (cmp === 'same') {
-    if (equivalent(local, remote)) return { action: 'noop' };
+    if (equivalent(decode(local), decode(remote))) return { action: 'noop' };
     return { action: 'skip-review', reason: 'same-timestamp-diverged-content' };
   }
   // cmp === 'newer'
@@ -266,7 +270,7 @@ export function detectBackwardExport(bundleExportedAt, previousExportedAt, { tol
 // resolved and applied independently, with no transaction wrapping the
 // batch, so a cycle that dies halfway just leaves a partially-merged
 // dataset for the next cycle to continue converging.
-export function mergeRecords(localList, remoteList, { importRaw, tombstone, recordType, peerLabel }) {
+export function mergeRecords(localList, remoteList, { importRaw, tombstone, recordType, peerLabel, decode = (r) => r }) {
   const localById = new Map(localList.map((r) => [r.id, r]));
   const counts = { imported: 0, overwritten: 0, tombstoned: 0, skippedOlder: 0, skippedReview: 0, noop: 0, skippedInvalid: 0 };
   const reviewItems = [];
@@ -285,7 +289,7 @@ export function mergeRecords(localList, remoteList, { importRaw, tombstone, reco
       continue;
     }
     const local = localById.get(remote.id);
-    const result = resolveRecord(local, remote);
+    const result = resolveRecord(local, remote, decode);
     // The verbose core of Phase 10's logging — every per-record decision,
     // not just the aggregate counts each caller already logs once per
     // library/peer. `recordType`/`peerLabel` are optional so tests and any
@@ -299,7 +303,7 @@ export function mergeRecords(localList, remoteList, { importRaw, tombstone, reco
     // type/length), never content, so a photo's base64 never lands in the
     // console even with verbose logging on.
     if (result.reason === 'same-timestamp-diverged-content') {
-      for (const line of describeDivergence(local, remote)) {
+      for (const line of describeDivergence(decode(local), decode(remote))) {
         logSyncEvent('debug', 'merge: divergence detail —', recordType || 'record', remote.id, ':', line);
       }
     }

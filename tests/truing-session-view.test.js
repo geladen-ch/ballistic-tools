@@ -718,7 +718,7 @@ test('step 5a: declaring the range flat never writes an angle anywhere, even whe
     id: locationId, name: 'Slight Slope', altitudeM: null, photo: null,
     targets: [
       { id: generateUserId('target'), name: 'Near', rangeM: 100, losAngleDeg: 0, notes: null, coords: null },
-      { id: generateUserId('target'), name: 'Far', rangeM: 870, losAngleDeg: 3, notes: null, coords: null }
+      { id: generateUserId('target'), name: 'Far', rangeM: 870, losAngleRad: degToRad(3), notes: null, coords: null }
     ]
   });
   saveRangeSolverLocationState({ locationId, targetId: null });
@@ -743,7 +743,7 @@ test('step 5a: declaring the range flat never writes an angle anywhere, even whe
   const { loadUserLocations } = await import('../src/location-library.js');
   const far = loadUserLocations()[0].targets.find((tg) => tg.name === 'Far');
   assert.equal(far.rangeM, 870, 'the location keeps its distance');
-  assert.equal(far.losAngleDeg, 3, 'the recorded angle must survive the flat declaration');
+  assert.equal(far.losAngleRad, degToRad(3), 'the recorded angle must survive the flat declaration');
   const { loadTruingSessionState } = await import('../src/truing-session-state.js');
   assert.ok(Object.values(loadTruingSessionState().targetOverrides).some((ov) => ov.rangeM === 860 && ov.losAngleDeg === undefined), 'the corrected distance is held for the session, with no angle written');
 });

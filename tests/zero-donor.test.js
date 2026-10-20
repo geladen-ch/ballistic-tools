@@ -91,11 +91,10 @@ test('a BC-profile donor clears cdTable, so a Cd-table recipient\'s own table ca
 
 test('carries the donor\'s zero atmosphere, not the recipient\'s', async () => {
   const zeroAtmosphere = { tempC: 4, pressurePa: 84500, humidity: 0.3, altitudeM: 1505 };
-  const stored = { tempC: 4, pressureHpa: 845, humidityPct: 30, altitudeM: 1505 }; // the record's own form
   const rifle = {
     id: 'r5',
     cartridges: [
-      { id: 'donor', name: 'Donor', muzzleVelocity: 800, bulletId: 'swiss-gp11', zeroAtmosphere: stored },
+      { id: 'donor', name: 'Donor', muzzleVelocity: 800, bulletId: 'swiss-gp11', zeroAtmosphere },
       { id: 'recipient', name: 'Recipient', muzzleVelocity: 820, bulletId: 'swiss-gp11', zeroedWithCartridgeId: 'donor' }
     ]
   };

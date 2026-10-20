@@ -471,3 +471,14 @@ export function clicksForOffset(offsetM, clickRad, rangeM) {
   const metresPerClick = angleToLinearAtRange(clickRad, rangeM);
   return metresPerClick === 0 ? 0 : offsetM / metresPerClick;
 }
+
+// A rifle record's click settings (defaultClickUnit plus the two sizes in
+// radians) as the { unit, horizontalRad, verticalRad } the click fields
+// and the shot state use, and back.
+export function clickSettingsFromRifleRecord(rifle) {
+  return { unit: rifle.defaultClickUnit, horizontalRad: rifle.defaultClickHorizontalRad, verticalRad: rifle.defaultClickVerticalRad };
+}
+
+export function clickSettingsToRifleRecord(settings) {
+  return { defaultClickUnit: settings.unit, defaultClickHorizontalRad: settings.horizontalRad, defaultClickVerticalRad: settings.verticalRad };
+}

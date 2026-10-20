@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb } from './helpers/fake-dom.js';
+import { mmToM } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -25,7 +26,7 @@ function makeTarget(overrides = {}) {
     photoWidth: null,
     photoHeight: null,
     photoFilename: null,
-    calibration: { point1: null, point2: null, realLengthMm: null },
+    calibration: { point1: null, point2: null, realLengthM: null },
     groups: [],
     ...overrides
   };
@@ -36,7 +37,7 @@ function makeProject(overrides = {}) {
     id: generateUserId('rp-project'),
     name: 'My Project',
     distanceM: 100,
-    caliberMm: 7.62,
+    caliberM: mmToM(7.62),
     targets: [],
     createdAt: '2020-01-01T00:00:00.000Z',
     ...overrides
@@ -155,7 +156,7 @@ test('a target photo and calibration/group/shot coords round-trip through save/l
       photoWidth: 2000,
       photoHeight: 1500,
       photoFilename: 'range-day-target-3.jpg',
-      calibration: { point1: { x: 0.1, y: 0.2 }, point2: { x: 0.3, y: 0.2 }, realLengthMm: 50 },
+      calibration: { point1: { x: 0.1, y: 0.2 }, point2: { x: 0.3, y: 0.2 }, realLengthM: 0.05 },
       groups: [{ id: 'g1', poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }, { x: 0.48, y: 0.52 }] }]
     })]
   });

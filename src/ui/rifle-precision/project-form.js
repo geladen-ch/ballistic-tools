@@ -1,5 +1,5 @@
 import { el } from '../../dom.js';
-import { mToMm, mmToM } from '../../quantity.js';
+import { mmToM } from '../../quantity.js';
 import { t } from '../../i18n.js';
 import { unitField } from '../unit-field.js';
 import { caliberField } from '../arsenal/caliber-field.js';
@@ -7,7 +7,7 @@ import { FIELD_BOUNDS } from '../../units.js';
 import { fieldValidity } from '../field-validity.js';
 import { findRiflePrecisionProjectByName } from '../../rifle-precision-library.js';
 
-const DEFAULT_VALUES = { name: '', distanceM: 100, caliberMm: 7.62 };
+const DEFAULT_VALUES = { name: '', distanceM: 100, caliberM: mmToM(7.62) };
 
 // Add/Edit form for a rifle-precision project — name (required), distance
 // to target and rifle caliber (both required, always stored in engine
@@ -34,10 +34,8 @@ export function projectForm({ initialValues = {}, excludeId, onSave, onCancel } 
 
   const distanceField = unitField({ id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10, value: values.distanceM });
   // caliberField() is the app's standard caliber input (designation
-  // dropdown + linked manual-entry number, src/ui/arsenal/caliber-field.js)
-  // — its own value/getCaliberM() are meters, this project's own
-  // caliberMm is millimetres, so convert at both boundaries here.
-  const caliber = caliberField({ value: values.caliberMm != null ? mmToM(values.caliberMm) : null, required: true });
+  // dropdown + linked manual-entry number, src/ui/arsenal/caliber-field.js).
+  const caliber = caliberField({ value: values.caliberM ?? null, required: true });
 
   const saveButton = el('button', { i18n: 'riflePrecision.saveProjectButton' });
   const cancelButton = el('button', { class: 'secondary', i18n: 'riflePrecision.cancelButton' });
@@ -56,11 +54,10 @@ export function projectForm({ initialValues = {}, excludeId, onSave, onCancel } 
       return;
     }
     if (onSave) {
-      const caliberM = caliber.getCaliberM();
       onSave({
         name: nameInput.value.trim(),
         distanceM: distanceField.getEngineValue(),
-        caliberMm: caliberM != null ? mToMm(caliberM) : null
+        caliberM: caliber.getCaliberM()
       });
     }
   });

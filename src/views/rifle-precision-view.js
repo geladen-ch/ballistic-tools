@@ -20,6 +20,7 @@ import { riflePrecisionImportDialog } from '../ui/rifle-precision/import-dialog.
 import { buildExportPayload, serializeExport, parseImportPayload, resolveImportItem } from '../rifle-precision-export.js';
 import { downloadFile } from '../download.js';
 import { computeGroupStats, targetUsabilityGaps, computeCombinedStats, linearToAngularUnit } from '../engine/rifle-precision-stats.js';
+import { linearToAngleAtRange } from '../quantity.js';
 import { confidenceBadge } from '../ui/rifle-precision/confidence-o-meter.js';
 import { formatQuantity, fineLengthDecimals } from '../display-units.js';
 import { getActiveProjectId, setActiveProjectId, setPendingMarking } from '../rifle-precision-nav.js';
@@ -49,8 +50,8 @@ function formatLength(valueM) {
   return formatQuantity('smallLength', valueM, { decimals: fineLengthDecimals });
 }
 // The project record keeps its caliber in mm.
-function formatCaliberMm(valueMm) {
-  return formatQuantity('smallLength', valueMm, { from: 'mm', decimals: fineLengthDecimals });
+function formatCaliber(caliberM) {
+  return formatQuantity('smallLength', caliberM, { decimals: fineLengthDecimals });
 }
 
 export function mount(container) {
@@ -357,7 +358,7 @@ export function mount(container) {
           photoWidth,
           photoHeight,
           photoFilename: photoFilename || null,
-          calibration: { point1: null, point2: null, realLengthMm: null },
+          calibration: { point1: null, point2: null, realLengthM: null },
           groups: []
         };
         saveRiflePrecisionProject({ ...fresh, targets: [...fresh.targets, newTarget] });
@@ -445,7 +446,7 @@ export function mount(container) {
     return [
       el('strong', { text: (labels && labels.get(proj.id)) || proj.name }),
       unsavedBadge(proj),
-      el('span', { class: 'hint', text: ` — ${formatDistance(proj.distanceM)}, ${formatCaliberMm(proj.caliberMm)}` }),
+      el('span', { class: 'hint', text: ` — ${formatDistance(proj.distanceM)}, ${formatCaliber(proj.caliberM)}` }),
       el('span', { class: 'hint', text: t('riflePrecision.targetCount', { count: proj.targets.length }) }),
       projectUsabilityHint(proj),
       stats ? el('div', { class: 'hint' }, [
@@ -540,7 +541,7 @@ export function mount(container) {
             onPick: (rifleId, cartridgeId) => {
               setPendingCartridgeActivation({
                 rifleId, cartridgeId,
-                precisionR50Mrad: linearToAngularUnit(stats.r50, 'mrad', proj.distanceM)
+                precisionR50Rad: linearToAngleAtRange(stats.r50, proj.distanceM)
               });
               location.hash = '#/guns/arsenal';
             }

@@ -16,6 +16,7 @@ import { loadUserLocations } from '../location-library.js';
 import { loadRangeSolverLocationState } from '../range-solver-state.js';
 import { locationPickerButton } from '../ui/locations/location-picker-button.js';
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
+import { locationToFit, fromFitIncline } from '../ui/truing-session/fit-units.js';
 import { loadTruingSessionState, saveTruingSessionState, clearTruingSessionKeys } from '../truing-session-state.js';
 import {
   rangeAtMach, SUPERSONIC_MACH, DEFAULT_LADDER_CONFIDENCE_Z
@@ -87,9 +88,10 @@ export function mount(container) {
   const { rifleRecord, cartridge } = arsenalConfig;
 
   const locationState = loadRangeSolverLocationState() || {};
-  const activeLocation = locationState.locationId
+  // in the tool's working units (fit-units.js): target inclines in degrees
+  const activeLocation = locationToFit(locationState.locationId
     ? loadUserLocations().find((l) => l.id === locationState.locationId) || null
-    : null;
+    : null);
   if (!activeLocation || activeLocation.targets.length === 0) {
     root.appendChild(el('h1', { i18n: 'truingSession.title' }));
     root.appendChild(el('p', { i18n: 'truingSession.gate.needsLocation' }));
@@ -407,7 +409,7 @@ export function mount(container) {
     const rangeChanged = dist(newReadingM) !== dist(fromRangeM);
     const angleChanged = angleDeg != null && !ctx.rangeDeclaredFlat && angleDeg.toFixed(1) !== fromAngleDeg.toFixed(1);
     if (tg && tg.registered && (rangeChanged || angleChanged)) {
-      const name = tg.name || formatTargetSummary(tg.rangeM, tg.losAngleDeg);
+      const name = tg.name || formatTargetSummary(tg.rangeM, fromFitIncline(tg.losAngleDeg));
       const changes = [];
       if (rangeChanged) changes.push({ name, field: 'range', from: fromRangeM, to: newReadingM });
       if (angleChanged) changes.push({ name, field: 'angle', from: fromAngleDeg, to: angleDeg });

@@ -53,7 +53,6 @@ import {
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
 } from '../ui/rifle-precision/marker-style.js';
 import { exportGroupOverviewImage } from '../rifle-precision-photo-export.js';
-import { mmToM } from '../quantity.js';
 
 const smallLengthChoice = () => displayChoice('smallLength');
 const smallLengthDecimals = fineLengthDecimals;
@@ -63,20 +62,19 @@ function formatLength(valueM) {
   return formatQuantity('smallLength', valueM, { decimals: fineLengthDecimals });
 }
 
-// The calibration length round-trip: stored on the target in millimetres
-// (the unit every measurement downstream of the scale is derived in),
-// typed and shown in whatever small-length unit the user prefers. Rounded
-// to that unit's own display precision on the way out so the input never
+// The calibration length round-trip: held on the target in metres, typed
+// and shown in whatever small-length unit the user prefers. Rounded to
+// that unit's own display precision on the way out so the input never
 // shows a 3.9370078740157481-style conversion artifact.
-function calibrationLengthToDisplay(valueMm) {
-  return Number(toDisplayUnit('smallLength', valueMm, 'mm').toFixed(smallLengthDecimals(smallLengthChoice())));
+function calibrationLengthToDisplay(valueM) {
+  return Number(toDisplayUnit('smallLength', valueM).toFixed(smallLengthDecimals(smallLengthChoice())));
 }
 // A typed value equal to the stored length's own rounded display is the
-// stored length, not the millimetres of its rounding (a 100 mm ruler shown
-// as "3.937 in" must not be re-saved as 99.9998 mm).
-function calibrationLengthToMm(displayValue, originalMm) {
-  if (originalMm && displayValue === calibrationLengthToDisplay(originalMm)) return originalMm;
-  return fromDisplayUnit('smallLength', displayValue, 'mm');
+// stored length, not the metres of its rounding (a 100 mm ruler shown as
+// "3.937 in" must not be re-saved as 0.0999998 m).
+function calibrationLengthToM(displayValue, originalM) {
+  if (originalM && displayValue === calibrationLengthToDisplay(originalM)) return originalM;
+  return fromDisplayUnit('smallLength', displayValue);
 }
 
 // Unlike formatLengthMm() above (a computed statistic, always printed to
@@ -117,7 +115,7 @@ function positionAt(node, point) {
 // own computeScale() uses.
 function isCalibrated(target) {
   const cal = target.calibration;
-  return !!(cal && cal.point1 && cal.point2 && cal.realLengthMm);
+  return !!(cal && cal.point1 && cal.point2 && cal.realLengthM);
 }
 
 // Where a freshly-mounted (or freshly-resumed-after-a-mutation) view
@@ -284,9 +282,9 @@ export function mount(container) {
 
   // A plain circle sized to the rifle's own caliber, not a fixed on-screen
   // size — see .rp-impact-marker's own CSS comment for the full reasoning.
-  // `scale` (px/m, computeScale(t2)) and `caliberMm` are both guaranteed
+  // `scale` (px/m, computeScale(t2)) and `caliberM` are both guaranteed
   // by the time shots are ever placed: calibration always completes
-  // before 'shot' mode is reachable (see initialMode()), and caliberMm is
+  // before 'shot' mode is reachable (see initialMode()), and caliberM is
   // a required field on every saved project (project-form.js's own
   // standard caliber field). The width/height % are computed separately
   // (not a single "diameter %" reused for both) because the marker's
@@ -325,9 +323,9 @@ export function mount(container) {
       impactCircle(1, pooledShotColor())
     ]);
     const scale = computeScale(t2);
-    const caliberMm = project.caliberMm;
-    if (scale && caliberMm > 0) {
-      const diameterPx = mmToM(caliberMm) * scale;
+    const caliberM = project.caliberM;
+    if (scale && caliberM > 0) {
+      const diameterPx = caliberM * scale;
       marker.style.width = `${(diameterPx / t2.photoWidth) * 100}%`;
       marker.style.height = `${(diameterPx / t2.photoHeight) * 100}%`;
     } else {
@@ -494,7 +492,7 @@ export function mount(container) {
     calibrationLabelEl = el('div', { class: 'rp-calibration-length-label' });
     positionCalibrationLabel(calibrationLabelEl, cal);
     viewport.markersLayer.appendChild(calibrationLabelEl);
-    setCalibrationLabelValue(cal.realLengthMm ? calibrationLengthToDisplay(cal.realLengthMm) : null);
+    setCalibrationLabelValue(cal.realLengthM ? calibrationLengthToDisplay(cal.realLengthM) : null);
   }
 
   function renderCalibration(t2) {
@@ -529,7 +527,7 @@ export function mount(container) {
     const calChoice = smallLengthChoice();
     const calStep = String(10 ** -smallLengthDecimals(calChoice));
     const lengthInput = el('input', { type: 'number', id: 'riflePrecisionCalibrationLength', min: calStep, step: calStep });
-    if (cal.realLengthMm) lengthInput.value = String(calibrationLengthToDisplay(cal.realLengthMm));
+    if (cal.realLengthM) lengthInput.value = String(calibrationLengthToDisplay(cal.realLengthM));
 
     // Always created (both points already exist by this point in the
     // function), its display toggled live rather than gated by a full
@@ -557,7 +555,7 @@ export function mount(container) {
       if (!(len > 0)) return;
       const fresh = currentTarget();
       if (!fresh) return;
-      persistTarget({ ...fresh, calibration: { ...fresh.calibration, realLengthMm: calibrationLengthToMm(len, fresh.calibration.realLengthMm) } });
+      persistTarget({ ...fresh, calibration: { ...fresh.calibration, realLengthM: calibrationLengthToM(len, fresh.calibration.realLengthM) } });
       render();
     });
 
@@ -624,8 +622,8 @@ export function mount(container) {
     const groupIndex = t2.groups.findIndex((g) => g.id === activeGroupId);
     const stats = computeGroupStats(activeGroup, t2);
     const extremeSpreadLabelText = stats ? `${t('riflePrecision.esLabel')} ${formatLength(stats.extremeSpreadM)}` : null;
-    const calibrationLabelText = t2.calibration && t2.calibration.realLengthMm
-      ? formatCalibrationLength(calibrationLengthToDisplay(t2.calibration.realLengthMm))
+    const calibrationLabelText = t2.calibration && t2.calibration.realLengthM
+      ? formatCalibrationLength(calibrationLengthToDisplay(t2.calibration.realLengthM))
       : null;
 
     const rect = viewport.node.getBoundingClientRect();

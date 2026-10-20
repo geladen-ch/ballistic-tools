@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
+import { mmToM } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -92,7 +93,7 @@ function isHidden(node) {
 
 function makeTestProject(overrides = {}) {
   return {
-    id: generateUserId('rp-project'), name: 'Home Range', distanceM: 100, caliberMm: 7.62,
+    id: generateUserId('rp-project'), name: 'Home Range', distanceM: 100, caliberM: mmToM(7.62),
     targets: [], createdAt: new Date().toISOString(), ...overrides
   };
 }
@@ -101,7 +102,7 @@ function makeTestTarget(overrides = {}) {
   return {
     id: generateUserId('rp-target'), name: null, notes: null,
     photo: 'data:image/jpeg;base64,AAA', photoWidth: 1000, photoHeight: 800, photoFilename: null,
-    calibration: { point1: null, point2: null, realLengthMm: null },
+    calibration: { point1: null, point2: null, realLengthM: null },
     groups: [],
     ...overrides
   };
@@ -153,7 +154,7 @@ test('a project name is required — saving a blank name does nothing', () => {
   assert.equal(loadRiflePrecisionProjects().length, 0);
 });
 
-test('the project form uses the standard caliber input (designation dropdown + manual entry), and it round-trips to caliberMm', () => {
+test('the project form uses the standard caliber input (designation dropdown + manual entry), and it round-trips to caliberM', () => {
   const container = makeElement('main');
   riflePrecisionView.mount(container);
 
@@ -169,7 +170,7 @@ test('the project form uses the standard caliber input (designation dropdown + m
 
   const stored = loadRiflePrecisionProjects();
   assert.equal(stored.length, 1);
-  assert.ok(Math.abs(stored[0].caliberMm - 6.5) < 1e-6);
+  assert.ok(Math.abs(stored[0].caliberM - 0.0065) < 1e-9);
 });
 
 test('"Add project" is hidden while its own form is open, visible again after Cancel', () => {
@@ -214,7 +215,7 @@ test('an inactive project shows only a summary — no action buttons and no targ
 
 function makeUsableTarget(overrides = {}) {
   return makeTestTarget({
-    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: 0.2 },
     groups: [{ id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }] }],
     ...overrides
   });
@@ -290,7 +291,7 @@ test('the active project is always shown first, ahead of inactive projects sorte
 });
 
 test('editing a project updates its name, distance and caliber', () => {
-  const project = saveRiflePrecisionProject(makeTestProject({ name: 'Old Name', distanceM: 100, caliberMm: 5.56 }));
+  const project = saveRiflePrecisionProject(makeTestProject({ name: 'Old Name', distanceM: 100, caliberM: mmToM(5.56) }));
   const container = makeElement('main');
   riflePrecisionView.mount(container);
 
@@ -404,7 +405,7 @@ test('a target missing calibration, POA and impacts shows the "Unusable" badge a
 test('a target missing only impacts (calibrated, POA set) shows a hint naming just that one requirement', () => {
   const target = makeTestTarget({
     name: 'Foxtrot',
-    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: 0.2 },
     groups: [{ id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [] }]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -422,7 +423,7 @@ test('a target missing only impacts (calibrated, POA set) shows a hint naming ju
 test('a fully usable target (calibrated, POA, at least one impact) shows neither the badge nor the hint', () => {
   const target = makeTestTarget({
     name: 'Golf',
-    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: 0.2 },
     groups: [{ id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }] }]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -520,7 +521,7 @@ test('"View report" is hidden on the active project while none of its targets ar
 test('"View report" appears on the active project once it has a usable target, and navigates to the precision report', () => {
   const target = makeTestTarget({
     name: 'Usable',
-    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthMm: 200 },
+    calibration: { point1: { x: 0.1, y: 0.5 }, point2: { x: 0.9, y: 0.5 }, realLengthM: 0.2 },
     groups: [{ id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.51, y: 0.49 }] }]
   });
   const project = saveRiflePrecisionProject(makeTestProject({ targets: [target] }));
@@ -597,7 +598,7 @@ test('"Set as cartridge precision…" opens a picker; picking a rifle+cartridge 
   const activation = takePendingCartridgeActivation();
   assert.equal(activation.rifleId, 'r1');
   assert.equal(activation.cartridgeId, 'c1');
-  assert.ok(activation.precisionR50Mrad > 0);
+  assert.ok(activation.precisionR50Rad > 0);
 });
 
 // === Backup to file / whole-library export & import ===
@@ -761,7 +762,7 @@ test('importing a new project (no conflicts) adds it to the library, unsaved, wi
 });
 
 test('importing over a same-named existing project in "overwrite" mode replaces it in place', async () => {
-  saveRiflePrecisionProject(makeTestProject({ id: 'local-p1', name: 'My Project', distanceM: 100, caliberMm: 5.56 }));
+  saveRiflePrecisionProject(makeTestProject({ id: 'local-p1', name: 'My Project', distanceM: 100, caliberM: mmToM(5.56) }));
 
   const container = makeElement('main');
   riflePrecisionView.mount(container);

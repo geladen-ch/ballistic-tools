@@ -8,8 +8,9 @@ installFakeIndexedDb();
 const {
   loadUserLocations, loadUserLocationsWithTombstones, saveUserLocation, deleteUserLocation, findUserLocationByName,
   importUserLocation, markUserLocationsSaved,
-  resetLocationLibraryForTests, reloadLocationLibraryForTests, flushLocationLibraryWritesForTests
+  resetLocationLibraryForTests, reloadLocationLibraryForTests, flushLocationLibraryWritesForTests, storedUserLocationOf
 } = await import('../src/location-library.js');
+const { degToRad } = await import('../src/quantity.js');
 const { generateUserId } = await import('../src/user-library.js');
 
 test.beforeEach(async () => { await resetLocationLibraryForTests(); });
@@ -204,4 +205,27 @@ test('regression: a tombstone is shape-preserving across the IndexedDB round-tri
 
   const { equivalent } = await import('../src/sync/merge.js');
   assert.equal(equivalent(beforeReload, afterReload), true);
+});
+
+test('a location an earlier build stored (degrees) reads in radians, and stays stored as it was until edited', async () => {
+  const legacy = {
+    id: 'l1', name: 'Old Range', altitudeM: 400, photo: null, revision: 5, modifiedAt: '2026-02-01T00:00:00.000Z',
+    targets: [{ id: 't1', name: null, rangeM: 300, losAngleDeg: 6, notes: null, coords: null }]
+  };
+  importUserLocation(legacy);
+  await reloadLocationLibraryForTests();
+  const [location] = loadUserLocations();
+  assert.equal(location.targets[0].losAngleRad, degToRad(6));
+  assert.ok(!('losAngleDeg' in location.targets[0]));
+  const [stored] = loadUserLocationsWithTombstones();
+  assert.equal(stored.targets[0].losAngleDeg, 6);
+  assert.ok(!('losAngleRad' in stored.targets[0]), 'reading never adds the SI field');
+  assert.equal(storedUserLocationOf(location), stored);
+
+  saveUserLocation({ ...location, name: 'Renamed' });
+  await reloadLocationLibraryForTests();
+  const [edited] = loadUserLocationsWithTombstones();
+  assert.equal(edited.targets[0].losAngleRad, degToRad(6));
+  assert.equal(edited.targets[0].losAngleDeg, 6, 'the degrees twin keeps earlier builds working');
+  assert.equal(loadUserLocations()[0].targets[0].losAngleRad, degToRad(6));
 });

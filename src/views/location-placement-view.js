@@ -22,7 +22,6 @@ import { crosshairGlyph, placedDot } from '../ui/locations/target-pin-glyphs.js'
 import {
   setPlacementMode, takePendingPlacement, registerPlacementHandlers
 } from '../location-placement-nav.js';
-import { degToRad } from '../quantity.js';
 
 // Select mode's own tap-to-select pins/chips — range/angle only, same as
 // the retired target-photo-overlay.js's original label, except a target's
@@ -34,7 +33,7 @@ import { degToRad } from '../quantity.js';
 // since there every dot needs some caption to distinguish it from its
 // neighbors.
 function pickerLabelParts(target) {
-  const summary = formatTargetSummary(target.rangeM, target.losAngleDeg, { roundRange: true });
+  const summary = formatTargetSummary(target.rangeM, target.losAngleRad, { roundRange: true });
   return target.name ? [el('strong', { text: target.name }), ` ${summary}`] : [summary];
 }
 function targetLabel(target) {
@@ -45,7 +44,7 @@ function targetLabel(target) {
 // includes the target's name (or its default numbered one), matching the
 // retired target-pin-field.js's own otherTargets label exactly.
 function referenceLabel(target, displayName) {
-  return el('span', { class: 'target-photo-overlay-pin-label', text: `${displayName} — ${formatTargetSummary(target.rangeM, target.losAngleDeg, { roundRange: true })}` });
+  return el('span', { class: 'target-photo-overlay-pin-label', text: `${displayName} — ${formatTargetSummary(target.rangeM, target.losAngleRad, { roundRange: true })}` });
 }
 
 function positionAt(node, coords) {
@@ -86,7 +85,7 @@ export function mount(container) {
 
   function selectTarget(target) {
     saveRangeSolverLocationState({ locationId: loc.id, targetId: target.id });
-    saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
+    saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: target.losAngleRad });
     goBack();
   }
 
@@ -152,7 +151,7 @@ export function mount(container) {
     if (placingTarget) {
       const displayName = placingTarget.name || t('rangeSolverLocations.defaultTargetName', { n: targetIndex + 1 });
       targetInfo = el('p', { class: 'location-placement-target-info' }, [
-        el('strong', { text: displayName }), ` — ${formatTargetSummary(placingTarget.rangeM, placingTarget.losAngleDeg)}`
+        el('strong', { text: displayName }), ` — ${formatTargetSummary(placingTarget.rangeM, placingTarget.losAngleRad)}`
       ]);
       // Re-placing an already-placed target — open already centered on
       // its current pin (as close as the viewport's own current zoom

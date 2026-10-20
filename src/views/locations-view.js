@@ -23,7 +23,6 @@ import { setPendingPlacement } from '../location-placement-nav.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
 import { formatQuantity } from '../display-units.js';
-import { degToRad } from '../quantity.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -147,7 +146,7 @@ export function mount(container) {
       // whatever was left over from before and immediately flag a false
       // "diverged from the target" state that was never really an edit.
       const target = activeLocation.targets.find((tg) => tg.id === targetId);
-      if (target) saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
+      if (target) saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: target.losAngleRad });
       applyLocationAltitudeDefault(activeLocation);
     }
     // The previous current location's own edit/target-edit state doesn't
@@ -203,7 +202,7 @@ export function mount(container) {
       el('div', { class: 'arsenal-row-info' }, [
         el('strong', { text: displayName }),
         photoContextActive && (photoWouldChange || !target.coords) ? notPlacedBadge() : null,
-        el('span', { class: 'hint', text: ` — ${formatTargetSummary(target.rangeM, target.losAngleDeg)}` }),
+        el('span', { class: 'hint', text: ` — ${formatTargetSummary(target.rangeM, target.losAngleRad)}` }),
         target.notes ? el('div', { class: 'hint', text: target.notes }) : null
       ]),
       el('div', { class: 'arsenal-row-actions' }, actions)

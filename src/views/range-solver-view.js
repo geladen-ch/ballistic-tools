@@ -41,7 +41,7 @@ import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
-import { fractionToPercent, degToRad, linearToAngleAtRange } from '../quantity.js';
+import { fractionToPercent, linearToAngleAtRange } from '../quantity.js';
 
 const DEFAULT_LOS_ANGLE_RAD = 0;
 const DEFAULT_WIND_ANGLE_RAD = Math.PI / 2; // full crosswind from the right
@@ -207,7 +207,7 @@ export function mount(container) {
     const target = resolvedActiveTarget();
     if (target) {
       targetRangeField.setEngineValue(target.rangeM);
-      losAngleField.setEngineValue(degToRad(target.losAngleDeg)); // location records hold degrees
+      losAngleField.setEngineValue(target.losAngleRad);
       saveTarget();
     }
     recompute();
@@ -240,7 +240,7 @@ export function mount(container) {
   //
   // Each field's own peekRoundTrip() (inline-number-field.js) — not a
   // hand-rolled copy of its rounding — is what a saved target's raw
-  // rangeM/losAngleDeg has to go through before comparing: otherwise a
+  // rangeM/losAngleRad has to go through before comparing: otherwise a
   // target whose stored value has more precision than the field actually
   // displays (e.g. a LOS angle of 5.5° against losAngleField's whole-
   // degree `decimals: 0`) reads as "hand-edited" the instant it's loaded,
@@ -254,7 +254,7 @@ export function mount(container) {
     if (!target) return;
     const diverged = (
       targetRangeField.getEngineValue() !== targetRangeField.peekRoundTrip(target.rangeM) ||
-      losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(degToRad(target.losAngleDeg))
+      losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(target.losAngleRad)
     );
     if (diverged) deselectTarget();
   }
@@ -642,7 +642,7 @@ export function mount(container) {
     if (!activeLocation) return [];
     return activeLocation.targets
       .map((target, index) => {
-        const solved = solveClicks(nominalStateBase, target.rangeM, degToRad(target.losAngleDeg));
+        const solved = solveClicks(nominalStateBase, target.rangeM, target.losAngleRad);
         return {
           id: target.id,
           name: target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 }),

@@ -1,5 +1,6 @@
 import { el } from '../../dom.js';
 import { CLICK_UNITS, convertAngularValue } from '../../units.js';
+import { converter, radToMrad, linearToAngleAtRange } from '../../quantity.js';
 import { conventionValueToR50 } from '../../engine/dispersion-sources.js';
 import { computeCombinedStats, linearToAngularUnit } from '../../engine/rifle-precision-stats.js';
 import { loadRiflePrecisionProjects } from '../../rifle-precision-library.js';
@@ -57,7 +58,7 @@ function riflePrecisionProjectPickerBody({ onPick }) {
     ]);
     row.addEventListener('click', () => {
       hideDialog();
-      onPick(r50Mrad);
+      onPick(linearToAngleAtRange(stats.r50, project.distanceM));
     });
     list.appendChild(row);
   }
@@ -67,11 +68,11 @@ function riflePrecisionProjectPickerBody({ onPick }) {
 // Optional per-cartridge rifle-precision input for the Arsenal cartridge
 // form — feeds Hit Probability's own bench-precision ("own" mode) or
 // combined-precision ("combined" mode) uncertainty source; see
-// cartridge-form.js. Always stored as R50 mrad internally
+// cartridge-form.js. Always held as R50 in radians
 // (conventionValueToR50()), regardless of which convention/unit the
 // user finds easiest to measure/quote it in — a group fired and measured
 // as, say, a 10-shot ES in MOA converts to the same underlying number a
-// bench precision measured directly as R50 in mrad would. The mrad/MOA
+// bench precision measured directly as R50 would. The mrad/MOA
 // choice here is deliberately independent of the app-wide angle-dispersion
 // preference (Settings) — the same "explicit unit, converts on toggle"
 // idea scope-clicks-field.js already uses for scope turrets, since a
@@ -122,7 +123,7 @@ export function cartridgePrecisionField({ onInput } = {}) {
   const valueRow = el('div', { class: 'precision-value-row' }, [conventionSelect, unitSelect, valueInput]);
 
   // Always resolves to "own" mode (see riflePrecisionProjectPickerBody()'s
-  // own class comment) and R50/mrad (this field's one storage form), so
+  // own class comment) and R50 (this field's one stored convention), so
   // it overwrites the mode/convention/unit selects too, not just the
   // value — same full-reset shape as setInitialValues() itself, which this
   // reuses directly.
@@ -131,8 +132,8 @@ export function cartridgePrecisionField({ onInput } = {}) {
     showDialog({
       wide: true,
       bodyNode: riflePrecisionProjectPickerBody({
-        onPick: (r50Mrad) => {
-          setInitialValues({ mode: 'own', r50Mrad });
+        onPick: (r50Rad) => {
+          setInitialValues({ mode: 'own', r50Rad });
           if (onInput) onInput();
         }
       }),
@@ -163,7 +164,12 @@ export function cartridgePrecisionField({ onInput } = {}) {
     el('p', { class: 'hint', i18n: 'arsenal.hitProbabilityOnlyHint' })
   ]);
 
-  // { mode, r50Mrad } while enabled and holding a usable positive number,
+  // The seeded value, returned as is while the field still shows it
+  // unchanged (R50, mrad, the same text), rather than as its rounded
+  // display.
+  let seeded = null;
+
+  // { mode, r50Rad } while enabled and holding a usable positive number,
   // null otherwise (checkbox unchecked, or a still-being-typed/invalid
   // value) — same "no NaN ever leaves this field" posture as
   // unit-field.js's own getEngineValue().
@@ -171,15 +177,17 @@ export function cartridgePrecisionField({ onInput } = {}) {
     if (!checkbox.checked) return null;
     const raw = parseFloat(valueInput.value);
     if (Number.isNaN(raw) || raw <= 0) return null;
-    const valueMrad = convertAngularValue(raw, unitSelect.value, 'mrad');
-    return { mode: modeSelect.value, r50Mrad: conventionValueToR50(valueMrad, conventionSelect.value) };
+    if (seeded && conventionSelect.value === DEFAULT_CONVENTION && unitSelect.value === DEFAULT_UNIT && valueInput.value === seeded.text) {
+      return { mode: modeSelect.value, r50Rad: seeded.r50Rad };
+    }
+    const valueRad = converter(unitSelect.value, 'rad')(raw);
+    return { mode: modeSelect.value, r50Rad: conventionValueToR50(valueRad, conventionSelect.value) };
   }
 
   // Seeds the field from an existing cartridge's own stored precision
-  // (already R50 mrad — see the class comment above) — always redisplayed
+  // (R50 in radians — see the class comment above) — always redisplayed
   // as R50/mrad regardless of whatever convention/unit it might originally
-  // have been entered in, since only the resulting R50 mrad number is ever
-  // persisted.
+  // have been entered in, since only the resulting R50 is ever persisted.
   function setInitialValues(precision) {
     const enabled = !!precision;
     checkbox.checked = enabled;
@@ -189,7 +197,8 @@ export function cartridgePrecisionField({ onInput } = {}) {
       conventionSelect.value = DEFAULT_CONVENTION;
       unitSelect.value = DEFAULT_UNIT;
       currentUnit = DEFAULT_UNIT;
-      valueInput.value = String(round(precision.r50Mrad));
+      valueInput.value = String(round(radToMrad(precision.r50Rad)));
+      seeded = { r50Rad: precision.r50Rad, text: valueInput.value };
     }
   }
 

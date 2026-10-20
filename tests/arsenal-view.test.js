@@ -11,6 +11,7 @@ await initI18n();
 // catalogs are already cache-warm, not racing a cold, contention-prone fetch.
 await warmCatalogs();
 
+const { mradToRad } = await import('../src/quantity.js');
 const arsenalView = await import('../src/views/arsenal-view.js');
 const trajectoryView = await import('../src/views/trajectory-view.js');
 const gunsView = await import('../src/views/guns-view.js');
@@ -1905,7 +1906,7 @@ test('a pending cartridge activation from Rifle Precision opens that exact cartr
       { id: 'c2', name: 'Load 2', muzzleVelocity: 820, bulletId: 'swiss-gp11', precision: { mode: 'combined', r50Mrad: 0.4 } }
     ]
   });
-  setPendingCartridgeActivation({ rifleId: 'my-rifle', cartridgeId: 'c2', precisionR50Mrad: 0.21 });
+  setPendingCartridgeActivation({ rifleId: 'my-rifle', cartridgeId: 'c2', precisionR50Rad: mradToRad(0.21) });
 
   const container = makeElement('main');
   arsenalView.mount(container);
@@ -1927,7 +1928,7 @@ test('a pending cartridge activation from Rifle Precision opens that exact cartr
   fireEvent(saveButton, 'click');
 
   const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c2');
-  assert.deepEqual(saved.precision, { mode: 'own', r50Mrad: 0.21 });
+  assert.deepEqual(saved.precision, { mode: 'own', r50Rad: mradToRad(0.21) });
 });
 
 test('a pending cartridge activation for a since-deleted cartridge is a silent no-op', async () => {
@@ -2792,7 +2793,7 @@ test('ticking "Specify zero atmosphere" reveals the atmosphere inputs (no wind, 
   fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
   const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c1');
   assert.equal(saved.zeroAtmosphere.tempC, -5);
-  assert.deepEqual(Object.keys(saved.zeroAtmosphere).sort(), ['altitudeM', 'humidityPct', 'pressureHpa', 'tempC']);
+  assert.deepEqual(Object.keys(saved.zeroAtmosphere).sort(), ['altitudeM', 'humidity', 'pressurePa', 'tempC']);
 });
 
 test('a stored zero atmosphere reopens checked with its saved values, and is kept when the cartridge is re-saved untouched', async () => {
@@ -2810,7 +2811,7 @@ test('a stored zero atmosphere reopens checked with its saved values, and is kep
   fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
   const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c3');
   const { altitudeM, ...rest } = saved.zeroAtmosphere;
-  assert.deepEqual(rest, { tempC: 4, pressureHpa: 845, humidityPct: 30 }); // the record's stored form
+  assert.deepEqual(rest, { tempC: 4, pressurePa: 84500, humidity: 0.3 });
   // outside the "Standard atmosphere" preset the altitude is back-derived from the station pressure, as everywhere else
   assert.ok(Math.abs(altitudeM - 1505) < 5, `expected ~1505 m for 845 hPa, got ${altitudeM}`);
 });

@@ -6,6 +6,9 @@
 // target (and its groups/shots) has no reference outside its own project,
 // so there's no cross-list id-remapping/planImportBatch step — each
 // project imports as one self-contained unit.
+// Files hold records in their stored form (record-codec.js): an export
+// writes what is stored, and an import stores what the file holds.
+import { storedRiflePrecisionProjectOf } from './rifle-precision-library.js';
 
 const FILE_FORMAT = 'ebalka2-rifle-precision';
 const FILE_VERSION = 1;
@@ -26,7 +29,7 @@ export function buildExportPayload({ projects }) {
     format: FILE_FORMAT,
     version: FILE_VERSION,
     exportedAt: new Date().toISOString(),
-    projects: projects.map(stripLocalOnlyFields)
+    projects: projects.map((p) => stripLocalOnlyFields(storedRiflePrecisionProjectOf(p)))
   };
 }
 

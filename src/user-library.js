@@ -9,11 +9,22 @@
 import { getDeviceId } from './sync/device-id.js';
 import { notifyLibraryWrite } from './sync/write-hooks.js';
 import { nextLocalRevision } from './sync/revision.js';
+import { decodeRifle, encodeRifle } from './record-codec.js';
 
 const BULLETS_KEY = 'ballistics_user_bullets_v1';
 const RIFLES_KEY = 'ballistics_user_rifles_v1';
 
 const RECORD_TYPE_BY_KEY = { [BULLETS_KEY]: 'bullet', [RIFLES_KEY]: 'rifle' };
+
+// Records are kept exactly as stored (see record-codec.js): what the app
+// reads is decoded into SI, what it saves is encoded back, and what sync
+// and import write, and what the WithTombstones readers hand to sync, is
+// the stored form, untouched.
+const identity = (r) => r;
+const CODEC_BY_KEY = {
+  [BULLETS_KEY]: { decode: identity, encode: identity },
+  [RIFLES_KEY]: { decode: decodeRifle, encode: encodeRifle }
+};
 
 // A tombstone's deletedAt must outlive the longest plausible dormancy of an
 // unsynced secondary device — err long, a stale-but-live copy
@@ -69,7 +80,9 @@ function save(key, list) {
 // a file yet (see arsenal-export.js) — every write through here is by
 // definition a fresh, not-yet-exported modification; only an actual
 // export clears it (markSaved() below).
-function upsert(key, entry) {
+function upsert(key, record) {
+  const { encode, decode } = CODEC_BY_KEY[key];
+  const entry = encode(record);
   const list = load(key);
   const idx = list.findIndex((e) => e.id === entry.id);
   const previous = idx === -1 ? null : list[idx];
@@ -81,7 +94,7 @@ function upsert(key, entry) {
   else list[idx] = stamped;
   save(key, list);
   notifyLibraryWrite({ recordType: RECORD_TYPE_BY_KEY[key], record: stamped, previous });
-  return stamped;
+  return decode(stamped);
 }
 
 // Writes a record's fields exactly as given, unlike upsert() — used only
@@ -163,7 +176,8 @@ function markSaved(key, ids) {
 // user cannot see anywhere.
 function findByName(key, name, { excludeId } = {}) {
   const normalized = name.trim().toLowerCase();
-  return load(key).find((e) => e.id !== excludeId && isLive(e) && e.name.trim().toLowerCase() === normalized);
+  const found = load(key).find((e) => e.id !== excludeId && isLive(e) && e.name.trim().toLowerCase() === normalized);
+  return found && CODEC_BY_KEY[key].decode(found);
 }
 
 // Opaque, locally-unique id — this is a single-user, single-device store,
@@ -212,7 +226,7 @@ export function markUserBulletsSaved(ids) {
 // Live records only — see loadUserBullets() above.
 export function loadUserRifles() {
   sweepTombstonesOnce();
-  return load(RIFLES_KEY).filter(isLive);
+  return load(RIFLES_KEY).filter(isLive).map(decodeRifle);
 }
 
 export function loadUserRiflesWithTombstones() {
@@ -238,6 +252,24 @@ export function deleteUserRifle(id) {
 
 export function findUserRifleByName(name, options) {
   return findByName(RIFLES_KEY, name, options);
+}
+
+// The stored form of a record the app holds (for an export file): the
+// stored record itself while it is the one the app read — same id,
+// revision and timestamp, so not edited since — which keeps an untouched
+// record byte-for-byte as it was; otherwise its fresh encoding.
+function storedFormOf(key, record) {
+  const stored = load(key).find((e) => e.id === record.id);
+  const same = stored && stored.revision === record.revision && stored.modifiedAt === record.modifiedAt && stored.deletedAt === record.deletedAt;
+  return same ? stored : CODEC_BY_KEY[key].encode(record);
+}
+
+export function storedUserBulletOf(bullet) {
+  return storedFormOf(BULLETS_KEY, bullet);
+}
+
+export function storedUserRifleOf(rifle) {
+  return storedFormOf(RIFLES_KEY, rifle);
 }
 
 export function markUserRiflesSaved(ids) {

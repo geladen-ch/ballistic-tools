@@ -7,6 +7,7 @@ installFakeDom();
 const { initI18n } = await import('../src/i18n.js');
 await initI18n();
 const { targetForm } = await import('../src/ui/locations/target-form.js');
+const { degToRad } = await import('../src/quantity.js');
 
 function findAll(node, pred, out = []) {
   if (pred(node)) out.push(node);
@@ -23,17 +24,18 @@ function saveWith(values, edit) {
   return saved;
 }
 
-test('an untouched line-of-sight angle is saved back as the record\'s own degrees, not a round trip through radians', () => {
-  // 63.9 deg does not survive deg -> rad -> deg exactly
-  const saved = saveWith({ name: 'Ridge', rangeM: 400, losAngleDeg: 63.9 });
-  assert.equal(saved.losAngleDeg, 63.9);
+test('an untouched line-of-sight angle is saved back exactly as given, not as its rounded display', () => {
+  const losAngleRad = degToRad(63.9);
+  const saved = saveWith({ name: 'Ridge', rangeM: 400, losAngleRad });
+  assert.equal(saved.losAngleRad, losAngleRad);
 });
 
-test('a typed line-of-sight angle is stored in degrees', () => {
-  const saved = saveWith({ name: 'Ridge', rangeM: 400, losAngleDeg: 0 }, (node) => {
+test('a typed line-of-sight angle is stored in radians', () => {
+  const saved = saveWith({ name: 'Ridge', rangeM: 400, losAngleRad: 0 }, (node) => {
     const input = findAll(node, (n) => n.id === 'losAngle')[0];
     input.value = '12.5';
     fireEvent(input, 'input');
   });
-  assert.ok(Math.abs(saved.losAngleDeg - 12.5) < 1e-12);
+  assert.ok(Math.abs(saved.losAngleRad - degToRad(12.5)) < 1e-15);
+  assert.ok(!('losAngleDeg' in saved));
 });

@@ -29,6 +29,7 @@ import { getDeviceId } from './sync/device-id.js';
 import { notifyLibraryWrite } from './sync/write-hooks.js';
 import { dataUrlToBlob, blobToDataUrl } from './data-url.js';
 import { nextLocalRevision } from './sync/revision.js';
+import { decodeLocation, encodeLocation } from './record-codec.js';
 
 const STORE_NAME = 'locations';
 
@@ -137,8 +138,11 @@ export function initLocationLibrary() {
 }
 
 // See user-library.js's own upsert() for why this stamping lives here
-// rather than at each call site.
-function upsert(entry) {
+// rather than at each call site. `mirror` holds every record as stored
+// (record-codec.js): the app's reads decode, its saves encode, and
+// import, sync and the WithTombstones reader see the stored form.
+function upsert(location) {
+  const entry = encodeLocation(location);
   const idx = mirror.findIndex((e) => e.id === entry.id);
   const previous = idx === -1 ? null : mirror[idx];
   const stamped = {
@@ -148,7 +152,7 @@ function upsert(entry) {
   mirror = idx === -1 ? [...mirror, stamped] : mirror.map((e, i) => (i === idx ? stamped : e));
   persist(stamped);
   notifyLibraryWrite({ recordType: 'location', record: stamped, previous });
-  return stamped;
+  return decodeLocation(stamped);
 }
 
 // Used only by import (see location-export.js) — preserves the file's own
@@ -171,7 +175,7 @@ function upsertRaw(entry) {
 // loadUserLocationsWithTombstones() for the few callers that need
 // deletions too (the sync bundle builder, the merge engine).
 export function loadUserLocations() {
-  return mirror.filter(isLive);
+  return mirror.filter(isLive).map(decodeLocation);
 }
 
 export function loadUserLocationsWithTombstones() {
@@ -228,7 +232,18 @@ export function deleteUserLocation(id) {
 // persist()/removePersisted()'s background writes.
 export function findUserLocationByName(name, { excludeId } = {}) {
   const normalized = name.trim().toLowerCase();
-  return mirror.find((e) => e.id !== excludeId && isLive(e) && e.name.trim().toLowerCase() === normalized);
+  const found = mirror.find((e) => e.id !== excludeId && isLive(e) && e.name.trim().toLowerCase() === normalized);
+  return found && decodeLocation(found);
+}
+
+// The stored form of a record the app holds (for an export file): the
+// stored record itself while it is the one the app read — same id,
+// revision and timestamp, so not edited since — which keeps an untouched
+// record byte-for-byte as it was; otherwise its fresh encoding.
+export function storedUserLocationOf(location) {
+  const stored = mirror.find((e) => e.id === location.id);
+  const same = stored && stored.revision === location.revision && stored.modifiedAt === location.modifiedAt && stored.deletedAt === location.deletedAt;
+  return same ? stored : encodeLocation(location);
 }
 
 export function markUserLocationsSaved(ids) {

@@ -32,7 +32,7 @@ function positionAt(node, coords) {
 // Same label shape as location-placement-view.js's own select-mode pins —
 // range/angle only, name prepended when the target has one.
 function pinLabelParts(target) {
-  const summary = formatTargetSummary(target.rangeM, target.losAngleDeg, { roundRange: true });
+  const summary = formatTargetSummary(target.rangeM, target.losAngleRad, { roundRange: true });
   return target.name ? [el('strong', { text: target.name }), ` ${summary}`] : [summary];
 }
 

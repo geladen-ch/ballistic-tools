@@ -2,9 +2,9 @@ import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
 import { setPendingPlacement } from '../../location-placement-nav.js';
 import { FIELD_BOUNDS } from '../../units.js';
-import { degToRad, radToDeg } from '../../quantity.js';
+import { degToRad } from '../../quantity.js';
 
-const DEFAULT_VALUES = { name: '', notes: '', rangeM: 400, losAngleDeg: 0 };
+const DEFAULT_VALUES = { name: '', notes: '', rangeM: 400, losAngleRad: 0 };
 
 // Add/Edit form for one target within a location — name and notes are
 // both optional free text, range/LoS angle are the same two fields Range
@@ -40,9 +40,7 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
   notesInput.value = values.notes || '';
 
   const rangeField = unitField({ id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10, value: values.rangeM });
-  // A target record stores its line-of-sight angle in degrees; the field holds radians.
-  const initialLosRad = values.losAngleDeg == null ? values.losAngleDeg : degToRad(values.losAngleDeg);
-  const losAngleField = unitField({ id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: initialLosRad });
+  const losAngleField = unitField({ id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: values.losAngleRad });
 
   const placeItButton = (locationPhoto && values.id) ? el('button', { type: 'button', class: 'secondary', i18n: 'rangeSolverLocations.placeItButton' }) : null;
   if (placeItButton) {
@@ -75,8 +73,7 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
         name: nameInput.value.trim() || null,
         notes: notesInput.value.trim() || null,
         rangeM: rangeField.getEngineValue(),
-        // untouched, the record keeps its own degrees rather than a round trip through radians
-        losAngleDeg: losAngleField.getEngineValue() === initialLosRad ? values.losAngleDeg : radToDeg(losAngleField.getEngineValue()),
+        losAngleRad: losAngleField.getEngineValue(),
         coords: values.coords ?? null
       });
     }

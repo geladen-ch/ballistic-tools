@@ -83,6 +83,17 @@ function shootSessionFromStored(s) {
   return out;
 }
 
+// The active location as the tool works with it: each target's incline
+// in degrees (`losAngleDeg`) rather than the record's radians. The record
+// itself is never written to from here.
+export function locationToFit(location) {
+  if (!location) return location;
+  return {
+    ...location,
+    targets: (location.targets || []).map(({ losAngleRad, ...tg }) => ({ ...tg, losAngleDeg: toFitIncline(losAngleRad ?? 0) }))
+  };
+}
+
 // The persisted tool state (truing-session-state.js), in memory in the
 // fit's working units and stored in SI.
 export function sessionStateToStored(state) {

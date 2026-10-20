@@ -7,6 +7,9 @@
 // cartridges, which point at separately-listed bullets), so there's no
 // cross-list id-remapping/planImportBatch step — each location imports as
 // one self-contained unit.
+// Files hold records in their stored form (record-codec.js): an export
+// writes what is stored, and an import stores what the file holds.
+import { storedUserLocationOf } from './location-library.js';
 
 const FILE_FORMAT = 'ebalka2-locations';
 const FILE_VERSION = 1;
@@ -27,7 +30,7 @@ export function buildExportPayload({ locations }) {
     format: FILE_FORMAT,
     version: FILE_VERSION,
     exportedAt: new Date().toISOString(),
-    locations: locations.map(stripLocalOnlyFields)
+    locations: locations.map((l) => stripLocalOnlyFields(storedUserLocationOf(l)))
   };
 }
 

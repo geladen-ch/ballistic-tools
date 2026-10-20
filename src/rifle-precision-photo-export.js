@@ -17,7 +17,6 @@ import {
   pooledShotColor, COLOR_POA, COLOR_POI, COLOR_CALIBRATION,
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
 } from './ui/rifle-precision/marker-style.js';
-import { mmToM } from './quantity.js';
 
 function loadImage(dataUrl) {
   return new Promise((resolve, reject) => {
@@ -152,7 +151,7 @@ export async function exportGroupOverviewImage({
   // is native photo pixels 1:1 within the crop (no separate rescale), so
   // the physical radius in native px *is* the radius in canvas px.
   const pxPerM = computeScale(target);
-  const impactRadius = pxPerM && project.caliberMm > 0 ? (mmToM(project.caliberMm) / 2) * pxPerM : canvas.width * 0.007;
+  const impactRadius = pxPerM && project.caliberM > 0 ? (project.caliberM / 2) * pxPerM : canvas.width * 0.007;
   // Each impact is drawn outside-in — dark ring, white ring, then the
   // fill in the user's own impact color — so the colored dot itself
   // stays exactly the bullet hole's true diameter and the shared

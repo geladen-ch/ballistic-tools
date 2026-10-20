@@ -1,7 +1,6 @@
 import { el } from '../../dom.js';
 import { i18nSpan } from '../../i18n.js';
 import { atmosphereSection } from '../sections/atmosphere-section.js';
-import { decodeLegacy, encodeLegacy } from '../../legacy-units.js';
 
 // The ICAO standard atmosphere at sea level — what a freshly ticked box
 // starts from, since a zero is most often quoted in "standard" air.
@@ -13,8 +12,8 @@ const STORED_KEYS = ['altitudeM', 'tempC', 'pressurePa', 'humidity'];
 // reveals the same atmosphere block the tools use, without wind (a zero is
 // a calm-air, level setting) and without the named presets (the Labradar
 // tool's own mode: plain temperature/pressure/humidity inputs). Stored on
-// the cartridge as { altitudeM, tempC, pressureHpa, humidityPct } (the
-// record's stored form — see legacy-units.js), or null while unchecked —
+// the cartridge as { altitudeM, tempC, pressurePa, humidity }, or null
+// while unchecked —
 // the altitude is back-derived from the station pressure by the section
 // itself, same as every other preset-free atmosphere.
 //
@@ -27,7 +26,7 @@ export function cartridgeZeroAtmosphereField({ initialValue = null, onInput } = 
   checkbox.checked = enabled;
   const checkboxRow = el('label', { class: 'checkbox-field' }, [checkbox, i18nSpan('arsenal.cartridgeZeroAtmosphereCheckboxLabel')]);
 
-  const initial = enabled ? { ...STANDARD_SEA_LEVEL, ...decodeLegacy(initialValue) } : STANDARD_SEA_LEVEL;
+  const initial = enabled ? { ...STANDARD_SEA_LEVEL, ...initialValue } : STANDARD_SEA_LEVEL;
   const section = atmosphereSection({
     includeWind: false,
     presets: false,
@@ -49,7 +48,7 @@ export function cartridgeZeroAtmosphereField({ initialValue = null, onInput } = 
 
   const node = el('div', { class: 'field' }, [checkboxRow, details]);
 
-  // The stored object while enabled, null otherwise. A still-being-typed or
+  // The cartridge's object while enabled, null otherwise. A still-being-typed or
   // out-of-range number reads as null for that one air value upstream, and
   // is caught by validate() before Save ever reads this.
   function getValue() {
@@ -57,7 +56,7 @@ export function cartridgeZeroAtmosphereField({ initialValue = null, onInput } = 
     const values = section.getValues();
     const out = {};
     for (const key of STORED_KEYS) out[key] = values[key];
-    return encodeLegacy(out);
+    return out;
   }
 
   // Called by cartridge-form.js's own Save handler — the inner fields are

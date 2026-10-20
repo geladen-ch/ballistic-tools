@@ -13,8 +13,15 @@ import { loadUserLocationsWithTombstones, importUserLocation, saveUserLocation }
 import {
   loadRiflePrecisionProjectsWithTombstones, importRiflePrecisionProject, saveRiflePrecisionProject
 } from '../rifle-precision-library.js';
+import { RECORD_CODECS } from '../record-codec.js';
 
-export const SYNCED_LIBRARIES = [
+// Everything sync handles — `loadLocalWithTombstones`, `remoteList`,
+// `write` — is in the stored form (record-codec.js), which merge,
+// pending review and change history pass along untouched. `save` takes a
+// stored-form record too (a remote version or a history snapshot being
+// adopted as a local edit) and decodes it for the library's own save,
+// which encodes it afresh; `decode` is what the merge compares by.
+const LIBRARIES = [
   {
     recordType: 'bullet',
     loadLocalWithTombstones: loadUserBulletsWithTombstones,
@@ -48,3 +55,8 @@ export const SYNCED_LIBRARIES = [
     save: saveRiflePrecisionProject
   }
 ];
+
+export const SYNCED_LIBRARIES = LIBRARIES.map((lib) => {
+  const { decode } = RECORD_CODECS[lib.recordType];
+  return { ...lib, decode, save: (stored) => lib.save(decode(stored)) };
+});

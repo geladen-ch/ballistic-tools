@@ -29,7 +29,7 @@ export function takePendingRiflePrefill() {
 
 // One-shot handoff from the Rifle Precision project list's own "Set as
 // cartridge precision…" picker (rifle-cartridge-picker.js) to Arsenal's
-// cartridge edit form: `{ rifleId, cartridgeId, precisionR50Mrad }` names
+// cartridge edit form: `{ rifleId, cartridgeId, precisionR50Rad }` names
 // an *existing* rifle+cartridge to jump straight into editing, with its
 // precision field pre-filled from the chosen project — unlike
 // pendingBullet/pendingRifle above, which prefill a brand-new-or-matching

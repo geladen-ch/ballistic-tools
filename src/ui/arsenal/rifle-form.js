@@ -1,13 +1,14 @@
 import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
-import { CLICK_UNITS, FIELD_BOUNDS } from '../../units.js';
+import { CLICK_UNITS, FIELD_BOUNDS, clickValueInUnit } from '../../units.js';
+import { converter, mradToRad } from '../../quantity.js';
 import { findUserRifleByName } from '../../user-library.js';
 import { t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
 
 const DEFAULT_VALUES = {
   name: '', defaultSightHeightM: 0.045, defaultZeroRangeM: 100, defaultRiflingTwistM: null, defaultTwistDirection: 'right',
-  defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, source: ''
+  defaultClickUnit: 'mrad', defaultClickHorizontalRad: mradToRad(0.1), defaultClickVerticalRad: mradToRad(0.1), source: ''
 };
 
 // Add/Edit form for a user's own rifle — name, sight height, zero range,
@@ -51,14 +52,22 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
 
   const clickUnitSelect = el('select', { id: 'arsenalRifleClickUnit' }, CLICK_UNITS.map((u) => el('option', { value: u.unit, text: u.label })));
   clickUnitSelect.value = values.defaultClickUnit;
+  // Click sizes are typed in the turret's own unit (the select above) and
+  // held in radians. A value left as shown, in the unit it was shown in,
+  // comes back exactly as given rather than as its rounded display.
+  const shownClick = (rad) => (rad == null ? '' : String(clickValueInUnit(rad, values.defaultClickUnit)));
   const clickHInput = el('input', {
     type: 'number', id: 'arsenalRifleClickHorizontal', step: 0.01,
-    min: FIELD_BOUNDS.scopeClick.min, max: FIELD_BOUNDS.scopeClick.max, value: values.defaultClickHorizontal
+    min: FIELD_BOUNDS.scopeClick.min, max: FIELD_BOUNDS.scopeClick.max, value: shownClick(values.defaultClickHorizontalRad)
   });
   const clickVInput = el('input', {
     type: 'number', id: 'arsenalRifleClickVertical', step: 0.01,
-    min: FIELD_BOUNDS.scopeClick.min, max: FIELD_BOUNDS.scopeClick.max, value: values.defaultClickVertical
+    min: FIELD_BOUNDS.scopeClick.min, max: FIELD_BOUNDS.scopeClick.max, value: shownClick(values.defaultClickVerticalRad)
   });
+  function readClickRad(input, initialRad) {
+    if (clickUnitSelect.value === values.defaultClickUnit && input.value === shownClick(initialRad)) return initialRad;
+    return converter(clickUnitSelect.value, 'rad')(parseFloat(input.value));
+  }
   function clickMessageFor(input) {
     return () => {
       const raw = input.value.trim();
@@ -97,8 +106,8 @@ export function rifleForm({ initialValues = {}, excludeId, onSave, onCancel } = 
       // Both are now Save-gated (see below) rather than silently coerced
       // to 0 on bad input — by the time onSave runs, both are guaranteed
       // real numbers within FIELD_BOUNDS.scopeClick.
-      defaultClickHorizontal: parseFloat(clickHInput.value),
-      defaultClickVertical: parseFloat(clickVInput.value),
+      defaultClickHorizontalRad: readClickRad(clickHInput, values.defaultClickHorizontalRad),
+      defaultClickVerticalRad: readClickRad(clickVInput, values.defaultClickVerticalRad),
       source: sourceInput.value.trim()
     };
   }

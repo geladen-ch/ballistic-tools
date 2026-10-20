@@ -13,6 +13,7 @@ import { openDatabase, getAll, put, deleteRecord } from '../db.js';
 import { DB_NAME, DB_VERSION, STORES } from '../db-schema.js';
 import { onLibraryWrite } from './write-hooks.js';
 import { equivalent } from './merge.js';
+import { decodeRecord } from '../record-codec.js';
 import { logSyncEvent } from './sync-log.js';
 
 const STORE_NAME = 'pending-review';
@@ -132,7 +133,7 @@ export function addPendingReview({ recordType, recordId, reason, peerDeviceId, r
   const id = reviewId(recordType, recordId);
   const existing = mirror.find((e) => e.id === id);
   if (existing && existing.resolvedAt && existing.remoteVersion && remoteVersion
-      && equivalent(existing.remoteVersion, remoteVersion)) {
+      && equivalent(decodeRecord(recordType, existing.remoteVersion), decodeRecord(recordType, remoteVersion))) {
     logSyncEvent('debug', 'pending review: suppressed, already resolved against this version —', id);
     return existing;
   }

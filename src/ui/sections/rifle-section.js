@@ -1,6 +1,5 @@
 import { el, clear } from '../../dom.js';
-import { FIELD_BOUNDS } from '../../units.js';
-import { decodeLegacy, clickSettingsFromRifleRecord, clickSettingsToRifleRecord } from '../../legacy-units.js';
+import { FIELD_BOUNDS, clickSettingsFromRifleRecord, clickSettingsToRifleRecord } from '../../units.js';
 import { mradToRad } from '../../quantity.js';
 import { unitField } from '../unit-field.js';
 import { scopeClicksField } from '../scope-clicks-field.js';
@@ -153,7 +152,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
         bcGainFactor: cartridge.bcGainFactor ?? 1,
         // The air this cartridge's zero was set in, when the cartridge
         // names one (null otherwise) -- see cartridge-zero-atmosphere-field.js.
-        zeroAtmosphere: decodeLegacy(cartridge.zeroAtmosphere) ?? null,
+        zeroAtmosphere: cartridge.zeroAtmosphere ?? null,
         // Optional, Hit Probability-only — see cartridge-form.js's own
         // muzzleVelocitySD/precision fields. Every other caller of this
         // callback (Trajectory, Range Solver) ignores these two extra

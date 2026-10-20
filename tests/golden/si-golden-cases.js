@@ -43,6 +43,7 @@ import {
   computeGroupStats, computeCombinedStats, hitProbabilityRadius, oneMoaWidthM, oneMradWidthM, linearToAngularUnit
 } from '../../src/engine/rifle-precision-stats.js';
 import { DRAG_TABLES } from '../../src/engine/drag-tables.js';
+import { decodeRiflePrecisionProject } from '../../src/record-codec.js';
 
 const BULLETS_DIR = new URL('../../src/bullets/', import.meta.url);
 const readCatalog = (name) => JSON.parse(readFileSync(fileURLToPath(new URL(`${name}/bullets.json`, BULLETS_DIR)), 'utf8'));
@@ -414,8 +415,9 @@ function ownErrorsToRad(own) {
     simplified: own.simplified && { ...own.simplified, value: mradToRad(own.simplified.value) }
   };
 }
-// Subtrees that are stored records rather than engine input, and keep the
-// record's own units until records are migrated: a location's targets.
+// Subtrees passed on as they are: a location, whose targets' inclines in
+// degrees are what the Truing Session works with (see fit-units.js's
+// locationToFit).
 const KEEP_AS_STORED = new Set(['location']);
 const TO_CURRENT = new Map(RENAMED_FIELDS.map(([legacy, current, forward]) => [legacy, [current, forward]]));
 const TO_LEGACY = new Map(RENAMED_FIELDS.map(([legacy, current, , back]) => [current, [legacy, back]]));
@@ -505,7 +507,9 @@ export const RUNNERS = {
     linear: mToCm(angularSDToLinear(mradToRad(i.sdMrad), i.rangeM)),
     lead: linearToCm(movingTargetLeadSD(i.speedMs, percentToFraction(i.speedErrorPct), i.tof))
   }),
-  riflePrecision: ({ project, percent, unit }) => {
+  riflePrecision: ({ project: stored, percent, unit }) => {
+    // the fixture's project is a stored record (caliber and ruler in mm)
+    const project = decodeRiflePrecisionProject(stored);
     const combined = computeCombinedStats(project);
     // the fixtures hold every length in mm, under the old mm names
     const point = (p) => ({ x: mToMm(p.x), y: mToMm(p.y) });

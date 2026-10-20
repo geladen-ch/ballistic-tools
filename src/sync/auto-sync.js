@@ -353,6 +353,7 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
         const { counts, reviewItems, resolvedIds } = mergeRecords(lib.loadLocalWithTombstones(), remoteList, {
           importRaw: lib.write,
           tombstone: lib.write,
+          decode: lib.decode,
           recordType: lib.recordType,
           peerLabel
         });

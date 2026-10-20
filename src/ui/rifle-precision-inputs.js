@@ -124,7 +124,7 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
     applyVisibility();
   }
 
-  // Reflects the active cartridge's own `precision` ({ mode: 'own' | 'combined', r50Mrad }, or null) onto the
+  // Reflects the active cartridge's own `precision` ({ mode: 'own' | 'combined', r50Rad }, or null) onto the
   // "This rig's" affordances: a preset option for bench precision, a checkbox for combined precision. With
   // `force`, also selects it -- the form it was recorded for (own: detailed, combined: simplified) -- which is
   // the "default to specified values" behaviour; without it the user's own current pick is left alone.
@@ -133,7 +133,7 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
     benchRigHint.style.display = precision ? '' : 'none';
     combinedRigHint.style.display = precision ? '' : 'none';
     if (precision && precision.mode === 'combined') {
-      rigCombinedR50 = mradToRad(precision.r50Mrad); // Arsenal records hold mrad
+      rigCombinedR50 = precision.r50Rad;
       rigRow.style.display = '';
       benchField.setRigValue(null);
       if (force) {
@@ -146,7 +146,7 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
       rigCombinedR50 = null;
       rigRow.style.display = 'none';
       rigCheckbox.checked = false;
-      benchField.setRigValue(mradToRad(precision.r50Mrad), { autoSelect: force }); // Arsenal records hold mrad
+      benchField.setRigValue(precision.r50Rad, { autoSelect: force });
       if (force) { setSimplified(false); markRig(true); }
     } else {
       rigCombinedR50 = null;

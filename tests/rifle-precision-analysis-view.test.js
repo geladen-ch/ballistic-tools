@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, installFakeIndexedDb, fireEvent } from './helpers/fake-dom.js';
+import { mmToM, mToMm } from '../src/quantity.js';
 
 installFakeDom();
 installFakeIndexedDb();
@@ -93,11 +94,11 @@ function makeAnalyzableProject(overrides = {}, offsetsMm = [[0, 0], [2, 0], [-2,
   const target = {
     id: generateUserId('rp-target'), name: 'T1', notes: null,
     photo: 'data:image/jpeg;base64,AAA', photoWidth: 1000, photoHeight: 1000,
-    calibration: { point1: { x: 0, y: 0.5 }, point2: { x: 1, y: 0.5 }, realLengthMm: 100 },
+    calibration: { point1: { x: 0, y: 0.5 }, point2: { x: 1, y: 0.5 }, realLengthM: 0.1 },
     groups: [{ id: generateUserId('rp-group'), poa: poaRel, shots }]
   };
   return saveRiflePrecisionProject({
-    id: generateUserId('rp-project'), name: 'Home Range', distanceM: 100, caliberMm: 7.62,
+    id: generateUserId('rp-project'), name: 'Home Range', distanceM: 100, caliberM: mmToM(7.62),
     targets: [target], createdAt: new Date().toISOString(), ...overrides
   });
 }
@@ -106,11 +107,11 @@ function makeTooFewShotsProject() {
   const target = {
     id: generateUserId('rp-target'), name: 'T1', notes: null,
     photo: 'data:image/jpeg;base64,AAA', photoWidth: 1000, photoHeight: 1000,
-    calibration: { point1: { x: 0, y: 0.5 }, point2: { x: 1, y: 0.5 }, realLengthMm: 100 },
+    calibration: { point1: { x: 0, y: 0.5 }, point2: { x: 1, y: 0.5 }, realLengthM: 0.1 },
     groups: [{ id: generateUserId('rp-group'), poa: { x: 0.5, y: 0.5 }, shots: [{ x: 0.5, y: 0.5 }] }]
   };
   return saveRiflePrecisionProject({
-    id: generateUserId('rp-project'), name: 'Too Few', distanceM: 100, caliberMm: 7.62,
+    id: generateUserId('rp-project'), name: 'Too Few', distanceM: 100, caliberM: mmToM(7.62),
     targets: [target], createdAt: new Date().toISOString()
   });
 }
@@ -365,7 +366,7 @@ test('the "impacts to scale" checkbox (now checked by default) switches pooled-s
   const container = makeElement('main');
   analysisView.mount(container);
 
-  const expectedBoreR = String(project.caliberMm / 2);
+  const expectedBoreR = String(mToMm(project.caliberM) / 2);
   const shotsInitially = findByAttr(container, 'data-role', 'pooled-shot');
   assert.ok(shotsInitially.length > 0);
   for (const shot of shotsInitially) assert.equal(shot.getAttribute('r'), expectedBoreR, 'checked by default — true bore radius already applied');

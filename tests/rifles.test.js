@@ -35,8 +35,9 @@ test('loadRifle resolves a rifle with SI-unit defaults and a list of cartridges'
   assert.ok(rifle.defaultSightHeightM < 1, 'defaultSightHeightM should be a small SI value (meters), not mm');
   assert.equal(typeof rifle.defaultZeroRangeM, 'number');
   assert.ok(rifle.defaultClickUnit === 'mrad' || rifle.defaultClickUnit === 'arcmin');
-  assert.equal(typeof rifle.defaultClickHorizontal, 'number');
-  assert.equal(typeof rifle.defaultClickVertical, 'number');
+  assert.equal(typeof rifle.defaultClickHorizontalRad, 'number');
+  assert.equal(typeof rifle.defaultClickVerticalRad, 'number');
+  assert.ok(rifle.defaultClickVerticalRad < 0.01, 'click sizes in radians');
   assert.ok(Array.isArray(rifle.cartridges));
   assert.ok(rifle.cartridges.length > 0);
   for (const c of rifle.cartridges) {
@@ -82,8 +83,8 @@ test('every catalog rifle resolves to a well-formed record with cartridges that 
     assert.ok(rifle.defaultSightHeightM > 0 && rifle.defaultSightHeightM < 0.5, `implausible defaultSightHeightM for ${id}: ${rifle.defaultSightHeightM}`);
     assert.ok(rifle.defaultZeroRangeM > 0, `implausible defaultZeroRangeM for ${id}: ${rifle.defaultZeroRangeM}`);
     assert.ok(rifle.defaultClickUnit === 'mrad' || rifle.defaultClickUnit === 'arcmin', `unexpected defaultClickUnit for ${id}`);
-    assert.equal(typeof rifle.defaultClickHorizontal, 'number');
-    assert.equal(typeof rifle.defaultClickVertical, 'number');
+    assert.equal(typeof rifle.defaultClickHorizontalRad, 'number');
+    assert.equal(typeof rifle.defaultClickVerticalRad, 'number');
     assert.equal(typeof rifle.source, 'string');
     assert.ok(Array.isArray(rifle.cartridges) && rifle.cartridges.length > 0, `${id} has no cartridges`);
 

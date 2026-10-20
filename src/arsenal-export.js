@@ -5,6 +5,9 @@
 // how to shape a file's contents and how to resolve conflicts against
 // what's already in the library. See user-library.js for the storage
 // side (the `unsaved` flag, markUserBulletsSaved/importUserBullet etc.).
+// Files hold records in their stored form (record-codec.js): an export
+// writes what is stored, and an import stores what the file holds.
+import { storedUserBulletOf, storedUserRifleOf } from './user-library.js';
 
 const FILE_FORMAT = 'ebalka2-arsenal';
 const FILE_VERSION = 1;
@@ -31,8 +34,8 @@ export function buildExportPayload({ bullets, rifles }) {
     format: FILE_FORMAT,
     version: FILE_VERSION,
     exportedAt: new Date().toISOString(),
-    bullets: bullets.map(stripLocalOnlyFields),
-    rifles: rifles.map(stripLocalOnlyFields)
+    bullets: bullets.map((b) => stripLocalOnlyFields(storedUserBulletOf(b))),
+    rifles: rifles.map((r) => stripLocalOnlyFields(storedUserRifleOf(r)))
   };
 }
 

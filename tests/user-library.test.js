@@ -8,8 +8,9 @@ const {
   loadUserBullets, loadUserBulletsWithTombstones, saveUserBullet, deleteUserBullet, findUserBulletByName,
   importUserBullet, markUserBulletsSaved,
   loadUserRifles, loadUserRiflesWithTombstones, saveUserRifle, deleteUserRifle, findUserRifleByName, importUserRifle,
-  markUserRiflesSaved, generateUserId
+  markUserRiflesSaved, generateUserId, storedUserRifleOf
 } = await import('../src/user-library.js');
+const { mradToRad, moaToRad } = await import('../src/quantity.js');
 
 test.beforeEach(() => localStorage.clear());
 
@@ -209,7 +210,7 @@ test('rifle CRUD mirrors the bullet CRUD (independent storage)', () => {
   const rifle = {
     id: generateUserId('user-rifle'), name: 'My Rifle',
     defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
-    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    defaultClickUnit: 'mrad', defaultClickHorizontalRad: mradToRad(0.1), defaultClickVerticalRad: mradToRad(0.1),
     cartridges: []
   };
   saveUserRifle(rifle);
@@ -229,7 +230,7 @@ test('markUserRiflesSaved clears unsaved without touching modifiedAt, and import
   const rifle = {
     id: generateUserId('user-rifle'), name: 'My Rifle',
     defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
-    defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1,
+    defaultClickUnit: 'mrad', defaultClickHorizontalRad: mradToRad(0.1), defaultClickVerticalRad: mradToRad(0.1),
     cartridges: []
   };
   const saved = saveUserRifle(rifle);
@@ -257,4 +258,57 @@ test('findUserRifleByName matches case/whitespace-insensitively', () => {
 test('a corrupted localStorage value behaves as an empty arsenal instead of throwing', () => {
   localStorage.setItem('ballistics_user_bullets_v1', 'not json');
   assert.deepEqual(loadUserBullets(), []);
+});
+
+test('a saved rifle is stored with both its SI fields and the legacy twins earlier builds read', () => {
+  saveUserRifle({
+    id: 'r1', name: 'R', defaultClickUnit: 'arcmin', defaultClickHorizontalRad: moaToRad(0.25), defaultClickVerticalRad: moaToRad(0.25),
+    cartridges: [{ id: 'c1', name: 'C', precision: { mode: 'own', r50Rad: mradToRad(0.14) }, zeroAtmosphere: { tempC: 5, pressurePa: 95000, humidity: 0.4 } }]
+  });
+  const [stored] = JSON.parse(localStorage.getItem('ballistics_user_rifles_v1'));
+  assert.equal(stored.defaultClickHorizontal, 0.25);
+  assert.equal(stored.defaultClickHorizontalRad, moaToRad(0.25));
+  const [c] = stored.cartridges;
+  assert.ok(Math.abs(c.precision.r50Mrad - 0.14) < 1e-12);
+  assert.equal(c.precision.r50Rad, mradToRad(0.14));
+  assert.equal(c.zeroAtmosphere.pressureHpa, 950);
+  assert.equal(c.zeroAtmosphere.humidityPct, 40);
+  const [rifle] = loadUserRifles();
+  assert.ok(!('defaultClickHorizontal' in rifle) && !('r50Mrad' in rifle.cartridges[0].precision) && !('pressureHpa' in rifle.cartridges[0].zeroAtmosphere));
+});
+
+test('a rifle stored by an earlier build reads in SI and stays stored exactly as it was until edited', () => {
+  const legacy = {
+    id: 'r1', name: 'Old', defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.2, modifiedAt: '2026-01-01T00:00:00.000Z', revision: 3,
+    cartridges: [{ id: 'c1', name: 'C', precision: { mode: 'combined', r50Mrad: 0.3 }, zeroAtmosphere: { tempC: 5, pressureHpa: 1001, humidityPct: 10 } }]
+  };
+  const raw = JSON.stringify([legacy]);
+  localStorage.setItem('ballistics_user_rifles_v1', raw);
+  const [rifle] = loadUserRifles();
+  assert.equal(rifle.defaultClickHorizontalRad, mradToRad(0.1));
+  assert.equal(rifle.defaultClickVerticalRad, mradToRad(0.2));
+  assert.equal(rifle.cartridges[0].precision.r50Rad, mradToRad(0.3));
+  assert.deepEqual(rifle.cartridges[0].zeroAtmosphere, { tempC: 5, pressurePa: 100100, humidity: 0.1 });
+  assert.equal(findUserRifleByName('old').defaultClickVerticalRad, mradToRad(0.2));
+  assert.equal(localStorage.getItem('ballistics_user_rifles_v1'), raw, 'reading never rewrites it');
+  assert.deepEqual(loadUserRiflesWithTombstones(), [legacy], 'sync sees the stored form');
+  assert.deepEqual(storedUserRifleOf(rifle), legacy, 'an untouched record exports as stored');
+  const edited = saveUserRifle({ ...rifle, name: 'Renamed' });
+  assert.equal(edited.revision, 4);
+  assert.notDeepEqual(storedUserRifleOf(edited), legacy);
+  assert.equal(storedUserRifleOf(edited).defaultClickHorizontalRad, mradToRad(0.1));
+  assert.equal(storedUserRifleOf(edited).defaultClickHorizontal, 0.1);
+});
+
+test('sync adopting a stored-form record as a local edit (take theirs, history revert) decodes it before saving', async () => {
+  const { SYNCED_LIBRARIES } = await import('../src/sync/synced-libraries.js');
+  const lib = SYNCED_LIBRARIES.find((l) => l.recordType === 'rifle');
+  lib.save({ id: 'r9', name: 'Theirs', defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, revision: 7, cartridges: [] });
+  const [rifle] = loadUserRifles();
+  assert.equal(rifle.defaultClickVerticalRad, mradToRad(0.1));
+  assert.equal(rifle.revision, 1, 'a local edit, counted from what this device had (nothing)');
+  const [stored] = loadUserRiflesWithTombstones();
+  assert.equal(stored.defaultClickVertical, 0.1);
+  assert.equal(stored.defaultClickVerticalRad, mradToRad(0.1));
+  assert.equal(lib.decode(stored).defaultClickVerticalRad, mradToRad(0.1));
 });

@@ -131,5 +131,5 @@ test('picking an eligible project fills the field as "own"/R50 mrad, overwriting
 
   const value = field.getValue();
   assert.equal(value.mode, 'own');
-  assert.ok(value.r50Mrad > 0);
+  assert.ok(value.r50Rad > 0 && value.r50Rad < 0.01, 'R50 in radians');
 });

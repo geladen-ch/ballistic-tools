@@ -25,6 +25,7 @@ import { getDeviceId } from './sync/device-id.js';
 import { notifyLibraryWrite } from './sync/write-hooks.js';
 import { dataUrlToBlob, blobToDataUrl } from './data-url.js';
 import { nextLocalRevision } from './sync/revision.js';
+import { decodeRiflePrecisionProject, encodeRiflePrecisionProject } from './record-codec.js';
 
 const STORE_NAME = 'rifle-precision-projects';
 
@@ -129,7 +130,11 @@ export function initRiflePrecisionLibrary() {
   return readyPromise;
 }
 
-function upsert(project) {
+// `mirror` holds every project as stored (record-codec.js): the app's
+// reads decode, its saves encode, and import, sync and the WithTombstones
+// reader see the stored form.
+function upsert(record) {
+  const project = encodeRiflePrecisionProject(record);
   const idx = mirror.findIndex((p) => p.id === project.id);
   const previous = idx === -1 ? null : mirror[idx];
   const stamped = {
@@ -139,7 +144,7 @@ function upsert(project) {
   mirror = idx === -1 ? [...mirror, stamped] : mirror.map((p, i) => (i === idx ? stamped : p));
   persist(stamped);
   notifyLibraryWrite({ recordType: 'rifle-precision-project', record: stamped, previous });
-  return stamped;
+  return decodeRiflePrecisionProject(stamped);
 }
 
 // Used only by import (see rifle-precision-export.js) — preserves the
@@ -163,7 +168,7 @@ function upsertRaw(project) {
 // loadRiflePrecisionProjectsWithTombstones() for the few callers that need
 // deletions too (the sync bundle builder, the merge engine).
 export function loadRiflePrecisionProjects() {
-  return mirror.filter(isLive);
+  return mirror.filter(isLive).map(decodeRiflePrecisionProject);
 }
 
 export function loadRiflePrecisionProjectsWithTombstones() {
@@ -206,7 +211,8 @@ export function deleteRiflePrecisionProject(id) {
 // not resolve by id and then have its detail view crash on a missing
 // field.
 export function findRiflePrecisionProjectById(id) {
-  return mirror.find((p) => p.id === id && isLive(p)) || null;
+  const found = mirror.find((p) => p.id === id && isLive(p));
+  return found ? decodeRiflePrecisionProject(found) : null;
 }
 
 // Case/whitespace-insensitive — same convention as location-library.js's
@@ -214,7 +220,18 @@ export function findRiflePrecisionProjectById(id) {
 // recreating it under the same name must keep working.
 export function findRiflePrecisionProjectByName(name, { excludeId } = {}) {
   const normalized = name.trim().toLowerCase();
-  return mirror.find((p) => p.id !== excludeId && isLive(p) && p.name.trim().toLowerCase() === normalized);
+  const found = mirror.find((p) => p.id !== excludeId && isLive(p) && p.name.trim().toLowerCase() === normalized);
+  return found && decodeRiflePrecisionProject(found);
+}
+
+// The stored form of a record the app holds (for an export file): the
+// stored record itself while it is the one the app read — same id,
+// revision and timestamp, so not edited since — which keeps an untouched
+// record byte-for-byte as it was; otherwise its fresh encoding.
+export function storedRiflePrecisionProjectOf(project) {
+  const stored = mirror.find((p) => p.id === project.id);
+  const same = stored && stored.revision === project.revision && stored.modifiedAt === project.modifiedAt && stored.deletedAt === project.deletedAt;
+  return same ? stored : encodeRiflePrecisionProject(project);
 }
 
 export function markRiflePrecisionProjectsSaved(ids) {

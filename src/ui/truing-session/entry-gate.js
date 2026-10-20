@@ -13,6 +13,7 @@ import { riflePrecisionInputs } from '../rifle-precision-inputs.js';
 import { precisionToR50 } from '../../engine/dispersion-sources.js';
 import { radToMrad } from '../../quantity.js';
 import { formatTargetSummary } from '../locations/target-summary.js';
+import { fromFitIncline } from './fit-units.js';
 import { locationPickerButton } from '../locations/location-picker-button.js';
 import { DEFAULT_BACKDROP_MARGIN_M } from '../../engine/truing-session.js';
 import { WIND_STRENGTHS, DEFAULT_WIND_STRENGTH, WIND_STRENGTH_LIMIT_MS } from './session-model.js';
@@ -71,11 +72,11 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
   // The Arsenal value is auto-selected unless the user explicitly picked something else; a saved "This rig" pick is
   // restored here, since the rig option only exists once setRigValue() has added it.
   const rigWanted = (key) => { const saved = getPersisted(key); return !saved || saved === RIG_PRESET_KEY; };
-  const hasRigR50 = cartridge.precision && cartridge.precision.r50Mrad != null;
+  const hasRigR50 = cartridge.precision && cartridge.precision.r50Rad != null;
   precision.setRigPrecision(hasRigR50 ? { mode: 'own', ...cartridge.precision } : null, { force: precision.rigStillWanted() });
   refreshR50Resolved();
   const r50Hint = hasRigR50
-    ? el('p', { class: 'hint', text: t('truingSession.homework.r50FromArsenal', { value: angle(cartridge.precision.r50Mrad) }) })
+    ? el('p', { class: 'hint', text: t('truingSession.homework.r50FromArsenal', { value: angle(radToMrad(cartridge.precision.r50Rad)) }) })
     : el('p', { class: 'hint' }, [
       el('span', { i18n: 'truingSession.homework.r50Missing' }), ' ',
       el('a', { href: '#/rifle-precision', i18n: 'truingSession.homework.r50Link' })
@@ -222,7 +223,7 @@ export function locationIntakePanel({ location, gaps, persisted, backdropNode, o
       const edit = pendingEdits[tg.id];
       if (!edit) continue;
       const before = { ...tg, ...(targetOverrides[tg.id] || {}) };
-      const name = tg.name || formatTargetSummary(tg.rangeM, tg.losAngleDeg);
+      const name = tg.name || formatTargetSummary(tg.rangeM, fromFitIncline(tg.losAngleDeg));
       if (edit.rangeM != null && edit.rangeM !== before.rangeM) out.push({ name, field: 'range', from: before.rangeM, to: edit.rangeM });
       if (edit.losAngleDeg != null && edit.losAngleDeg !== (before.losAngleDeg || 0)) out.push({ name, field: 'angle', from: before.losAngleDeg || 0, to: edit.losAngleDeg });
     }
@@ -288,7 +289,7 @@ export function locationIntakePanel({ location, gaps, persisted, backdropNode, o
       rangeInput.addEventListener('change', applyEdit);
       angleInput.addEventListener('change', applyEdit);
       table.appendChild(el('tr', {}, [
-        el('td', { text: tg.name || formatTargetSummary(tg.rangeM, tg.losAngleDeg) }),
+        el('td', { text: tg.name || formatTargetSummary(tg.rangeM, fromFitIncline(tg.losAngleDeg)) }),
         el('td', {}, [rangeInput]),
         rangeDeclaredFlat ? null : el('td', {}, [angleInput])
       ]));

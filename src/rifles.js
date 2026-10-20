@@ -5,6 +5,7 @@
 // fetched and cached in-memory per id, once per browser tab.
 import { RIFLE_IDS } from './rifles/rifle-catalog.js';
 import { logDiagnostic } from './debug-log.js';
+import { decodeRifle } from './record-codec.js';
 
 const riflePromises = new Map();
 
@@ -18,6 +19,10 @@ export function loadRifle(id) {
     riflePromises.set(id, fetch(url).then((res) => {
       if (!res.ok) throw new Error(`failed to load rifle "${id}": ${res.status}`);
       return res.json();
+    }).then((stored) => {
+      // The catalog files use the stored record shape (record-codec.js),
+      // the same one user rifles are stored in.
+      return decodeRifle(stored);
     }).catch((err) => {
       // Same reasoning as bullets.js's own loadBullet(): don't let a
       // transient failure poison every future attempt at this rifle for
