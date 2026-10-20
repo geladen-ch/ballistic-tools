@@ -9,10 +9,11 @@ await initI18n();
 
 const { scopeClicksField: scopeClicksFieldRad } = await import('../src/ui/scope-clicks-field.js');
 const { clickSettingsToStored, clickSettingsFromStored } = await import('../src/legacy-units.js');
+const { moaToRad } = await import('../src/quantity.js');
 
 // The field speaks radians ({ unit, horizontalRad, verticalRad }); these
 // tests are written in the turret's own unit, through the same stored-form
-// conversion the app uses (which rounds back to the turret's 3 decimals).
+// conversion the app uses (which rounds back to the turret's own figure).
 function scopeClicksField(options) {
   const field = scopeClicksFieldRad(options);
   return { ...field, getSettings: () => clickSettingsToStored(field.getSettings()), setSettings: (s) => field.setSettings(clickSettingsFromStored(s)) };
@@ -133,4 +134,11 @@ test('onInput fires on both a typed value and a unit switch', () => {
   select.value = 'arcmin';
   fireEvent(select, 'change');
   assert.equal(calls, 2);
+});
+
+test('a 1/16 MOA click set programmatically shows with all four decimals', () => {
+  const field = scopeClicksFieldRad();
+  field.setSettings({ unit: 'arcmin', horizontalRad: moaToRad(0.0625), verticalRad: moaToRad(0.0625) });
+  const inputs = findByTag(field.node, 'INPUT');
+  assert.deepEqual(inputs.map((i) => i.value), ['0.0625', '0.0625']);
 });

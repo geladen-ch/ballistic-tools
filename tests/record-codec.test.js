@@ -100,3 +100,26 @@ test('merge: the same record stored by an earlier build and stored with its SI f
   const changed = { ...dualWritten, defaultClickVerticalRad: moaToRad(1), defaultClickVertical: 1 };
   assert.equal(resolveRecord(legacy, changed, decodeRifle).action, 'skip-review');
 });
+
+test('re-encoding a legacy record can move its twin by an ulp, but never what it decodes to', () => {
+  let twinMoved = 0;
+  for (let i = -9000; i <= 9000; i++) {
+    const legacy = { id: 'l', targets: [{ losAngleDeg: i / 100 }] };
+    const reEncoded = encodeLocation(decodeLocation(legacy));
+    if (reEncoded.targets[0].losAngleDeg !== legacy.targets[0].losAngleDeg) twinMoved++;
+    assert.equal(decodeLocation(reEncoded).targets[0].losAngleRad, decodeLocation(legacy).targets[0].losAngleRad);
+  }
+  for (let i = 1; i <= 20000; i++) {
+    const legacy = { id: 'p', caliberMm: i / 100, targets: [] };
+    assert.equal(decodeRiflePrecisionProject(encodeRiflePrecisionProject(decodeRiflePrecisionProject(legacy))).caliberM, decodeRiflePrecisionProject(legacy).caliberM);
+  }
+  assert.ok(twinMoved > 0, 'the hazard record-codec.js warns about is real: some twins do move');
+});
+
+test('click sizes keep every digit a turret is engraved with, in the SI field and the legacy twin', () => {
+  for (const [unit, value] of [['arcmin', 0.0625], ['arcmin', 0.125], ['arcmin', 0.25], ['mrad', 0.1], ['mrad', 0.05], ['mrad', 0.025]]) {
+    const stored = encodeRifle(decodeRifle({ id: 'r', name: 'R', defaultClickUnit: unit, defaultClickHorizontal: value, defaultClickVertical: value, cartridges: [] }));
+    assert.equal(stored.defaultClickHorizontal, value, `${value} ${unit}`);
+    assert.equal(decodeRifle(stored).defaultClickHorizontalRad, decodeRifle({ defaultClickUnit: unit, defaultClickHorizontal: value }).defaultClickHorizontalRad);
+  }
+});

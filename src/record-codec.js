@@ -29,6 +29,19 @@
 //
 // Unknown fields pass through both ways, so a field added by a later
 // build survives a round trip through this one.
+//
+// Re-encoding a record is not neutral for earlier builds. legacy → SI →
+// legacy is not always bit-exact (degrees ↔ radians and mm ↔ m come back
+// one ulp off for a few percent of values), and earlier builds compare
+// stored records as they are, extra SI fields included. So a record this
+// build re-encoded without an edit would reach an earlier-build peer as
+// "same revision, different content" and go to its review queue. This
+// build is not affected — a legacy-only copy and its re-encoded copy
+// decode to the same SI value, and merge compares decoded records — but
+// the peers are. Nothing produces such a record today: a record is only
+// encoded when the app saves an edit, which bumps its revision. Keep it
+// that way: never re-encode (migrate, normalise, "tidy") a record that was
+// not edited.
 import { clickValueInUnit } from './units.js';
 import { converter, degToRad, radToDeg, mradToRad, radToMrad, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm } from './quantity.js';
 

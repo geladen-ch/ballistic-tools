@@ -447,10 +447,12 @@ export const CLICK_UNITS = [
   { unit: 'arcmin', label: 'MOA' }
 ];
 
-// A click value is defined to this many decimals in its turret's own unit
-// (0.1 mrad, 0.25 MOA, 0.125 MOA) — so a click size held in radians always
-// comes back to its engraved figure exactly when rounded to it.
-export const CLICK_VALUE_DECIMALS = 3;
+// Click sizes are figured to this many decimals in their turret's unit —
+// shown, stored for earlier builds (record-codec.js) and converted by the
+// scope-clicks unit toggle alike. Enough for 1/16 MOA (0.0625); a click
+// size held in radians comes back to its turret's figure exactly when
+// rounded to it, the float residue of the radian round trip removed.
+export const CLICK_VALUE_DECIMALS = 4;
 
 // A click size in radians, back in its turret's unit, rounded to the
 // precision click values are defined to.
