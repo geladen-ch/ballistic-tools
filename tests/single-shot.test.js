@@ -10,7 +10,7 @@ const nominalState = {
 };
 
 const zeroOwnErrors = { muzzleVelocitySD: 0, precisionMode: 'detailed', detailed: { benchR50: 0, shooterR50: 0, positionH: 1, positionV: 1 } };
-const zeroConditionErrors = { distanceMedianErrorPct: 0, tempMedianErrorC: 0, pressureMedianErrorPa: 0, windMedianErrorMs: 0, movingTarget: { speedMs: 0, speedMedianErrorPct: 0 } };
+const zeroConditionErrors = { distanceMedianError: 0, tempMedianErrorC: 0, pressureMedianErrorPa: 0, windMedianErrorMs: 0, movingTarget: { speedMs: 0, speedMedianError: 0 } };
 
 test('with every uncertainty source at zero, sdX/sdY are exactly zero and the offset is zero (default, no battle zero, no aim offset)', () => {
   const result = computeSingleShot({
@@ -48,7 +48,7 @@ test('detailed precision mode: bench and shooter each contribute, shooter scaled
     nominalState, targetRange: 500,
     ownErrors: {
       muzzleVelocitySD: 0, precisionMode: 'detailed',
-      detailed: { benchR50: 0.14, shooterR50: 0.12, positionH: 2.4, positionV: 1.5 } // Basic rifle, Marksman shooter, Kneeling
+      detailed: { benchR50: 0.00014, shooterR50: 0.00012, positionH: 2.4, positionV: 1.5 } // Basic rifle, Marksman shooter, Kneeling
     },
     conditionErrors: zeroConditionErrors
   });
@@ -63,7 +63,7 @@ test('detailed precision mode: bench and shooter each contribute, shooter scaled
 test('simplified precision mode contributes exactly one source, equally to X and Y', () => {
   const result = computeSingleShot({
     nominalState, targetRange: 500,
-    ownErrors: { muzzleVelocitySD: 0, precisionMode: 'simplified', simplified: { value: 0.5, convention: 'r50' } },
+    ownErrors: { muzzleVelocitySD: 0, precisionMode: 'simplified', simplified: { value: 0.0005, convention: 'r50' } },
     conditionErrors: zeroConditionErrors
   });
   assert.deepEqual(result.contributions.map((c) => c.id), ['combinedPrecision']);
@@ -73,13 +73,13 @@ test('simplified precision mode contributes exactly one source, equally to X and
 test('moving target only contributes when both speed and its error are set', () => {
   const withSpeedOnly = computeSingleShot({
     nominalState, targetRange: 500, ownErrors: zeroOwnErrors,
-    conditionErrors: { ...zeroConditionErrors, movingTarget: { speedMs: 3, speedMedianErrorPct: 0 } }
+    conditionErrors: { ...zeroConditionErrors, movingTarget: { speedMs: 3, speedMedianError: 0 } }
   });
   assert.equal(withSpeedOnly.sdX, 0);
 
   const withBoth = computeSingleShot({
     nominalState, targetRange: 500, ownErrors: zeroOwnErrors,
-    conditionErrors: { ...zeroConditionErrors, movingTarget: { speedMs: 3, speedMedianErrorPct: 10 } }
+    conditionErrors: { ...zeroConditionErrors, movingTarget: { speedMs: 3, speedMedianError: 0.1 } }
   });
   assert.ok(withBoth.sdX > 0);
   assert.ok(withBoth.contributions.some((c) => c.id === 'movingTarget'));

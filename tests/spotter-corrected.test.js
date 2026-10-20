@@ -10,13 +10,13 @@ const nominalState = {
 };
 
 const zeroOwnErrors = { muzzleVelocitySD: 0, precisionMode: 'detailed', detailed: { benchR50: 0, shooterR50: 0, positionH: 1, positionV: 1 } };
-const zeroConditionErrors = { distanceMedianErrorPct: 0, tempMedianErrorC: 0, pressureMedianErrorPa: 0, windMedianErrorMs: 0, movingTarget: { speedMs: 0, speedMedianErrorPct: 0 } };
+const zeroConditionErrors = { distanceMedianError: 0, tempMedianErrorC: 0, pressureMedianErrorPa: 0, windMedianErrorMs: 0, movingTarget: { speedMs: 0, speedMedianError: 0 } };
 
 test('with every uncertainty source at zero, both shots have zero dispersion and ~zero offset', () => {
   const result = computeSpotterCorrected({
     nominalState, targetRange: 500,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors,
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    sightingShotCount: 1, spotterMeasureRad: 0
   });
   assert.equal(result.sighting.sdX, 0);
   assert.equal(result.sighting.sdY, 0);
@@ -33,7 +33,7 @@ test('condition errors drive the sighting shot but never appear in the corrected
     nominalState, targetRange: 500,
     ownErrors: zeroOwnErrors,
     conditionErrors: { ...zeroConditionErrors, windMedianErrorMs: 1, tempMedianErrorC: 5 },
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    sightingShotCount: 1, spotterMeasureRad: 0
   });
   assert.ok(result.sighting.sdX > 0 || result.sighting.sdY > 0, 'condition errors should disperse the sighting shot');
   const sightingIds = result.sighting.contributions.map((c) => c.id);
@@ -50,8 +50,8 @@ test('moving target lead error is treated as a condition error: drives the sight
   const result = computeSpotterCorrected({
     nominalState, targetRange: 500,
     ownErrors: zeroOwnErrors,
-    conditionErrors: { ...zeroConditionErrors, movingTarget: { speedMs: 3, speedMedianErrorPct: 10 } },
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    conditionErrors: { ...zeroConditionErrors, movingTarget: { speedMs: 3, speedMedianError: 0.1 } },
+    sightingShotCount: 1, spotterMeasureRad: 0
   });
   assert.ok(result.sighting.sdX > 0);
   assert.ok(result.sighting.contributions.some((c) => c.id === 'movingTarget'));
@@ -59,12 +59,12 @@ test('moving target lead error is treated as a condition error: drives the sight
 });
 
 test('own-error sources are layered in the corrected shot: exactly x*sqrt(1+1/N) at N sighting shots', () => {
-  const ownErrors = { muzzleVelocitySD: 0, precisionMode: 'simplified', simplified: { value: 0.5, convention: 'r50' } };
+  const ownErrors = { muzzleVelocitySD: 0, precisionMode: 'simplified', simplified: { value: 0.0005, convention: 'r50' } };
   for (const n of [1, 3, 5]) {
     const result = computeSpotterCorrected({
       nominalState, targetRange: 500,
       ownErrors, conditionErrors: zeroConditionErrors,
-      sightingShotCount: n, spotterMeasureMrad: 0
+      sightingShotCount: n, spotterMeasureRad: 0
     });
     const directX = result.sighting.contributions.find((c) => c.id === 'combinedPrecision').x;
     const correctedX = result.corrected.contributions.find((c) => c.id === 'combinedPrecision').x;
@@ -74,17 +74,17 @@ test('own-error sources are layered in the corrected shot: exactly x*sqrt(1+1/N)
 });
 
 test('more sighting shots shrink the corrected shot\'s dispersion toward (but never below) the own-error floor', () => {
-  const ownErrors = { muzzleVelocitySD: 3, precisionMode: 'simplified', simplified: { value: 0.3, convention: 'r50' } };
+  const ownErrors = { muzzleVelocitySD: 3, precisionMode: 'simplified', simplified: { value: 0.0003, convention: 'r50' } };
   const conditionErrors = { ...zeroConditionErrors, windMedianErrorMs: 1 };
   const sds = [1, 2, 3, 4, 5].map((n) => computeSpotterCorrected({
     nominalState, targetRange: 500, ownErrors, conditionErrors,
-    sightingShotCount: n, spotterMeasureMrad: 1.5
+    sightingShotCount: n, spotterMeasureRad: 0.0015
   }).corrected.sdY);
   for (let i = 1; i < sds.length; i++) assert.ok(sds[i] < sds[i - 1], `sd should shrink monotonically with N: ${sds}`);
 
   const ownOnly = computeSpotterCorrected({
     nominalState, targetRange: 500, ownErrors, conditionErrors: zeroConditionErrors,
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    sightingShotCount: 1, spotterMeasureRad: 0
   }).sighting.sdY;
   assert.ok(sds[sds.length - 1] > ownOnly, 'even at N=5 the corrected shot should stay above the pure own-error floor');
 });
@@ -93,7 +93,7 @@ test('the spotter\'s measure adds a spotterEye contribution to the corrected sho
   const withSpotterError = computeSpotterCorrected({
     nominalState, targetRange: 500,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors,
-    sightingShotCount: 4, spotterMeasureMrad: 2
+    sightingShotCount: 4, spotterMeasureRad: 0.002
   });
   const spotterC = withSpotterError.corrected.contributions.find((c) => c.id === 'spotterEye');
   assert.ok(spotterC, 'expected a spotterEye contribution');
@@ -101,7 +101,7 @@ test('the spotter\'s measure adds a spotterEye contribution to the corrected sho
 
   const n1 = computeSpotterCorrected({
     nominalState, targetRange: 500, ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors,
-    sightingShotCount: 1, spotterMeasureMrad: 2
+    sightingShotCount: 1, spotterMeasureRad: 0.002
   }).corrected.contributions.find((c) => c.id === 'spotterEye').x;
   assert.ok(Math.abs(spotterC.x - n1 / 2) < 1e-9, 'N=4 should be exactly half of N=1 (1/sqrt(4) = 1/2)');
 });
@@ -110,7 +110,7 @@ test('a perfect spotter (median error 0) adds no spotterEye contribution', () =>
   const result = computeSpotterCorrected({
     nominalState, targetRange: 500,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors,
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    sightingShotCount: 1, spotterMeasureRad: 0
   });
   assert.ok(!result.corrected.contributions.some((c) => c.id === 'spotterEye'));
 });
@@ -120,7 +120,7 @@ test('battle zero produces a real systematic offset for the sighting shot, but t
     nominalState, targetRange: 500, battleZeroRange: 100,
     aimOffsetXM: 0.03, aimOffsetYM: -0.04,
     ownErrors: zeroOwnErrors, conditionErrors: zeroConditionErrors,
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    sightingShotCount: 1, spotterMeasureRad: 0
   });
   assert.ok(result.sighting.offsetY < -0.1, 'sighting shot should show the uncorrected battle-zero drop');
   assert.ok(Math.abs(result.corrected.offsetX - 0.03) < 1e-5, 'corrected shot keeps only the deliberate aim offset');
@@ -130,9 +130,9 @@ test('battle zero produces a real systematic offset for the sighting shot, but t
 test('sighting.ownSdX/Y and conditionSdX/Y combine back into sighting.sdX/Y', () => {
   const result = computeSpotterCorrected({
     nominalState, targetRange: 500,
-    ownErrors: { muzzleVelocitySD: 0, precisionMode: 'simplified', simplified: { value: 0.4, convention: 'r50' } },
+    ownErrors: { muzzleVelocitySD: 0, precisionMode: 'simplified', simplified: { value: 0.0004, convention: 'r50' } },
     conditionErrors: { ...zeroConditionErrors, windMedianErrorMs: 1 },
-    sightingShotCount: 1, spotterMeasureMrad: 0
+    sightingShotCount: 1, spotterMeasureRad: 0
   });
   const recombinedX = Math.sqrt(result.sighting.ownSdX ** 2 + result.sighting.conditionSdX ** 2);
   const recombinedY = Math.sqrt(result.sighting.ownSdY ** 2 + result.sighting.conditionSdY ** 2);

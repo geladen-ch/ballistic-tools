@@ -4,7 +4,7 @@
 // unit and to turn typed input straight back into the engine unit. The
 // arithmetic itself is src/quantity.js's — this module never converts on
 // its own.
-import { converter, angleToLinearAtRange, degToRad } from './quantity.js';
+import { converter, angleToLinearAtRange, degToRad, mradToRad } from './quantity.js';
 
 // Each group is one independently-selectable "preferred unit" — grouped by
 // how a shooter actually thinks about a measurement, not just by physical
@@ -123,7 +123,9 @@ export const UNIT_GROUPS = {
     defaultUnit: '%',
     fixed: true,
     choices: [
-      { unit: '%', label: '%', decimals: 0 }
+      // 2, so an estimation error like a laser rangefinder's 0.14 % shows
+      // as such; a whole-number humidity still shows without decimals.
+      { unit: '%', label: '%', decimals: 2 }
     ]
   },
   energy: {
@@ -205,16 +207,19 @@ export const FIELD_UNITS = {
   humidity: { group: 'ratio', engineUnit: '1' },
   losAngle: { group: 'angleDegrees', engineUnit: 'rad' },
   windAngle: { group: 'angleDegrees', engineUnit: 'rad' },
-  benchPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
-  shooterSkill: { group: 'angleDispersion', engineUnit: 'mrad' },
-  combinedPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
+  benchPrecision: { group: 'angleDispersion', engineUnit: 'rad' },
+  shooterSkill: { group: 'angleDispersion', engineUnit: 'rad' },
+  combinedPrecision: { group: 'angleDispersion', engineUnit: 'rad' },
   // Hit Probability's own spotter-corrected-fire panel — was missing this
   // entry despite being built with the same presetUnitField()/unitField()
   // machinery as its three siblings just above, so it silently never
   // converted to the user's angleDispersion (MOA) preference. PRESETS.
   // spotterMeasure's own values (src/views/hit-probability-view.js) are
-  // already mrad, matching this engineUnit.
-  spotterMeasure: { group: 'angleDispersion', engineUnit: 'mrad' },
+  // radians, matching this engineUnit.
+  spotterMeasure: { group: 'angleDispersion', engineUnit: 'rad' },
+  // estimation errors as a fraction of the estimate (0.05), shown in %
+  distanceMedianError: { group: 'ratio', engineUnit: '1' },
+  movingTargetSpeedError: { group: 'ratio', engineUnit: '1' },
   // Not a form field — the trajectory view's own kinetic-energy column/
   // chart series computes 0.5*massKg*velocity^2 itself (Joules, SI) and
   // converts it for display through this entry, the same way it already
@@ -344,17 +349,17 @@ export const FIELD_BOUNDS = {
   convBc: { min: 0.05, max: 1.5 }, // matches bc
   maxRange: { min: 100, max: 5000 }, // m — matches targetRange, same physical quantity
   rangeStep: { min: 1, max: 500 }, // m
-  benchPrecision: { min: 0, max: 3 }, // mrad
-  shooterSkill: { min: 0, max: 3 }, // mrad
-  combinedPrecision: { min: 0, max: 3 }, // mrad
-  distanceMedianError: { min: 0, max: 50 }, // %, no FIELD_UNITS entry
+  benchPrecision: { min: 0, max: mradToRad(3) }, // rad
+  shooterSkill: { min: 0, max: mradToRad(3) }, // rad
+  combinedPrecision: { min: 0, max: mradToRad(3) }, // rad
+  distanceMedianError: { min: 0, max: 0.5 }, // fraction
   tempMedianError: { min: 0, max: 20 }, // °C span
   pressureMedianError: { min: 0, max: 3000 }, // Pa
   windMedianError: { min: 0, max: 10 }, // m/s
   movingTargetSpeed: { min: 0, max: 30 }, // m/s
-  movingTargetSpeedError: { min: 0, max: 100 }, // %, no FIELD_UNITS entry
+  movingTargetSpeedError: { min: 0, max: 1 }, // fraction
   muzzleVelocitySD: { min: 0, max: 20 }, // m/s
-  spotterMeasure: { min: 0, max: 5 }, // mrad — matches FIELD_UNITS.spotterMeasure's own engine unit
+  spotterMeasure: { min: 0, max: mradToRad(5) }, // rad
   aimOffsetX: { min: -1, max: 1 }, // m
   aimOffsetY: { min: -1, max: 1 }, // m
   circleGongDiameter: { min: 0.01, max: 2 }, // m

@@ -63,7 +63,13 @@ const FIELD_KEYED_UNITS = [
   ['aimOffsetY', 'cm', 'm'],
   ['circleGongDiameter', 'cm', 'm'],
   ['rectPlateWidth', 'cm', 'm'],
-  ['rectPlateHeight', 'cm', 'm']
+  ['rectPlateHeight', 'cm', 'm'],
+  ['benchPrecision', 'mrad', 'rad'],
+  ['shooterSkill', 'mrad', 'rad'],
+  ['combinedPrecision', 'mrad', 'rad'],
+  ['spotterMeasure', 'mrad', 'rad'],
+  ['distanceMedianError', '%', '1'],
+  ['movingTargetSpeedError', '%', '1']
 ];
 const FIELD_KEYED = new Map(FIELD_KEYED_UNITS.map(([id, stored, current]) => [id, { decode: converter(stored, current), encode: converter(current, stored) }]));
 

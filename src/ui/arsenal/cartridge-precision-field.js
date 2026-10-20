@@ -1,6 +1,6 @@
 import { el } from '../../dom.js';
 import { CLICK_UNITS, convertAngularValue } from '../../units.js';
-import { conventionValueToR50Mrad } from '../../engine/dispersion-sources.js';
+import { conventionValueToR50 } from '../../engine/dispersion-sources.js';
 import { computeCombinedStats, mmToAngularUnit } from '../../engine/rifle-precision-stats.js';
 import { loadRiflePrecisionProjects } from '../../rifle-precision-library.js';
 import { confidenceBadge } from '../rifle-precision/confidence-o-meter.js';
@@ -68,7 +68,7 @@ function riflePrecisionProjectPickerBody({ onPick }) {
 // form — feeds Hit Probability's own bench-precision ("own" mode) or
 // combined-precision ("combined" mode) uncertainty source; see
 // cartridge-form.js. Always stored as R50 mrad internally
-// (conventionValueToR50Mrad()), regardless of which convention/unit the
+// (conventionValueToR50()), regardless of which convention/unit the
 // user finds easiest to measure/quote it in — a group fired and measured
 // as, say, a 10-shot ES in MOA converts to the same underlying number a
 // bench precision measured directly as R50 in mrad would. The mrad/MOA
@@ -172,7 +172,7 @@ export function cartridgePrecisionField({ onInput } = {}) {
     const raw = parseFloat(valueInput.value);
     if (Number.isNaN(raw) || raw <= 0) return null;
     const valueMrad = convertAngularValue(raw, unitSelect.value, 'mrad');
-    return { mode: modeSelect.value, r50Mrad: conventionValueToR50Mrad(valueMrad, conventionSelect.value) };
+    return { mode: modeSelect.value, r50Mrad: conventionValueToR50(valueMrad, conventionSelect.value) };
   }
 
   // Seeds the field from an existing cartridge's own stored precision

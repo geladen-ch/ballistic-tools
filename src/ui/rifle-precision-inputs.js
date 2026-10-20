@@ -16,6 +16,8 @@ import {
   BENCH_PRECISION_PRESETS, DEFAULT_BENCH_PRECISION_PRESET_KEY,
   SHOOTER_SKILL_PRESETS, DEFAULT_SHOOTER_SKILL_PRESET_KEY
 } from './precision-preset-field.js';
+import { FIELD_BOUNDS } from '../units.js';
+import { mradToRad } from '../quantity.js';
 
 // Vertical/horizontal dispersion multipliers applied to shooter skill --
 // no stated default, so "Prone, with bipod" (the neutral 1.0/1.0 case) is
@@ -58,9 +60,9 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
 
   // ---- Detailed: bench rifle + shooter skill + position ----
   // picking "This rig's" from the list is the cartridge's own value again, not a departure from it
-  const benchField = presetField('benchPrecision', BENCH_PRECISION_PRESETS, DEFAULT_BENCH_PRECISION_PRESET_KEY, 3, 0.01,
+  const benchField = presetField('benchPrecision', BENCH_PRECISION_PRESETS, DEFAULT_BENCH_PRECISION_PRESET_KEY, FIELD_BOUNDS.benchPrecision.max, mradToRad(0.01),
     () => { markRig(getPersisted('benchPrecisionPreset', null) === RIG_PRESET_KEY); onInput(); });
-  const shooterField = presetField('shooterSkill', SHOOTER_SKILL_PRESETS, DEFAULT_SHOOTER_SKILL_PRESET_KEY, 3, 0.01, () => onInput());
+  const shooterField = presetField('shooterSkill', SHOOTER_SKILL_PRESETS, DEFAULT_SHOOTER_SKILL_PRESET_KEY, FIELD_BOUNDS.shooterSkill.max, mradToRad(0.01), () => onInput());
   const positionSelect = el('select', { id: 'position' }, POSITIONS.map((p) => el('option', { value: p.key, i18n: `hitProbability.presetLabels.${p.key}` })));
   positionSelect.value = getPersisted('position', DEFAULT_POSITION_KEY);
   positionSelect.addEventListener('change', () => { setPersisted({ position: positionSelect.value }); onInput(); });
@@ -74,7 +76,7 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
   ]);
 
   // ---- Simplified: one combined value ----
-  let rigCombinedR50Mrad = null; // the cartridge's own combined-precision value (R50 mrad), null when it has none
+  let rigCombinedR50 = null; // the cartridge's own combined-precision value (R50, rad), null when it has none
   const rigCheckbox = el('input', { type: 'checkbox', id: 'combinedPrecisionThisRig' });
   const rigRow = el('label', { class: 'checkbox-field' }, [rigCheckbox, i18nSpan('hitProbability.thisRigCheckboxLabel')]);
   rigRow.style.display = 'none';
@@ -85,18 +87,18 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
     PRECISION_CONVENTIONS.map((c) => el('option', { value: c, i18n: `hitProbability.convention${c[0].toUpperCase()}${c.slice(1)}` })));
   conventionSelect.value = getPersisted('precisionConvention', 'r50');
   const combinedField = unitField({
-    id: 'combinedPrecision', min: 0, max: 3, step: 0.01, value: getPersisted('combinedPrecision', 0.14), before: conventionSelect,
+    id: 'combinedPrecision', ...FIELD_BOUNDS.combinedPrecision, step: mradToRad(0.01), value: getPersisted('combinedPrecision', mradToRad(0.14)), before: conventionSelect,
     onInput: () => { setPersisted({ combinedPrecision: combinedField.getEngineValue() }); rigCheckbox.checked = false; changed(); }
   });
   conventionSelect.addEventListener('change', () => { setPersisted({ precisionConvention: conventionSelect.value }); rigCheckbox.checked = false; changed(); });
 
   function applyRigCombined() {
     conventionSelect.value = 'r50';
-    combinedField.setEngineValue(rigCombinedR50Mrad);
-    setPersisted({ precisionConvention: 'r50', combinedPrecision: rigCombinedR50Mrad });
+    combinedField.setEngineValue(rigCombinedR50);
+    setPersisted({ precisionConvention: 'r50', combinedPrecision: rigCombinedR50 });
   }
   rigCheckbox.addEventListener('change', () => {
-    if (!rigCheckbox.checked || rigCombinedR50Mrad == null) return;
+    if (!rigCheckbox.checked || rigCombinedR50 == null) return;
     applyRigCombined();
     markRig(true);
     onInput();
@@ -131,7 +133,7 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
     benchRigHint.style.display = precision ? '' : 'none';
     combinedRigHint.style.display = precision ? '' : 'none';
     if (precision && precision.mode === 'combined') {
-      rigCombinedR50Mrad = precision.r50Mrad;
+      rigCombinedR50 = mradToRad(precision.r50Mrad); // Arsenal records hold mrad
       rigRow.style.display = '';
       benchField.setRigValue(null);
       if (force) {
@@ -141,13 +143,13 @@ export function riflePrecisionInputs({ getPersisted, setPersisted, onInput, rigH
         markRig(true);
       }
     } else if (precision && precision.mode === 'own') {
-      rigCombinedR50Mrad = null;
+      rigCombinedR50 = null;
       rigRow.style.display = 'none';
       rigCheckbox.checked = false;
-      benchField.setRigValue(precision.r50Mrad, { autoSelect: force });
+      benchField.setRigValue(mradToRad(precision.r50Mrad), { autoSelect: force }); // Arsenal records hold mrad
       if (force) { setSimplified(false); markRig(true); }
     } else {
-      rigCombinedR50Mrad = null;
+      rigCombinedR50 = null;
       rigRow.style.display = 'none';
       rigCheckbox.checked = false;
       benchField.setRigValue(null);

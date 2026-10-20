@@ -29,7 +29,7 @@ import {
   MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY
 } from '../ui/precision-preset-field.js';
 import { riflePrecisionInputs } from '../ui/rifle-precision-inputs.js';
-import { mToMm, fractionToPercent } from '../quantity.js';
+import { mToMm, fractionToPercent, percentToFraction, hpaToPa, mradToRad } from '../quantity.js';
 
 // Real preset value tables — see the plan for provenance. Each preset's
 // `key` is also its translation key under hitProbability.presetLabels.
@@ -40,14 +40,14 @@ import { mToMm, fractionToPercent } from '../quantity.js';
 const PRESETS = {
   muzzleVelocitySD: MUZZLE_VELOCITY_SD_PRESETS,
   distanceMedianError: [
-    { key: 'ideal', value: 0 }, { key: 'laser', value: 0.14 }, { key: 'expertReticle', value: 4 },
-    { key: 'lowTech', value: 8 }, { key: 'nakedEyeTrained', value: 12.5 }, { key: 'nakedEyeAverage', value: 15 }
+    { key: 'ideal', value: 0 }, { key: 'laser', value: percentToFraction(0.14) }, { key: 'expertReticle', value: percentToFraction(4) },
+    { key: 'lowTech', value: percentToFraction(8) }, { key: 'nakedEyeTrained', value: percentToFraction(12.5) }, { key: 'nakedEyeAverage', value: percentToFraction(15) }
   ],
   tempMedianError: [
     { key: 'ideal', value: 0 }, { key: 'pocketThermometer', value: 0.5 }, { key: 'average', value: 5 }, { key: 'poor', value: 8 }
   ],
   pressureMedianError: [
-    { key: 'ideal', value: 0 }, { key: 'pocketBarometer', value: 200 }, { key: 'byAltitude', value: 700 }, { key: 'approximate', value: 1400 }
+    { key: 'ideal', value: 0 }, { key: 'pocketBarometer', value: hpaToPa(2) }, { key: 'byAltitude', value: hpaToPa(7) }, { key: 'approximate', value: hpaToPa(14) }
   ],
   windMedianError: [
     { key: 'ideal', value: 0 }, { key: 'excellent', value: 0.25 }, { key: 'good', value: 0.5 }, { key: 'average', value: 1 }, { key: 'poor', value: 2 }
@@ -56,10 +56,10 @@ const PRESETS = {
     { key: 'static', value: 0 }, { key: 'walking', value: 1.5 }, { key: 'running', value: 3 }, { key: 'landVehicle', value: 12 }
   ],
   movingTargetSpeedError: [
-    { key: 'excellent', value: 5 }, { key: 'good', value: 10 }, { key: 'average', value: 20 }, { key: 'poor', value: 30 }
+    { key: 'excellent', value: percentToFraction(5) }, { key: 'good', value: percentToFraction(10) }, { key: 'average', value: percentToFraction(20) }, { key: 'poor', value: percentToFraction(30) }
   ],
   spotterMeasure: [
-    { key: 'perfect', value: 0 }, { key: 'master', value: 0.05 }, { key: 'typical', value: 0.1 }, { key: 'novice', value: 0.15 }
+    { key: 'perfect', value: 0 }, { key: 'master', value: mradToRad(0.05) }, { key: 'typical', value: mradToRad(0.1) }, { key: 'novice', value: mradToRad(0.15) }
   ]
 };
 
@@ -263,7 +263,7 @@ export function mount(container) {
     precisionInputs.node
   ]);
 
-  const distanceMedianErrorField = presetUnitField('distanceMedianError', { max: 50, step: 0.1, onInput: () => recompute() });
+  const distanceMedianErrorField = presetUnitField('distanceMedianError', { max: FIELD_BOUNDS.distanceMedianError.max, step: 0.001, onInput: () => recompute() });
   const tempMedianErrorField = presetUnitField('tempMedianError', { max: 20, step: 0.1, isSpan: true, onInput: () => recompute() });
   const pressureMedianErrorField = presetUnitField('pressureMedianError', { max: FIELD_BOUNDS.pressureMedianError.max, step: 50, onInput: () => recompute() });
   const windMedianErrorField = presetUnitField('windMedianError', { max: 10, step: 0.1, onInput: () => recompute() });
@@ -273,7 +273,7 @@ export function mount(container) {
       applyMovingTargetVisibility();
       recompute();
     });
-  const movingTargetSpeedErrorField = presetUnitField('movingTargetSpeedError', { max: 100, step: 1, onInput: () => recompute() });
+  const movingTargetSpeedErrorField = presetUnitField('movingTargetSpeedError', { max: FIELD_BOUNDS.movingTargetSpeedError.max, step: 0.01, onInput: () => recompute() });
   const movingTargetSpeedErrorRow = el('div', {}, [movingTargetSpeedErrorField.node]);
 
   const conditionErrorsSection = el('div', { class: 'input-section' }, [
@@ -310,7 +310,7 @@ export function mount(container) {
     extraCheck: (v) => (Number.isInteger(v) ? null : t('fields.errorInteger')),
     onInput: () => recompute()
   });
-  const spotterMeasureField = presetUnitField('spotterMeasure', { max: 5, step: 0.05, onInput: () => recompute() });
+  const spotterMeasureField = presetUnitField('spotterMeasure', { max: FIELD_BOUNDS.spotterMeasure.max, step: mradToRad(0.05), onInput: () => recompute() });
   sightingShotCountField.node.style.display = 'none';
   spotterMeasureField.node.style.display = 'none';
   const scenarioSection = el('div', { class: 'input-section' }, [
@@ -1039,13 +1039,13 @@ export function mount(container) {
     };
 
     const conditionErrors = {
-      distanceMedianErrorPct: distanceMedianErrorField.getEngineValue(),
+      distanceMedianError: distanceMedianErrorField.getEngineValue(),
       tempMedianErrorC: tempMedianErrorField.getEngineValue(),
       pressureMedianErrorPa: pressureMedianErrorField.getEngineValue(),
       windMedianErrorMs: windMedianErrorField.getEngineValue(),
       movingTarget: movingTargetToggle.checked
-        ? { speedMs: movingTargetSpeedField.getEngineValue(), speedMedianErrorPct: movingTargetSpeedErrorField.getEngineValue() }
-        : { speedMs: 0, speedMedianErrorPct: 0 }
+        ? { speedMs: movingTargetSpeedField.getEngineValue(), speedMedianError: movingTargetSpeedErrorField.getEngineValue() }
+        : { speedMs: 0, speedMedianError: 0 }
     };
 
     const targetRange = targetRangeField.getEngineValue();
@@ -1060,7 +1060,7 @@ export function mount(container) {
           nominalState, targetRange, battleZeroRange, aimOffsetXM, aimOffsetYM,
           ownErrors, conditionErrors,
           sightingShotCount: sightingShotCountField.getEngineValue(),
-          spotterMeasureMrad: spotterMeasureField.getEngineValue()
+          spotterMeasureRad: spotterMeasureField.getEngineValue()
         });
       } catch {
         return; // leave the last good state showing, same posture as trajectory-view.js

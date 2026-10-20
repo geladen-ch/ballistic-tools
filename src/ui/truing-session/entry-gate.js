@@ -10,7 +10,8 @@ import { FIELD_BOUNDS } from '../../units.js';
 import { unitField } from '../unit-field.js';
 import { presetUnitField, RIG_PRESET_KEY, MUZZLE_VELOCITY_SD_PRESETS, DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY } from '../precision-preset-field.js';
 import { riflePrecisionInputs } from '../rifle-precision-inputs.js';
-import { precisionToR50Mrad } from '../../engine/dispersion-sources.js';
+import { precisionToR50 } from '../../engine/dispersion-sources.js';
+import { radToMrad } from '../../quantity.js';
 import { formatTargetSummary } from '../locations/target-summary.js';
 import { locationPickerButton } from '../locations/location-picker-button.js';
 import { DEFAULT_BACKDROP_MARGIN_M } from '../../engine/truing-session.js';
@@ -65,7 +66,7 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
   // Rifle + shooter precision, as in Hit Probability: bench rifle R50, shooter skill and position, or one simplified combined
   // value. The session's per-shot noise takes the one R50 they resolve to (vertical, since come-up is what it reads).
   const r50Resolved = el('p', { class: 'hint' });
-  const refreshR50Resolved = () => { r50Resolved.textContent = t('truingSession.homework.r50Resolved', { value: angle(precisionToR50Mrad(precision.getValues())) }); };
+  const refreshR50Resolved = () => { r50Resolved.textContent = t('truingSession.homework.r50Resolved', { value: angle(radToMrad(precisionToR50(precision.getValues()))) }); };
   const precision = riflePrecisionInputs({ getPersisted, setPersisted, rigHints: false, onInput: () => { refreshR50Resolved(); onInput(); } });
   // The Arsenal value is auto-selected unless the user explicitly picked something else; a saved "This rig" pick is
   // restored here, since the rig option only exists once setRigValue() has added it.
@@ -165,7 +166,7 @@ export function homeworkAndEquipmentPanel({ cartridge, persisted, onInput }) {
       sightHeightMeasured: sightHeight.checkbox.checked,
       trackTested: trackTested.checkbox.checked,
       mvAverageChecked: mvAverageChecked.checkbox.checked,
-      r50Mrad: precisionToR50Mrad(precision.getValues()),
+      r50Mrad: radToMrad(precisionToR50(precision.getValues())),
       mvSD: mvSDField.getEngineValue(),
       muzzleVelocitySDPreset: getPersisted('muzzleVelocitySDPreset', DEFAULT_MUZZLE_VELOCITY_SD_PRESET_KEY),
       mvSdShots: getPersisted('mvSdShots', null),

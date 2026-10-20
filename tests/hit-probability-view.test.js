@@ -440,3 +440,15 @@ test('the scenario selection survives navigating away and back (unmount/remount)
   assert.equal(findById(container, 'scenario').value, 'spotterCorrected', 'scenario should survive remount');
   assert.equal(isHidden(findById(container, 'sightingShotCount')), false);
 });
+
+test('every preset of the estimation-error fields shows its own value, not one rounded away by the display precision', async () => {
+  const container = makeElement('main');
+  const unmount = hitProbabilityView.mount(container);
+  const input = findById(container, 'distanceMedianError');
+  const select = input && input.parentNode.childNodes.find((n) => n.tagName === 'SELECT');
+  assert.ok(select && input);
+  select.value = 'laser';
+  fireEvent(select, 'change');
+  assert.equal(input.value, '0.14');
+  if (typeof unmount === 'function') unmount();
+});

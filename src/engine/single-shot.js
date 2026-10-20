@@ -3,7 +3,7 @@
 // the nominal vertical offset is ~0 by construction), builds every active
 // uncertainty source's own (x,y) contribution, combines them, and returns
 // the (sdX, sdY, offsetX, offsetY) a target's own hitProbability()
-// function consumes. All linear values are m, angles are mrad — the
+// function consumes. All linear values are m, angles are rad — the
 // caller (the view) converts whatever display unit the user typed into
 // these engine units first, same as every other tool in this app.
 import { solveZeroAngle, computeImpact } from './trajectory.js';
@@ -48,10 +48,10 @@ export function computeSingleShot({
     }
   }
 
-  const { distanceMedianErrorPct, tempMedianErrorC, pressureMedianErrorPa, windMedianErrorMs, movingTarget } = conditionErrors;
+  const { distanceMedianError, tempMedianErrorC, pressureMedianErrorPa, windMedianErrorMs, movingTarget } = conditionErrors;
 
-  if (distanceMedianErrorPct) {
-    const sdMeters = probableErrorToSD(distanceMedianErrorPct / 100) * targetRange;
+  if (distanceMedianError) {
+    const sdMeters = probableErrorToSD(distanceMedianError) * targetRange;
     contributions.push({ id: 'distanceEstimation', ...rangeEstimationSD(nominalState, sdMeters, targetRange, nominalImpact) });
   }
   if (tempMedianErrorC) {
@@ -70,10 +70,10 @@ export function computeSingleShot({
     // that ever changes).
     contributions.push({ id: 'windEstimation', ...trajectoryPerturbationSD(nominalState, 'windSpeed', 0, sd, targetRange, launchAngle, nominalImpact) });
   }
-  if (movingTarget && movingTarget.speedMs && movingTarget.speedMedianErrorPct) {
+  if (movingTarget && movingTarget.speedMs && movingTarget.speedMedianError) {
     contributions.push({
       id: 'movingTarget',
-      ...movingTargetLeadSD(movingTarget.speedMs, movingTarget.speedMedianErrorPct, nominalImpact.tof)
+      ...movingTargetLeadSD(movingTarget.speedMs, movingTarget.speedMedianError, nominalImpact.tof)
     });
   }
 

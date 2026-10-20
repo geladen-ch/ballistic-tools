@@ -7,7 +7,7 @@
 // single-shot.js, not here — this module only holds the shared, reusable
 // per-source primitives.
 import { computeImpact, solveZeroAngle } from './trajectory.js';
-import { angleToLinearAtRange, mradToRad, percentToFraction } from '../quantity.js';
+import { angleToLinearAtRange } from '../quantity.js';
 
 // "Median error" as used throughout this feature's uncertainty fields is
 // the probable error (PE): the value within +/- which 50% of outcomes
@@ -76,32 +76,31 @@ export function sdToR50(sd) {
 // new convention (see r95's own addition above) rather than three.
 export const CONVENTION_TO_SD = { r50: r50ToSD, r95: r95ToSD, r99: r99ToSD, es5: es5ToSD, es10: es10ToSD };
 
-// Re-expresses a value already in mrad (the caller has already resolved
-// whatever display unit it was entered in) under a chosen convention as
-// R50 mrad — the one form an Arsenal cartridge's own rifle precision is
-// stored in, regardless of which convention the user found easiest to
-// measure/quote it in.
-export function conventionValueToR50Mrad(valueMrad, convention) {
-  return sdToR50(CONVENTION_TO_SD[convention](valueMrad));
+// Re-expresses an angular dispersion quoted under a chosen convention as
+// its R50, in the same angle unit it was given in — the one form an
+// Arsenal cartridge's own rifle precision is stored in, regardless of
+// which convention the user found easiest to measure/quote it in.
+export function conventionValueToR50(value, convention) {
+  return sdToR50(CONVENTION_TO_SD[convention](value));
 }
 
-// The one per-shot R50 (mrad) a rifle-precision input resolves to, for a consumer that wants a single isotropic
+// The one per-shot R50 (rad) a rifle-precision input resolves to, for a consumer that wants a single isotropic
 // figure (the Truing Session's group noise) rather than Hit Probability's per-axis one: the shape
 // of Hit Probability's `ownErrors` (precisionMode, detailed, simplified). Detailed adds bench rifle and shooter
 // skill in quadrature on the VERTICAL axis -- the shooter's position scales their skill by positionV -- since come-up is
 // what such a consumer reads off the target; simplified is the combined value as entered, in its own convention.
-export function precisionToR50Mrad({ precisionMode, detailed, simplified }) {
-  if (precisionMode === 'simplified') return conventionValueToR50Mrad(simplified.value, simplified.convention);
+export function precisionToR50({ precisionMode, detailed, simplified }) {
+  if (precisionMode === 'simplified') return conventionValueToR50(simplified.value, simplified.convention);
   const { benchR50, shooterR50, positionV } = detailed;
   return sdToR50(Math.hypot(r50ToSD(benchR50), r50ToSD(shooterR50) * positionV));
 }
 
-// A dispersion already expressed as an angle (mrad) — bench rifle
+// A dispersion already expressed as an angle (rad) — bench rifle
 // precision, shooter skill, the simplified combined-precision field —
 // converted to a linear SD (m) at the target range via the standard
 // small-angle definition (1 mrad subtends 1 mm per metre of range).
-export function angularSDToLinear(sdMrad, rangeM) {
-  return angleToLinearAtRange(mradToRad(sdMrad), rangeM);
+export function angularSDToLinear(sdRad, rangeM) {
+  return angleToLinearAtRange(sdRad, rangeM);
 }
 
 // Evaluates the trajectory-implied (x,y) miss at `paramName` = nominal±sd
@@ -139,13 +138,14 @@ export function rangeEstimationSD(nominalState, sd, targetRange, nominalImpact) 
 
 // A shooter leading a laterally-moving target by `estimatedSpeed * tof`
 // (correctly, for their own estimate) misses by the error in that speed
-// estimate alone: SD_x = estimatedSpeed * tof * SD(speedErrorPct), in
-// metres like every other contribution in this module.
+// estimate alone: SD_x = estimatedSpeed * tof * SD(speedError), in
+// metres like every other contribution in this module. `speedError` is
+// the median error as a fraction of the estimated speed.
 // Horizontal only — target motion is lateral-only in this model, mirroring
 // wind's own lateral-only treatment.
-export function movingTargetLeadSD(estimatedSpeed, speedErrorPct, tof) {
-  if (!estimatedSpeed || !speedErrorPct) return { x: 0, y: 0 };
-  const x = estimatedSpeed * tof * probableErrorToSD(percentToFraction(speedErrorPct));
+export function movingTargetLeadSD(estimatedSpeed, speedError, tof) {
+  if (!estimatedSpeed || !speedError) return { x: 0, y: 0 };
+  const x = estimatedSpeed * tof * probableErrorToSD(speedError);
   return { x, y: 0 };
 }
 

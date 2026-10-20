@@ -21,7 +21,7 @@ export function computeSpotterCorrected({
   nominalState, targetRange, battleZeroRange,
   aimOffsetXM = 0, aimOffsetYM = 0,
   ownErrors, conditionErrors,
-  sightingShotCount, spotterMeasureMrad
+  sightingShotCount, spotterMeasureRad
 }) {
   const zeroRange = battleZeroRange ?? targetRange;
   const launchAngle = solveZeroAngle({ ...nominalState, zeroRange });
@@ -58,9 +58,9 @@ export function computeSpotterCorrected({
   // ---- Condition-error contributions — the sighting shot only; replaced
   // entirely by the correction's own imprecision for the corrected shot. ----
   const conditionContributions = [];
-  const { distanceMedianErrorPct, tempMedianErrorC, pressureMedianErrorPa, windMedianErrorMs, movingTarget } = conditionErrors;
-  if (distanceMedianErrorPct) {
-    const sdMeters = probableErrorToSD(distanceMedianErrorPct / 100) * targetRange;
+  const { distanceMedianError, tempMedianErrorC, pressureMedianErrorPa, windMedianErrorMs, movingTarget } = conditionErrors;
+  if (distanceMedianError) {
+    const sdMeters = probableErrorToSD(distanceMedianError) * targetRange;
     conditionContributions.push({ id: 'distanceEstimation', ...rangeEstimationSD(nominalState, sdMeters, targetRange, nominalImpact) });
   }
   if (tempMedianErrorC) {
@@ -75,10 +75,10 @@ export function computeSpotterCorrected({
     const sd = probableErrorToSD(windMedianErrorMs);
     conditionContributions.push({ id: 'windEstimation', ...trajectoryPerturbationSD(nominalState, 'windSpeed', 0, sd, targetRange, launchAngle, nominalImpact) });
   }
-  if (movingTarget && movingTarget.speedMs && movingTarget.speedMedianErrorPct) {
+  if (movingTarget && movingTarget.speedMs && movingTarget.speedMedianError) {
     conditionContributions.push({
       id: 'movingTarget',
-      ...movingTargetLeadSD(movingTarget.speedMs, movingTarget.speedMedianErrorPct, nominalImpact.tof)
+      ...movingTargetLeadSD(movingTarget.speedMs, movingTarget.speedMedianError, nominalImpact.tof)
     });
   }
 
@@ -89,8 +89,8 @@ export function computeSpotterCorrected({
   // Spotter's own capacity to localize a single shot's impact — a median
   // error like every other estimation-error field, converted the same way,
   // applied equally to both axes (spotting has no inherent H/V bias).
-  const spotterLinear = spotterMeasureMrad
-    ? angularSDToLinear(probableErrorToSD(spotterMeasureMrad), targetRange)
+  const spotterLinear = spotterMeasureRad
+    ? angularSDToLinear(probableErrorToSD(spotterMeasureRad), targetRange)
     : 0;
 
   // The mean of N normally-distributed observations (each combining the

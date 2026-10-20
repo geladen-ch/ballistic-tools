@@ -16,6 +16,7 @@ import { unitField } from './unit-field.js';
 
 // The custom and rig keys live in preset-keys.js (see there); re-exported here for the field's own callers.
 import { CUSTOM_PRESET_KEY, RIG_PRESET_KEY } from './preset-keys.js';
+import { mradToRad } from '../quantity.js';
 export { CUSTOM_PRESET_KEY, RIG_PRESET_KEY };
 
 // The preset ladders both Hit Probability and Truing Session need —
@@ -27,16 +28,16 @@ export { CUSTOM_PRESET_KEY, RIG_PRESET_KEY };
 // asking, and renaming would mean re-touching all five locale files for
 // no functional gain.
 export const BENCH_PRECISION_PRESETS = [
-  { key: 'benchrest', value: 0.03 }, { key: 'supermatch', value: 0.06 }, { key: 'sniper', value: 0.09 },
-  { key: 'basic', value: 0.14 }, { key: 'dmr', value: 0.20 }, { key: 'm4m16', value: 0.32 },
-  { key: 'ak74', value: 0.39 }, { key: 'akmAk47', value: 0.53 }
+  { key: 'benchrest', value: mradToRad(0.03) }, { key: 'supermatch', value: mradToRad(0.06) }, { key: 'sniper', value: mradToRad(0.09) },
+  { key: 'basic', value: mradToRad(0.14) }, { key: 'dmr', value: mradToRad(0.20) }, { key: 'm4m16', value: mradToRad(0.32) },
+  { key: 'ak74', value: mradToRad(0.39) }, { key: 'akmAk47', value: mradToRad(0.53) }
 ];
 export const DEFAULT_BENCH_PRECISION_PRESET_KEY = 'basic';
 
-// Shooter skill as an angular R50 (mrad), on top of the rifle's own bench precision.
+// Shooter skill as an angular R50 (rad, quoted in mrad), on top of the rifle's own bench precision.
 export const SHOOTER_SKILL_PRESETS = [
-  { key: 'robot', value: 0 }, { key: 'elite', value: 0.06 }, { key: 'marksman', value: 0.12 },
-  { key: 'proficient', value: 0.24 }, { key: 'novice', value: 0.36 }
+  { key: 'robot', value: 0 }, { key: 'elite', value: mradToRad(0.06) }, { key: 'marksman', value: mradToRad(0.12) },
+  { key: 'proficient', value: mradToRad(0.24) }, { key: 'novice', value: mradToRad(0.36) }
 ];
 export const DEFAULT_SHOOTER_SKILL_PRESET_KEY = 'marksman';
 

@@ -24,13 +24,13 @@ import {
   airDensity, speedOfSound, icaoStandardPressurePa, temperatureAtHeightDelta, pressureAtAltitude,
   standardAtmosphereAt, altitudeFromPressurePa
 } from '../../src/engine/atmosphere.js';
-import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm, degToRad, radToDeg } from '../../src/quantity.js';
+import { hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm, degToRad, radToDeg, mradToRad, radToMrad } from '../../src/quantity.js';
 import { computeMillerSg, canComputeStability } from '../../src/engine/stability.js';
 import { resolveSpinDrift, spinDriftM, resolveSpinDriftMode } from '../../src/engine/spin-drift.js';
 import { computeSingleShot } from '../../src/engine/single-shot.js';
 import { computeSpotterCorrected } from '../../src/engine/spotter-corrected.js';
 import {
-  precisionToR50Mrad, conventionValueToR50Mrad, angularSDToLinear, movingTargetLeadSD, CONVENTION_TO_SD
+  precisionToR50, conventionValueToR50, angularSDToLinear, movingTargetLeadSD, CONVENTION_TO_SD
 } from '../../src/engine/dispersion-sources.js';
 import {
   estimateBC, estimateBCFromTof, estimateBCFromTimeWindow, predictVelocityAtTimes
@@ -398,8 +398,21 @@ const RENAMED_FIELDS = [
   ['aimOffsetYCm', 'aimOffsetYM', cmToM, mToCm],
   ['losAngleDeg', 'losAngleRad', degToRad, radToDeg],
   ['windAngle', 'windAngleRad', degToRad, radToDeg],
-  ['launchAngleDeg', 'launchAngleRad', degToRad, radToDeg]
+  ['launchAngleDeg', 'launchAngleRad', degToRad, radToDeg],
+  ['distanceMedianErrorPct', 'distanceMedianError', percentToFraction, fractionToPercent],
+  ['speedMedianErrorPct', 'speedMedianError', percentToFraction, fractionToPercent],
+  ['spotterMeasureMrad', 'spotterMeasureRad', mradToRad, radToMrad]
 ];
+
+// Rifle precision inputs whose unit changed but whose names did not (mrad
+// in the fixtures, rad in the engine).
+function ownErrorsToRad(own) {
+  return {
+    ...own,
+    detailed: own.detailed && { ...own.detailed, benchR50: mradToRad(own.detailed.benchR50), shooterR50: mradToRad(own.detailed.shooterR50) },
+    simplified: own.simplified && { ...own.simplified, value: mradToRad(own.simplified.value) }
+  };
+}
 // Subtrees that are stored records rather than engine input, and keep the
 // record's own units until records are migrated: a location's targets.
 const KEEP_AS_STORED = new Set(['location']);
@@ -452,8 +465,8 @@ export const RUNNERS = {
   },
   directHit: (s) => solveDirectHit(s),
   dangerZone: (s) => solveDangerZone(s),
-  singleShot: (input) => linearToCm(computeSingleShot(input)),
-  spotterCorrected: (input) => linearToCm(computeSpotterCorrected(input)),
+  singleShot: (input) => linearToCm(computeSingleShot({ ...input, ownErrors: ownErrorsToRad(input.ownErrors) })),
+  spotterCorrected: (input) => linearToCm(computeSpotterCorrected({ ...input, ownErrors: ownErrorsToRad(input.ownErrors) })),
   stability: (s) => {
     const can = canComputeStability(s);
     const sg = can ? computeMillerSg(s) : null;
@@ -486,10 +499,10 @@ export const RUNNERS = {
     return { result, aggregate: aggregateTracks([result, { ...result, bc: result.bc * 1.01 }]) };
   },
   dispersion: (i) => ({
-    r50: precisionToR50Mrad(i.precision),
-    convention: conventionValueToR50Mrad(i.valueMrad, i.convention),
-    linear: mToCm(angularSDToLinear(i.sdMrad, i.rangeM)),
-    lead: linearToCm(movingTargetLeadSD(i.speedMs, i.speedErrorPct, i.tof))
+    r50: radToMrad(precisionToR50(ownErrorsToRad(i.precision))),
+    convention: conventionValueToR50(i.valueMrad, i.convention),
+    linear: mToCm(angularSDToLinear(mradToRad(i.sdMrad), i.rangeM)),
+    lead: linearToCm(movingTargetLeadSD(i.speedMs, percentToFraction(i.speedErrorPct), i.tof))
   }),
   riflePrecision: ({ project, percent, unit }) => {
     const combined = computeCombinedStats(project);

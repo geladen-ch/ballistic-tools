@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   probableErrorToSD, r50ToSD, r95ToSD, r99ToSD, es5ToSD, es10ToSD, sdToR50,
-  CONVENTION_TO_SD, conventionValueToR50Mrad, precisionToR50Mrad,
+  CONVENTION_TO_SD, conventionValueToR50, precisionToR50,
   angularSDToLinear, trajectoryPerturbationSD, rangeEstimationSD,
   movingTargetLeadSD, combineSD
 } from '../src/engine/dispersion-sources.js';
@@ -39,14 +39,14 @@ test('CONVENTION_TO_SD exposes all five conventions, matching their own named co
   assert.equal(CONVENTION_TO_SD.es10, es10ToSD);
 });
 
-test('conventionValueToR50Mrad round-trips a value quoted as R50 unchanged', () => {
-  assert.ok(Math.abs(conventionValueToR50Mrad(0.3, 'r50') - 0.3) < 1e-9);
+test('conventionValueToR50 round-trips a value quoted as R50 unchanged', () => {
+  assert.ok(Math.abs(conventionValueToR50(0.3, 'r50') - 0.3) < 1e-9);
 });
 
-test('conventionValueToR50Mrad re-expresses a non-R50 convention as the equivalent R50', () => {
+test('conventionValueToR50 re-expresses a non-R50 convention as the equivalent R50', () => {
   // A group whose R99 is 3.0349 mrad has an SD of 1 mrad, which is also an
   // R50 of 1.1774 mrad -- same underlying dispersion, different quantile.
-  assert.ok(Math.abs(conventionValueToR50Mrad(3.0349, 'r99') - 1.1774) < 1e-6);
+  assert.ok(Math.abs(conventionValueToR50(3.0349, 'r99') - 1.1774) < 1e-6);
 });
 
 test('the ES factors match the simulation figures they are quoted from', () => {
@@ -63,7 +63,7 @@ test('the ES factors match the simulation figures they are quoted from', () => {
 });
 
 test('angularSDToLinear: 1 mrad at 1000m is 1 m (the standard "mrad at range" rule)', () => {
-  assert.ok(Math.abs(angularSDToLinear(1, 1000) - 1) < 1e-12);
+  assert.ok(Math.abs(angularSDToLinear(0.001, 1000) - 1) < 1e-12);
 });
 
 test('trajectoryPerturbationSD returns zero when sd is zero, without evaluating the trajectory', () => {
@@ -90,15 +90,15 @@ test('rangeEstimationSD is vertical-only and zero when sd is zero', () => {
   assert.ok(y > 0, 'dialing for the wrong range should produce a vertical miss');
 });
 
-test('movingTargetLeadSD matches estimatedSpeed * tof * SD(speedErrorPct) in metres, horizontal only', () => {
-  const { x, y } = movingTargetLeadSD(10, 10, 1);
+test('movingTargetLeadSD matches estimatedSpeed * tof * SD(speedError) in metres, horizontal only', () => {
+  const { x, y } = movingTargetLeadSD(10, 0.1, 1);
   const expected = 10 * 1 * probableErrorToSD(10 / 100);
   assert.ok(Math.abs(x - expected) < 1e-9);
   assert.equal(y, 0);
 });
 
 test('movingTargetLeadSD is zero when either speed or error is zero', () => {
-  assert.deepEqual(movingTargetLeadSD(0, 10, 1), { x: 0, y: 0 });
+  assert.deepEqual(movingTargetLeadSD(0, 0.1, 1), { x: 0, y: 0 });
   assert.deepEqual(movingTargetLeadSD(10, 0, 1), { x: 0, y: 0 });
 });
 
@@ -110,14 +110,14 @@ test('combineSD adds variances (sqrt of sum of squares), keeping the source list
   assert.equal(combineSD(contributions).contributions, contributions);
 });
 
-test('precisionToR50Mrad adds bench rifle and position-scaled shooter skill in quadrature on the vertical axis', () => {
+test('precisionToR50 adds bench rifle and position-scaled shooter skill in quadrature on the vertical axis', () => {
   const detailed = { benchR50: 0.3, shooterR50: 0.2, positionH: 9, positionV: 2 };
-  assert.ok(Math.abs(precisionToR50Mrad({ precisionMode: 'detailed', detailed }) - Math.hypot(0.3, 0.4)) < 1e-12);
-  assert.ok(Math.abs(precisionToR50Mrad({ precisionMode: 'detailed', detailed: { ...detailed, shooterR50: 0 } }) - 0.3) < 1e-12, 'no shooter term leaves the rifle alone');
+  assert.ok(Math.abs(precisionToR50({ precisionMode: 'detailed', detailed }) - Math.hypot(0.3, 0.4)) < 1e-12);
+  assert.ok(Math.abs(precisionToR50({ precisionMode: 'detailed', detailed: { ...detailed, shooterR50: 0 } }) - 0.3) < 1e-12, 'no shooter term leaves the rifle alone');
 });
 
-test('precisionToR50Mrad passes a simplified value through its own convention', () => {
+test('precisionToR50 passes a simplified value through its own convention', () => {
   const simplified = { value: 0.5, convention: 'r95' };
-  assert.equal(precisionToR50Mrad({ precisionMode: 'simplified', simplified }), conventionValueToR50Mrad(0.5, 'r95'));
-  assert.ok(Math.abs(precisionToR50Mrad({ precisionMode: 'simplified', simplified: { value: 0.3, convention: 'r50' } }) - 0.3) < 1e-12);
+  assert.equal(precisionToR50({ precisionMode: 'simplified', simplified }), conventionValueToR50(0.5, 'r95'));
+  assert.ok(Math.abs(precisionToR50({ precisionMode: 'simplified', simplified: { value: 0.3, convention: 'r50' } }) - 0.3) < 1e-12);
 });

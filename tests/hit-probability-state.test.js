@@ -61,3 +61,13 @@ test('aim offsets and custom target sizes are stored in cm under their field ids
   const state = fresh.loadHitProbabilityState();
   assert.deepEqual([state.aimOffsetX, state.aimOffsetY, state.circleGongDiameter, state.rectPlateWidth, state.rectPlateHeight], [0.03, -0.04, 0.25, 0.4, 0.5]);
 });
+
+test('precisions are stored in mrad and estimation errors in percent under their field ids, and read back in rad and fractions', async () => {
+  saveHitProbabilityState({ benchPrecision: 0.00014, spotterMeasure: 0.0001, distanceMedianError: 0.04, movingTargetSpeedError: 0.2 });
+  const stored = JSON.parse(getCookie(COOKIE_NAME));
+  assert.ok(Math.abs(stored.benchPrecision - 0.14) < 1e-12 && Math.abs(stored.spotterMeasure - 0.1) < 1e-12);
+  assert.ok(Math.abs(stored.distanceMedianError - 4) < 1e-12 && Math.abs(stored.movingTargetSpeedError - 20) < 1e-12);
+  const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
+  const state = fresh.loadHitProbabilityState();
+  assert.ok(Math.abs(state.benchPrecision - 0.00014) < 1e-15 && Math.abs(state.distanceMedianError - 0.04) < 1e-15);
+});
