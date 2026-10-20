@@ -166,6 +166,7 @@ const APP_SHELL_URLS = [
   './src/ui/truing-session/recheck-prompt.js',
   './src/ui/truing-session/conditions.js',
   './src/ui/truing-session/units.js',
+  './src/ui/truing-session/fit-units.js',
   './src/ui/language-switcher.js',
   './src/ui/display-mode-switch.js',
   './src/ui/muzzle-velocity-temp-field.js',

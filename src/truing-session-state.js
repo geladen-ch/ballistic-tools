@@ -20,9 +20,15 @@
 // no reason to travel to the server with every request.
 
 //
+// Stored in SI (radians, fractions); held in memory in the tool's working
+// units (mrad, percent, degrees), converted on load and on every write by
+// ui/truing-session/fit-units.js.
+//
 // Not migrated across a change of shape: state saved under an earlier key
 // (v1: hPa, percent, mrad and degrees) is dropped rather than converted,
 // so an in-progress session does not survive an update that changes it.
+import { sessionStateToStored, sessionStateFromStored } from './ui/truing-session/fit-units.js';
+
 const STORAGE_KEY = 'ballistics_truing_session_state_v2';
 const RETIRED_KEYS = ['ballistics_truing_session_state_v1'];
 
@@ -34,7 +40,7 @@ function load() {
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return sessionStateFromStored(JSON.parse(raw));
   } catch {
     // unreadable or malformed -- start afresh
   }
@@ -43,7 +49,7 @@ function load() {
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionStateToStored(state)));
   } catch {
     // best-effort -- storage full or unavailable isn't fatal
   }

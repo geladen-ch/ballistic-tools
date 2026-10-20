@@ -20,7 +20,7 @@
 import { computeImpact, makeImpactWalker, resolveLaunchAngle, resolveMuzzleVelocity, solveZeroAngle } from './trajectory.js';
 import { speedOfSound } from './atmosphere.js';
 import { r50ToSD } from './dispersion-sources.js';
-import { radToMrad, linearToAngleAtRange, degToRad, radToDeg } from '../quantity.js';
+import { radToMrad, mradToRad, linearToAngleAtRange, angleToLinearAtRange, degToRad, radToDeg, percentToFraction } from '../quantity.js';
 
 // ---- Constants and priors ----
 export const SIGMA_ROUND_MRAD = 0.1 / Math.sqrt(12); // 0.028868: a come-up known only to the nearest 0.1 mrad click
@@ -356,7 +356,7 @@ export function applyParameters(state, theta = {}) {
     // like committing a session's result to the cartridge record (see
     // truing-session/session-model.js's bcCorrectionOffer): a factor of
     // 1.05 applied twice ends at 1.05^2 / applied-again, never overwritten.
-    out.bcGainFactor = (state.bcGainFactor ?? 1) / (1 + theta.dragPct / 100);
+    out.bcGainFactor = (state.bcGainFactor ?? 1) / (1 + percentToFraction(theta.dragPct));
   }
   return out;
 }
@@ -381,7 +381,7 @@ export function predictedComeUp(appliedState, rangeM, theta = {}, targetTheta = 
   // very value already computed when the range error is zero, and is skipped when neither term is in play.
   let atBelieved = rangeErr === 0 ? base : null;
   const believed = () => (atBelieved ??= comeUpMrad(baseState, rangeM));
-  const track = theta.trackPct ? theta.trackPct * 0.01 * believed() : 0;
+  const track = theta.trackPct ? percentToFraction(theta.trackPct) * believed() : 0;
   let losTerm = 0;
   if (targetTheta.losU) {
     const deg = (targetTheta.knownLosDeg || 0) + losDegFromU(targetTheta.losU);
@@ -859,7 +859,7 @@ export function predictiveComeUpSd({ state, theta = {}, cov, params = BASE_PARAM
   return Math.sqrt(dot(col, matVec(cov, col)));
 }
 
-export const missMetres = (comeUpSdMrad, rangeM) => comeUpSdMrad * rangeM / 1000;
+export const missMetres = (comeUpSdMrad, rangeM) => angleToLinearAtRange(mradToRad(comeUpSdMrad), rangeM);
 
 // A step may go at most this many times the farthest distance a group has actually landed at. 2 stalled every session on
 // the 100/300/600 and 100/300/600/900 layouts after its first group (a 3 times gap); 3 removes those stalls and 4 leaves room for

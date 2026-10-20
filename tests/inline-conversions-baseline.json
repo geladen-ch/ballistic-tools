@@ -1,8 +1,4 @@
 {
-  "inlineConversions": [
-    "src/engine/truing-session.js: const track = theta.trackPct ? theta.trackPct * 0.01 * believed() : 0;",
-    "src/engine/truing-session.js: export const missMetres = (comeUpSdMrad, rangeM) => comeUpSdMrad * rangeM / 1000;",
-    "src/engine/truing-session.js: out.bcGainFactor = (state.bcGainFactor ?? 1) / (1 + theta.dragPct / 100);"
-  ],
+  "inlineConversions": [],
   "jsQuantitiesImporters": []
 }
