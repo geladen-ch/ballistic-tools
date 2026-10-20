@@ -1483,6 +1483,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v223": "Change: README now covers the Truing Session tool.",
       "v222": "Fix: UI polish for Truing Session tool",
       "v221": "Change: 'Current features' page brought up to date with 4.2.0 (Truing Session, trued cartridges, Backup & Sync housekeeping and device deletion).",
       "v220": "New: Truing Session tool (+ lot of bugfixes and UI enhancements)",

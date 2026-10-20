@@ -1483,6 +1483,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v223": "Modification : le README présente désormais l’outil « Session de calibrage ».",
       "v222": "Correction : finitions de l’interface de l’outil « Session de calibrage »",
       "v221": "Modification : page « Fonctionnalités actuelles » mise à jour pour la 4.2.0 (Session de calibrage, cartouches calibrées, nettoyage et suppression d’appareils dans Sauvegarde et synchronisation).",
       "v220": "Nouveau : outil « Session de calibrage » (+ de nombreuses corrections de bugs et améliorations de l’interface)",

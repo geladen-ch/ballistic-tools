@@ -1483,6 +1483,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v223": "Modifica: il README descrive ora lo strumento \"Sessione di taratura\".",
       "v222": "Correzione: rifiniture dell’interfaccia dello strumento \"Sessione di taratura\"",
       "v221": "Modifica: pagina \"Funzionalità attuali\" aggiornata alla 4.2.0 (Sessione di taratura, cartucce tarate, pulizia ed eliminazione dei dispositivi in Backup e sincronizzazione).",
       "v220": "Novità: strumento \"Sessione di taratura\" (+ molte correzioni di bug e miglioramenti dell’interfaccia)",

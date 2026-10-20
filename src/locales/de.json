@@ -1483,6 +1483,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v223": "Änderung: README beschreibt jetzt das Werkzeug „Einschieß-Sitzung“.",
       "v222": "Fix: UI-Feinschliff beim Werkzeug „Einschieß-Sitzung“",
       "v221": "Änderung: Seite „Aktuelle Funktionen“ auf den Stand von 4.2.0 gebracht (Einschieß-Sitzung, eingeschossene Patronen, Aufräumen und Löschen von Geräten in Sicherung & Synchronisierung).",
       "v220": "Neu: Werkzeug „Einschieß-Sitzung“ (+ viele Fehlerbehebungen und UI-Verbesserungen)",
