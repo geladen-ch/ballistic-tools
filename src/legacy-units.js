@@ -8,6 +8,7 @@
 // The table is append-only and frozen in meaning: a row describes what a
 // field meant in data that already exists, which never changes, so a row
 // is never edited once released.
+import { clickValueInUnit } from './units.js';
 import { converter, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm, cmToM, mToCm, degToRad, radToDeg } from './quantity.js';
 
 // [stored name, in-memory name, stored → in-memory, in-memory → stored]
@@ -88,4 +89,28 @@ export function decodeFieldValues(obj) {
 
 export function encodeFieldValues(obj) {
   return convertFieldValues(obj, 'encode');
+}
+
+// A rifle's scope click settings: in memory { unit, horizontalRad,
+// verticalRad } (unit is the turret's engraved unit, kept for display); as
+// stored, the click sizes in that unit — { unit, horizontal, vertical } in
+// the gun cookie, defaultClickUnit/Horizontal/Vertical on an Arsenal rifle.
+export function clickSettingsFromStored(stored) {
+  if (!stored) return stored;
+  const toRad = converter(stored.unit, 'rad');
+  return { unit: stored.unit, horizontalRad: toRad(stored.horizontal), verticalRad: toRad(stored.vertical) };
+}
+
+export function clickSettingsToStored(settings) {
+  if (!settings) return settings;
+  return { unit: settings.unit, horizontal: clickValueInUnit(settings.horizontalRad, settings.unit), vertical: clickValueInUnit(settings.verticalRad, settings.unit) };
+}
+
+export function clickSettingsFromRifleRecord(rifle) {
+  return clickSettingsFromStored({ unit: rifle.defaultClickUnit, horizontal: rifle.defaultClickHorizontal, vertical: rifle.defaultClickVertical });
+}
+
+export function clickSettingsToRifleRecord(settings) {
+  const stored = clickSettingsToStored(settings);
+  return { defaultClickUnit: stored.unit, defaultClickHorizontal: stored.horizontal, defaultClickVertical: stored.vertical };
 }

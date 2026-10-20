@@ -104,3 +104,12 @@ test('the gun cookie keeps the rifle\'s stored field names and units (mm), and r
   assert.equal(fresh.loadRifleState().sightHeightM, 0.07);
   assert.equal(fresh.loadRifleState().riflingTwistM, 0.27);
 });
+
+test('the gun cookie keeps click values in the turret\'s unit, and reads them back in radians', async () => {
+  saveRifleState({ clicks: { unit: 'arcmin', horizontalRad: Math.PI / 43200, verticalRad: Math.PI / 43200 } });
+  assert.deepEqual(JSON.parse(getCookie('ballistics_gun_state_v1')).rifle.clicks, { unit: 'arcmin', horizontal: 0.25, vertical: 0.25 });
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
+  const clicks = fresh.loadRifleState().clicks;
+  assert.equal(clicks.unit, 'arcmin');
+  assert.ok(Math.abs(clicks.verticalRad - Math.PI / 43200) < 1e-15);
+});

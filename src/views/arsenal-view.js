@@ -39,6 +39,7 @@ import { exportChartSvg } from '../chart-svg-export.js';
 import { downloadFile } from '../download.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
+import { clickSettingsFromRifleRecord } from '../legacy-units.js';
 
 const ALL_VALUE = '__all__';
 
@@ -427,7 +428,7 @@ export function mount(container) {
   }
 
   function clickSettingsFor(rifle) {
-    return { horizontal: rifle.defaultClickHorizontal, vertical: rifle.defaultClickVertical, unit: rifle.defaultClickUnit };
+    return clickSettingsFromRifleRecord(rifle);
   }
 
   function rifleTwistM(rifle) {

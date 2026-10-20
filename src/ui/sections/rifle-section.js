@@ -1,6 +1,7 @@
 import { el, clear } from '../../dom.js';
 import { FIELD_BOUNDS } from '../../units.js';
-import { decodeLegacy } from '../../legacy-units.js';
+import { decodeLegacy, clickSettingsFromRifleRecord, clickSettingsToRifleRecord } from '../../legacy-units.js';
+import { mradToRad } from '../../quantity.js';
 import { unitField } from '../unit-field.js';
 import { scopeClicksField } from '../scope-clicks-field.js';
 import { sectionGroup } from '../section.js';
@@ -19,7 +20,7 @@ const OTHER_VALUE = '__other__';
 // (zeroRange/clicks/twistDirection already matched K31 before this).
 const DEFAULT_STATE = {
   zeroRange: 100, sightHeightM: 0.07, riflingTwistM: 0.25, twistDirection: 'right',
-  clicks: { unit: 'mrad', horizontal: 0.1, vertical: 0.1 }, library: null
+  clicks: { unit: 'mrad', horizontalRad: mradToRad(0.1), verticalRad: mradToRad(0.1) }, library: null
 };
 
 function currentUserRifles() {
@@ -226,11 +227,7 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
     sightHeightField.setEngineValue(rifle.defaultSightHeightM);
     twistField.setEngineValue(rifle.defaultRiflingTwistM ?? null);
     twistDirectionSelect.value = rifle.defaultTwistDirection || 'right'; // older/built-in records predating this field default to "right"
-    clicks.setSettings({
-      unit: rifle.defaultClickUnit,
-      horizontal: rifle.defaultClickHorizontal,
-      vertical: rifle.defaultClickVertical
-    });
+    clicks.setSettings(clickSettingsFromRifleRecord(rifle));
     saveManualRifle(); // the rifle's defaults become the new shared session baseline too
 
     clear(cartridgeSelect);
@@ -323,16 +320,13 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
   // sight height/zero/clicks are always available since they're plain
   // editable fields regardless of selection.
   function getArsenalPrefill() {
-    const clickSettings = clicks.getSettings();
     return {
       name: selectedRifle ? selectedRifle.name : '',
       defaultSightHeightM: sightHeightField.getEngineValue(),
       defaultZeroRangeM: zeroRangeField.getEngineValue(),
       defaultRiflingTwistM: twistField.getEngineValue(),
       defaultTwistDirection: twistDirectionSelect.value,
-      defaultClickUnit: clickSettings.unit,
-      defaultClickHorizontal: clickSettings.horizontal,
-      defaultClickVertical: clickSettings.vertical
+      ...clickSettingsToRifleRecord(clicks.getSettings())
     };
   }
 

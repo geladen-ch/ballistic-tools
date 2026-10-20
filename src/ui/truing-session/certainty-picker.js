@@ -3,9 +3,9 @@
 // default; the engine turns the level into the reading's sigma (half the half-width).
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { convertAngularValue } from '../../units.js';
 import { CERTAINTY_HALF_WIDTH_MRAD, DEFAULT_CERTAINTY_KEY } from '../../engine/truing-session.js';
 import { angle } from './units.js';
+import { radToMrad } from '../../quantity.js';
 
 // Returns { node, getLevelKey, setLevel }.
 export function certaintyPicker({ initialKey = DEFAULT_CERTAINTY_KEY, onInput } = {}) {
@@ -30,11 +30,9 @@ export function certaintyPicker({ initialKey = DEFAULT_CERTAINTY_KEY, onInput } 
 }
 
 export function verticalClickMradFrom(rifleSectionInstance) {
-  const settings = rifleSectionInstance.getClickSettings();
-  return convertAngularValue(settings.vertical, settings.unit, 'mrad');
+  return radToMrad(rifleSectionInstance.getClickSettings().verticalRad);
 }
 
 export function horizontalClickMradFrom(rifleSectionInstance) {
-  const settings = rifleSectionInstance.getClickSettings();
-  return convertAngularValue(settings.horizontal, settings.unit, 'mrad');
+  return radToMrad(rifleSectionInstance.getClickSettings().horizontalRad);
 }

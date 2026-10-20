@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
 import { warmCatalogs } from './helpers/warm-catalogs.js';
-import { degToRad } from '../src/quantity.js';
+import { degToRad, mradToRad } from '../src/quantity.js';
 
 installFakeDom();
 
@@ -60,7 +60,7 @@ test('rifleSection exposes zeroRange and sightHeight in engine units', () => {
 test('rifleSection also exposes scope click settings, independent of getValues()', () => {
   const rifle = rifleSection();
   const clickSettings = rifle.getClickSettings();
-  assert.deepEqual(clickSettings, { unit: 'mrad', horizontal: 0.1, vertical: 0.1 });
+  assert.deepEqual(clickSettings, { unit: 'mrad', horizontalRad: mradToRad(0.1), verticalRad: mradToRad(0.1) });
   // click settings must never leak into the engine-facing payload
   assert.equal('unit' in rifle.getValues(), false);
 });

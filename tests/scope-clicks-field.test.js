@@ -7,7 +7,16 @@ installFakeDom();
 const { initI18n } = await import('../src/i18n.js');
 await initI18n();
 
-const { scopeClicksField } = await import('../src/ui/scope-clicks-field.js');
+const { scopeClicksField: scopeClicksFieldRad } = await import('../src/ui/scope-clicks-field.js');
+const { clickSettingsToStored, clickSettingsFromStored } = await import('../src/legacy-units.js');
+
+// The field speaks radians ({ unit, horizontalRad, verticalRad }); these
+// tests are written in the turret's own unit, through the same stored-form
+// conversion the app uses (which rounds back to the turret's 3 decimals).
+function scopeClicksField(options) {
+  const field = scopeClicksFieldRad(options);
+  return { ...field, getSettings: () => clickSettingsToStored(field.getSettings()), setSettings: (s) => field.setSettings(clickSettingsFromStored(s)) };
+}
 
 function findByTag(node, tag, out = []) {
   if (node.tagName === tag) out.push(node);

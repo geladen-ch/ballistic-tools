@@ -20,7 +20,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, engineToDisplay, displayToEngine, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
+import { clicksForOffset, convertAngularValue, engineToDisplay, displayToEngine, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
@@ -41,7 +41,7 @@ import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
-import { fractionToPercent, degToRad } from '../quantity.js';
+import { fractionToPercent, degToRad, linearToAngleAtRange } from '../quantity.js';
 
 const DEFAULT_LOS_ANGLE_RAD = 0;
 const DEFAULT_WIND_ANGLE_RAD = Math.PI / 2; // full crosswind from the right
@@ -611,16 +611,16 @@ export function mount(container) {
     let decimals;
     if (outputUnit === 'clicks') {
       const clickSettings = rifle.getClickSettings();
-      elevValue = Math.round(-clicksForOffset(result.dropM, clickSettings.vertical, clickSettings.unit, targetRangeM));
-      windValue = Math.round(clicksForOffset(result.windageM, clickSettings.horizontal, clickSettings.unit, targetRangeM));
+      elevValue = Math.round(-clicksForOffset(result.dropM, clickSettings.verticalRad, targetRangeM));
+      windValue = Math.round(clicksForOffset(result.windageM, clickSettings.horizontalRad, targetRangeM));
       decimals = 0;
     } else {
       // Click value of 1 in the fixed angular unit — same trick
       // trajectory-columns.js's own elevMrad/elevMOA columns use, sidestepping
       // the rifle's own scope click value entirely.
       const angularUnit = OUTPUT_ANGULAR_UNIT[outputUnit];
-      elevValue = -clicksForOffset(result.dropM, 1, angularUnit, targetRangeM);
-      windValue = clicksForOffset(result.windageM, 1, angularUnit, targetRangeM);
+      elevValue = -convertAngularValue(linearToAngleAtRange(result.dropM, targetRangeM), 'rad', angularUnit);
+      windValue = convertAngularValue(linearToAngleAtRange(result.windageM, targetRangeM), 'rad', angularUnit);
       decimals = 1;
     }
     if (![elevValue, windValue].every(Number.isFinite)) return null;

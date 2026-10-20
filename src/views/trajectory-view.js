@@ -7,9 +7,9 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { columnToggles } from '../ui/column-toggles.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
-import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, clicksForOffset, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
+import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
-import { degToRad, radToDeg, radToMrad, angleToLinearAtRange } from '../quantity.js';
+import { degToRad, radToDeg, radToMrad, angleToLinearAtRange, linearToAngleAtRange } from '../quantity.js';
 import { getUnit } from '../prefs.js';
 import { sectionGroup } from '../ui/section.js';
 import { loadColumnVisibility, saveColumnVisibility } from '../table-columns.js';
@@ -491,7 +491,7 @@ export function mount(container) {
     if (!points.length) return;
     const peak = points.reduce((best, p) => (p.dropM > best.dropM ? p : best), points[0]);
     const peakHeightDisplay = toDisplayUnit('smallLength', peak.dropM);
-    const peakAngular = clicksForOffset(peak.dropM, 1, angleUnit, peak.range);
+    const peakAngular = convertAngularValue(linearToAngleAtRange(peak.dropM, peak.range), 'rad', angleUnit);
     peakHeightValue.textContent = `${peakHeightDisplay.toFixed(1)} ${smallLengthChoice.label} (${peakAngular.toFixed(2)} ${angleChoice.label})`;
     const peakDistanceDisplay = engineToDisplay('range', peak.range, distanceUnit);
     peakDistanceValue.textContent = `${peakDistanceDisplay.toFixed(RANGE_DECIMALS)} ${distanceChoice.label}`;
@@ -528,7 +528,7 @@ export function mount(container) {
     }
     const angleDiffRad = result.launchAngleRad - lastLaunchAngleRad;
     const clickSettings = rifle.getClickSettings();
-    const clicks = convertAngularValue(angleDiffRad, 'rad', clickSettings.unit) / clickSettings.vertical;
+    const clicks = angleDiffRad / clickSettings.verticalRad;
     directHitElevationClicksValue.textContent = `${clicks >= 0 ? '+' : ''}${clicks.toFixed(1)}`;
     const absoluteM = angleToLinearAtRange(angleDiffRad, result.zeroDistanceM);
     const absoluteDisplay = toDisplayUnit('smallLength', absoluteM);

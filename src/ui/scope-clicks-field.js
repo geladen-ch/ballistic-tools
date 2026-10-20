@@ -1,22 +1,26 @@
 import { el } from '../dom.js';
-import { CLICK_UNITS, convertAngularValue, FIELD_BOUNDS } from '../units.js';
+import { CLICK_UNITS, CLICK_VALUE_DECIMALS, clickValueInUnit, convertAngularValue, FIELD_BOUNDS } from '../units.js';
+import { converter } from '../quantity.js';
 import { i18nSpan, t } from '../i18n.js';
 import { fieldValidity } from './field-validity.js';
 
 const DEFAULT_UNIT = 'mrad';
 const DEFAULT_VALUE = 0.1;
-const DECIMALS = 3;
+const DECIMALS = CLICK_VALUE_DECIMALS;
 
 function round(value) {
   const factor = 10 ** DECIMALS;
   return Math.round(value * factor) / factor;
 }
 
-// Horizontal and vertical scope click values, in a unit chosen right on
+// Horizontal and vertical scope click values, shown in a unit chosen right on
 // this field — deliberately separate from the app-wide unit preferences
 // (see units.js). One shared unit selector governs both the horizontal
 // and vertical values; switching it converts the two numbers so the
 // physical click size is preserved rather than silently reinterpreted.
+// getSettings()/setSettings() speak radians ({ unit, horizontalRad,
+// verticalRad }); the unit is the turret's, kept so the values show the
+// way the turret is engraved.
 export function scopeClicksField({ onInput } = {}) {
   const unitSelect = el(
     'select',
@@ -93,25 +97,27 @@ export function scopeClicksField({ onInput } = {}) {
   ]);
 
   function getSettings() {
+    const toRad = converter(unitSelect.value, 'rad');
     return {
       unit: unitSelect.value,
-      horizontal: isValidRaw(horizontalInput.value) ? parseFloat(horizontalInput.value) : lastValidHorizontal,
-      vertical: isValidRaw(verticalInput.value) ? parseFloat(verticalInput.value) : lastValidVertical
+      horizontalRad: toRad(isValidRaw(horizontalInput.value) ? parseFloat(horizontalInput.value) : lastValidHorizontal),
+      verticalRad: toRad(isValidRaw(verticalInput.value) ? parseFloat(verticalInput.value) : lastValidVertical)
     };
   }
 
   // Programmatic write path (e.g. a library rifle's default click values)
   // — doesn't fire onInput itself, same convention as unitField's
-  // setEngineValue. Values are already in `unit`, exactly as entered here
-  // normally (no app-wide unit preference involved — see the module
-  // comment above).
-  function setSettings({ unit, horizontal, vertical }) {
+  // setEngineValue. Shown in `unit` (no app-wide unit preference
+  // involved — see the module comment above).
+  function setSettings({ unit, horizontalRad, verticalRad }) {
     unitSelect.value = unit;
     currentUnit = unit;
-    horizontalInput.value = String(round(horizontal));
-    verticalInput.value = String(round(vertical));
-    lastValidHorizontal = round(horizontal);
-    lastValidVertical = round(vertical);
+    const horizontal = clickValueInUnit(horizontalRad, unit);
+    const vertical = clickValueInUnit(verticalRad, unit);
+    horizontalInput.value = String(horizontal);
+    verticalInput.value = String(vertical);
+    lastValidHorizontal = horizontal;
+    lastValidVertical = vertical;
   }
 
   return {

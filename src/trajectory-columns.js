@@ -8,6 +8,7 @@
 import { clicksForOffset, engineToDisplay } from './units.js';
 import { getUnit } from './prefs.js';
 import { toDisplayUnit } from './display-units.js';
+import { radToMrad, radToMoa, linearToAngleAtRange } from './quantity.js';
 
 // `value` returns the raw number (a table's own rendering derives its
 // displayed text from it; a chart plots it directly) given the engine
@@ -20,10 +21,8 @@ import { toDisplayUnit } from './display-units.js';
 // (excluded from chart-column-select.js's plot picker, which expects a
 // plottable number) and `formatText: true` (the table renders its
 // `value()` result as-is, skipping the usual `.toFixed(decimals)`).
-// The mrad/MOA columns reuse clicksForOffset() with a click value of 1:
-// dividing an offset by "1 unit's worth of cm at this range" is exactly
-// the angular correction in that unit, independent of whatever click
-// value the scope actually has.
+// The mrad/MOA columns are the offset's angle at its range in that unit,
+// independent of whatever click value the scope actually has.
 // showLineOfSight marks the four columns that plot the bullet's vertical
 // position relative to the line of sight (drop itself, plus its click/
 // mrad/MOA correction forms) — see trajectory-view.js's/arsenal-view.js's
@@ -41,12 +40,12 @@ export const COLUMNS = [
   // "dial up N clicks to compensate," so a bullet that's dropped below
   // the line of sight (dropM negative) should show as a positive click
   // correction, not a negative one.
-  { id: 'elevClicks', headerKey: 'trajectory.colElevClicks', default: true, decimals: 1, showLineOfSight: true, value: (p, ctx) => -clicksForOffset(p.dropM, ctx.clickSettings.vertical, ctx.clickSettings.unit, p.range) },
-  { id: 'windClicks', headerKey: 'trajectory.colWindClicks', default: true, decimals: 1, value: (p, ctx) => clicksForOffset(p.windageM, ctx.clickSettings.horizontal, ctx.clickSettings.unit, p.range) },
-  { id: 'elevMrad', headerKey: 'trajectory.colElevMrad', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropM, 1, 'mrad', p.range) },
-  { id: 'windMrad', headerKey: 'trajectory.colWindMrad', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageM, 1, 'mrad', p.range) },
-  { id: 'elevMOA', headerKey: 'trajectory.colElevMOA', default: false, decimals: 2, showLineOfSight: true, value: (p) => clicksForOffset(p.dropM, 1, 'arcmin', p.range) },
-  { id: 'windMOA', headerKey: 'trajectory.colWindMOA', default: false, decimals: 2, value: (p) => clicksForOffset(p.windageM, 1, 'arcmin', p.range) },
+  { id: 'elevClicks', headerKey: 'trajectory.colElevClicks', default: true, decimals: 1, showLineOfSight: true, value: (p, ctx) => -clicksForOffset(p.dropM, ctx.clickSettings.verticalRad, p.range) },
+  { id: 'windClicks', headerKey: 'trajectory.colWindClicks', default: true, decimals: 1, value: (p, ctx) => clicksForOffset(p.windageM, ctx.clickSettings.horizontalRad, p.range) },
+  { id: 'elevMrad', headerKey: 'trajectory.colElevMrad', default: false, decimals: 2, showLineOfSight: true, value: (p) => radToMrad(linearToAngleAtRange(p.dropM, p.range)) },
+  { id: 'windMrad', headerKey: 'trajectory.colWindMrad', default: false, decimals: 2, value: (p) => radToMrad(linearToAngleAtRange(p.windageM, p.range)) },
+  { id: 'elevMOA', headerKey: 'trajectory.colElevMOA', default: false, decimals: 2, showLineOfSight: true, value: (p) => radToMoa(linearToAngleAtRange(p.dropM, p.range)) },
+  { id: 'windMOA', headerKey: 'trajectory.colWindMOA', default: false, decimals: 2, value: (p) => radToMoa(linearToAngleAtRange(p.windageM, p.range)) },
   // Converted through the user's velocity unit preference the same way
   // `energy` converts through the energy preference below — getUnit() is
   // read fresh on every call for the same reason.

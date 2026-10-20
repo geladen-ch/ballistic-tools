@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { angularUnitToLinearAtRange, convertAngularValue, clicksForOffset } from '../src/units.js';
+import { mradToRad, linearToAngleAtRange, radToMrad, radToMoa } from '../src/quantity.js';
 
 test('1 mrad subtends 10cm at 100m (the classic shooter\'s rule)', () => {
   assert.ok(Math.abs(angularUnitToLinearAtRange('mrad', 100) - 0.1) < 1e-12);
@@ -29,30 +30,25 @@ test('convertAngularValue is a no-op when units match', () => {
 
 test('clicksForOffset: -30cm drop at 300m with 0.1 mrad/click needs 10 clicks', () => {
   // 0.1 mrad/click -> 0.1 * 30cm(cm-per-mrad-at-300m) = 3cm per click
-  const clicks = clicksForOffset(-0.3, 0.1, 'mrad', 300);
+  const clicks = clicksForOffset(-0.3, mradToRad(0.1), 300);
   assert.ok(Math.abs(clicks - -10) < 1e-9, `got ${clicks}`);
 });
 
 test('clicksForOffset returns 0 rather than Infinity/NaN for a zero click value or range', () => {
-  assert.equal(clicksForOffset(-0.3, 0, 'mrad', 300), 0);
-  assert.equal(clicksForOffset(-0.3, 0.1, 'mrad', 0), 0);
+  assert.equal(clicksForOffset(-0.3, 0, 300), 0);
+  assert.equal(clicksForOffset(-0.3, mradToRad(0.1), 0), 0);
 });
 
 test('a coarser click value needs fewer clicks for the same offset', () => {
-  const fineClicks = Math.abs(clicksForOffset(-0.3, 0.1, 'mrad', 300));
-  const coarseClicks = Math.abs(clicksForOffset(-0.3, 0.5, 'mrad', 300));
+  const fineClicks = Math.abs(clicksForOffset(-0.3, mradToRad(0.1), 300));
+  const coarseClicks = Math.abs(clicksForOffset(-0.3, mradToRad(0.5), 300));
   assert.ok(coarseClicks < fineClicks);
 });
 
-test('clicksForOffset with a click value of 1 gives the raw angular correction (used by the mrad/MOA table columns)', () => {
-  // -30cm at 300m is 10cm-per-mrad-at-300m * 3 = "3 mrad" of drop, and
-  // roughly 3/0.29088... MOA — this is exactly what the trajectory
-  // table's Elev(mrad)/Elev(MOA) columns compute, independent of the
-  // scope's actual click value.
-  const mrad = clicksForOffset(-0.3, 1, 'mrad', 300);
-  assert.ok(Math.abs(mrad - -1) < 1e-9, `got ${mrad}`); // -30cm / 30cm-per-mrad-at-300m
-
-  const moa = clicksForOffset(-0.3, 1, 'arcmin', 300);
-  const expectedMoa = -0.3 / angularUnitToLinearAtRange('arcmin', 300);
-  assert.ok(Math.abs(moa - expectedMoa) < 1e-9);
+test('the raw angular correction of an offset (the trajectory table\'s mrad/MOA columns) is its angle at its range', () => {
+  // -30cm at 300m subtends 1 mrad (10 cm per mrad at 100 m, 30 cm at 300 m).
+  assert.ok(Math.abs(radToMrad(linearToAngleAtRange(-0.3, 300)) - -1) < 1e-9);
+  assert.ok(Math.abs(radToMoa(linearToAngleAtRange(-0.3, 300)) - -0.3 / angularUnitToLinearAtRange('arcmin', 300)) < 1e-9);
+  // one click of 1 mrad is the same thing in clicks
+  assert.ok(Math.abs(clicksForOffset(-0.3, mradToRad(1), 300) - -1) < 1e-9);
 });

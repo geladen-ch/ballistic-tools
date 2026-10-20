@@ -440,6 +440,18 @@ export const CLICK_UNITS = [
   { unit: 'arcmin', label: 'MOA' }
 ];
 
+// A click value is defined to this many decimals in its turret's own unit
+// (0.1 mrad, 0.25 MOA, 0.125 MOA) — so a click size held in radians always
+// comes back to its engraved figure exactly when rounded to it.
+export const CLICK_VALUE_DECIMALS = 3;
+
+// A click size in radians, back in its turret's unit, rounded to the
+// precision click values are defined to.
+export function clickValueInUnit(clickRad, unit) {
+  const factor = 10 ** CLICK_VALUE_DECIMALS;
+  return Math.round(converter('rad', unit)(clickRad) * factor) / factor;
+}
+
 export function convertAngularValue(value, fromUnit, toUnit) {
   if (fromUnit === toUnit) return value;
   return converter(fromUnit, toUnit)(value);
@@ -451,11 +463,11 @@ export function angularUnitToLinearAtRange(unit, rangeM) {
   return angleToLinearAtRange(converter(unit, 'rad')(1), rangeM);
 }
 
-// How many scope clicks of `clickValue` (in `unit`) are needed to correct
-// a lateral offset of `offsetM` at `rangeM`. Guards against Infinity/NaN
-// reaching the UI if the click value or range is zero.
-export function clicksForOffset(offsetM, clickValue, unit, rangeM) {
-  if (!clickValue || rangeM <= 0) return 0;
-  const metresPerClick = clickValue * angularUnitToLinearAtRange(unit, rangeM);
+// How many scope clicks of `clickRad` (a click's size, in radians) are
+// needed to correct a lateral offset of `offsetM` at `rangeM`. Guards
+// against Infinity/NaN reaching the UI if the click value or range is zero.
+export function clicksForOffset(offsetM, clickRad, rangeM) {
+  if (!clickRad || rangeM <= 0) return 0;
+  const metresPerClick = angleToLinearAtRange(clickRad, rangeM);
   return metresPerClick === 0 ? 0 : offsetM / metresPerClick;
 }

@@ -15,6 +15,7 @@ const { rifleSection } = await import('../src/ui/sections/rifle-section.js');
 const { isRifleLibraryEnabled, setRifleLibraryEnabled } = await import('../src/library-prefs.js');
 const { resetShotStateForTests } = await import('../src/shot-state.js');
 const { saveUserRifle } = await import('../src/user-library.js');
+const { clickSettingsToStored } = await import('../src/legacy-units.js');
 
 // Shared shot state is a module-level singleton (by design — see
 // shot-state.js), so each test needs a clean slate the same way
@@ -99,7 +100,7 @@ test('selecting a library rifle pre-fills zeroRange/sightHeight/click settings a
   await settle();
 
   assert.deepEqual(rifle.getValues(), { zeroRange: 100, sightHeightM: 0.045 }); // 0.045m -> 45mm
-  assert.deepEqual(rifle.getClickSettings(), { unit: 'mrad', horizontal: 0.1, vertical: 0.1 });
+  assert.deepEqual(clickSettingsToStored(rifle.getClickSettings()), { unit: 'mrad', horizontal: 0.1, vertical: 0.1 });
 
   const cartridgeSelect = byId(rifle.node, 'rifleCartridgeSelect');
   assert.equal(cartridgeSelect.parentNode.style.display, '');
@@ -325,7 +326,7 @@ test('a user Arsenal rifle appears in the picker, prefixed "* ", and pre-fills f
   await settle();
 
   assert.deepEqual(rifle.getValues(), { zeroRange: 150, sightHeightM: 0.06 });
-  assert.deepEqual(rifle.getClickSettings(), { unit: 'arcmin', horizontal: 0.25, vertical: 0.25 });
+  assert.deepEqual(clickSettingsToStored(rifle.getClickSettings()), { unit: 'arcmin', horizontal: 0.25, vertical: 0.25 });
 });
 
 test('the picker is visible for a user rifle even when the built-in library is switched off', async () => {
