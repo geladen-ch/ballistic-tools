@@ -463,6 +463,11 @@ export function mount(container) {
   // updateDirectHitPane() to report how far the direct-hit solve's own
   // (generally different) zero angle sits from it.
   let lastLaunchAngleDeg = null;
+  // The direct-hit solve and the trajectory run as separate worker jobs, so
+  // either can finish first; the last direct-hit result is kept so the
+  // elevation rows can be filled in once the zero angle they are measured
+  // from arrives, instead of staying blank until the next input.
+  let lastDirectHitResult = null;
 
   const infoCard = el('div', { class: 'card' }, [
     el('h2', { i18n: 'trajectory.infoHeading' }),
@@ -479,6 +484,7 @@ export function mount(container) {
 
   function updateInfoPane(points, launchAngleDeg) {
     lastLaunchAngleDeg = launchAngleDeg;
+    if (lastDirectHitResult) updateDirectHitPane(lastDirectHitResult);
     const angleDisplay = convertAngularValue(launchAngleDeg, 'deg', angleUnit);
     zeroAngleValue.textContent = `${launchAngleDeg.toFixed(3)}° (${angleDisplay.toFixed(2)} ${angleChoice.label})`;
 
@@ -501,6 +507,7 @@ export function mount(container) {
   // zero distance is display-side work, same as every other unit
   // conversion on this page.
   function updateDirectHitPane(result) {
+    lastDirectHitResult = result;
     if (!result || result.maxDirectHitDistanceM == null) {
       directHitMaxDistanceValue.textContent = '—';
       directHitZeroDistanceValue.textContent = '—';
