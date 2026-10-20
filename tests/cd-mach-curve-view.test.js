@@ -16,7 +16,7 @@ const { removeCookie } = await import('../src/cookies.js');
 
 test.beforeEach(() => {
   resetCdMachCurveStateForTests();
-  removeCookie('ballistics_cd_mach_curve_state_v1');
+  removeCookie('ballistics_cd_mach_curve_state_v2');
   takePendingBulletPrefill(); // clear any leftover from another test file
 });
 

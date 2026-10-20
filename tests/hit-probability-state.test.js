@@ -8,13 +8,15 @@ installFakeDom();
 const {
   loadHitProbabilityState, saveHitProbabilityState, resetHitProbabilityStateForTests
 } = await import('../src/hit-probability-state.js');
-const { getCookie, removeCookie } = await import('../src/cookies.js');
+const { getCookie, setCookie, removeCookie } = await import('../src/cookies.js');
 
-const COOKIE_NAME = 'ballistics_hit_probability_state_v1';
+const COOKIE_NAME = 'ballistics_hit_probability_state_v2';
+const V1_COOKIE_NAME = 'ballistics_hit_probability_state_v1';
 
 test.beforeEach(() => {
   resetHitProbabilityStateForTests();
   removeCookie(COOKIE_NAME);
+  removeCookie(V1_COOKIE_NAME);
 });
 
 test('starts out null (nothing restored on a first-ever visit)', () => {
@@ -46,28 +48,34 @@ test('resetHitProbabilityStateForTests() clears the saved state in memory (not t
   assert.equal(loadHitProbabilityState(), null);
 });
 
-test('the pressure estimation error is stored in hPa under its field id, and read back in Pa', async () => {
-  saveHitProbabilityState({ pressureMedianError: 700, pressureMedianErrorPreset: 'byAltitude' });
-  assert.equal(JSON.parse(getCookie(COOKIE_NAME)).pressureMedianError, 7);
-  const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
-  assert.equal(fresh.loadHitProbabilityState().pressureMedianError, 700);
+test('field values are stored as held in memory, in their engine units', () => {
+  const state = { pressureMedianError: 700, aimOffsetX: 0.03, benchPrecision: 0.00014, distanceMedianError: 0.04 };
+  saveHitProbabilityState(state);
+  assert.deepEqual(JSON.parse(getCookie(COOKIE_NAME)), state);
+  assert.equal(getCookie(V1_COOKIE_NAME), null, 'the v1 cookie is never written');
 });
 
-test('aim offsets and custom target sizes are stored in cm under their field ids, and read back in metres', async () => {
-  saveHitProbabilityState({ aimOffsetX: 0.03, aimOffsetY: -0.04, circleGongDiameter: 0.25, rectPlateWidth: 0.4, rectPlateHeight: 0.5 });
-  const stored = JSON.parse(getCookie(COOKIE_NAME));
-  assert.deepEqual([stored.aimOffsetX, stored.aimOffsetY, stored.circleGongDiameter, stored.rectPlateWidth, stored.rectPlateHeight], [3, -4, 25, 40, 50]);
+test('a v1 cookie (cm, mrad, hPa, percent under the same field ids) is converted once into v2, and left in place', async () => {
+  const v1 = {
+    pressureMedianError: 7, pressureMedianErrorPreset: 'byAltitude', aimOffsetX: 3, aimOffsetY: -4, circleGongDiameter: 25, rectPlateWidth: 40, rectPlateHeight: 50,
+    benchPrecision: 0.14, spotterMeasure: 0.1, distanceMedianError: 4, movingTargetSpeedError: 20, simulationShots: 1000
+  };
+  setCookie(V1_COOKIE_NAME, JSON.stringify(v1));
   const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
   const state = fresh.loadHitProbabilityState();
-  assert.deepEqual([state.aimOffsetX, state.aimOffsetY, state.circleGongDiameter, state.rectPlateWidth, state.rectPlateHeight], [0.03, -0.04, 0.25, 0.4, 0.5]);
+  const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-15, `${a} != ${b}`);
+  assert.equal(state.pressureMedianError, 700);
+  assert.equal(state.pressureMedianErrorPreset, 'byAltitude');
+  assert.equal(state.simulationShots, 1000);
+  [[state.aimOffsetX, 0.03], [state.aimOffsetY, -0.04], [state.circleGongDiameter, 0.25], [state.rectPlateWidth, 0.4], [state.rectPlateHeight, 0.5],
+    [state.benchPrecision, 0.00014], [state.spotterMeasure, 0.0001], [state.distanceMedianError, 0.04], [state.movingTargetSpeedError, 0.2]].forEach(([a, b]) => close(a, b));
+  assert.deepEqual(JSON.parse(getCookie(COOKIE_NAME)), state, 'written under v2 straight away');
+  assert.deepEqual(JSON.parse(getCookie(V1_COOKIE_NAME)), v1, 'v1 kept for a rollback');
 });
 
-test('precisions are stored in mrad and estimation errors in percent under their field ids, and read back in rad and fractions', async () => {
-  saveHitProbabilityState({ benchPrecision: 0.00014, spotterMeasure: 0.0001, distanceMedianError: 0.04, movingTargetSpeedError: 0.2 });
-  const stored = JSON.parse(getCookie(COOKIE_NAME));
-  assert.ok(Math.abs(stored.benchPrecision - 0.14) < 1e-12 && Math.abs(stored.spotterMeasure - 0.1) < 1e-12);
-  assert.ok(Math.abs(stored.distanceMedianError - 4) < 1e-12 && Math.abs(stored.movingTargetSpeedError - 20) < 1e-12);
+test('a v2 cookie wins over a v1 one', async () => {
+  setCookie(V1_COOKIE_NAME, JSON.stringify({ aimOffsetX: 3 }));
+  setCookie(COOKIE_NAME, JSON.stringify({ aimOffsetX: 0.05 }));
   const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
-  const state = fresh.loadHitProbabilityState();
-  assert.ok(Math.abs(state.benchPrecision - 0.00014) < 1e-15 && Math.abs(state.distanceMedianError - 0.04) < 1e-15);
+  assert.equal(fresh.loadHitProbabilityState().aimOffsetX, 0.05);
 });

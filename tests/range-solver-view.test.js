@@ -432,7 +432,7 @@ test('Target/Wind/Atmosphere inputs persist across unmount/remount via range-sol
   fireEvent(windSpeedInput, 'input');
 
   cleanup();
-  assert.ok(getCookie('ballistics_range_solver_state_v1'), 'expected the state cookie to be written');
+  assert.ok(getCookie('ballistics_range_solver_state_v2'), 'expected the state cookie to be written');
 
   const container2 = makeElement('main');
   cleanup = rangeSolverView.mount(container2);

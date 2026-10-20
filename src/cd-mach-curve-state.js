@@ -9,32 +9,23 @@
 // (the pasted velocity table, mass/caliber, table unit system and output
 // options — everything else the view shows, restored so navigating away
 // and back doesn't lose what was typed in).
-import { getCookie, setCookie } from './cookies.js';
-import { decodeLegacy, encodeLegacy } from './legacy-units.js';
+import { decodeLegacy } from './legacy-units.js';
+import { loadVersionedCookie, saveCookieState } from './versioned-cookie.js';
 
-const COOKIE_NAME = 'ballistics_cd_mach_curve_state_v1';
+// Stored in SI, as held in memory; v1 (pressure in hPa, humidity in
+// percent) is converted once on first load.
+const COOKIE_NAME = 'ballistics_cd_mach_curve_state_v2';
+const LEGACY_COOKIE_NAME = 'ballistics_cd_mach_curve_state_v1';
+
+const fromV1 = (stored) => ({ ...stored, atmosphere: decodeLegacy(stored.atmosphere), inputs: decodeLegacy(stored.inputs) });
 
 function load() {
-  try {
-    const raw = getCookie(COOKIE_NAME);
-    if (raw) {
-      const stored = JSON.parse(raw);
-      return { ...stored, atmosphere: decodeLegacy(stored.atmosphere), inputs: decodeLegacy(stored.inputs) };
-    }
-  } catch {
-    // malformed cookie — fall through to defaults
-  }
-  return { atmosphere: null, inputs: null };
+  const stored = loadVersionedCookie({ name: COOKIE_NAME, legacyName: LEGACY_COOKIE_NAME, fromLegacy: fromV1 });
+  return { atmosphere: null, inputs: null, ...stored };
 }
 
-// In memory in internal units; the cookie keeps the stored names and units
-// (legacy-units.js).
 function persist() {
-  try {
-    setCookie(COOKIE_NAME, JSON.stringify({ ...state, atmosphere: encodeLegacy(state.atmosphere), inputs: encodeLegacy(state.inputs) }));
-  } catch {
-    // best-effort — losing persistence isn't fatal
-  }
+  saveCookieState(COOKIE_NAME, state);
 }
 
 let state = load();

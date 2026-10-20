@@ -9,34 +9,23 @@
 // save writes the whole thing back" shape shot-state.js's own gun cookie
 // uses — each save merges into whatever's already there so touching one
 // slice never clobbers the others.
-import { getCookie, setCookie } from './cookies.js';
-import { decodeLegacy, encodeLegacy } from './legacy-units.js';
+import { decodeLegacy } from './legacy-units.js';
+import { loadVersionedCookie, saveCookieState } from './versioned-cookie.js';
 
-const COOKIE_NAME = 'ballistics_range_solver_state_v1';
+// Stored in SI, as held in memory; v1 (angles in degrees, pressure in hPa,
+// humidity in percent) is converted once on first load.
+const COOKIE_NAME = 'ballistics_range_solver_state_v2';
+const LEGACY_COOKIE_NAME = 'ballistics_range_solver_state_v1';
+
+const fromV1 = (stored) => ({ ...stored, target: decodeLegacy(stored.target), wind: decodeLegacy(stored.wind), atmosphere: decodeLegacy(stored.atmosphere) });
 
 function load() {
-  try {
-    const raw = getCookie(COOKIE_NAME);
-    if (raw) {
-      const stored = JSON.parse(raw);
-      return { ...stored, target: decodeLegacy(stored.target), wind: decodeLegacy(stored.wind), atmosphere: decodeLegacy(stored.atmosphere) };
-    }
-  } catch {
-    // malformed cookie — fall through to defaults
-  }
-  return { target: null, wind: null, atmosphere: null, location: null };
+  const stored = loadVersionedCookie({ name: COOKIE_NAME, legacyName: LEGACY_COOKIE_NAME, fromLegacy: fromV1 });
+  return { target: null, wind: null, atmosphere: null, location: null, ...stored };
 }
 
-// In memory every slice is in internal units; the cookie keeps the stored
-// field names and units (legacy-units.js).
 function persist() {
-  try {
-    setCookie(COOKIE_NAME, JSON.stringify({
-      ...state, target: encodeLegacy(state.target), wind: encodeLegacy(state.wind), atmosphere: encodeLegacy(state.atmosphere)
-    }));
-  } catch {
-    // best-effort — losing persistence isn't fatal
-  }
+  saveCookieState(COOKIE_NAME, state);
 }
 
 let state = load();

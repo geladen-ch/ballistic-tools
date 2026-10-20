@@ -237,7 +237,7 @@ test('the default 6 result columns remain visible out of the box', () => {
 
 test('Max Range / Range Step / Line of sight angle survive navigating away and back (re-mounting into a fresh container)', async () => {
   const { resetTrajectoryStateForTests } = await import('../src/trajectory-state.js');
-  removeCookie('ballistics_trajectory_state_v1');
+  removeCookie('ballistics_trajectory_state_v2');
   resetTrajectoryStateForTests();
 
   const container1 = makeElement('main');
@@ -269,7 +269,7 @@ test('Max Range / Range Step / Line of sight angle survive navigating away and b
   // own "defaults to 1000/100/0" assertions elsewhere) don't inherit this
   // test's own saved values via the shared cookie.
   resetTrajectoryStateForTests();
-  removeCookie('ballistics_trajectory_state_v1');
+  removeCookie('ballistics_trajectory_state_v2');
 });
 
 test('nav and the trajectory page itself are labeled "Trajectory", not "Trajectory Table"', () => {

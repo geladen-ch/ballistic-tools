@@ -17,36 +17,28 @@
 // outright — e.g. BC Estimator's atmosphere has no wind fields, and a
 // save from there must not erase a windSpeed/windAngle a wind-aware view
 // stored earlier.
-import { getCookie, setCookie, removeCookie } from './cookies.js';
-import { decodeLegacy, encodeLegacy, clickSettingsFromStored, clickSettingsToStored } from './legacy-units.js';
+import { removeCookie } from './cookies.js';
+import { decodeLegacy, clickSettingsFromStored } from './legacy-units.js';
+import { loadVersionedCookie, saveCookieState } from './versioned-cookie.js';
 
-const GUN_COOKIE_NAME = 'ballistics_gun_state_v1';
+// Stored in SI, as held in memory; v1 (sight height and twist in mm,
+// click sizes in the turret's unit) is converted once on first load.
+const GUN_COOKIE_NAME = 'ballistics_gun_state_v2';
+const LEGACY_GUN_COOKIE_NAME = 'ballistics_gun_state_v1';
+
+function gunStateFromV1(stored) {
+  const rifle = decodeLegacy(stored.rifle ?? null);
+  if (rifle && rifle.clicks) rifle.clicks = clickSettingsFromStored(rifle.clicks);
+  return { cartridge: decodeLegacy(stored.cartridge ?? null), rifle };
+}
 
 function loadGunCookie() {
-  try {
-    const raw = getCookie(GUN_COOKIE_NAME);
-    if (raw) {
-      const stored = JSON.parse(raw);
-      const rifle = decodeLegacy(stored.rifle ?? null);
-      if (rifle && rifle.clicks) rifle.clicks = clickSettingsFromStored(rifle.clicks);
-      return { cartridge: decodeLegacy(stored.cartridge ?? null), rifle };
-    }
-  } catch {
-    // malformed cookie value — fall through to defaults
-  }
-  return { cartridge: null, rifle: null };
+  const stored = loadVersionedCookie({ name: GUN_COOKIE_NAME, legacyName: LEGACY_GUN_COOKIE_NAME, fromLegacy: gunStateFromV1 });
+  return { cartridge: stored?.cartridge ?? null, rifle: stored?.rifle ?? null };
 }
 
 function saveGunCookie() {
-  try {
-    // In memory in internal units; the cookie keeps the stored names and
-    // units (legacy-units.js).
-    const rifle = encodeLegacy(rifleState);
-    if (rifle && rifle.clicks) rifle.clicks = clickSettingsToStored(rifle.clicks);
-    setCookie(GUN_COOKIE_NAME, JSON.stringify({ cartridge: encodeLegacy(cartridgeState), rifle }));
-  } catch {
-    // best-effort — losing persistence isn't fatal
-  }
+  saveCookieState(GUN_COOKIE_NAME, { cartridge: cartridgeState, rifle: rifleState });
 }
 
 const initialGunState = loadGunCookie();
@@ -91,6 +83,7 @@ export function resetShotStateForTests() {
   atmosphereState = null;
   try {
     removeCookie(GUN_COOKIE_NAME);
+    removeCookie(LEGACY_GUN_COOKIE_NAME);
   } catch {
     // best-effort
   }

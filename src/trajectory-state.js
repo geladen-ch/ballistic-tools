@@ -5,27 +5,20 @@
 // part of the shared shot config (cartridge/rifle/atmosphere already
 // persist on their own — see shot-state.js), so they get their own
 // small state module rather than being folded into that one.
-import { getCookie, setCookie } from './cookies.js';
-import { decodeLegacy, encodeLegacy } from './legacy-units.js';
+import { decodeLegacy } from './legacy-units.js';
+import { loadVersionedCookie, saveCookieState } from './versioned-cookie.js';
 
-const COOKIE_NAME = 'ballistics_trajectory_state_v1';
+// Stored in SI, as held in memory; v1 (angle in degrees, target height in
+// cm) is converted once on first load.
+const COOKIE_NAME = 'ballistics_trajectory_state_v2';
+const LEGACY_COOKIE_NAME = 'ballistics_trajectory_state_v1';
 
 function load() {
-  try {
-    const raw = getCookie(COOKIE_NAME);
-    if (raw) return decodeLegacy(JSON.parse(raw));
-  } catch {
-    // malformed cookie — fall through to defaults
-  }
-  return null;
+  return loadVersionedCookie({ name: COOKIE_NAME, legacyName: LEGACY_COOKIE_NAME, fromLegacy: decodeLegacy });
 }
 
 function persist() {
-  try {
-    setCookie(COOKIE_NAME, JSON.stringify(encodeLegacy(state))); // stored names and units: legacy-units.js
-  } catch {
-    // best-effort — losing persistence isn't fatal
-  }
+  saveCookieState(COOKIE_NAME, state);
 }
 
 let state = load();

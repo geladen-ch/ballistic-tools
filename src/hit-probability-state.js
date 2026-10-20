@@ -6,27 +6,22 @@
 // panelState holds. Rifle/cartridge/atmosphere are deliberately NOT here:
 // those are the shared active gun configuration and already persist on
 // their own via shot-state.js.
-import { getCookie, setCookie } from './cookies.js';
-import { decodeFieldValues, encodeFieldValues } from './legacy-units.js';
+import { decodeFieldValues } from './legacy-units.js';
+import { loadVersionedCookie, saveCookieState } from './versioned-cookie.js';
 
-const COOKIE_NAME = 'ballistics_hit_probability_state_v1';
+// Keyed by field id, each value in its field's engine unit (SI, see
+// units.js's FIELD_UNITS). In v1 the same keys held other units (cm, mrad,
+// hPa, percent) -- converted once on first load, key by key, through
+// legacy-units.js's frozen table, never through the live FIELD_UNITS.
+const COOKIE_NAME = 'ballistics_hit_probability_state_v2';
+const LEGACY_COOKIE_NAME = 'ballistics_hit_probability_state_v1';
 
 function load() {
-  try {
-    const raw = getCookie(COOKIE_NAME);
-    if (raw) return decodeFieldValues(JSON.parse(raw));
-  } catch {
-    // malformed cookie — fall through to defaults
-  }
-  return null;
+  return loadVersionedCookie({ name: COOKIE_NAME, legacyName: LEGACY_COOKIE_NAME, fromLegacy: decodeFieldValues });
 }
 
 function persist() {
-  try {
-    setCookie(COOKIE_NAME, JSON.stringify(encodeFieldValues(state))); // stored units: legacy-units.js
-  } catch {
-    // best-effort — losing persistence isn't fatal
-  }
+  saveCookieState(COOKIE_NAME, state);
 }
 
 let state = load();

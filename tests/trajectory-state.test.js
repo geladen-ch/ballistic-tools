@@ -9,13 +9,15 @@ installFakeDom();
 const {
   loadTrajectoryInputsState, saveTrajectoryInputsState, resetTrajectoryStateForTests
 } = await import('../src/trajectory-state.js');
-const { getCookie, removeCookie } = await import('../src/cookies.js');
+const { getCookie, setCookie, removeCookie } = await import('../src/cookies.js');
 
-const COOKIE_NAME = 'ballistics_trajectory_state_v1';
+const COOKIE_NAME = 'ballistics_trajectory_state_v2';
+const V1_COOKIE_NAME = 'ballistics_trajectory_state_v1';
 
 test.beforeEach(() => {
   resetTrajectoryStateForTests();
   removeCookie(COOKIE_NAME);
+  removeCookie(V1_COOKIE_NAME);
 });
 
 test('starts out null (nothing restored on a first-ever visit)', () => {
@@ -47,9 +49,16 @@ test('resetTrajectoryStateForTests() clears the saved state in memory (not the c
   assert.equal(loadTrajectoryInputsState(), null);
 });
 
-test('the target height is stored in cm under its stored name, and read back in metres', async () => {
-  saveTrajectoryInputsState({ targetHeightM: 0.5 });
-  assert.equal(JSON.parse(getCookie(COOKIE_NAME)).targetHeightCm, 50);
+test('the target height and angle are stored in SI, as in memory', () => {
+  saveTrajectoryInputsState({ targetHeightM: 0.5, losAngleRad: 0.1 });
+  assert.deepEqual(JSON.parse(getCookie(COOKIE_NAME)), { targetHeightM: 0.5, losAngleRad: 0.1 });
+});
+
+test('a v1 cookie (cm, degrees) is converted once into v2, and left in place', async () => {
+  const v1 = { maxRange: 1200, targetHeightCm: 50, losAngleDeg: 10 };
+  setCookie(V1_COOKIE_NAME, JSON.stringify(v1));
   const fresh = await import(`../src/trajectory-state.js?reload=${freshId()}`);
-  assert.equal(fresh.loadTrajectoryInputsState().targetHeightM, 0.5);
+  assert.deepEqual(fresh.loadTrajectoryInputsState(), { maxRange: 1200, targetHeightM: 0.5, losAngleRad: degToRad(10) });
+  assert.deepEqual(JSON.parse(getCookie(COOKIE_NAME)), fresh.loadTrajectoryInputsState());
+  assert.deepEqual(JSON.parse(getCookie(V1_COOKIE_NAME)), v1);
 });

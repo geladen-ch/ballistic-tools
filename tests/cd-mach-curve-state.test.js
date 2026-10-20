@@ -10,13 +10,15 @@ const {
   loadCdMachCurveInputsState, saveCdMachCurveInputsState,
   resetCdMachCurveStateForTests
 } = await import('../src/cd-mach-curve-state.js');
-const { getCookie, removeCookie } = await import('../src/cookies.js');
+const { getCookie, setCookie, removeCookie } = await import('../src/cookies.js');
 
-const COOKIE_NAME = 'ballistics_cd_mach_curve_state_v1';
+const COOKIE_NAME = 'ballistics_cd_mach_curve_state_v2';
+const V1_COOKIE_NAME = 'ballistics_cd_mach_curve_state_v1';
 
 test.beforeEach(() => {
   resetCdMachCurveStateForTests();
   removeCookie(COOKIE_NAME);
+  removeCookie(V1_COOKIE_NAME);
 });
 
 test('defaults to genuine ICAO standard atmosphere at sea level, including humidity', () => {
@@ -98,17 +100,20 @@ test('resetCdMachCurveStateForTests() clears the inputs slice too (not the cooki
   assert.equal(loadCdMachCurveInputsState(), null);
 });
 
-test('the cookie keeps the stored field names and units, and a cookie from an earlier build reads back in internal units', async () => {
+test('the cookie holds the atmosphere in SI, as in memory', () => {
   saveCdMachCurveAtmosphereState({ tempC: 7, pressurePa: 92530, humidity: 0.2 });
-  const stored = JSON.parse(getCookie(COOKIE_NAME));
-  assert.equal(stored.atmosphere.pressureHpa, 925.3);
-  assert.equal(stored.atmosphere.humidityPct, 20);
-  assert.equal(stored.atmosphere.pressurePa, undefined);
+  assert.deepEqual(JSON.parse(getCookie(COOKIE_NAME)).atmosphere, { tempC: 7, pressurePa: 92530, humidity: 0.2 });
+  assert.equal(getCookie(V1_COOKIE_NAME), null);
+});
 
-  const { setCookie } = await import('../src/cookies.js');
-  setCookie(COOKIE_NAME, JSON.stringify({ atmosphere: { tempC: 3, pressureHpa: 990, humidityPct: 55 }, inputs: null }));
+test('a v1 cookie (hPa, percent) is converted once into v2, and left in place', async () => {
+  const v1 = { atmosphere: { tempC: 3, pressureHpa: 990, humidityPct: 55 }, inputs: { tableUnits: 'metric' } };
+  setCookie(V1_COOKIE_NAME, JSON.stringify(v1));
   const fresh = await import(`../src/cd-mach-curve-state.js?reload=${freshId()}`);
   const atmosphere = fresh.loadCdMachCurveAtmosphereState();
   assert.equal(atmosphere.pressurePa, 99000);
   assert.equal(atmosphere.humidity, 0.55);
+  assert.deepEqual(fresh.loadCdMachCurveInputsState(), { tableUnits: 'metric' });
+  assert.deepEqual(JSON.parse(getCookie(COOKIE_NAME)).atmosphere, { tempC: 3, pressurePa: 99000, humidity: 0.55 });
+  assert.deepEqual(JSON.parse(getCookie(V1_COOKIE_NAME)), v1);
 });

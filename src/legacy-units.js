@@ -1,9 +1,11 @@
 // The boundary between how values are held in memory (each quantity
 // kind's internal unit — see quantity.js) and how earlier builds stored
-// them: cookies, localStorage, IndexedDB records and export files all
-// still use the old field names and units. Every field that changed unit
-// also changed name, so a stored object is read and written through this
-// one table rather than by hand at each call site.
+// them. Synced records (localStorage, IndexedDB) and export files still
+// use the old field names and units and are read and written through
+// these tables; the per-device cookies are stored in SI under v2 names and
+// use them only to convert a v1 cookie once (versioned-cookie.js). Every
+// field that changed unit also changed name, so a stored object goes
+// through one table rather than being converted by hand at each call site.
 //
 // The table is append-only and frozen in meaning: a row describes what a
 // field meant in data that already exists, which never changes, so a row

@@ -11,7 +11,10 @@ const {
   loadAtmosphereState, saveAtmosphereState,
   resetShotStateForTests
 } = await import('../src/shot-state.js');
-const { getCookie } = await import('../src/cookies.js');
+const { getCookie, setCookie } = await import('../src/cookies.js');
+
+const GUN_COOKIE = 'ballistics_gun_state_v2';
+const V1_GUN_COOKIE = 'ballistics_gun_state_v1';
 
 test.beforeEach(() => resetShotStateForTests());
 
@@ -56,7 +59,7 @@ test('resetShotStateForTests() clears every slice back to null', () => {
 test('saving the rifle or cartridge slice writes a cookie', () => {
   saveRifleState({ zeroRange: 150 });
   saveCartridgeState({ muzzleVelocity: 820 });
-  const raw = getCookie('ballistics_gun_state_v1');
+  const raw = getCookie(GUN_COOKIE);
   assert.ok(raw, 'expected a gun-state cookie to be written');
   assert.deepEqual(JSON.parse(raw), { cartridge: { muzzleVelocity: 820 }, rifle: { zeroRange: 150 } });
 });
@@ -79,37 +82,39 @@ test('atmosphere state does NOT survive a fresh module load — session-only, un
 test('resetShotStateForTests() also clears the cookie itself, not just the in-memory mirror', async () => {
   saveRifleState({ zeroRange: 150 });
   resetShotStateForTests();
-  assert.equal(getCookie('ballistics_gun_state_v1'), null);
+  assert.equal(getCookie(GUN_COOKIE), null);
 
   const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
   assert.equal(fresh.loadRifleState(), null);
 });
 
 test('a malformed cookie value falls back to defaults rather than throwing', async () => {
-  const { setCookie } = await import('../src/cookies.js');
-  setCookie('ballistics_gun_state_v1', 'not valid json');
+  setCookie(GUN_COOKIE, 'not valid json');
   const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
   assert.equal(fresh.loadRifleState(), null);
   assert.equal(fresh.loadCartridgeState(), null);
   resetShotStateForTests();
 });
 
-test('the gun cookie keeps the rifle\'s stored field names and units (mm), and reads them back in metres', async () => {
-  saveRifleState({ sightHeightM: 0.07, riflingTwistM: 0.27, zeroRange: 100 });
-  const stored = JSON.parse(getCookie('ballistics_gun_state_v1'));
-  assert.equal(stored.rifle.sightHeight, 70);
-  assert.equal(stored.rifle.riflingTwist, 270);
-  assert.equal(stored.rifle.sightHeightM, undefined);
-  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
-  assert.equal(fresh.loadRifleState().sightHeightM, 0.07);
-  assert.equal(fresh.loadRifleState().riflingTwistM, 0.27);
+test('the gun cookie holds the rifle in SI, clicks in radians with the turret unit beside them', () => {
+  const clicks = { unit: 'arcmin', horizontalRad: Math.PI / 43200, verticalRad: Math.PI / 43200 };
+  saveRifleState({ sightHeightM: 0.07, riflingTwistM: 0.27, zeroRange: 100, clicks });
+  assert.deepEqual(JSON.parse(getCookie(GUN_COOKIE)).rifle, { sightHeightM: 0.07, riflingTwistM: 0.27, zeroRange: 100, clicks });
+  assert.equal(getCookie(V1_GUN_COOKIE), null);
 });
 
-test('the gun cookie keeps click values in the turret\'s unit, and reads them back in radians', async () => {
-  saveRifleState({ clicks: { unit: 'arcmin', horizontalRad: Math.PI / 43200, verticalRad: Math.PI / 43200 } });
-  assert.deepEqual(JSON.parse(getCookie('ballistics_gun_state_v1')).rifle.clicks, { unit: 'arcmin', horizontal: 0.25, vertical: 0.25 });
+test('a v1 gun cookie (mm, clicks in the turret unit) is converted once into v2, and left in place', async () => {
+  const v1 = { cartridge: { muzzleVelocity: 800 }, rifle: { sightHeight: 70, riflingTwist: 270, zeroRange: 100, clicks: { unit: 'arcmin', horizontal: 0.25, vertical: 0.25 } } };
+  setCookie(V1_GUN_COOKIE, JSON.stringify(v1));
   const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
-  const clicks = fresh.loadRifleState().clicks;
-  assert.equal(clicks.unit, 'arcmin');
-  assert.ok(Math.abs(clicks.verticalRad - Math.PI / 43200) < 1e-15);
+  const rifle = fresh.loadRifleState();
+  assert.equal(rifle.sightHeightM, 0.07);
+  assert.equal(rifle.riflingTwistM, 0.27);
+  assert.equal(rifle.clicks.unit, 'arcmin');
+  assert.ok(Math.abs(rifle.clicks.verticalRad - Math.PI / 43200) < 1e-15);
+  assert.ok(!('sightHeight' in rifle) && !('horizontal' in rifle.clicks));
+  assert.deepEqual(fresh.loadCartridgeState(), { muzzleVelocity: 800 });
+  assert.deepEqual(JSON.parse(getCookie(GUN_COOKIE)), { cartridge: { muzzleVelocity: 800 }, rifle });
+  assert.deepEqual(JSON.parse(getCookie(V1_GUN_COOKIE)), v1);
+  resetShotStateForTests();
 });

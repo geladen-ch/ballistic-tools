@@ -13,7 +13,7 @@ const { resetHitProbabilityStateForTests } = await import('../src/hit-probabilit
 const { removeCookie } = await import('../src/cookies.js');
 const hitProbabilityView = await import('../src/views/hit-probability-view.js');
 
-const HIT_PROBABILITY_COOKIE_NAME = 'ballistics_hit_probability_state_v1';
+const HIT_PROBABILITY_COOKIE_NAME = 'ballistics_hit_probability_state_v2';
 
 // This view's async initialization (fetching the target's result SVG and
 // parsing it via DOMParser) needs real browser APIs the fake-dom test
