@@ -88,3 +88,14 @@ test('resetRangeSolverStateForTests() clears every slice in memory (not the cook
   assert.equal(loadRangeSolverTargetState(), null);
   assert.equal(wasAtmosphereTouchedThisSession(), false);
 });
+
+test('the atmosphere is stored under its stored field names and units, and a cookie from an earlier build reads back in internal units', async () => {
+  saveRangeSolverAtmosphereState({ tempC: 12, pressurePa: 95000, humidity: 0.4 });
+  const stored = JSON.parse(getCookie(COOKIE_NAME));
+  assert.deepEqual(stored.atmosphere, { tempC: 12, pressureHpa: 950, humidityPct: 40 });
+
+  const { setCookie } = await import('../src/cookies.js');
+  setCookie(COOKIE_NAME, JSON.stringify({ target: null, wind: null, atmosphere: { pressureHpa: 1001, humidityPct: 10 }, location: null }));
+  const fresh = await import(`../src/range-solver-state.js?reload=${freshId()}`);
+  assert.deepEqual(fresh.loadRangeSolverAtmosphereState(), { pressurePa: 100100, humidity: 0.1 });
+});

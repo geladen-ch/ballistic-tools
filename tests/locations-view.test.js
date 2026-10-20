@@ -228,10 +228,10 @@ test('an altitude on the newly-activated location defaults the atmosphere to sta
 
   const expected = standardAtmosphereAt(800);
   const stored = loadRangeSolverAtmosphereState();
-  assert.equal(stored.humidityPct, 50);
+  assert.equal(stored.humidity, 0.5);
   assert.equal(stored.altitudeM, 800);
   assert.equal(stored.tempC, expected.tempC);
-  assert.equal(stored.pressureHpa, expected.pressureHpa);
+  assert.equal(stored.pressurePa, expected.pressurePa);
   assert.equal(stored.atmospherePreset, 'custom');
   assert.ok(loc.altitudeM === 800); // sanity: this is the location we expect
 });

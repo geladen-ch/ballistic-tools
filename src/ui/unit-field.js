@@ -86,7 +86,9 @@ export function unitField({ id, min, max, step, value, slider = false, isSpan = 
   // the translated span — a language switch shouldn't need to know about
   // unit symbols, and re-translating the span must never clobber it.
   const labelSpan = i18nSpan('fields.' + id);
-  const unitSuffix = choice ? document.createTextNode(` (${choice.label})`) : null;
+  // A fixed group (src/units.js) has nothing to choose, and its fields'
+  // translated labels already carry the unit.
+  const unitSuffix = choice && !group.fixed ? document.createTextNode(` (${choice.label})`) : null;
   const labelChildren = [labelSpan, unitSuffix, ...(slider ? [number] : [])].filter(Boolean);
 
   const inputRow = before && !slider ? el('div', { class: 'preset-row' }, [before, number]) : number;

@@ -10,7 +10,7 @@ const baseState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
   maxRange: 1000, rangeStep: 100, zeroRange: 100, sightHeight: 50,
   windSpeed: 0, windAngle: 90,
-  tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0
+  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };
 
 test('zero angle sends the trajectory through the sight line at zeroRange', () => {
@@ -245,7 +245,7 @@ test('an inclined shot (uphill or downhill) drops less than a level shot at the 
 // The zero is always solved flat (losAngleDeg 0) and in calm air, in the
 // cartridge's zero atmosphere when it names one — the shot's own incline and
 // wind never move it (they show up in that shot's come-up instead).
-const coldHighAir = { tempC: -10, pressureHpa: 850, humidityPct: 20, altitudeM: 1400 };
+const coldHighAir = { tempC: -10, pressurePa: 85000, humidity: 0.2, altitudeM: 1400 };
 
 test('resolveLaunchAngle: the zero angle ignores the shot\'s line-of-sight angle (uphill and downhill alike)', () => {
   const flat = solveZeroAngle(baseState);
@@ -271,9 +271,9 @@ test('resolveLaunchAngle: the zero angle ignores the shot\'s wind', () => {
 });
 
 test('resolveLaunchAngle: a zero atmosphere replaces the shot\'s own air for the zero solve only', () => {
-  const state = { ...baseState, zeroRange: 300, tempC: 30, pressureHpa: 1000, zeroAtmosphere: coldHighAir };
+  const state = { ...baseState, zeroRange: 300, tempC: 30, pressurePa: 100000, zeroAtmosphere: coldHighAir };
   const inZeroAir = solveZeroAngle({ ...baseState, zeroRange: 300, ...coldHighAir });
-  const inShotAir = solveZeroAngle({ ...baseState, zeroRange: 300, tempC: 30, pressureHpa: 1000 });
+  const inShotAir = solveZeroAngle({ ...baseState, zeroRange: 300, tempC: 30, pressurePa: 100000 });
   assert.notEqual(inZeroAir, inShotAir, 'the two airs must give different zeros for this test to mean anything');
   assert.equal(resolveLaunchAngle(state), inZeroAir);
   // the shot itself is still flown in its own air: same angle, different air, different impact
@@ -313,7 +313,7 @@ test('solveHorizontalZeroAngle is solved in the same flat, calm zero state: the 
   assert.equal(solveHorizontalZeroAngle({ ...state, losAngleDeg: 30, windSpeed: 6, windAngle: 90 }), flatCalm);
 });
 
-test('the same real station pressure gives identical density at the muzzle regardless of site elevation — pressureHpa is taken at face value, never sea-level-corrected', () => {
+test('the same real station pressure gives identical density at the muzzle regardless of site elevation — pressurePa is taken at face value, never sea-level-corrected', () => {
   const seaLevel = integrate(baseState);
   const highSite = integrate({ ...baseState, altitudeM: 2000 });
   assert.equal(seaLevel.points[0].mach, highSite.points[0].mach);
@@ -497,7 +497,7 @@ test('regression: full bullet data with neither calculateSpinDrift nor spinDrift
 test('makeImpactWalker: every range comes out bit for bit as computeImpact gives it, in any order, for any state', () => {
   const states = [
     baseState,
-    { ...baseState, windSpeed: 6, windAngle: 45, tempC: -5, pressureHpa: 930, altitudeM: 800, humidityPct: 60 },
+    { ...baseState, windSpeed: 6, windAngle: 45, tempC: -5, pressurePa: 93000, altitudeM: 800, humidity: 0.6 },
     { ...baseState, losAngleDeg: 25 }, { ...baseState, losAngleDeg: -30, muzzleVelocity: 600 },
     { ...baseState, dragModel: 'G7', bc: 0.25, muzzleVelocity: 790, zeroRange: 300 },
     { ...baseState, launchAngle: 0.0031 }, { ...baseState, muzzleVelocity: 320 } // never reaches the far ranges quickly

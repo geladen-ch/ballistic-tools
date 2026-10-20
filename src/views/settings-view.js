@@ -46,7 +46,7 @@ export function mount(container) {
     changeLanguage(languageSelect.value);
   });
 
-  const unitRows = Object.entries(UNIT_GROUPS).map(([groupKey, group]) => {
+  const unitRows = Object.entries(UNIT_GROUPS).filter(([, group]) => !group.fixed).map(([groupKey, group]) => {
     const select = el(
       'select',
       { id: 'unit-' + groupKey },

@@ -5,10 +5,10 @@ import { windDirectionDial } from '../wind-direction-dial.js';
 import { windControl } from '../wind-control.js';
 import { sectionGroup } from '../section.js';
 import { loadAtmosphereState, saveAtmosphereState } from '../../shot-state.js';
-import { standardAtmosphereAt, altitudeFromPressureHpa } from '../../engine/atmosphere.js';
+import { standardAtmosphereAt, altitudeFromPressurePa } from '../../engine/atmosphere.js';
 
 const DEFAULTS = {
-  windSpeed: 0, windAngle: 90, tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50,
+  windSpeed: 0, windAngle: 90, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
   atmospherePreset: 'custom'
 };
 
@@ -19,8 +19,8 @@ const DEFAULTS = {
 // "custom" ("Real conditions") is the synthetic "you edited something by
 // hand" state, same convention as hit-probability-view.js's own presets.
 const ATMOSPHERE_PRESETS = {
-  swiss: { tempC: 7, pressureHpa: 925.3, humidityPct: 0 },
-  soviet: { tempC: 15, pressureHpa: 1000, humidityPct: 50 }
+  swiss: { tempC: 7, pressurePa: 92530, humidity: 0 },
+  soviet: { tempC: 15, pressurePa: 100000, humidity: 0.5 }
 };
 
 // Ambient conditions. `includeWind: false` drops the wind fields for
@@ -115,8 +115,8 @@ export function atmosphereSection({
   // sea-level-referenced reading. 0.01 step (not the usual whole hPa) so
   // the preset reference values (925.3, 1013.25) are exactly reachable by
   // hand too.
-  const pressureField = unitField({ id: 'pressureHpa', ...FIELD_BOUNDS.pressureHpa, step: 0.01, value: initial.pressureHpa, slider, onInput: markCustom });
-  const humidityField = unitField({ id: 'humidityPct', ...FIELD_BOUNDS.humidityPct, step: 5, value: initial.humidityPct, slider, onInput: markCustom });
+  const pressureField = unitField({ id: 'pressure', ...FIELD_BOUNDS.pressure, step: 1, value: initial.pressurePa, slider, onInput: markCustom });
+  const humidityField = unitField({ id: 'humidity', ...FIELD_BOUNDS.humidity, step: 0.05, value: initial.humidity, slider, onInput: markCustom });
   // Only ever a real, user-typed input under the "Standard atmosphere"
   // preset — elsewhere it's hidden and altitudeM is instead back-derived
   // from the station pressure (see getValues()). Same bound as
@@ -136,9 +136,9 @@ export function atmosphereSection({
   // of its own, so it's pinned to 0%, matching the ICAO standard
   // atmosphere's own dry-air definition.
   function applyStandardFromAltitude() {
-    const { tempC, pressureHpa } = standardAtmosphereAt(altitudeField.getEngineValue());
+    const { tempC, pressurePa } = standardAtmosphereAt(altitudeField.getEngineValue());
     tempField.setEngineValue(tempC);
-    pressureField.setEngineValue(pressureHpa);
+    pressureField.setEngineValue(pressurePa);
     humidityField.setEngineValue(0);
     handleChange();
   }
@@ -168,8 +168,8 @@ export function atmosphereSection({
       } else {
         const preset = ATMOSPHERE_PRESETS[currentPreset];
         tempField.setEngineValue(preset.tempC);
-        pressureField.setEngineValue(preset.pressureHpa);
-        humidityField.setEngineValue(preset.humidityPct);
+        pressureField.setEngineValue(preset.pressurePa);
+        humidityField.setEngineValue(preset.humidity);
         handleChange();
       }
       updateAltitudeVisibility();
@@ -196,15 +196,15 @@ export function atmosphereSection({
     // trajectory.js's own in-flight altitude-drift correction.
     const altitudeM = currentPreset === 'standard'
       ? altitudeField.getEngineValue()
-      : altitudeFromPressureHpa(pressureField.getEngineValue());
+      : altitudeFromPressurePa(pressureField.getEngineValue());
     return {
       ...(combinedWind
         ? { windSpeed: windCombined.getEngineSpeed(), windAngle: windCombined.getAngle() }
         : includeWind ? { windSpeed: windSpeedField.getEngineValue(), windAngle: windAngleDial.getValue() } : {}),
       tempC: tempField.getEngineValue(),
-      pressureHpa: pressureField.getEngineValue(),
+      pressurePa: pressureField.getEngineValue(),
       altitudeM,
-      humidityPct: humidityField.getEngineValue(),
+      humidity: humidityField.getEngineValue(),
       ...(presets ? { atmospherePreset: currentPreset } : {})
     };
   }

@@ -153,7 +153,7 @@ function dedupeByMach(sortedPoints, epsilon = 1e-9) {
 // legacy's hardcoded assumption.
 export function computeCdMachCurve({
   points, massKg, caliberM,
-  tempC = 15, pressureHpa = 1013.25, altitudeM = 0, humidityPct = 0
+  tempC = 15, pressurePa = 101325, altitudeM = 0, humidity = 0
 }) {
   if (!points || points.length < 3) {
     throw new Error('at least 3 distance/velocity points are required');
@@ -161,7 +161,7 @@ export function computeCdMachCurve({
 
   const sorted = [...points].sort((a, b) => a.rangeM - b.rangeM);
   const n = sorted.length;
-  const atmo = { tempC, pressureHpa, altitudeM, humidityPct };
+  const atmo = { tempC, pressurePa, altitudeM, humidity };
   // One fixed reference speed of sound for the whole table (from the
   // tool's own tempC), same "single blanket atmosphere" basis legacy used
   // for its own hardcoded-standard speed of sound.

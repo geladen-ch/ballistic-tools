@@ -19,9 +19,19 @@
 // write is silently dropped and a reload restores stale state. It also has
 // no reason to travel to the server with every request.
 
-const STORAGE_KEY = 'ballistics_truing_session_state_v1';
+//
+// Not migrated across a change of shape: state saved under an earlier key
+// (v1: hPa, percent, mrad and degrees) is dropped rather than converted,
+// so an in-progress session does not survive an update that changes it.
+const STORAGE_KEY = 'ballistics_truing_session_state_v2';
+const RETIRED_KEYS = ['ballistics_truing_session_state_v1'];
 
 function load() {
+  try {
+    for (const key of RETIRED_KEYS) localStorage.removeItem(key);
+  } catch {
+    // storage unavailable -- nothing to clean up
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);

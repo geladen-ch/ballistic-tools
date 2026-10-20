@@ -45,3 +45,10 @@ test('resetHitProbabilityStateForTests() clears the saved state in memory (not t
   resetHitProbabilityStateForTests();
   assert.equal(loadHitProbabilityState(), null);
 });
+
+test('the pressure estimation error is stored in hPa under its field id, and read back in Pa', async () => {
+  saveHitProbabilityState({ pressureMedianError: 700, pressureMedianErrorPreset: 'byAltitude' });
+  assert.equal(JSON.parse(getCookie(COOKIE_NAME)).pressureMedianError, 7);
+  const fresh = await import(`../src/hit-probability-state.js?reload=${freshId()}`);
+  assert.equal(fresh.loadHitProbabilityState().pressureMedianError, 700);
+});

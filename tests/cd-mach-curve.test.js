@@ -5,7 +5,7 @@ import { makeCdLookup, DRAG_TABLES } from '../src/engine/drag-tables.js';
 import { MAX_STEPS } from '../src/engine/constants.js';
 import { computeCdMachCurve, scaledReferenceCurve, MACH_BREAKPOINTS } from '../src/engine/cd-mach-curve.js';
 
-const ATMO = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0 };
+const ATMO = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0 };
 const rangeOfX = (p) => p.x;
 
 // Same "restart fresh at the segment's own start velocity, land exactly

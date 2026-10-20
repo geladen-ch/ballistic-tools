@@ -85,7 +85,7 @@
 // since both showed clearly different behavior — see the two confounds
 // noted above).
 //
-// Muzzle atmosphere (tempC/pressureHpa/humidityPct) defaults to standard
+// Muzzle atmosphere (tempC/pressurePa/humidity) defaults to standard
 // sea level, same as stability.js's own computeMillerSg — the density and
 // speed-of-sound used for the muzzle-Mach CMalpha calibration below now
 // come from the same real conditions Sg itself is corrected against
@@ -177,15 +177,15 @@ export function canEstimateAeroCoefficients(inputs) {
 
 export function estimateAeroCoefficients({
   massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm,
-  tempC = 15, pressureHpa = 1013.25, humidityPct = 0
+  tempC = 15, pressurePa = 101325, humidity = 0
 }) {
   const Ix = KX2_REFERENCE * massKg * caliberM * caliberM;
   const ky2 = interp(KY2_BY_LD_TABLE, lengthM / caliberM);
   const Iy = ky2 * massKg * caliberM * caliberM;
 
-  const sg = computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC, pressureHpa, humidityPct });
+  const sg = computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC, pressurePa, humidity });
   const p0 = spinRateRadS(muzzleVelocity, riflingTwistMm);
-  const rho = airDensity({ tempC, pressureHpa, humidityPct });
+  const rho = airDensity({ tempC, pressurePa, humidity });
   const mach0 = muzzleVelocity / speedOfSound(tempC);
 
   // Sg = 2*Ix^2*p^2 / (pi*rho*d^3*Iy*CMalpha*V^2), solved for CMalpha at

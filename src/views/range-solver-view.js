@@ -40,6 +40,8 @@ import { goToLocations } from '../locations-nav.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
+import { displayChoice, toDisplayUnit } from '../display-units.js';
+import { fractionToPercent } from '../quantity.js';
 
 const DEFAULT_LOS_ANGLE_DEG = 0;
 const DEFAULT_WIND_ANGLE_DEG = 90;
@@ -539,25 +541,21 @@ export function mount(container) {
     return [el('span', { class: 'range-solver-conditions-num' }, [numberStr]), document.createTextNode(unitText)];
   }
 
-  // `fieldId`/`groupName` follow the same FIELD_UNITS/getUnit() convention
-  // every other display value in this app uses — including the same
-  // stale-preference fallback unitField()/largeStepperField() apply.
-  function formatWithUnit(fieldId, groupName, engineValue) {
-    const group = UNIT_GROUPS[groupName];
-    const displayUnit = getUnit(groupName);
-    const choice = unitChoice(fieldId, displayUnit) || group.choices.find((c) => c.unit === group.defaultUnit);
-    const numberStr = engineToDisplay(fieldId, engineValue, choice.unit).toFixed(choice.decimals);
-    return numberWithUnit(numberStr, ` ${choice.label}`);
+  // A value in its kind's internal unit, in the user's display unit for
+  // `groupName` (display-units.js).
+  function formatWithUnit(groupName, value) {
+    const choice = displayChoice(groupName);
+    return numberWithUnit(toDisplayUnit(groupName, value).toFixed(choice.decimals), ` ${choice.label}`);
   }
 
   function updateConditions() {
     clear(conditionsBar);
-    const { pressureHpa, tempC, humidityPct } = atmosphere.getValues();
+    const { pressurePa, tempC, humidity } = atmosphere.getValues();
 
     const parts = [];
-    if (Number.isFinite(pressureHpa)) parts.push(formatWithUnit('pressureHpa', 'pressure', pressureHpa));
-    if (Number.isFinite(tempC)) parts.push(formatWithUnit('tempC', 'temperature', tempC));
-    if (Number.isFinite(humidityPct)) parts.push(numberWithUnit(String(Math.round(humidityPct)), '%'));
+    if (Number.isFinite(pressurePa)) parts.push(formatWithUnit('pressure', pressurePa));
+    if (Number.isFinite(tempC)) parts.push(formatWithUnit('temperature', tempC));
+    if (Number.isFinite(humidity)) parts.push(numberWithUnit(String(Math.round(fractionToPercent(humidity))), '%'));
 
     parts.forEach((part, i) => {
       if (i > 0) conditionsBar.appendChild(el('span', { class: 'range-solver-conditions-sep' }, ['·']));

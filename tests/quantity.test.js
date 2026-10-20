@@ -27,7 +27,8 @@ function sampleValues() {
 test('every display unit in UNIT_GROUPS belongs to exactly the kind its group implies', () => {
   const expectedKind = {
     velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
-    altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy'
+    altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy',
+    ratio: 'ratio'
   };
   for (const [group, { choices }] of Object.entries(UNIT_GROUPS)) {
     for (const { unit } of choices) {

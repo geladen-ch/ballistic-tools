@@ -58,7 +58,7 @@ export function computeSpotterCorrected({
   // ---- Condition-error contributions — the sighting shot only; replaced
   // entirely by the correction's own imprecision for the corrected shot. ----
   const conditionContributions = [];
-  const { distanceMedianErrorPct, tempMedianErrorC, pressureMedianErrorHpa, windMedianErrorMs, movingTarget } = conditionErrors;
+  const { distanceMedianErrorPct, tempMedianErrorC, pressureMedianErrorPa, windMedianErrorMs, movingTarget } = conditionErrors;
   if (distanceMedianErrorPct) {
     const sdMeters = probableErrorToSD(distanceMedianErrorPct / 100) * targetRange;
     conditionContributions.push({ id: 'distanceEstimation', ...rangeEstimationSD(nominalState, sdMeters, targetRange, nominalImpact) });
@@ -67,9 +67,9 @@ export function computeSpotterCorrected({
     const sd = probableErrorToSD(tempMedianErrorC);
     conditionContributions.push({ id: 'temperatureEstimation', ...trajectoryPerturbationSD(nominalState, 'tempC', nominalState.tempC, sd, targetRange, launchAngle, nominalImpact) });
   }
-  if (pressureMedianErrorHpa) {
-    const sd = probableErrorToSD(pressureMedianErrorHpa);
-    conditionContributions.push({ id: 'pressureEstimation', ...trajectoryPerturbationSD(nominalState, 'pressureHpa', nominalState.pressureHpa, sd, targetRange, launchAngle, nominalImpact) });
+  if (pressureMedianErrorPa) {
+    const sd = probableErrorToSD(pressureMedianErrorPa);
+    conditionContributions.push({ id: 'pressureEstimation', ...trajectoryPerturbationSD(nominalState, 'pressurePa', nominalState.pressurePa, sd, targetRange, launchAngle, nominalImpact) });
   }
   if (windMedianErrorMs) {
     const sd = probableErrorToSD(windMedianErrorMs);

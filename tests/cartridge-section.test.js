@@ -32,7 +32,7 @@ test('a library cartridge with no bcGainFactor reads as exactly 1, and releasing
 });
 
 test('a library cartridge\'s zero atmosphere reaches getValues(), and is null when none is set or once released to manual entry', async () => {
-  const zeroAtmosphere = { tempC: 4, pressureHpa: 845, humidityPct: 30, altitudeM: 1505 };
+  const zeroAtmosphere = { tempC: 4, pressurePa: 84500, humidity: 0.3, altitudeM: 1505 };
   const section = cartridgeSection({});
   await section.setLibraryCartridge({ muzzleVelocity: 792.48, bulletId: 'geladen-308-178-eld-m', zeroAtmosphere });
   assert.deepEqual(section.getValues().zeroAtmosphere, zeroAtmosphere);

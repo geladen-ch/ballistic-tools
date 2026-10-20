@@ -2805,12 +2805,12 @@ test('a stored zero atmosphere reopens checked with its saved values, and is kep
   await settle();
   assert.equal(byId(container, 'cartridgeZeroAtmosphereEnabled').checked, true);
   assert.equal(byId(container, 'tempC').value, '4');
-  assert.equal(byId(container, 'pressureHpa').value, '845');
+  assert.equal(byId(container, 'pressure').value, '845');
 
   fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
   const saved = loadUserRifles()[0].cartridges.find((c) => c.id === 'c3');
   const { altitudeM, ...rest } = saved.zeroAtmosphere;
-  assert.deepEqual(rest, { tempC: 4, pressureHpa: 845, humidityPct: 30 });
+  assert.deepEqual(rest, { tempC: 4, pressureHpa: 845, humidityPct: 30 }); // the record's stored form
   // outside the "Standard atmosphere" preset the altitude is back-derived from the station pressure, as everywhere else
   assert.ok(Math.abs(altitudeM - 1505) < 5, `expected ~1505 m for 845 hPa, got ${altitudeM}`);
 });

@@ -10,7 +10,7 @@ import {
   DEFAULT_NEAR_SHOTS, DEFAULT_FAR_SHOTS
 } from './session-model.js';
 
-export const ALTITUDE_EXAMPLE = { altitudeM: 1500, pressureHpa: 850, tempC: 15 };
+export const ALTITUDE_EXAMPLE = { altitudeM: 1500, pressurePa: 85000, tempC: 15 };
 // the near-target band the intake asks for natural targets in (the planner's own near band)
 export const NEAR_BAND_HIGH_M = PLAN_NEAR_BAND_M;
 

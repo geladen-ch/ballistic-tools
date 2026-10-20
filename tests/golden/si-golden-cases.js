@@ -21,9 +21,10 @@ import {
   integrate, computeImpact, resolveLaunchAngle, solveDirectHit, solveDangerZone, solveZeroAngle, resolveMuzzleVelocity
 } from '../../src/engine/trajectory.js';
 import {
-  airDensity, speedOfSound, icaoStandardPressureHpa, temperatureAtHeightDelta, pressureAtAltitude,
-  standardAtmosphereAt, altitudeFromPressureHpa
+  airDensity, speedOfSound, icaoStandardPressurePa, temperatureAtHeightDelta, pressureAtAltitude,
+  standardAtmosphereAt, altitudeFromPressurePa
 } from '../../src/engine/atmosphere.js';
+import { hpaToPa, paToHpa, percentToFraction, fractionToPercent } from '../../src/quantity.js';
 import { computeMillerSg, canComputeStability } from '../../src/engine/stability.js';
 import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from '../../src/engine/spin-drift.js';
 import { computeSingleShot } from '../../src/engine/single-shot.js';
@@ -250,7 +251,7 @@ function truingAnalyseInput(rng, ts) {
   const r50Mrad = round(rng.uniform(0.08, 0.25), 3);
   const group = (key, rangeM, shots, extra = {}) => ({
     rangeM, targetKey: key,
-    observedComeUp: ts.comeUpMrad({ ...truth, losAngleDeg: extra.losAngleDeg ?? 0 }, rangeM) + rng.uniform(-0.05, 0.05),
+    observedComeUp: ts.comeUpMrad(toCurrentUnits({ ...truth, losAngleDeg: extra.losAngleDeg ?? 0 }), rangeM) + rng.uniform(-0.05, 0.05),
     shots, sigmaMrad: ts.sigmaForGroup({ shots, r50Mrad })
   });
   const groups = [
@@ -349,7 +350,7 @@ export const GENERATORS = {
     const b = rng.pick(BC_BULLETS);
     const atmo = atmoInput(rng);
     const state = { ...shotState(rng), bc: b.profile.bc, dragModel: b.profile.model, cdTable: undefined, ...atmo, windSpeed: 0, losAngleDeg: 0, maxRange: 1000, rangeStep: 100 };
-    const { points } = integrate(state);
+    const { points } = integrate(toCurrentUnits(state));
     return {
       points: points.map((p) => ({ rangeM: p.range, velocityMs: round(p.velocity + rng.uniform(-1, 1), 1) })),
       massKg: b.massKg, caliberM: b.caliberM, ...atmo
@@ -378,7 +379,43 @@ export async function generateInput(kind, rng) {
   return GENERATORS[kind](rng);
 }
 
-// ---- runners: kind → (input) → output, in the engine's original units ----
+// ---- fixture units ↔ the engine's current units ----
+// Every field the refactor renames (because its unit changed), with the
+// conversion from the fixture's original unit and back. Applied to every
+// object key at any depth of an input before it reaches the engine, and in
+// reverse to every output, so the runners below speak the current engine
+// API while fixtures stay in the units they were recorded in.
+const RENAMED_FIELDS = [
+  ['pressureHpa', 'pressurePa', hpaToPa, paToHpa],
+  ['humidityPct', 'humidity', percentToFraction, fractionToPercent],
+  ['pressureMedianErrorHpa', 'pressureMedianErrorPa', hpaToPa, paToHpa]
+];
+const TO_CURRENT = new Map(RENAMED_FIELDS.map(([legacy, current, forward]) => [legacy, [current, forward]]));
+const TO_LEGACY = new Map(RENAMED_FIELDS.map(([legacy, current, , back]) => [current, [legacy, back]]));
+
+function renameDeep(value, table) {
+  if (Array.isArray(value)) return value.map((v) => renameDeep(v, table));
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      const hit = table.get(k);
+      if (hit && typeof v === 'number') out[hit[0]] = hit[1](v);
+      else out[hit && v == null ? hit[0] : k] = renameDeep(v, table);
+    }
+    return out;
+  }
+  return value;
+}
+export const toCurrentUnits = (input) => renameDeep(input, TO_CURRENT);
+export const toLegacyUnits = (output) => renameDeep(output, TO_LEGACY);
+
+// One case, the way capture and replay both run it: fixture input in, engine
+// output back in fixture units.
+export async function runCase(kind, input) {
+  return toLegacyUnits(await RUNNERS[kind](toCurrentUnits(input)));
+}
+
+// ---- runners: kind → (input) → output, in the engine's current units ----
 export const RUNNERS = {
   trajectory: (s) => integrate(s),
   impact: ({ state, ranges }) => {
@@ -398,11 +435,11 @@ export const RUNNERS = {
   atmosphere: (a) => ({
     density: airDensity(a),
     speedOfSound: speedOfSound(a.tempC),
-    icao: icaoStandardPressureHpa(a.altitudeM),
+    icao: paToHpa(icaoStandardPressurePa(a.altitudeM)),
     tempAtDelta: temperatureAtHeightDelta(a.tempC, a.heightDeltaM),
-    pressureAtOther: pressureAtAltitude(a.pressureHpa, a.altitudeM, a.otherAltitudeM),
+    pressureAtOther: paToHpa(pressureAtAltitude(a.pressurePa, a.altitudeM, a.otherAltitudeM)),
     standard: standardAtmosphereAt(a.altitudeM),
-    altitudeFromPressure: altitudeFromPressureHpa(a.pressureHpa)
+    altitudeFromPressure: altitudeFromPressurePa(a.pressurePa)
   }),
   bcEstimate: (i) => ({
     twoVelocities: attempt(() => estimateBC(i)),

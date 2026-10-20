@@ -88,7 +88,7 @@ export function largeStepperField({ id, min, max, step, value, onInput, decimals
   }
   const validity = fieldValidity(number, computeMessage);
 
-  const unitSuffix = choice ? document.createTextNode(` (${choice.label})`) : null;
+  const unitSuffix = choice && !group.fixed ? document.createTextNode(` (${choice.label})`) : null; // see unit-field.js
   const node = el('div', { class: 'field large-stepper-field' }, [
     el('label', {}, [i18nSpan('fields.' + id), unitSuffix].filter(Boolean)),
     el('div', { class: 'large-stepper-row' }, [decButton, number, incButton]),

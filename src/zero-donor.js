@@ -7,6 +7,7 @@
 // with, given the full rifle record.
 import { loadUserBullets } from './user-library.js';
 import { loadBullet } from './bullets.js';
+import { decodeLegacy } from './legacy-units.js';
 
 // Same two-step lookup arsenal-view.js's own resolveComparisonBullet() and
 // bullet-section.js's own findKnownBullet() each already do independently
@@ -57,7 +58,7 @@ export async function resolveZeroDonorBallistics(rifle, cartridge) {
     // borrowed zero is solved there too, not in the recipient's own air.
     // Always present, so a stale value can't survive the { ...state, ...donor }
     // merge in resolveLaunchAngle().
-    zeroAtmosphere: donor.zeroAtmosphere ?? null,
+    zeroAtmosphere: decodeLegacy(donor.zeroAtmosphere) ?? null,
     ...bulletProfileValues(bullet)
   };
 }

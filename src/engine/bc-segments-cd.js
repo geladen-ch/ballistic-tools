@@ -131,7 +131,7 @@ export const OPTIMAL_BC_END_MACH = TRANSONIC_HI;
 function trueSupersonicRangeM(cdTable, massKg, caliberM) {
   const v1 = OPTIMAL_BC_START_MACH * STANDARD_SEA_LEVEL_SOUND_MS;
   const v2 = OPTIMAL_BC_END_MACH * STANDARD_SEA_LEVEL_SOUND_MS;
-  const atmo = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0 };
+  const atmo = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0 };
   const stepper = makeStepper({ cdTable, massKg, caliberM, windSpeed: 0, windAngle: 90, ...atmo });
   const speed = (p) => Math.hypot(p.vx, p.vy, p.vz);
 
@@ -171,7 +171,7 @@ export function optimalSupersonicBcs({ cdTable, massKg, caliberM, dragModelIds }
     try {
       const { bc } = estimateBC({
         v1, r1: 0, v2, r2, dragModel,
-        tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0
+        tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
       });
       return { dragModel, bc };
     } catch {

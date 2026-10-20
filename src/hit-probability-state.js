@@ -7,13 +7,14 @@
 // those are the shared active gun configuration and already persist on
 // their own via shot-state.js.
 import { getCookie, setCookie } from './cookies.js';
+import { decodeFieldValues, encodeFieldValues } from './legacy-units.js';
 
 const COOKIE_NAME = 'ballistics_hit_probability_state_v1';
 
 function load() {
   try {
     const raw = getCookie(COOKIE_NAME);
-    if (raw) return JSON.parse(raw);
+    if (raw) return decodeFieldValues(JSON.parse(raw));
   } catch {
     // malformed cookie — fall through to defaults
   }
@@ -22,7 +23,7 @@ function load() {
 
 function persist() {
   try {
-    setCookie(COOKIE_NAME, JSON.stringify(state));
+    setCookie(COOKIE_NAME, JSON.stringify(encodeFieldValues(state))); // stored units: legacy-units.js
   } catch {
     // best-effort — losing persistence isn't fatal
   }

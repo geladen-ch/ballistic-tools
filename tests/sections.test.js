@@ -162,13 +162,13 @@ test('setLibraryCartridge(null) releases the lock back to manual entry', async (
 test('atmosphereSection includes wind fields by default', () => {
   const atmo = atmosphereSection();
   const values = atmo.getValues();
-  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'atmospherePreset', 'humidityPct', 'pressureHpa', 'tempC', 'windAngle', 'windSpeed']);
+  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'atmospherePreset', 'humidity', 'pressurePa', 'tempC', 'windAngle', 'windSpeed']);
 });
 
 test('atmosphereSection omits wind fields when includeWind is false (matches BC Estimator\'s engine, which ignores wind)', () => {
   const atmo = atmosphereSection({ includeWind: false });
   const values = atmo.getValues();
-  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'atmospherePreset', 'humidityPct', 'pressureHpa', 'tempC']);
+  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'atmospherePreset', 'humidity', 'pressurePa', 'tempC']);
   const windInputs = findInputs(atmo.node).filter((n) => n.id === 'windSpeed' || n.id === 'windAngle');
   assert.equal(windInputs.length, 0);
 });
@@ -176,7 +176,7 @@ test('atmosphereSection omits wind fields when includeWind is false (matches BC 
 test('atmosphereSection omits the preset select and altitude field entirely when presets is false (the Labradar tool\'s own mode)', () => {
   const atmo = atmosphereSection({ includeWind: false, presets: false });
   const values = atmo.getValues();
-  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'humidityPct', 'pressureHpa', 'tempC']);
+  assert.deepEqual(Object.keys(values).sort(), ['altitudeM', 'humidity', 'pressurePa', 'tempC']);
 
   const inputs = findInputs(atmo.node);
   assert.equal(inputs.some((n) => n.id === 'atmospherePreset'), false, 'no preset select should exist at all');
@@ -184,7 +184,7 @@ test('atmosphereSection omits the preset select and altitude field entirely when
 });
 
 test('presets:false still back-derives a real altitude from station pressure, same as every other "custom" atmosphere', () => {
-  const atmo = atmosphereSection({ presets: false, load: () => ({ pressureHpa: 925.3 }) });
+  const atmo = atmosphereSection({ presets: false, load: () => ({ pressurePa: 92530 }) });
   const values = atmo.getValues();
   assert.ok(Math.abs(values.altitudeM - 759.29) < 0.01);
 });
@@ -204,8 +204,8 @@ test('defaults to "Real conditions" (custom), with today\'s existing default val
   const values = atmo.getValues();
   assert.equal(values.atmospherePreset, 'custom');
   assert.equal(values.tempC, 15);
-  assert.equal(values.pressureHpa, 1013.25);
-  assert.equal(values.humidityPct, 50);
+  assert.equal(values.pressurePa, 101325);
+  assert.equal(values.humidity, 0.5);
 
   const [altitudeInput] = findInputs(atmo.node).filter((n) => n.id === 'altitudeM');
   assert.equal(altitudeInput.parentNode.style.display, 'none');
@@ -224,15 +224,15 @@ test('picking "Standard atmosphere" computes temperature/pressure/humidity from 
   assert.equal(values.atmospherePreset, 'standard');
   assert.equal(values.altitudeM, 0);
   assert.equal(values.tempC, 15);
-  assert.equal(values.pressureHpa, 1013.25);
-  assert.equal(values.humidityPct, 0);
+  assert.equal(values.pressurePa, 101325);
+  assert.equal(values.humidity, 0);
 
   altitudeInput.value = '2000';
   fireEvent(altitudeInput, 'input');
   const afterValues = atmo.getValues();
   assert.equal(afterValues.atmospherePreset, 'standard'); // editing altitude never kicks it out of the preset
   assert.equal(afterValues.tempC, 2); // 15 - 0.0065*2000
-  assert.ok(Math.abs(afterValues.pressureHpa - 794.96) < 0.01);
+  assert.ok(Math.abs(afterValues.pressurePa - 79496) < 1);
 });
 
 test('picking "Swiss army standard" / "Soviet army standard" fills the fixed reference values and hides altitude', () => {
@@ -243,8 +243,8 @@ test('picking "Swiss army standard" / "Soviet army standard" fills the fixed ref
   fireEvent(presetSelect, 'change');
   let values = atmo.getValues();
   assert.equal(values.tempC, 7);
-  assert.equal(values.pressureHpa, 925.3);
-  assert.equal(values.humidityPct, 0);
+  assert.equal(values.pressurePa, 92530);
+  assert.equal(values.humidity, 0);
   const [altitudeInput] = findInputs(atmo.node).filter((n) => n.id === 'altitudeM');
   assert.equal(altitudeInput.parentNode.style.display, 'none');
   // no altitude field shown, but the engine still gets a real, physically
@@ -255,8 +255,8 @@ test('picking "Swiss army standard" / "Soviet army standard" fills the fixed ref
   fireEvent(presetSelect, 'change');
   values = atmo.getValues();
   assert.equal(values.tempC, 15);
-  assert.equal(values.pressureHpa, 1000);
-  assert.equal(values.humidityPct, 50);
+  assert.equal(values.pressurePa, 100000);
+  assert.equal(values.humidity, 0.5);
   assert.ok(Math.abs(values.altitudeM - 110.89) < 0.01);
 });
 
@@ -276,13 +276,13 @@ test('hand-editing temperature/pressure/humidity under any preset flips to "Real
   assert.equal(values.atmospherePreset, 'custom');
   assert.equal(values.tempC, 20);
   // pressure/humidity are untouched, just no longer governed by "soviet"
-  assert.equal(values.pressureHpa, 1000);
-  assert.equal(values.humidityPct, 50);
+  assert.equal(values.pressurePa, 100000);
+  assert.equal(values.humidity, 0.5);
 });
 
 test('"Real conditions" altitude is back-derived from station pressure, not left at sea level', () => {
   const atmo = atmosphereSection();
-  const [pressureInput] = findInputs(atmo.node).filter((n) => n.id === 'pressureHpa');
+  const [pressureInput] = findInputs(atmo.node).filter((n) => n.id === 'pressure');
   pressureInput.value = '925.3';
   fireEvent(pressureInput, 'input');
 
@@ -311,8 +311,8 @@ test('explicitly picking "Real conditions" from a named preset keeps its current
   const values = atmo.getValues();
   assert.equal(values.atmospherePreset, 'custom');
   assert.equal(values.tempC, 7);
-  assert.equal(values.pressureHpa, 925.3);
-  assert.equal(values.humidityPct, 0);
+  assert.equal(values.pressurePa, 92530);
+  assert.equal(values.humidity, 0);
 
   // now freely editable, same as any other "Real conditions" state
   const [tempInput] = findInputs(atmo.node).filter((n) => n.id === 'tempC');
@@ -332,7 +332,7 @@ test('the chosen preset persists to the next atmosphereSection instance, same as
   const values = second.getValues();
   assert.equal(values.atmospherePreset, 'swiss');
   assert.equal(values.tempC, 7);
-  assert.equal(values.pressureHpa, 925.3);
+  assert.equal(values.pressurePa, 92530);
   const [altitudeInput] = findInputs(second.node).filter((n) => n.id === 'altitudeM');
   assert.equal(altitudeInput.parentNode.style.display, 'none');
 });
@@ -446,7 +446,7 @@ test('a custom load/save pair is used instead of shot-state.js\'s shared atmosph
 });
 
 test('a custom load reseeds the next atmosphereSection instance from the same store, independent of the shared one', () => {
-  let saved = { tempC: 12, pressureHpa: 950, altitudeM: 0, humidityPct: 40, atmospherePreset: 'custom' };
+  let saved = { tempC: 12, pressurePa: 95000, altitudeM: 0, humidity: 0.4, atmospherePreset: 'custom' };
   const load = () => saved;
   const save = (values) => { saved = { ...saved, ...values }; };
 

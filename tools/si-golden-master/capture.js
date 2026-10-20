@@ -27,7 +27,7 @@ function seedFor(kind) {
 async function captureKind(kind) {
   const { installFakeDom } = await import('../../tests/helpers/fake-dom.js');
   installFakeDom();
-  const { generateInput, RUNNERS, CASE_COUNTS, makeRng, encode, decode } = await import('../../tests/golden/si-golden-cases.js');
+  const { generateInput, runCase, CASE_COUNTS, makeRng, encode, decode } = await import('../../tests/golden/si-golden-cases.js');
   const seed = seedFor(kind);
   const rng = makeRng(seed);
   const cases = [];
@@ -35,14 +35,14 @@ async function captureKind(kind) {
     const input = encode(await generateInput(kind, rng));
     let output;
     try {
-      output = encode(await RUNNERS[kind](decode(structuredClone(input))));
+      output = encode(await runCase(kind, decode(structuredClone(input))));
     } catch (err) {
       output = { $error: String((err && err.message) || err) };
     }
     // A case is only useful if the engine is deterministic on it.
     let again;
     try {
-      again = encode(await RUNNERS[kind](decode(structuredClone(input))));
+      again = encode(await runCase(kind, decode(structuredClone(input))));
     } catch (err) {
       again = { $error: String((err && err.message) || err) };
     }

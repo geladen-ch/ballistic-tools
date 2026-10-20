@@ -137,7 +137,7 @@ function driftCmAtRangeForState(state, targetM) {
 
 function lapuaBulletState({ caliberM, lengthM, massKg, twistIn, cdTable }) {
   return { cdTable, massKg, caliberM, lengthM, muzzleVelocity: 800, riflingTwistMm: twistIn * 25.4,
-    twistDirection: 'right', tempC: 15, pressureHpa: 1000, humidityPct: 0 };
+    twistDirection: 'right', tempC: 15, pressurePa: 100000, humidity: 0 };
 }
 
 test('drift at 1000m matches Lapua\'s radar-measured values for bullets within the Iy(L/d) fit\'s own calibration range', () => {
@@ -329,7 +329,7 @@ test('zero crosswind still produces only a small Magnus-driven vertical effect, 
 
 test('non-standard shooting-site atmosphere changes drift output end-to-end', () => {
   const standard = referenceBullet(12);
-  const highAltitudeHot = { ...standard, tempC: 35, pressureHpa: 850, humidityPct: 10 };
+  const highAltitudeHot = { ...standard, tempC: 35, pressurePa: 85000, humidity: 0.1 };
   const driftStandard = driftInchesAtRange(12, 1000 * YARD_M);
 
   const state = highAltitudeHot;

@@ -1,6 +1,6 @@
 import { el, clear } from '../dom.js';
 import { unitField } from '../ui/unit-field.js';
-import { displayToEngine, engineToDisplay, roundForDisplay, unitChoice } from '../units.js';
+import { displayToEngine, engineToDisplay, roundForDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
@@ -49,7 +49,7 @@ const PRESETS = {
     { key: 'ideal', value: 0 }, { key: 'pocketThermometer', value: 0.5 }, { key: 'average', value: 5 }, { key: 'poor', value: 8 }
   ],
   pressureMedianError: [
-    { key: 'ideal', value: 0 }, { key: 'pocketBarometer', value: 2 }, { key: 'byAltitude', value: 7 }, { key: 'approximate', value: 14 }
+    { key: 'ideal', value: 0 }, { key: 'pocketBarometer', value: 200 }, { key: 'byAltitude', value: 700 }, { key: 'approximate', value: 1400 }
   ],
   windMedianError: [
     { key: 'ideal', value: 0 }, { key: 'excellent', value: 0.25 }, { key: 'good', value: 0.5 }, { key: 'average', value: 1 }, { key: 'poor', value: 2 }
@@ -267,7 +267,7 @@ export function mount(container) {
 
   const distanceMedianErrorField = presetUnitField('distanceMedianError', { max: 50, step: 0.1, onInput: () => recompute() });
   const tempMedianErrorField = presetUnitField('tempMedianError', { max: 20, step: 0.1, isSpan: true, onInput: () => recompute() });
-  const pressureMedianErrorField = presetUnitField('pressureMedianError', { max: 30, step: 0.5, onInput: () => recompute() });
+  const pressureMedianErrorField = presetUnitField('pressureMedianError', { max: FIELD_BOUNDS.pressureMedianError.max, step: 50, onInput: () => recompute() });
   const windMedianErrorField = presetUnitField('windMedianError', { max: 10, step: 0.1, onInput: () => recompute() });
 
   const { checkbox: movingTargetToggle, row: movingTargetToggleRow } =
@@ -1044,7 +1044,7 @@ export function mount(container) {
     const conditionErrors = {
       distanceMedianErrorPct: distanceMedianErrorField.getEngineValue(),
       tempMedianErrorC: tempMedianErrorField.getEngineValue(),
-      pressureMedianErrorHpa: pressureMedianErrorField.getEngineValue(),
+      pressureMedianErrorPa: pressureMedianErrorField.getEngineValue(),
       windMedianErrorMs: windMedianErrorField.getEngineValue(),
       movingTarget: movingTargetToggle.checked
         ? { speedMs: movingTargetSpeedField.getEngineValue(), speedMedianErrorPct: movingTargetSpeedErrorField.getEngineValue() }

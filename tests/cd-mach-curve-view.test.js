@@ -29,7 +29,7 @@ function findById(node, id) {
   return null;
 }
 
-const ATMO = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0 };
+const ATMO = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0 };
 const MASS_KG = 0.0092;
 const CALIBER_M = 0.0069;
 const TRUE_CD = 0.3;

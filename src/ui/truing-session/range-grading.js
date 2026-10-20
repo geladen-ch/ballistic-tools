@@ -34,7 +34,7 @@ export function optimalRangePanel({ state, data }) {
   if (altCeiling > ceiling * 1.02) {
     node.appendChild(el('p', { class: 'hint', text: t('truingSession.prepare.altitudeLine', {
       from: dist(ceiling), to: dist(altCeiling), pct: m(fractionToPercent(altCeiling / ceiling - 1)),
-      alt: altitude(ALTITUDE_EXAMPLE.altitudeM), air: `${pressure(ALTITUDE_EXAMPLE.pressureHpa)}, ${temperature(ALTITUDE_EXAMPLE.tempC)}`
+      alt: altitude(ALTITUDE_EXAMPLE.altitudeM), air: `${pressure(ALTITUDE_EXAMPLE.pressurePa)}, ${temperature(ALTITUDE_EXAMPLE.tempC)}`
     }) }));
   }
   node.appendChild(el('p', {

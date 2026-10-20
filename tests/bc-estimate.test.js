@@ -4,7 +4,7 @@ import { makeStepper, landOnRange } from '../src/engine/trajectory.js';
 import { estimateBC, estimateBCFromTof, estimateBCFromTimeWindow, estimateBCWholeWindow, predictVelocityAtTimes } from '../src/engine/bc-estimate.js';
 import { MAX_STEPS } from '../src/engine/constants.js';
 
-const atmo = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0 };
+const atmo = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0 };
 const rangeOfX = (p) => p.x;
 
 // Lands exactly on r2 the same way estimateBC's own speedAt() now does

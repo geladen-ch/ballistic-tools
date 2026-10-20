@@ -70,7 +70,7 @@ export const toDisplayAngle = (mrad, decimals = null) => toDisplayUnit('angleDis
 
 // ---- the air ----
 export const temperature = (tempC, decimals = 0) => formatQuantity('temperature', tempC, { decimals });
-export const pressure = (hpa, decimals = 0) => formatQuantity('pressure', hpa, { from: 'hPa', decimals });
+export const pressure = (pa, decimals = 0) => formatQuantity('pressure', pa, { decimals });
 
 // How far an angular error of `mrad` moves an impact at 1,000 of the shooter's distance units: { length: "30 cm", at: "1000 m" }
 export function missExample(mrad = 0.3, atDisplay = 1000) {

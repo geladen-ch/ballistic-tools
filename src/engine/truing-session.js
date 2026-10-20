@@ -54,9 +54,9 @@ export const BASE_PARAMS = ['zeroMrad', 'v0Ms', 'dragPct', 'trackPct'];
 // ---- Conditions that change during a session, and the zero that does not ----
 // A group of shots may carry its own atmosphere and wind (`conditions`), because a session can last hours and the
 // air moves. Only these fields are ever taken from it; everything else about the shot is the rifle's and the bullet's.
-export const CONDITION_KEYS = ['tempC', 'pressureHpa', 'humidityPct', 'altitudeM', 'windSpeed', 'windAngle'];
+export const CONDITION_KEYS = ['tempC', 'pressurePa', 'humidity', 'altitudeM', 'windSpeed', 'windAngle'];
 // What a state that names no air is taken to be in (the defaults makeStepper() itself falls back to).
-const AIR_DEFAULTS = { tempC: 15, pressureHpa: 1013, humidityPct: 0, altitudeM: 0 };
+const AIR_DEFAULTS = { tempC: 15, pressurePa: 101300, humidity: 0, altitudeM: 0 };
 const AIR_KEYS = Object.keys(AIR_DEFAULTS);
 
 // The rifle is zeroed once, before the exercise, and the turret keeps that setting. Unless the caller says where the zero

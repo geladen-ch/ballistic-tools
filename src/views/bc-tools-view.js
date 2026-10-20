@@ -57,7 +57,7 @@ let labradarPanelState = {};
 // generic DEFAULTS (50% humidity, a typical-outdoor-conditions guess),
 // this tool's default was always meant to be a neutral starting point,
 // not a guess at real weather.
-const LABRADAR_DEFAULT_ATMOSPHERE = { tempC: 15, pressureHpa: 1013.25, humidityPct: 0 };
+const LABRADAR_DEFAULT_ATMOSPHERE = { tempC: 15, pressurePa: 101325, humidity: 0 };
 
 function loadLabradarAtmosphere() {
   return { ...LABRADAR_DEFAULT_ATMOSPHERE, ...labradarPanelState.atmosphere };

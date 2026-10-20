@@ -22,34 +22,34 @@ test.beforeEach(() => {
 test('defaults to genuine ICAO standard atmosphere at sea level, including humidity', () => {
   assert.deepEqual(loadCdMachCurveAtmosphereState(), {
     atmospherePreset: 'standard', altitudeM: 0,
-    tempC: 15, pressureHpa: 1013.25, humidityPct: 0
+    tempC: 15, pressurePa: 101325, humidity: 0
   });
 });
 
 test('save persists and is readable back, overriding the defaults', () => {
-  saveCdMachCurveAtmosphereState({ atmospherePreset: 'custom', tempC: 10, pressureHpa: 990, humidityPct: 40 });
+  saveCdMachCurveAtmosphereState({ atmospherePreset: 'custom', tempC: 10, pressurePa: 99000, humidity: 0.4 });
   assert.deepEqual(loadCdMachCurveAtmosphereState(), {
     atmospherePreset: 'custom', altitudeM: 0,
-    tempC: 10, pressureHpa: 990, humidityPct: 40
+    tempC: 10, pressurePa: 99000, humidity: 0.4
   });
 });
 
 test('each save merges into the saved state rather than replacing it outright', () => {
   saveCdMachCurveAtmosphereState({ tempC: 10 });
-  saveCdMachCurveAtmosphereState({ pressureHpa: 990 });
+  saveCdMachCurveAtmosphereState({ pressurePa: 99000 });
   assert.deepEqual(loadCdMachCurveAtmosphereState(), {
     atmospherePreset: 'standard', altitudeM: 0,
-    tempC: 10, pressureHpa: 990, humidityPct: 0
+    tempC: 10, pressurePa: 99000, humidity: 0
   });
 });
 
 test('persists to a single cookie a fresh module load would pick up', async () => {
-  saveCdMachCurveAtmosphereState({ atmospherePreset: 'swiss', tempC: 7, pressureHpa: 925.3, humidityPct: 0 });
+  saveCdMachCurveAtmosphereState({ atmospherePreset: 'swiss', tempC: 7, pressurePa: 92530, humidity: 0 });
   assert.ok(getCookie(COOKIE_NAME), 'expected the state cookie to be written');
 
   const fresh = await import(`../src/cd-mach-curve-state.js?reload=${freshId()}`);
   assert.deepEqual(fresh.loadCdMachCurveAtmosphereState(), {
-    atmospherePreset: 'swiss', altitudeM: 0, tempC: 7, pressureHpa: 925.3, humidityPct: 0
+    atmospherePreset: 'swiss', altitudeM: 0, tempC: 7, pressurePa: 92530, humidity: 0
   });
 });
 
@@ -96,4 +96,19 @@ test('resetCdMachCurveStateForTests() clears the inputs slice too (not the cooki
   saveCdMachCurveInputsState({ massKg: 0.01 });
   resetCdMachCurveStateForTests();
   assert.equal(loadCdMachCurveInputsState(), null);
+});
+
+test('the cookie keeps the stored field names and units, and a cookie from an earlier build reads back in internal units', async () => {
+  saveCdMachCurveAtmosphereState({ tempC: 7, pressurePa: 92530, humidity: 0.2 });
+  const stored = JSON.parse(getCookie(COOKIE_NAME));
+  assert.equal(stored.atmosphere.pressureHpa, 925.3);
+  assert.equal(stored.atmosphere.humidityPct, 20);
+  assert.equal(stored.atmosphere.pressurePa, undefined);
+
+  const { setCookie } = await import('../src/cookies.js');
+  setCookie(COOKIE_NAME, JSON.stringify({ atmosphere: { tempC: 3, pressureHpa: 990, humidityPct: 55 }, inputs: null }));
+  const fresh = await import(`../src/cd-mach-curve-state.js?reload=${freshId()}`);
+  const atmosphere = fresh.loadCdMachCurveAtmosphereState();
+  assert.equal(atmosphere.pressurePa, 99000);
+  assert.equal(atmosphere.humidity, 0.55);
 });

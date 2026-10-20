@@ -48,7 +48,7 @@ export function computeSingleShot({
     }
   }
 
-  const { distanceMedianErrorPct, tempMedianErrorC, pressureMedianErrorHpa, windMedianErrorMs, movingTarget } = conditionErrors;
+  const { distanceMedianErrorPct, tempMedianErrorC, pressureMedianErrorPa, windMedianErrorMs, movingTarget } = conditionErrors;
 
   if (distanceMedianErrorPct) {
     const sdMeters = probableErrorToSD(distanceMedianErrorPct / 100) * targetRange;
@@ -58,9 +58,9 @@ export function computeSingleShot({
     const sd = probableErrorToSD(tempMedianErrorC);
     contributions.push({ id: 'temperatureEstimation', ...trajectoryPerturbationSD(nominalState, 'tempC', nominalState.tempC, sd, targetRange, launchAngle, nominalImpact) });
   }
-  if (pressureMedianErrorHpa) {
-    const sd = probableErrorToSD(pressureMedianErrorHpa);
-    contributions.push({ id: 'pressureEstimation', ...trajectoryPerturbationSD(nominalState, 'pressureHpa', nominalState.pressureHpa, sd, targetRange, launchAngle, nominalImpact) });
+  if (pressureMedianErrorPa) {
+    const sd = probableErrorToSD(pressureMedianErrorPa);
+    contributions.push({ id: 'pressureEstimation', ...trajectoryPerturbationSD(nominalState, 'pressurePa', nominalState.pressurePa, sd, targetRange, launchAngle, nominalImpact) });
   }
   if (windMedianErrorMs) {
     const sd = probableErrorToSD(windMedianErrorMs);

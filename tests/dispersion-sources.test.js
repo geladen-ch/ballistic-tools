@@ -12,7 +12,7 @@ const baseState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
   zeroRange: 100, sightHeight: 50,
   windSpeed: 0, windAngle: 90,
-  tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0
+  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };
 
 test('probableErrorToSD divides by 0.6745', () => {

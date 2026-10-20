@@ -35,13 +35,13 @@ function flightAt(bc, dragModel, r1, v1, r2, atmo) {
 
 export function estimateBC({
   v1, r1, v2, r2, dragModel = 'G1',
-  tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0,
+  tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0,
   bcMin = 0.05, bcMax = 1.5, tol = 1e-5, maxIter = 60
 }) {
   if (r2 <= r1) throw new Error('r2 must be greater than r1');
   if (v2 >= v1) throw new Error('v2 must be less than v1 (velocity should decay downrange)');
 
-  const atmo = { tempC, pressureHpa, altitudeM, humidityPct };
+  const atmo = { tempC, pressurePa, altitudeM, humidity };
   // f(bc) is monotonically increasing: a higher BC means less drag, so a
   // higher predicted v2. Bracket [bcMin, bcMax] and bisect.
   const f = (bc) => flightAt(bc, dragModel, r1, v1, r2, atmo).v - v2;
@@ -89,13 +89,13 @@ function flightAtTime(bc, dragModel, v1, t2, atmo) {
 
 export function estimateBCFromTimeWindow({
   v1, t2, v2, dragModel = 'G7',
-  tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0,
+  tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0,
   bcMin = 0.05, bcMax = 1.5, tol = 1e-5, maxIter = 60
 }) {
   if (t2 <= 0) throw new Error('elapsed time must be positive');
   if (v2 >= v1) throw new Error('v2 must be less than v1 (velocity should decay over the window)');
 
-  const atmo = { tempC, pressureHpa, altitudeM, humidityPct };
+  const atmo = { tempC, pressurePa, altitudeM, humidity };
   // f(bc) is monotonically increasing, same reasoning as estimateBC: a
   // higher BC means less drag, so a higher retained velocity at t2.
   const f = (bc) => flightAtTime(bc, dragModel, v1, t2, atmo).v - v2;
@@ -155,9 +155,9 @@ function flightVelocitiesAtTimes(bc, dragModel, v1, times, atmo) {
 // other exports.
 export function predictVelocityAtTimes({
   bc, v1, times, dragModel = 'G7',
-  tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0
+  tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0
 }) {
-  return flightVelocitiesAtTimes(bc, dragModel, v1, times, { tempC, pressureHpa, altitudeM, humidityPct });
+  return flightVelocitiesAtTimes(bc, dragModel, v1, times, { tempC, pressurePa, altitudeM, humidity });
 }
 
 function weightedSSE(predicted, observed, weights) {
@@ -223,10 +223,10 @@ function isAtBoundary(value, lo, hi) {
 // every other function in this file.
 export function estimateBCWholeWindow({
   samples, v1Guess, dragModel = 'G7',
-  tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0,
+  tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0,
   bcMin = 0.05, bcMax = 1.5, v1BracketFrac = 0.15, iterations = 30
 }) {
-  const atmo = { tempC, pressureHpa, altitudeM, humidityPct };
+  const atmo = { tempC, pressurePa, altitudeM, humidity };
   const times = samples.map((s) => s.t);
   const observed = samples.map((s) => s.v);
   const weights = samples.map((s) => s.weight);
@@ -258,13 +258,13 @@ export function estimateBCWholeWindow({
 // near/muzzle velocity), rather than two chronograph readings.
 export function estimateBCFromTof({
   v1, r1, r2, tof, dragModel = 'G1',
-  tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0,
+  tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0,
   bcMin = 0.05, bcMax = 1.5, tol = 1e-5, maxIter = 60
 }) {
   if (r2 <= r1) throw new Error('r2 must be greater than r1');
   if (tof <= 0) throw new Error('time of flight must be positive');
 
-  const atmo = { tempC, pressureHpa, altitudeM, humidityPct };
+  const atmo = { tempC, pressurePa, altitudeM, humidity };
   // g(bc) is monotonically decreasing: a higher BC means less drag, so a
   // higher retained velocity between r1 and r2, so less time to cover the
   // segment — the opposite sign convention from estimateBC's velocity

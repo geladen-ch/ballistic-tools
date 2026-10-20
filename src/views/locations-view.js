@@ -16,14 +16,13 @@ import {
   saveRangeSolverTargetState, saveRangeSolverAtmosphereState, wasAtmosphereTouchedThisSession
 } from '../range-solver-state.js';
 import { standardAtmosphereAt } from '../engine/atmosphere.js';
-import { UNIT_GROUPS, unitChoice, engineToDisplay } from '../units.js';
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
-import { getUnit } from '../prefs.js';
 import { setLocationsMode } from '../locations-nav.js';
 import { shouldClearTargetCoords } from '../location-photo.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
+import { formatQuantity } from '../display-units.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -34,15 +33,6 @@ function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'location';
 }
 
-// Same FIELD_UNITS/getUnit() display convention range-solver-view.js's
-// own conditions bar uses — kept here for altitude specifically;
-// range/LoS-angle summaries go through the shared formatTargetSummary().
-function formatWithUnit(fieldId, groupName, engineValue) {
-  const group = UNIT_GROUPS[groupName];
-  const displayUnit = getUnit(groupName);
-  const choice = unitChoice(fieldId, displayUnit) || group.choices.find((c) => c.unit === group.defaultUnit);
-  return `${engineToDisplay(fieldId, engineValue, choice.unit).toFixed(choice.decimals)} ${choice.label}`;
-}
 
 export function mount(container) {
   clear(container);
@@ -132,9 +122,9 @@ export function mount(container) {
   // already taken over the Atmosphere tab themselves this session.
   function applyLocationAltitudeDefault(location) {
     if (location.altitudeM == null || wasAtmosphereTouchedThisSession()) return;
-    const { tempC, pressureHpa } = standardAtmosphereAt(location.altitudeM);
+    const { tempC, pressurePa } = standardAtmosphereAt(location.altitudeM);
     saveRangeSolverAtmosphereState({
-      tempC, pressureHpa, altitudeM: location.altitudeM, humidityPct: 50, atmospherePreset: 'custom'
+      tempC, pressurePa, altitudeM: location.altitudeM, humidity: 0.5, atmospherePreset: 'custom'
     });
   }
 
@@ -271,7 +261,7 @@ export function mount(container) {
 
   function locationInfoChildren(location, labels) {
     const altitudeLabel = location.altitudeM != null
-      ? el('span', { class: 'hint', text: ` — ${formatWithUnit('altitudeM', 'altitude', location.altitudeM)}` })
+      ? el('span', { class: 'hint', text: ` — ${formatQuantity('altitude', location.altitudeM)}` })
       : null;
     const modifiedLabel = lastModifiedLabel(location);
     return [

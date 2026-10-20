@@ -10,22 +10,28 @@
 // options — everything else the view shows, restored so navigating away
 // and back doesn't lose what was typed in).
 import { getCookie, setCookie } from './cookies.js';
+import { decodeLegacy, encodeLegacy } from './legacy-units.js';
 
 const COOKIE_NAME = 'ballistics_cd_mach_curve_state_v1';
 
 function load() {
   try {
     const raw = getCookie(COOKIE_NAME);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      return { ...stored, atmosphere: decodeLegacy(stored.atmosphere), inputs: decodeLegacy(stored.inputs) };
+    }
   } catch {
     // malformed cookie — fall through to defaults
   }
   return { atmosphere: null, inputs: null };
 }
 
+// In memory in internal units; the cookie keeps the stored names and units
+// (legacy-units.js).
 function persist() {
   try {
-    setCookie(COOKIE_NAME, JSON.stringify(state));
+    setCookie(COOKIE_NAME, JSON.stringify({ ...state, atmosphere: encodeLegacy(state.atmosphere), inputs: encodeLegacy(state.inputs) }));
   } catch {
     // best-effort — losing persistence isn't fatal
   }
@@ -34,19 +40,19 @@ function persist() {
 let state = load();
 
 // Genuine ICAO standard atmosphere at sea level — not just
-// atmospherePreset:'standard'/altitudeM:0, but tempC/pressureHpa/
-// humidityPct set to match (15°C, 1013.25 hPa, 0% humidity). This
+// atmospherePreset:'standard'/altitudeM:0, but tempC/pressurePa/
+// humidity set to match (15°C, 1013.25 hPa, 0% humidity). This
 // matters because atmosphere-section.js only *recomputes*
 // temp/pressure/humidity from the altitude formula reactively (on the
 // altitude field's own onInput) — it never re-derives them from a
-// freshly-loaded preset at mount time. Without an explicit humidityPct:
+// freshly-loaded preset at mount time. Without an explicit humidity:
 // 0 here, a fresh open would show "Standard atmosphere" selected while
 // silently sitting at atmosphere-section.js's own generic DEFAULTS
 // humidity (50%), i.e. not actually standard/dry air. Once a save has
 // happened, those real values win via the trailing spread below.
 const STANDARD_SEA_LEVEL = {
   atmospherePreset: 'standard', altitudeM: 0,
-  tempC: 15, pressureHpa: 1013.25, humidityPct: 0
+  tempC: 15, pressurePa: 101325, humidity: 0
 };
 
 export function loadCdMachCurveAtmosphereState() {

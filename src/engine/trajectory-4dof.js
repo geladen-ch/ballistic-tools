@@ -21,7 +21,7 @@
 // an open, unimplemented feature, not a bug in what's here.
 import { GRAVITY, LBIN2_TO_KGM2, TRANSONIC_LO, TRANSONIC_HI, H_COARSE, H_FINE } from './constants.js';
 import { DRAG_TABLES, makeCdLookup } from './drag-tables.js';
-import { airDensity, temperatureAtHeightDelta, icaoStandardPressureHpa } from './atmosphere.js';
+import { airDensity, temperatureAtHeightDelta, icaoStandardPressurePa } from './atmosphere.js';
 import { estimateAeroCoefficients, canEstimateAeroCoefficients } from './aero-coefficients.js';
 
 // Twist direction is this engine's own convention (spin-drift.js's own
@@ -51,7 +51,7 @@ export function makeStepper4dof(state) {
     bc, dragModel = 'G1', cdTable, massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm,
     twistDirection = 'right',
     windSpeed = 0, windAngle = 90,
-    tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0
+    tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0
   } = state;
 
   const table = cdTable || (DRAG_TABLES[dragModel] || DRAG_TABLES.G1);
@@ -72,15 +72,15 @@ export function makeStepper4dof(state) {
     ? areaM2 / (2 * massKg)
     : Math.PI / (8 * LBIN2_TO_KGM2 * bc);
 
-  // tempC/pressureHpa/humidityPct here are the shooter's own actual
+  // tempC/pressurePa/humidity here are the shooter's own actual
   // muzzle-height conditions (trajectory.js's own convention — see its
   // atmosphereAt() comment), not sea-level-equivalent — exactly what
   // estimateAeroCoefficients wants for its own Sg/CMalpha atmosphere
   // correction (aero-coefficients.js, stability.js).
-  const aero = estimateAeroCoefficients({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC, pressureHpa, humidityPct });
+  const aero = estimateAeroCoefficients({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC, pressurePa, humidity });
   const p0 = spinRateRadS(muzzleVelocity, riflingTwistMm, twistDirection);
 
-  const siteStdPressureHpa = icaoStandardPressureHpa(altitudeM);
+  const siteStdPressurePa = icaoStandardPressurePa(altitudeM);
 
   // Same "frozen for the whole step" atmosphere convention as
   // trajectory.js's own atmosphereAt() — see that function's comment for
@@ -90,8 +90,8 @@ export function makeStepper4dof(state) {
   // don't go through).
   function atmosphereAt(heightDeltaM) {
     const localTempC = temperatureAtHeightDelta(tempC, heightDeltaM);
-    const localPressureHpa = pressureHpa * (icaoStandardPressureHpa(altitudeM + heightDeltaM) / siteStdPressureHpa);
-    const rho = airDensity({ tempC: localTempC, pressureHpa: localPressureHpa, humidityPct });
+    const localPressurePa = pressurePa * (icaoStandardPressurePa(altitudeM + heightDeltaM) / siteStdPressurePa);
+    const rho = airDensity({ tempC: localTempC, pressurePa: localPressurePa, humidity });
     const speedSound = Math.sqrt(1.4 * 287.05 * (localTempC + 273.15));
     return { kConst: rho * kFactor, rho, speedSound };
   }

@@ -105,6 +105,17 @@ export const UNIT_GROUPS = {
       { unit: 'mrad', label: 'mrad', decimals: 3 }
     ]
   },
+  // A plain fraction (relative humidity, an estimation error) is held as
+  // 0..1 and always shown in percent — not a choice anyone needs, so the
+  // group is `fixed`: Settings doesn't offer it, and fields don't append a
+  // unit suffix to their label (their translated labels already say "%").
+  ratio: {
+    defaultUnit: '%',
+    fixed: true,
+    choices: [
+      { unit: '%', label: '%', decimals: 0 }
+    ]
+  },
   energy: {
     defaultUnit: 'J',
     choices: [
@@ -122,7 +133,8 @@ export const UNIT_GROUPS = {
 // engine unit of the same kind.
 export const GROUP_KINDS = {
   velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
-  altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy'
+  altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy',
+  ratio: 'ratio'
 };
 
 // Maps each engine parameter to the group it belongs to and the exact unit
@@ -189,8 +201,9 @@ export const FIELD_UNITS = {
   // A span (an interval of uncertainty), not an absolute reading — see
   // unitField's isSpan option.
   tempMedianError: { group: 'temperature', engineUnit: 'tempC' },
-  pressureHpa: { group: 'pressure', engineUnit: 'hPa' },
-  pressureMedianError: { group: 'pressure', engineUnit: 'hPa' },
+  pressure: { group: 'pressure', engineUnit: 'Pa' },
+  pressureMedianError: { group: 'pressure', engineUnit: 'Pa' },
+  humidity: { group: 'ratio', engineUnit: '1' },
   benchPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
   shooterSkill: { group: 'angleDispersion', engineUnit: 'mrad' },
   combinedPrecision: { group: 'angleDispersion', engineUnit: 'mrad' },
@@ -320,8 +333,8 @@ export const FIELD_BOUNDS = {
   targetRange: { min: 10, max: 5000 }, // m
   losAngle: { min: -90, max: 90 }, // degrees, no FIELD_UNITS entry
   windSpeed: { min: 0, max: 35 }, // m/s
-  pressureHpa: { min: 450, max: 1100 }, // hPa
-  humidityPct: { min: 0, max: 100 }, // %, no FIELD_UNITS entry
+  pressure: { min: 45000, max: 110000 }, // Pa
+  humidity: { min: 0, max: 1 }, // fraction
   battleZeroRange: { min: 0, max: 5000 }, // m — matches zeroRange, same physical quantity
   r1: { min: 0, max: 200 }, // m
   r2: { min: 10, max: 3000 }, // m
@@ -335,7 +348,7 @@ export const FIELD_BOUNDS = {
   combinedPrecision: { min: 0, max: 3 }, // mrad
   distanceMedianError: { min: 0, max: 50 }, // %, no FIELD_UNITS entry
   tempMedianError: { min: 0, max: 20 }, // °C span
-  pressureMedianError: { min: 0, max: 30 }, // hPa
+  pressureMedianError: { min: 0, max: 3000 }, // Pa
   windMedianError: { min: 0, max: 10 }, // m/s
   movingTargetSpeed: { min: 0, max: 30 }, // m/s
   movingTargetSpeedError: { min: 0, max: 100 }, // %, no FIELD_UNITS entry

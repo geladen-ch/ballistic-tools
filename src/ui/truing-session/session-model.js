@@ -16,7 +16,7 @@ import { erf } from '../../engine/target-shapes.js';
 import { standardAtmosphereAt } from '../../engine/atmosphere.js';
 import { resolveMuzzleVelocity } from '../../engine/trajectory.js';
 import { RIG_PRESET_KEY, CUSTOM_PRESET_KEY } from '../preset-keys.js';
-import { radToMrad, linearToAngleAtRange, percentToFraction, fractionToPercent } from '../../quantity.js';
+import { radToMrad, linearToAngleAtRange, percentToFraction, fractionToPercent, hpaToPa } from '../../quantity.js';
 
 // A BC correction is only ever offered for saving with at least this many
 // chronograph velocities actually captured this session (on top of grade
@@ -77,19 +77,19 @@ export function farTargetCheckPrompt({ planRanges, rangeDeclaredFlat }) {
 // higher than the air the bullet flies through: the tool would absorb the difference into the drag scale and offer a BC
 // correction for it (at 1,500 m it costs 0.39 mrad uncorrected). Real station pressure at a given altitude moves about
 // 35 hPa either side of the standard atmosphere's value with the weather, so a reading well above it looks like QNH.
-export const PRESSURE_QNH_MARGIN_HPA = 40;
-export const PRESSURE_LOW_MARGIN_HPA = 60;
-export function stationPressureCheck({ pressureHpa, altitudeM }) {
-  if (!Number.isFinite(pressureHpa) || !Number.isFinite(altitudeM)) return { level: 'unknown', expectedHpa: null };
-  const expectedHpa = standardAtmosphereAt(altitudeM).pressureHpa;
-  const excess = pressureHpa - expectedHpa;
-  if (excess > PRESSURE_QNH_MARGIN_HPA) return { level: 'qnh', expectedHpa };
-  if (excess < -PRESSURE_LOW_MARGIN_HPA) return { level: 'low', expectedHpa };
-  return { level: 'ok', expectedHpa };
+export const PRESSURE_QNH_MARGIN_PA = hpaToPa(40);
+export const PRESSURE_LOW_MARGIN_PA = hpaToPa(60);
+export function stationPressureCheck({ pressurePa, altitudeM }) {
+  if (!Number.isFinite(pressurePa) || !Number.isFinite(altitudeM)) return { level: 'unknown', expectedPa: null };
+  const expectedPa = standardAtmosphereAt(altitudeM).pressurePa;
+  const excess = pressurePa - expectedPa;
+  if (excess > PRESSURE_QNH_MARGIN_PA) return { level: 'qnh', expectedPa };
+  if (excess < -PRESSURE_LOW_MARGIN_PA) return { level: 'low', expectedPa };
+  return { level: 'ok', expectedPa };
 }
 
 // The keys a group's own weather carries into the engine (see withConditions); the altitude stays the session's own.
-export const GROUP_CONDITION_KEYS = ['tempC', 'pressureHpa', 'humidityPct', 'windSpeed', 'windAngle'];
+export const GROUP_CONDITION_KEYS = ['tempC', 'pressurePa', 'humidity', 'windSpeed', 'windAngle'];
 export function pickGroupConditions(values) {
   if (!values) return null;
   const out = {};
@@ -100,11 +100,11 @@ export function pickGroupConditions(values) {
 // muzzle velocity enough (0.8 m/s per degree on a temperature-sensitive load) that the shooter should know the plan is
 // getting old; the fit itself follows each group's own air either way.
 export const CONDITIONS_CHANGED_TEMP_C = 8;
-export const CONDITIONS_CHANGED_PRESSURE_HPA = 15;
+export const CONDITIONS_CHANGED_PRESSURE_PA = hpaToPa(15);
 export function conditionsChangedALot(start, now) {
   if (!start || !now) return false;
   return Math.abs((now.tempC ?? start.tempC) - start.tempC) >= CONDITIONS_CHANGED_TEMP_C
-    || Math.abs((now.pressureHpa ?? start.pressureHpa) - start.pressureHpa) >= CONDITIONS_CHANGED_PRESSURE_HPA;
+    || Math.abs((now.pressurePa ?? start.pressurePa) - start.pressurePa) >= CONDITIONS_CHANGED_PRESSURE_PA;
 }
 
 // Why the ladder cannot take the next planned distance: it is more than the step cap times the farthest distance that has

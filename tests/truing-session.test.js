@@ -17,7 +17,7 @@ import {
 const REF_STATE = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 792.48,
   zeroRange: 100, sightHeight: 50,
-  tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50,
+  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
   windSpeed: 0, windAngle: 90, losAngleDeg: 0
 };
 
@@ -52,7 +52,7 @@ test('the supersonic ceiling follows the speed of sound in the state\'s own air:
 
 test('golden: rangeAtMach', () => {
   closeTo(rangeAtMach(REF_STATE, 1.1), 869.2, 0.1, 'rangeAtMach(1.1)');
-  const altState = { ...REF_STATE, pressureHpa: 850, altitudeM: 1500 };
+  const altState = { ...REF_STATE, pressurePa: 85000, altitudeM: 1500 };
   closeTo(rangeAtMach(altState, 1.1), 1037, 1, 'altitude rangeAtMach(1.1)');
   closeTo(rangeAtMach(altState, 1.15), 986, 1, 'altitude rangeAtMach(1.15)');
 });
@@ -217,7 +217,7 @@ test('dragPct sensitivity is non-zero for a real Cd-table library bullet', () =>
   const state = {
     cdTable: CD_TABLE_BULLET.profile.table, massKg: CD_TABLE_BULLET.massKg, caliberM: CD_TABLE_BULLET.caliberM,
     muzzleVelocity: 830, zeroRange: 100, sightHeight: 50,
-    tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50,
+    tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
     windSpeed: 0, windAngle: 0, losAngleDeg: 0
   };
   const cols = sensitivityColumns(state, 800);
@@ -269,7 +269,7 @@ test('bcGainFactor: BC-profile and Cd-table bullets get the same come-up change 
   const baseCd = {
     cdTable: CD_TABLE_BULLET.profile.table, massKg: CD_TABLE_BULLET.massKg, caliberM: CD_TABLE_BULLET.caliberM,
     muzzleVelocity: 830, zeroRange: 100, sightHeight: 50,
-    tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50, windSpeed: 0, windAngle: 0, losAngleDeg: 0
+    tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 0, losAngleDeg: 0
   };
   for (const range of [300, 600, 900]) {
     for (const factor of [1.0, 1.05, 0.95]) {
@@ -327,7 +327,7 @@ function gaussian(rng) {
 const SCEN_REF = {
   dragModel: 'G7', bc: 0.2623, muzzleVelocity: 2600 * 0.3048,
   zeroRange: 100, sightHeight: 50,
-  tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50,
+  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
   windSpeed: 0, windAngle: 0, losAngleDeg: 0
 };
 function simulateObservation({ trueState, believedRangeM, trueRangeM = believedRangeM, trueLosDeg = 0, trueZeroMrad = 0, shots, r50Mrad = null, targetIndex, rng }) {
@@ -674,7 +674,7 @@ test('a string\'s wind error does not shrink with its rounds, only with the stri
 });
 
 test('a zero fixed in the air it was set in: no zero conditions is the old behaviour, and colder air later moves the impact', () => {
-  const same = { ...REF_STATE, zeroConditions: { tempC: REF_STATE.tempC, pressureHpa: REF_STATE.pressureHpa, humidityPct: REF_STATE.humidityPct, altitudeM: REF_STATE.altitudeM } };
+  const same = { ...REF_STATE, zeroConditions: { tempC: REF_STATE.tempC, pressurePa: REF_STATE.pressurePa, humidity: REF_STATE.humidity, altitudeM: REF_STATE.altitudeM } };
   for (const r of [300, 600, 850]) closeTo(comeUpMrad(same, r), comeUpMrad(REF_STATE, r), 1e-9, `zeroed in this same air, ${r} m`);
   // how much it matters grows with the zero range (about 0.005 mrad for a 100 m zero, 0.03 to 0.07 for a 300 m zero
   // and up to 0.24 for a 500 m zero, in 1,500 m thinner air), so use a 300 m zero here
@@ -700,8 +700,8 @@ function conditionsCase() {
   const state = { ...REF_STATE, referenceTempC: 15, velocityTempSensitivity: 0.8 };
   const truth = { ...state, muzzleVelocity: state.muzzleVelocity - 10 };
   const shots = [
-    [100, { tempC: 4, pressureHpa: 1018, windSpeed: 0 }], [400, { tempC: 12, pressureHpa: 1010, windSpeed: 2, windAngle: 0 }],
-    [700, { tempC: 22, pressureHpa: 1002, windSpeed: 3, windAngle: 180 }], [850, { tempC: 29, pressureHpa: 998, windSpeed: 0 }]
+    [100, { tempC: 4, pressurePa: 101800, windSpeed: 0 }], [400, { tempC: 12, pressurePa: 101000, windSpeed: 2, windAngle: 0 }],
+    [700, { tempC: 22, pressurePa: 100200, windSpeed: 3, windAngle: 180 }], [850, { tempC: 29, pressurePa: 99800, windSpeed: 0 }]
   ];
   const observations = shots.map(([rangeM, conditions], i) => ({
     rangeM, observedComeUp: comeUpMrad(withConditions(truth, conditions), rangeM), shots: 4, sigmaMrad: 0.01, targetIndex: `t${i}`, knownLosDeg: 0, conditions
@@ -717,9 +717,9 @@ test('groups shot in their own air and wind are fitted in that air and wind', ()
   const blind = fitSession({ ...args, observations: observations.map(({ conditions, ...o }) => o) });
   assert.ok(Math.abs(blind.theta.v0Ms + 10) > 1, `ignoring the conditions would have blamed the muzzle velocity (${blind.theta.v0Ms})`);
   // conditions equal to the base state change nothing, bit for bit
-  const same = fitSession({ ...args, observations: observations.map((o) => ({ ...o, conditions: { tempC: state.tempC, pressureHpa: state.pressureHpa } })) });
+  const same = fitSession({ ...args, observations: observations.map((o) => ({ ...o, conditions: { tempC: state.tempC, pressurePa: state.pressurePa } })) });
   const plain = fitSession({ ...args, observations: observations.map(({ conditions, ...o }) => ({ ...o, observedComeUp: o.observedComeUp })) });
-  assert.equal(withConditions(state, { tempC: state.tempC, pressureHpa: state.pressureHpa }).tempC, state.tempC);
+  assert.equal(withConditions(state, { tempC: state.tempC, pressurePa: state.pressurePa }).tempC, state.tempC);
   assert.ok(Number.isFinite(same.theta.v0Ms) && Number.isFinite(plain.theta.v0Ms));
 });
 
@@ -735,7 +735,7 @@ test('only air and wind fields are ever taken from a group\'s conditions', () =>
 
 test('nextShotDope: elevation and windage for the next shot, in that shot\'s air and wind, with the fit folded in', () => {
   const state = { ...REF_STATE, windSpeed: 0, windAngle: 90 };
-  const conditions = { tempC: 5, pressureHpa: 1000, windSpeed: 6, windAngle: 90 };
+  const conditions = { tempC: 5, pressurePa: 100000, windSpeed: 6, windAngle: 90 };
   const shot = withConditions(state, conditions);
   const plain = nextShotDope({ state, conditions, rangeM: 700 });
   closeTo(plain.elevationMrad, comeUpMrad(shot, 700), 1e-9, 'elevation with no fit applied');
@@ -777,7 +777,7 @@ test('the joint enumeration drops combinations with more than the capped number 
 });
 
 test('the rifle is zeroed once, in the starting air and in calm air: neither later air nor any wind moves the bore', () => {
-  const cold = withConditions(REF_STATE, { tempC: -10, pressureHpa: 980 });
+  const cold = withConditions(REF_STATE, { tempC: -10, pressurePa: 98000 });
   const cold300 = withConditions({ ...REF_STATE, zeroRange: 300 }, { tempC: -10 });
   assert.equal(cold.zeroConditions.tempC, REF_STATE.tempC, 'the zero stays in the air the state started in');
   const boreStart = withFixedBore(REF_STATE);
@@ -810,7 +810,7 @@ test('the kept integrator walks change nothing: come-ups equal a fresh computeIm
   clearWalkers();
   const states = [
     REF_STATE, { ...REF_STATE, windSpeed: 4, windAngle: 0 }, { ...REF_STATE, losAngleDeg: 20 },
-    { ...withConditions({ ...REF_STATE, zeroRange: 300 }, { tempC: -8, pressureHpa: 960, windSpeed: 3, windAngle: 90 }), losAngleDeg: -15 },
+    { ...withConditions({ ...REF_STATE, zeroRange: 300 }, { tempC: -8, pressurePa: 96000, windSpeed: 3, windAngle: 90 }), losAngleDeg: -15 },
     { ...REF_STATE, zeroConditions: { tempC: 30, losAngleDeg: 10 } }, applyParameters(REF_STATE, { v0Ms: 2, dragPct: 3 })
   ];
   for (let pass = 0; pass < 2; pass++) {
@@ -1015,8 +1015,8 @@ test('predictiveComeUpSd with nothing to fold in is the same number from the mem
 });
 
 test('the zero is made in the cartridge\'s zero atmosphere, whatever air a group is shot in; a donor cartridge\'s zero is honoured too', () => {
-  const zeroAir = { tempC: -15, pressureHpa: 800, humidityPct: 0, altitudeM: 2000 };
-  const shotAir = { tempC: 35, pressureHpa: 1013.25, humidityPct: 0 };
+  const zeroAir = { tempC: -15, pressurePa: 80000, humidity: 0, altitudeM: 2000 };
+  const shotAir = { tempC: 35, pressurePa: 101325, humidity: 0 };
   const plain = { ...REF_STATE, zeroRange: 500 };
   const withZeroAir = { ...plain, zeroAtmosphere: zeroAir };
   // 1. Shot in the exercise's own air, the cartridge's zero atmosphere is what the ordinary solve does (no group conditions)
@@ -1048,7 +1048,7 @@ test('planWholeSession reaches beyond the near band whenever the location has a 
 test('a hypothesis whose fit runs away does not poison the joint analysis', () => {
   // captured from a simulated session: a wide drag scale and two targets allowed to be mis-ranged at once ran one fit to NaN,
   // which used to turn every estimate into NaN
-  const state = { zeroRange: 100, sightHeight: 50, tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 50, windSpeed: 0, windAngle: 90, losAngleDeg: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
+  const state = { zeroRange: 100, sightHeight: 50, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5, windSpeed: 0, windAngle: 90, losAngleDeg: 0, dragModel: 'G7', bc: 0.218, muzzleVelocity: 800 };
   const g = (rangeM, observedComeUp, shots, sigmaMrad) => ({ rangeM, observedComeUp, shots, sigmaMrad, targetIndex: String(rangeM), knownLosDeg: 0 });
   const observations = [
     g(100, -0.5029620073218181, 1, 0.12899090581593903),

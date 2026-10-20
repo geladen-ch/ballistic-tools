@@ -2,7 +2,7 @@
 // worker, the main thread, or a Node test runner without modification.
 import { GRAVITY, LBIN2_TO_KGM2, TRANSONIC_LO, TRANSONIC_HI, H_COARSE, H_FINE, MAX_STEPS } from './constants.js';
 import { DRAG_TABLES, makeCdLookup } from './drag-tables.js';
-import { airDensity, speedOfSound, temperatureAtHeightDelta, icaoStandardPressureHpa } from './atmosphere.js';
+import { airDensity, speedOfSound, temperatureAtHeightDelta, icaoStandardPressurePa } from './atmosphere.js';
 import { resolveSpinDrift, spinDriftCm, resolveSpinDriftMode } from './spin-drift.js';
 import { makeStepper4dof } from './trajectory-4dof.js';
 
@@ -25,7 +25,7 @@ export function makeStepper(state) {
   const {
     bc, dragModel = 'G1', cdTable, massKg, caliberM,
     windSpeed = 0, windAngle = 90,
-    tempC = 15, pressureHpa = 1013, altitudeM = 0, humidityPct = 0,
+    tempC = 15, pressurePa = 101300, altitudeM = 0, humidity = 0,
     bcGainFactor = 1
   } = state;
 
@@ -71,15 +71,15 @@ export function makeStepper(state) {
   // (same as kFactor above), so unlike the numerator below (which
   // genuinely changes every step, as the bullet's own altitude changes),
   // this is computed once here rather than redone — via a fresh
-  // icaoStandardPressureHpa() call, i.e. a Math.pow — on every single one
+  // icaoStandardPressurePa() call, i.e. a Math.pow — on every single one
   // of the (up to MAX_STEPS, times however many loops reuse this stepper)
   // calls to atmosphereAt().
-  const siteStdPressureHpa = icaoStandardPressureHpa(altitudeM);
+  const siteStdPressurePa = icaoStandardPressurePa(altitudeM);
 
-  // pressureHpa/tempC are the shooter's own actual station readings, taken
+  // pressurePa/tempC are the shooter's own actual station readings, taken
   // at face value at their own elevation (altitudeM) — no sea-level
   // conversion (see atmosphere.js's pressureAtAltitude, whose ratio is
-  // inlined here against the hoisted siteStdPressureHpa above rather than
+  // inlined here against the hoisted siteStdPressurePa above rather than
   // called directly, so only the numerator's Math.pow is repeated per
   // step). Recomputed fresh at the start of every integration step (not
   // once for the whole trajectory, as before) from the bullet's own
@@ -94,8 +94,8 @@ export function makeStepper(state) {
   // regardless.
   function atmosphereAt(heightDeltaM) {
     const localTempC = temperatureAtHeightDelta(tempC, heightDeltaM);
-    const localPressureHpa = pressureHpa * (icaoStandardPressureHpa(altitudeM + heightDeltaM) / siteStdPressureHpa);
-    const rho = airDensity({ tempC: localTempC, pressureHpa: localPressureHpa, humidityPct });
+    const localPressurePa = pressurePa * (icaoStandardPressurePa(altitudeM + heightDeltaM) / siteStdPressurePa);
+    const rho = airDensity({ tempC: localTempC, pressurePa: localPressurePa, humidity });
     const speedSound = speedOfSound(localTempC);
     const kConst = rho * kFactor;
     return { kConst, speedSound };
@@ -319,10 +319,10 @@ export function solveZeroAngle(state, { maxIter = 20, tolM = 1e-5 } = {}) {
   return theta1;
 }
 
-// The air fields a cartridge's `zeroAtmosphere` ({ tempC, pressureHpa,
-// humidityPct, altitudeM }, see the Arsenal cartridge form) replaces in a
+// The air fields a cartridge's `zeroAtmosphere` ({ tempC, pressurePa,
+// humidity, altitudeM }, see the Arsenal cartridge form) replaces in a
 // zero solve.
-const ZERO_AIR_KEYS = ['tempC', 'pressureHpa', 'humidityPct', 'altitudeM'];
+const ZERO_AIR_KEYS = ['tempC', 'pressurePa', 'humidity', 'altitudeM'];
 
 // The state a rifle's zero is solved in: always the flat (losAngleDeg 0),
 // calm-air one — a rifle is zeroed on the level, before any incline or

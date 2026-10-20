@@ -21,7 +21,7 @@
 // density) is a standard refinement for this (other ballistics tools
 // offer the same "altitude-corrected Sg" adjustment) — thinner air (high
 // altitude, hot day) raises Sg above what Miller's plain formula predicts,
-// denser air lowers it. tempC/pressureHpa/humidityPct default to standard
+// denser air lowers it. tempC/pressurePa/humidity default to standard
 // sea level (15°C, 1013.25 hPa, 0% humidity), which makes the correction
 // factor exactly 1 and this function reproduce the plain Miller formula
 // bit-for-bit when no atmosphere is given — every existing caller is
@@ -31,13 +31,13 @@ import { airDensity } from './atmosphere.js';
 const KG_TO_GRAIN = 15432.358352941432; // matches bullet-section.js's own constant
 const MILLER_C = 7.5867313200175746;
 const MILLER_V0 = 853.44; // 2800 fps in m/s
-const STANDARD_SEA_LEVEL_DENSITY = airDensity({ tempC: 15, pressureHpa: 1013.25, humidityPct: 0 });
+const STANDARD_SEA_LEVEL_DENSITY = airDensity({ tempC: 15, pressurePa: 101325, humidity: 0 });
 
-export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC = 15, pressureHpa = 1013.25, humidityPct = 0 }) {
+export function computeMillerSg({ massKg, caliberM, lengthM, muzzleVelocity, riflingTwistMm, tempC = 15, pressurePa = 101325, humidity = 0 }) {
   const t = riflingTwistMm / (caliberM * 1000);
   const L = lengthM / caliberM;
   const sgStandardAtmo = (MILLER_C * massKg) / (t * t * caliberM ** 3 * L * (1 + L * L)) * (muzzleVelocity / MILLER_V0) ** (1 / 3);
-  const rho = airDensity({ tempC, pressureHpa, humidityPct });
+  const rho = airDensity({ tempC, pressurePa, humidity });
   return sgStandardAtmo * (STANDARD_SEA_LEVEL_DENSITY / rho);
 }
 

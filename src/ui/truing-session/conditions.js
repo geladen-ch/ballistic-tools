@@ -3,27 +3,22 @@
 // session at Start. Also the one-line "conditions used" summary the later screens show.
 import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { UNIT_GROUPS, FIELD_BOUNDS, unitChoice, engineToDisplay } from '../../units.js';
-import { getUnit } from '../../prefs.js';
+import { FIELD_BOUNDS } from '../../units.js';
+import { formatQuantity } from '../../display-units.js';
+import { fractionToPercent } from '../../quantity.js';
 import { atmosphereSection } from '../sections/atmosphere-section.js';
 import { windControl } from '../wind-control.js';
 import { WIND_CONFIDENCE_SIGMA_MS, DEFAULT_WIND_CONFIDENCE_KEY } from '../../engine/truing-session.js';
 import { altitude as altitudeText, nominalDist, nominalDistM, windSpeedShort } from './units.js';
 import { stationPressureCheck, pickGroupConditions, conditionsChangedALot } from './session-model.js';
 
-function formatWithUnit(fieldId, groupName, engineValue, decimals = null) {
-  const group = UNIT_GROUPS[groupName];
-  const choice = unitChoice(fieldId, getUnit(groupName)) || group.choices.find((c) => c.unit === group.defaultUnit);
-  return `${engineToDisplay(fieldId, engineValue, choice.unit).toFixed(decimals ?? choice.decimals)} ${choice.label}`;
-}
-
 // "12 °C, 923 hPa, 40%" in the user's own units (the wind is each group's own).
 export function conditionsSummary(values) {
   if (!values) return '';
   const parts = [];
-  if (Number.isFinite(values.tempC)) parts.push(formatWithUnit('tempC', 'temperature', values.tempC, 0));
-  if (Number.isFinite(values.pressureHpa)) parts.push(formatWithUnit('pressureHpa', 'pressure', values.pressureHpa, 0));
-  if (Number.isFinite(values.humidityPct)) parts.push(`${Math.round(values.humidityPct)}%`);
+  if (Number.isFinite(values.tempC)) parts.push(formatQuantity('temperature', values.tempC, { decimals: 0 }));
+  if (Number.isFinite(values.pressurePa)) parts.push(formatQuantity('pressure', values.pressurePa, { decimals: 0 }));
+  if (Number.isFinite(values.humidity)) parts.push(`${Math.round(fractionToPercent(values.humidity))}%`);
   return parts.join(', ');
 }
 
@@ -44,13 +39,13 @@ export function conditionsCard({ load, save, getLocationAltitudeM, getConfirmed,
     const values = section.getValues();
     const altitudeM = getLocationAltitudeM();
     if (altitudeM == null) return;
-    const check = stationPressureCheck({ pressureHpa: values.pressureHpa, altitudeM });
+    const check = stationPressureCheck({ pressurePa: values.pressurePa, altitudeM });
     if (check.level === 'qnh' || check.level === 'low') {
       warningHost.appendChild(el('p', {
         class: 'hint warning',
         text: t(check.level === 'qnh' ? 'truingSession.conditions.pressureQnh' : 'truingSession.conditions.pressureLow', {
-          entered: formatWithUnit('pressureHpa', 'pressure', values.pressureHpa, 0),
-          expected: formatWithUnit('pressureHpa', 'pressure', check.expectedHpa, 0),
+          entered: formatQuantity('pressure', values.pressurePa, { decimals: 0 }),
+          expected: formatQuantity('pressure', check.expectedPa, { decimals: 0 }),
           altitude: altitudeText(altitudeM)
         })
       }));

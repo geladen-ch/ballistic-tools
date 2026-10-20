@@ -85,7 +85,7 @@ test('table lookups clamp at the ends rather than extrapolating', () => {
 
 function checkCMalphaRoundTrip(state, atmo) {
   const { Ix, Iy, sg, cMAlpha } = estimateAeroCoefficients({ ...state, ...atmo });
-  const rho = airDensity(atmo ?? { tempC: 15, pressureHpa: 1013.25, humidityPct: 0 });
+  const rho = airDensity(atmo ?? { tempC: 15, pressurePa: 101325, humidity: 0 });
   const speedSound = speedOfSound(atmo?.tempC ?? 15);
   const { muzzleVelocity, riflingTwistMm, caliberM } = state;
 
@@ -102,12 +102,12 @@ test('cMAlpha inversion is self-consistent: feeding it back through the Sg formu
 });
 
 test('cMAlpha inversion stays self-consistent under a non-standard atmosphere too', () => {
-  checkCMalphaRoundTrip(REFERENCE_BULLET, { tempC: 35, pressureHpa: 850, humidityPct: 10 });
+  checkCMalphaRoundTrip(REFERENCE_BULLET, { tempC: 35, pressurePa: 85000, humidity: 0.1 });
 });
 
 test('non-standard atmosphere changes cMAlpha (via Sg) but not the unscaled reference-curve coefficients', () => {
   const standard = estimateAeroCoefficients(REFERENCE_BULLET);
-  const thinAir = estimateAeroCoefficients({ ...REFERENCE_BULLET, tempC: 35, pressureHpa: 850, humidityPct: 10 });
+  const thinAir = estimateAeroCoefficients({ ...REFERENCE_BULLET, tempC: 35, pressurePa: 85000, humidity: 0.1 });
   assert.notEqual(standard.sg, thinAir.sg);
   assert.notEqual(standard.cMAlpha(1.0), thinAir.cMAlpha(1.0));
   // cLAlpha/cDAlpha2/clp are read unscaled from the literature table,

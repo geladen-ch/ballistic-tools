@@ -42,7 +42,7 @@ test('the derived formula reproduces the exact same trajectory as the plain bc+d
   const dragModel = 'G7';
   const massKg = 0.012;
   const caliberM = 0.00782;
-  const atmo = { tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0, windSpeed: 0, windAngle: 90 };
+  const atmo = { tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0, windSpeed: 0, windAngle: 90 };
 
   const cdTable = bcSegmentsToCdCurve({
     dragModel, segments: [{ toVelocityMs: null, bc }], massKg, caliberM

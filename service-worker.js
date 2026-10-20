@@ -44,6 +44,7 @@ const APP_SHELL_URLS = [
   './src/units.js',
   './src/quantity.js',
   './src/display-units.js',
+  './src/legacy-units.js',
   './src/prefs.js',
   './src/cookies.js',
   './src/table-columns.js',

@@ -1,12 +1,6 @@
 {
   "inlineConversions": [
     "src/engine/aero-coefficients.js: return (2 * Math.PI * muzzleVelocity) / (riflingTwistMm / 1000);",
-    "src/engine/atmosphere.js: const pressurePa = pressureHpa * 100;",
-    "src/engine/atmosphere.js: const ratio = 1 - (LAPSE_RATE * altitudeM) / (STD_SEA_LEVEL_TEMP_C + 273.15);",
-    "src/engine/atmosphere.js: const tempK = tempC + 273.15;",
-    "src/engine/atmosphere.js: const vaporPa = (humidityPct / 100) * satVaporPa;",
-    "src/engine/atmosphere.js: return ((STD_SEA_LEVEL_TEMP_C + 273.15) * (1 - ratio)) / LAPSE_RATE;",
-    "src/engine/atmosphere.js: return Math.sqrt(GAMMA * R_DRY * (tempC + 273.15));",
     "src/engine/dispersion-sources.js: const x = estimatedSpeed * tof * probableErrorToSD(speedErrorPct / 100) * 100;",
     "src/engine/dispersion-sources.js: return (sdMrad * rangeM) / 10;",
     "src/engine/rifle-precision-stats.js: return angularUnitToCmAtRange('arcmin', rangeM) * 10;",

@@ -66,7 +66,7 @@ test('fields with no unit group pass through unconverted', () => {
 
 test('roundForDisplay respects the configured decimal precision', () => {
   assert.equal(roundForDisplay('maxRange', 'yd', 109.36133), 109.4);
-  assert.equal(roundForDisplay('pressureHpa', 'inHg', 29.91234), 29.91);
+  assert.equal(roundForDisplay('pressure', 'inHg', 29.91234), 29.91);
 });
 
 test('a value in its own engine unit is unchanged (no lossy round trip)', () => {
@@ -94,7 +94,7 @@ test('FIELD_BOUNDS carries the approved bound for every field this session widen
   assert.deepEqual(FIELD_BOUNDS.muzzleVelocity, { min: 50, max: 1500 });
   assert.deepEqual(FIELD_BOUNDS.tempC, { min: -90, max: 60 });
   assert.deepEqual(FIELD_BOUNDS.windSpeed, { min: 0, max: 35 });
-  assert.deepEqual(FIELD_BOUNDS.pressureHpa, { min: 450, max: 1100 });
+  assert.deepEqual(FIELD_BOUNDS.pressure, { min: 45000, max: 110000 });
   assert.deepEqual(FIELD_BOUNDS.targetRange, { min: 10, max: 5000 });
 });
 

@@ -27,9 +27,9 @@ test('saving a slice makes it loadable', () => {
 });
 
 test('saves merge into the existing slice rather than replacing it', () => {
-  saveAtmosphereState({ tempC: 20, pressureHpa: 1000 });
+  saveAtmosphereState({ tempC: 20, pressurePa: 100000 });
   saveAtmosphereState({ tempC: 25 }); // e.g. a wind-less view saving only its own fields
-  assert.deepEqual(loadAtmosphereState(), { tempC: 25, pressureHpa: 1000 });
+  assert.deepEqual(loadAtmosphereState(), { tempC: 25, pressurePa: 100000 });
 });
 
 test('the three slices are independent of each other', () => {

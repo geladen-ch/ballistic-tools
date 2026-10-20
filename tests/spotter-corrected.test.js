@@ -6,11 +6,11 @@ const nominalState = {
   muzzleVelocity: 840, bc: 0.475, dragModel: 'G1',
   sightHeight: 50,
   windSpeed: 0, windAngle: 90,
-  tempC: 15, pressureHpa: 1013.25, altitudeM: 0, humidityPct: 0
+  tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0
 };
 
 const zeroOwnErrors = { muzzleVelocitySD: 0, precisionMode: 'detailed', detailed: { benchR50: 0, shooterR50: 0, positionH: 1, positionV: 1 } };
-const zeroConditionErrors = { distanceMedianErrorPct: 0, tempMedianErrorC: 0, pressureMedianErrorHpa: 0, windMedianErrorMs: 0, movingTarget: { speedMs: 0, speedMedianErrorPct: 0 } };
+const zeroConditionErrors = { distanceMedianErrorPct: 0, tempMedianErrorC: 0, pressureMedianErrorPa: 0, windMedianErrorMs: 0, movingTarget: { speedMs: 0, speedMedianErrorPct: 0 } };
 
 test('with every uncertainty source at zero, both shots have zero dispersion and ~zero offset', () => {
   const result = computeSpotterCorrected({
