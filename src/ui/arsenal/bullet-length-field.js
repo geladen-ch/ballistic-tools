@@ -1,7 +1,7 @@
 import { el } from '../../dom.js';
 import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice } from '../../units.js';
 import { getUnit } from '../../prefs.js';
-import { converter, mmToM } from '../../quantity.js';
+import { converter } from '../../quantity.js';
 import { i18nSpan, t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
 
@@ -25,11 +25,9 @@ export function bulletLengthField({ value = null, id = 'bulletLength', onInput }
   if (!unitChoice('bulletLength', displayUnit)) displayUnit = 'mm';
   const decimals = SMALL_LENGTH_PRECISION_DECIMALS[displayUnit];
   const unitLabel = unitChoice('bulletLength', displayUnit).label;
-  // The record holds the length in metres; FIELD_BOUNDS.bulletLength is in mm.
   const toDisplay = converter('m', displayUnit);
   const toMetres = converter(displayUnit, 'm');
-  const minM = mmToM(FIELD_BOUNDS.bulletLength.min);
-  const maxM = mmToM(FIELD_BOUNDS.bulletLength.max);
+  const { min: minM, max: maxM } = FIELD_BOUNDS.bulletLength;
   // The value as last set, so an untouched field returns it exactly rather
   // than the metres of its rounded display.
   let setM = value;

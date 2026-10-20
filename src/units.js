@@ -4,7 +4,7 @@
 // unit and to turn typed input straight back into the engine unit. The
 // arithmetic itself is src/quantity.js's — this module never converts on
 // its own.
-import { converter, angleToLinearAtRange, degToRad, mradToRad } from './quantity.js';
+import { converter, internalUnit, angleToLinearAtRange, degToRad, mradToRad } from './quantity.js';
 
 // Each group is one independently-selectable "preferred unit" — grouped by
 // how a shooter actually thinks about a measurement, not just by physical
@@ -149,98 +149,96 @@ export const GROUP_KINDS = {
   ratio: 'ratio', angleDegrees: 'angle'
 };
 
-// Maps each engine parameter to the group it belongs to and the exact unit
-// the engine functions expect for it. Anything not listed here (bc,
-// shots, sighting shot count, ...) is a plain number with no unit and
-// passes through unit fields unconverted.
+// Maps each field id to the display group it is shown in and the quantity
+// kind its value is (quantity.js). A value is always held in its kind's
+// internal unit — SI, bar °C and lb/in² — so no entry here can name a unit
+// of its own. Anything not listed (bc, shots, sighting shot count, ...)
+// is a plain number with no unit and passes through unit fields
+// unconverted.
 export const FIELD_UNITS = {
-  muzzleVelocity: { group: 'velocity', engineUnit: 'm/s' },
-  windSpeed: { group: 'windSpeed', engineUnit: 'm/s' },
-  v1: { group: 'velocity', engineUnit: 'm/s' },
-  v2: { group: 'velocity', engineUnit: 'm/s' },
-  muzzleVelocitySD: { group: 'velocity', engineUnit: 'm/s' },
-  windMedianError: { group: 'windSpeed', engineUnit: 'm/s' },
-  movingTargetSpeed: { group: 'velocity', engineUnit: 'm/s' },
+  muzzleVelocity: { group: 'velocity', kind: 'velocity' },
+  windSpeed: { group: 'windSpeed', kind: 'velocity' },
+  v1: { group: 'velocity', kind: 'velocity' },
+  v2: { group: 'velocity', kind: 'velocity' },
+  muzzleVelocitySD: { group: 'velocity', kind: 'velocity' },
+  windMedianError: { group: 'windSpeed', kind: 'velocity' },
+  movingTargetSpeed: { group: 'velocity', kind: 'velocity' },
 
-  maxRange: { group: 'distance', engineUnit: 'm' },
-  rangeStep: { group: 'distance', engineUnit: 'm' },
+  maxRange: { group: 'distance', kind: 'length' },
+  rangeStep: { group: 'distance', kind: 'length' },
   // Not a form field — used to display a computed trajectory-table range
   // value (in meters from the engine) in the same distance unit the user
   // entered maxRange/rangeStep in, so the printed rows actually land on
   // the step the user specified.
-  range: { group: 'distance', engineUnit: 'm' },
-  zeroRange: { group: 'distance', engineUnit: 'm' },
+  range: { group: 'distance', kind: 'length' },
+  zeroRange: { group: 'distance', kind: 'length' },
   // Trajectory's own optional "for this tool only" stand-in for zeroRange
   // above — same quantity, same engine unit, its own field id only so it
   // can have its own (blank-by-default) value independent of the rifle's
   // actual configured zero range.
-  zeroRangeOverride: { group: 'distance', engineUnit: 'm' },
-  r1: { group: 'distance', engineUnit: 'm' },
-  r2: { group: 'distance', engineUnit: 'm' },
-  targetRange: { group: 'distance', engineUnit: 'm' },
-  battleZeroRange: { group: 'distance', engineUnit: 'm' },
-  truingBackdropHeight: { group: 'distance', engineUnit: 'm' },
+  zeroRangeOverride: { group: 'distance', kind: 'length' },
+  r1: { group: 'distance', kind: 'length' },
+  r2: { group: 'distance', kind: 'length' },
+  targetRange: { group: 'distance', kind: 'length' },
+  battleZeroRange: { group: 'distance', kind: 'length' },
+  truingBackdropHeight: { group: 'distance', kind: 'length' },
 
-  sightHeight: { group: 'smallLength', engineUnit: 'm' },
-  riflingTwist: { group: 'riflingTwist', engineUnit: 'm' },
-  aimOffsetX: { group: 'smallLength', engineUnit: 'm' },
-  aimOffsetY: { group: 'smallLength', engineUnit: 'm' },
+  sightHeight: { group: 'smallLength', kind: 'length' },
+  riflingTwist: { group: 'riflingTwist', kind: 'length' },
+  aimOffsetX: { group: 'smallLength', kind: 'length' },
+  aimOffsetY: { group: 'smallLength', kind: 'length' },
   // The two user-sizeable targets' own dimension fields (Circle gong,
-  // Rectangle plate) — same group/engineUnit as the aim-offset fields
+  // Rectangle plate) — same group and kind as the aim-offset fields
   // just above, since these are all "how big is this thing, in cm-ish
   // terms" inputs a shooter thinks about the same way.
-  circleGongDiameter: { group: 'smallLength', engineUnit: 'm' },
-  rectPlateWidth: { group: 'smallLength', engineUnit: 'm' },
-  rectPlateHeight: { group: 'smallLength', engineUnit: 'm' },
+  circleGongDiameter: { group: 'smallLength', kind: 'length' },
+  rectPlateWidth: { group: 'smallLength', kind: 'length' },
+  rectPlateHeight: { group: 'smallLength', kind: 'length' },
   // Trajectory's own Target section (direct-hit distance) — same
   // "how big is this thing, in cm-ish terms" shape as the two above.
-  targetHeight: { group: 'smallLength', engineUnit: 'm' },
+  targetHeight: { group: 'smallLength', kind: 'length' },
 
-  altitudeM: { group: 'altitude', engineUnit: 'm' },
-  tempC: { group: 'temperature', engineUnit: 'tempC' },
-  referenceTempC: { group: 'temperature', engineUnit: 'tempC' },
-  // A span (an interval of uncertainty), not an absolute reading — see
-  // unitField's isSpan option.
-  tempMedianError: { group: 'temperature', engineUnit: 'tempC' },
-  pressure: { group: 'pressure', engineUnit: 'Pa' },
-  pressureMedianError: { group: 'pressure', engineUnit: 'Pa' },
-  humidity: { group: 'ratio', engineUnit: '1' },
-  losAngle: { group: 'angleDegrees', engineUnit: 'rad' },
-  windAngle: { group: 'angleDegrees', engineUnit: 'rad' },
-  benchPrecision: { group: 'angleDispersion', engineUnit: 'rad' },
-  shooterSkill: { group: 'angleDispersion', engineUnit: 'rad' },
-  combinedPrecision: { group: 'angleDispersion', engineUnit: 'rad' },
+  altitudeM: { group: 'altitude', kind: 'length' },
+  tempC: { group: 'temperature', kind: 'temperature' },
+  referenceTempC: { group: 'temperature', kind: 'temperature' },
+  // A span (an interval of uncertainty), not an absolute reading: 5 °C of
+  // uncertainty is 9 °F, not 41 °F.
+  tempMedianError: { group: 'temperature', kind: 'temperatureDelta' },
+  pressure: { group: 'pressure', kind: 'pressure' },
+  pressureMedianError: { group: 'pressure', kind: 'pressure' },
+  humidity: { group: 'ratio', kind: 'ratio' },
+  losAngle: { group: 'angleDegrees', kind: 'angle' },
+  windAngle: { group: 'angleDegrees', kind: 'angle' },
+  benchPrecision: { group: 'angleDispersion', kind: 'angle' },
+  shooterSkill: { group: 'angleDispersion', kind: 'angle' },
+  combinedPrecision: { group: 'angleDispersion', kind: 'angle' },
   // Hit Probability's own spotter-corrected-fire panel — was missing this
   // entry despite being built with the same presetUnitField()/unitField()
   // machinery as its three siblings just above, so it silently never
   // converted to the user's angleDispersion (MOA) preference. PRESETS.
   // spotterMeasure's own values (src/views/hit-probability-view.js) are
-  // radians, matching this engineUnit.
-  spotterMeasure: { group: 'angleDispersion', engineUnit: 'rad' },
+  // radians.
+  spotterMeasure: { group: 'angleDispersion', kind: 'angle' },
   // estimation errors as a fraction of the estimate (0.05), shown in %
-  distanceMedianError: { group: 'ratio', engineUnit: '1' },
-  movingTargetSpeedError: { group: 'ratio', engineUnit: '1' },
+  distanceMedianError: { group: 'ratio', kind: 'ratio' },
+  movingTargetSpeedError: { group: 'ratio', kind: 'ratio' },
   // Not a form field — the trajectory view's own kinetic-energy column/
   // chart series computes 0.5*massKg*velocity^2 itself (Joules, SI) and
   // converts it for display through this entry, the same way it already
   // does for `range`.
-  energy: { group: 'energy', engineUnit: 'J' },
+  energy: { group: 'energy', kind: 'energy' },
   // The trajectory table/chart's velocity-at-range column — same
-  // engineUnit as muzzleVelocity, kept as its own entry since it isn't a
+  // kind as muzzleVelocity, kept as its own entry since it isn't a
   // form field either (mirrors `energy` above).
-  velocity: { group: 'velocity', engineUnit: 'm/s' },
+  velocity: { group: 'velocity', kind: 'velocity' },
 
   // Arsenal's bullet add/edit form (caliber-field.js's own number input,
-  // bullet-form.js's length input). caliberM's engine unit is meters,
-  // matching how it's stored everywhere else in the app; bulletLength's
-  // is mm, matching how its own field has always worked (its record
-  // field, lengthM, is meters — bullet-form.js bridges mm<->meters
-  // itself, same as before this entry existed). Both fields use their
-  // own tighter display precision (SMALL_LENGTH_PRECISION_DECIMALS
-  // below) rather than this group's own coarser one — a bore diameter or
-  // a bullet length needs finer resolution than sight height or drop.
-  caliberM: { group: 'smallLength', engineUnit: 'm' },
-  bulletLength: { group: 'smallLength', engineUnit: 'mm' }
+  // bullet-length-field.js). Both fields use their own tighter display
+  // precision (SMALL_LENGTH_PRECISION_DECIMALS below) rather than this
+  // group's own coarser one — a bore diameter or a bullet length needs
+  // finer resolution than sight height or drop.
+  caliberM: { group: 'smallLength', kind: 'length' },
+  bulletLength: { group: 'smallLength', kind: 'length' }
 };
 
 // mm/cm/in decimal precision for the two Arsenal bullet-geometry fields
@@ -271,35 +269,44 @@ export function unitChoice(fieldId, unit) {
   return group.choices.find((c) => c.unit === unit) || null;
 }
 
-export function engineToDisplay(fieldId, engineValue, displayUnit) {
+// The unit a field's value is held in: its kind's internal unit.
+export function fieldInternalUnit(fieldId) {
   const meta = FIELD_UNITS[fieldId];
-  if (!meta || meta.engineUnit === displayUnit) return engineValue;
-  return converter(meta.engineUnit, displayUnit)(engineValue);
+  return meta ? internalUnit(meta.kind) : null;
 }
 
-export function displayToEngine(fieldId, displayValue, displayUnit) {
-  const meta = FIELD_UNITS[fieldId];
-  if (!meta || meta.engineUnit === displayUnit) return displayValue;
-  return converter(displayUnit, meta.engineUnit)(displayValue);
+// A display group's unit as it applies to a field of the given kind: a
+// temperature span is shown in the same °C/°F choice as a reading, but
+// converts as an interval.
+function displayUnitForKind(kind, displayUnit) {
+  return kind === 'temperatureDelta' ? deltaUnit(displayUnit) : displayUnit;
 }
 
-// For converting a step size or a min/max span rather than an absolute
-// value — see deltaUnit() above for why this has to be a separate path.
-export function engineSpanToDisplay(fieldId, span, displayUnit) {
+export function siToDisplay(fieldId, value, displayUnit) {
   const meta = FIELD_UNITS[fieldId];
-  if (!meta || meta.engineUnit === displayUnit) return span;
-  return converter(deltaUnit(meta.engineUnit), deltaUnit(displayUnit))(span);
+  if (!meta) return value;
+  return converter(internalUnit(meta.kind), displayUnitForKind(meta.kind, displayUnit))(value);
 }
 
-// The reverse of engineSpanToDisplay() — for a field whose *value itself*
-// is a span/interval rather than an absolute reading (e.g. a temperature
-// median-error field: "5 degrees" of uncertainty, not a point on the
-// scale), so typed input needs to go back to engine units the same
-// offset-free way.
-export function displaySpanToEngine(fieldId, span, displayUnit) {
+export function displayToSI(fieldId, displayValue, displayUnit) {
   const meta = FIELD_UNITS[fieldId];
-  if (!meta || meta.engineUnit === displayUnit) return span;
-  return converter(deltaUnit(displayUnit), deltaUnit(meta.engineUnit))(span);
+  if (!meta) return displayValue;
+  return converter(displayUnitForKind(meta.kind, displayUnit), internalUnit(meta.kind))(displayValue);
+}
+
+// A step size or the width of a range on a field rather than a value of
+// it: always an interval, whatever the field's kind — see deltaUnit()
+// above for why that needs its own path.
+export function siSpanToDisplay(fieldId, span, displayUnit) {
+  const meta = FIELD_UNITS[fieldId];
+  if (!meta) return span;
+  return converter(deltaUnit(internalUnit(meta.kind)), deltaUnit(displayUnit))(span);
+}
+
+export function displaySpanToSI(fieldId, span, displayUnit) {
+  const meta = FIELD_UNITS[fieldId];
+  if (!meta) return span;
+  return converter(deltaUnit(displayUnit), deltaUnit(internalUnit(meta.kind)))(span);
 }
 
 export function roundForDisplay(fieldId, displayUnit, value) {
@@ -309,9 +316,9 @@ export function roundForDisplay(fieldId, displayUnit, value) {
   return Math.round(value * factor) / factor;
 }
 
-// Sanity-check bounds — one number pair per field id, in the same unit
-// FIELD_UNITS' own `engineUnit` uses for that id (so formatFieldRange()
-// below can run them through the exact same engineToDisplay()/
+// Sanity-check bounds — one number pair per field id, in the internal unit
+// of that id's FIELD_UNITS kind (so formatFieldRange()
+// below can run them through the exact same siToDisplay()/
 // roundForDisplay() path as the field's own value), or in the field's
 // one-and-only raw unit for anything with no FIELD_UNITS entry (bc, mass
 // — always g regardless of prefs, scope clicks, tof, sightingShotCount,
@@ -322,8 +329,8 @@ export function roundForDisplay(fieldId, displayUnit, value) {
 // targetRange (2000 vs 3000m) had before this was written; every caller
 // now points at the one number.
 export const FIELD_BOUNDS = {
-  caliberM: { min: 0.004, max: 0.021 }, // m — matches FIELD_UNITS.caliberM's own meters engine unit
-  bulletLength: { min: 5, max: 100 }, // mm — matches FIELD_UNITS.bulletLength's own mm engine unit; bullet-section.js's own separate hand-rolled length field still assumes mm too
+  caliberM: { min: 0.004, max: 0.021 }, // m
+  bulletLength: { min: 0.005, max: 0.1 }, // m
   bulletMass: { min: 1, max: 121 }, // g, always — mass-field.js's own gram/grain pair
   bc: { min: 0.05, max: 1.5 },
   cdTableCd: { min: 0.05, max: 3.0 }, // a single Cd-vs-Mach table row's own Cd value
@@ -371,7 +378,7 @@ export const FIELD_BOUNDS = {
 };
 
 // The bounds message's own "allowed range" text, in whatever unit the
-// field is currently displayed in — same engineToDisplay()/
+// field is currently displayed in — same siToDisplay()/
 // roundForDisplay() round-trip the field's own value already goes
 // through, so e.g. a muzzle-velocity bound of 50–1500 m/s reads as
 // "164 – 4921 ft/s" for a user who's switched to imperial, not a raw
@@ -382,8 +389,8 @@ export const FIELD_BOUNDS = {
 export function formatFieldRange(fieldId, min, max, displayUnit) {
   const choice = unitChoice(fieldId, displayUnit);
   if (!choice) return `${min} – ${max}`;
-  const dMin = roundForDisplay(fieldId, displayUnit, engineToDisplay(fieldId, min, displayUnit));
-  const dMax = roundForDisplay(fieldId, displayUnit, engineToDisplay(fieldId, max, displayUnit));
+  const dMin = roundForDisplay(fieldId, displayUnit, siToDisplay(fieldId, min, displayUnit));
+  const dMax = roundForDisplay(fieldId, displayUnit, siToDisplay(fieldId, max, displayUnit));
   return `${dMin} – ${dMax} ${choice.label}`;
 }
 
@@ -393,7 +400,7 @@ export function formatFieldRange(fieldId, min, max, displayUnit) {
 export function formatFieldValue(fieldId, value, displayUnit) {
   const choice = unitChoice(fieldId, displayUnit);
   if (!choice) return `${value}`;
-  return `${roundForDisplay(fieldId, displayUnit, engineToDisplay(fieldId, value, displayUnit))} ${choice.label}`;
+  return `${roundForDisplay(fieldId, displayUnit, siToDisplay(fieldId, value, displayUnit))} ${choice.label}`;
 }
 
 // Muzzle-velocity-vs-temperature sensitivity (m/s of V0 change per °C) is
@@ -415,7 +422,7 @@ function velocityPerTempFactor(velocityUnit, tempUnit) {
   const velocityFactor = converter(SENSITIVITY_ENGINE_VELOCITY_UNIT, velocityUnit)(1);
   // The temperature axis here is an interval (a slope's run), not a point
   // on the scale, so it goes through the same offset-free 'deg' unit as
-  // engineSpanToDisplay() uses for slider steps — see deltaUnit() above.
+  // siSpanToDisplay() uses for slider steps — see deltaUnit() above.
   const tempIntervalFactor = converter(deltaUnit(SENSITIVITY_ENGINE_TEMP_UNIT), deltaUnit(tempUnit))(1);
   return velocityFactor / tempIntervalFactor;
 }

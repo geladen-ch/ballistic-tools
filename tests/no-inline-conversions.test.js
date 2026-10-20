@@ -40,7 +40,7 @@ const UNIT_LITERALS = [
 // unit suffix, which is what separates `sightHeightMm / 1000` from a loop
 // bound or a CSS percentage.
 const DECIMAL_SCALING = /[*/]\s*\(?\s*(?:10|100|1000|0\.01|0\.001|1e-3|1e3)(?![\d.])/;
-const UNIT_SUFFIXED = /\b[a-z][A-Za-z0-9]*(?:Mm|Cm|M|Km|Pct|Percent|Mrad|Moa|Hpa|Deg|Kg|Grains?|Rad)\b|\b(?:toDisplay|toEngine|getEngineValue|setEngineValue|engineToDisplay|displayToEngine)\(/;
+const UNIT_SUFFIXED = /\b[a-z][A-Za-z0-9]*(?:Mm|Cm|M|Km|Pct|Percent|Mrad|Moa|Hpa|Deg|Kg|Grains?|Rad)\b|\b(?:toDisplay|toEngine|getEngineValue|setEngineValue|siToDisplay|displayToSI)\(/;
 // Wall-clock arithmetic (ms ↔ s, retention windows) is bookkeeping, not a
 // physical quantity of the domain, and is out of the rule's scope.
 const TIME_BOOKKEEPING = /\b(?:Date|setTimeout|setInterval|performance)\b|_MS\b|[a-z]Ms\b/;

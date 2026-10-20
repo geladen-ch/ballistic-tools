@@ -79,7 +79,7 @@ export function presetSelect({ presetList, labelPrefix, initialKey, onPick, getR
 // panelState, or Truing Session's own truing-session-state.js — so this
 // module has no opinion on where a value is remembered, only on the
 // preset/custom/rig mechanics themselves.
-export function presetUnitField({ id, presetList, defaultKey, labelPrefix, max, step, isSpan = false, onInput, getPersisted, setPersisted }) {
+export function presetUnitField({ id, presetList, defaultKey, labelPrefix, max, step, onInput, getPersisted, setPersisted }) {
   let field;
   // The active cartridge's own value for this field, and the <option> that
   // exposes it (only present while such a value exists) — both owned by
@@ -99,7 +99,7 @@ export function presetUnitField({ id, presetList, defaultKey, labelPrefix, max, 
   const defaultValue = presetList.find((p) => p.key === defaultKey).value;
   const initialValue = getPersisted(id, defaultValue);
   field = unitField({
-    id, min: 0, max, step, value: initialValue, isSpan, before: select,
+    id, min: 0, max, step, value: initialValue, before: select,
     onInput: () => {
       select.value = CUSTOM_PRESET_KEY;
       setPersisted({ [id]: field.getEngineValue(), [id + 'Preset']: CUSTOM_PRESET_KEY });

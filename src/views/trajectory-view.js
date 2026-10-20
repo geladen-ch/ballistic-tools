@@ -7,7 +7,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { columnToggles } from '../ui/column-toggles.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
-import { engineToDisplay, displayToEngine, unitChoice, convertAngularValue, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
+import { siToDisplay, displayToSI, unitChoice, convertAngularValue, UNIT_GROUPS, FIELD_BOUNDS, formatFieldValue } from '../units.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
 import { degToRad, radToDeg, radToMrad, angleToLinearAtRange, linearToAngleAtRange } from '../quantity.js';
 import { getUnit } from '../prefs.js';
@@ -151,13 +151,13 @@ export function mount(container) {
   // whatever a straight 1000 m / 100 m conversion happens to land on
   // (1093.6 yd / 109.4 yd) — only used when there's no persisted value yet.
   function roundDistanceDefault(fieldId, metricValue, yardValue) {
-    return getUnit('distance') === 'yd' ? displayToEngine(fieldId, yardValue, 'yd') : metricValue;
+    return getUnit('distance') === 'yd' ? displayToSI(fieldId, yardValue, 'yd') : metricValue;
   }
 
   // Same idea as roundDistanceDefault() above, for the smallLength group
   // (mm/cm/in) instead of distance — used by targetHeightField below.
   function roundSmallLengthDefault(fieldId, metricValueM, imperialValueIn) {
-    return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueM;
+    return getUnit('smallLength') === 'in' ? displayToSI(fieldId, imperialValueIn, 'in') : metricValueM;
   }
 
   function persistInputs() {
@@ -390,7 +390,7 @@ export function mount(container) {
     const col = COLUMNS.find((c) => c.id === columnId);
     const clickSettings = rifle.getClickSettings();
     const massKg = cartridge.getValues().massKg;
-    const labels = points.map((p) => Math.round(engineToDisplay('range', p.range, distanceUnit)));
+    const labels = points.map((p) => Math.round(siToDisplay('range', p.range, distanceUnit)));
     // Full precision, not rounded to col.decimals (that's a table-text
     // concern) — rounding a smooth curve to the table's display precision
     // collapses multiple distinct nearby values to the same number at
@@ -493,7 +493,7 @@ export function mount(container) {
     const peakHeightDisplay = toDisplayUnit('smallLength', peak.dropM);
     const peakAngular = convertAngularValue(linearToAngleAtRange(peak.dropM, peak.range), 'rad', angleUnit);
     peakHeightValue.textContent = `${peakHeightDisplay.toFixed(1)} ${smallLengthChoice.label} (${peakAngular.toFixed(2)} ${angleChoice.label})`;
-    const peakDistanceDisplay = engineToDisplay('range', peak.range, distanceUnit);
+    const peakDistanceDisplay = siToDisplay('range', peak.range, distanceUnit);
     peakDistanceValue.textContent = `${peakDistanceDisplay.toFixed(RANGE_DECIMALS)} ${distanceChoice.label}`;
   }
 
@@ -516,9 +516,9 @@ export function mount(container) {
       return;
     }
 
-    const maxDistDisplay = engineToDisplay('range', result.maxDirectHitDistanceM, distanceUnit);
+    const maxDistDisplay = siToDisplay('range', result.maxDirectHitDistanceM, distanceUnit);
     directHitMaxDistanceValue.textContent = `${maxDistDisplay.toFixed(RANGE_DECIMALS)} ${distanceChoice.label}`;
-    const zeroDistDisplay = engineToDisplay('range', result.zeroDistanceM, distanceUnit);
+    const zeroDistDisplay = siToDisplay('range', result.zeroDistanceM, distanceUnit);
     directHitZeroDistanceValue.textContent = `${zeroDistDisplay.toFixed(RANGE_DECIMALS)} ${distanceChoice.label}`;
 
     if (lastLaunchAngleRad == null) {
@@ -587,9 +587,9 @@ export function mount(container) {
       lastPoints.forEach((p, i) => {
         const r = results[i];
         if (!r || r.enterM == null) return; // no solution for this row — its cell falls back to '—'
-        const enter = engineToDisplay('range', r.enterM, distanceUnit).toFixed(RANGE_DECIMALS);
-        const leave = engineToDisplay('range', r.leaveM, distanceUnit).toFixed(RANGE_DECIMALS);
-        const length = engineToDisplay('range', r.lengthM, distanceUnit).toFixed(RANGE_DECIMALS);
+        const enter = siToDisplay('range', r.enterM, distanceUnit).toFixed(RANGE_DECIMALS);
+        const leave = siToDisplay('range', r.leaveM, distanceUnit).toFixed(RANGE_DECIMALS);
+        const length = siToDisplay('range', r.lengthM, distanceUnit).toFixed(RANGE_DECIMALS);
         text.set(p.range, `${enter}–${leave} ${distanceChoice.label} (${length} ${distanceChoice.label})`);
         raw.set(p.range, { enterM: r.enterM, leaveM: r.leaveM });
       });
@@ -676,14 +676,14 @@ export function mount(container) {
     dangerZoneChartCard.style.display = visible ? '' : 'none';
     if (!visible) return;
 
-    const labels = lastPoints.map((p) => Math.round(engineToDisplay('range', p.range, distanceUnit)));
+    const labels = lastPoints.map((p) => Math.round(siToDisplay('range', p.range, distanceUnit)));
     const upper = lastPoints.map((p) => {
       const r = dangerZoneRaw.get(p.range);
-      return r ? engineToDisplay('range', r.leaveM - p.range, distanceUnit) : null;
+      return r ? siToDisplay('range', r.leaveM - p.range, distanceUnit) : null;
     });
     const lower = lastPoints.map((p) => {
       const r = dangerZoneRaw.get(p.range);
-      return r ? engineToDisplay('range', r.enterM - p.range, distanceUnit) : null;
+      return r ? siToDisplay('range', r.enterM - p.range, distanceUnit) : null;
     });
     const series = [
       { data: upper, className: 'ct-series-danger-upper' },
@@ -816,7 +816,7 @@ export function mount(container) {
 
     clear(tableBody);
     points.forEach((p) => {
-      const displayRange = engineToDisplay('range', p.range, distanceUnit);
+      const displayRange = siToDisplay('range', p.range, distanceUnit);
       const cells = [el('td', { text: displayRange.toFixed(RANGE_DECIMALS) })];
       for (const col of visibleColumns) {
         // One column's value() throwing (e.g. a field missing from a
@@ -874,16 +874,16 @@ export function mount(container) {
         : [unitChoiceById[col.id] ? `${t(col.headerKey)} (${unitChoiceById[col.id].label})` : t(col.headerKey)])
     ];
     const rows = lastPoints.map((p) => {
-      const displayRange = engineToDisplay('range', p.range, distanceUnit);
+      const displayRange = siToDisplay('range', p.range, distanceUnit);
       const cells = [formatCsvNumber(displayRange, RANGE_DECIMALS, decimalSeparator)];
       for (const col of visibleColumns) {
         if (col.id === 'dangerZone') {
           const r = dangerZoneRaw.get(p.range);
           if (r) {
             cells.push(
-              formatCsvNumber(engineToDisplay('range', r.enterM, distanceUnit), RANGE_DECIMALS, decimalSeparator),
-              formatCsvNumber(engineToDisplay('range', r.leaveM, distanceUnit), RANGE_DECIMALS, decimalSeparator),
-              formatCsvNumber(engineToDisplay('range', r.leaveM - r.enterM, distanceUnit), RANGE_DECIMALS, decimalSeparator)
+              formatCsvNumber(siToDisplay('range', r.enterM, distanceUnit), RANGE_DECIMALS, decimalSeparator),
+              formatCsvNumber(siToDisplay('range', r.leaveM, distanceUnit), RANGE_DECIMALS, decimalSeparator),
+              formatCsvNumber(siToDisplay('range', r.leaveM - r.enterM, distanceUnit), RANGE_DECIMALS, decimalSeparator)
             );
           } else {
             cells.push('', '', ''); // no solution for this row — see solveDangerZone()'s own NO_SOLUTION case

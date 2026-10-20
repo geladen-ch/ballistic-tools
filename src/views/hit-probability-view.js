@@ -1,6 +1,6 @@
 import { el, clear } from '../dom.js';
 import { unitField } from '../ui/unit-field.js';
-import { displayToEngine, engineToDisplay, roundForDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
+import { displayToSI, siToDisplay, roundForDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
@@ -149,10 +149,10 @@ function setPanelState(patch) {
 // two-argument shape (`presetUnitField('fieldId', {...})`), resolving
 // this page's own PRESETS/DEFAULT_PRESET_KEY lookup and cookie-backed
 // panelState the shared module takes as plain parameters.
-function presetUnitField(id, { max, step, isSpan = false, onInput }) {
+function presetUnitField(id, { max, step, onInput }) {
   return sharedPresetUnitField({
     id, presetList: PRESETS[id], defaultKey: DEFAULT_PRESET_KEY[id], labelPrefix: 'hitProbability.presetLabels.',
-    max, step, isSpan, onInput,
+    max, step, onInput,
     getPersisted: persistedValue, setPersisted: setPanelState
   });
 }
@@ -161,7 +161,7 @@ function presetUnitField(id, { max, step, isSpan = false, onInput }) {
 // straight 600 m conversion happens to land on (656.2 yd) — only used
 // when there's no persisted value yet (see persistedValue()/panelState).
 function roundDistanceDefault(fieldId, metricValue, yardValue) {
-  return getUnit('distance') === 'yd' ? displayToEngine(fieldId, yardValue, 'yd') : metricValue;
+  return getUnit('distance') === 'yd' ? displayToSI(fieldId, yardValue, 'yd') : metricValue;
 }
 
 // Same idiom as roundDistanceDefault() above, for the two user-sizeable
@@ -169,7 +169,7 @@ function roundDistanceDefault(fieldId, metricValue, yardValue) {
 // inch-based default (e.g. 10 in diameter) rather than whatever a straight
 // cm conversion of the metric default happens to land on.
 function roundSmallLengthDefault(fieldId, metricValueM, imperialValueIn) {
-  return getUnit('smallLength') === 'in' ? displayToEngine(fieldId, imperialValueIn, 'in') : metricValueM;
+  return getUnit('smallLength') === 'in' ? displayToSI(fieldId, imperialValueIn, 'in') : metricValueM;
 }
 
 // A unitField() with no preset selector, still persisted across
@@ -264,7 +264,7 @@ export function mount(container) {
   ]);
 
   const distanceMedianErrorField = presetUnitField('distanceMedianError', { max: FIELD_BOUNDS.distanceMedianError.max, step: 0.001, onInput: () => recompute() });
-  const tempMedianErrorField = presetUnitField('tempMedianError', { max: 20, step: 0.1, isSpan: true, onInput: () => recompute() });
+  const tempMedianErrorField = presetUnitField('tempMedianError', { max: 20, step: 0.1, onInput: () => recompute() });
   const pressureMedianErrorField = presetUnitField('pressureMedianError', { max: FIELD_BOUNDS.pressureMedianError.max, step: 50, onInput: () => recompute() });
   const windMedianErrorField = presetUnitField('windMedianError', { max: 10, step: 0.1, onInput: () => recompute() });
 
@@ -646,15 +646,15 @@ export function mount(container) {
 
   function formatCircleGongLabel(diameterM) {
     const displayUnit = getUnit('smallLength');
-    const value = roundForDisplay('circleGongDiameter', displayUnit, engineToDisplay('circleGongDiameter', diameterM, displayUnit));
+    const value = roundForDisplay('circleGongDiameter', displayUnit, siToDisplay('circleGongDiameter', diameterM, displayUnit));
     const choice = unitChoice('circleGongDiameter', displayUnit);
     return `Ø ${value}${choice ? ` ${choice.label}` : ''}`;
   }
 
   function formatRectPlateLabel(widthM, heightM) {
     const displayUnit = getUnit('smallLength');
-    const w = roundForDisplay('rectPlateWidth', displayUnit, engineToDisplay('rectPlateWidth', widthM, displayUnit));
-    const h = roundForDisplay('rectPlateHeight', displayUnit, engineToDisplay('rectPlateHeight', heightM, displayUnit));
+    const w = roundForDisplay('rectPlateWidth', displayUnit, siToDisplay('rectPlateWidth', widthM, displayUnit));
+    const h = roundForDisplay('rectPlateHeight', displayUnit, siToDisplay('rectPlateHeight', heightM, displayUnit));
     const choice = unitChoice('rectPlateWidth', displayUnit);
     return `${w} × ${h}${choice ? ` ${choice.label}` : ''}`;
   }

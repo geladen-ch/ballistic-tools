@@ -4,7 +4,7 @@
 // duplicated a third time. No unit-conversion knowledge of its own beyond
 // the same FIELD_UNITS/getUnit() convention every other display value in
 // this app uses.
-import { UNIT_GROUPS, unitChoice, engineToDisplay } from '../../units.js';
+import { UNIT_GROUPS, unitChoice, siToDisplay } from '../../units.js';
 import { getUnit } from '../../prefs.js';
 import { radToDeg } from '../../quantity.js';
 
@@ -17,6 +17,6 @@ export function formatTargetSummary(rangeM, losAngleRad, { roundRange = false } 
   const displayUnit = getUnit('distance');
   const choice = unitChoice('targetRange', displayUnit) || group.choices.find((c) => c.unit === group.defaultUnit);
   const rangeDecimals = roundRange ? 0 : choice.decimals;
-  const rangeText = `${engineToDisplay('targetRange', rangeM, choice.unit).toFixed(rangeDecimals)} ${choice.label}`;
+  const rangeText = `${siToDisplay('targetRange', rangeM, choice.unit).toFixed(rangeDecimals)} ${choice.label}`;
   return losAngleRad ? `${rangeText}, ${radToDeg(losAngleRad).toFixed(0)}°` : rangeText;
 }

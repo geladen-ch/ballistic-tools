@@ -8,7 +8,7 @@ const { initI18n } = await import('../src/i18n.js');
 await initI18n();
 
 const { setUnit, resetUnits } = await import('../src/prefs.js');
-const { displaySpanToEngine } = await import('../src/units.js');
+const { displaySpanToSI } = await import('../src/units.js');
 const { largeStepperField } = await import('../src/ui/large-stepper-field.js');
 
 function findByClass(node, className, out = []) {
@@ -101,10 +101,10 @@ test('a `decimals` override rounds to that precision instead of the unit choice\
 test('a `decimals` override also keeps stepper clicks free of floating-point noise', () => {
   setUnit('windSpeed', 'mph');
   // Mirrors range-solver-view.js's own call: a "1 mph" step handed in as
-  // its engine-unit (m/s) equivalent, which engineSpanToDisplay() then
+  // its engine-unit (m/s) equivalent, which siSpanToDisplay() then
   // converts back to mph internally — the round trip that used to leave
   // noise like 0.9999999999999999 in the displayed value.
-  const step = displaySpanToEngine('windSpeed', 1, 'mph');
+  const step = displaySpanToSI('windSpeed', 1, 'mph');
   const field = largeStepperField({ id: 'windSpeed', min: 0, max: 30, step, value: 0, decimals: 1 });
   const [number] = findInputs(field.node);
   const [, incButton] = findByClass(field.node, 'large-stepper-btn');

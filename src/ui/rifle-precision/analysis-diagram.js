@@ -16,8 +16,7 @@
 // var(--foo) would render colorless in an image viewer.
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
-import { getUnit } from '../../prefs.js';
-import { UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
+import { displayChoice, toDisplayUnit, fromDisplayUnit } from '../../display-units.js';
 import {
   getImpactColorHex,
   IMPACT_EDGE_WHITE_RATIO, IMPACT_EDGE_DARK_RATIO, IMPACT_EDGE_WHITE_COLOR, IMPACT_EDGE_DARK_COLOR
@@ -171,9 +170,8 @@ function formatNiceLength(value, label) {
 
 // A horizontal scale bar with end-ticks and a length legend above it,
 // sized to ~1/4 of the current view width and snapped to a round number in
-// the user's chosen smallLength display unit (mm/cm/in — same
-// bulletLength-flavored unit conversion formatLengthMm() in
-// rifle-precision-analysis-view.js uses for every other on-diagram length).
+// the user's chosen smallLength display unit (mm/cm/in, the same unit
+// every other length on the diagram is shown in).
 // Placed in the bottom-left corner of the current viewBox, inset by a
 // margin proportional to the view's own half-extent (half) — same "scale
 // everything off half" convention every other size in this diagram
@@ -181,12 +179,11 @@ function formatNiceLength(value, label) {
 // any zoom level.
 function scaleBar(poiMm, half, strokeWidth) {
   const targetMm = half * 0.5; // 1/4 of the (half*2)-wide square view
-  const displayUnit = getUnit('smallLength');
-  const choice = unitChoice('bulletLength', displayUnit) ||
-    UNIT_GROUPS.smallLength.choices.find((c) => c.unit === UNIT_GROUPS.smallLength.defaultUnit);
-  const niceDisplay = roundToOrderOfMagnitude(engineToDisplay('bulletLength', targetMm, choice.unit));
+  const choice = displayChoice('smallLength');
+  // the diagram draws in mm (see drawingInMm), so the bar converts from and to mm
+  const niceDisplay = roundToOrderOfMagnitude(toDisplayUnit('smallLength', targetMm, 'mm'));
   if (niceDisplay <= 0) return null;
-  const lengthMm = displayToEngine('bulletLength', niceDisplay, choice.unit);
+  const lengthMm = fromDisplayUnit('smallLength', niceDisplay, 'mm');
 
   const margin = half * 0.08;
   const tick = half * 0.02;

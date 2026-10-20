@@ -5,7 +5,7 @@ import { loadRifleState, loadCartridgeState } from '../../shot-state.js';
 import { loadUserRifles, loadUserBullets } from '../../user-library.js';
 import { loadRifle } from '../../rifles.js';
 import { loadBullet } from '../../bullets.js';
-import { engineToDisplay, unitChoice } from '../../units.js';
+import { siToDisplay, unitChoice } from '../../units.js';
 import { getUnit } from '../../prefs.js';
 import { goToGuns } from '../../guns-nav.js';
 
@@ -114,7 +114,7 @@ export function gunsSummary({ bare = false } = {}) {
     if (muzzleVelocity != null) {
       const velocityUnit = getUnit('velocity');
       const velocityChoice = unitChoice('muzzleVelocity', velocityUnit);
-      const displayVelocity = engineToDisplay('muzzleVelocity', muzzleVelocity, velocityUnit);
+      const displayVelocity = siToDisplay('muzzleVelocity', muzzleVelocity, velocityUnit);
       bulletLine.textContent = `${loadName} · ${displayVelocity.toFixed(velocityChoice.decimals)} ${velocityChoice.label}`;
     } else {
       bulletLine.textContent = loadName;

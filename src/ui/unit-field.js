@@ -1,5 +1,5 @@
 import { el } from '../dom.js';
-import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, displaySpanToEngine, roundForDisplay, formatFieldRange } from '../units.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, siToDisplay, displayToSI, siSpanToDisplay, roundForDisplay, formatFieldRange } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { i18nSpan, t } from '../i18n.js';
 import { fieldValidity } from './field-validity.js';
@@ -18,12 +18,10 @@ import { fieldValidity } from './field-validity.js';
 // `slider: true` renders a range input paired with a small editable number
 // box (kept in sync both ways); otherwise it's a single number input.
 //
-// `isSpan: true` is for a field whose *value itself* is an interval rather
-// than an absolute reading (e.g. a temperature median-error field: "5
-// degrees" of uncertainty, not a point on the scale) — value/min/max all
-// go through the offset-free span conversion instead of the normal
-// absolute one (step already does, for every field, since a step size is
-// always a span regardless of what the field's own value means).
+// A field whose value is itself an interval (a temperature median error:
+// 5 degrees of uncertainty, not a point on the scale) says so by its kind
+// in FIELD_UNITS (temperatureDelta), which siToDisplay() honours; the step
+// always converts as an interval, whatever the field's kind.
 //
 // `before`, if given, is a DOM node rendered directly to the left of the
 // number input (not the label) — e.g. a presets <select> that pre-fills
@@ -45,7 +43,7 @@ import { fieldValidity } from './field-validity.js';
 // limit is another field's own current value, not a fixed number). Return
 // a violation message to fail validation the same way an out-of-range
 // value does, or a falsy value to pass.
-export function unitField({ id, min, max, step, value, slider = false, isSpan = false, optional = false, before = null, extraCheck = null, onInput }) {
+export function unitField({ id, min, max, step, value, slider = false, optional = false, before = null, extraCheck = null, onInput }) {
   const meta = FIELD_UNITS[id];
   const group = meta ? UNIT_GROUPS[meta.group] : null;
   let displayUnit = meta ? getUnit(meta.group) : null;
@@ -53,11 +51,9 @@ export function unitField({ id, min, max, step, value, slider = false, isSpan = 
 
   const choice = meta ? unitChoice(id, displayUnit) : null;
 
-  const spanToDisp = (v) => (meta ? roundForDisplay(id, displayUnit, engineSpanToDisplay(id, v, displayUnit)) : v);
-  const toDisp = isSpan ? spanToDisp : (v) => (meta ? roundForDisplay(id, displayUnit, engineToDisplay(id, v, displayUnit)) : v);
-  const toEng = isSpan
-    ? (v) => (meta ? displaySpanToEngine(id, v, displayUnit) : v)
-    : (v) => (meta ? displayToEngine(id, v, displayUnit) : v);
+  const spanToDisp = (v) => (meta ? roundForDisplay(id, displayUnit, siSpanToDisplay(id, v, displayUnit)) : v);
+  const toDisp = (v) => (meta ? roundForDisplay(id, displayUnit, siToDisplay(id, v, displayUnit)) : v);
+  const toEng = (v) => (meta ? displayToSI(id, v, displayUnit) : v);
 
   const dMin = min !== undefined ? toDisp(min) : undefined;
   const dMax = max !== undefined ? toDisp(max) : undefined;

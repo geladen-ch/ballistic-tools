@@ -20,7 +20,7 @@ import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
-import { clicksForOffset, convertAngularValue, engineToDisplay, displayToEngine, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
+import { clicksForOffset, convertAngularValue, siToDisplay, displayToSI, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
@@ -111,7 +111,7 @@ export function mount(container) {
   const distanceUnit = currentUnit('distance');
   const targetRangeField = inlineNumberField({
     id: 'targetRange', ...FIELD_BOUNDS.targetRange,
-    value: targetSaved.rangeM ?? displayToEngine('targetRange', TARGET_RANGE_DEFAULTS[distanceUnit], distanceUnit),
+    value: targetSaved.rangeM ?? displayToSI('targetRange', TARGET_RANGE_DEFAULTS[distanceUnit], distanceUnit),
     decimals: 1,
     adornment: unitChoice('targetRange', distanceUnit).label,
     ariaLabel: t('fields.targetRange'),
@@ -635,7 +635,7 @@ export function mount(container) {
   function formatRangeDisplay(rangeM) {
     const distanceUnit = currentUnit('distance');
     const choice = unitChoice('targetRange', distanceUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
-    return `${Math.round(engineToDisplay('targetRange', rangeM, choice.unit))} ${choice.label}`;
+    return `${Math.round(siToDisplay('targetRange', rangeM, choice.unit))} ${choice.label}`;
   }
 
   function buildRangeCardRows(nominalStateBase) {
@@ -675,13 +675,13 @@ export function mount(container) {
 
     const velocityUnit = getUnit('velocity');
     const velocityChoice = unitChoice('muzzleVelocity', velocityUnit);
-    const displayVelocity = engineToDisplay('muzzleVelocity', solved.result.velocity, velocityUnit);
+    const displayVelocity = siToDisplay('muzzleVelocity', solved.result.velocity, velocityUnit);
 
     const massKg = cartridge.getValues().massKg;
     const energyJ = 0.5 * massKg * solved.result.velocity * solved.result.velocity;
     const energyUnit = getUnit('energy');
     const energyChoice = unitChoice('energy', energyUnit);
-    const displayEnergy = engineToDisplay('energy', energyJ, energyUnit);
+    const displayEnergy = siToDisplay('energy', energyJ, energyUnit);
 
     if (![displayVelocity, displayEnergy].every(Number.isFinite)) {
       showPlaceholder();

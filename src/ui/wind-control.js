@@ -38,7 +38,7 @@ import { el } from '../dom.js';
 import { svgEl } from '../svg.js';
 import { t } from '../i18n.js';
 import { getWindDialAppearance } from '../wind-dial-prefs.js';
-import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, displaySpanToEngine } from '../units.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, siToDisplay, displayToSI, siSpanToDisplay, displaySpanToSI } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { degToRad, radToDeg } from '../quantity.js';
 
@@ -237,12 +237,12 @@ export function windControl({
     const factor = 10 ** DECIMALS;
     return Math.round(v * factor) / factor;
   }
-  const toDisp = (v) => round(engineToDisplay('windSpeed', v, displayUnit));
-  const toEng = (v) => displayToEngine('windSpeed', v, displayUnit);
+  const toDisp = (v) => round(siToDisplay('windSpeed', v, displayUnit));
+  const toEng = (v) => displayToSI('windSpeed', v, displayUnit);
   const stepEngine = displayUnit in WIND_SPEED_STEPS
-    ? displaySpanToEngine('windSpeed', WIND_SPEED_STEPS[displayUnit], displayUnit)
+    ? displaySpanToSI('windSpeed', WIND_SPEED_STEPS[displayUnit], displayUnit)
     : FALLBACK_WIND_SPEED_STEP_MS;
-  const stepDisp = round(engineSpanToDisplay('windSpeed', stepEngine, displayUnit));
+  const stepDisp = round(siSpanToDisplay('windSpeed', stepEngine, displayUnit));
   const dMin = min !== undefined ? toDisp(min) : undefined;
   const dMax = max !== undefined ? toDisp(max) : undefined;
   function clampDisp(v) {

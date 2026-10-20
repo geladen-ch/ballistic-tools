@@ -1,6 +1,6 @@
 import { el, clear } from '../../dom.js';
 import { loadCaliberDesignations, matchCaliberDesignation } from '../../bullets.js';
-import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, engineToDisplay, displayToEngine } from '../../units.js';
+import { FIELD_BOUNDS, SMALL_LENGTH_PRECISION_DECIMALS, unitChoice, siToDisplay, displayToSI } from '../../units.js';
 import { getUnit } from '../../prefs.js';
 import { i18nSpan, t } from '../../i18n.js';
 import { fieldValidity } from '../field-validity.js';
@@ -45,8 +45,8 @@ export function caliberField({ value = null, onInput, required = false, highligh
   if (!unitChoice('caliberM', displayUnit)) displayUnit = 'mm';
   const decimals = SMALL_LENGTH_PRECISION_DECIMALS[displayUnit];
   const unitLabel = unitChoice('caliberM', displayUnit).label;
-  const toDisplay = (m) => engineToDisplay('caliberM', m, displayUnit);
-  const toEngine = (d) => displayToEngine('caliberM', d, displayUnit);
+  const toDisplay = (m) => siToDisplay('caliberM', m, displayUnit);
+  const toEngine = (d) => displayToSI('caliberM', d, displayUnit);
 
   const select = el('select', { id: 'bulletCaliber' });
   const numberInput = el('input', {

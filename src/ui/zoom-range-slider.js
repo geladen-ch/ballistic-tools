@@ -1,5 +1,5 @@
 import { el } from '../dom.js';
-import { engineToDisplay, displayToEngine, unitChoice } from '../units.js';
+import { siToDisplay, displayToSI, unitChoice } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { i18nSpan } from '../i18n.js';
 
@@ -24,8 +24,8 @@ import { i18nSpan } from '../i18n.js';
 export function zoomRangeSlider({ minWindowM, onInput, idPrefix = 'trajectoryChartView' }) {
   const distanceUnit = getUnit('distance');
   const choice = unitChoice('range', distanceUnit);
-  const toDisp = (m) => engineToDisplay('range', m, distanceUnit);
-  const toEng = (d) => displayToEngine('range', d, distanceUnit);
+  const toDisp = (m) => siToDisplay('range', m, distanceUnit);
+  const toEng = (d) => displayToSI('range', d, distanceUnit);
 
   let fullRangeM = minWindowM;
   let startM = 0;

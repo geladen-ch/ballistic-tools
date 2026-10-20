@@ -1,4 +1,4 @@
-import { displayToEngine } from '../units.js';
+import { displayToSI } from '../units.js';
 
 // Parses a pasted distance/velocity table (one "distance velocity" pair
 // per line) — deliberately more lenient than cd-table-parse.js's own
@@ -25,8 +25,8 @@ export function parseVelocityTable(text, { distanceUnit, velocityUnit }) {
     }
 
     points.push({
-      rangeM: displayToEngine('range', d, distanceUnit),
-      velocityMs: displayToEngine('v1', v, velocityUnit)
+      rangeM: displayToSI('range', d, distanceUnit),
+      velocityMs: displayToSI('v1', v, velocityUnit)
     });
   }
 

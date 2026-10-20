@@ -5,7 +5,7 @@
 // for two configurations at once. Kept in its own module (rather than
 // exported from trajectory-view.js itself) so neither view has to import
 // the other one's internals.
-import { clicksForOffset, engineToDisplay } from './units.js';
+import { clicksForOffset, siToDisplay } from './units.js';
 import { getUnit } from './prefs.js';
 import { toDisplayUnit } from './display-units.js';
 import { radToMrad, radToMoa, linearToAngleAtRange } from './quantity.js';
@@ -49,7 +49,7 @@ export const COLUMNS = [
   // Converted through the user's velocity unit preference the same way
   // `energy` converts through the energy preference below — getUnit() is
   // read fresh on every call for the same reason.
-  { id: 'velocity', headerKey: 'trajectory.colVelocity', default: true, decimals: 1, value: (p) => engineToDisplay('velocity', p.velocity, getUnit('velocity')) },
+  { id: 'velocity', headerKey: 'trajectory.colVelocity', default: true, decimals: 1, value: (p) => siToDisplay('velocity', p.velocity, getUnit('velocity')) },
   { id: 'tof', headerKey: 'trajectory.colTof', default: true, decimals: 3, value: (p) => p.tof },
   { id: 'mach', headerKey: 'trajectory.colMach', default: false, decimals: 2, value: (p) => p.mach },
   // Not carried on the engine point itself (the engine only needs mass for
@@ -59,7 +59,7 @@ export const COLUMNS = [
   // `range` converts through the distance preference. getUnit() is read
   // fresh on every call rather than closed over, since this is a
   // module-level array shared across every view that imports it.
-  { id: 'energy', headerKey: 'trajectory.colEnergy', default: false, decimals: 0, value: (p, ctx) => engineToDisplay('energy', 0.5 * ctx.massKg * p.velocity * p.velocity, getUnit('energy')) },
+  { id: 'energy', headerKey: 'trajectory.colEnergy', default: false, decimals: 0, value: (p, ctx) => siToDisplay('energy', 0.5 * ctx.massKg * p.velocity * p.velocity, getUnit('energy')) },
   // ctx.dangerZoneText: Map<range, string> — populated by
   // trajectory-view.js's recomputeDangerZone(), keyed by the exact same
   // p.range values this table's own points carry. A missing entry (not

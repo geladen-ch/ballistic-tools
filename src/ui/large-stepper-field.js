@@ -1,5 +1,5 @@
 import { el } from '../dom.js';
-import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine, engineSpanToDisplay, formatFieldRange } from '../units.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, siToDisplay, displayToSI, siSpanToDisplay, formatFieldRange } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { t, i18nSpan } from '../i18n.js';
 import { fieldValidity } from './field-validity.js';
@@ -37,9 +37,9 @@ export function largeStepperField({ id, min, max, step, value, onInput, decimals
     return Math.round(v * factor) / factor;
   }
 
-  const toDisp = (v) => (meta ? round(engineToDisplay(id, v, displayUnit)) : v);
-  const toEng = (v) => (meta ? displayToEngine(id, v, displayUnit) : v);
-  const stepDisp = step !== undefined ? round(engineSpanToDisplay(id, step, displayUnit)) : 1;
+  const toDisp = (v) => (meta ? round(siToDisplay(id, v, displayUnit)) : v);
+  const toEng = (v) => (meta ? displayToSI(id, v, displayUnit) : v);
+  const stepDisp = step !== undefined ? round(siSpanToDisplay(id, step, displayUnit)) : 1;
   const dMin = min !== undefined ? toDisp(min) : undefined;
   const dMax = max !== undefined ? toDisp(max) : undefined;
 

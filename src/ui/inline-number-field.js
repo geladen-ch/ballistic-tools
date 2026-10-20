@@ -18,7 +18,7 @@
 // large-stepper-field.js's own bump() and wind-control.js's own blur
 // handler already use for a blank/NaN box.
 import { el } from '../dom.js';
-import { FIELD_UNITS, UNIT_GROUPS, unitChoice, engineToDisplay, displayToEngine } from '../units.js';
+import { FIELD_UNITS, UNIT_GROUPS, unitChoice, siToDisplay, displayToSI } from '../units.js';
 import { getUnit } from '../prefs.js';
 
 export function inlineNumberField({ id, min, max, decimals, value, adornment, ariaLabel, onInput }) {
@@ -39,8 +39,8 @@ export function inlineNumberField({ id, min, max, decimals, value, adornment, ar
     return Math.round(v * factor) / factor;
   }
 
-  const toDisp = (v) => round(meta ? engineToDisplay(id, v, displayUnit) : v);
-  const toEng = (v) => (meta ? displayToEngine(id, v, displayUnit) : v);
+  const toDisp = (v) => round(meta ? siToDisplay(id, v, displayUnit) : v);
+  const toEng = (v) => (meta ? displayToSI(id, v, displayUnit) : v);
   const dMin = min !== undefined ? toDisp(min) : undefined;
   const dMax = max !== undefined ? toDisp(max) : undefined;
 

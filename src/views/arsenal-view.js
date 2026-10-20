@@ -31,7 +31,7 @@ import { unitField } from '../ui/unit-field.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
 import { chartColumnSelect as buildChartColumnSelect, lineOfSightSeries, lineOfSightLegendItem } from '../ui/chart-column-select.js';
 import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints, thinChartLabels } from '../trajectory-columns.js';
-import { engineToDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
+import { siToDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { LineChart } from '../vendor/chartist/index.js';
 import { downloadButton } from '../ui/download-button.js';
@@ -574,7 +574,7 @@ export function mount(container) {
 
     const summaryRows = configs.map(({ rifle, cartridge }) => el('p', { class: 'hint' }, [
       el('strong', { text: rifle.name }),
-      document.createTextNode(` — ${cartridge.name}, ${engineToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}`)
+      document.createTextNode(` — ${cartridge.name}, ${siToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}`)
     ]));
 
     const pool = getPool();
@@ -682,7 +682,7 @@ export function mount(container) {
     function renderChart() {
       const col = COLUMNS.find((c) => c.id === columnSelect.value);
       const labelsM = unionRangesM([pointsA, pointsB]);
-      const labels = labelsM.map((m) => Math.round(engineToDisplay('range', m, distanceUnit)));
+      const labels = labelsM.map((m) => Math.round(siToDisplay('range', m, distanceUnit)));
       const series = [seriesFor(pointsA, labelsM, col, ctxA), seriesFor(pointsB, labelsM, col, ctxB)];
       if (col.showLineOfSight) series.push(lineOfSightSeries(labels.length));
 
@@ -1025,7 +1025,7 @@ export function mount(container) {
           isZeroDonorForOthers
             ? el('span', { class: 'zero-donor-badge', title: t('arsenal.zeroDonorBadgeTitle'), text: t('arsenal.zeroDonorBadge') })
             : null,
-          el('span', { class: 'hint', text: ` — ${engineToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}` }),
+          el('span', { class: 'hint', text: ` — ${siToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}` }),
           cartridgeStability.node
         ]),
         el('div', { class: 'arsenal-row-actions' }, [editButton, deleteButton])

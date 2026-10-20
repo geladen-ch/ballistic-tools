@@ -1,19 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  engineToDisplay, displayToEngine, engineSpanToDisplay, roundForDisplay, unitChoice,
-  FIELD_BOUNDS, FIELD_UNITS, UNIT_GROUPS, GROUP_KINDS, formatFieldRange, formatFieldValue
+  siToDisplay, displayToSI, siSpanToDisplay, roundForDisplay, unitChoice,
+  FIELD_BOUNDS, FIELD_UNITS, UNIT_GROUPS, GROUP_KINDS, formatFieldRange, formatFieldValue, fieldInternalUnit
 } from '../src/units.js';
-import { kindOfUnit } from '../src/quantity.js';
+import { kindOfUnit, internalUnit, mmToM } from '../src/quantity.js';
 
-test('every field\'s engine unit, and every display choice of its group, is of the group\'s quantity kind', () => {
+test('every field names a quantity kind, not a unit, and it is its group\'s kind (a temperature span shown as a temperature)', () => {
   assert.deepEqual(Object.keys(GROUP_KINDS).sort(), Object.keys(UNIT_GROUPS).sort());
-  for (const [id, { group, engineUnit }] of Object.entries(FIELD_UNITS)) {
-    assert.equal(kindOfUnit(engineUnit), GROUP_KINDS[group], `${id}: ${engineUnit} in ${group}`);
+  for (const [id, meta] of Object.entries(FIELD_UNITS)) {
+    assert.ok(!('engineUnit' in meta), `${id} names a unit of its own`);
+    const expected = meta.kind === 'temperatureDelta' ? 'temperature' : meta.kind;
+    assert.equal(expected, GROUP_KINDS[meta.group], `${id}: ${meta.kind} in ${meta.group}`);
+    assert.equal(fieldInternalUnit(id), internalUnit(meta.kind));
+    for (const { unit } of UNIT_GROUPS[meta.group].choices) assert.ok(Number.isFinite(siToDisplay(id, 1, unit)), `${id} in ${unit}`);
   }
   for (const [group, { choices }] of Object.entries(UNIT_GROUPS)) {
     for (const { unit } of choices) assert.equal(kindOfUnit(unit), GROUP_KINDS[group], `${group}: ${unit}`);
   }
+});
+
+test('a temperature span field converts as an interval, a temperature reading as a point', () => {
+  assert.ok(Math.abs(siToDisplay('tempMedianError', 5, 'tempF') - 9) < 1e-12);
+  assert.ok(Math.abs(displayToSI('tempMedianError', 9, 'tempF') - 5) < 1e-12);
+  assert.ok(Math.abs(siToDisplay('tempC', 5, 'tempF') - 41) < 1e-12);
+});
+
+test('bullet length is held in metres; its bounds are the former 5–100 mm', () => {
+  assert.equal(FIELD_UNITS.bulletLength.kind, 'length');
+  assert.ok(Math.abs(FIELD_BOUNDS.bulletLength.min - mmToM(5)) < 1e-18);
+  assert.ok(Math.abs(FIELD_BOUNDS.bulletLength.max - mmToM(100)) < 1e-17);
+  assert.ok(Math.abs(siToDisplay('bulletLength', 0.0315, 'mm') - 31.5) < 1e-12);
 });
 
 test('windSpeed has its own unit group, independent of velocity, with the same choices', () => {
@@ -27,21 +44,21 @@ test('windMedianError (Hit Probability\'s wind estimation error) rides the windS
 });
 
 test('velocity round-trips through a non-metric unit', () => {
-  const ftPerS = engineToDisplay('muzzleVelocity', 840, 'ft/s');
+  const ftPerS = siToDisplay('muzzleVelocity', 840, 'ft/s');
   assert.ok(Math.abs(ftPerS - 2755.9055) < 0.01);
-  const backToMs = displayToEngine('muzzleVelocity', ftPerS, 'ft/s');
+  const backToMs = displayToSI('muzzleVelocity', ftPerS, 'ft/s');
   assert.ok(Math.abs(backToMs - 840) < 1e-6);
 });
 
 test('distance converts m to yd correctly', () => {
-  const yd = engineToDisplay('maxRange', 100, 'yd');
+  const yd = siToDisplay('maxRange', 100, 'yd');
   assert.ok(Math.abs(yd - 109.3613) < 0.001);
 });
 
 test('temperature point conversion applies the offset', () => {
-  const f = engineToDisplay('tempC', 15, 'tempF');
+  const f = siToDisplay('tempC', 15, 'tempF');
   assert.ok(Math.abs(f - 59) < 0.01);
-  const c = displayToEngine('tempC', 59, 'tempF');
+  const c = displayToSI('tempC', 59, 'tempF');
   assert.ok(Math.abs(c - 15) < 0.01);
 });
 
@@ -49,18 +66,18 @@ test('temperature span conversion does NOT apply the offset', () => {
   // A 1-degree-C step is an interval, not a point — it must scale by 1.8
   // only, never pick up the +32 point offset (that would badly mis-size
   // the slider step/min/max span in Fahrenheit).
-  const span = engineSpanToDisplay('tempC', 1, 'tempF');
+  const span = siSpanToDisplay('tempC', 1, 'tempF');
   assert.ok(Math.abs(span - 1.8) < 1e-9);
 });
 
 test('non-affine groups have identical point and span conversions', () => {
-  const point = engineToDisplay('maxRange', 10, 'yd');
-  const span = engineSpanToDisplay('maxRange', 10, 'yd');
+  const point = siToDisplay('maxRange', 10, 'yd');
+  const span = siSpanToDisplay('maxRange', 10, 'yd');
   assert.equal(point, span);
 });
 
 test('fields with no unit group pass through unconverted', () => {
-  assert.equal(engineToDisplay('bc', 0.475, 'anything'), 0.475);
+  assert.equal(siToDisplay('bc', 0.475, 'anything'), 0.475);
   assert.equal(unitChoice('bc', 'anything'), null);
 });
 
@@ -70,14 +87,14 @@ test('roundForDisplay respects the configured decimal precision', () => {
 });
 
 test('a value in its own engine unit is unchanged (no lossy round trip)', () => {
-  assert.equal(engineToDisplay('altitudeM', 500, 'm'), 500);
-  assert.equal(displayToEngine('altitudeM', 500, 'm'), 500);
+  assert.equal(siToDisplay('altitudeM', 500, 'm'), 500);
+  assert.equal(displayToSI('altitudeM', 500, 'm'), 500);
 });
 
 test('energy converts J to ft-lb correctly and round-trips', () => {
-  const ftlb = engineToDisplay('energy', 2000, 'ft*lbf');
+  const ftlb = siToDisplay('energy', 2000, 'ft*lbf');
   assert.ok(Math.abs(ftlb - 1475.124) < 0.01);
-  const backToJ = displayToEngine('energy', ftlb, 'ft*lbf');
+  const backToJ = displayToSI('energy', ftlb, 'ft*lbf');
   assert.ok(Math.abs(backToJ - 2000) < 1e-6);
 });
 

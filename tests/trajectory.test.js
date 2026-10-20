@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { integrate, computeImpact, makeImpactWalker, solveZeroAngle, solveHorizontalZeroAngle, resolveLaunchAngle, makeStepper } from '../src/engine/trajectory.js';
-import { displayToEngine, engineToDisplay } from '../src/units.js';
+import { displayToSI, siToDisplay } from '../src/units.js';
 import { G7_TABLE } from '../src/engine/drag-tables.js';
 import { LBIN2_TO_KGM2 } from '../src/engine/constants.js';
 import { speedOfSound, temperatureAtHeightDelta } from '../src/engine/atmosphere.js';
@@ -91,11 +91,11 @@ test('BUG: Range column must match the step as entered, even under a non-metric 
   // the trajectory-view.js wiring: unitField converts the display value
   // (100 yd) to the engine unit (m) before it ever reaches integrate(),
   // and the view must convert engine range values back to yd for display.
-  const maxRangeM = displayToEngine('maxRange', 100 * 9, 'yd'); // 900 yd
-  const rangeStepM = displayToEngine('rangeStep', 100, 'yd');
+  const maxRangeM = displayToSI('maxRange', 100 * 9, 'yd'); // 900 yd
+  const rangeStepM = displayToSI('rangeStep', 100, 'yd');
 
   const { points } = integrate({ ...baseState, maxRange: maxRangeM, rangeStep: rangeStepM });
-  const displayedRanges = points.map((p) => Math.round(engineToDisplay('range', p.range, 'yd')));
+  const displayedRanges = points.map((p) => Math.round(siToDisplay('range', p.range, 'yd')));
 
   assert.deepEqual(displayedRanges, [0, 100, 200, 300, 400, 500, 600, 700, 800, 900]);
 });
