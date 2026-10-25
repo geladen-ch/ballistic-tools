@@ -1,11 +1,15 @@
-// Mobile bottom tab bar — six destinations shown instead of the rail
-// below the layout.css breakpoint: Home and Settings icon-only at the
+// Mobile bottom tab bar — up to seven destinations shown instead of the
+// rail below the layout.css breakpoint: Home and Settings icon-only at the
 // edges (universally recognizable glyphs, and pulled out of the equal
-// flex split so shrinking them hands their width to the other four —
-// see .tab-item-compact in layout.css), Analysis/Measurement/Range
-// Solver/Guns labeled in between. Measurement/Analysis link to their
-// category hub page (src/views/category-view.js) rather than straight to
-// a tool — the same "one predictable extra tap" rule the rail's own
+// flex split so shrinking them hands their width to the other labeled
+// tabs — see .tab-item-compact in layout.css), Analysis/Measurement/
+// Utilities/Range Solver/Guns labeled in between. Utilities is the one
+// optional tab: layout.css hides it with a container query whenever the
+// bar is too small to hold it without squeezing or clipping the others
+// (see .tab-item-utilities there), so its tools stay reachable through
+// Home and the desktop rail instead. Measurement/Analysis/Utilities link
+// to their category hub page (src/views/category-view.js) rather than
+// straight to a tool — the same "one predictable extra tap" rule the rail's own
 // collapsed flyout uses to avoid guessing which tool someone wants.
 // Range Solver links straight to its one tool, not a hub page (see
 // nav-tools.js's own GROUPS.shooting — it used to be filed under
@@ -38,7 +42,7 @@ import {
   requestZoomIn as requestMarkingZoomIn, requestZoomOut as requestMarkingZoomOut, requestDone as requestMarkingDone
 } from '../rifle-precision-nav.js';
 import {
-  homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon, settingsIcon,
+  homeIcon, measurementIcon, analysisIcon, utilitiesIcon, arsenalIcon, gunsIcon, editIcon, checkIcon, settingsIcon,
   targetIcon, rangeCardIcon, atmosphereIcon, exitIcon, zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
@@ -51,6 +55,7 @@ const TABS = [
   { id: 'home', path: '/', nameKey: 'nav.home', icon: homeIcon, compact: true },
   { id: 'analysis', path: GROUPS.analysis.path, nameKey: GROUPS.analysis.nameKey, icon: analysisIcon, hue: 'analysis' },
   { id: 'measurement', path: GROUPS.measurement.path, nameKey: GROUPS.measurement.nameKey, icon: measurementIcon, hue: 'measurement' },
+  { id: 'utilities', path: GROUPS.utilities.path, nameKey: GROUPS.utilities.nameKey, icon: utilitiesIcon, hue: 'utilities' },
   { id: 'range-solver', path: GROUPS.shooting.path, nameKey: GROUPS.shooting.nameKey, icon: targetIcon },
   { id: 'guns', path: '/guns/custom', nameKey: 'nav.guns', icon: gunsIcon },
   { id: 'settings', path: '/settings', nameKey: 'nav.settings', icon: settingsIcon, compact: true }
@@ -61,7 +66,7 @@ function currentPath() {
   return hash.slice(1) || '/';
 }
 
-// Every tab-bar label, across every mode this file builds (default 6-tab
+// Every tab-bar label, across every mode this file builds (default 7-tab
 // row, Guns/Range-Solver/Locations/Placement's own focused-mode rows)
 // carries the current language as a `lang` attribute — CSS's
 // `hyphens: auto` (see .tab-item span in layout.css) uses it to pick a
@@ -110,8 +115,8 @@ export function mountNavTabbar(container) {
       if (tab.compact) {
         // Icon-only, no visible label — accessible name moves to
         // aria-label/title instead. See .tab-item-compact in layout.css
-        // for the smaller icon + reduced footprint this buys the other
-        // four tabs.
+        // for the smaller icon + reduced footprint this buys the labeled
+        // tabs.
         const name = t(tab.nameKey);
         link = el('a', {
           href, class: 'tab-item-compact' + (active ? ' active' : ''), 'aria-label': name, title: name

@@ -64,3 +64,21 @@ test('re-mounting into the same container replaces its content', () => {
   assert.ok(!container.textContent.includes(t('catalog.bcTools')));
   assert.ok(container.textContent.includes(t('nav.trajectory')));
 });
+
+test('mounting "utilities" shows the unit converter as a live link, and none of the other groups\' tools', () => {
+  const container = makeElement('main');
+  categoryView.mount(container, 'utilities');
+
+  assert.ok(container.textContent.includes(t('catalog.groupUtilities')));
+  const link = findByTag(container, 'A').find((a) => a.getAttribute('href') === '#/unit-conversion');
+  assert.ok(link, 'expected Unit Conversion to be a real link');
+  assert.ok(!container.textContent.includes(t('nav.trajectory')));
+  assert.ok(!container.textContent.includes(t('catalog.bcTools')));
+});
+
+test('the Analysis page no longer lists the unit converter', () => {
+  const container = makeElement('main');
+  categoryView.mount(container, 'analysis');
+
+  assert.ok(!container.textContent.includes(t('catalog.unitConversion')));
+});

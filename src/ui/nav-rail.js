@@ -1,5 +1,5 @@
-// The desktop navigation rail: Home, the two collapsible tool groups
-// (Measurement/Analysis), then Shooting (a direct link, not an accordion
+// The desktop navigation rail: Home, the three collapsible tool groups
+// (Analysis/Measurement/Utilities), then Shooting (a direct link, not an accordion
 // — see ACCORDION_GROUPS below), then Guns/Settings/Manual pinned (see
 // nav-tools.js's own PINNED). Has two
 // widths — expanded (names + one-line descriptions) and collapsed
@@ -37,25 +37,25 @@ import {
 } from '../rifle-precision-nav.js';
 import { statusChip } from './status-chip.js';
 import {
-  homeIcon, measurementIcon, analysisIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
+  homeIcon, measurementIcon, analysisIcon, utilitiesIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
   settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, rangeCardIcon, atmosphereIcon, exitIcon,
   zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
-const GROUP_ICON = { measurement: measurementIcon, analysis: analysisIcon };
+const GROUP_ICON = { measurement: measurementIcon, analysis: analysisIcon, utilities: utilitiesIcon };
 // Guns isn't looked up here — its icon is used directly by
 // gunsPinnedLink()/collapsedGunsLink() below, which build its whole link
 // differently (source-aware routing) rather than going through the
 // generic pinnedLink()/collapsedIconLink() this map serves.
 const PINNED_ICON = { settings: settingsIcon, manual: manualIcon };
-// Only Analysis/Measurement get the expand-then-pick-one accordion
+// Only Analysis/Measurement/Utilities get the expand-then-pick-one accordion
 // treatment below (groupAccordion()/collapsedGroupItem()) — Shooting is
 // also a GROUPS entry (so Home's own groupSection() can list it as a
 // card, see home-view.js), but with exactly one tool an accordion would
 // just add an extra click before reaching it; buildExpanded()/
 // buildCollapsed() render it as a flat link instead, via the same
 // pinnedLink()/collapsedIconLink() a PINNED entry would use.
-const ACCORDION_GROUPS = [GROUPS.analysis, GROUPS.measurement];
+const ACCORDION_GROUPS = [GROUPS.analysis, GROUPS.measurement, GROUPS.utilities];
 
 function currentPath() {
   const hash = location.hash || '';

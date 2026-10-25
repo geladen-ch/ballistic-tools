@@ -81,3 +81,11 @@ test('bc-tools is a real, fully usable route (Calculation, Conversion, and Labra
   assert.equal(byId['bc-tools'].status, 'live');
   assert.equal(byId['bc-tools'].path, '/bc-tools');
 });
+
+test('Utilities is an accordion group holding the unit converter, which no longer sits under Analysis', () => {
+  assert.ok(GROUPS.utilities, 'expected a utilities entry in GROUPS');
+  assert.equal(GROUPS.utilities.accordion, true);
+  assert.equal(GROUPS.utilities.path, '/utilities');
+  assert.deepEqual(toolsInGroup('utilities').map((tool) => tool.id), ['unit-conversion']);
+  assert.ok(!toolsInGroup('analysis').some((tool) => tool.id === 'unit-conversion'));
+});

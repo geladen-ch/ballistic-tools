@@ -208,10 +208,11 @@ try {
   for (const [path, mod] of Object.entries(views)) {
     registerRoute(path, () => mod.mount(view));
   }
-  // The two category hub pages share one view module, parameterized by
-  // group id — see category-view.js.
+  // The category hub pages share one view module, parameterized by group
+  // id — see category-view.js.
   registerRoute('/measurement', () => categoryView.mount(view, 'measurement'));
   registerRoute('/analysis', () => categoryView.mount(view, 'analysis'));
+  registerRoute('/utilities', () => categoryView.mount(view, 'utilities'));
   // Guns' two tabs (Custom/Arsenal) are the same pattern — one view module,
   // parameterized — see guns-view.js.
   registerRoute('/guns/custom', () => gunsView.mount(view, 'custom'));

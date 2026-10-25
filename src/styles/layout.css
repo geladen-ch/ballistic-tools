@@ -280,7 +280,8 @@ a.rail-c-item { text-decoration: none; }
 .rail-c-item.current { background: var(--panel-raised); color: var(--text); }
 .rail-c-item.measurement { --rail-hue: var(--accent); }
 .rail-c-item.analysis { --rail-hue: var(--analysis); }
-.rail-c-item.group-open, .rail-c-item.current.measurement, .rail-c-item.current.analysis {
+.rail-c-item.utilities { --rail-hue: var(--accent); }
+.rail-c-item.group-open, .rail-c-item.current.measurement, .rail-c-item.current.analysis, .rail-c-item.current.utilities {
   color: var(--rail-hue);
   background: var(--panel-raised);
 }
@@ -389,6 +390,29 @@ button.tab-item { background: none; border: none; font-family: inherit; cursor: 
 .tab-item.active { color: var(--accent); }
 .tab-item-measurement.active { color: var(--accent); }
 .tab-item-analysis.active { color: var(--analysis); }
+
+/* Utilities is the one optional tab: shown only when the bar is big enough
+   to hold it without squeezing or clipping the other labels, decided by a
+   container query on the bar itself rather than a viewport media query —
+   the bar's own box is already net of the top bar's height (which varies
+   with font metrics) and measured in the interface-scale `zoom`'s own
+   coordinate space, neither of which a viewport query can see. Pure CSS:
+   no JS re-measures anything on resize/rotation/language change.
+   Hidden by default so an engine without container-query support (before
+   Chrome 105 / Safari 16 / Firefox 110) simply never shows it. The tool
+   stays reachable through Home and the desktop rail either way.
+   Bottom bar (portrait/wide): the labeled tabs share the bar's width, and
+   with the seventh item the narrowest standard phone width (320px) still
+   leaves every label unclipped — the longest translated label sets that
+   floor. Declared after .tab-item so this display:none wins its tie. */
+#app-tabbar {
+  container-type: inline-size;
+  container-name: app-tabbar;
+}
+.tab-item-utilities { display: none; }
+@container app-tabbar (min-width: 320px) {
+  .tab-item-utilities { display: flex; }
+}
 
 /* Home/Settings (see nav-tabbar.js's own `compact: true`) — icon-only,
    pulled out of the equal flex:1 split entirely (sized by content, not
@@ -527,6 +551,22 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
   html:not(.force-desktop) #app-tabbar .tab-item-compact,
   html.force-mobile #app-tabbar .tab-item-compact {
     padding: 10px 8px;
+  }
+}
+
+/* Utilities tab in the landscape side column (see the container note on
+   .tab-item-utilities above): here the bar has a definite height (docked
+   top-to-bottom), so it can be a size container and the query reads its
+   height. 298px is what the five labeled tabs (46px minimum each) plus the
+   two icon-only ones (about 34px each) need; the extra 10px is margin so
+   a two-line label or slightly different font metrics never pushes the
+   last item (Settings) off the bottom edge. Placed after the portrait
+   rule so this display:none takes over inside the landscape query. */
+@media (orientation: landscape) and (max-height: 500px) {
+  #app-tabbar { container-type: size; }
+  .tab-item-utilities { display: none; }
+  @container app-tabbar (min-height: 308px) {
+    .tab-item-utilities { display: flex; }
   }
 }
 

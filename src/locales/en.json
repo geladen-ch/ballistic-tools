@@ -1486,6 +1486,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v225": "New: “Utilities” section next to Analysis and Measurement (mobile tab bar, desktop rail, Home), with the unit converter moved into it. On small phones the tab appears only when it fits.",
       "v224": "Change: all internal processing is now in SI, except temperature (°C) and BC (lb/in²). Uniform named conversion at the edge only.",
       "v223": "Change: README now covers the Truing Session tool.",
       "v222": "Fix: UI polish for Truing Session tool",
@@ -1735,6 +1736,8 @@
     "groupMeasurementDesc": "Reading in, coefficient out.",
     "groupAnalysis": "Analysis",
     "groupAnalysisDesc": "A rifle, a load, a question.",
+    "groupUtilities": "Utilities",
+    "groupUtilitiesDesc": "Convert, calculate, design.",
     "bcTools": "BC Tools",
     "bcToolsDesc": "Calculate BC from known data, convert between different models, etc.",
     "cdMachCurve": "Cd–Mach Curve",

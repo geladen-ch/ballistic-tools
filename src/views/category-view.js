@@ -2,11 +2,12 @@ import { el, clear } from '../dom.js';
 import { GROUPS, toolsInGroup } from '../nav-tools.js';
 import { statusChip } from '../ui/status-chip.js';
 
-// One shared view for both category hub pages (#/measurement, #/analysis)
-// — the mobile tab bar's Measurement/Analysis tabs land here rather than
+// One shared view for the category hub pages (#/measurement, #/analysis,
+// #/utilities) — the mobile tab bar's group tabs land here rather than
 // on a specific tool, and it's a real, bookmarkable page on desktop too,
 // not just a mobile-only screen. Registered in app.js as
-// `mount(container, 'measurement')` / `mount(container, 'analysis')`.
+// `mount(container, 'measurement')` / `mount(container, 'analysis')` /
+// `mount(container, 'utilities')`.
 export function mount(container, groupId) {
   clear(container);
   const group = GROUPS[groupId];
@@ -21,7 +22,7 @@ export function mount(container, groupId) {
   );
 }
 
-// Exported for home-view.js, which shows both groups' cards on one page
+// Exported for home-view.js, which shows every group's cards on one page
 // using the exact same card markup — one place defines what a tool card
 // looks like.
 export function toolCard(tool) {

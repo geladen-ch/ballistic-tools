@@ -35,6 +35,16 @@ export const GROUPS = {
     descKey: 'catalog.groupMeasurementDesc',
     accordion: true
   },
+  // Small helpers that belong to no analysis or measurement workflow —
+  // currently just the unit converter. Same hub-page/accordion treatment
+  // as Analysis/Measurement, since more helpers are expected to join it.
+  utilities: {
+    id: 'utilities',
+    path: '/utilities',
+    nameKey: 'catalog.groupUtilities',
+    descKey: 'catalog.groupUtilitiesDesc',
+    accordion: true
+  },
   // A group with exactly one tool, and deliberately not `accordion` —
   // Home renders it exactly like Analysis/Measurement (see home-view.js's
   // own groupSection(GROUPS.shooting)), but there's no hub page (no
@@ -55,13 +65,14 @@ export const GROUPS = {
 const TOOL_DEFS = [
   { id: 'trajectory', group: 'analysis', path: '/trajectory', nameKey: 'nav.trajectory', descKey: 'home.trajectoryDesc' },
   { id: 'hit-probability', group: 'analysis', path: '/hit-probability', nameKey: 'nav.hitProbability', descKey: 'home.hitProbDesc' },
-  { id: 'unit-conversion', group: 'analysis', path: '/unit-conversion', nameKey: 'catalog.unitConversion', descKey: 'catalog.unitConversionDesc' },
   { id: 'range-card', group: 'analysis', path: null, nameKey: 'catalog.rangeCard', descKey: 'catalog.rangeCardDesc' },
   { id: 'truing-session', group: 'analysis', path: '/truing-session', nameKey: 'nav.truingSession', descKey: 'home.truingSessionDesc', experimental: true },
 
   { id: 'bc-tools', group: 'measurement', path: '/bc-tools', nameKey: 'catalog.bcTools', descKey: 'catalog.bcToolsDesc' },
   { id: 'cd-mach-curve', group: 'measurement', path: '/cd-mach-curve', nameKey: 'catalog.cdMachCurve', descKey: 'catalog.cdMachCurveDesc' },
   { id: 'rifle-precision', group: 'measurement', path: '/rifle-precision', nameKey: 'catalog.riflePrecision', descKey: 'catalog.riflePrecisionDesc' },
+
+  { id: 'unit-conversion', group: 'utilities', path: '/unit-conversion', nameKey: 'catalog.unitConversion', descKey: 'catalog.unitConversionDesc' },
 
   { id: 'range-solver', group: 'shooting', path: '/range-solver', nameKey: 'catalog.rangeSolver', descKey: 'catalog.rangeSolverDesc' }
 ];
@@ -75,7 +86,7 @@ export function toolsInGroup(groupId) {
   return TOOLS.filter((tool) => tool.group === groupId && !HIDDEN_IDS.has(tool.id));
 }
 
-// Utilities that sit outside every group — every tool reads from the
+// Entries that sit outside every group — every tool reads from the
 // active gun configuration (Guns) or governs the whole app (Settings/
 // Manual), so none belongs filed under one category. Range Solver isn't
 // here despite also being a single top-level destination — it needs

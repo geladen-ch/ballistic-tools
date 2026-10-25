@@ -164,6 +164,7 @@ export function mount(container) {
       el('p', { i18n: 'home.intro' }),
       groupSection(GROUPS.analysis),
       groupSection(GROUPS.measurement),
+      groupSection(GROUPS.utilities),
       // Shooting has exactly one tool (Range Solver) but still renders as
       // a full group section here, same as Analysis/Measurement — see
       // GROUPS.shooting's own comment in nav-tools.js for why the rail/

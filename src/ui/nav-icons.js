@@ -26,6 +26,18 @@ export function measurementIcon(size = 18) {
   ]);
 }
 
+// An open-end wrench — "Utilities." One closed outline (round-tipped
+// handle, round head, straight jaw slot), built from lines and arcs only
+// like the rest of this set; the head/handle proportions were tuned so the
+// jaw slot still reads at the tab bar's 17px.
+export function utilitiesIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('path', {
+      d: 'M10.56 11.73A4.91 4.91 0 0 0 17.19 5.34L13.95 8.57L11.43 6.05L14.66 2.81A4.91 4.91 0 0 0 8.27 9.44L2.87 14.84A1.62 1.62 0 0 0 5.16 17.13Z'
+    })
+  ]);
+}
+
 // A trajectory arc to an impact point — echoes the app's own domain
 // rather than a generic bar-chart glyph.
 export function analysisIcon(size = 18) {

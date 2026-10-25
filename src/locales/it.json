@@ -1486,6 +1486,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v225": "Novità: sezione «Utilità» accanto ad Analisi e Misurazione (barra a schede mobile, barra laterale desktop, Home), con il convertitore di unità spostato al suo interno. Sugli smartphone piccoli la scheda compare solo se c’è spazio.",
       "v224": "Modifica: tutta l'elaborazione interna avviene ora in unità SI, tranne la temperatura (°C) e il BC (lb/in²). Conversione uniforme e con nome, solo al bordo della presentazione.",
       "v223": "Modifica: il README descrive ora lo strumento \"Sessione di taratura\".",
       "v222": "Correzione: rifiniture dell’interfaccia dello strumento \"Sessione di taratura\"",
@@ -1735,6 +1736,8 @@
     "groupMeasurementDesc": "Una lettura in ingresso, un coefficiente in uscita.",
     "groupAnalysis": "Analisi",
     "groupAnalysisDesc": "Un fucile, una carica, una domanda.",
+    "groupUtilities": "Utilità",
+    "groupUtilitiesDesc": "Convertire, calcolare, progettare.",
     "bcTools": "Strumenti BC",
     "bcToolsDesc": "Calcola il BC da dati noti, converti tra modelli diversi, ecc.",
     "cdMachCurve": "Curva Cd-Mach",

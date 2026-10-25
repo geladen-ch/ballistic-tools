@@ -1486,6 +1486,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v225": "Neu: Bereich „Werkzeuge“ neben Analyse und Messung (mobile Tab-Leiste, Desktop-Leiste, Startseite); der Einheitenumrechner ist dorthin umgezogen. Auf kleinen Handys erscheint der Tab nur, wenn er Platz hat.",
       "v224": "Änderung: Die gesamte interne Verarbeitung erfolgt jetzt in SI-Einheiten, außer Temperatur (°C) und BC (lb/in²). Einheitliche, benannte Umrechnung nur noch an der Darstellungsgrenze.",
       "v223": "Änderung: README beschreibt jetzt das Werkzeug „Einschieß-Sitzung“.",
       "v222": "Fix: UI-Feinschliff beim Werkzeug „Einschieß-Sitzung“",
@@ -1735,6 +1736,8 @@
     "groupMeasurementDesc": "Messwert rein, Koeffizient raus.",
     "groupAnalysis": "Analyse",
     "groupAnalysisDesc": "Ein Gewehr, eine Ladung, eine Frage.",
+    "groupUtilities": "Werkzeuge",
+    "groupUtilitiesDesc": "Umrechnen, berechnen, entwerfen.",
     "bcTools": "BC-Werkzeuge",
     "bcToolsDesc": "BC anhand bekannter Daten berechnen, zwischen verschiedenen Modellen umrechnen usw.",
     "cdMachCurve": "Cd-Mach-Kurve",

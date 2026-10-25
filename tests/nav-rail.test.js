@@ -36,15 +36,16 @@ function findByClass(node, className, out = []) {
   return out;
 }
 
-test('renders expanded by default, with both groups open', () => {
+test('renders expanded by default, with every group open', () => {
   const container = makeElement('nav');
   mountNavRail(container);
 
   assert.equal(container.className, 'app-rail');
   const tools = findByClass(container, 'rail-tool');
-  // 3 measurement + 4 visible analysis tools (range-card is hidden from
-  // listings; range-solver is a GROUPS.shooting tool, not an accordion
-  // one — see nav-tools.js), all visible since both groups start open
+  // 3 measurement + 3 visible analysis tools + 1 utilities tool (range-card
+  // is hidden from listings; range-solver is a GROUPS.shooting tool, not an
+  // accordion one — see nav-tools.js), all visible since every group
+  // starts open
   assert.equal(tools.length, 7);
 });
 
@@ -345,4 +346,32 @@ test('turning Range Solver mode back off restores the normal rail', () => {
   assert.equal(container.className, 'app-rail');
   assert.ok(findByClass(container, 'rail-item').length > 0);
   assert.equal(findByClass(container, 'done-btn').length, 0);
+});
+
+test('Utilities is an accordion group after Measurement, holding the unit converter', () => {
+  const container = makeElement('nav');
+  mountNavRail(container);
+
+  const summaries = findByClass(container, 'rail-group-summary').map((n) => n.textContent);
+  assert.equal(summaries.length, 3);
+  assert.ok(summaries[0].includes(t('catalog.groupAnalysis')));
+  assert.ok(summaries[1].includes(t('catalog.groupMeasurement')));
+  assert.ok(summaries[2].includes(t('catalog.groupUtilities')));
+
+  const utilities = findByClass(container, 'rail-group').find((n) => n.className.includes('utilities'));
+  assert.ok(utilities, 'expected a .rail-group.utilities wrapper');
+  const link = findByClass(utilities, 'rail-tool').find((n) => n.getAttribute('href') === '#/unit-conversion');
+  assert.ok(link, 'expected the unit converter under Utilities');
+});
+
+test('in collapsed mode, the Utilities icon opens a flyout with the unit converter', () => {
+  const container = makeElement('nav');
+  mountNavRail(container);
+  fireEvent(findByTag(container, 'BUTTON').find((b) => b.id === 'rail-collapse-toggle'), 'click');
+
+  const icon = findByClass(container, 'rail-c-item').find((n) => n.className.includes('utilities'));
+  assert.ok(icon, 'expected a collapsed Utilities icon');
+  fireEvent(icon, 'click');
+  const items = findByClass(container, 'flyout-item');
+  assert.deepEqual(items.map((n) => n.getAttribute('href')), ['#/unit-conversion']);
 });

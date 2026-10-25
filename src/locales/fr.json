@@ -1486,6 +1486,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v225": "Nouveau : section « Utilitaires » à côté d’Analyse et de Mesure (barre d’onglets mobile, barre latérale du bureau, accueil), où le convertisseur d’unités a été déplacé. Sur les petits téléphones, l’onglet n’apparaît que s’il tient.",
       "v224": "Modification : tous les calculs internes se font désormais en unités SI, sauf la température (°C) et le BC (lb/in²). Conversion uniforme et nommée, uniquement à l’affichage.",
       "v223": "Modification : le README présente désormais l’outil « Session de calibrage ».",
       "v222": "Correction : finitions de l’interface de l’outil « Session de calibrage »",
@@ -1735,6 +1736,8 @@
     "groupMeasurementDesc": "Une lecture en entrée, un coefficient en sortie.",
     "groupAnalysis": "Analyse",
     "groupAnalysisDesc": "Une carabine, une charge, une question.",
+    "groupUtilities": "Utilitaires",
+    "groupUtilitiesDesc": "Convertir, calculer, concevoir.",
     "bcTools": "Outils BC",
     "bcToolsDesc": "Calculer le BC à partir de données connues, convertir entre différents modèles, etc.",
     "cdMachCurve": "Courbe Cd–Mach",
