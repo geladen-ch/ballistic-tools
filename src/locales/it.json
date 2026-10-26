@@ -1486,6 +1486,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v226": "Novità: strumento per progettare reticoli (presto sarà utile)",
       "v225": "Novità: sezione «Utilità» accanto ad Analisi e Misurazione (barra a schede mobile, barra laterale desktop, Home), con il convertitore di unità spostato al suo interno. Sugli smartphone piccoli la scheda compare solo se c’è spazio.",
       "v224": "Modifica: tutta l'elaborazione interna avviene ora in unità SI, tranne la temperatura (°C) e il BC (lb/in²). Conversione uniforme e con nome, solo al bordo della presentazione.",
       "v223": "Modifica: il README descrive ora lo strumento \"Sessione di taratura\".",
@@ -1751,6 +1752,234 @@
     "rangeSolver": "Calcolatore per il poligono",
     "rangeSolverDesc": "Calcolatore balistico raffinato e scattante per il tiro. Nessuna informazione superflua.",
     "statusPlanned": "Pianificato",
-    "statusExperimental": "Sperimentale"
+    "statusExperimental": "Sperimentale",
+    "reticleDesigner": "Progettista di reticoli",
+    "reticleDesignerDesc": "Disegna un reticolo da cannocchiale con il trascinamento, in mrad o MOA, per cannocchiali FFP, SFP o a ingrandimento fisso."
+  },
+  "reticleDesigner": {
+    "title": "Progettista di reticoli",
+    "intro": "Disegna un reticolo da cannocchiale: scegli un elemento dalla tavolozza e fai clic o trascina nella vista per posizionarlo, poi spostalo o regolalo nelle sue impostazioni. Tutte le posizioni sono misurate dal centro del reticolo, positive verso destra e verso il basso.",
+    "panes": {
+      "options": "Opzioni",
+      "view": "Vista del reticolo",
+      "palette": "Elementi",
+      "settings": "Impostazioni",
+      "list": "Elementi del reticolo"
+    },
+    "file": {
+      "name": "Nome del reticolo",
+      "namePlaceholder": "Reticolo senza nome",
+      "new": "Nuovo reticolo",
+      "save": "Salva su file",
+      "load": "Carica da file",
+      "unsaved": "Modifiche non salvate",
+      "confirmReplace": "Il reticolo attuale ha modifiche non salvate. Sostituirlo con quello del file? (Annulla lo riporta indietro.)",
+      "confirmNew": "Il reticolo attuale ha modifiche non salvate. Scartarlo e iniziarne uno nuovo? Non si può annullare.",
+      "errors": {
+        "invalidJson": "Questo file non è un JSON valido.",
+        "invalidFormat": "Questo file non è un file di reticolo, oppure è danneggiato.",
+        "newerVersion": "Questo reticolo è stato salvato da una versione più recente dell’app. Aggiorna l’app per aprirlo.",
+        "tooLarge": "Questo file di reticolo è troppo grande o ha troppi elementi o copie per essere caricato.",
+        "timeout": "La lettura di questo file di reticolo ha richiesto troppo tempo ed è stata interrotta."
+      }
+    },
+    "scope": {
+      "title": "Cannocchiale",
+      "brief": "{{type}} · campo visibile {{field}}",
+      "type": "Tipo di cannocchiale",
+      "types": {
+        "fixed": "Ingrandimento fisso",
+        "ffp": "Variabile, primo piano focale",
+        "sfp": "Variabile, secondo piano focale"
+      },
+      "fov": "Campo visivo",
+      "fovFrom": "Campo visivo da",
+      "fovTo": "a",
+      "fovAt": "alla distanza di",
+      "zoomFrom": "Ingrandimento da",
+      "zoomTo": "a",
+      "calibrationZoom": "Valori esatti a",
+      "zoomHint": "Inserendo un estremo dell’intervallo di ingrandimento, l’altro si ricava dai due campi visivi.",
+      "sfpHint": "Un reticolo sul secondo piano focale è disegnato nei suoi valori all’ingrandimento di taratura; la vista mostra quindi il campo visivo a quell’ingrandimento."
+    },
+    "illumination": {
+      "enabled": "Reticolo illuminato",
+      "colour": "Colore dell’illuminazione",
+      "colours": {
+        "red": "Rosso",
+        "amber": "Ambra",
+        "green": "Verde"
+      },
+      "brief": "illuminato: {{colour}}"
+    },
+    "options": {
+      "units": "Unità del reticolo",
+      "grid": "Griglia (1 {{unit}})",
+      "snap_mrad": "Aggancia a 0,1 mrad",
+      "snap_moa": "Aggancia a 0,25 MOA",
+      "zero": "Mostra lo zero",
+      "bdc": "Mostra i segni BDC",
+      "illumination": "Mostra l’illuminazione",
+      "dimField": "Oscura il campo",
+      "undo": "Annulla",
+      "redo": "Ripeti"
+    },
+    "view": {
+      "zoomIn": "Ingrandisci",
+      "zoomOut": "Riduci",
+      "reset": "Ripristina vista (ingrandimento minimo)",
+      "magnification": "Ingrandimento",
+      "sfpScale": "Valori qui: ×{{factor}} del valore nominale"
+    },
+    "palette": {
+      "select": "Seleziona",
+      "group": "Raggruppa",
+      "ungroup": "Separa",
+      "duplicate": "Duplica",
+      "delete": "Elimina"
+    },
+    "types": {
+      "hline": "Linea orizzontale",
+      "vline": "Linea verticale",
+      "dot": "Punto",
+      "vbar": "Barra verticale rastremata",
+      "hbar": "Barra orizzontale rastremata",
+      "circle": "Cerchio",
+      "horseshoe": "Ferro di cavallo",
+      "chevron": "Chevron",
+      "number": "Numero",
+      "svg": "Forma SVG",
+      "bdc": "Segno BDC"
+    },
+    "params": {
+      "startX": "Inizio x",
+      "startY": "Inizio y",
+      "centreX": "Centro x",
+      "centreY": "Centro y",
+      "apexX": "Vertice x",
+      "apexY": "Vertice y",
+      "endX": "Fine x",
+      "endY": "Fine y",
+      "groupX": "Gruppo x",
+      "groupY": "Gruppo y",
+      "width": "Spessore",
+      "diameter": "Diametro",
+      "nominalWidth": "Spessore nominale",
+      "endWidth": "Spessore in punta",
+      "thinningLength": "Lunghezza di rastremazione",
+      "outerDiameter": "Diametro esterno",
+      "innerDiameter": "Diametro interno",
+      "cutoutAngle": "Angolo di apertura in basso",
+      "lineWidth": "Spessore della linea",
+      "overallWidth": "Larghezza totale",
+      "height": "Altezza",
+      "anchorX": "Ancoraggio x",
+      "anchorY": "Ancoraggio y",
+      "text": "Cifre",
+      "digitHeight": "Altezza delle cifre",
+      "anchor": "Ancoraggio",
+      "font": "Carattere",
+      "originX": "Origine x",
+      "originY": "Origine y",
+      "svgScale": "1 unità SVG =",
+      "svgWidth": "Larghezza",
+      "svgHeight": "Altezza",
+      "selectionX": "Selezione x",
+      "selectionY": "Selezione y",
+      "markY": "Segno y"
+    },
+    "settings": {
+      "nothing": "Seleziona un elemento nella vista o nell’elenco per vederne le impostazioni.",
+      "multiple": "Elementi selezionati: {{count}}",
+      "group": "Gruppo · {{count}} elementi",
+      "inGroup": "Fa parte di un gruppo.",
+      "mirror": "Specchia orizzontalmente",
+      "repeat": "Ripeti",
+      "repeatDirection": "Direzione",
+      "repeatCount": "Numero",
+      "repeatStep": "Passo",
+      "reflect": "Rifletti la forma quando specchiata",
+      "mixed": "misto",
+      "bdcHint": "Punto di mira per una distanza diversa da quella di azzeramento. Non è disegnato nel reticolo; si trova sull’asse verticale e non viene mai specchiato né ripetuto.",
+      "illuminated": "Illuminato"
+    },
+    "directions": {
+      "up": "In alto",
+      "down": "In basso",
+      "left": "A sinistra",
+      "right": "A destra"
+    },
+    "list": {
+      "empty": "Ancora nessun elemento.",
+      "mirrored": "specchiato",
+      "repeated": "ripetuto ×{{count}}",
+      "illuminated": "illuminato"
+    },
+    "errors": {
+      "number": "Inserisci un numero.",
+      "positive": "Deve essere maggiore di zero.",
+      "nonNegative": "Non deve essere negativo.",
+      "positiveInteger": "Deve essere un numero intero, almeno 1.",
+      "endWidthAboveNominal": "Lo spessore in punta non può superare lo spessore nominale.",
+      "innerBelowOuter": "Il diametro interno deve essere minore del diametro esterno.",
+      "cutoutBelowFullTurn": "L’apertura deve essere inferiore a 360°.",
+      "unknownType": "Tipo di elemento sconosciuto.",
+      "startClamped": "L’inizio non può essere più lontano dal centro della fine.",
+      "endClamped": "La fine non può essere più vicina al centro dell’inizio.",
+      "moveLimited": "Una barra rastremata della selezione limita questo spostamento.",
+      "fovMinBelowMax": "Il campo all’ingrandimento massimo deve essere minore che a quello minimo.",
+      "calibrationInRange": "Deve rientrare nell’intervallo di ingrandimento.",
+      "scopeType": "Tipo di cannocchiale sconosciuto.",
+      "digitsOnly": "Solo cifre 0–9.",
+      "unknownAnchor": "Ancoraggio sconosciuto.",
+      "unknownFont": "Carattere sconosciuto.",
+      "outOfRange": "Fuori intervallo.",
+      "repeatCountMax": "Al massimo 500 copie.",
+      "tooManyDigits": "Al massimo 12 cifre."
+    },
+    "anchors": {
+      "left": "Estremità sinistra",
+      "centre": "Centro",
+      "right": "Estremità destra"
+    },
+    "svg": {
+      "title": "Importa forma SVG",
+      "intro": "Scegli un file SVG o incolla codice SVG. Vengono mantenute solo le forme: ogni riempimento o contorno visibile diventa tratto del reticolo, qualunque sia il colore, e nient’altro del file viene usato. Il testo va prima convertito in tracciati. La forma viene inserita con l’origine propria dell’SVG al centro del reticolo; imposta scala o dimensioni nelle sue impostazioni.",
+      "chooseFile": "File SVG",
+      "pasteLabel": "Oppure incolla codice SVG",
+      "pastePlaceholder": "<svg …>…</svg>",
+      "read": "Leggi il codice incollato",
+      "reading": "Lettura…",
+      "insert": "Inserisci nel reticolo",
+      "cancel": "Annulla",
+      "previewLabel": "Anteprima della forma importata",
+      "summary": "Pronto: {{paths}} tracciati, {{segments}} segmenti.",
+      "warnings": {
+        "clips": "Ritagli e maschere vengono ignorati: le forme sono disegnate intere.",
+        "dashes": "I contorni tratteggiati sono disegnati continui.",
+        "markers": "I marcatori di linea (punte di freccia e simili) vengono omessi.",
+        "images": "Le immagini incorporate vengono omesse."
+      },
+      "errors": {
+        "empty": "Niente da leggere: scegli un file o incolla codice SVG.",
+        "tooLarge": "L’SVG è troppo grande (limite: 2 MB).",
+        "malformedXml": "Non è SVG/XML ben formato.",
+        "doctype": "Gli SVG con dichiarazioni DOCTYPE o di entità non sono accettati.",
+        "tooManyElements": "L’SVG ha troppi elementi (limite: 5000).",
+        "tooDeep": "L’SVG è annidato troppo in profondità (limite: 32 livelli).",
+        "notSvg": "Non è un disegno SVG.",
+        "text": "L’SVG contiene testo. Converti prima il testo in tracciati (in Inkscape: Tracciato → Da oggetto a tracciato), poi importa di nuovo.",
+        "badPathData": "L’SVG contiene dati di tracciato non validi.",
+        "badNumber": "L’SVG contiene un numero non valido o fuori intervallo.",
+        "badTransform": "L’SVG contiene una trasformazione non valida.",
+        "unsupportedUnit": "L’SVG usa lunghezze in unità diverse dalle unità utente o px. Salvalo con semplici unità utente.",
+        "useLoop": "L’SVG ha un elemento <use> che fa riferimento a sé stesso.",
+        "tooComplex": "L’SVG è troppo complesso (più di 100.000 segmenti di tracciato o 1000 copie riutilizzate).",
+        "nothingToDraw": "L’SVG non ha riempimenti o contorni visibili da disegnare.",
+        "badShape": "Non è stato possibile usare la forma importata.",
+        "timeout": "La lettura dell’SVG ha richiesto troppo tempo ed è stata interrotta.",
+        "unexpected": "Non è stato possibile leggere l’SVG."
+      }
+    }
   }
 }

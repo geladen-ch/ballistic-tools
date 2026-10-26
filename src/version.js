@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v225';
-export const RELEASE_ID = '4.2.5';
+export const CACHE_VERSION = 'v226';
+export const RELEASE_ID = '4.3.0';
 export const CODENAME_SHORT = 'BOOBS';
 export const CODENAME_LONG = 'Bullet Origin-to-Objective Ballistic Solver';

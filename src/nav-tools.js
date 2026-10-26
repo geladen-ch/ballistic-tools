@@ -36,8 +36,8 @@ export const GROUPS = {
     accordion: true
   },
   // Small helpers that belong to no analysis or measurement workflow —
-  // currently just the unit converter. Same hub-page/accordion treatment
-  // as Analysis/Measurement, since more helpers are expected to join it.
+  // the unit converter and the reticle designer. Same hub-page/accordion
+  // treatment as Analysis/Measurement.
   utilities: {
     id: 'utilities',
     path: '/utilities',
@@ -73,6 +73,7 @@ const TOOL_DEFS = [
   { id: 'rifle-precision', group: 'measurement', path: '/rifle-precision', nameKey: 'catalog.riflePrecision', descKey: 'catalog.riflePrecisionDesc' },
 
   { id: 'unit-conversion', group: 'utilities', path: '/unit-conversion', nameKey: 'catalog.unitConversion', descKey: 'catalog.unitConversionDesc' },
+  { id: 'reticle-designer', group: 'utilities', path: '/reticle-designer', nameKey: 'catalog.reticleDesigner', descKey: 'catalog.reticleDesignerDesc' },
 
   { id: 'range-solver', group: 'shooting', path: '/range-solver', nameKey: 'catalog.rangeSolver', descKey: 'catalog.rangeSolverDesc' }
 ];

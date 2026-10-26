@@ -1486,6 +1486,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v226": "Nouveau : outil de conception de réticules (bientôt utile)",
       "v225": "Nouveau : section « Utilitaires » à côté d’Analyse et de Mesure (barre d’onglets mobile, barre latérale du bureau, accueil), où le convertisseur d’unités a été déplacé. Sur les petits téléphones, l’onglet n’apparaît que s’il tient.",
       "v224": "Modification : tous les calculs internes se font désormais en unités SI, sauf la température (°C) et le BC (lb/in²). Conversion uniforme et nommée, uniquement à l’affichage.",
       "v223": "Modification : le README présente désormais l’outil « Session de calibrage ».",
@@ -1751,6 +1752,234 @@
     "rangeSolver": "Calculateur de terrain",
     "rangeSolverDesc": "Calculateur balistique affûté pour le tir. Aucune information inutile.",
     "statusPlanned": "Prévu",
-    "statusExperimental": "Expérimental"
+    "statusExperimental": "Expérimental",
+    "reticleDesigner": "Concepteur de réticule",
+    "reticleDesignerDesc": "Dessiner un réticule de lunette par glisser-déposer, en mrad ou MOA, pour lunettes PPF, SPF ou à grossissement fixe."
+  },
+  "reticleDesigner": {
+    "title": "Concepteur de réticule",
+    "intro": "Dessinez un réticule de lunette : choisissez un élément dans la palette et cliquez ou faites glisser dans la vue pour le placer, puis déplacez-le ou ajustez-le dans ses réglages. Toutes les positions sont mesurées depuis le centre du réticule, positives vers la droite et vers le bas.",
+    "panes": {
+      "options": "Options",
+      "view": "Vue du réticule",
+      "palette": "Éléments",
+      "settings": "Réglages",
+      "list": "Éléments du réticule"
+    },
+    "file": {
+      "name": "Nom du réticule",
+      "namePlaceholder": "Réticule sans titre",
+      "new": "Nouveau réticule",
+      "save": "Enregistrer dans un fichier",
+      "load": "Charger depuis un fichier",
+      "unsaved": "Modifications non enregistrées",
+      "confirmReplace": "Le réticule actuel a des modifications non enregistrées. Le remplacer par celui du fichier ? (Annuler le fait revenir.)",
+      "confirmNew": "Le réticule actuel a des modifications non enregistrées. L’abandonner et en commencer un nouveau ? Cette action est irréversible.",
+      "errors": {
+        "invalidJson": "Ce fichier n’est pas un JSON valide.",
+        "invalidFormat": "Ce fichier n’est pas un fichier de réticule, ou il est endommagé.",
+        "newerVersion": "Ce réticule a été enregistré par une version plus récente de l’application. Mettez l’application à jour pour l’ouvrir.",
+        "tooLarge": "Ce fichier de réticule est trop volumineux ou contient trop d’éléments ou de copies pour être chargé.",
+        "timeout": "La lecture de ce fichier de réticule a pris trop de temps et a été interrompue."
+      }
+    },
+    "scope": {
+      "title": "Lunette",
+      "brief": "{{type}} · champ visible {{field}}",
+      "type": "Type de lunette",
+      "types": {
+        "fixed": "Grossissement fixe",
+        "ffp": "Variable, premier plan focal",
+        "sfp": "Variable, second plan focal"
+      },
+      "fov": "Champ de vision",
+      "fovFrom": "Champ de vision de",
+      "fovTo": "à",
+      "fovAt": "à une distance de",
+      "zoomFrom": "Grossissement de",
+      "zoomTo": "à",
+      "calibrationZoom": "Valeurs exactes à",
+      "zoomHint": "Saisir une extrémité de la plage de grossissement calcule l’autre à partir des deux champs de vision.",
+      "sfpHint": "Un réticule au second plan focal est dessiné selon ses valeurs au grossissement d’étalonnage ; la vue montre donc le champ de vision à ce grossissement."
+    },
+    "illumination": {
+      "enabled": "Réticule illuminé",
+      "colour": "Couleur d’illumination",
+      "colours": {
+        "red": "Rouge",
+        "amber": "Ambre",
+        "green": "Vert"
+      },
+      "brief": "illuminé : {{colour}}"
+    },
+    "options": {
+      "units": "Unités du réticule",
+      "grid": "Grille (1 {{unit}})",
+      "snap_mrad": "Aimanter à 0,1 mrad",
+      "snap_moa": "Aimanter à 0,25 MOA",
+      "zero": "Afficher le zéro",
+      "bdc": "Afficher les repères BDC",
+      "illumination": "Afficher l’illumination",
+      "dimField": "Assombrir le champ",
+      "undo": "Annuler",
+      "redo": "Rétablir"
+    },
+    "view": {
+      "zoomIn": "Zoom avant",
+      "zoomOut": "Zoom arrière",
+      "reset": "Réinitialiser la vue (grossissement minimal)",
+      "magnification": "Grossissement",
+      "sfpScale": "Valeurs ici : ×{{factor}} de la valeur nominale"
+    },
+    "palette": {
+      "select": "Sélectionner",
+      "group": "Grouper",
+      "ungroup": "Dégrouper",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer"
+    },
+    "types": {
+      "hline": "Ligne horizontale",
+      "vline": "Ligne verticale",
+      "dot": "Point",
+      "vbar": "Barre verticale effilée",
+      "hbar": "Barre horizontale effilée",
+      "circle": "Cercle",
+      "horseshoe": "Fer à cheval",
+      "chevron": "Chevron",
+      "number": "Nombre",
+      "svg": "Forme SVG",
+      "bdc": "Repère BDC"
+    },
+    "params": {
+      "startX": "Début x",
+      "startY": "Début y",
+      "centreX": "Centre x",
+      "centreY": "Centre y",
+      "apexX": "Pointe x",
+      "apexY": "Pointe y",
+      "endX": "Fin x",
+      "endY": "Fin y",
+      "groupX": "Groupe x",
+      "groupY": "Groupe y",
+      "width": "Largeur",
+      "diameter": "Diamètre",
+      "nominalWidth": "Largeur nominale",
+      "endWidth": "Largeur en bout",
+      "thinningLength": "Longueur d’effilement",
+      "outerDiameter": "Diamètre extérieur",
+      "innerDiameter": "Diamètre intérieur",
+      "cutoutAngle": "Angle de découpe en bas",
+      "lineWidth": "Épaisseur de trait",
+      "overallWidth": "Largeur totale",
+      "height": "Hauteur",
+      "anchorX": "Ancrage x",
+      "anchorY": "Ancrage y",
+      "text": "Chiffres",
+      "digitHeight": "Hauteur des chiffres",
+      "anchor": "Ancrage",
+      "font": "Police",
+      "originX": "Origine x",
+      "originY": "Origine y",
+      "svgScale": "1 unité SVG =",
+      "svgWidth": "Largeur",
+      "svgHeight": "Hauteur",
+      "selectionX": "Sélection x",
+      "selectionY": "Sélection y",
+      "markY": "Repère y"
+    },
+    "settings": {
+      "nothing": "Sélectionnez un élément dans la vue ou dans la liste pour voir ses réglages.",
+      "multiple": "Éléments sélectionnés : {{count}}",
+      "group": "Groupe · {{count}} éléments",
+      "inGroup": "Fait partie d’un groupe.",
+      "mirror": "Symétrie horizontale",
+      "repeat": "Répéter",
+      "repeatDirection": "Direction",
+      "repeatCount": "Nombre",
+      "repeatStep": "Pas",
+      "reflect": "Refléter la forme lors de la symétrie",
+      "mixed": "mixte",
+      "bdcHint": "Point de visée pour une distance autre que la distance de réglage. N’est pas dessiné dans le réticule ; il se trouve sur l’axe vertical et n’est jamais mis en miroir ni répété.",
+      "illuminated": "Illuminé"
+    },
+    "directions": {
+      "up": "Vers le haut",
+      "down": "Vers le bas",
+      "left": "Vers la gauche",
+      "right": "Vers la droite"
+    },
+    "list": {
+      "empty": "Aucun élément pour l’instant.",
+      "mirrored": "symétrique",
+      "repeated": "répété ×{{count}}",
+      "illuminated": "illuminé"
+    },
+    "errors": {
+      "number": "Saisissez un nombre.",
+      "positive": "Doit être supérieur à zéro.",
+      "nonNegative": "Ne doit pas être négatif.",
+      "positiveInteger": "Doit être un nombre entier, au moins 1.",
+      "endWidthAboveNominal": "La largeur en bout ne peut pas dépasser la largeur nominale.",
+      "innerBelowOuter": "Le diamètre intérieur doit être inférieur au diamètre extérieur.",
+      "cutoutBelowFullTurn": "La découpe doit être inférieure à 360°.",
+      "unknownType": "Type d’élément inconnu.",
+      "startClamped": "Le début ne peut pas être plus éloigné du centre que la fin.",
+      "endClamped": "La fin ne peut pas être plus proche du centre que le début.",
+      "moveLimited": "Une barre effilée de la sélection limite ce déplacement.",
+      "fovMinBelowMax": "Le champ au plus fort grossissement doit être plus petit qu’au plus faible.",
+      "calibrationInRange": "Doit être dans la plage de grossissement.",
+      "scopeType": "Type de lunette inconnu.",
+      "digitsOnly": "Chiffres 0–9 uniquement.",
+      "unknownAnchor": "Ancrage inconnu.",
+      "unknownFont": "Police inconnue.",
+      "outOfRange": "Hors limites.",
+      "repeatCountMax": "500 copies au maximum.",
+      "tooManyDigits": "12 chiffres au maximum."
+    },
+    "anchors": {
+      "left": "Extrémité gauche",
+      "centre": "Centre",
+      "right": "Extrémité droite"
+    },
+    "svg": {
+      "title": "Importer une forme SVG",
+      "intro": "Choisissez un fichier SVG ou collez du code SVG. Seules les formes sont conservées : tout remplissage ou contour visible devient un trait du réticule, quelle que soit sa couleur, et rien d’autre du fichier n’est utilisé. Le texte doit d’abord être converti en chemins. La forme est insérée avec l’origine propre du SVG au centre du réticule ; réglez son échelle ou sa taille dans ses réglages.",
+      "chooseFile": "Fichier SVG",
+      "pasteLabel": "Ou collez du code SVG",
+      "pastePlaceholder": "<svg …>…</svg>",
+      "read": "Lire le code collé",
+      "reading": "Lecture…",
+      "insert": "Insérer dans le réticule",
+      "cancel": "Annuler",
+      "previewLabel": "Aperçu de la forme importée",
+      "summary": "Prêt : {{paths}} chemins, {{segments}} segments.",
+      "warnings": {
+        "clips": "Les découpes et masques sont ignorés : les formes sont dessinées entières.",
+        "dashes": "Les contours en tirets sont dessinés pleins.",
+        "markers": "Les marqueurs de ligne (pointes de flèche, etc.) sont omis.",
+        "images": "Les images intégrées sont omises."
+      },
+      "errors": {
+        "empty": "Rien à lire : choisissez un fichier ou collez du code SVG.",
+        "tooLarge": "Le SVG est trop volumineux (limite : 2 Mo).",
+        "malformedXml": "Ce n’est pas du SVG/XML bien formé.",
+        "doctype": "Les SVG avec déclarations DOCTYPE ou d’entités ne sont pas acceptés.",
+        "tooManyElements": "Le SVG a trop d’éléments (limite : 5 000).",
+        "tooDeep": "Le SVG est trop imbriqué (limite : 32 niveaux).",
+        "notSvg": "Ce n’est pas un dessin SVG.",
+        "text": "Le SVG contient du texte. Convertissez d’abord le texte en chemins (dans Inkscape : Chemin → Objet en chemin), puis importez à nouveau.",
+        "badPathData": "Le SVG contient des données de chemin erronées.",
+        "badNumber": "Le SVG contient un nombre invalide ou hors limites.",
+        "badTransform": "Le SVG contient une transformation invalide.",
+        "unsupportedUnit": "Le SVG utilise des longueurs dans d’autres unités que les unités utilisateur ou px. Enregistrez-le en unités utilisateur simples.",
+        "useLoop": "Le SVG contient un élément <use> qui se référence lui-même.",
+        "tooComplex": "Le SVG est trop complexe (plus de 100 000 segments de chemin ou 1 000 copies réutilisées).",
+        "nothingToDraw": "Le SVG n’a aucun remplissage ni contour visible à dessiner.",
+        "badShape": "La forme importée n’a pas pu être utilisée.",
+        "timeout": "La lecture du SVG a pris trop de temps et a été interrompue.",
+        "unexpected": "Le SVG n’a pas pu être lu."
+      }
+    }
   }
 }

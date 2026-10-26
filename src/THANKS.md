@@ -76,3 +76,15 @@ software:
   [js-quantities](https://github.com/gentooboontoo/js-quantities)
 - [Ron Kok](https://github.com/ronkok) and contributors —
   [Temml](https://temml.org/)
+
+## Fonts
+
+The Reticle Designer's numbers are drawn from the digits of these fonts,
+all under the SIL Open Font License 1.1:
+
+- The B612 Project Authors (Airbus, Intactile Design) —
+  [B612](https://github.com/polarsys/b612)
+- Jeremy Tribby and the Barlow Project Authors —
+  [Barlow](https://github.com/jpt/barlow)
+- Delve Withrington, Red Hat and the Overpass Project Authors —
+  [Overpass](https://github.com/RedHatOfficial/Overpass)

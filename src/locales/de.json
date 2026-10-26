@@ -1486,6 +1486,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v226": "Neu: Werkzeug zum Entwerfen von Absehen (wird bald nützlich)",
       "v225": "Neu: Bereich „Werkzeuge“ neben Analyse und Messung (mobile Tab-Leiste, Desktop-Leiste, Startseite); der Einheitenumrechner ist dorthin umgezogen. Auf kleinen Handys erscheint der Tab nur, wenn er Platz hat.",
       "v224": "Änderung: Die gesamte interne Verarbeitung erfolgt jetzt in SI-Einheiten, außer Temperatur (°C) und BC (lb/in²). Einheitliche, benannte Umrechnung nur noch an der Darstellungsgrenze.",
       "v223": "Änderung: README beschreibt jetzt das Werkzeug „Einschieß-Sitzung“.",
@@ -1751,6 +1752,234 @@
     "rangeSolver": "Feldrechner",
     "rangeSolverDesc": "Ausgereifter, windschnittiger Ballistikrechner für den Schießplatz. Keine unnötigen Informationen.",
     "statusPlanned": "Geplant",
-    "statusExperimental": "Experimentell"
+    "statusExperimental": "Experimentell",
+    "reticleDesigner": "Absehen-Designer",
+    "reticleDesignerDesc": "Ein Zielfernrohr-Absehen per Drag-and-drop zeichnen, in mrad oder MOA, für FFP-, SFP- oder Festvergrößerungs-Optiken."
+  },
+  "reticleDesigner": {
+    "title": "Absehen-Designer",
+    "intro": "Ein Zielfernrohr-Absehen zeichnen: ein Element aus der Palette wählen und in der Ansicht klicken oder ziehen, um es zu platzieren; danach verschieben oder in seinen Einstellungen fein einstellen. Alle Positionen gelten ab der Absehenmitte, rechts und unten positiv.",
+    "panes": {
+      "options": "Optionen",
+      "view": "Absehen-Ansicht",
+      "palette": "Elemente",
+      "settings": "Einstellungen",
+      "list": "Elemente im Absehen"
+    },
+    "file": {
+      "name": "Name des Absehens",
+      "namePlaceholder": "Unbenanntes Absehen",
+      "new": "Neues Absehen",
+      "save": "In Datei speichern",
+      "load": "Aus Datei laden",
+      "unsaved": "Nicht gespeicherte Änderungen",
+      "confirmReplace": "Das aktuelle Absehen hat nicht gespeicherte Änderungen. Durch das aus der Datei ersetzen? (Rückgängig holt es zurück.)",
+      "confirmNew": "Das aktuelle Absehen hat nicht gespeicherte Änderungen. Verwerfen und ein neues beginnen? Das lässt sich nicht rückgängig machen.",
+      "errors": {
+        "invalidJson": "Diese Datei ist kein gültiges JSON.",
+        "invalidFormat": "Diese Datei ist keine Absehen-Datei oder ist beschädigt.",
+        "newerVersion": "Dieses Absehen wurde mit einer neueren Version der App gespeichert. Bitte die App aktualisieren, um es zu öffnen.",
+        "tooLarge": "Diese Absehen-Datei ist zu groß oder hat zu viele Elemente oder Kopien zum Laden.",
+        "timeout": "Das Lesen dieser Absehen-Datei hat zu lange gedauert und wurde abgebrochen."
+      }
+    },
+    "scope": {
+      "title": "Zielfernrohr",
+      "brief": "{{type}} · sichtbares Feld {{field}}",
+      "type": "Art des Zielfernrohrs",
+      "types": {
+        "fixed": "Feste Vergrößerung",
+        "ffp": "Variabel, erste Bildebene",
+        "sfp": "Variabel, zweite Bildebene"
+      },
+      "fov": "Sehfeld",
+      "fovFrom": "Sehfeld von",
+      "fovTo": "bis",
+      "fovAt": "auf",
+      "zoomFrom": "Vergrößerung von",
+      "zoomTo": "bis",
+      "calibrationZoom": "Werte stimmen bei",
+      "zoomHint": "Wird ein Ende des Vergrößerungsbereichs eingegeben, ergibt sich das andere aus den beiden Sehfeldern.",
+      "sfpHint": "Ein Absehen in der zweiten Bildebene wird in seinen Winkelwerten bei der Kalibriervergrößerung gezeichnet; die Ansicht zeigt deshalb das Sehfeld bei dieser Vergrößerung."
+    },
+    "illumination": {
+      "enabled": "Absehen ist beleuchtet",
+      "colour": "Beleuchtungsfarbe",
+      "colours": {
+        "red": "Rot",
+        "amber": "Bernstein",
+        "green": "Grün"
+      },
+      "brief": "beleuchtet: {{colour}}"
+    },
+    "options": {
+      "units": "Absehen-Einheiten",
+      "grid": "Raster (1 {{unit}})",
+      "snap_mrad": "Auf 0,1 mrad einrasten",
+      "snap_moa": "Auf 0,25 MOA einrasten",
+      "zero": "Nullpunkt anzeigen",
+      "bdc": "BDC-Marken anzeigen",
+      "illumination": "Beleuchtung anzeigen",
+      "dimField": "Sichtfeld abdunkeln",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen"
+    },
+    "view": {
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "reset": "Ansicht zurücksetzen (niedrigste Vergrößerung)",
+      "magnification": "Vergrößerung",
+      "sfpScale": "Winkelwerte hier: ×{{factor}} des Nennwerts"
+    },
+    "palette": {
+      "select": "Auswählen",
+      "group": "Gruppieren",
+      "ungroup": "Gruppierung aufheben",
+      "duplicate": "Duplizieren",
+      "delete": "Löschen"
+    },
+    "types": {
+      "hline": "Horizontale Linie",
+      "vline": "Vertikale Linie",
+      "dot": "Punkt",
+      "vbar": "Vertikaler verjüngter Balken",
+      "hbar": "Horizontaler verjüngter Balken",
+      "circle": "Kreis",
+      "horseshoe": "Hufeisen",
+      "chevron": "Chevron",
+      "number": "Zahl",
+      "svg": "SVG-Form",
+      "bdc": "BDC-Marke"
+    },
+    "params": {
+      "startX": "Anfang x",
+      "startY": "Anfang y",
+      "centreX": "Mitte x",
+      "centreY": "Mitte y",
+      "apexX": "Spitze x",
+      "apexY": "Spitze y",
+      "endX": "Ende x",
+      "endY": "Ende y",
+      "groupX": "Gruppe x",
+      "groupY": "Gruppe y",
+      "width": "Breite",
+      "diameter": "Durchmesser",
+      "nominalWidth": "Nennbreite",
+      "endWidth": "Endbreite",
+      "thinningLength": "Verjüngungslänge",
+      "outerDiameter": "Außendurchmesser",
+      "innerDiameter": "Innendurchmesser",
+      "cutoutAngle": "Ausschnittwinkel unten",
+      "lineWidth": "Linienbreite",
+      "overallWidth": "Gesamtbreite",
+      "height": "Höhe",
+      "anchorX": "Ankerpunkt x",
+      "anchorY": "Ankerpunkt y",
+      "text": "Ziffern",
+      "digitHeight": "Ziffernhöhe",
+      "anchor": "Ankerpunkt",
+      "font": "Schrift",
+      "originX": "Ursprung x",
+      "originY": "Ursprung y",
+      "svgScale": "1 SVG-Einheit =",
+      "svgWidth": "Breite",
+      "svgHeight": "Höhe",
+      "selectionX": "Auswahl x",
+      "selectionY": "Auswahl y",
+      "markY": "Marke y"
+    },
+    "settings": {
+      "nothing": "Ein Element in der Ansicht oder in der Liste auswählen, um seine Einstellungen zu sehen.",
+      "multiple": "Ausgewählte Elemente: {{count}}",
+      "group": "Gruppe · {{count}} Elemente",
+      "inGroup": "Teil einer Gruppe.",
+      "mirror": "Horizontal spiegeln",
+      "repeat": "Wiederholen",
+      "repeatDirection": "Richtung",
+      "repeatCount": "Anzahl",
+      "repeatStep": "Abstand",
+      "reflect": "Form beim Spiegeln spiegeln",
+      "mixed": "gemischt",
+      "bdcHint": "Haltepunkt für eine andere Entfernung als die Fleckschussentfernung. Wird nicht im Absehen gezeichnet; liegt auf der senkrechten Achse und wird weder gespiegelt noch wiederholt.",
+      "illuminated": "Beleuchtet"
+    },
+    "directions": {
+      "up": "Nach oben",
+      "down": "Nach unten",
+      "left": "Nach links",
+      "right": "Nach rechts"
+    },
+    "list": {
+      "empty": "Noch keine Elemente.",
+      "mirrored": "gespiegelt",
+      "repeated": "wiederholt ×{{count}}",
+      "illuminated": "beleuchtet"
+    },
+    "errors": {
+      "number": "Bitte eine Zahl eingeben.",
+      "positive": "Muss größer als null sein.",
+      "nonNegative": "Darf nicht negativ sein.",
+      "positiveInteger": "Muss eine ganze Zahl ab 1 sein.",
+      "endWidthAboveNominal": "Die Endbreite darf die Nennbreite nicht übersteigen.",
+      "innerBelowOuter": "Der Innendurchmesser muss kleiner als der Außendurchmesser sein.",
+      "cutoutBelowFullTurn": "Der Ausschnitt muss kleiner als 360° sein.",
+      "unknownType": "Unbekannte Elementart.",
+      "startClamped": "Der Anfang kann nicht weiter von der Mitte entfernt sein als das Ende.",
+      "endClamped": "Das Ende kann nicht näher an der Mitte liegen als der Anfang.",
+      "moveLimited": "Ein verjüngter Balken in der Auswahl begrenzt diese Verschiebung.",
+      "fovMinBelowMax": "Das Sehfeld bei höchster Vergrößerung muss kleiner sein als bei niedrigster.",
+      "calibrationInRange": "Muss im Vergrößerungsbereich liegen.",
+      "scopeType": "Unbekannte Art des Zielfernrohrs.",
+      "digitsOnly": "Nur Ziffern 0–9.",
+      "unknownAnchor": "Unbekannter Ankerpunkt.",
+      "unknownFont": "Unbekannte Schrift.",
+      "outOfRange": "Außerhalb des zulässigen Bereichs.",
+      "repeatCountMax": "Höchstens 500 Kopien.",
+      "tooManyDigits": "Höchstens 12 Ziffern."
+    },
+    "anchors": {
+      "left": "Linkes Ende",
+      "centre": "Mitte",
+      "right": "Rechtes Ende"
+    },
+    "svg": {
+      "title": "SVG-Form importieren",
+      "intro": "Eine SVG-Datei wählen oder SVG-Code einfügen. Übernommen werden nur die Formen: Jede sichtbare Füllung oder Kontur wird zu Absehen-Strich, unabhängig von ihrer Farbe; sonst wird nichts aus der Datei verwendet. Text muss vorher in Pfade umgewandelt werden. Die Form wird mit dem eigenen Ursprung der SVG in der Absehenmitte eingefügt; Maßstab oder Größe lassen sich in ihren Einstellungen festlegen.",
+      "chooseFile": "SVG-Datei",
+      "pasteLabel": "Oder SVG-Code einfügen",
+      "pastePlaceholder": "<svg …>…</svg>",
+      "read": "Eingefügten Code lesen",
+      "reading": "Wird gelesen…",
+      "insert": "Ins Absehen einfügen",
+      "cancel": "Abbrechen",
+      "previewLabel": "Vorschau der importierten Form",
+      "summary": "Bereit: {{paths}} Pfade, {{segments}} Segmente.",
+      "warnings": {
+        "clips": "Beschneidungspfade und Masken werden ignoriert: Die Formen werden vollständig gezeichnet.",
+        "dashes": "Gestrichelte Konturen werden durchgezogen gezeichnet.",
+        "markers": "Linienmarker (Pfeilspitzen u. Ä.) werden weggelassen.",
+        "images": "Eingebettete Bilder werden weggelassen."
+      },
+      "errors": {
+        "empty": "Nichts zu lesen: Eine Datei wählen oder SVG-Code einfügen.",
+        "tooLarge": "Die SVG ist zu groß (Grenze: 2 MB).",
+        "malformedXml": "Dies ist kein wohlgeformtes SVG/XML.",
+        "doctype": "SVGs mit DOCTYPE- oder Entity-Deklarationen werden nicht angenommen.",
+        "tooManyElements": "Die SVG hat zu viele Elemente (Grenze: 5000).",
+        "tooDeep": "Die SVG ist zu tief verschachtelt (Grenze: 32 Ebenen).",
+        "notSvg": "Dies ist keine SVG-Zeichnung.",
+        "text": "Die SVG enthält Text. Text zuerst in Pfade umwandeln (in Inkscape: Pfad → Objekt in Pfad umwandeln), dann erneut importieren.",
+        "badPathData": "Die SVG enthält fehlerhafte Pfaddaten.",
+        "badNumber": "Die SVG enthält eine ungültige oder zu große Zahl.",
+        "badTransform": "Die SVG enthält eine ungültige Transformation.",
+        "unsupportedUnit": "Die SVG verwendet Längen in anderen Einheiten als Benutzereinheiten oder px. Bitte mit einfachen Benutzereinheiten speichern.",
+        "useLoop": "Die SVG hat ein <use>-Element, das auf sich selbst verweist.",
+        "tooComplex": "Die SVG ist zu komplex (mehr als 100 000 Pfadsegmente oder 1000 wiederverwendete Kopien).",
+        "nothingToDraw": "Die SVG hat keine sichtbare Füllung oder Kontur.",
+        "badShape": "Die importierte Form konnte nicht verwendet werden.",
+        "timeout": "Das Lesen der SVG hat zu lange gedauert und wurde abgebrochen.",
+        "unexpected": "Die SVG konnte nicht gelesen werden."
+      }
+    }
   }
 }

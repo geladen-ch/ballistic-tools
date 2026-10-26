@@ -42,11 +42,11 @@ test('renders expanded by default, with every group open', () => {
 
   assert.equal(container.className, 'app-rail');
   const tools = findByClass(container, 'rail-tool');
-  // 3 measurement + 3 visible analysis tools + 1 utilities tool (range-card
+  // 3 measurement + 3 visible analysis tools + 2 utilities tools (range-card
   // is hidden from listings; range-solver is a GROUPS.shooting tool, not an
   // accordion one — see nav-tools.js), all visible since every group
   // starts open
-  assert.equal(tools.length, 7);
+  assert.equal(tools.length, 8);
 });
 
 test('Shooting is a flat direct link (like Guns/Settings), not an accordion group', () => {
@@ -364,7 +364,7 @@ test('Utilities is an accordion group after Measurement, holding the unit conver
   assert.ok(link, 'expected the unit converter under Utilities');
 });
 
-test('in collapsed mode, the Utilities icon opens a flyout with the unit converter', () => {
+test('in collapsed mode, the Utilities icon opens a flyout with the unit converter and the reticle designer', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   fireEvent(findByTag(container, 'BUTTON').find((b) => b.id === 'rail-collapse-toggle'), 'click');
@@ -373,5 +373,5 @@ test('in collapsed mode, the Utilities icon opens a flyout with the unit convert
   assert.ok(icon, 'expected a collapsed Utilities icon');
   fireEvent(icon, 'click');
   const items = findByClass(container, 'flyout-item');
-  assert.deepEqual(items.map((n) => n.getAttribute('href')), ['#/unit-conversion']);
+  assert.deepEqual(items.map((n) => n.getAttribute('href')), ['#/unit-conversion', '#/reticle-designer']);
 });

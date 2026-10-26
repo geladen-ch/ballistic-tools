@@ -2125,3 +2125,158 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
      rule reaching the same element. */
   html.range-solver-mode.range-solver-card-active .range-solver-layout .range-solver-input-pane { flex: 1 1 100%; }
 }
+
+/* ---- Reticle Designer (reticle-designer-view.js) ----
+   Three columns on wide screens — options above the palette, the reticle
+   view, settings above the element list — stacking in that reading order
+   on narrow ones. The reticle view always shows a light "glass" with a
+   black reticle, whatever the app theme: it depicts the view through the
+   scope, not app chrome. */
+.reticle-designer { --reticle-ink: #000; --reticle-glass: #f3f3ee; --reticle-grid: rgba(0, 0, 0, 0.12); --reticle-grid-major: rgba(0, 0, 0, 0.24); --reticle-zero: #d0342c; --reticle-bdc: #1f6fd6; }
+.reticle-intro { color: var(--dim); max-width: 70ch; }
+.reticle-file-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; margin-bottom: 14px; }
+.reticle-name-field { flex: 1 1 220px; }
+.reticle-file-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.reticle-unsaved { font-size: 12px; color: var(--accent); }
+.reticle-file-message { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--danger); }
+.reticle-file-message:empty { display: none; }
+.reticle-scope { margin-bottom: 14px; }
+.reticle-scope-summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.reticle-scope-title { font-weight: 600; }
+.reticle-scope-brief { font-size: 12px; color: var(--dim); }
+.reticle-scope-body { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.reticle-scope-body .hint { margin: 0; }
+
+.reticle-workspace {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(220px, 300px);
+  grid-template-areas: "options view settings" "palette view list";
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.reticle-options { grid-area: options; }
+.reticle-palette { grid-area: palette; }
+.reticle-stage { grid-area: view; }
+.reticle-settings { grid-area: settings; }
+.reticle-list { grid-area: list; }
+@media (max-width: 900px) {
+  .reticle-workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: "options" "palette" "view" "settings" "list"; grid-template-rows: none; }
+}
+.reticle-pane { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; min-width: 0; }
+.reticle-pane-title { font-size: 13px; margin: 0 0 10px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.reticle-segmented { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+.reticle-segmented button.reticle-segment { background: var(--panel-raised); color: var(--text); border: none; border-radius: 0; padding: 6px 14px; }
+.reticle-segmented button.reticle-segment.active { background: var(--accent); color: var(--accent-text); }
+.reticle-option-checks, .reticle-check-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.reticle-check-row { flex-direction: row; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0; }
+.reticle-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.reticle-undo-row { display: flex; gap: 8px; }
+.reticle-undo-row button { padding: 6px 12px; }
+
+.reticle-tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin-bottom: 10px; }
+button.reticle-tool { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0; background: var(--panel-raised); color: var(--text); border: 1px solid var(--line); }
+button.reticle-tool.active { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+button.reticle-tool.armed { background: var(--accent); color: var(--accent-text); }
+.reticle-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.reticle-actions button { padding: 5px 10px; font-size: 12px; }
+
+.reticle-stage { position: relative; padding: 6px; }
+.reticle-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; touch-action: none; user-select: none; -webkit-user-select: none; cursor: default; border-radius: calc(var(--radius) - 2px); }
+.reticle-canvas.placing { cursor: crosshair; }
+.reticle-outside { fill: #000; }
+.reticle-glass { fill: var(--reticle-glass); }
+.reticle-rim { fill: none; stroke: #9a9a9a; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.reticle-grid { fill: none; stroke: var(--reticle-grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.reticle-grid.major { stroke: var(--reticle-grid-major); }
+/* A hairline stroke in the shape's own colour keeps sub-pixel lines and
+   dots visible when zoomed out, without changing how they scale. */
+.reticle-shape { fill: var(--reticle-ink); stroke: var(--reticle-ink); stroke-width: 0.6; vector-effect: non-scaling-stroke; }
+.reticle-shape.selected { fill: var(--accent); stroke: var(--accent); }
+.reticle-shape.selected.derived { opacity: 0.45; }
+/* Imported SVG strokes: drawn as strokes of their own (scaled) width. */
+.reticle-shape.stroked { fill: none; vector-effect: none; }
+.reticle-shape.stroked.selected { fill: none; }
+/* Illumination: lit elements in the reticle's colour (a deeper shade on
+   the light field, a brighter one on the dimmed field); a selected lit
+   element keeps its colour and gets an accent outline. */
+.reticle-canvas.illum-red { --reticle-illum: #e3261c; }
+.reticle-canvas.illum-amber { --reticle-illum: #e08e00; }
+.reticle-canvas.illum-green { --reticle-illum: #16a334; }
+.reticle-canvas.dim { --reticle-glass: #26282b; --reticle-grid: rgba(255, 255, 255, 0.08); --reticle-grid-major: rgba(255, 255, 255, 0.18); }
+.reticle-canvas.dim.illum-red { --reticle-illum: #ff4a3d; }
+.reticle-canvas.dim.illum-amber { --reticle-illum: #ffb52e; }
+.reticle-canvas.dim.illum-green { --reticle-illum: #4cff6e; }
+.reticle-shape.lit, .reticle-shape.lit.selected { fill: var(--reticle-illum); stroke: var(--reticle-illum); }
+.reticle-shape.lit.stroked { fill: none; }
+.reticle-shape.lit.selected { filter: drop-shadow(1px 0 0 var(--accent)) drop-shadow(-1px 0 0 var(--accent)) drop-shadow(0 1px 0 var(--accent)) drop-shadow(0 -1px 0 var(--accent)); }
+.reticle-illumination { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.reticle-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+button.reticle-swatch { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-size: 12px; background: var(--panel-raised); color: var(--text); border: 1px solid var(--line); }
+button.reticle-swatch.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.reticle-swatch-chip { width: 14px; height: 14px; border-radius: 50%; background: var(--swatch); box-shadow: 0 0 6px var(--swatch); }
+.reticle-swatch[data-colour="red"] { --swatch: #ff3b2f; }
+.reticle-swatch[data-colour="amber"] { --swatch: #ffb000; }
+.reticle-swatch[data-colour="green"] { --swatch: #39e75f; }
+.reticle-settings-name { margin: -4px 0 8px; font-size: 12px; color: var(--dim); overflow-wrap: anywhere; }
+.reticle-svg-import { margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.reticle-svg-import h2 { margin: 0; }
+.reticle-svg-import .hint { margin: 0; max-width: 80ch; }
+.reticle-svg-import textarea {
+  width: 100%; min-height: 90px; resize: vertical; background: var(--panel-raised); border: 1px solid var(--line); color: var(--text);
+  border-radius: var(--radius); padding: 6px 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+}
+.reticle-svg-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.reticle-svg-status { margin: 0; font-size: 12px; color: var(--dim); }
+.reticle-svg-status:empty { display: none; }
+.reticle-svg-status.error { color: var(--danger); }
+.reticle-svg-status.warning { color: var(--accent); }
+.reticle-svg-status.ok { color: var(--ok); }
+.reticle-svg-preview:empty { display: none; }
+.reticle-svg-preview-canvas { display: block; width: 200px; height: 200px; background: var(--reticle-glass); border: 1px solid var(--line); border-radius: var(--radius); }
+.reticle-zero circle, .reticle-zero path { fill: none; stroke: var(--reticle-zero); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.reticle-bdc-mark { fill: var(--reticle-bdc); stroke: #fff; stroke-width: 1; vector-effect: non-scaling-stroke; cursor: move; }
+.reticle-bdc-ring { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.reticle-marquee { fill: rgba(232, 163, 61, 0.12); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+.reticle-handle { fill: #fff; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; cursor: move; }
+.reticle-canvas-wrap { position: relative; }
+.reticle-magnification { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 2px 8px; font-size: 12px; color: var(--dim); }
+.reticle-magnification input[type="range"] { flex: 1 1 160px; min-width: 120px; accent-color: var(--accent); }
+.reticle-magnification-value { min-width: 4ch; color: var(--text); font-variant-numeric: tabular-nums; }
+.reticle-magnification-note { flex-basis: 100%; }
+.reticle-magnification-note:empty { display: none; }
+.reticle-readout {
+  --readout-dx: 14px; --readout-dy: calc(-100% - 12px);
+  position: absolute; transform: translate(var(--readout-dx), var(--readout-dy)); pointer-events: none; white-space: pre;
+  background: rgba(0, 0, 0, 0.78); color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; padding: 3px 7px; border-radius: 4px;
+}
+.reticle-readout.flip-x { --readout-dx: calc(-100% - 14px); }
+.reticle-readout.flip-y { --readout-dy: 14px; }
+.reticle-zoom-controls { position: absolute; bottom: 14px; right: 14px; display: flex; flex-direction: column; gap: 4px; }
+.reticle-zoom-controls button.icon-button { width: 32px; height: 32px; font-size: 18px; line-height: 1; background: rgba(0, 0, 0, 0.55); color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+
+.reticle-settings-type { font-size: 15px; margin: 0 0 8px; }
+.reticle-field-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px 10px; margin-bottom: 8px; }
+.reticle-field { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); min-width: 0; }
+.reticle-field-input { display: flex; align-items: center; gap: 4px; }
+.reticle-field input, .reticle-field select {
+  width: 100%; min-width: 0; background: var(--panel-raised); border: 1px solid var(--line); color: var(--text);
+  border-radius: var(--radius); padding: 5px 7px; font-family: inherit; font-size: 13px;
+}
+.reticle-field input.invalid { border-color: var(--danger); }
+.reticle-field-unit { color: var(--dim); font-size: 12px; white-space: nowrap; }
+.reticle-field-message { color: var(--danger); font-size: 11px; }
+.reticle-field-message:empty { display: none; }
+
+.reticle-element-list, .reticle-list-members { list-style: none; margin: 0; padding: 0; }
+.reticle-element-list { max-height: 420px; overflow-y: auto; }
+.reticle-list-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: var(--radius); cursor: pointer; font-size: 13px; }
+.reticle-list-row:hover { background: var(--panel-raised); }
+.reticle-list-row.selected { background: var(--accent); color: var(--accent-text); }
+.reticle-list-row.in-selected-group { box-shadow: inset 2px 0 0 var(--accent); }
+.reticle-list-row.member { padding-left: 22px; }
+.reticle-list-row.group-header { font-weight: 600; }
+.reticle-list-group { border: 1px dashed var(--line); border-radius: var(--radius); margin: 4px 0; }
+.reticle-list-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reticle-list-pos, .reticle-list-marks { font-size: 11px; opacity: 0.8; font-variant-numeric: tabular-nums; white-space: nowrap; }

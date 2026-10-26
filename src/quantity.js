@@ -193,3 +193,15 @@ export function angleToLinearAtRange(angleRad, rangeM) {
 export function linearToAngleAtRange(lengthM, rangeM) {
   return rangeM ? lengthM / rangeM : 0;
 }
+
+// A scope's full angular field of view (rad) from the width of the field
+// seen at a distance (both m), and the inverse — exact, not the
+// small-angle form above: a field of view is a real angle subtended by a
+// real width, and at low magnification (several degrees) the small-angle
+// approximation is visibly off.
+export function fieldOfViewAngle(widthM, distanceM) {
+  return distanceM > 0 ? 2 * Math.atan(widthM / 2 / distanceM) : 0;
+}
+export function fieldOfViewWidth(angleRad, distanceM) {
+  return 2 * distanceM * Math.tan(angleRad / 2);
+}

@@ -32,6 +32,7 @@ import * as cdMachCurveView from './views/cd-mach-curve-view.js';
 import * as hitProbabilityView from './views/hit-probability-view.js';
 import * as truingSessionView from './views/truing-session-view.js';
 import * as unitConversionView from './views/unit-conversion-view.js';
+import * as reticleDesignerView from './views/reticle-designer-view.js';
 import * as rangeSolverView from './views/range-solver-view.js';
 import * as locationsView from './views/locations-view.js';
 import * as locationPlacementView from './views/location-placement-view.js';
@@ -135,6 +136,7 @@ const views = {
   '/hit-probability': hitProbabilityView,
   '/truing-session': truingSessionView,
   '/unit-conversion': unitConversionView,
+  '/reticle-designer': reticleDesignerView,
   '/range-solver': rangeSolverView,
   '/locations': locationsView,
   '/rifle-precision': riflePrecisionView,

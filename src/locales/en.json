@@ -1486,6 +1486,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v226": "New: reticle designer tool (will soon be useful)",
       "v225": "New: “Utilities” section next to Analysis and Measurement (mobile tab bar, desktop rail, Home), with the unit converter moved into it. On small phones the tab appears only when it fits.",
       "v224": "Change: all internal processing is now in SI, except temperature (°C) and BC (lb/in²). Uniform named conversion at the edge only.",
       "v223": "Change: README now covers the Truing Session tool.",
@@ -1751,6 +1752,234 @@
     "rangeSolver": "Range Solver",
     "rangeSolverDesc": "Refined \"high speed low drag\" ballistic solver for range use. No. Unnecessary. Information.",
     "statusPlanned": "Planned",
-    "statusExperimental": "Experimental"
+    "statusExperimental": "Experimental",
+    "reticleDesigner": "Reticle Designer",
+    "reticleDesignerDesc": "Draw a scope reticle by drag and drop, in mrad or MOA, for FFP, SFP or fixed scopes."
+  },
+  "reticleDesigner": {
+    "title": "Reticle Designer",
+    "intro": "Draw a rifle scope reticle: pick an element from the palette and click or drag in the view to place it, then drag it around or fine-tune it in its settings. Every position is measured from the reticle centre, right and down positive.",
+    "panes": {
+      "options": "Options",
+      "view": "Reticle view",
+      "palette": "Elements",
+      "settings": "Settings",
+      "list": "Elements in the reticle"
+    },
+    "file": {
+      "name": "Reticle name",
+      "namePlaceholder": "Untitled reticle",
+      "new": "New reticle",
+      "save": "Save to file",
+      "load": "Load from file",
+      "unsaved": "Unsaved changes",
+      "confirmReplace": "The current reticle has unsaved changes. Replace it with the one from the file? (Undo brings it back.)",
+      "confirmNew": "The current reticle has unsaved changes. Discard it and start a new one? This cannot be undone.",
+      "errors": {
+        "invalidJson": "That file is not valid JSON.",
+        "invalidFormat": "That file is not a reticle file, or it is damaged.",
+        "newerVersion": "That reticle was saved by a newer version of the app. Update the app to open it.",
+        "tooLarge": "That reticle file is too large or has too many elements or copies to load.",
+        "timeout": "Reading that reticle file took too long, so it was stopped."
+      }
+    },
+    "scope": {
+      "title": "Scope",
+      "brief": "{{type}} · visible field {{field}}",
+      "type": "Scope type",
+      "types": {
+        "fixed": "Fixed magnification",
+        "ffp": "Variable, first focal plane",
+        "sfp": "Variable, second focal plane"
+      },
+      "fov": "Field of view",
+      "fovFrom": "Field of view from",
+      "fovTo": "to",
+      "fovAt": "at",
+      "zoomFrom": "Zoom from",
+      "zoomTo": "to",
+      "calibrationZoom": "Subtensions true at",
+      "zoomHint": "Typing either end of the zoom range works out the other one from the two fields of view.",
+      "sfpHint": "A second-focal-plane reticle is drawn in its subtensions at the calibration zoom, so the view shows the field of view at that zoom."
+    },
+    "illumination": {
+      "enabled": "Reticle is illuminated",
+      "colour": "Illumination colour",
+      "colours": {
+        "red": "Red",
+        "amber": "Amber",
+        "green": "Green"
+      },
+      "brief": "illumination: {{colour}}"
+    },
+    "options": {
+      "units": "Reticle units",
+      "grid": "Grid (1 {{unit}})",
+      "snap_mrad": "Snap to 0.1 mrad",
+      "snap_moa": "Snap to 0.25 MOA",
+      "zero": "Show zero",
+      "bdc": "Show BDC marks",
+      "illumination": "Show illumination",
+      "dimField": "Dim the field",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "view": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "reset": "Reset view (lowest magnification)",
+      "magnification": "Magnification",
+      "sfpScale": "Subtensions here: ×{{factor}} of nominal"
+    },
+    "palette": {
+      "select": "Select",
+      "group": "Group",
+      "ungroup": "Ungroup",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    },
+    "types": {
+      "hline": "Horizontal line",
+      "vline": "Vertical line",
+      "dot": "Dot",
+      "vbar": "Vertical thinning bar",
+      "hbar": "Horizontal thinning bar",
+      "circle": "Circle",
+      "horseshoe": "Horseshoe",
+      "chevron": "Chevron",
+      "number": "Number",
+      "svg": "SVG shape",
+      "bdc": "BDC mark"
+    },
+    "params": {
+      "startX": "Start x",
+      "startY": "Start y",
+      "centreX": "Centre x",
+      "centreY": "Centre y",
+      "apexX": "Apex x",
+      "apexY": "Apex y",
+      "endX": "End x",
+      "endY": "End y",
+      "groupX": "Group x",
+      "groupY": "Group y",
+      "width": "Width",
+      "diameter": "Diameter",
+      "nominalWidth": "Nominal width",
+      "endWidth": "End width",
+      "thinningLength": "Thinning length",
+      "outerDiameter": "Outer diameter",
+      "innerDiameter": "Inner diameter",
+      "cutoutAngle": "Bottom cutout angle",
+      "lineWidth": "Line width",
+      "overallWidth": "Overall width",
+      "height": "Height",
+      "anchorX": "Anchor x",
+      "anchorY": "Anchor y",
+      "text": "Digits",
+      "digitHeight": "Digit height",
+      "anchor": "Anchor",
+      "font": "Font",
+      "originX": "Origin x",
+      "originY": "Origin y",
+      "svgScale": "1 SVG unit =",
+      "svgWidth": "Width",
+      "svgHeight": "Height",
+      "selectionX": "Selection x",
+      "selectionY": "Selection y",
+      "markY": "Mark y"
+    },
+    "settings": {
+      "nothing": "Select an element in the view or in the list to see its settings.",
+      "multiple": "Elements selected: {{count}}",
+      "group": "Group · {{count}} elements",
+      "inGroup": "Part of a group.",
+      "mirror": "Mirror horizontally",
+      "repeat": "Repeat",
+      "repeatDirection": "Direction",
+      "repeatCount": "Number",
+      "repeatStep": "Step",
+      "reflect": "Reflect the shape when mirrored",
+      "mixed": "mixed",
+      "bdcHint": "Aim point for a distance other than the zero distance. Not drawn in the reticle; it sits on the vertical axis and is never mirrored or repeated.",
+      "illuminated": "Illuminated"
+    },
+    "directions": {
+      "up": "Up",
+      "down": "Down",
+      "left": "Left",
+      "right": "Right"
+    },
+    "list": {
+      "empty": "No elements yet.",
+      "mirrored": "mirrored",
+      "repeated": "repeated ×{{count}}",
+      "illuminated": "illuminated"
+    },
+    "errors": {
+      "number": "Enter a number.",
+      "positive": "Must be greater than zero.",
+      "nonNegative": "Must not be negative.",
+      "positiveInteger": "Must be a whole number, 1 or more.",
+      "endWidthAboveNominal": "The end width cannot exceed the nominal width.",
+      "innerBelowOuter": "The inner diameter must be smaller than the outer diameter.",
+      "cutoutBelowFullTurn": "The cutout must be less than 360°.",
+      "unknownType": "Unknown element type.",
+      "startClamped": "The start cannot be further from the centre than the end.",
+      "endClamped": "The end cannot be closer to the centre than the start.",
+      "moveLimited": "A thinning bar in the selection stops this move.",
+      "fovMinBelowMax": "The field at the highest zoom must be smaller than at the lowest.",
+      "calibrationInRange": "Must be within the zoom range.",
+      "scopeType": "Unknown scope type.",
+      "digitsOnly": "Digits 0–9 only.",
+      "unknownAnchor": "Unknown anchor.",
+      "unknownFont": "Unknown font.",
+      "outOfRange": "Out of range.",
+      "repeatCountMax": "At most 500 copies.",
+      "tooManyDigits": "At most 12 digits."
+    },
+    "anchors": {
+      "left": "Left end",
+      "centre": "Centre",
+      "right": "Right end"
+    },
+    "svg": {
+      "title": "Import SVG shape",
+      "intro": "Choose an SVG file or paste SVG code. Only the shapes are kept: every visible fill or stroke becomes reticle ink, whatever its colour, and nothing else from the file is used. Text must be converted to paths first. The shape goes in with the SVG's own origin at the reticle centre; set its scale or size in its settings.",
+      "chooseFile": "SVG file",
+      "pasteLabel": "Or paste SVG code",
+      "pastePlaceholder": "<svg …>…</svg>",
+      "read": "Read pasted code",
+      "reading": "Reading…",
+      "insert": "Insert into the reticle",
+      "cancel": "Cancel",
+      "previewLabel": "Preview of the imported shape",
+      "summary": "Ready: {{paths}} paths, {{segments}} segments.",
+      "warnings": {
+        "clips": "Clipping and masks are ignored: the shapes are drawn whole.",
+        "dashes": "Dashed strokes are drawn solid.",
+        "markers": "Line markers (arrowheads and the like) are left out.",
+        "images": "Embedded images are left out."
+      },
+      "errors": {
+        "empty": "There is nothing to read: choose a file or paste SVG code.",
+        "tooLarge": "The SVG is too large (limit: 2 MB).",
+        "malformedXml": "This is not well-formed SVG/XML.",
+        "doctype": "SVGs with a DOCTYPE or entity declarations are not accepted.",
+        "tooManyElements": "The SVG has too many elements (limit: 5,000).",
+        "tooDeep": "The SVG is nested too deeply (limit: 32 levels).",
+        "notSvg": "This is not an SVG drawing.",
+        "text": "The SVG contains text. Convert text to paths first (in Inkscape: Path → Object to Path), then import again.",
+        "badPathData": "The SVG contains broken path data.",
+        "badNumber": "The SVG contains an invalid or out-of-range number.",
+        "badTransform": "The SVG contains an invalid transform.",
+        "unsupportedUnit": "The SVG uses lengths in units other than user units or px. Save it with plain user units.",
+        "useLoop": "The SVG has a <use> element that refers to itself.",
+        "tooComplex": "The SVG is too complex (more than 100,000 path segments or 1,000 reused copies).",
+        "nothingToDraw": "The SVG has no visible fill or stroke to draw.",
+        "badShape": "The imported shape could not be used.",
+        "timeout": "Reading the SVG took too long, so it was stopped.",
+        "unexpected": "The SVG could not be read."
+      }
+    }
   }
 }
