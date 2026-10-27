@@ -13,6 +13,7 @@ await warmCatalogs();
 
 const { mradToRad } = await import('../src/quantity.js');
 const arsenalView = await import('../src/views/arsenal-view.js');
+const { resetArsenalTabForTests } = arsenalView;
 const trajectoryView = await import('../src/views/trajectory-view.js');
 const gunsView = await import('../src/views/guns-view.js');
 const { makeElement } = await import('./helpers/fake-dom.js');
@@ -29,6 +30,7 @@ test.beforeEach(() => {
   resetShotStateForTests();
   resetComparisonForTests();
   resetGunsNavForTests();
+  resetArsenalTabForTests();
   resetUnits();
 });
 
@@ -166,7 +168,7 @@ test('an empty Arsenal shows "no bullets"/"no rifles" hints and Add buttons', ()
   assert.ok(text.length > 0);
 });
 
-test('"Add Bullet"/"Add Rifle" hide together while any add/edit form is open, and reappear once it closes', async () => {
+test('"Add Bullet"/"Add Rifle" each hide while a form on their own tab is open, and reappear once it closes', async () => {
   saveUserRifle({
     id: 'r1', name: 'My Rifle', defaultSightHeightM: 0.045, defaultZeroRangeM: 100,
     defaultClickUnit: 'mrad', defaultClickHorizontal: 0.1, defaultClickVertical: 0.1, cartridges: []
@@ -184,30 +186,136 @@ test('"Add Bullet"/"Add Rifle" hide together while any add/edit form is open, an
   assert.notEqual(addBullet.style.display, 'none', 'both visible with no form open');
   assert.notEqual(addRifle.style.display, 'none');
 
-  // Opening the bullet form hides both, not just its own.
+  // The bullet form lives on the Bullets tab — it hides only its own
+  // tab's Add button, not the one on Rifles.
   fireEvent(addBullet, 'click');
   await settle();
   assert.equal(addBullet.style.display, 'none');
-  assert.equal(addRifle.style.display, 'none', 'the rifle add button hides too — one form open at a time');
+  assert.notEqual(addRifle.style.display, 'none', 'the bullet form is not in view from the Rifles tab');
 
   const { cancelButton } = formActions(byId(container, 'arsenalBulletName').parentNode.parentNode);
   fireEvent(cancelButton, 'click');
-  assert.notEqual(addBullet.style.display, 'none', 'both reappear once the form closes');
+  assert.notEqual(addBullet.style.display, 'none', 'both visible once the form closes');
   assert.notEqual(addRifle.style.display, 'none');
 
-  // Editing the active rifle (not just adding) also hides both.
+  // Editing the active rifle hides the rifle Add button only.
   activateRifleRow(container, 'My Rifle');
   fireEvent(rifleEditButton(container, 'My Rifle'), 'click');
   await settle();
-  assert.equal(addBullet.style.display, 'none');
   assert.equal(addRifle.style.display, 'none');
+  assert.notEqual(addBullet.style.display, 'none');
 
   // Opening the cartridge form (which discards the still-open rifle form
-  // — see the mutual-exclusivity tests below) keeps both hidden too.
+  // — see the mutual-exclusivity tests below) keeps it hidden too.
   fireEvent(findAnyById(container, 'arsenal-add-cartridge'), 'click');
   await settle();
-  assert.equal(addBullet.style.display, 'none');
   assert.equal(addRifle.style.display, 'none');
+  assert.notEqual(addBullet.style.display, 'none');
+
+  // Add Bullet still opens its form — and discards the cartridge form,
+  // one form open at a time across the whole page.
+  fireEvent(addBullet, 'click');
+  await settle();
+  assert.ok(byId(container, 'arsenalBulletName'));
+  assert.notEqual(addRifle.style.display, 'none', 'the rifle Add button reappears once the cartridge form is discarded');
+});
+
+// ---- Rifles / Bullets / Scopes tabs ----
+
+function tabPanel(container, key) {
+  return findAnyById(container, 'arsenal-tab-' + key);
+}
+
+function tabButton(container, key) {
+  return findAnyById(container, 'arsenal-tab-btn-' + key);
+}
+
+function assertActiveTab(container, key) {
+  for (const k of ['rifles', 'bullets', 'scopes']) {
+    const active = k === key;
+    assert.equal(tabPanel(container, k).style.display === 'none', !active, `${k} panel ${active ? 'shown' : 'hidden'}`);
+    assert.equal(tabButton(container, k).className.includes('active'), active, `${k} button ${active ? 'active' : 'inactive'}`);
+  }
+}
+
+test('tabs: Rifles is open by default, with rifles on Rifles, bullets on Bullets and a placeholder on Scopes', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  assertActiveTab(container, 'rifles');
+  assert.ok(findAnyById(tabPanel(container, 'rifles'), 'arsenal-add-rifle'));
+  assert.ok(findAnyById(tabPanel(container, 'rifles'), 'comparison-section'));
+  assert.ok(findAnyById(tabPanel(container, 'bullets'), 'arsenal-add-bullet'));
+  assert.ok(tabPanel(container, 'scopes').textContent.length > 0);
+  // Save/Load Library covers the whole library, so it sits above the
+  // tabs, not inside any of them.
+  for (const k of ['rifles', 'bullets', 'scopes']) {
+    assert.equal(findAnyById(tabPanel(container, k), 'arsenal-save-library'), null);
+  }
+  assert.ok(findAnyById(container, 'arsenal-save-library'));
+});
+
+test('tabs: one shared filter card shows on Rifles and Bullets, keeping its selection, and never on Scopes', async () => {
+  saveUserBullet({ id: 'b1', name: 'B1', manufacturer: 'Acme', caliberM: 0.00782, massKg: 0.0113, profile: { type: 'bc', bc: 0.5, model: 'G7' } });
+  saveUserBullet({ id: 'b2', name: 'B2', manufacturer: 'Other', caliberM: 0.00782, massKg: 0.0113, profile: { type: 'bc', bc: 0.5, model: 'G7' } });
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  const filterCards = () => findByClass(container, 'card').filter((n) => n.id === 'arsenal-filter-card');
+  assert.equal(filterCards().length, 1, 'exactly one filter card in the page');
+  assert.ok(findAnyById(tabPanel(container, 'rifles'), 'arsenal-filter-card'));
+
+  const manufacturer = findAnyById(container, 'arsenal-manufacturer-filter');
+  manufacturer.value = 'Acme';
+  fireEvent(manufacturer, 'change');
+
+  fireEvent(tabButton(container, 'bullets'), 'click');
+  assert.equal(filterCards().length, 1);
+  assert.ok(findAnyById(tabPanel(container, 'bullets'), 'arsenal-filter-card'));
+  assert.equal(findAnyById(tabPanel(container, 'rifles'), 'arsenal-filter-card'), null);
+  assert.equal(findAnyById(container, 'arsenal-manufacturer-filter').value, 'Acme', 'the selection carries over');
+  const bulletsText = tabPanel(container, 'bullets').textContent;
+  assert.ok(bulletsText.includes('B1'));
+  assert.ok(!bulletsText.includes('B2'), 'the carried-over filter still applies');
+
+  fireEvent(tabButton(container, 'scopes'), 'click');
+  assert.equal(filterCards().length, 0, 'no filter card on Scopes');
+
+  fireEvent(tabButton(container, 'rifles'), 'click');
+  assert.ok(findAnyById(tabPanel(container, 'rifles'), 'arsenal-filter-card'));
+  assert.equal(findAnyById(container, 'arsenal-manufacturer-filter').value, 'Acme');
+});
+
+test('tabs: clicking a tab shows its panel, and the last tab is kept across remounts', async () => {
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  await settle();
+
+  fireEvent(tabButton(container, 'bullets'), 'click');
+  assertActiveTab(container, 'bullets');
+  fireEvent(tabButton(container, 'scopes'), 'click');
+  assertActiveTab(container, 'scopes');
+
+  const again = makeElement('main');
+  arsenalView.mount(again);
+  await settle();
+  assertActiveTab(again, 'scopes');
+});
+
+test('tabs: a pending bullet prefill opens on Bullets, a rifle prefill on Rifles', async () => {
+  setPendingBulletPrefill({ name: 'Prefilled bullet' });
+  const first = makeElement('main');
+  arsenalView.mount(first);
+  await settle();
+  assertActiveTab(first, 'bullets');
+
+  setPendingRiflePrefill({ name: 'Prefilled rifle' });
+  const second = makeElement('main');
+  arsenalView.mount(second);
+  await settle();
+  assertActiveTab(second, 'rifles');
 });
 
 // ---- Cross-form mutual exclusivity — only one add/edit form (bullet,

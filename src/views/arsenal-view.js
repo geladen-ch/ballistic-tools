@@ -54,6 +54,27 @@ function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'arsenal';
 }
 
+// The Arsenal's three tabs, in tab-bar order. Scopes is a placeholder
+// until scope and reticle definitions land.
+const ARSENAL_TABS = [
+  { key: 'rifles', labelKey: 'arsenal.tabRifles' },
+  { key: 'bullets', labelKey: 'arsenal.tabBullets' },
+  { key: 'scopes', labelKey: 'arsenal.tabScopes' }
+];
+
+// Whichever tab was last open — page-lifetime only (not persisted), so
+// leaving Guns and coming back lands on the same tab within a session.
+// A pending prefill/activation overrides it with the tab its form lives on.
+let lastArsenalTab = 'rifles';
+
+// The tabs the caliber/manufacturer filter card appears on — see
+// selectTab().
+const FILTERED_TABS = ['rifles', 'bullets'];
+
+export function resetArsenalTabForTests() {
+  lastArsenalTab = 'rifles';
+}
+
 export function mount(container) {
   clear(container);
 
@@ -173,9 +194,12 @@ export function mount(container) {
   // renderBullets()/renderRifles() below) — their visibility is toggled
   // by refreshAddButtonVisibility() instead, so opening/closing a form
   // doesn't need to rebuild either list just to hide/reveal these.
-  // Hidden while ANY add/edit form is open (bullet, rifle, or cartridge),
-  // not just the matching section's own, so there's never a second entry
-  // point competing with whichever form is already open.
+  // Each is hidden while a form on its own tab is open (the bullet form on
+  // Bullets; the rifle or cartridge form on Rifles), so there's never a
+  // second entry point competing with the form in view. A form left open
+  // on the other tab doesn't hide it — that one isn't visible from here,
+  // and clicking Add still discards it through closeOtherForms(), the
+  // same as opening any other form does.
   const bulletAddButton = el('button', { id: 'arsenal-add-bullet', i18n: 'arsenal.addBulletButton' });
   bulletAddButton.addEventListener('click', () => {
     closeOtherForms('bullet');
@@ -193,9 +217,8 @@ export function mount(container) {
     scrollRifleFormIntoView();
   });
   function refreshAddButtonVisibility() {
-    const anyFormOpen = !!bulletFormState || !!rifleFormState || !!cartridgeFormState;
-    bulletAddButton.style.display = anyFormOpen ? 'none' : '';
-    rifleAddButton.style.display = anyFormOpen ? 'none' : '';
+    bulletAddButton.style.display = bulletFormState ? 'none' : '';
+    rifleAddButton.style.display = (rifleFormState || cartridgeFormState) ? 'none' : '';
   }
   const exportDialogArea = el('div');
   const importArea = el('div');
@@ -1499,11 +1522,63 @@ export function mount(container) {
     if (rifleFormArea.firstChild) rifleFormArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  // Rifles (with their cartridges and the comparison built from them),
+  // Bullets, and Scopes — plain in-page panels under one tab bar, the same
+  // hand-rolled section-tabs pattern bc-tools-view.js and
+  // hit-probability-view.js use. Save/Load Library and its dialogs stay
+  // above the tabs: they cover the whole library, not one tab. Every panel stays mounted while hidden, so
+  // switching tabs never discards a form or its typed values.
+  const tabPanels = {
+    rifles: el('div', { id: 'arsenal-tab-rifles' }, [
+      comparisonSummaryEl,
+      comparisonSectionEl,
+      activeRifleCard,
+      el('div', { class: 'card' }, [
+        el('h2', { i18n: 'arsenal.otherRiflesHeading' }),
+        riflesListEl
+      ])
+    ]),
+    bullets: el('div', { id: 'arsenal-tab-bullets' }, [
+      el('div', { class: 'card' }, [
+        el('h2', { i18n: 'arsenal.bulletsHeading' }),
+        bulletsListEl
+      ]),
+      bulletFormArea
+    ]),
+    scopes: el('div', { id: 'arsenal-tab-scopes' }, [
+      el('div', { class: 'card' }, [
+        el('h2', { i18n: 'arsenal.scopesHeading' }),
+        el('p', { class: 'hint', i18n: 'arsenal.noScopes' })
+      ])
+    ])
+  };
+  const tabButtons = {};
+  for (const tabDef of ARSENAL_TABS) {
+    const btn = el('button', { type: 'button', class: 'tab-btn', id: 'arsenal-tab-btn-' + tabDef.key, i18n: tabDef.labelKey });
+    btn.addEventListener('click', () => selectTab(tabDef.key));
+    tabButtons[tabDef.key] = btn;
+  }
+  function selectTab(key) {
+    lastArsenalTab = key;
+    for (const tabDef of ARSENAL_TABS) {
+      tabButtons[tabDef.key].className = 'tab-btn' + (tabDef.key === key ? ' active' : '');
+      tabPanels[tabDef.key].style.display = tabDef.key === key ? '' : 'none';
+    }
+    // One filter card, moved to the top of whichever list tab is open, so
+    // Rifles and Bullets share a single filter state. Scopes has nothing
+    // it filters, so it stays out of that tab.
+    if (FILTERED_TABS.includes(key)) {
+      if (filterCard.parentNode) filterCard.parentNode.removeChild(filterCard);
+      tabPanels[key].insertBefore(filterCard, tabPanels[key].firstChild);
+    } else if (filterCard.parentNode) {
+      filterCard.parentNode.removeChild(filterCard);
+    }
+  }
+  selectTab(lastArsenalTab);
+
   container.appendChild(el('div', {}, [
     el('h1', { i18n: 'arsenal.title' }),
     el('p', { i18n: 'arsenal.intro' }),
-    comparisonSummaryEl,
-    comparisonSectionEl,
     el('div', { class: 'card' }, [
       el('div', { class: 'arsenal-form-actions' }, [saveLibraryButton, loadLibraryButton]),
       fileInput,
@@ -1512,17 +1587,10 @@ export function mount(container) {
     ]),
     exportDialogArea,
     importArea,
-    activeRifleCard,
-    filterCard,
-    el('div', { class: 'card' }, [
-      el('h2', { i18n: 'arsenal.otherRiflesHeading' }),
-      riflesListEl
-    ]),
-    el('div', { class: 'card' }, [
-      el('h2', { i18n: 'arsenal.bulletsHeading' }),
-      bulletsListEl
-    ]),
-    bulletFormArea
+    el('div', { class: 'section-tabs arsenal-tabs' }, ARSENAL_TABS.map((tabDef) => tabButtons[tabDef.key])),
+    tabPanels.rifles,
+    tabPanels.bullets,
+    tabPanels.scopes
   ]));
 
   refreshLibraryView();
@@ -1543,6 +1611,7 @@ export function mount(container) {
     const existing = pendingBulletPrefill.name ? findUserBulletByName(pendingBulletPrefill.name) : null;
     closeOtherForms('bullet');
     bulletFormState = { id: existing ? existing.id : null };
+    selectTab('bullets');
     renderBulletForm();
     renderRifleForm();
     scrollBulletFormIntoView();
@@ -1555,6 +1624,7 @@ export function mount(container) {
     if (existing && existing.id !== activeRifleId) activateRifle(existing);
     closeOtherForms('rifle');
     rifleFormState = { id: existing ? existing.id : null };
+    selectTab('rifles');
     renderRifleForm();
     renderBulletForm();
     scrollRifleFormIntoView();
@@ -1572,6 +1642,7 @@ export function mount(container) {
     const rifle = loadUserRifles().find((r) => r.id === pendingCartridgeActivation.rifleId);
     const cartridgeExists = rifle && rifle.cartridges.some((c) => c.id === pendingCartridgeActivation.cartridgeId);
     if (cartridgeExists) {
+      selectTab('rifles');
       activateRifle(rifle, pendingCartridgeActivation.cartridgeId);
       closeOtherForms('cartridge');
       cartridgeFormState = { id: pendingCartridgeActivation.cartridgeId };

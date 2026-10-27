@@ -179,12 +179,11 @@ La lista delle cartucce dell'Arsenale segnala entrambi i lati di questa relazion
 ### 6.1 Struttura della pagina, dall'alto in basso
 
 1. Una breve introduzione che ricorda che tutto qui vive su questo dispositivo e compare contrassegnato da `*` ovunque sia possibile scegliere un fucile o un proiettile.
-2. Il riepilogo **Per il confronto** e la sezione Confronto, mostrati solo una volta che 1–2 configurazioni sono messe in coda per esso (§7).
-3. **Backup della libreria su file…** / **Carica backup da file…** (§8).
-4. **Fucile attivo** — il fucile attualmente sotto la tua mano.
-5. Una **scheda filtri** — filtri di calibro e produttore, nascosta interamente quando la tua libreria è vuota.
-6. **Altri fucili**.
-7. **I tuoi proiettili**.
+2. **Backup della libreria su file…** / **Carica backup da file…** (§8).
+3. Tre schede. La pagina ricorda l'ultima aperta fino al ricaricamento dell'app, e un modulo aperto da altrove (per esempio **Aggiungi proiettile all'arsenale**) passa alla propria scheda.
+   1. **Fucili** — la scheda filtri; il riepilogo **Per il confronto** e la sezione Confronto, mostrati solo una volta che 1–2 configurazioni sono messe in coda per esso (§7); il **Fucile attivo**, quello attualmente sotto la tua mano, con le sue cartucce; poi **Altri fucili**.
+   2. **Proiettili** — la scheda filtri; **I tuoi proiettili** e il modulo del proiettile.
+   3. **Ottiche** — per ora vuota; le definizioni di ottiche e reticoli arriveranno qui in una versione futura.
 
 ### 6.2 Il fucile attivo e l'attivazione
 
@@ -214,7 +213,7 @@ Un fucile senza cartucce mostra un avviso al posto della lista: *«Per questo fu
 
 Due menu a tendina, **Filtra per calibro** e **Filtra per produttore**, predefiniti su **Tutti i calibri** / **Tutti i produttori**. Si restringono a vicenda: scegliere un produttore riduce la lista di calibri a quelli che quel produttore offre effettivamente, e viceversa. Le opzioni di calibro sono ordinate per diametro di canna reale invece che alfabeticamente, così `.223`, `6.5mm` e `.308` si ordinano come farebbe una rastrelliera di munizioni, non come un dizionario. Un fucile corrisponde a un filtro solo tramite i proiettili delle sue cartucce — i fucili non portano alcun calibro proprio, come notato al §3.
 
-**Reimposta filtri** cancella entrambi. L'intera scheda scompare quando la tua libreria — proiettili e fucili insieme — è vuota, dato che allora non c'è nulla da filtrare.
+La scheda sta in cima alle schede Fucili e Proiettili ed è la stessa su entrambe: la tua scelta resta quando cambi scheda. **Reimposta filtri** cancella entrambi. L'intera scheda scompare quando la tua libreria — proiettili e fucili insieme — è vuota, dato che allora non c'è nulla da filtrare.
 
 Non esiste una ricerca in testo libero; il filtraggio avviene solo per calibro e produttore.
 

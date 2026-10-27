@@ -414,6 +414,10 @@ a { color: var(--accent); }
   margin-top: 12px;
 }
 
+/* The Rifles/Bullets/Scopes tab bar (src/views/arsenal-view.js) — sits
+   between the cards above it, which carry no margin of their own. */
+.arsenal-tabs { margin-top: 14px; }
+
 /* Caliber/manufacturer filters above the rifle/bullet lists (src/views/
    arsenal-view.js) — side by side on desktop; flex-wrap alone (no media
    query needed) drops each field to its own full-width row once they no

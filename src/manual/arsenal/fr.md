@@ -179,12 +179,11 @@ La liste des cartouches de l'Arsenal signale les deux moitiés de la relation �
 ### 6.1 Disposition de la page, de haut en bas
 
 1. Une courte introduction rappelant que tout ici vit sur cet appareil et apparaît marqué d'un `*` partout où une carabine ou une balle peut être choisie.
-2. Le résumé **Pour comparaison** et la section Comparaison, affichés seulement une fois 1–2 configurations mises en file d'attente pour cela (§7).
-3. **Sauvegarder la bibliothèque dans un fichier…** / **Charger une sauvegarde depuis un fichier…** (§8).
-4. **Carabine active** — la carabine actuellement sous votre main.
-5. Une **carte de filtres** — filtres de calibre et de fabricant, entièrement masquée quand votre bibliothèque est vide.
-6. **Autres carabines**.
-7. **Vos balles**.
+2. **Sauvegarder la bibliothèque dans un fichier…** / **Charger une sauvegarde depuis un fichier…** (§8).
+3. Trois onglets. La page retient le dernier ouvert jusqu'au rechargement de l'application, et un formulaire ouvert depuis ailleurs (par exemple **Ajouter la balle à l'arsenal**) bascule sur son propre onglet.
+   1. **Carabines** — la carte de filtres ; le résumé **Pour comparaison** et la section Comparaison, affichés seulement une fois 1–2 configurations mises en file d'attente pour cela (§7) ; la **Carabine active**, celle actuellement sous votre main, avec ses cartouches ; puis **Autres carabines**.
+   2. **Balles** — la carte de filtres ; **Vos balles** et le formulaire de balle.
+   3. **Lunettes** — vide pour l'instant ; les définitions de lunettes et de réticules arriveront ici dans une prochaine version.
 
 ### 6.2 La carabine active et l'activation
 
@@ -214,7 +213,7 @@ Une carabine sans cartouche affiche un avertissement à la place de la liste : *
 
 Deux listes déroulantes, **Filtrer par calibre** et **Filtrer par fabricant**, par défaut sur **Tous calibres** / **Tous fabricants**. Elles se restreignent mutuellement : choisir un fabricant réduit la liste de calibres à ceux que ce fabricant propose réellement, et inversement. Les options de calibre sont ordonnées par diamètre d'âme réel plutôt qu'alphabétiquement, si bien que `.223`, `6.5mm` et `.308` se trient comme le ferait un râtelier de munitions, pas comme un dictionnaire. Une carabine ne correspond à un filtre qu'à travers les balles de ses cartouches — les carabines ne portent aucun calibre propre, comme noté au §3.
 
-**Réinitialiser les filtres** efface les deux. La carte entière disparaît quand votre bibliothèque — balles et carabines ensemble — est vide, puisqu'il n'y a alors rien à filtrer.
+La carte se trouve en tête des onglets Carabines et Balles et c'est la même sur les deux : votre choix est conservé quand vous changez d'onglet. **Réinitialiser les filtres** efface les deux. La carte entière disparaît quand votre bibliothèque — balles et carabines ensemble — est vide, puisqu'il n'y a alors rien à filtrer.
 
 Il n'existe pas de recherche en texte libre ; le filtrage se fait uniquement par calibre et par fabricant.
 

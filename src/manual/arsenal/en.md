@@ -179,12 +179,11 @@ The Arsenal cartridge list marks both halves of the relationship — see §6.4. 
 ### 6.1 Page layout, top to bottom
 
 1. A short intro reminding you that everything here lives on this device and shows up marked with `*` everywhere a rifle or bullet is picked.
-2. The **Comparison** summary and section, only shown once 1–2 configurations are queued for it (§7).
-3. **Backup library to file…** / **Load backup from file…** (§8).
-4. **Active rifle** — the one rifle currently under your hand.
-5. A **filter card** — caliber and manufacturer filters, hidden entirely when your library is empty.
-6. **Other rifles**.
-7. **Your Bullets**.
+2. **Backup library to file…** / **Load backup from file…** (§8).
+3. Three tabs. The page remembers the last one you opened until the app is reloaded, and a form opened from elsewhere (for example **Add bullet to arsenal**) switches to its own tab.
+   1. **Rifles** — the filter card; the **Comparison** summary and section, only shown once 1–2 configurations are queued for it (§7); the **Active rifle**, the one rifle currently under your hand, with its cartridges; then **Other rifles**.
+   2. **Bullets** — the filter card; **Your Bullets**, and the bullet form.
+   3. **Scopes** — empty for now; scope and reticle definitions will land here in a future release.
 
 ### 6.2 The active rifle and activation
 
@@ -214,7 +213,7 @@ A rifle with no cartridges shows a warning in place of the list: *"This rifle ha
 
 Two dropdowns, **Filter by caliber** and **Filter by manufacturer**, defaulting to **All calibers** / **All manufacturers**. They narrow each other: picking a manufacturer shrinks the caliber list to calibers that manufacturer's bullets actually come in, and vice versa. Caliber options are ordered by actual bore diameter rather than alphabetically, so `.223`, `6.5mm` and `.308` sort the way a rack of ammunition does, not the way a dictionary does. A rifle matches a filter only through its cartridges' bullets — rifles carry no caliber of their own, as noted in §3.
 
-**Reset filters** clears both. The whole card disappears when your library — bullets and rifles together — is empty, since there is nothing yet to filter.
+The card sits at the top of both the Rifles and the Bullets tab and is the same card on each: whatever you pick stays picked when you switch tabs. **Reset filters** clears both. The whole card disappears when your library — bullets and rifles together — is empty, since there is nothing yet to filter.
 
 There is no free-text search; filtering is by caliber and manufacturer only.
 

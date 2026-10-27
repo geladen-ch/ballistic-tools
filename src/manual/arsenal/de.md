@@ -179,12 +179,11 @@ Die Patronenliste des Arsenals kennzeichnet beide Seiten dieser Beziehung — si
 ### 6.1 Seitenaufbau, von oben nach unten
 
 1. Eine kurze Einleitung, die daran erinnert, dass alles hier auf diesem Gerät lebt und überall mit `*` gekennzeichnet auftaucht, wo ein Gewehr oder Geschoss gewählt werden kann.
-2. Die Zusammenfassung **Zum Vergleich** und der Abschnitt Vergleich, nur eingeblendet, sobald 1–2 Konfigurationen dafür vorgemerkt sind (§7).
-3. **Bibliothek in Datei sichern…** / **Sicherung aus Datei laden…** (§8).
-4. **Aktives Gewehr** — das Gewehr, das gerade unter Ihrer Hand ist.
-5. Eine **Filterkarte** — Kaliber- und Herstellerfilter, vollständig ausgeblendet, wenn Ihre Bibliothek leer ist.
-6. **Weitere Gewehre**.
-7. **Ihre Geschosse**.
+2. **Bibliothek in Datei sichern…** / **Sicherung aus Datei laden…** (§8).
+3. Drei Reiter. Die Seite merkt sich den zuletzt geöffneten, bis die App neu geladen wird, und ein von anderswo geöffnetes Formular (zum Beispiel **Geschoss zum Arsenal hinzufügen**) wechselt auf seinen eigenen Reiter.
+   1. **Gewehre** — die Filterkarte; die Zusammenfassung **Zum Vergleich** und der Abschnitt Vergleich, nur eingeblendet, sobald 1–2 Konfigurationen dafür vorgemerkt sind (§7); das **Aktive Gewehr**, das Gewehr, das gerade unter Ihrer Hand ist, mit seinen Patronen; danach **Weitere Gewehre**.
+   2. **Geschosse** — die Filterkarte; **Ihre Geschosse** und das Geschossformular.
+   3. **Zielfernrohre** — vorerst leer; Zielfernrohr- und Absehen-Definitionen folgen hier in einer künftigen Version.
 
 ### 6.2 Das aktive Gewehr und die Aktivierung
 
@@ -214,7 +213,7 @@ Ein Gewehr ohne Patronen zeigt anstelle der Liste eine Warnung: *„Für dieses 
 
 Zwei Dropdown-Listen, **Nach Kaliber filtern** und **Nach Hersteller filtern**, standardmäßig auf **Alle Kaliber** / **Alle Hersteller**. Sie schränken sich gegenseitig ein: die Wahl eines Herstellers verengt die Kaliberliste auf Kaliber, die dieser Hersteller tatsächlich anbietet, und umgekehrt. Kaliberoptionen sind nach tatsächlichem Laufdurchmesser sortiert statt alphabetisch, sodass `.223`, `6.5mm` und `.308` so sortieren, wie ein Munitionsregal es tut, nicht wie ein Wörterbuch. Ein Gewehr erfüllt einen Filter nur über die Geschosse seiner Patronen — Gewehre tragen kein eigenes Kaliber, wie in §3 erwähnt.
 
-**Filter zurücksetzen** löscht beide. Die ganze Karte verschwindet, wenn Ihre Bibliothek — Geschosse und Gewehre zusammen — leer ist, da es dann nichts zu filtern gibt.
+Die Karte steht oben auf den Reitern Gewehre und Geschosse und ist auf beiden dieselbe: Ihre Auswahl bleibt beim Reiterwechsel erhalten. **Filter zurücksetzen** löscht beide. Die ganze Karte verschwindet, wenn Ihre Bibliothek — Geschosse und Gewehre zusammen — leer ist, da es dann nichts zu filtern gibt.
 
 Es gibt keine Freitextsuche; gefiltert wird ausschließlich nach Kaliber und Hersteller.
 
