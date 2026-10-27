@@ -3,34 +3,43 @@
 // runs in the import worker (svg-import/client.js), so even a hostile or
 // broken file can't freeze the app.
 //
-// Version 1: every angle (positions, dimensions, the field of view, the
-// horseshoe cutout) in radians, the field-of-view distance in metres —
-// exactly as held in memory; a number element's digits, anchor and font
-// as strings; an SVG shape's drawing as the app's own path data; a BDC
-// mark as its position alone (x always 0), without mirror or repeat;
-// the reticle's illumination (on/off and colour) and each visible
-// element's `illuminated` flag. A file without illumination loads as a
-// reticle that isn't illuminated. A file
-// from a newer version is refused with its own error, so a later format
-// change can be reported as such rather than as a damaged file.
+// Every angle (positions, dimensions, the field of view, the horseshoe
+// cutout) is in radians, the field-of-view distance in metres — exactly
+// as held in memory; a number element's digits, anchor and font as
+// strings; an SVG shape's drawing as the app's own path data. A file from
+// a newer version is refused with its own error, so a later format change
+// can be reported as such rather than as a damaged file.
 //
-// Saving and loading are symmetric: an element is written as exactly the
-// fields its type has (storedElement) and read back by reading only those
-// fields. Loading is treated as untrusted input, like an SVG import:
-// size, count and range limits; every value re-validated, an SVG shape
-// with the importer's own limits (svg-import/shape.js); fresh ids, so a
+// A file holds only what shapes the reticle. Left out, and restored on
+// loading to what a new element or reticle has: a repeat that is off
+// (switching it on takes the last-entered settings anyway), a mirror that
+// is off, an element's lit flag when it isn't lit, a group membership
+// that isn't there, an SVG shape's `reflect` when it isn't mirrored, a BDC
+// mark's x (always 0), the scope fields its type doesn't use (a fixed
+// scope has no zoom range, only an SFP a calibration zoom), the
+// illumination when it is the default (off, red), an empty name. Element
+// ids and the group list aren't stored either: loading assigns fresh ids
+// and rebuilds the groups from the elements' group ids.
+//
+// Version 1 (4.3.0) stored all of that, and a repeat with an explicit
+// `enabled` flag; version 2 stores a repeat only when it is on. Both load.
+//
+// Loading is treated as untrusted input, like an SVG import: size, count
+// and range limits; every value re-validated, an SVG shape with the
+// importer's own limits (svg-import/shape.js); fresh ids, so a
 // hand-edited file can't smuggle in a duplicate id or a dangling group
 // reference; no field kept that the type doesn't have.
 import { SCOPE_TYPES, defaultScope, validateScope } from './scope.js';
 import { ILLUMINATION_COLOURS, DEFAULT_ILLUMINATION } from './model.js';
 import {
-  ELEMENT_TYPES, REPEAT_DIRECTIONS, NO_REPEAT, MAX_ANGLE, isElementType, validateElement, canMirror, canRepeat, canIlluminate
+  ELEMENT_TYPES, REPEAT_DIRECTIONS, NO_REPEAT, MAX_ANGLE, isElementType, validateElement, canMirror, canRepeat, canIlluminate,
+  staysOnVerticalAxis
 } from './element-types.js';
 import { normalizeShape } from './svg-import/shape.js';
 import { expandInstances } from './geometry.js';
 
 export const FILE_FORMAT = 'ebalka2-reticle';
-export const FILE_VERSION = 1;
+export const FILE_VERSION = 2;
 export const FILE_EXTENSION = '.reticle.json';
 
 // Load limits. A reticle file is far smaller than this in practice; the
@@ -46,6 +55,14 @@ export const FILE_LIMITS = {
 const MAX_NAME = 80;
 
 const SCOPE_KEYS = ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax', 'calibrationZoom'];
+// The scope fields each type uses: a fixed scope has one field of view,
+// a variable one a zoom range, and only an SFP a calibration zoom.
+const SCOPE_KEYS_BY_TYPE = {
+  fixed: ['type', 'fovMaxRad', 'fovDistanceM'],
+  ffp: ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax'],
+  sfp: SCOPE_KEYS
+};
+const REPEAT_KEYS = ['direction', 'count', 'step'];
 const NUMBER_KEYS = ['text', 'anchor', 'font'];
 const SVG_PATH_KEYS = ['d', 'fill', 'fillRule', 'stroke', 'cap', 'join', 'miter'];
 
@@ -55,41 +72,42 @@ function pick(source, keys) {
   return out;
 }
 
-// The numeric fields of an element type, in file order.
-function numericKeysOf(def) {
-  const keys = ['x', 'y', ...def.params.map((p) => p.key)];
+// The numeric fields of an element type, in file order. A BDC mark's x
+// is always 0, so it isn't stored.
+function numericKeysOf(def, { stored = false } = {}) {
+  const keys = [...(stored && def.onVerticalAxis ? [] : ['x']), 'y', ...def.params.map((p) => p.key)];
   if (def.axis) keys.push(def.axis === 'x' ? 'endX' : 'endY');
   return keys;
 }
 
-// An element as written to a file: its type's fields only.
+// An element as written to a file: its type's fields only, and of those
+// only what shapes the reticle (see the top of this file).
 export function storedElement(element) {
   const def = ELEMENT_TYPES[element.type];
-  const out = { id: element.id, type: element.type, ...pick(element, numericKeysOf(def)) };
+  const out = { type: element.type, ...pick(element, numericKeysOf(def, { stored: true })) };
   if (element.type === 'number') Object.assign(out, pick(element, NUMBER_KEYS));
   if (element.type === 'svg') {
     out.scale = element.scale;
-    out.name = element.name;
-    out.reflect = element.reflect;
+    if (element.name) out.name = element.name;
+    if (element.mirror) out.reflect = element.reflect;
     out.shape = { paths: element.shape.paths.map((p) => pick(p, SVG_PATH_KEYS)) };
   }
-  if (canIlluminate(element.type)) out.illuminated = element.illuminated === true;
-  if (canMirror(element.type)) out.mirror = element.mirror;
-  if (canRepeat(element.type)) out.repeat = pick(element.repeat, ['enabled', 'direction', 'count', 'step']);
-  out.groupId = element.groupId;
+  if (canIlluminate(element.type) && element.illuminated === true) out.illuminated = true;
+  if (canMirror(element.type) && element.mirror === true) out.mirror = true;
+  if (canRepeat(element.type) && element.repeat?.enabled) out.repeat = pick(element.repeat, REPEAT_KEYS);
+  if (element.groupId) out.groupId = element.groupId;
   return out;
 }
 
 export function serializeReticle(doc) {
-  const payload = {
-    format: FILE_FORMAT,
-    version: FILE_VERSION,
-    name: doc.name,
-    scope: pick(doc.scope, SCOPE_KEYS),
-    illumination: { enabled: doc.illumination?.enabled === true, colour: doc.illumination?.colour ?? DEFAULT_ILLUMINATION.colour },
-    elements: doc.elements.map(storedElement),
-    groups: doc.groups.map((g) => ({ id: g.id }))
-  };
+  const payload = { format: FILE_FORMAT, version: FILE_VERSION };
+  if (doc.name) payload.name = doc.name;
+  payload.scope = pick(doc.scope, SCOPE_KEYS_BY_TYPE[doc.scope.type] ?? SCOPE_KEYS);
+  const illumination = { enabled: doc.illumination?.enabled === true, colour: doc.illumination?.colour ?? DEFAULT_ILLUMINATION.colour };
+  if (illumination.enabled !== DEFAULT_ILLUMINATION.enabled || illumination.colour !== DEFAULT_ILLUMINATION.colour) {
+    payload.illumination = illumination;
+  }
+  payload.elements = doc.elements.map(storedElement);
   return JSON.stringify(payload, null, 2);
 }
 
@@ -124,12 +142,16 @@ function parseIllumination(raw) {
   return { enabled: raw.enabled === true, colour };
 }
 
-function parseElement(raw, index, budget) {
+function parseElement(raw, index, budget, version) {
   const where = (key) => `elements[${index}].${key}`;
   if (!raw || typeof raw !== 'object' || !isElementType(raw.type)) throw fail('invalid-format', where('type'));
   const def = ELEMENT_TYPES[raw.type];
   const element = { type: raw.type };
   for (const key of numericKeysOf(def)) {
+    if (key === 'x' && raw.x === undefined && staysOnVerticalAxis(raw.type)) {
+      element.x = 0;
+      continue;
+    }
     if (!finite(raw[key]) || Math.abs(raw[key]) > MAX_ANGLE) throw fail('invalid-format', where(key));
     element[key] = raw[key];
   }
@@ -153,13 +175,14 @@ function parseElement(raw, index, budget) {
     element.reflect = raw.reflect !== false;
   }
   // A BDC mark has neither mirror nor repeat: whatever the file says, it
-  // gets the settings a new one has.
+  // gets the settings a new one has. A repeat not in the file is off.
   if (canIlluminate(raw.type)) element.illuminated = raw.illuminated === true;
   element.mirror = canMirror(raw.type) && raw.mirror === true;
   if (canRepeat(raw.type)) {
-    const repeat = raw.repeat && typeof raw.repeat === 'object' ? raw.repeat : {};
+    const stored = raw.repeat && typeof raw.repeat === 'object';
+    const repeat = stored ? raw.repeat : {};
     element.repeat = {
-      enabled: repeat.enabled === true,
+      enabled: version >= 2 ? stored : repeat.enabled === true,
       direction: REPEAT_DIRECTIONS.includes(repeat.direction) ? repeat.direction : 'down',
       count: Number.isInteger(repeat.count) && repeat.count >= 1 ? repeat.count : 1,
       step: finite(repeat.step) && repeat.step > 0 ? repeat.step : 0
@@ -198,7 +221,7 @@ export function parseReticle(text) {
   const scope = parseScope(raw.scope);
   const illumination = parseIllumination(raw.illumination);
   const budget = { instances: FILE_LIMITS.maxInstances, svgSegments: FILE_LIMITS.maxSvgSegments };
-  const parsed = raw.elements.map((e, i) => parseElement(e, i, budget));
+  const parsed = raw.elements.map((e, i) => parseElement(e, i, budget, raw.version));
 
   // Fresh ids; groups survive only with two or more members.
   let nextId = 1;

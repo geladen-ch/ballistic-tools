@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createElement } from '../src/reticle/element-types.js';
+import { createElement, NO_REPEAT } from '../src/reticle/element-types.js';
 import { createDocument, addElement, groupElements } from '../src/reticle/model.js';
 import { serializeReticle, parseReticle, reticleFilename, FILE_FORMAT } from '../src/reticle/file-codec.js';
 
@@ -21,12 +21,75 @@ function sampleDoc() {
 
 const strip = (doc) => ({ ...doc, nextId: undefined });
 
+// An element as a save/load gives it back: the settings a file leaves out
+// (a repeat that is off, an unmirrored SVG shape's reflect) come back as
+// a new element has them.
+function restored(e) {
+  let out = e.repeat.enabled ? e : { ...e, repeat: { ...NO_REPEAT } };
+  if (e.type === 'svg' && !e.mirror) out = { ...out, reflect: true };
+  return out;
+}
+
 test('a reticle survives a save/load round trip unchanged, angles in radians', () => {
   const doc = sampleDoc();
   const text = serializeReticle(doc);
   assert.equal(JSON.parse(text).format, FILE_FORMAT);
   const loaded = parseReticle(text);
-  assert.deepEqual(strip(loaded), strip(doc));
+  assert.deepEqual(strip(loaded), strip({ ...doc, elements: doc.elements.map(restored) }));
+});
+
+test('a file holds only what shapes the reticle', () => {
+  const raw = JSON.parse(serializeReticle(sampleDoc()));
+  assert.deepEqual(Object.keys(raw), ['format', 'version', 'name', 'scope', 'elements'], 'no default illumination, no group list');
+  assert.deepEqual(raw.elements.map((e) => Object.keys(e).sort()), [
+    ['endX', 'type', 'width', 'x', 'y'],
+    ['diameter', 'groupId', 'mirror', 'type', 'x', 'y'],
+    ['cutoutAngle', 'groupId', 'innerDiameter', 'outerDiameter', 'type', 'x', 'y']
+  ]);
+  const unnamed = JSON.parse(serializeReticle({ ...sampleDoc(), name: '' }));
+  assert.ok(!('name' in unnamed));
+  assert.equal(parseReticle(JSON.stringify(unnamed)).name, '');
+});
+
+test('a repeat is stored only when it is on, and loads back on', () => {
+  const dot = createElement('dot', { x: 0.001, y: 0, units: 'mrad' });
+  const doc = addElement(createDocument(), { ...dot, repeat: { enabled: true, direction: 'up', count: 4, step: 0.002 } }).doc;
+  const raw = JSON.parse(serializeReticle(doc));
+  assert.deepEqual(raw.elements[0].repeat, { direction: 'up', count: 4, step: 0.002 });
+  assert.deepEqual(parseReticle(JSON.stringify(raw)).elements[0].repeat, { enabled: true, direction: 'up', count: 4, step: 0.002 });
+});
+
+test('a scope stores only the fields its type uses', () => {
+  const keysFor = (type) => Object.keys(JSON.parse(serializeReticle(updateScope(createDocument(), { type }))).scope);
+  assert.deepEqual(keysFor('fixed'), ['type', 'fovMaxRad', 'fovDistanceM']);
+  assert.deepEqual(keysFor('ffp'), ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax']);
+  assert.deepEqual(keysFor('sfp'), ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax', 'calibrationZoom']);
+  const fixed = updateScope(createDocument(), { type: 'fixed', fovMaxRad: 0.05, fovDistanceM: 91.44 });
+  const loaded = parseReticle(serializeReticle(fixed)).scope;
+  assert.equal(loaded.type, 'fixed');
+  assert.equal(loaded.fovMaxRad, 0.05);
+  assert.equal(loaded.fovDistanceM, 91.44);
+});
+
+test('a version 1 file (4.3.0) still loads, its repeats by their enabled flag', () => {
+  const v1 = {
+    format: FILE_FORMAT,
+    version: 1,
+    name: 'Old',
+    scope: { type: 'ffp', fovMaxRad: 0.075, fovMinRad: 0.015, fovDistanceM: 100, zoomMin: 5, zoomMax: 25, calibrationZoom: 25 },
+    illumination: { enabled: false, colour: 'red' },
+    elements: [
+      { id: 'e1', type: 'dot', x: 0.001, y: 0, diameter: 0.0001, illuminated: false, mirror: false, repeat: { enabled: true, direction: 'down', count: 3, step: 0.001 }, groupId: 'g3' },
+      { id: 'e2', type: 'dot', x: 0.002, y: 0, diameter: 0.0001, illuminated: false, mirror: false, repeat: { enabled: false, direction: 'left', count: 5, step: 0.002 }, groupId: 'g3' },
+      { id: 'e4', type: 'bdc', x: 0, y: 0.003, groupId: null }
+    ],
+    groups: [{ id: 'g3' }]
+  };
+  const loaded = parseReticle(JSON.stringify(v1));
+  assert.deepEqual(loaded.elements.map((e) => e.repeat.enabled), [true, false, false]);
+  assert.equal(loaded.elements[2].x, 0);
+  assert.equal(loaded.groups.length, 1);
+  assert.equal(loaded.elements[0].groupId, loaded.elements[1].groupId);
 });
 
 test('loading assigns fresh ids and drops groups with fewer than two members', () => {
@@ -60,9 +123,9 @@ test('numbers survive a round trip', () => {
   let doc = sampleDoc();
   doc = addElement(doc, { ...createElement('number', { x: 0.003, y: 0.001, units: 'mrad' }), text: '10', anchor: 'right', font: 'overpass-light' }).doc;
   const text = serializeReticle(doc);
-  assert.equal(JSON.parse(text).version, 1);
+  assert.equal(JSON.parse(text).version, 2);
   const withoutIds = ({ id, groupId, ...rest }) => rest;
-  assert.deepEqual(parseReticle(text).elements.map(withoutIds), doc.elements.map(withoutIds));
+  assert.deepEqual(parseReticle(text).elements.map(withoutIds), doc.elements.map(restored).map(withoutIds));
   const raw = JSON.parse(text);
   raw.elements[3].text = '1a';
   assert.throws(() => parseReticle(JSON.stringify(raw)), (err) => err.code === 'invalid-format');
@@ -96,7 +159,7 @@ test('every element type saves and loads back exactly, with its groups and scope
   // A stored shape is canonical, so it loads back identical except for its
   // import-time warnings (not stored).
   const comparable = (e) => (e.type === 'svg' ? { ...withoutIds(e), shape: { ...e.shape, warnings: undefined } } : withoutIds(e));
-  assert.deepEqual(loaded.elements.map(comparable), doc.elements.map(comparable));
+  assert.deepEqual(loaded.elements.map(comparable), doc.elements.map(restored).map(comparable));
   assert.deepEqual(loaded.scope, doc.scope);
   assert.equal(loaded.name, 'All types');
   assert.equal(loaded.groups.length, 1);
@@ -170,8 +233,8 @@ test('a long reticle name is cut to 80 characters', () => {
 test('a BDC mark is saved as its position alone, and loads back on the vertical axis without mirror or repeat', () => {
   const doc = addElement(createDocument(), createElement('bdc', { x: 0.004, y: 0.003, units: 'mrad' })).doc;
   const stored = JSON.parse(serializeReticle(doc)).elements[0];
-  assert.deepEqual(Object.keys(stored).sort(), ['groupId', 'id', 'type', 'x', 'y']);
-  assert.equal(stored.x, 0, 'placed off the axis, it lands on it');
+  assert.deepEqual(Object.keys(stored).sort(), ['type', 'y']);
+  assert.equal(parseReticle(serializeReticle(doc)).elements[0].x, 0, 'placed off the axis, it lands on it');
   // A file that claims a mirror or repeat for it gets neither.
   const raw = JSON.parse(serializeReticle(doc));
   raw.elements[0] = { ...raw.elements[0], mirror: true, repeat: { enabled: true, direction: 'down', count: 5, step: 0.001 } };

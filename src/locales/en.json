@@ -1486,6 +1486,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v227": "Change: reticle files now save only the settings in use (e.g. no repeat settings when repeat is off). Files saved by 4.3.0 still load.",
       "v226": "New: reticle designer tool (will soon be useful)",
       "v225": "New: “Utilities” section next to Analysis and Measurement (mobile tab bar, desktop rail, Home), with the unit converter moved into it. On small phones the tab appears only when it fits.",
       "v224": "Change: all internal processing is now in SI, except temperature (°C) and BC (lb/in²). Uniform named conversion at the edge only.",

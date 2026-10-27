@@ -1486,6 +1486,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v227": "Änderung: Absehen-Dateien speichern nur noch die verwendeten Einstellungen (z. B. keine Wiederholungseinstellungen, wenn die Wiederholung aus ist). Mit 4.3.0 gespeicherte Dateien lassen sich weiterhin laden.",
       "v226": "Neu: Werkzeug zum Entwerfen von Absehen (wird bald nützlich)",
       "v225": "Neu: Bereich „Werkzeuge“ neben Analyse und Messung (mobile Tab-Leiste, Desktop-Leiste, Startseite); der Einheitenumrechner ist dorthin umgezogen. Auf kleinen Handys erscheint der Tab nur, wenn er Platz hat.",
       "v224": "Änderung: Die gesamte interne Verarbeitung erfolgt jetzt in SI-Einheiten, außer Temperatur (°C) und BC (lb/in²). Einheitliche, benannte Umrechnung nur noch an der Darstellungsgrenze.",

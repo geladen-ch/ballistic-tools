@@ -214,10 +214,14 @@ test('SVG shape element: survives a file round trip; a tampered shape in a file 
   const { createDocument, addElement } = await import('../src/reticle/model.js');
   const { serializeReticle, parseReticle } = await import('../src/reticle/file-codec.js');
   const shape = extractShape(svg('<circle r="2"/>'));
-  const doc = addElement(createDocument(), { ...createElement('svg', { x: 0.001, y: 0, units: 'mrad', svg: { shape, name: 'ring' } }), reflect: false }).doc;
+  const doc = addElement(createDocument(), { ...createElement('svg', { x: 0.001, y: 0, units: 'mrad', svg: { shape, name: 'ring' } }), mirror: true, reflect: false }).doc;
   const loaded = parseReticle(serializeReticle(doc)).elements[0];
   assert.equal(loaded.name, 'ring');
   assert.equal(loaded.reflect, false);
+  // Unmirrored, reflect has no effect: not stored, it loads as a new shape has it.
+  const unmirrored = { ...doc, elements: [{ ...doc.elements[0], mirror: false }] };
+  assert.ok(!('reflect' in JSON.parse(serializeReticle(unmirrored)).elements[0]));
+  assert.equal(parseReticle(serializeReticle(unmirrored)).elements[0].reflect, true);
   assert.equal(loaded.scale, doc.elements[0].scale);
   assert.deepEqual(loaded.shape.paths, shape.paths);
   const raw = JSON.parse(serializeReticle(doc));
