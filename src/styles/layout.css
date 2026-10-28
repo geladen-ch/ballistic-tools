@@ -2196,7 +2196,8 @@ button.reticle-tool.armed { background: var(--accent); color: var(--accent-text)
 .reticle-shape { fill: var(--reticle-ink); stroke: var(--reticle-ink); stroke-width: 0.6; vector-effect: non-scaling-stroke; }
 .reticle-shape.selected { fill: var(--accent); stroke: var(--accent); }
 .reticle-shape.selected.derived { opacity: 0.45; }
-/* Imported SVG strokes: drawn as strokes of their own (scaled) width. */
+/* Imported SVG strokes: drawn as strokes of their own (scaled) width,
+   set inline by shape-paths.js so it overrides the hairline above. */
 .reticle-shape.stroked { fill: none; vector-effect: none; }
 .reticle-shape.stroked.selected { fill: none; }
 /* Illumination: lit elements in the reticle's colour (a deeper shade on

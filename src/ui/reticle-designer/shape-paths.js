@@ -18,11 +18,13 @@ export function shapePathNodes(paths, { x = 0, y = 0, size = 1, flip = false, cl
     }
     if (path.stroke > 0) {
       const width = Math.max(path.stroke, size > 0 ? minStroke / size : 0);
+      // The width goes in as an inline style: a presentation attribute
+      // would lose to the `.reticle-shape` class's hairline stroke-width.
       nodes.push(svgEl('path', {
         class: `${className} stroked`,
         d: path.d,
         transform,
-        'stroke-width': String(width),
+        style: `stroke-width: ${width}`,
         'stroke-linecap': path.cap,
         'stroke-linejoin': path.join,
         'stroke-miterlimit': String(path.miter),
