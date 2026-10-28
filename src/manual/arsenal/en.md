@@ -207,6 +207,8 @@ In the Designer a reticle is drawn for a **reference scope** — just its type a
 
 Deleting a reticle takes it off every scope that lists it; the confirmation says how many.
 
+Each reticle's row also shows how much space it takes. A line under **Save scopes and reticles** shows how much of the **20 MB** the Arsenal can load from one file your whole Arsenal takes, saved as one file. A reticle with an imported drawing is by far the largest thing in it. Past three quarters of that limit, a warning names the largest reticles and says what to do: delete reticles you no longer use, import a simpler drawing in place of a large one, or save the Arsenal in parts (§8.1).
+
 ### 5.10 Putting a scope on a rifle
 
 In the rifle form, **Scope** offers **None**, your scopes, and the built-in scopes; a scope with no reticle is listed but cannot be picked. Picking one **copies its click unit and click values** into the rifle's own fields — the rifle's clicks are still its own afterwards, to change if your turret differs, and nothing is ever written back to the scope. A built-in scope is linked, never copied into your Arsenal.

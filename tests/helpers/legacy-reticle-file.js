@@ -6,6 +6,8 @@ import { FILE_FORMAT } from '../../src/reticle/file-codec.js';
 import { referenceOptics } from '../../src/reticle/scope.js';
 import { pick, storedElement, storedIllumination } from '../../src/reticle/stored-reticle.js';
 
+const LEGACY_PATH_KEYS = ['d', 'fill', 'fillRule', 'stroke', 'cap', 'join', 'miter'];
+
 const SCOPE_KEYS_BY_TYPE = {
   fixed: ['type', 'fovMaxRad', 'fovDistanceM'],
   ffp: ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax'],
@@ -18,6 +20,11 @@ export function legacyReticleFile(doc) {
   payload.scope = pick(referenceOptics(doc.referenceScope), SCOPE_KEYS_BY_TYPE[doc.referenceScope.type]);
   const illumination = storedIllumination(doc.illumination);
   if (illumination) payload.illumination = illumination;
-  payload.elements = doc.elements.map(storedElement);
+  // 4.3.x stored a drawing as its plain path list, absolute.
+  payload.elements = doc.elements.map((e) => {
+    const stored = storedElement(e);
+    if (e.type === 'svg') stored.shape = { paths: e.shape.paths.map((p) => pick(p, LEGACY_PATH_KEYS)) };
+    return stored;
+  });
   return JSON.stringify(payload, null, 2);
 }

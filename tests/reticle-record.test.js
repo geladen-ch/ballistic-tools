@@ -94,3 +94,52 @@ test('a reference scope is stored with only the fields its type uses', () => {
   assert.deepEqual(back({ type: 'fixed', zoomMin: 4, zoomMax: 4, calibrationZoom: 4 }), { type: 'fixed', zoomMin: 4, zoomMax: 4, calibrationZoom: 4 });
   assert.deepEqual(back({ type: 'ffp', zoomMin: 3, zoomMax: 20, calibrationZoom: 7 }), { type: 'ffp', zoomMin: 3, zoomMax: 20, calibrationZoom: 20 });
 });
+
+// ---- imported drawings ----
+
+test('compact path data: relative, on the grid, and read back exactly by the path parser', async () => {
+  const { parsePathData, formatCompactCommands } = await import('../src/reticle/svg-import/path-data.js');
+  const commands = parsePathData('M10.0004 -5L12.5 -5L12.5 -7.25C13 -8 14 -8 15 -7.25Q16 -6 15 -5ZM-0.5 0.25L-0.5 0.25Z');
+  const text = formatCompactCommands(commands, -3);
+  assert.equal(text, 'm10-5 2.5 0 0-2.25c.5-.75 1.5-.75 2.5 0q1 1.25 0 2.25zm-10.5 5.25 0 0z');
+  const back = parsePathData(text);
+  assert.deepEqual(back.map((c) => c.c), commands.map((c) => c.c));
+  back.forEach((c, i) => c.p.forEach((v, k) => assert.ok(Math.abs(v - commands[i].p[k]) <= 0.0005 + 1e-12, `${i}.${k}`)));
+  assert.equal(formatCompactCommands(parsePathData('M100 200L300 200'), 1), 'm100 200 200 0');
+});
+
+test('an imported drawing is stored in runs of paths drawn alike, compact, and reads back the same', async () => {
+  const { extractShape } = await import('../src/reticle/svg-import/extract.js');
+  const shape = extractShape('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 20 20">'
+    + '<path d="M-5 0H5" fill="none" stroke="#000" stroke-width="0.5"/><path d="M0 -5V5" fill="none" stroke="#000" stroke-width="0.5"/>'
+    + '<circle r="1"/><path d="M-5 -5h1" fill="none" stroke="#000" stroke-width="0.5"/></svg>');
+  const reticle = { ...sample(), elements: [] };
+  const doc = addElement(reticle, createElement('svg', { x: 0, y: 0, units: 'mrad', svg: { shape, name: 'cross' } })).doc;
+  const stored = encodeReticleRecord(doc);
+  const runs = stored.elements[0].shape.runs;
+  assert.deepEqual(runs.map((r) => [r.fill, r.d.length]), [[false, 2], [true, 1], [false, 1]], 'in drawing order');
+  assert.ok(runs.every((r) => !('paths' in r)) && !('paths' in stored.elements[0].shape));
+  const back = decodeReticleRecord(JSON.parse(JSON.stringify(stored)));
+  assert.equal(back.elements[0].shape.paths.length, 4);
+  assert.deepEqual(back.elements[0].shape.paths.map((p) => p.stroke), doc.elements[0].shape.paths.map((p) => p.stroke));
+  assert.deepEqual(encodeReticleRecord(back), stored, 'and stores back the same');
+});
+
+test('a stored drawing is untrusted: bad runs are refused, too many paths is too large', async () => {
+  const { extractShape } = await import('../src/reticle/svg-import/extract.js');
+  const { LIMITS } = await import('../src/reticle/svg-import/extract.js');
+  const shape = extractShape('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 20 20"><circle r="1"/></svg>');
+  const doc = addElement({ ...sample(), elements: [] }, createElement('svg', { x: 0, y: 0, units: 'mrad', svg: { shape, name: 'dot' } })).doc;
+  const stored = encodeReticleRecord(doc);
+  const code = (mutate) => {
+    const raw = JSON.parse(JSON.stringify(stored));
+    mutate(raw.elements[0].shape);
+    try { decodeReticleRecord(raw); } catch (err) { return err.code; }
+    return null;
+  };
+  assert.equal(code(() => {}), null);
+  assert.equal(code((s) => { s.runs[0].d[0] = 'm0 0"/><script>'; }), 'invalid-format');
+  assert.equal(code((s) => { s.runs[0].d = 'm0 0'; }), 'invalid-format');
+  assert.equal(code((s) => { s.runs = []; }), 'invalid-format');
+  assert.equal(code((s) => { s.runs[0].d = Array.from({ length: LIMITS.maxElements + 1 }, () => s.runs[0].d[0]); }), 'too-large');
+});

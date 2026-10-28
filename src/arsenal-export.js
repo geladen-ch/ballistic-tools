@@ -20,6 +20,17 @@ import { opticLabel } from './scope-record.js';
 const FILE_FORMAT = 'ebalka2-arsenal';
 const FILE_VERSION = 1;
 
+// The largest file the Arsenal loads: reading one means holding its text,
+// its parsed records and the copy its reticles are checked in all at once,
+// which a phone's browser may not survive much beyond this.
+export const MAX_FILE_BYTES = 20 * 1024 * 1024;
+// From this share of MAX_FILE_BYTES on, the Arsenal warns that it is
+// getting too large to be saved as one file it can load again.
+export const NEAR_FILE_LIMIT = 0.75;
+
+const utf8 = new TextEncoder();
+const byteLength = (text) => utf8.encode(text).length;
+
 function normalizedName(name) {
   return name.trim().toLowerCase();
 }
@@ -49,6 +60,17 @@ export function buildExportPayload({ bullets = [], rifles = [], scopes = [], ret
   };
 }
 
+// How large the whole Arsenal is as one export file, and how much of that
+// each reticle takes (its record in the file) — imported drawings are what
+// makes an Arsenal large.
+export function exportSizes({ bullets = [], rifles = [], scopes = [], reticles = [] }) {
+  const total = byteLength(serializeExport(buildExportPayload({ bullets, rifles, scopes, reticles })));
+  const byReticle = new Map(reticles.map((r) => [r.id, byteLength(JSON.stringify(stripLocalOnlyFields(storedUserReticleOf(r))))]));
+  let reticleBytes = 0;
+  for (const bytes of byReticle.values()) reticleBytes += bytes;
+  return { total, reticles: reticleBytes, byReticle };
+}
+
 // What goes along with rifles, scopes and reticles chosen for one file: a
 // rifle's own scope (when it is one of the user's — a built-in one is
 // referred to by id), and every one of the user's reticles those scopes
@@ -62,8 +84,10 @@ export function exportBundle({ rifles = [], scopes = [], reticles = [], userScop
   return { scopes: bundledScopes, reticles: userReticles.filter((r) => reticleIds.has(r.id)) };
 }
 
+// Unindented: an Arsenal with imported reticle drawings runs to megabytes,
+// and indentation alone would double it.
 export function serializeExport(payload) {
-  return JSON.stringify(payload, null, 2);
+  return JSON.stringify(payload);
 }
 
 // A rifle's cartridges each reference a bulletId. Since cartridge-form.js

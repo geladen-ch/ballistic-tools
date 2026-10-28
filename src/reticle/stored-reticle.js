@@ -4,7 +4,8 @@
 //
 // Every angle (positions, dimensions, the horseshoe cutout) is in
 // radians, exactly as held in memory; a number element's digits, anchor
-// and font as strings; an SVG shape's drawing as the app's own path data.
+// and font as strings; an SVG shape's drawing as path data, in runs of
+// paths drawn alike (see storedShape()).
 //
 // Only what shapes the reticle is stored. Left out, and restored on
 // reading to what a new element or reticle has: a repeat that is off
@@ -30,6 +31,8 @@ import {
   staysOnVerticalAxis
 } from './element-types.js';
 import { normalizeShape } from './svg-import/shape.js';
+import { LIMITS as SVG_LIMITS } from './svg-import/extract.js';
+import { parsePathData, formatCompactCommands } from './svg-import/path-data.js';
 import { expandInstances } from './geometry.js';
 
 // Reading limits. A real reticle is far smaller than this; the limits only
@@ -55,6 +58,56 @@ const REFERENCE_KEYS_BY_TYPE = {
 const REPEAT_KEYS = ['direction', 'count', 'step'];
 const NUMBER_KEYS = ['text', 'anchor', 'font'];
 const SVG_PATH_KEYS = ['d', 'fill', 'fillRule', 'stroke', 'cap', 'join', 'miter'];
+const SVG_STYLE_KEYS = SVG_PATH_KEYS.slice(1);
+
+// An imported drawing is stored with its points on a grid of a power of
+// ten (in the drawing's own units) no coarser than this angle at the
+// reticle — far finer than any line a scope shows — and written relative
+// to one another, which with the grid takes about half the text of the
+// absolute form held in memory.
+const SVG_GRID_RAD = 1e-6;
+// Kept fine enough that a point's grid count stays an exact integer up to
+// the largest coordinate the path parser accepts.
+const SVG_GRID_MIN_EXPONENT = -8;
+
+function gridExponent(scale) {
+  const exponent = scale > 0 ? Math.floor(Math.log10(SVG_GRID_RAD / scale)) : SVG_GRID_MIN_EXPONENT;
+  return Math.max(SVG_GRID_MIN_EXPONENT, exponent);
+}
+
+// An imported drawing as stored: consecutive paths drawn alike form one
+// run, which holds their style once and their path data in order — a
+// drawing typically has thousands of paths in a handful of styles.
+function storedShape(shape, scale) {
+  const exponent = gridExponent(scale);
+  const runs = [];
+  let styleKey = null;
+  for (const path of shape.paths) {
+    const style = pick(path, SVG_STYLE_KEYS);
+    const key = JSON.stringify(style);
+    if (key !== styleKey) {
+      runs.push({ ...style, d: [] });
+      styleKey = key;
+    }
+    runs[runs.length - 1].d.push(formatCompactCommands(parsePathData(path.d), exponent));
+  }
+  return { runs };
+}
+
+// A stored drawing back to the path list svg-import/shape.js validates —
+// runs (records), or the plain list the reticle files of 4.3.x hold.
+function shapePaths(raw) {
+  if (!raw || typeof raw !== 'object') return raw;
+  if (!Array.isArray(raw.runs)) return raw;
+  const paths = [];
+  for (const run of raw.runs) {
+    if (!run || typeof run !== 'object' || !Array.isArray(run.d)) throw fail('invalid-format', 'shape');
+    if (paths.length + run.d.length > SVG_LIMITS.maxElements) throw fail('too-large', 'shape');
+    const style = pick(run, SVG_STYLE_KEYS);
+    for (const d of run.d) paths.push({ ...style, d });
+  }
+  return { paths };
+}
 
 export function pick(source, keys) {
   const out = {};
@@ -80,7 +133,7 @@ export function storedElement(element) {
     out.scale = element.scale;
     if (element.name) out.name = element.name;
     if (element.mirror) out.reflect = element.reflect;
-    out.shape = { paths: element.shape.paths.map((p) => pick(p, SVG_PATH_KEYS)) };
+    out.shape = storedShape(element.shape, element.scale);
   }
   if (canIlluminate(element.type) && element.illuminated === true) out.illuminated = true;
   if (canMirror(element.type) && element.mirror === true) out.mirror = true;
@@ -153,8 +206,9 @@ function parseElement(raw, index, budget, version) {
     if (!finite(raw.scale)) throw fail('invalid-format', where('scale'));
     element.scale = raw.scale;
     try {
-      element.shape = normalizeShape(raw.shape);
-    } catch {
+      element.shape = normalizeShape(shapePaths(raw.shape));
+    } catch (err) {
+      if (err.code === 'too-large') throw err;
       throw fail('invalid-format', where('shape'));
     }
     budget.svgSegments -= element.shape.segments;

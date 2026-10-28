@@ -207,6 +207,8 @@ Im Designer wird ein Absehen für ein **Referenz-Zielfernrohr** gezeichnet — n
 
 Das Löschen eines Absehens entfernt es aus jedem Zielfernrohr, das es führt; die Rückfrage nennt, wie viele.
 
+Jede Absehen-Zeile zeigt auch, wie viel Platz es belegt. Eine Zeile unter **Zielfernrohre und Absehen speichern** zeigt, wie viel der **20 MB**, die das Arsenal aus einer Datei laden kann, Ihr ganzes Arsenal als eine Datei belegt. Ein Absehen mit importierter Zeichnung ist darin bei Weitem das Größte. Ab drei Vierteln dieser Grenze nennt eine Warnung die größten Absehen und was zu tun ist: Absehen löschen, die Sie nicht mehr brauchen, statt einer großen eine einfachere Zeichnung importieren oder das Arsenal in Teilen speichern (§8.1).
+
 ### 5.10 Ein Zielfernrohr auf ein Gewehr setzen
 
 Im Gewehr-Formular bietet **Zielfernrohr** **Keines**, Ihre Zielfernrohre und die mitgelieferten; ein Zielfernrohr ohne Absehen steht in der Liste, ist aber nicht wählbar. Die Wahl eines Zielfernrohrs **übernimmt dessen Klickeinheit und Klickwerte** in die Felder des Gewehrs — die Klicks gehören danach weiter dem Gewehr, zum Ändern, wenn Ihr Turm abweicht, und nichts wird je ins Zielfernrohr zurückgeschrieben. Ein mitgeliefertes Zielfernrohr wird verknüpft, nie in Ihr Arsenal kopiert.

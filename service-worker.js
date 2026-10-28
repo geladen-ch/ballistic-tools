@@ -103,6 +103,7 @@ const APP_SHELL_URLS = [
   './src/wind-dial-prefs.js',
   './src/csv-export.js',
   './src/download.js',
+  './src/format-bytes.js',
   './src/chart-svg-export.js',
   './src/shot-state.js',
   './src/guns-nav.js',

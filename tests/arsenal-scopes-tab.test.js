@@ -294,3 +294,31 @@ test('the scope manufacturer suggests optics makers — built-in and the user\'s
   fireEvent(list.childNodes[names.indexOf('Trijicon')], 'mousedown');
   assert.equal(input.value, 'Trijicon');
 });
+
+test('the Scopes tab says how much of the largest loadable file the Arsenal takes, and warns near and over it', async () => {
+  const { MAX_FILE_BYTES, NEAR_FILE_LIMIT } = await import('../src/arsenal-export.js');
+  const { formatBytes } = await import('../src/format-bytes.js');
+  const { saveUserBullet } = await import('../src/user-library.js');
+  const big = saveReticle({ model: 'Big' });
+  saveReticle({ model: 'Small' });
+  const sizeLine = (container) => byId(container, 'arsenal-library-size');
+  const warning = (container) => findAll(sizeLine(container), (n) => classesOf(n).includes('warning'))[0];
+
+  let container = mountOnScopes();
+  assert.ok(sizeLine(container).textContent.includes(formatBytes(MAX_FILE_BYTES)));
+  assert.equal(warning(container), undefined);
+  const row = findAll(container, (n) => classesOf(n).includes('arsenal-reticle-row'))[0];
+  assert.match(row.textContent, / · \d+(\.\d)? (B|KB)/, 'each reticle says what it takes');
+
+  // Anything stored counts — padding a bullet stands in for a big drawing.
+  const bullet = { id: 'b1', name: 'B', manufacturer: 'Bulletco', caliberM: 0.0078, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } };
+  saveUserBullet({ ...bullet, padding: 'x'.repeat(Math.ceil(MAX_FILE_BYTES * NEAR_FILE_LIMIT)) });
+  container = mountOnScopes();
+  assert.ok(warning(container).textContent.startsWith(t('arsenal.librarySizeNear', { limit: formatBytes(MAX_FILE_BYTES) }).slice(0, 20)));
+  assert.ok(warning(container).textContent.includes(big.name), 'the largest reticles are named');
+
+  saveUserBullet({ ...bullet, padding: 'x'.repeat(MAX_FILE_BYTES) });
+  container = mountOnScopes();
+  assert.ok(warning(container).textContent.includes(formatBytes(MAX_FILE_BYTES)));
+  assert.notEqual(warning(container).textContent.slice(0, 30), t('arsenal.librarySizeNear', {}).slice(0, 30));
+});

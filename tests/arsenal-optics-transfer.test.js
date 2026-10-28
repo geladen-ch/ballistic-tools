@@ -260,3 +260,29 @@ test('a 4.3.x reticle file whose name is already taken is refused until the mode
   fireEvent(buttons(dialogRoot, 'arsenal.cancelButton')[0], 'click');
   assert.equal(reticleLibrary.loadUserReticles().length, 1);
 });
+
+test('exportSizes: the whole Arsenal as one file, and each reticle\'s share of it', async () => {
+  const { exportSizes, serializeExport, buildExportPayload } = await import('../src/arsenal-export.js');
+  const a = reticle('user-reticle-a', 'A');
+  const b = reticle('user-reticle-b', 'B', { illumination: { enabled: true, colour: 'green' } });
+  const sizes = exportSizes({ reticles: [a, b] });
+  const text = serializeExport(buildExportPayload({ reticles: [a, b] }));
+  assert.equal(sizes.total, Buffer.byteLength(text));
+  assert.ok(sizes.byReticle.get('user-reticle-b') > sizes.byReticle.get('user-reticle-a'), 'the lit one stores more');
+  assert.equal(sizes.reticles, sizes.byReticle.get('user-reticle-a') + sizes.byReticle.get('user-reticle-b'));
+  assert.ok(sizes.reticles < sizes.total && !text.includes('\n'), 'one unindented file');
+});
+
+test('a file larger than the Arsenal loads is refused, naming the limit', async () => {
+  const { MAX_FILE_BYTES } = await import('../src/arsenal-export.js');
+  const { formatBytes } = await import('../src/format-bytes.js');
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  const input = findAll(container, (n) => n.tagName === 'INPUT' && n.type === 'file')[0];
+  let read = false;
+  input.files = [{ name: 'huge.json', size: MAX_FILE_BYTES + 1, text: async () => { read = true; return '{}'; } }];
+  for (const handler of input._listeners.change) await handler({ target: input });
+  await settle(20);
+  assert.equal(read, false, 'not even read');
+  assert.ok(container.textContent.includes(t('arsenal.importFileErrorTooLarge', { limit: formatBytes(MAX_FILE_BYTES) })));
+});

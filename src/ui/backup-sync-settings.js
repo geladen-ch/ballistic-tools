@@ -43,15 +43,7 @@ import { buildExportPayload as buildArsenalPayload, serializeExport as serialize
 import { buildExportPayload as buildLocationsPayload, serializeExport as serializeLocations } from '../location-export.js';
 import { buildExportPayload as buildRpPayload, serializeExport as serializeRp } from '../rifle-precision-export.js';
 import { downloadDiagnostics } from '../diagnostics.js';
-
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit++; }
-  return `${value < 10 && unit > 0 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
-}
+import { formatBytes } from '../format-bytes.js';
 
 // The manual action reports **everything** it found, unlike the automatic
 // path, which surfaces only the two conditions a user can act on and keeps

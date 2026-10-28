@@ -242,6 +242,62 @@ export function formatCommands(commands) {
   return commands.map(({ c, p }) => c + p.map(fmt).join(' ')).join('');
 }
 
+// An integer count of 10^exponent as decimal text, shortest form: 1234 at
+// -3 → "1.234", 5 at -3 → ".005", -20 at -1 → "-2", 3 at 1 → "30".
+function gridText(n, exponent) {
+  if (n === 0) return '0';
+  const sign = n < 0 ? '-' : '';
+  let digits = String(Math.abs(n));
+  if (exponent >= 0) return sign + digits + '0'.repeat(exponent);
+  const places = -exponent;
+  digits = digits.padStart(places + 1, '0');
+  const whole = digits.slice(0, -places);
+  const fraction = digits.slice(-places).replace(/0+$/, '');
+  return sign + (whole === '0' && fraction ? '' : whole) + (fraction ? `.${fraction}` : '');
+}
+
+const RELATIVE = { M: 'm', L: 'l', Q: 'q', C: 'c' };
+
+// Compact text form, for storing: every point on a grid of 10^exponent
+// (in the path's own units), written relative to the current point, with
+// no repeated command letters and no separator a number's own sign or
+// point already gives. Points are snapped to the grid before the
+// differences are taken, so rounding never accumulates along a path.
+// parsePathData() reads it back like any other path data.
+export function formatCompactCommands(commands, exponent) {
+  const quantum = 10 ** exponent;
+  const snap = (v) => Math.round(v / quantum);
+  let out = '';
+  let cx = 0, cy = 0, sx = 0, sy = 0;
+  let implicit = null; // the command a bare number list continues
+  let last = ''; // the previous number written, '' after a letter
+  const number = (text) => {
+    const joins = last !== '' && !(text[0] === '-' || (text[0] === '.' && last.includes('.')));
+    out += (joins ? ' ' : '') + text;
+    last = text;
+  };
+  for (const { c, p } of commands) {
+    if (c === 'Z') {
+      out += 'z';
+      cx = sx; cy = sy;
+      implicit = null; last = '';
+      continue;
+    }
+    const letter = RELATIVE[c];
+    if (letter !== implicit) { out += letter; last = ''; }
+    let ex = cx, ey = cy;
+    for (let k = 0; k < p.length; k += 2) {
+      ex = snap(p[k]); ey = snap(p[k + 1]);
+      number(gridText(ex - cx, exponent));
+      number(gridText(ey - cy, exponent));
+    }
+    cx = ex; cy = ey;
+    if (c === 'M') { sx = cx; sy = cy; }
+    implicit = letter === 'm' ? 'l' : letter;
+  }
+  return out;
+}
+
 const CURVE_STEPS = 12;
 
 // Commands → subpaths as polylines ([[x, y], ...], plus `closed`), curves

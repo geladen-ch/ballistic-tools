@@ -181,8 +181,8 @@ test('saving writes only each type\'s own fields', () => {
     assert.ok(!('junk' in stored) && !('onclick' in stored) && !('reflected' in stored), e.type);
   }
   const svg = storedElement(polluted.find((e) => e.type === 'svg'));
-  assert.deepEqual(Object.keys(svg.shape), ['paths']);
-  assert.deepEqual(Object.keys(svg.shape.paths[0]).sort(), ['cap', 'd', 'fill', 'fillRule', 'join', 'miter', 'stroke']);
+  assert.deepEqual(Object.keys(svg.shape), ['runs']);
+  assert.deepEqual(Object.keys(svg.shape.runs[0]).sort(), ['cap', 'd', 'fill', 'fillRule', 'join', 'miter', 'stroke']);
 });
 
 // ---- loading is untrusted input ----

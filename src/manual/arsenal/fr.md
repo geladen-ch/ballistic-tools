@@ -207,6 +207,8 @@ Dans le Concepteur, un réticule est dessiné pour une **lunette de référence*
 
 Supprimer un réticule le retire de toutes les lunettes qui l’utilisent ; la confirmation indique combien.
 
+La ligne de chaque réticule indique aussi la place qu’il occupe. Une ligne sous **Enregistrer lunettes et réticules** indique quelle part des **20 MB** que l’arsenal peut charger depuis un fichier votre arsenal entier occupe, enregistré en un seul fichier. Un réticule avec un dessin importé y est de loin ce qu’il y a de plus gros. Au-delà des trois quarts de cette limite, un avertissement nomme les plus gros réticules et indique quoi faire : supprimer les réticules dont vous n’avez plus besoin, importer un dessin plus simple à la place d’un gros, ou enregistrer l’arsenal en plusieurs parties (§8.1).
+
 ### 5.10 Monter une lunette sur une carabine
 
 Dans le formulaire de la carabine, **Lunette** propose **Aucune**, vos lunettes et les lunettes intégrées ; une lunette sans réticule figure dans la liste mais ne peut pas être choisie. En choisir une **reprend son unité et ses valeurs de clic** dans les champs de la carabine — ces clics restent ensuite ceux de la carabine, à modifier si votre tourelle diffère, et rien n’est jamais réécrit dans la lunette. Une lunette intégrée est liée, jamais copiée dans votre arsenal.

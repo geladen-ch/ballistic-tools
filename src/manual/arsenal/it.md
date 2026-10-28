@@ -207,6 +207,8 @@ Nel Progettista un reticolo è disegnato per un’**ottica di riferimento** — 
 
 Eliminare un reticolo lo toglie da tutte le ottiche che lo usano; la conferma dice quante.
 
+La riga di ogni reticolo mostra anche quanto spazio occupa. Una riga sotto **Salva ottiche e reticoli** mostra quanta parte dei **20 MB** che l’arsenale può caricare da un file occupa l’intero arsenale, salvato in un unico file. Un reticolo con un disegno importato è di gran lunga la cosa più grande. Oltre i tre quarti di questo limite, un avviso nomina i reticoli più grandi e dice cosa fare: eliminare i reticoli che non usi più, importare un disegno più semplice al posto di uno grande, o salvare l’arsenale in più parti (§8.1).
+
 ### 5.10 Montare un’ottica su un fucile
 
 Nel modulo del fucile, **Ottica** offre **Nessuna**, le tue ottiche e quelle integrate; un’ottica senza reticoli compare nell’elenco ma non si può scegliere. Sceglierne una **ne copia l’unità e i valori di click** nei campi del fucile — i click restano poi del fucile, da modificare se la tua torretta è diversa, e nulla viene mai riscritto nell’ottica. Un’ottica integrata viene collegata, mai copiata nel tuo arsenale.

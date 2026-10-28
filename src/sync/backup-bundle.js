@@ -98,8 +98,10 @@ export function buildBackupBundle() {
   });
 }
 
+// Unindented: every device rewrites its bundle each sync cycle, and
+// indentation alone would double it.
 export function serializeBackupBundle(bundle) {
-  return JSON.stringify(bundle, null, 2);
+  return JSON.stringify(bundle);
 }
 
 // A parse failure here is a routine, expected event, not an exceptional

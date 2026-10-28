@@ -21,7 +21,8 @@ import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { exportDialog } from '../ui/arsenal/export-dialog.js';
 import { importDialog } from '../ui/arsenal/import-dialog.js';
 import {
-  buildExportPayload, serializeExport, collectRifleBulletIds, parseImportPayload, planImportBatch, exportBundle, isLegacyReticleFile
+  buildExportPayload, serializeExport, collectRifleBulletIds, parseImportPayload, planImportBatch, exportBundle, isLegacyReticleFile,
+  exportSizes, MAX_FILE_BYTES, NEAR_FILE_LIMIT
 } from '../arsenal-export.js';
 import {
   getComparisonSelection, isSelectedForComparison, canAddToComparison,
@@ -56,8 +57,9 @@ import { legacyReticleForm } from '../ui/arsenal/legacy-reticle-form.js';
 import { showDialog } from '../ui/app-dialog.js';
 import { loadReticleFile, checkReticleRecords } from '../reticle/svg-import/client.js';
 import { reticleRecordFromLegacy, scopeRecordFromLegacy } from '../reticle/legacy-file.js';
-import { FILE_LIMITS as RETICLE_FILE_LIMITS } from '../reticle/file-codec.js';
+import { formatBytes } from '../format-bytes.js';
 import { reticleThumbnail } from '../ui/reticle-thumbnail.js';
+import { encodeReticleRecord, decodeReticleRecord } from '../reticle/reticle-record.js';
 
 const ALL_VALUE = '__all__';
 
@@ -1413,7 +1415,7 @@ export function mount(container) {
     importSummaryArea.style.display = 'none';
 
     if (importErrorKey) {
-      importErrorArea.textContent = t(importErrorKey);
+      importErrorArea.textContent = t(importErrorKey, { limit: formatBytes(MAX_FILE_BYTES) });
       importErrorArea.style.display = '';
       importErrorKey = null;
     }
@@ -1454,7 +1456,10 @@ export function mount(container) {
             if (resolved.action === 'save') { importRecord(resolved.record); saved++; } else skipped++;
           }
         };
-        write(plan.reticleResults, importUserReticle);
+        // A reticle from a file is stored in today's form (a file from an
+        // earlier build may hold its drawing in a longer one); it passed
+        // its check above, and keeps its revision and dates.
+        write(plan.reticleResults, (record) => importUserReticle(encodeReticleRecord(decodeReticleRecord(record))));
         write(plan.scopeResults, importUserScope);
         write(plan.bulletResults, importUserBullet);
         write(plan.rifleResults, importUserRifle);
@@ -1489,7 +1494,7 @@ export function mount(container) {
     importState = null;
     importSummary = null;
     try {
-      if (file.size > RETICLE_FILE_LIMITS.maxChars) throw Object.assign(new Error('too large'), { code: 'too-large' });
+      if (file.size > MAX_FILE_BYTES) throw Object.assign(new Error('too large'), { code: 'too-large' });
       const text = await file.text();
       if (isLegacyReticleFile(text)) {
         importErrorKey = null;
@@ -1511,7 +1516,7 @@ export function mount(container) {
       importState = null;
       importErrorKey = err.code === 'invalid-json' ? 'arsenal.importFileErrorInvalidJson'
         : err.code === 'unsupported-version' ? 'arsenal.importFileErrorNewerVersion'
-          : err.code === 'too-large' ? 'reticleDesigner.file.errors.tooLarge'
+          : err.code === 'too-large' ? 'arsenal.importFileErrorTooLarge'
             : 'arsenal.importFileErrorInvalidFormat';
     }
     renderImportArea();
@@ -1867,8 +1872,38 @@ export function mount(container) {
     return parts.join(' · ');
   }
 
+  // How much of the largest file the Arsenal loads it takes, saved as one
+  // file (what Save Library writes with everything ticked), and what takes
+  // the space: imported reticle drawings, nearly always. From
+  // NEAR_FILE_LIMIT on, a warning says what to do about it.
+  const librarySizeEl = el('div', { id: 'arsenal-library-size' });
+  let reticleSizes = new Map();
+  function renderLibrarySize() {
+    clear(librarySizeEl);
+    const reticles = loadUserReticles().filter((r) => !r.damaged);
+    const sizes = exportSizes({ bullets: loadUserBullets(), rifles: loadUserRifles(), scopes: loadUserScopes(), reticles });
+    reticleSizes = sizes.byReticle;
+    const share = sizes.total / MAX_FILE_BYTES;
+    const params = {
+      size: formatBytes(sizes.total),
+      limit: formatBytes(MAX_FILE_BYTES),
+      free: formatBytes(Math.max(0, MAX_FILE_BYTES - sizes.total)),
+      reticles: formatBytes(sizes.reticles),
+      rest: formatBytes(sizes.total - sizes.reticles)
+    };
+    librarySizeEl.appendChild(el('p', { class: 'hint', text: t('arsenal.librarySize', params) }));
+    if (share < NEAR_FILE_LIMIT) return;
+    const largest = [...reticles].sort((a, b) => sizes.byReticle.get(b.id) - sizes.byReticle.get(a.id)).slice(0, 3)
+      .map((r) => `${r.name} (${formatBytes(sizes.byReticle.get(r.id))})`).join(', ');
+    librarySizeEl.appendChild(el('p', {
+      class: 'hint warning',
+      text: t(share > 1 ? 'arsenal.librarySizeOver' : 'arsenal.librarySizeNear', { ...params, largest: largest || '—' })
+    }));
+  }
+
   function renderReticles() {
     clear(reticlesListEl);
+    renderLibrarySize();
     const reticles = loadUserReticles();
     const scopes = loadUserScopes();
     if (reticles.length === 0) reticlesListEl.appendChild(el('p', { class: 'hint', i18n: 'arsenal.noReticles' }));
@@ -1909,7 +1944,10 @@ export function mount(container) {
         unsavedBadge(reticle),
         damaged
       ];
-      if (!reticle.damaged) info.push(el('span', { class: 'hint', text: ` — ${reticleSummary(reticle)}` }));
+      if (!reticle.damaged) {
+        const size = reticleSizes.has(reticle.id) ? ` · ${formatBytes(reticleSizes.get(reticle.id))}` : '';
+        info.push(el('span', { class: 'hint', text: ` — ${reticleSummary(reticle)}${size}` }));
+      }
       if (usedBy.length > 0) info.push(el('div', { class: 'hint', text: t('arsenal.reticleUsedBy', { count: usedBy.length }) }));
       if (modifiedLabel) info.push(el('div', { class: 'hint' }, [modifiedLabel]));
       reticlesListEl.appendChild(el('div', { class: 'arsenal-row arsenal-reticle-row' }, [
@@ -1946,7 +1984,8 @@ export function mount(container) {
     ]),
     scopes: el('div', { id: 'arsenal-tab-scopes' }, [
       el('div', { class: 'card' }, [
-        el('div', { class: 'arsenal-tab-actions' }, [saveOpticsButton, loadOpticsButton])
+        el('div', { class: 'arsenal-tab-actions' }, [saveOpticsButton, loadOpticsButton]),
+        librarySizeEl
       ]),
       el('div', { class: 'card' }, [
         el('h2', { i18n: 'arsenal.scopesHeading' }),
@@ -1970,6 +2009,8 @@ export function mount(container) {
       tabButtons[tabDef.key].className = 'tab-btn' + (tabDef.key === key ? ' active' : '');
       tabPanels[tabDef.key].style.display = tabDef.key === key ? '' : 'none';
     }
+    // Rifles and bullets count too, and change on the other tabs.
+    if (key === 'scopes') renderLibrarySize();
     // One filter card, moved to the top of whichever list tab is open, so
     // Rifles and Bullets share a single filter state. Scopes has nothing
     // it filters, so it stays out of that tab.
