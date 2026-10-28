@@ -1,7 +1,7 @@
 // Pane 1: editing options — the tool's mrad/MOA switch (independent of the
 // app-wide unit preferences), the guide grid, snapping, zero-mark and
 // BDC-mark toggles, for an illuminated reticle whether to show its
-// illumination and dim the field, and undo/redo. None of these is an undo step itself.
+// illumination and dim the field. None of these is an undo step itself.
 import { el } from '../../dom.js';
 import { t, applyI18nText } from '../../i18n.js';
 import { RETICLE_UNIT_IDS, RETICLE_UNITS } from '../../reticle/angle-units.js';
@@ -23,16 +23,10 @@ export function optionsPane(ctl) {
   });
   const dim = checkboxField({ labelKey: 'reticleDesigner.options.dimField', checked: ctl.editor.dimField, onChange: (on) => ctl.setEditor({ dimField: on }) });
 
-  const undoButton = el('button', { type: 'button', class: 'secondary', i18n: 'reticleDesigner.options.undo' });
-  undoButton.addEventListener('click', () => ctl.undo());
-  const redoButton = el('button', { type: 'button', class: 'secondary', i18n: 'reticleDesigner.options.redo' });
-  redoButton.addEventListener('click', () => ctl.redo());
-
   const node = el('section', { class: 'reticle-pane reticle-options', 'aria-labelledby': 'reticle-options-heading' }, [
     el('h2', { id: 'reticle-options-heading', class: 'reticle-pane-title', i18n: 'reticleDesigner.panes.options' }),
     el('div', { class: 'reticle-segmented', role: 'group', 'aria-label': t('reticleDesigner.options.units') }, unitButtons),
-    el('div', { class: 'reticle-option-checks' }, [grid.node, snap.node, zero.node, bdc.node, illumination.node, dim.node]),
-    el('div', { class: 'reticle-undo-row' }, [undoButton, redoButton])
+    el('div', { class: 'reticle-option-checks' }, [grid.node, snap.node, zero.node, bdc.node, illumination.node, dim.node])
   ]);
 
   function update() {
@@ -55,8 +49,6 @@ export function optionsPane(ctl) {
     const illuminated = ctl.doc.illumination.enabled;
     illumination.node.style.display = illuminated ? '' : 'none';
     dim.node.style.display = illuminated ? '' : 'none';
-    undoButton.disabled = !ctl.canUndo();
-    redoButton.disabled = !ctl.canRedo();
   }
 
   return { node, update };

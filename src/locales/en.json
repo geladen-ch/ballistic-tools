@@ -1852,6 +1852,7 @@
       "manufacturer": "Manufacturer",
       "model": "Model",
       "saveToArsenal": "Save to arsenal",
+      "returnToArsenal": "Return to arsenal",
       "discard": "Discard changes",
       "confirmDiscard": "Discard the changes made since the reticle was last saved to the Arsenal? This cannot be undone.",
       "confirmOverwrite": "Your Arsenal already has a reticle “{{name}}”. Replace it with this one?",
@@ -1866,7 +1867,8 @@
         "newerVersion": "That reticle was saved by a newer version of the app. Update the app to open it.",
         "tooLarge": "That reticle file is too large or has too many elements or copies to load.",
         "timeout": "Reading that reticle file took too long, so it was stopped."
-      }
+      },
+      "insertReticle": "Insert whole reticle…"
     },
     "scope": {
       "title": "Scope",
@@ -1902,16 +1904,16 @@
       "zero": "Show zero",
       "bdc": "Show BDC marks",
       "illumination": "Show illumination",
-      "dimField": "Dim the field",
-      "undo": "Undo",
-      "redo": "Redo"
+      "dimField": "Dim the field"
     },
     "view": {
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
       "reset": "Reset view (lowest magnification)",
       "magnification": "Magnification",
-      "sfpScale": "Subtensions here: ×{{factor}} of nominal"
+      "sfpScale": "Subtensions here: ×{{factor}} of nominal",
+      "undo": "Undo",
+      "redo": "Redo"
     },
     "palette": {
       "select": "Select",
@@ -2063,6 +2065,17 @@
         "timeout": "Reading the SVG took too long, so it was stopped.",
         "unexpected": "The SVG could not be read."
       }
+    },
+    "library": {
+      "title": "Insert a whole reticle",
+      "intro": "Pick one of your reticles or a built-in one to copy its entire geometry — every element — into this reticle, each element where it is in the original, with its groups and lit flags. Nothing is converted: every subtension goes in as it was drawn. An unlit reticle takes the original's illumination, and one with no manufacturer or model takes the original's.",
+      "yours": "Your reticles",
+      "builtIn": "Built-in reticles",
+      "loading": "Loading built-in reticles…",
+      "none": "There are no reticles to insert.",
+      "scopeDiffers": "This reticle was drawn for another type of scope or calibration zoom; its subtensions go in unchanged.",
+      "insert": "Insert into the reticle",
+      "cancel": "Cancel"
     }
   }
 }

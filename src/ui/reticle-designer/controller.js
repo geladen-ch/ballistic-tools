@@ -11,7 +11,7 @@ import {
 } from '../../reticle-designer-state.js';
 import { commit, undo, redo, breakCoalescing, canUndo, canRedo } from '../../reticle/history.js';
 import {
-  addElement, deleteElements, duplicateElements, findElement, findGroup, groupElements, resolveElementIds,
+  addElement, deleteElements, duplicateElements, findElement, findGroup, groupElements, insertReticle, resolveElementIds,
   setIllumination, translate, ungroup
 } from '../../reticle/model.js';
 import { ELEMENT_TYPES, DEFAULT_REPEAT, createElement } from '../../reticle/element-types.js';
@@ -135,6 +135,20 @@ export function createController({ onChange = () => {} } = {}) {
         return null;
       }
       return ctl.place(createElement('svg', { x: 0, y: 0, units: ctl.editor.units, svg: { shape: clean, name } }));
+    },
+
+    // Inserts a library reticle's elements where they are (model.js's
+    // insertReticle), selected, as one undo step. Returns whether anything
+    // was inserted. Illumination switched on by it is shown at once, and
+    // so are BDC marks among its elements, as for a mark placed.
+    insertReticle(source) {
+      const { doc, selection } = insertReticle(ctl.doc, source);
+      if (doc === ctl.doc) return false;
+      if (doc.illumination.enabled && !ctl.doc.illumination.enabled) patchReticleEditor({ showIllumination: true });
+      if (source.elements.some((e) => e.type === 'bdc')) patchReticleEditor({ showBdc: true });
+      patchReticleEditor({ tool: 'select' });
+      ctl.commit(doc, { selection });
+      return true;
     },
 
     // Repeat direction/count/step for a repeat being switched on: whatever

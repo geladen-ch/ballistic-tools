@@ -2173,8 +2173,6 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
 .reticle-option-checks, .reticle-check-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .reticle-check-row { flex-direction: row; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0; }
 .reticle-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
-.reticle-undo-row { display: flex; gap: 8px; }
-.reticle-undo-row button { padding: 6px 12px; }
 
 .reticle-tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin-bottom: 10px; }
 button.reticle-tool { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0; background: var(--panel-raised); color: var(--text); border: 1px solid var(--line); }
@@ -2253,13 +2251,25 @@ button.reticle-swatch.active { border-color: var(--accent); box-shadow: inset 0 
 .reticle-svg-status.ok { color: var(--ok); }
 .reticle-svg-preview:empty { display: none; }
 .reticle-svg-preview-canvas { display: block; width: 200px; height: 200px; background: var(--reticle-glass); border: 1px solid var(--line); border-radius: var(--radius); }
+/* The Insert whole reticle panel: one radio, thumbnail and name per reticle. */
+.reticle-library-insert { margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.reticle-library-insert h2 { margin: 0; }
+.reticle-library-insert .hint { margin: 0; max-width: 80ch; }
+.reticle-library-choices { display: flex; flex-direction: column; gap: 4px; max-height: 360px; overflow-y: auto; }
+.reticle-library-group { margin-top: 6px; }
+.reticle-library-choice { gap: 10px; }
 .reticle-zero circle, .reticle-zero path { fill: none; stroke: var(--reticle-zero); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .reticle-bdc-mark { fill: var(--reticle-bdc); stroke: #fff; stroke-width: 1; vector-effect: non-scaling-stroke; cursor: move; }
 .reticle-bdc-ring { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .reticle-marquee { fill: rgba(232, 163, 61, 0.12); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 .reticle-handle { fill: #fff; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; cursor: move; }
 .reticle-canvas-wrap { position: relative; }
-.reticle-magnification { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 2px 8px; font-size: 12px; color: var(--dim); }
+.reticle-view-bar { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; }
+.reticle-history { display: flex; gap: 4px; flex: none; }
+.reticle-history button.icon-button { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.reticle-history button.icon-button:not(:disabled) { color: var(--text); }
+.reticle-history button.icon-button:disabled { opacity: 0.4; cursor: default; }
+.reticle-magnification { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12px; color: var(--dim); }
 .reticle-magnification input[type="range"] { flex: 1 1 160px; min-width: 120px; accent-color: var(--accent); }
 .reticle-magnification-value { min-width: 4ch; color: var(--text); font-variant-numeric: tabular-nums; }
 .reticle-magnification-note { flex-basis: 100%; }

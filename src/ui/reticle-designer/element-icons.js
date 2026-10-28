@@ -1,5 +1,5 @@
-// Palette icons for the Reticle Designer — one per element type, plus the
-// selection arrow. Small filled/stroked SVGs in `currentColor`, so the
+// Icons for the Reticle Designer — one per element type, plus the
+// selection arrow, and undo and redo for the view's bar. Small filled/stroked SVGs in `currentColor`, so the
 // active/hover state is a CSS colour change.
 import { svgEl } from '../../svg.js';
 import { digitFont } from '../../reticle/digit-text.js';
@@ -32,6 +32,9 @@ const DRAWINGS = {
     svgEl('rect', { ...FILL, x: '2.5', y: '16.5', width: '3', height: '3' }),
     svgEl('rect', { ...FILL, x: '18.5', y: '4.5', width: '3', height: '3' })
   ],
+  // A hooked arrow back to the left, and its mirror image forward.
+  undo: () => [svgEl('path', { ...STROKE, d: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11' })],
+  redo: () => [svgEl('path', { ...STROKE, d: 'M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13' })],
   // "12" in the default digit font, from the same outlines the reticle uses.
   number: () => {
     const font = digitFont();

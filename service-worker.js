@@ -297,6 +297,7 @@ const APP_SHELL_URLS = [
   './src/ui/reticle-designer/element-nodes.js',
   './src/ui/reticle-thumbnail.js',
   './src/ui/reticle-designer/svg-import-panel.js',
+  './src/ui/reticle-designer/library-insert-panel.js',
   './src/ui/reticle-designer/controller.js',
   './src/ui/reticle-designer/fields.js',
   './src/ui/reticle-designer/element-icons.js',

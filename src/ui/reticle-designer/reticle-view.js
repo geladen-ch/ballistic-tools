@@ -29,6 +29,7 @@ import { snapAngle } from '../../reticle/angle-units.js';
 import { patchReticleEditor } from '../../reticle-designer-state.js';
 import { PALETTE_DRAG_TYPE } from './element-palette.js';
 import { elementNodes } from './element-nodes.js';
+import { elementIcon } from './element-icons.js';
 
 // Imported strokes thinner than this many drawing units are drawn at it.
 const MIN_STROKE = 1.2;
@@ -106,6 +107,20 @@ export function reticleView(ctl) {
     sfpNote
   ]);
 
+  // Undo and redo, as icons left of the zoom ring — shown for every scope,
+  // the zoom ring only for a variable one.
+  const historyButton = (key, onClick) => {
+    const button = el('button', { type: 'button', class: 'icon-button reticle-history-button', title: t(`reticleDesigner.view.${key}`), 'aria-label': t(`reticleDesigner.view.${key}`) }, [elementIcon(key, 18)]);
+    button.addEventListener('click', onClick);
+    return button;
+  };
+  const undoButton = historyButton('undo', () => ctl.undo());
+  const redoButton = historyButton('redo', () => ctl.redo());
+  const viewBar = el('div', { class: 'reticle-view-bar' }, [
+    el('div', { class: 'reticle-history', role: 'group' }, [undoButton, redoButton]),
+    magnificationBar
+  ]);
+
   const controls = el('div', { class: 'reticle-zoom-controls' }, [
     zoomButton('reticleDesigner.view.zoomIn', () => zoomAbout(HALF, HALF, BUTTON_ZOOM_STEP), '+'),
     zoomButton('reticleDesigner.view.zoomOut', () => zoomAbout(HALF, HALF, 1 / BUTTON_ZOOM_STEP), '−'),
@@ -117,7 +132,7 @@ export function reticleView(ctl) {
   const readout = el('div', { class: 'reticle-readout', 'aria-live': 'off' });
   readout.style.display = 'none';
   const node = el('section', { class: 'reticle-pane reticle-stage', 'aria-label': t('reticleDesigner.panes.view') }, [
-    magnificationBar,
+    viewBar,
     el('div', { class: 'reticle-canvas-wrap' }, [svg, readout]),
     controls
   ]);
@@ -308,6 +323,11 @@ export function reticleView(ctl) {
     }
   }
 
+  function renderHistory() {
+    undoButton.disabled = !ctl.canUndo();
+    redoButton.disabled = !ctl.canRedo();
+  }
+
   function renderMagnification() {
     const range = zoomRange(optics());
     magnificationBar.style.display = range ? '' : 'none';
@@ -334,6 +354,7 @@ export function reticleView(ctl) {
   }
 
   function render() {
+    renderHistory();
     renderMagnification();
     renderIllumination();
     const radius = displayRadius();

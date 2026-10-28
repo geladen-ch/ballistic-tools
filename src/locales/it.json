@@ -1852,6 +1852,7 @@
       "manufacturer": "Produttore",
       "model": "Modello",
       "saveToArsenal": "Salva nell’arsenale",
+      "returnToArsenal": "Torna all’arsenale",
       "discard": "Scarta le modifiche",
       "confirmDiscard": "Scartare le modifiche fatte dall’ultimo salvataggio nell’arsenale? Non si può annullare.",
       "confirmOverwrite": "Il tuo arsenale ha già un reticolo “{{name}}”. Sostituirlo con questo?",
@@ -1866,7 +1867,8 @@
         "newerVersion": "Questo reticolo è stato salvato da una versione più recente dell’app. Aggiorna l’app per aprirlo.",
         "tooLarge": "Questo file di reticolo è troppo grande o ha troppi elementi o copie per essere caricato.",
         "timeout": "La lettura di questo file di reticolo ha richiesto troppo tempo ed è stata interrotta."
-      }
+      },
+      "insertReticle": "Inserisci un reticolo intero…"
     },
     "scope": {
       "title": "Cannocchiale",
@@ -1902,16 +1904,16 @@
       "zero": "Mostra lo zero",
       "bdc": "Mostra i segni BDC",
       "illumination": "Mostra l’illuminazione",
-      "dimField": "Oscura il campo",
-      "undo": "Annulla",
-      "redo": "Ripeti"
+      "dimField": "Oscura il campo"
     },
     "view": {
       "zoomIn": "Ingrandisci",
       "zoomOut": "Riduci",
       "reset": "Ripristina vista (ingrandimento minimo)",
       "magnification": "Ingrandimento",
-      "sfpScale": "Valori qui: ×{{factor}} del valore nominale"
+      "sfpScale": "Valori qui: ×{{factor}} del valore nominale",
+      "undo": "Annulla",
+      "redo": "Ripeti"
     },
     "palette": {
       "select": "Seleziona",
@@ -2063,6 +2065,17 @@
         "timeout": "La lettura dell’SVG ha richiesto troppo tempo ed è stata interrotta.",
         "unexpected": "Non è stato possibile leggere l’SVG."
       }
+    },
+    "library": {
+      "title": "Inserisci un reticolo intero",
+      "intro": "Scegli uno dei tuoi reticoli o uno integrato per copiare tutta la sua geometria — ogni elemento — in questo reticolo, ciascun elemento al suo posto nell’originale, con i suoi gruppi e la sua illuminazione. Nulla viene convertito: ogni valore angolare entra così come è stato disegnato. Un reticolo non illuminato prende l’illuminazione dell’originale, e uno senza produttore né modello prende quelli dell’originale.",
+      "yours": "I tuoi reticoli",
+      "builtIn": "Reticoli integrati",
+      "loading": "Caricamento dei reticoli integrati…",
+      "none": "Non ci sono reticoli da inserire.",
+      "scopeDiffers": "Questo reticolo è stato disegnato per un altro tipo di ottica o un altro ingrandimento di calibrazione; i suoi valori angolari entrano invariati.",
+      "insert": "Inserisci nel reticolo",
+      "cancel": "Annulla"
     }
   }
 }

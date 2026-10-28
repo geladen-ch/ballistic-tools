@@ -323,6 +323,43 @@ export function duplicateElements(doc, ids, dx, dy) {
   return { doc: next, selection };
 }
 
+// Adds a copy of another reticle's elements (a library reticle, `source`
+// = { manufacturer, model, illumination, elements }), where they are and
+// as they are: angles are copied unchanged whatever scope the source was
+// drawn for, each element keeps its lit flag, and the source's groups come
+// along as new groups of their own. An unlit reticle takes the source's
+// illumination when that is on, and one with neither manufacturer nor
+// model takes the source's. Returns the new document and the selection
+// entries for the copies (their groups, and the elements in none).
+export function insertReticle(doc, source) {
+  const elements = source?.elements || [];
+  if (elements.length === 0) return { doc, selection: [] };
+  let nextId = doc.nextId;
+  const groupMap = new Map();
+  for (const e of elements) {
+    if (e.groupId && !groupMap.has(e.groupId)) groupMap.set(e.groupId, `g${nextId++}`);
+  }
+  const copies = elements.map((e) => ({ ...e, id: `e${nextId++}`, groupId: e.groupId ? groupMap.get(e.groupId) : null }));
+  let next = pruneGroups({
+    ...doc,
+    nextId,
+    elements: [...doc.elements, ...copies],
+    groups: [...doc.groups, ...[...groupMap.values()].map((id) => ({ id }))]
+  });
+  if (!doc.illumination?.enabled && source.illumination?.enabled) {
+    next = setIllumination(next, { enabled: true, colour: source.illumination.colour });
+  }
+  if (!doc.manufacturer.trim() && !doc.model.trim()) {
+    next = { ...next, manufacturer: source.manufacturer || '', model: source.model || '' };
+  }
+  const selection = [];
+  for (const c of copies) {
+    const entry = c.groupId && findGroup(next, c.groupId) ? c.groupId : c.id;
+    if (!selection.includes(entry)) selection.push(entry);
+  }
+  return { doc: next, selection };
+}
+
 export function updateReferenceScope(doc, patch) {
   return { ...doc, referenceScope: { ...doc.referenceScope, ...patch } };
 }

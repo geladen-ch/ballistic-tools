@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { createElement } from '../src/reticle/element-types.js';
 import {
   createDocument, addElement, updateElement, moveEndpoint, spanSegment, clampEnd, clampStart, axisMoveLimits, translate,
-  groupElements, ungroup, groupPosition, setGroupPosition, deleteElements, duplicateElements, findElement, resolveElementIds
+  groupElements, ungroup, groupPosition, setGroupPosition, deleteElements, duplicateElements, findElement, resolveElementIds,
+  insertReticle, setIllumination, setIdentity
 } from '../src/reticle/model.js';
 
 function hline(x, endX, y = 0) {
@@ -219,4 +220,36 @@ test('a BDC mark can be neither mirrored nor repeated', async () => {
   assert.equal(validateElement({ ...bdc, mirror: true }).mirror, 'notMirrorable');
   assert.equal(validateElement({ ...bdc, repeat: { enabled: true, direction: 'down', count: 2, step: 0.001 } }).repeat, 'notRepeatable');
   assert.equal(validateElement({ ...bdc, x: 0.001 }).x, 'onVerticalAxis');
+});
+
+test('insertReticle copies a reticle\'s elements where they are, with fresh ids and its own groups as new ones', () => {
+  const { doc: target } = withElements(hline(1, 3), vline(1, 3));
+  const grouped = groupElements(withElements(hline(2, 5, 1), vline(2, 5, 1), vbar(1, 4, 2)).doc, ['e1', 'e2']).doc;
+  const source = { ...grouped, manufacturer: 'Maker', model: 'R1' };
+  const { doc, selection } = insertReticle(target, source);
+  assert.equal(doc.elements.length, 5);
+  const ids = doc.elements.map((e) => e.id);
+  assert.equal(new Set(ids).size, 5, 'ids stay unique');
+  const copies = doc.elements.slice(2);
+  assert.deepEqual(copies.map(({ id, groupId, ...rest }) => rest), source.elements.map(({ id, groupId, ...rest }) => rest), 'geometry unchanged');
+  const groupId = copies[0].groupId;
+  assert.ok(groupId && groupId !== source.groups[0].id && copies[1].groupId === groupId && copies[2].groupId === null);
+  assert.deepEqual(doc.groups.map((g) => g.id), [groupId]);
+  assert.deepEqual(selection, [groupId, copies[2].id]);
+  assert.deepEqual([doc.manufacturer, doc.model], ['Maker', 'R1'], 'a target with no identity takes the source\'s');
+});
+
+test('insertReticle adopts the source\'s illumination and identity only where the target has none', () => {
+  const lit = { ...hline(1, 3), illuminated: true };
+  const source = { ...withElements(lit).doc, manufacturer: 'Maker', model: 'R1', illumination: { enabled: true, colour: 'green' } };
+  const fresh = insertReticle(createDocument(), source).doc;
+  assert.deepEqual(fresh.illumination, { enabled: true, colour: 'green' });
+  assert.deepEqual([fresh.manufacturer, fresh.model], ['Maker', 'R1']);
+  assert.equal(fresh.elements[0].illuminated, true);
+  const own = setIdentity(setIllumination(createDocument(), { enabled: true, colour: 'amber' }), { model: 'Mine' });
+  const kept = insertReticle(own, source).doc;
+  assert.deepEqual(kept.illumination, { enabled: true, colour: 'amber' });
+  assert.deepEqual([kept.manufacturer, kept.model], ['', 'Mine']);
+  const empty = createDocument();
+  assert.equal(insertReticle(empty, { ...source, elements: [] }).doc, empty);
 });

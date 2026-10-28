@@ -1,8 +1,8 @@
 // Session state for the Reticle Designer: the reticle being edited, its
 // undo history, the editor's own settings (unit switch, toggles, active
 // tool, selection, view), and its target — which Arsenal reticle it is
-// (null until first saved there) and whether the Arsenal opened it (Save
-// to arsenal and Discard changes then go back there). Held in module
+// (null until first saved there) and whether the Arsenal opened it
+// (Discard changes then goes back there). Held in module
 // memory only — it survives moving to another tool and back, but not a
 // reload or an app restart; work is kept by saving it to the Arsenal. The
 // view warns before a reload discards unsaved changes.
@@ -76,7 +76,7 @@ export function getReticleTarget() {
   return session.target;
 }
 
-// Whether Save to arsenal and Discard changes go back to the Arsenal.
+// Whether Discard changes goes back to the Arsenal.
 export function setReticleReturnToArsenal(on) {
   session = { ...session, target: { ...session.target, fromArsenal: on } };
 }

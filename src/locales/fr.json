@@ -1852,6 +1852,7 @@
       "manufacturer": "Fabricant",
       "model": "Modèle",
       "saveToArsenal": "Enregistrer dans l’arsenal",
+      "returnToArsenal": "Retour à l’arsenal",
       "discard": "Abandonner les modifications",
       "confirmDiscard": "Abandonner les modifications faites depuis le dernier enregistrement dans l’arsenal ? Impossible d’annuler.",
       "confirmOverwrite": "Votre arsenal contient déjà un réticule « {{name}} ». Le remplacer par celui-ci ?",
@@ -1866,7 +1867,8 @@
         "newerVersion": "Ce réticule a été enregistré par une version plus récente de l’application. Mettez l’application à jour pour l’ouvrir.",
         "tooLarge": "Ce fichier de réticule est trop volumineux ou contient trop d’éléments ou de copies pour être chargé.",
         "timeout": "La lecture de ce fichier de réticule a pris trop de temps et a été interrompue."
-      }
+      },
+      "insertReticle": "Insérer un réticule entier…"
     },
     "scope": {
       "title": "Lunette",
@@ -1902,16 +1904,16 @@
       "zero": "Afficher le zéro",
       "bdc": "Afficher les repères BDC",
       "illumination": "Afficher l’illumination",
-      "dimField": "Assombrir le champ",
-      "undo": "Annuler",
-      "redo": "Rétablir"
+      "dimField": "Assombrir le champ"
     },
     "view": {
       "zoomIn": "Zoom avant",
       "zoomOut": "Zoom arrière",
       "reset": "Réinitialiser la vue (grossissement minimal)",
       "magnification": "Grossissement",
-      "sfpScale": "Valeurs ici : ×{{factor}} de la valeur nominale"
+      "sfpScale": "Valeurs ici : ×{{factor}} de la valeur nominale",
+      "undo": "Annuler",
+      "redo": "Rétablir"
     },
     "palette": {
       "select": "Sélectionner",
@@ -2063,6 +2065,17 @@
         "timeout": "La lecture du SVG a pris trop de temps et a été interrompue.",
         "unexpected": "Le SVG n’a pas pu être lu."
       }
+    },
+    "library": {
+      "title": "Insérer un réticule entier",
+      "intro": "Choisissez l’un de vos réticules ou un réticule intégré pour copier toute sa géométrie — tous ses éléments — dans ce réticule, chaque élément à sa place dans l’original, avec ses groupes et son éclairage. Rien n’est converti : chaque valeur angulaire est reprise telle qu’elle a été dessinée. Un réticule non éclairé prend l’éclairage de l’original, et un réticule sans fabricant ni modèle prend ceux de l’original.",
+      "yours": "Vos réticules",
+      "builtIn": "Réticules intégrés",
+      "loading": "Chargement des réticules intégrés…",
+      "none": "Il n’y a aucun réticule à insérer.",
+      "scopeDiffers": "Ce réticule a été dessiné pour un autre type de lunette ou un autre grossissement de calibrage ; ses valeurs angulaires sont reprises telles quelles.",
+      "insert": "Insérer dans le réticule",
+      "cancel": "Annuler"
     }
   }
 }

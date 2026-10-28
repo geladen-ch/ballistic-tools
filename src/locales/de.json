@@ -1852,6 +1852,7 @@
       "manufacturer": "Hersteller",
       "model": "Modell",
       "saveToArsenal": "Im Arsenal speichern",
+      "returnToArsenal": "Zurück zum Arsenal",
       "discard": "Änderungen verwerfen",
       "confirmDiscard": "Die Änderungen seit dem letzten Speichern im Arsenal verwerfen? Das lässt sich nicht rückgängig machen.",
       "confirmOverwrite": "Im Arsenal gibt es schon ein Absehen „{{name}}“. Durch dieses ersetzen?",
@@ -1866,7 +1867,8 @@
         "newerVersion": "Dieses Absehen wurde mit einer neueren Version der App gespeichert. Bitte die App aktualisieren, um es zu öffnen.",
         "tooLarge": "Diese Absehen-Datei ist zu groß oder hat zu viele Elemente oder Kopien zum Laden.",
         "timeout": "Das Lesen dieser Absehen-Datei hat zu lange gedauert und wurde abgebrochen."
-      }
+      },
+      "insertReticle": "Ganzes Absehen einfügen…"
     },
     "scope": {
       "title": "Zielfernrohr",
@@ -1902,16 +1904,16 @@
       "zero": "Nullpunkt anzeigen",
       "bdc": "BDC-Marken anzeigen",
       "illumination": "Beleuchtung anzeigen",
-      "dimField": "Sichtfeld abdunkeln",
-      "undo": "Rückgängig",
-      "redo": "Wiederholen"
+      "dimField": "Sichtfeld abdunkeln"
     },
     "view": {
       "zoomIn": "Vergrößern",
       "zoomOut": "Verkleinern",
       "reset": "Ansicht zurücksetzen (niedrigste Vergrößerung)",
       "magnification": "Vergrößerung",
-      "sfpScale": "Winkelwerte hier: ×{{factor}} des Nennwerts"
+      "sfpScale": "Winkelwerte hier: ×{{factor}} des Nennwerts",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen"
     },
     "palette": {
       "select": "Auswählen",
@@ -2063,6 +2065,17 @@
         "timeout": "Das Lesen der SVG hat zu lange gedauert und wurde abgebrochen.",
         "unexpected": "Die SVG konnte nicht gelesen werden."
       }
+    },
+    "library": {
+      "title": "Ein ganzes Absehen einfügen",
+      "intro": "Wählen Sie eines Ihrer Absehen oder ein mitgeliefertes, um seine gesamte Geometrie — alle Elemente — in dieses Absehen zu übernehmen, jedes Element an seiner Stelle im Original, mit seinen Gruppen und Beleuchtungsangaben. Nichts wird umgerechnet: Jeder Winkelwert wird so übernommen, wie er gezeichnet wurde. Ein unbeleuchtetes Absehen übernimmt die Beleuchtung des Originals, eines ohne Hersteller und Modell dessen Hersteller und Modell.",
+      "yours": "Ihre Absehen",
+      "builtIn": "Mitgelieferte Absehen",
+      "loading": "Mitgelieferte Absehen werden geladen…",
+      "none": "Es gibt keine Absehen zum Einfügen.",
+      "scopeDiffers": "Dieses Absehen wurde für einen anderen Zielfernrohrtyp oder eine andere Kalibriervergrösserung gezeichnet; seine Winkelwerte werden unverändert übernommen.",
+      "insert": "Ins Absehen einfügen",
+      "cancel": "Abbrechen"
     }
   }
 }
