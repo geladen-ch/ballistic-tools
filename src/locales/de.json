@@ -492,7 +492,19 @@
     "rangeCardNoTargetsHint": "Für diesen Standort sind noch keine Ziele vorhanden — fügen Sie welche in der Standortverwaltung hinzu.",
     "rangeCardNoPhotoHint": "Fügen Sie diesem Standort ein Foto hinzu, um Ziele hier visuell auszuwählen.",
     "rangeCardRangeHeader": "Entfernung",
-    "rangeCardRowCountLabel": "Zeilen"
+    "rangeCardRowCountLabel": "Zeilen",
+    "scopeView": {
+      "toggle": "Zielfernrohransicht",
+      "canvasLabel": "Absehen mit Haltepunkt",
+      "zoomLabel": "Vergrösserung",
+      "modeLabel": "Haltepunkt",
+      "mode": {
+        "hold": "Halten",
+        "dialElevation": "Höhe drehen"
+      },
+      "sfpScale": "Teilung hier: ×{{factor}} des Nennwerts",
+      "offField": "Haltepunkt ausserhalb des Sehfelds"
+    }
   },
   "rangeSolverLocations": {
     "title": "Standorte & Ziele",
@@ -1566,6 +1578,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v229": "Neu: Zielfernrohre und Absehen im Arsenal (inklusive eingebauter Bibliothek), mit Gewehren verknüpfbar. Zielfernrohransicht im Feldrechner: dein Absehen bei jeder Vergrösserung, mit markiertem Haltepunkt, Höhe gehalten oder gedreht.",
       "v228": "Änderung: Das Arsenal ist in die Reiter Gewehre, Geschosse und Zielfernrohre aufgeteilt. Der Kaliber-/Herstellerfilter gilt gemeinsam für Gewehre und Geschosse; Zielfernrohre ist ein Platzhalter für kommende Zielfernrohr- und Absehen-Definitionen.",
       "v227": "Änderung: Absehen-Dateien speichern nur noch die verwendeten Einstellungen (z. B. keine Wiederholungseinstellungen, wenn die Wiederholung aus ist). Mit 4.3.0 gespeicherte Dateien lassen sich weiterhin laden.",
       "v226": "Neu: Werkzeug zum Entwerfen von Absehen (wird bald nützlich)",

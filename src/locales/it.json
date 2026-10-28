@@ -492,7 +492,19 @@
     "rangeCardNoTargetsHint": "Questa posizione non ha ancora bersagli — aggiungine dalla gestione posizioni.",
     "rangeCardNoPhotoHint": "Aggiungi una foto a questa posizione per scegliere i bersagli visivamente qui.",
     "rangeCardRangeHeader": "Distanza",
-    "rangeCardRowCountLabel": "Righe"
+    "rangeCardRowCountLabel": "Righe",
+    "scopeView": {
+      "toggle": "Vista cannocchiale",
+      "canvasLabel": "Reticolo con il punto di mira",
+      "zoomLabel": "Ingrandimento",
+      "modeLabel": "Punto di mira",
+      "mode": {
+        "hold": "Correzione a reticolo",
+        "dialElevation": "Elevazione in torretta"
+      },
+      "sfpScale": "Suddivisioni qui: ×{{factor}} del valore nominale",
+      "offField": "punto di mira fuori dal campo visivo"
+    }
   },
   "rangeSolverLocations": {
     "title": "Postazioni e bersagli",
@@ -1566,6 +1578,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v229": "Novità: ottiche e reticoli nell'Arsenale (libreria integrata inclusa), collegabili ai fucili. Vista cannocchiale del Calcolatore per il poligono: il tuo reticolo a ogni ingrandimento, con il punto di mira segnato, elevazione a reticolo o in torretta.",
       "v228": "Modifica: l'Arsenale è suddiviso nelle schede Fucili, Proiettili e Ottiche. Il filtro calibro/produttore è condiviso tra Fucili e Proiettili; Ottiche è un segnaposto per le prossime definizioni di ottiche e reticoli.",
       "v227": "Modifica: i file dei reticoli salvano ora solo le impostazioni in uso (ad es. nessuna impostazione di ripetizione quando la ripetizione è disattivata). I file salvati con la 4.3.0 si caricano ancora.",
       "v226": "Novità: strumento per progettare reticoli (presto sarà utile)",

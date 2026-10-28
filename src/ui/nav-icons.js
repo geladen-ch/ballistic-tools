@@ -222,3 +222,46 @@ export function reticleIcon(size = 20) {
     svgEl('line', { x1: '15.5', y1: '10', x2: '18.5', y2: '10' })
   ]);
 }
+
+// A classic mil-dot centre — the Range Solver's scope view toggle: a thin
+// crosshair with two dots on each arm and heavy posts at the ends.
+export function scopeViewIcon(size = 18) {
+  const dot = (cx, cy) => svgEl('circle', { cx, cy, r: '1', fill: 'currentColor', stroke: 'none' });
+  const post = (x1, y1, x2, y2) => svgEl('line', { x1, y1, x2, y2, 'stroke-width': '3', 'stroke-linecap': 'butt' });
+  return icon(size, '0 0 20 20', [
+    svgEl('line', { x1: '4', y1: '10', x2: '16', y2: '10', 'stroke-width': '1' }),
+    svgEl('line', { x1: '10', y1: '4', x2: '10', y2: '16', 'stroke-width': '1' }),
+    post('0.5', '10', '4', '10'), post('16', '10', '19.5', '10'),
+    post('10', '0.5', '10', '4'), post('10', '16', '10', '19.5'),
+    dot('7', '10'), dot('13', '10'), dot('10', '7'), dot('10', '13')
+  ]);
+}
+
+// The Range Solver scope view's two aiming-point modes, as one reticle
+// shown two ways: Hold — the target sits off both axes, everything held;
+// Dial elevation — the vertical part has gone up on the turret (the arrow
+// above), only the windage hold is left, on the horizontal axis.
+function aimModeReticle() {
+  return [
+    svgEl('circle', { cx: '10', cy: '11', r: '7.4' }),
+    svgEl('line', { x1: '10', y1: '3.6', x2: '10', y2: '18.4', 'stroke-width': '1' }),
+    svgEl('line', { x1: '2.6', y1: '11', x2: '17.4', y2: '11', 'stroke-width': '1' })
+  ];
+}
+
+export function holdIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    ...aimModeReticle(),
+    svgEl('line', { x1: '9.2', y1: '11.8', x2: '7.4', y2: '13.6', 'stroke-width': '1.2' }),
+    svgEl('circle', { cx: '6.2', cy: '14.8', r: '1.7', fill: 'currentColor', stroke: 'none' })
+  ]);
+}
+
+export function dialElevationIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    ...aimModeReticle(),
+    svgEl('line', { x1: '9', y1: '11', x2: '7.9', y2: '11', 'stroke-width': '1.2' }),
+    svgEl('circle', { cx: '6.2', cy: '11', r: '1.7', fill: 'currentColor', stroke: 'none' }),
+    svgEl('path', { d: 'M10 3.2V0.9M8.7 2.2 10 0.9 11.3 2.2', 'stroke-width': '1.3' })
+  ]);
+}

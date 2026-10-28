@@ -230,6 +230,14 @@ Usa lo stesso fucile, cartuccia e proiettile attivi di Traiettoria e
 Probabilità di colpire (impostati in **Armi**) e lo stesso azzeramento —
 qui non c'è un'impostazione separata di azzeramento da combattimento.
 
+### Vista cannocchiale
+
+Quando l'arma attiva ha un cannocchiale dell'Arsenale (Armi → Arsenale → arma → Ottica), all'estremità destra della barra delle condizioni compare un pulsante reticolo. Mostra il reticolo dell'arma come si vede in quel cannocchiale, sopra una lettura ridotta. L'impostazione viene ricordata.
+
+- **Punto di mira** — l'anello blu indica dove mettere il bersaglio. **Correzione a reticolo** mostra tutta la correzione presa sul reticolo, niente in torretta; **Elevazione in torretta** presuppone l'elevazione impostata in torretta e mostra solo la correzione per il vento, sull'asse orizzontale. Sottili linee collegano il punto ai due assi, per leggere la correzione sulle tacche. Se il punto cade fuori dal campo visivo, una freccia sul bordo ne indica la direzione.
+- **Anello degli ingrandimenti** — la scala accanto al reticolo imposta l'ingrandimento sull'escursione reale del cannocchiale, con una tacca a ogni ingrandimento intero. Trascinala, toccala o usa i tasti freccia (Pagina su / Pagina giù per passi interi). Un cannocchiale a ingrandimento fisso non ha l'anello.
+- **Secondo piano focale** — le suddivisioni sono esatte a un solo ingrandimento. È evidenziato sull'anello, che vi si aggancia entro il 5 %. A ogni altro ingrandimento una nota indica quanto valgono le suddivisioni, e il punto si sposta dove la correzione cade sul reticolo a quell'ingrandimento.
+
 ### Postazioni e bersagli
 
 Facoltativo: salva una volta i bersagli di una postazione di tiro — la loro

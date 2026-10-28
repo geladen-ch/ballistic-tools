@@ -234,6 +234,14 @@ Utilise la même carabine, cartouche et balle actives que Trajectoire et
 Probabilité d'impact (définies dans **Armes**), avec le même zéro — pas de
 réglage de zéro de combat séparé ici.
 
+### Vue lunette
+
+Lorsque l'arme active a une lunette de l'Arsenal (Armes → Arsenal → arme → Lunette), un bouton réticule apparaît à droite de la barre des conditions. Il affiche le réticule de l'arme tel qu'on le voit dans cette lunette, au-dessus d'un affichage réduit. Le réglage est mémorisé.
+
+- **Point de visée** — l'anneau bleu indique où placer la cible. **Correction au réticule** montre toute la correction prise au réticule, rien à la tourelle ; **Élévation à la tourelle** suppose l'élévation réglée à la tourelle et ne montre que la correction de dérive, sur l'axe horizontal. De fines lignes relient le point aux deux axes pour lire la correction sur les graduations. Si le point tombe hors du champ de vision, une flèche au bord indique sa direction.
+- **Bague de grossissement** — l'échelle à côté du réticule règle le grossissement sur la plage réelle de la lunette, avec un trait à chaque grossissement entier. Faites-la glisser, touchez-la ou utilisez les flèches du clavier (Page préc. / Page suiv. pour des pas entiers). Une lunette à grossissement fixe n'a pas de bague.
+- **Second plan focal** — les graduations ne sont justes qu'à un seul grossissement. Il est mis en évidence sur la bague, qui s'y arrête à moins de 5 %. À tout autre grossissement, une note indique la valeur des graduations, et le point se déplace là où la correction tombe sur le réticule à ce grossissement.
+
 ### Emplacements et cibles
 
 Facultatif : enregistrez une fois les cibles d'un pas de tir — leur

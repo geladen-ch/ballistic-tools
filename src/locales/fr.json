@@ -492,7 +492,19 @@
     "rangeCardNoTargetsHint": "Ce lieu n'a pas encore de cibles — ajoutez-en depuis le gestionnaire de lieux.",
     "rangeCardNoPhotoHint": "Ajoutez une photo à ce lieu pour choisir les cibles visuellement ici.",
     "rangeCardRangeHeader": "Distance",
-    "rangeCardRowCountLabel": "Lignes"
+    "rangeCardRowCountLabel": "Lignes",
+    "scopeView": {
+      "toggle": "Vue lunette",
+      "canvasLabel": "Réticule avec le point de visée",
+      "zoomLabel": "Grossissement",
+      "modeLabel": "Point de visée",
+      "mode": {
+        "hold": "Correction au réticule",
+        "dialElevation": "Élévation à la tourelle"
+      },
+      "sfpScale": "Graduations ici : ×{{factor}} de la valeur nominale",
+      "offField": "point de visée hors du champ de vision"
+    }
   },
   "rangeSolverLocations": {
     "title": "Emplacements et cibles",
@@ -1566,6 +1578,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v229": "Nouveau : lunettes et réticules dans l'Arsenal (bibliothèque intégrée incluse), associables aux carabines. Vue lunette du Calculateur de terrain : votre réticule à tout grossissement, avec le point de visée marqué, élévation au réticule ou à la tourelle.",
       "v228": "Modification : l'Arsenal est réparti en onglets Carabines, Balles et Lunettes. Le filtre calibre/fabricant est commun aux Carabines et aux Balles ; Lunettes est un emplacement réservé aux futures définitions de lunettes et de réticules.",
       "v227": "Modification : les fichiers de réticule n’enregistrent plus que les réglages utilisés (p. ex. aucun réglage de répétition quand la répétition est désactivée). Les fichiers enregistrés avec la 4.3.0 se chargent toujours.",
       "v226": "Nouveau : outil de conception de réticules (bientôt utile)",

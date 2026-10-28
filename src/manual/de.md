@@ -229,6 +229,14 @@ Flugbahn und Trefferwahrscheinlichkeit (festgelegt unter **Waffen**) sowie
 denselben Nullpunkt — hier gibt es keine separate Gefechtsnullpunkt-
 Einstellung.
 
+### Zielfernrohransicht
+
+Hat die aktive Waffe ein Zielfernrohr aus dem Arsenal (Waffen → Arsenal → Waffe → Zielfernrohr), erscheint am rechten Ende der Bedingungszeile eine Absehen-Schaltfläche. Sie zeigt das Absehen der Waffe, wie man es durch dieses Zielfernrohr sieht, über einer kleineren Anzeige. Die Einstellung bleibt gespeichert.
+
+- **Haltepunkt** — der blaue Ring zeigt, wohin das Ziel gehört. **Halten** zeigt die ganze Korrektur als Haltepunkt im Absehen, nichts gedreht; **Höhe drehen** nimmt an, dass die Höhe am Turm eingestellt ist, und zeigt nur den Seitenhalt auf der waagrechten Achse. Dünne Linien verbinden den Haltepunkt mit beiden Achsen, damit sich der Halt an der Teilung ablesen lässt. Liegt der Halt ausserhalb des Sehfelds, zeigt ein Pfeil am Rand in seine Richtung.
+- **Vergrösserungsring** — die Skala neben dem Absehen stellt die Vergrösserung über den tatsächlichen Zoombereich des Zielfernrohrs ein, mit einem Strich bei jeder ganzen Vergrösserung. Ziehen, tippen oder die Pfeiltasten verwenden (Bild auf / Bild ab für ganze Schritte). Ein Zielfernrohr mit fester Vergrösserung hat keinen Ring.
+- **Zweite Bildebene** — die Teilung stimmt nur bei einer Vergrösserung. Diese ist auf dem Ring hervorgehoben, und der Ring rastet innerhalb von 5 % darauf ein. Bei jeder anderen Vergrösserung zeigt ein Hinweis, was die Teilung wert ist, und der Haltepunkt wandert dorthin, wo der Halt bei dieser Vergrösserung im Absehen liegt.
+
 ### Standorte & Ziele
 
 Optional: Speichern Sie die Ziele eines Schießplatzes einmal — Distanz und

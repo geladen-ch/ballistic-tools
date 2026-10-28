@@ -13,7 +13,7 @@
 import { el, clear } from '../dom.js';
 import { inlineNumberField } from '../ui/inline-number-field.js';
 import { windControl } from '../ui/wind-control.js';
-import { losAngleIcon } from '../ui/nav-icons.js';
+import { losAngleIcon, scopeViewIcon } from '../ui/nav-icons.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
@@ -23,7 +23,9 @@ import { computeImpact } from '../engine/trajectory.js';
 import { clicksForOffset, convertAngularValue, siToDisplay, displayToSI, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
-import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
+import { getIndicatorStyle, getOutputUnit, isScopeViewOn, setScopeViewOn } from '../range-solver-prefs.js';
+import { scopeView as createScopeView } from '../ui/range-solver/scope-view.js';
+import { resolveRifleOptic, rifleOpticKey } from '../rifle-optic.js';
 import { INDICATOR_GLYPHS } from '../ui/dope-format.js';
 import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
@@ -427,9 +429,65 @@ export function mount(container) {
     el('div', { class: 'range-solver-footer-stat' }, [i18nSpan('rangeSolver.energyLabel'), energyValue])
   ]);
 
-  const outputPane = el('div', { class: 'range-solver-output-pane' }, [guns.node, conditionsBar, readout, footer]);
+  // ---- Scope view — the rifle's reticle with the shot's aiming point,
+  // above a compact readout. Only offered when the active rifle has a
+  // scope with a reticle (rifle-optic.js). The toggle sits at the end of
+  // the conditions row while the view is off, and in the corner of the
+  // reticle's square while it is on, so the row needs only its text's
+  // height then.
+  const scopeView = createScopeView();
+  scopeView.node.style.display = 'none';
+  const scopeViewButton = el('button', {
+    type: 'button', class: 'icon-button range-solver-scope-toggle', 'aria-pressed': 'false',
+    title: t('rangeSolver.scopeView.toggle'), 'aria-label': t('rangeSolver.scopeView.toggle')
+  }, [scopeViewIcon(22)]);
+  scopeViewButton.style.display = 'none';
+  scopeViewButton.addEventListener('click', () => {
+    setScopeViewOn(!isScopeViewOn());
+    applyScopeView();
+  });
+  const conditionsRow = el('div', { class: 'range-solver-conditions-row' }, [conditionsBar, scopeViewButton]);
 
-  container.appendChild(el('div', { class: 'range-solver-layout' }, [outputPane, inputPane]));
+  let rifleOptic = null;
+  let rifleOpticKeyValue = null;
+  let rifleOpticRequest = 0;
+  function refreshRifleOptic() {
+    const selected = rifle.getSelectedRifle();
+    const key = rifleOpticKey(selected);
+    if (key === rifleOpticKeyValue) return;
+    rifleOpticKeyValue = key;
+    const request = ++rifleOpticRequest;
+    rifleOptic = null;
+    applyScopeView();
+    if (!key) return;
+    resolveRifleOptic(selected).then((optic) => {
+      if (disposed || request !== rifleOpticRequest) return;
+      rifleOptic = optic;
+      applyScopeView();
+    });
+  }
+
+  function applyScopeView() {
+    const available = !!rifleOptic;
+    const active = available && isScopeViewOn();
+    scopeViewButton.style.display = available ? '' : 'none';
+    scopeViewButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+    scopeViewButton.classList.toggle('active', active);
+    const home = active ? scopeView.corner : conditionsRow;
+    if (scopeViewButton.parentNode !== home) {
+      if (scopeViewButton.parentNode) scopeViewButton.parentNode.removeChild(scopeViewButton);
+      home.appendChild(scopeViewButton);
+    }
+    scopeView.node.style.display = active ? '' : 'none';
+    readout.classList.toggle('compact', active);
+    layout.classList.toggle('scope-view-on', active);
+    scopeView.setOptic(active ? rifleOptic : null);
+  }
+
+  const outputPane = el('div', { class: 'range-solver-output-pane' }, [guns.node, conditionsRow, scopeView.node, readout, footer]);
+
+  const layout = el('div', { class: 'range-solver-layout' }, [outputPane, inputPane]);
+  container.appendChild(layout);
 
   // The dialed correction, sign shown as a direction glyph (leading, not
   // trailing — read the direction first) rather than +/- — a value that
@@ -523,6 +581,7 @@ export function mount(container) {
   // empty while retyping it) or otherwise produces a non-finite result —
   // "—" everywhere rather than a stray "NaN" reaching the screen.
   function showPlaceholder() {
+    scopeView.setShot(null);
     lastElevValue = null;
     lastWindValue = null;
     clear(elevationValue);
@@ -606,6 +665,11 @@ export function mount(container) {
     }
     if (![result.dropM, result.windageM, result.velocity, result.tof].every(Number.isFinite)) return null;
 
+    // The correction as angles, signed as the readout shows it (positive:
+    // dial up, dial right) — also what the scope view draws its aiming
+    // point from.
+    const elevationRad = -linearToAngleAtRange(result.dropM, targetRangeM);
+    const windageRad = linearToAngleAtRange(result.windageM, targetRangeM);
     let elevValue;
     let windValue;
     let decimals;
@@ -619,12 +683,12 @@ export function mount(container) {
       // trajectory-columns.js's own elevMrad/elevMOA columns use, sidestepping
       // the rifle's own scope click value entirely.
       const angularUnit = OUTPUT_ANGULAR_UNIT[outputUnit];
-      elevValue = -convertAngularValue(linearToAngleAtRange(result.dropM, targetRangeM), 'rad', angularUnit);
-      windValue = convertAngularValue(linearToAngleAtRange(result.windageM, targetRangeM), 'rad', angularUnit);
+      elevValue = convertAngularValue(elevationRad, 'rad', angularUnit);
+      windValue = convertAngularValue(windageRad, 'rad', angularUnit);
       decimals = 1;
     }
-    if (![elevValue, windValue].every(Number.isFinite)) return null;
-    return { elevValue, windValue, decimals, result };
+    if (![elevValue, windValue, elevationRad, windageRad].every(Number.isFinite)) return null;
+    return { elevValue, windValue, decimals, elevationRad, windageRad, result };
   }
 
   // range/LoS display string for one target's row — same targetRange
@@ -662,6 +726,7 @@ export function mount(container) {
   }
 
   function recompute() {
+    refreshRifleOptic();
     updateConditions();
     detachIfHandEdited();
     const nominalStateBase = buildNominalStateBase();
@@ -690,6 +755,7 @@ export function mount(container) {
     }
 
     renderReadout(solved.elevValue, solved.windValue, solved.decimals);
+    scopeView.setShot({ elevationRad: solved.elevationRad, windageRad: solved.windageRad });
     tofValue.textContent = `${solved.result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;
     energyValue.textContent = `${displayEnergy.toFixed(0)} ${energyChoice.label}`;
@@ -723,5 +789,6 @@ export function mount(container) {
     wrapResizeObserver?.disconnect();
     if (wrapSyncFrame !== null) cancelAnimationFrame(wrapSyncFrame);
     rangeCard.dispose();
+    scopeView.dispose();
   };
 }

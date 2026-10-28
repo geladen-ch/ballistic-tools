@@ -1,0 +1,129 @@
+{
+  "id": "generic-mildot",
+  "name": "Generic Mildot",
+  "manufacturer": "Generic",
+  "model": "Mildot",
+  "referenceScope": {
+    "type": "ffp",
+    "zoomMin": 3,
+    "zoomMax": 12
+  },
+  "elements": [
+    {
+      "type": "hline",
+      "x": -0.005,
+      "y": 0,
+      "width": 0.00007000000000000001,
+      "endX": 0.005
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.005,
+      "width": 0.00007000000000000001,
+      "endY": 0.005
+    },
+    {
+      "type": "dot",
+      "x": 0.001,
+      "y": 0,
+      "diameter": 0.0002,
+      "mirror": true,
+      "repeat": {
+        "direction": "right",
+        "count": 3,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "dot",
+      "x": 0,
+      "y": -0.004,
+      "diameter": 0.0002,
+      "repeat": {
+        "direction": "down",
+        "count": 3,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "dot",
+      "x": 0,
+      "y": 0.001,
+      "diameter": 0.0002,
+      "repeat": {
+        "direction": "down",
+        "count": 3,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": 0.07,
+      "y": 0,
+      "width": 0.0006,
+      "endX": 0.005,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.005,
+      "width": 0.0006,
+      "endY": -0.07
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": 0.005,
+      "width": 0.0006,
+      "endY": 0.07
+    },
+    {
+      "type": "vline",
+      "x": 0.01,
+      "y": -0.0005,
+      "width": 0.00007000000000000001,
+      "endY": 0.0005,
+      "mirror": true
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": -0.01,
+      "width": 0.00007000000000000001,
+      "endX": 0.0005
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": 0.01,
+      "width": 0.00007000000000000001,
+      "endX": 0.0005
+    },
+    {
+      "type": "bdc",
+      "y": 0
+    },
+    {
+      "type": "bdc",
+      "y": 0.001
+    },
+    {
+      "type": "bdc",
+      "y": 0.002
+    },
+    {
+      "type": "bdc",
+      "y": 0.003
+    },
+    {
+      "type": "bdc",
+      "y": 0.004
+    },
+    {
+      "type": "bdc",
+      "y": 0.005
+    }
+  ]
+}

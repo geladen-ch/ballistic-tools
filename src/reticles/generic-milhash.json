@@ -1,0 +1,143 @@
+{
+  "id": "generic-milhash",
+  "name": "Generic Milhash",
+  "manufacturer": "Generic",
+  "model": "Milhash",
+  "referenceScope": {
+    "type": "ffp",
+    "zoomMin": 5,
+    "zoomMax": 25
+  },
+  "elements": [
+    {
+      "type": "hline",
+      "x": -0.005,
+      "y": 0,
+      "width": 0.00007000000000000001,
+      "endX": 0.005
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.005,
+      "width": 0.00007000000000000001,
+      "endY": 0.005
+    },
+    {
+      "type": "hline",
+      "x": 0.07,
+      "y": 0,
+      "width": 0.0004,
+      "endX": 0.005,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.005,
+      "width": 0.0004,
+      "endY": -0.07
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": 0.005,
+      "width": 0.0004,
+      "endY": 0.07
+    },
+    {
+      "type": "vline",
+      "x": 0.01,
+      "y": -0.0005,
+      "width": 0.00007000000000000001,
+      "endY": 0.0005,
+      "mirror": true
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": -0.01,
+      "width": 0.00007000000000000001,
+      "endX": 0.0005
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": 0.01,
+      "width": 0.00007000000000000001,
+      "endX": 0.0005
+    },
+    {
+      "type": "bdc",
+      "y": 0
+    },
+    {
+      "type": "bdc",
+      "y": 0.001
+    },
+    {
+      "type": "bdc",
+      "y": 0.002
+    },
+    {
+      "type": "bdc",
+      "y": 0.003
+    },
+    {
+      "type": "bdc",
+      "y": 0.004
+    },
+    {
+      "type": "bdc",
+      "y": 0.005
+    },
+    {
+      "type": "hline",
+      "x": -0.0002,
+      "y": -0.004,
+      "width": 0.00005,
+      "endX": 0.0002,
+      "repeat": {
+        "direction": "down",
+        "count": 8,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "vline",
+      "x": -0.004,
+      "y": 0.0002,
+      "width": 0.00005,
+      "endY": -0.0002,
+      "repeat": {
+        "direction": "right",
+        "count": 8,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": -0.0001,
+      "y": -0.0045000000000000005,
+      "width": 0.00005,
+      "endX": 0.0001,
+      "repeat": {
+        "direction": "down",
+        "count": 9,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "vline",
+      "x": -0.0045000000000000005,
+      "y": -0.0001,
+      "width": 0.00005,
+      "endY": 0.0001,
+      "repeat": {
+        "direction": "right",
+        "count": 9,
+        "step": 0.001
+      }
+    }
+  ]
+}

@@ -150,3 +150,40 @@ export function setTargetLabelVisibility(value) {
     // best-effort — losing persistence isn't fatal
   }
 }
+
+const SCOPE_VIEW_COOKIE_NAME = 'ballistics_range_solver_scope_view_v1';
+const SCOPE_AIM_MODE_COOKIE_NAME = 'ballistics_range_solver_scope_aim_mode_v1';
+
+// Whether the Range Solver shows the scope view (range-solver/
+// scope-view.js) above a compact readout — only ever in effect for a
+// rifle with a scope; global, not per rifle.
+export function isScopeViewOn() {
+  return getCookie(SCOPE_VIEW_COOKIE_NAME) === 'true';
+}
+
+export function setScopeViewOn(on) {
+  try {
+    setCookie(SCOPE_VIEW_COOKIE_NAME, on ? 'true' : 'false');
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
+
+// What the scope view's aiming mark shows: 'hold' (nothing dialed) or
+// 'dialElevation' (elevation dialed, windage held) — reticle/
+// sight-picture.js's AIM_MODES.
+export const SCOPE_AIM_MODE_CHOICES = ['hold', 'dialElevation'];
+
+export function getScopeAimMode() {
+  const raw = getCookie(SCOPE_AIM_MODE_COOKIE_NAME);
+  return SCOPE_AIM_MODE_CHOICES.includes(raw) ? raw : 'hold';
+}
+
+export function setScopeAimMode(value) {
+  if (!SCOPE_AIM_MODE_CHOICES.includes(value)) return;
+  try {
+    setCookie(SCOPE_AIM_MODE_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}

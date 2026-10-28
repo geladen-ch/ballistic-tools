@@ -206,6 +206,14 @@ Uses the same active rifle, cartridge, and bullet as Trajectory and Hit
 Probability (set on **Guns**) and the same zero — no separate battle-zero
 override here.
 
+### Scope view
+
+When the active rifle has a scope from the Arsenal (Guns → Arsenal → rifle → Scope), a reticle button appears at the right end of the conditions bar. It shows the rifle's reticle as seen through that scope, above a smaller readout. The setting is remembered.
+
+- **Aiming mark** — the blue ring is where to put the target. **Hold** shows the full correction held on the reticle, nothing dialed; **Dial elevation** assumes the elevation is on the turret and shows only the windage hold, on the horizontal axis. Thin lines join the mark to both axes, so you can read off the hold on the reticle's hash marks. If the hold lies outside the field of view, an arrow at the edge points towards it.
+- **Zoom ring** — the scale beside the reticle sets the magnification, over the scope's actual zoom range, with a bar at every whole magnification. Drag it, tap it, or use the arrow keys (Page Up / Page Down for whole steps). A fixed scope has no ring.
+- **Second focal plane** — the reticle's subtensions are only true at one magnification. That magnification is highlighted on the ring, and the ring snaps to it when you are within 5 %. Anywhere else, a note shows what the subtensions are worth, and the mark moves to where the hold falls on the reticle at that magnification.
+
 ### Locations & Targets
 
 Optional: save a shooting location's targets once — their range and

@@ -666,6 +666,86 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 
 .range-solver-input-pane { display: flex; flex-direction: column; gap: 16px; }
 
+/* The conditions bar, with the scope view toggle at its right end while
+   the view is off; while it is on, the toggle sits in the corner of the
+   reticle's square (.scope-view-corner) and the row is just its text. */
+.range-solver-conditions-row { display: flex; align-items: center; gap: 8px; }
+.range-solver-conditions-row .range-solver-conditions { flex: 1; min-width: 0; }
+button.icon-button.range-solver-scope-toggle { width: 34px; height: 34px; color: var(--accent); }
+button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px; background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+/* The readout while the scope view takes the room above it. */
+.range-solver-readout.compact .range-solver-click-value { font-size: clamp(32px, 20cqw, 72px); }
+.range-solver-readout.compact .range-solver-click-label { margin-top: 2px; font-size: 11px; }
+
+/* ---- Scope view (src/ui/range-solver/scope-view.js) ----
+   The sight is a square with the zoom ring beside it: as wide as the pane
+   allows (less the ring) up to a cap, the inputs below it scrolling into
+   view on a phone in portrait. Short landscape gives the pane a real
+   height instead, and the sight fills what the pane has left (see the
+   mobile chrome rules further down). */
+.scope-view { --scope-mark: #0072B2; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.scope-view-main { display: flex; justify-content: center; gap: 10px; min-height: 0; }
+.scope-view-sight { width: min(calc(100% - 76px), 520px); min-width: 0; min-height: 0; }
+.scope-view-frame { position: relative; }
+.scope-view-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: 50%; touch-action: none; }
+/* Clear of the field circle down to a square about 160 px across. */
+.scope-view-corner { position: absolute; top: -6px; right: -6px; }
+.scope-view-corner-left { position: absolute; top: -6px; left: -6px; }
+.scope-view-ring { display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; flex: none; }
+.scope-view-zoom-value { min-width: 3.2em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.scope-view-bar { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 12px; }
+.scope-view-sfp-note { font-size: 11.5px; color: var(--dim); }
+/* The aiming-point mode switch: two icon buttons, the one in effect
+   filled with the accent (as the scope view toggle is while on), the
+   other plain with a dimmed icon. */
+.scope-view-segmented { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--panel); }
+.scope-view-segmented button.scope-view-segment {
+  display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0;
+  background: var(--panel); color: var(--dim); border: none; border-radius: 0; filter: none;
+}
+.scope-view-segmented button.scope-view-segment + button.scope-view-segment { border-left: 1px solid var(--line); }
+.scope-view-segmented button.scope-view-segment:hover { color: var(--text); }
+.scope-view-segmented button.scope-view-segment.active { background: var(--accent); color: var(--accent-text); }
+
+/* The aiming mark, its leads to the axes and the off-field arrow — in
+   one colour-blind-safe blue that no illumination colour comes near,
+   haloed so it reads over black reticle lines. */
+.scope-view-mark-ring { fill: none; stroke: var(--scope-mark); }
+.scope-view-mark-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); }
+.scope-view-mark-dot { fill: var(--scope-mark); }
+.scope-view-lead { stroke: var(--scope-mark); stroke-width: 2.5; }
+.scope-view-lead-halo { stroke: rgba(255, 255, 255, 0.7); stroke-width: 8; }
+.scope-view-arrow-head { fill: var(--scope-mark); }
+.scope-view-arrow-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-linejoin: round; }
+
+/* The zoom ring (src/ui/zoom-ring-slider.js). */
+.zoom-ring { position: relative; box-sizing: border-box; touch-action: none; cursor: pointer; user-select: none; border-radius: var(--radius); }
+.zoom-ring:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.zoom-ring-horizontal { flex: 1; min-width: 0; height: 46px; padding: 0 12px; }
+.zoom-ring-vertical { width: 58px; flex: 1; min-height: 120px; padding: 12px 0; }
+.zoom-ring-track { position: relative; width: 100%; height: 100%; }
+.zoom-ring-rail { position: absolute; background: var(--line); border-radius: 2px; }
+.zoom-ring-horizontal .zoom-ring-rail { left: 0; right: 0; top: 12px; height: 3px; }
+.zoom-ring-vertical .zoom-ring-rail { top: 0; bottom: 0; left: 12px; width: 3px; }
+.zoom-ring-tick { position: absolute; background: var(--dim); }
+.zoom-ring-horizontal .zoom-ring-tick { top: 7px; width: 1.5px; height: 13px; transform: translateX(-50%); }
+.zoom-ring-vertical .zoom-ring-tick { left: 7px; height: 1.5px; width: 13px; transform: translateY(-50%); }
+.zoom-ring-tick.end { background: var(--text); }
+.zoom-ring-horizontal .zoom-ring-tick.labelled { height: 16px; }
+.zoom-ring-vertical .zoom-ring-tick.labelled { width: 16px; }
+.zoom-ring-tick.calibration { background: var(--accent); }
+.zoom-ring-horizontal .zoom-ring-tick.calibration { width: 3px; height: 20px; top: 4px; }
+.zoom-ring-vertical .zoom-ring-tick.calibration { height: 3px; width: 20px; left: 4px; }
+.zoom-ring-label { position: absolute; font-size: 11px; line-height: 1; color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.zoom-ring-horizontal .zoom-ring-label { top: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
+.zoom-ring-vertical .zoom-ring-label { left: calc(100% + 5px); top: 50%; transform: translateY(-50%); }
+.zoom-ring-tick.calibration .zoom-ring-label { color: var(--accent); font-weight: 700; }
+.zoom-ring-thumb { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); border: 2px solid var(--panel); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); transform: translate(-50%, -50%); }
+.zoom-ring-horizontal .zoom-ring-thumb { top: 13.5px; }
+.zoom-ring-vertical .zoom-ring-thumb { left: 13.5px; }
+.zoom-ring.dragging .zoom-ring-thumb { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent); }
+
 /* Locations & Targets library — the active location's name, the "manage
    locations" icon, its target picker select (a hand-edit that diverges
    the fields from the selected target falls this back to its own
@@ -1910,6 +1990,58 @@ html.range-solver-mode.force-mobile #app-shell { height: 100dvh; }
 html.range-solver-mode.force-mobile #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
 html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 0; }
 
+/* ---- Scope view in the mobile chrome (src/ui/range-solver/scope-view.js).
+   Portrait: the reticle comes first — the input pane gives up its
+   fill-the-rest flex and flows below at its own height, scrolling into
+   view. Short landscape, where height is what runs out and width is
+   spare: the output pane becomes a grid — gun card and conditions across
+   the top, the reticle and its ring filling the rest on the left, and
+   the readout (elevation over windage), the SFP note and the footer in a
+   narrow column on the right. .scope-view's own box drops out (display:
+   contents) so its ring row and note can take separate grid cells. */
+@media (max-width: 780px) and (orientation: portrait) {
+  html.range-solver-mode:not(.force-desktop) .range-solver-layout.scope-view-on .range-solver-input-pane { flex: none; }
+}
+@media (orientation: portrait) {
+  html.range-solver-mode.force-mobile .range-solver-layout.scope-view-on .range-solver-input-pane { flex: none; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  html.range-solver-mode:not(.force-desktop) .range-solver-layout.scope-view-on .range-solver-output-pane {
+    display: grid; grid-template-columns: minmax(0, 1fr) clamp(104px, 30%, 180px);
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 6px 10px; min-height: 0;
+  }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-output-pane > .guns-summary, html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-conditions-row { grid-column: 1 / -1; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view { display: contents; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main { grid-column: 1; grid-row: 3 / 6; min-height: 0; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-sight { flex: 1; width: auto; container-type: size; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-frame { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); margin-left: auto; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-canvas { height: 100%; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .zoom-ring-vertical { min-height: 0; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact { grid-column: 2; grid-row: 3; align-self: end; flex-direction: column; gap: 6px; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact .range-solver-click-value { font-size: clamp(26px, 30cqw, 46px); }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact .range-solver-click-label { font-size: 10px; margin-top: 0; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-bar { grid-column: 2; grid-row: 4; text-align: center; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-footer { grid-column: 2; grid-row: 5; flex-direction: column; align-items: center; gap: 2px; }
+}
+@media (orientation: landscape) {
+  html.range-solver-mode.force-mobile .range-solver-layout.scope-view-on .range-solver-output-pane {
+    display: grid; grid-template-columns: minmax(0, 1fr) clamp(104px, 30%, 180px);
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 6px 10px; min-height: 0;
+  }
+  html.range-solver-mode.force-mobile .scope-view-on .range-solver-output-pane > .guns-summary, html.range-solver-mode.force-mobile .scope-view-on .range-solver-conditions-row { grid-column: 1 / -1; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view { display: contents; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main { grid-column: 1; grid-row: 3 / 6; min-height: 0; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-sight { flex: 1; width: auto; container-type: size; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-frame { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); margin-left: auto; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-canvas { height: 100%; }
+  html.range-solver-mode.force-mobile .scope-view-on .zoom-ring-vertical { min-height: 0; }
+  html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact { grid-column: 2; grid-row: 3; align-self: end; flex-direction: column; gap: 6px; }
+  html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact .range-solver-click-value { font-size: clamp(26px, 30cqw, 46px); }
+  html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact .range-solver-click-label { font-size: 10px; margin-top: 0; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-bar { grid-column: 2; grid-row: 4; text-align: center; }
+  html.range-solver-mode.force-mobile .scope-view-on .range-solver-footer { grid-column: 2; grid-row: 5; flex-direction: column; align-items: center; gap: 2px; }
+}
+
 /* ---- Combined wind direction+speed control (src/ui/wind-control.js) —
    embedded in Range Solver's Target tab (below the range/LoS row, see
    range-solver-view.js), and Trajectory's and Arsenal's rifle
@@ -2132,7 +2264,7 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
    on narrow ones. The reticle view always shows a light "glass" with a
    black reticle, whatever the app theme: it depicts the view through the
    scope, not app chrome. */
-.reticle-designer, .reticle-thumbnail { --reticle-ink: #000; --reticle-glass: #f3f3ee; --reticle-grid: rgba(0, 0, 0, 0.12); --reticle-grid-major: rgba(0, 0, 0, 0.24); --reticle-zero: #d0342c; --reticle-bdc: #1f6fd6; }
+.reticle-designer, .reticle-thumbnail, .scope-view-canvas { --reticle-ink: #000; --reticle-glass: #f3f3ee; --reticle-grid: rgba(0, 0, 0, 0.12); --reticle-grid-major: rgba(0, 0, 0, 0.24); --reticle-zero: #d0342c; --reticle-bdc: #1f6fd6; }
 .reticle-intro { color: var(--dim); max-width: 70ch; }
 .reticle-file-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; margin-bottom: 14px; }
 .reticle-identity-field { flex: 1 1 200px; }
@@ -2201,9 +2333,9 @@ button.reticle-tool.armed { background: var(--accent); color: var(--accent-text)
 /* Illumination: lit elements in the reticle's colour (a deeper shade on
    the light field, a brighter one on the dimmed field); a selected lit
    element keeps its colour and gets an accent outline. */
-.reticle-canvas.illum-red, .reticle-thumbnail.illum-red { --reticle-illum: #e3261c; }
-.reticle-canvas.illum-amber, .reticle-thumbnail.illum-amber { --reticle-illum: #e08e00; }
-.reticle-canvas.illum-green, .reticle-thumbnail.illum-green { --reticle-illum: #16a334; }
+.reticle-canvas.illum-red, .reticle-thumbnail.illum-red, .scope-view-canvas.illum-red { --reticle-illum: #e3261c; }
+.reticle-canvas.illum-amber, .reticle-thumbnail.illum-amber, .scope-view-canvas.illum-amber { --reticle-illum: #e08e00; }
+.reticle-canvas.illum-green, .reticle-thumbnail.illum-green, .scope-view-canvas.illum-green { --reticle-illum: #16a334; }
 .reticle-canvas.dim { --reticle-glass: #26282b; --reticle-grid: rgba(255, 255, 255, 0.08); --reticle-grid-major: rgba(255, 255, 255, 0.18); }
 .reticle-canvas.dim.illum-red { --reticle-illum: #ff4a3d; }
 .reticle-canvas.dim.illum-amber { --reticle-illum: #ffb52e; }

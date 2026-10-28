@@ -4,16 +4,15 @@
 // Designer's view shows it at its reference scope's highest magnification
 // (where a first-focal-plane reticle fills the most of the field, so its
 // detail survives being shrunk), with the same element drawing
-// (reticle-designer/element-nodes.js).
+// (reticle-scene.js).
 //
 // `reticle` = { referenceScope, illumination, elements } with elements as
 // the app holds them (reticle/model.js).
 import { svgEl } from '../svg.js';
 import { fmt } from '../reticle/render.js';
 import { fieldRadiusAtZoom, referenceOptics } from '../reticle/scope.js';
-import { isLit, ILLUMINATION_COLOURS } from '../reticle/model.js';
 import { mradToRad } from '../quantity.js';
-import { elementNodes } from './reticle-designer/element-nodes.js';
+import { reticleElementLayer, illuminationClass } from './reticle-scene.js';
 
 // Drawing units: the canvas, and the field circle's radius within it.
 const SIZE = 1000;
@@ -41,24 +40,12 @@ export function reticleThumbnail(reticle, { size = 96, label = '' } = {}) {
   const k = FIT_RADIUS / radius;
   const toScreen = (x, y) => [HALF + x * k, HALF + y * k];
 
-  const elementLayer = svgEl('g', { class: 'reticle-elements' });
-  for (const element of reticle.elements || []) {
-    // One element failing to draw must not take the picture with it.
-    try {
-      const lit = isLit(reticle, element);
-      for (const node of elementNodes(element, {
-        toScreen, k, minStroke: MIN_STROKE,
-        classFor: () => (lit ? 'reticle-shape lit' : 'reticle-shape')
-      })) elementLayer.appendChild(node);
-    } catch {
-      // skip it
-    }
-  }
+  const elementLayer = reticleElementLayer(reticle, { toScreen, k, minStroke: MIN_STROKE });
 
   const circle = (cls) => svgEl('circle', { class: cls, cx: fmt(HALF), cy: fmt(HALF), r: fmt(FIT_RADIUS) });
-  const { enabled, colour } = reticle.illumination || {};
   const classes = ['reticle-thumbnail'];
-  if (enabled && ILLUMINATION_COLOURS.includes(colour)) classes.push(`illum-${colour}`);
+  const illumination = illuminationClass(reticle);
+  if (illumination) classes.push(illumination);
   const attrs = {
     viewBox: `0 0 ${SIZE} ${SIZE}`, width: String(size), height: String(size), class: classes.join(' '), role: 'img'
   };

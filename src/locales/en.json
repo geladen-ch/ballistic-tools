@@ -492,7 +492,19 @@
     "rangeCardNoTargetsHint": "This location has no targets yet — add some from the Locations manager.",
     "rangeCardNoPhotoHint": "Add a photo to this location to pick targets visually here.",
     "rangeCardRangeHeader": "Range",
-    "rangeCardRowCountLabel": "Rows"
+    "rangeCardRowCountLabel": "Rows",
+    "scopeView": {
+      "toggle": "Scope view",
+      "canvasLabel": "Reticle with the aiming point",
+      "zoomLabel": "Magnification",
+      "modeLabel": "Aiming point",
+      "mode": {
+        "hold": "Hold",
+        "dialElevation": "Dial elevation"
+      },
+      "sfpScale": "Subtensions here: ×{{factor}} of nominal",
+      "offField": "aiming point outside the field of view"
+    }
   },
   "rangeSolverLocations": {
     "title": "Locations & Targets",
@@ -1566,6 +1578,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v229": "New: scopes and reticles in the Arsenal (built-in library included), linkable to rifles. Range Solver scope view: your reticle at any zoom, with the aiming point marked, hold or dial elevation.",
       "v228": "Change: the Arsenal is split into Rifles, Bullets and Scopes tabs. The caliber/manufacturer filter is shared between Rifles and Bullets; Scopes is a placeholder for upcoming scope and reticle definitions.",
       "v227": "Change: reticle files now save only the settings in use (e.g. no repeat settings when repeat is off). Files saved by 4.3.0 still load.",
       "v226": "New: reticle designer tool (will soon be useful)",

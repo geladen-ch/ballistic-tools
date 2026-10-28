@@ -4,5 +4,8 @@
 export const RETICLE_IDS = [
   'sb-p4lf',
   'sb-tr2id',
-  'trijicon-rco-m4-chevron'
+  'trijicon-rco-m4-chevron',
+  'generic-mildot',
+  'generic-milhash',
+  'generic-tree-mrad'
 ];

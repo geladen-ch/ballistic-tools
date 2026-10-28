@@ -342,6 +342,9 @@ export function rifleSection({ slider = false, onInput, onLibraryCartridgeChange
 
   return {
     node, getValues, getClickSettings: clicks.getSettings, getArsenalPrefill, getStabilityValues,
+    // The selected library rifle's record (built-in or Arsenal), null for
+    // "Other" — the Range Solver reads its scopeId/reticleId.
+    getSelectedRifle: () => selectedRifle,
     getZeroDonorBallistics: () => zeroDonorBallistics
   };
 }
