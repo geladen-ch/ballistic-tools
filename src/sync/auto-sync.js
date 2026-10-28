@@ -349,7 +349,7 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
       if (anySkipped) photoPendingDeviceNames.push(bundle.device.name || bundle.device.id);
 
       for (const lib of SYNCED_LIBRARIES) {
-        const remoteList = lib.remoteList(bundle);
+        const remoteList = await lib.screenRemote(lib.remoteList(bundle), peerLabel);
         const { counts, reviewItems, resolvedIds } = mergeRecords(lib.loadLocalWithTombstones(), remoteList, {
           importRaw: lib.write,
           tombstone: lib.write,

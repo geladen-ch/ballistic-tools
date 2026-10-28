@@ -22,6 +22,8 @@
 // is what actually triggers that detection.
 import { BULLET_LIBRARIES } from './src/bullets/bullet-libraries.js';
 import { RIFLE_IDS } from './src/rifles/rifle-catalog.js';
+import { SCOPE_IDS } from './src/scopes/scope-catalog.js';
+import { RETICLE_IDS } from './src/reticles/reticle-catalog.js';
 import { CACHE_VERSION } from './src/version.js';
 
 const CACHE_NAME = `ballistics-tools-${CACHE_VERSION}`;
@@ -84,6 +86,12 @@ const APP_SHELL_URLS = [
   './src/bullets/lapua-reverse/catalog.js',
   './src/rifles.js',
   './src/rifles/rifle-catalog.js',
+  './src/scopes.js',
+  './src/scopes/scope-catalog.js',
+  './src/scope-record.js',
+  './src/reticles.js',
+  './src/reticles/reticle-catalog.js',
+  './src/reticle-library.js',
   './src/library-prefs.js',
   './src/bullet-library-prefs.js',
   './src/spin-drift-prefs.js',
@@ -217,6 +225,9 @@ const APP_SHELL_URLS = [
   './src/ui/arsenal/cartridge-precision-field.js',
   './src/ui/arsenal/cartridge-zero-atmosphere-field.js',
   './src/ui/arsenal/rifle-form.js',
+  './src/ui/arsenal/scope-form.js',
+  './src/ui/arsenal/optics-manufacturer-field.js',
+  './src/ui/arsenal/legacy-reticle-form.js',
   './src/ui/labradar/track-list.js',
   './src/ui/labradar/track-chart.js',
   './src/ui/labradar/results-summary.js',
@@ -268,6 +279,10 @@ const APP_SHELL_URLS = [
   './src/reticle/model.js',
   './src/reticle/history.js',
   './src/reticle/file-codec.js',
+  './src/reticle/render.js',
+  './src/reticle/stored-reticle.js',
+  './src/reticle/reticle-record.js',
+  './src/reticle/legacy-file.js',
   './src/vendor/reticle-digits/digit-glyphs.js',
   './src/reticle/digit-text.js',
   './src/reticle/svg-import/errors.js',
@@ -278,6 +293,8 @@ const APP_SHELL_URLS = [
   './src/reticle/svg-import/client.js',
   './src/workers/reticle-import-worker.js',
   './src/ui/reticle-designer/shape-paths.js',
+  './src/ui/reticle-designer/element-nodes.js',
+  './src/ui/reticle-thumbnail.js',
   './src/ui/reticle-designer/svg-import-panel.js',
   './src/ui/reticle-designer/controller.js',
   './src/ui/reticle-designer/fields.js',
@@ -473,14 +490,16 @@ const APP_SHELL_URLS = [
 
 // One entry per bullet library (each library ships one consolidated
 // bullets.json, not one file per bullet — see bullets.js's loadBullet())
-// and one per rifle, derived from the imported catalogs rather than
+// and one per rifle, scope and reticle, derived from the imported catalogs rather than
 // enumerated here — this is the whole point of the module-worker switch,
 // and is what keeps this file's size independent of how large either
 // library grows.
 const BULLET_URLS = BULLET_LIBRARIES.map((lib) => `./src/bullets/${lib.id}/bullets.json`);
 const RIFLE_URLS = RIFLE_IDS.map((id) => `./src/rifles/${id}.json`);
+const SCOPE_URLS = SCOPE_IDS.map((id) => `./src/scopes/${id}.json`);
+const RETICLE_URLS = RETICLE_IDS.map((id) => `./src/reticles/${id}.json`);
 
-const PRECACHE_URLS = [...APP_SHELL_URLS, ...BULLET_URLS, ...RIFLE_URLS];
+const PRECACHE_URLS = [...APP_SHELL_URLS, ...BULLET_URLS, ...RIFLE_URLS, ...SCOPE_URLS, ...RETICLE_URLS];
 
 // A transient failure (dropped connection, a momentary 502/503) gets a
 // few retries with a short backoff before it's accepted as a real loss —

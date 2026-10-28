@@ -46,3 +46,18 @@ export function takePendingCartridgeActivation() {
   pendingCartridgeActivation = null;
   return data;
 }
+
+// One-shot: the Arsenal tab to open on the next visit — set by a tool that
+// sends the user back to a particular tab (the Reticle Designer, back to
+// Scopes after saving or discarding a reticle the Arsenal opened in it).
+let pendingTab = null;
+
+export function setPendingArsenalTab(key) {
+  pendingTab = key;
+}
+
+export function takePendingArsenalTab() {
+  const key = pendingTab;
+  pendingTab = null;
+  return key;
+}

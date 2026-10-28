@@ -1,5 +1,5 @@
 // A tiny pub/sub so user-library.js/location-library.js/
-// rifle-precision-library.js can notify interested sync machinery after
+// rifle-precision-library.js/reticle-library.js can notify interested sync machinery after
 // every write, without those storage modules importing sync code
 // directly (which would be a real import cycle: this app's storage layer
 // predates sync and must stay usable on its own). Two subscribers use
@@ -13,7 +13,8 @@ export function onLibraryWrite(listener) {
 }
 
 // `event` is `{ recordType, record, previous }` — recordType is one of
-// 'bullet', 'rifle', 'location', 'rifle-precision-project'; `record` is
+// 'bullet', 'rifle', 'scope', 'reticle', 'location',
+// 'rifle-precision-project'; `record` is
 // the value just written, and `previous` is the value it replaced (null
 // for a brand-new record). Phase 9's history capture needs `previous`
 // specifically: the plan's capture rule is "immediately before writing a

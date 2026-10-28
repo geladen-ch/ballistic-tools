@@ -12,7 +12,7 @@
 // releases the way service-worker.js's CACHE_VERSION is (this is durable
 // user data, not an ephemeral asset cache).
 export const DB_NAME = 'ballistics-tools';
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 
 // Version 3 adds all three of the sync feature's new stores in a
 // single bump rather than one bump each, because a DB_VERSION bump is a
@@ -34,6 +34,10 @@ export const DB_VERSION = 5;
 // it is a separate number only because a development build had already
 // opened the database at 4, and a browser only creates a new store when
 // the version goes up.
+// Version 6 adds 'reticles': the user's own Arsenal reticles. Unlike the
+// Arsenal's other records (localStorage, see user-library.js) these can
+// be large — an imported drawing alone can run to megabytes — so they
+// live here.
 export const STORES = [
   { name: 'locations', keyPath: 'id' },
   { name: 'rifle-precision-projects', keyPath: 'id' },
@@ -43,4 +47,5 @@ export const STORES = [
   { name: 'sync-log', keyPath: 'id' },
   { name: 'asset-state', keyPath: 'id' },
   { name: 'change-history-index', keyPath: 'id' },
+  { name: 'reticles', keyPath: 'id' },
 ];

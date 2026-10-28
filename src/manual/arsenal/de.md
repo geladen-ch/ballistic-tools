@@ -1,6 +1,6 @@
 # geladen.ch ballistics Benutzerhandbuch — Waffen/Arsenal
 
-*Teil der* [Ballistik-Suite von geladen.ch](https://bc.geladen.ch)*. Die Bibliothek für Gewehre und Geschosse, die von jedem anderen Werkzeug gemeinsam genutzt wird.*
+*Teil der* [Ballistik-Suite von geladen.ch](https://bc.geladen.ch)*. Die Bibliothek für Gewehre, Geschosse, Zielfernrohre und Absehen, die von jedem anderen Werkzeug gemeinsam genutzt wird.*
 
 ---
 
@@ -28,6 +28,8 @@ Die Konsequenz ist die erwartbare: **wenn Sie die Website-Daten Ihres Browsers l
 
 Anders als der Gewehr-Präzisionsrechner speichert das Arsenal keine Fotos und keine großen Binärdaten, sodass sein Platzbedarf im `localStorage` klein bleibt, unabhängig davon, wie viele Gewehre und Geschosse Sie führen. Es gibt keine eingebaute Obergrenze für die Anzahl von beidem, die Sie speichern dürfen.
 
+Ihre eigenen Absehen sind die eine Ausnahme von „klein“: Ein Absehen mit importierter Zeichnung kann Megabytes groß werden, deshalb liegen Absehen in der IndexedDB des Browsers statt in `localStorage`. Alles Übrige oben gilt für sie unverändert — nur auf diesem Gerät, weg mit den Website-Daten, gesichert mit dem Rest (§8).
+
 **Voraussetzungen.** Jeder halbwegs aktuelle Browser. Die App installiert sich als PWA und funktioniert nach dem Laden vollständig offline.
 
 ---
@@ -49,6 +51,16 @@ Gewehr        ein bestimmtes Gewehr: Visierhöhe, Einschussdistanz, Drall, Klick
 **Eine Patrone** ist das, was die beiden tatsächlich verbindet. Sie existiert eingebettet in ein Gewehr, nie für sich allein, und benennt ein Geschoss plus die Mündungsgeschwindigkeit, die dieses Gewehr damit erreicht. Hier liegen auch, optional, die zwei folgenreichsten und am häufigsten geschätzten Zahlen der Außenballistik: die Geschwindigkeitskonstanz der Laborierung (§5.4) und die selbst gemessene Präzision des Gewehrs (§5.6) — beide fließen direkt in die Trefferwahrscheinlichkeit ein.
 
 **Ein Gewehr kammert ein Kaliber.** Sobald irgendeine Patrone eines Gewehrs auf ein reales Geschoss verweist, wird die Geschossauswahl jeder weiteren Patrone, die Sie diesem Gewehr hinzufügen, auf Geschosse desselben Kalibers eingeschränkt (§5.5). Das wird erzwungen, nicht nur nahegelegt — es spiegelt eine Tatsache über Gewehre wider, keine Einschränkung des Werkzeugs. (Und wer einen Drilling oder eine andere Mehrkaliber-Kombinationswaffe besitzt, muss sich deswegen nicht besonders schlau vorkommen — einfach für jedes Kaliber einen eigenen Eintrag anlegen.)
+
+Zwei weitere Arten von Datensätzen beschreiben das Glas auf dem Gewehr:
+
+```
+Zielfernrohr  ein reales Zielfernrohr: Hersteller und Modell, Vergrößerung, Sehfeld, Turmklicks
+  └─ seine Absehen   ein oder mehrere Absehen, mit denen es erhältlich ist
+Absehen       eine Absehen-Zeichnung: Hersteller und Modell, das Zielfernrohr, für das es gezeichnet ist, Beleuchtung
+```
+
+**Ein Zielfernrohr** steht für sich, wie ein Gewehr oder ein Geschoss: Es ist die Optik, wie sie verkauft wird — ihre Nennvergrößerung, ihr Sehfeld an beiden Enden des Zoombereichs, ihre Klickeinheit und Klickwerte — und es führt die **Absehen**, mit denen es erhältlich ist. Ein Zielfernrohr kann mehrere Absehen haben, und ein Absehen kann in mehreren Zielfernrohren sitzen. Ein Gewehr kann **ein Zielfernrohr** nennen (und, wenn dieses mehrere bietet, eines seiner Absehen); ein Zielfernrohr ohne Absehen kann auf kein Gewehr (§5.10). Die App bringt einige mitgelieferte Zielfernrohre und Absehen mit; Ihre eigenen stehen daneben.
 
 ### 3.1 Ein Hinweis zu Einheiten
 
@@ -117,6 +129,7 @@ Ein Gewehr mit null Patronen wird gespeichert, aber als **Unbrauchbar** markiert
 - **Einschussdistanz** — erforderlich, die Distanz, auf die Sie dieses Gewehr normalerweise einschießen, in Ihrer Distanzeinheit (Bereich 0–5000 m).
 - **Drall (Länge pro Umdrehung)** und **Drallrichtung** (rechts oder links) — optional, leer lassen, falls unbekannt, in der unabhängigen Dralleinheit aus §3.1 (Bereich 1–1000 mm/in). Nur für Stabilität und Seitenabweichung nötig, sonst nichts.
 - **Klick-Einheit**, **Horizontaler Klickwert**, **Vertikaler Klickwert** — die eigenen Turmwerte des Zielfernrohrs, in mrad oder MOA wie hier gewählt (0,01–5, unabhängig von Ihrer globalen Einstellung, gemäß §3.1).
+- **Zielfernrohr** — optional: eines Ihrer Zielfernrohre oder ein mitgeliefertes und, wenn es mehrere Absehen hat, welches **Absehen**. Die Wahl eines Zielfernrohrs übernimmt dessen Klickeinheit und Klickwerte in die drei Felder darunter; danach gehören sie dem Gewehr (§5.10).
 - **Quelle / Anmerkungen** — Freitext, optional.
 
 Ein neu angelegtes Gewehr wird mit einer leeren Patronenliste gespeichert; Sie fügen seine Patronen als Nächstes hinzu, aus der eigenen Zeile des Gewehrs (§5.4).
@@ -172,6 +185,34 @@ Die extreme Version desselben Problems ist ein Gewehr, das sowohl eine überscha
 
 Die Patronenliste des Arsenals kennzeichnet beide Seiten dieser Beziehung — siehe §6.4. Das Löschen eines Gebers löscht sofort den Verweis bei jeder Patrone, die auf ihn zeigte, statt ihn ins Leere zeigen zu lassen; solche Empfänger berechnen dann einfach wieder ihren eigenen Nullpunkt.
 
+### 5.8 Ein Zielfernrohr hinzufügen
+
+Zielfernrohre liegen im Reiter **Zielfernrohre**. **+ Zielfernrohr hinzufügen** öffnet ein Formular:
+
+- **Hersteller** und **Modell** — beide Pflicht; zusammen bilden sie den Namen des Zielfernrohrs, mit derselben Überschreib-Warnung wie bei Gewehren und Geschossen. Der Hersteller schlägt die Hersteller aller Zielfernrohre und Absehen vor, die die App kennt, mitgelieferte und Ihre eigenen — nie Geschosshersteller.
+- **Typ** — feste Vergrößerung, variabel in der ersten Bildebene (FFP) oder variabel in der zweiten Bildebene (SFP).
+- **Vergrößerung** — eine Zahl bei fester Vergrößerung; **von** und **bis** bei einem variablen Zielfernrohr: der Bereich, unter dem es verkauft wird, z. B. 3–20×.
+- **Sehfeld** — bei kleinster und bei größter Vergrößerung (eine Zahl bei fester Vergrößerung) und die Entfernung, auf der es gemessen ist, in Ihrer Entfernungseinheit; das Datenblatt des Herstellers nennt sie. Das Sehfeld hat Vorrang vor dem beworbenen Bereich: Die größte Vergrößerung gilt für das engste Sehfeld, und die **tatsächliche kleinste Vergrößerung** folgt aus dem Verhältnis der beiden Sehfelder. Sie wird beim Tippen angezeigt — ein „3–20×“-Zielfernrohr ist oft eigentlich 3,2–20×.
+- **Winkelwerte stimmen bei** — nur SFP: die Vergrößerung, bei der die Marken des Absehens das wert sind, was sie angeben.
+- **Klick-Einheit** und **horizontaler** und **vertikaler Klickwert** — vorgegeben 0,1 mrad oder 0,25 MOA, je nach gewählter Einheit; beim Wechsel der Einheit wird ein Wert, der noch auf der üblichen Größe steht, getauscht, jeder andere umgerechnet.
+- **Absehen** — jedes Absehen anhaken, mit dem das Zielfernrohr erhältlich ist, aus Ihren eigenen und den mitgelieferten, jedes als Vorschaubild. Ein Hinweis erscheint, wenn eines für einen anderen Zielfernrohrtyp gezeichnet wurde; es gelten immer die Werte des Zielfernrohrs selbst.
+
+**Ihre Zielfernrohre** listet jedes mit einer Zusammenfassung (Typ, Bereich, Klick, Anzahl Absehen) und **In Datei sichern**, **Bearbeiten** und **Löschen**. Ein „Aktivieren“ gibt es für Zielfernrohre nicht: Ein Zielfernrohr wird über das Gewehr verwendet, auf dem es sitzt.
+
+### 5.9 Absehen und der Absehen-Designer
+
+**Ihre Absehen**, im selben Reiter, listet jedes Absehen mit Vorschaubild, dem Zielfernrohrtyp und der Vergrößerung, für die es gezeichnet ist, und wie viele Ihrer Zielfernrohre es führen. Absehen werden im **Absehen-Designer** gezeichnet: **+ Absehen hinzufügen** öffnet ihn mit einem leeren Absehen, **Bearbeiten** mit diesem Absehen. Dort speichert **Im Arsenal speichern** es, und **Änderungen verwerfen** kehrt zur zuletzt gespeicherten Fassung zurück; beides führt zurück zum Reiter Zielfernrohre. Hersteller und Modell des Absehens werden im Designer eingegeben, mit denselben Vorschlägen wie bei einem Zielfernrohr.
+
+Im Designer wird ein Absehen für ein **Referenz-Zielfernrohr** gezeichnet — nur dessen Typ und Vergrößerung; das Sehfeld wird aus der Vergrößerung angenommen (12 m auf 100 m bei 3×), nur damit der Designer das Feld zeichnen kann, in dem das Absehen liegt. Das reale Zielfernrohr, in das ein Absehen kommt, bringt sein eigenes Sehfeld mit.
+
+Das Löschen eines Absehens entfernt es aus jedem Zielfernrohr, das es führt; die Rückfrage nennt, wie viele.
+
+### 5.10 Ein Zielfernrohr auf ein Gewehr setzen
+
+Im Gewehr-Formular bietet **Zielfernrohr** **Keines**, Ihre Zielfernrohre und die mitgelieferten; ein Zielfernrohr ohne Absehen steht in der Liste, ist aber nicht wählbar. Die Wahl eines Zielfernrohrs **übernimmt dessen Klickeinheit und Klickwerte** in die Felder des Gewehrs — die Klicks gehören danach weiter dem Gewehr, zum Ändern, wenn Ihr Turm abweicht, und nichts wird je ins Zielfernrohr zurückgeschrieben. Ein mitgeliefertes Zielfernrohr wird verknüpft, nie in Ihr Arsenal kopiert.
+
+Die Zeile des Gewehrs zeigt dann *„Zielfernrohr: …“*. Das Löschen eines Zielfernrohrs lässt seine Gewehre ohne, ihre Klicks unverändert; das Entfernen eines Absehens aus einem Zielfernrohr stellt dessen Gewehre auf das einzige verbleibende Absehen um, oder auf keines, bis Sie eines wählen. Ein Zielfernrohr, das das Gewehr nennt, das dieses Gerät aber noch nicht hat (etwa noch nicht synchronisiert), erscheint als *„Zielfernrohr nicht gefunden“*, und die Verknüpfung bleibt erhalten.
+
 ---
 
 ## 6. Die Arsenal-Seite: Listen, Filter, Aktivierung
@@ -183,7 +224,7 @@ Die Patronenliste des Arsenals kennzeichnet beide Seiten dieser Beziehung — si
 3. Drei Reiter. Die Seite merkt sich den zuletzt geöffneten, bis die App neu geladen wird, und ein von anderswo geöffnetes Formular (zum Beispiel **Geschoss zum Arsenal hinzufügen**) wechselt auf seinen eigenen Reiter.
    1. **Gewehre** — die Filterkarte; die Zusammenfassung **Zum Vergleich** und der Abschnitt Vergleich, nur eingeblendet, sobald 1–2 Konfigurationen dafür vorgemerkt sind (§7); das **Aktive Gewehr**, das Gewehr, das gerade unter Ihrer Hand ist, mit seinen Patronen; danach **Weitere Gewehre**.
    2. **Geschosse** — die Filterkarte; **Ihre Geschosse** und das Geschossformular.
-   3. **Zielfernrohre** — vorerst leer; Zielfernrohr- und Absehen-Definitionen folgen hier in einer künftigen Version.
+   3. **Zielfernrohre** — **Zielfernrohre und Absehen speichern** / **Aus Datei laden**; **Ihre Zielfernrohre** und das Zielfernrohr-Formular; **Ihre Absehen** (§5.8–5.10).
 
 ### 6.2 Das aktive Gewehr und die Aktivierung
 
@@ -208,6 +249,8 @@ Ein Gewehr ohne Patronen zeigt anstelle der Liste eine Warnung: *„Für dieses 
 - **Aktiv** — die derzeit am aktiven Gewehr gewählte Patrone.
 - **Nullpunkt-Geber** — die eigene Nullpunkt-Erhöhung dieser Patrone wird derzeit von einer oder mehreren anderen Patronen des Gewehrs entliehen (§5.7).
 - **Nullpunkt-Empfänger** — diese Patrone ist mit einer anderen Patrone eingeschossen; das Überfahren mit der Maus nennt welche.
+- **Unbrauchbar**, bei einem Zielfernrohr — es hat kein Absehen und kann daher auf kein Gewehr.
+- **Beschädigt** — ein Absehen, das sich nicht lesen ließ; es kann nur gelöscht werden.
 
 ### 6.5 Filter
 
@@ -239,6 +282,7 @@ Die Speicherung des Arsenals lebt in Ihrem Browser. Sichern Sie sie — siehe §
 
 - **In Datei sichern**, an jeder einzelnen Geschoss- oder Gewehrzeile, exportiert nur diesen einen Eintrag. Bei einem Gewehr bündelt die Datei es zusammen mit jedem Geschoss, das seine Patronen tatsächlich referenzieren, sodass die Sicherung eines einzelnen Gewehrs stets für sich genügt und für sich wieder importierbar ist.
 - **Bibliothek in Datei sichern…** öffnet den Dialog **Bibliothek speichern**: ein Kontrollkästchen für jedes Geschoss und jedes Gewehr, das Sie besitzen, standardmäßig alle angekreuzt. Das Ankreuzen eines Gewehrs kreuzt automatisch die von seinen Patronen benötigten Geschosse an; das Abwählen eines Geschosses hebt automatisch die Auswahl jedes Gewehrs auf, das es benötigt — der Dialog lässt Sie kein Gewehr mit einem verwaisten Geschossverweis exportieren. **Exportieren** schreibt eine JSON-Datei mit allem Angekreuzten.
+- **In Datei sichern** bei einem Gewehr nimmt auch sein Zielfernrohr mit, wenn es eines Ihrer eigenen ist, und Ihre Absehen, die dieses führt; bei einem Zielfernrohr seine Absehen; bei einem Absehen nur dieses. In **Bibliothek speichern** hakt ein Gewehr sein Zielfernrohr mit an und ein Zielfernrohr seine Absehen — diese dürfen Sie aber wieder abwählen: Die Verknüpfung wartet dann auf dem Gerät, auf dem die Datei geladen wird, auf sie. **Zielfernrohre und Absehen speichern** im Reiter Zielfernrohre ist derselbe Dialog mit nur diesen beiden Listen. Mitgelieferte Zielfernrohre und Absehen werden nie in eine Datei geschrieben, nur genannt.
 
 Jeder erfolgreiche Export löscht das Abzeichen **Nicht gesichert** bei allem, was er enthielt.
 
@@ -254,6 +298,10 @@ Jeder erfolgreiche Export löscht das Abzeichen **Nicht gesichert** bei allem, w
 - **Importieren** wendet Ihre Wahl an und meldet das Ergebnis: *„{{n}} Eintrag/Einträge importiert, {{n}} übersprungen."*
 
 Gewehre werden nach den Geschossen importiert, und der Geschossverweis jeder Patrone wird auf die id umgemappt, mit der ihr Geschoss tatsächlich in *Ihrer* Bibliothek gelandet ist — sodass ein importiertes, zur Kollisionsvermeidung umbenanntes Geschoss die Patronen des importierten Gewehrs nicht ins Leere zeigen lässt.
+
+Zielfernrohre und Absehen in einer Datei werden genauso importiert, vor den Gewehren, die sie verwenden, und jede Verknüpfung wird ebenso umgestellt; beim Umbenennen erhält ein Zielfernrohr oder Absehen ein neues Modell, *„\<Modell\> - copy (1)“*. Jedes Absehen in einer Datei wird geprüft, bevor es angeboten wird — mit denselben Prüfungen wie beim Zeichnen — und eines, das nicht besteht, wird genannt und ausgelassen.
+
+Eine **Absehen-Datei, die der Absehen-Designer gespeichert hat, bevor das Arsenal Absehen führte** (eine `.reticle.json`-Datei), lässt sich ebenfalls mit beiden Lade-Knöpfen laden. Ein Dialog zeigt das Absehen und fragt, was die Datei nicht angibt: Hersteller und Modell und die Vergrößerung, für die es gezeichnet ist — vorausgefüllt aus dem Sehfeld der Datei, also mit dem verkauften Bereich des Zielfernrohrs vergleichen. Standardmäßig angehakt, öffnet **Danach ein Zielfernrohr mit dem Sehfeld dieser Datei hinzufügen** anschließend das Zielfernrohr-Formular, ausgefüllt mit diesem Sehfeld, dem neuen Absehen und seiner Vergrößerung; Modell des Zielfernrohrs ergänzen und speichern.
 
 ---
 
@@ -333,7 +381,7 @@ Schießen Sie das Gewehr später direkt mit der hochwertigen Laborierung neu ein
 
 ## 11. Herkunft
 
-Das Arsenal ist seit dem ersten Commit Teil der Suite und ist schrittweise gewachsen: mehrere integrierte Geschossbibliotheken und Hersteller-Autovervollständigung; Korrekturen der Einheitenpräferenz über die Patronenliste und die Geschosslänge hinweg; die aktuelle 4-DOF-Flugbahn-Engine mit den von ihr verwendeten Feldern für Seitenabweichung und Drallrichtung; und, zuletzt, Mündungsgeschwindigkeitsstreuung und Gewehrpräzision an Patronen, zusammen mit der direkten Übergabe aus dem Gewehr-Präzisionsrechner aus §10.1 — der Integration, die aus zwei vormals getrennten Werkzeugen eine gemessene Pipeline macht; und, noch jüngeren Datums, dass eine Patrone den physischen Nullpunkt einer anderen entleihen kann (§5.7), für den üblichen Fall, mit einer Laborierung einzuschießen und eine andere zu tragen.
+Das Arsenal ist seit dem ersten Commit Teil der Suite und ist schrittweise gewachsen: mehrere integrierte Geschossbibliotheken und Hersteller-Autovervollständigung; Korrekturen der Einheitenpräferenz über die Patronenliste und die Geschosslänge hinweg; die aktuelle 4-DOF-Flugbahn-Engine mit den von ihr verwendeten Feldern für Seitenabweichung und Drallrichtung; und, zuletzt, Mündungsgeschwindigkeitsstreuung und Gewehrpräzision an Patronen, zusammen mit der direkten Übergabe aus dem Gewehr-Präzisionsrechner aus §10.1 — der Integration, die aus zwei vormals getrennten Werkzeugen eine gemessene Pipeline macht; und, noch jüngeren Datums, dass eine Patrone den physischen Nullpunkt einer anderen entleihen kann (§5.7), für den üblichen Fall, mit einer Laborierung einzuschießen und eine andere zu tragen. Zuletzt kamen Zielfernrohre und Absehen hinzu: Zielfernrohre mit ihrem realen Sehfeld und ihren Klicks, Absehen aus dem Absehen-Designer, beide mit einem Gewehr verknüpfbar und mit dem übrigen Arsenal synchronisiert.
 
 Die Suite steht unter der Lizenz **AGPL-3.0-or-later**.
 

@@ -33,13 +33,14 @@ async function knownManufacturers() {
   return [...seen.values()].sort((a, b) => a.localeCompare(b));
 }
 
-// Plain text `<input>` (kept exactly as before — same id, same `.value`
-// contract existing tests and readValues() rely on) plus a suggestion
-// list anchored directly under it. Focusing or typing in the field shows
-// every known manufacturer whose name contains the current text
-// (case-insensitive) — an empty field therefore shows every vendor,
-// which is exactly the "click an empty field to see them all" behavior,
-// with no special-casing needed.
+// A plain text `<input>` plus a suggestion list anchored directly under
+// it, the suggestions from `loadSuggestions()` (a promise of names).
+// Focusing or typing in the field shows every suggestion whose name
+// contains the current text (case-insensitive) — an empty field therefore
+// shows them all, which is exactly the "click an empty field to see them
+// all" behavior, with no special-casing needed. `onPick(name)` runs when a
+// suggestion is chosen: setting the input's value from script fires no
+// 'input' event.
 //
 // No document-level "click outside" listener: each suggestion row's
 // mousedown handler calls preventDefault(), which suppresses the
@@ -50,13 +51,15 @@ async function knownManufacturers() {
 // when embedded in cartridge-form.js's "Add new bullet" flow, and a
 // listener attached to the input itself is garbage-collected right along
 // with it, unlike one attached to `document`.
-export function manufacturerField({ value = '' } = {}) {
-  const input = el('input', { type: 'text', id: 'arsenalBulletManufacturer', value });
+//
+// `wrap` holds the input and its list; the caller adds the label.
+export function suggestInput({ id, value = '', loadSuggestions, onPick } = {}) {
+  const input = el('input', { type: 'text', id, value });
   const list = el('div', { class: 'field-suggest-list' });
   list.style.display = 'none';
 
   let vendors = [];
-  knownManufacturers().then((resolved) => { vendors = resolved; });
+  loadSuggestions().then((resolved) => { vendors = resolved; }).catch(() => {});
 
   function highlightedIndex() {
     return [...list.childNodes].findIndex((row) => row.classList.contains('highlighted'));
@@ -70,6 +73,7 @@ export function manufacturerField({ value = '' } = {}) {
   function selectVendor(name) {
     input.value = name;
     list.style.display = 'none';
+    if (onPick) onPick(name);
   }
 
   function render(query) {
@@ -119,9 +123,17 @@ export function manufacturerField({ value = '' } = {}) {
     }
   });
 
+  return { input, wrap: el('div', { class: 'field-suggest-wrap' }, [input, list]) };
+}
+
+// Plain text `<input>` (kept exactly as before — same id, same `.value`
+// contract existing tests and readValues() rely on), suggesting bullet
+// manufacturers (knownManufacturers above).
+export function manufacturerField({ value = '' } = {}) {
+  const { input, wrap } = suggestInput({ id: 'arsenalBulletManufacturer', value, loadSuggestions: knownManufacturers });
   const node = el('div', { class: 'field' }, [
     el('label', { i18n: 'arsenal.bulletManufacturer' }),
-    el('div', { class: 'field-suggest-wrap' }, [input, list])
+    wrap
   ]);
 
   return {

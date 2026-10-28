@@ -1,5 +1,6 @@
-// Main-thread side of the Reticle Designer's untrusted-input parsing (an
-// SVG import, or a reticle file being loaded): hands the text to a fresh
+// Main-thread side of the reticle tools' untrusted-input parsing (an SVG
+// import, a reticle file being loaded, or an Arsenal file's reticle
+// records being checked before import): hands the text to a fresh
 // worker and waits at most IMPORT_TIMEOUT_MS. Always resolves — never
 // throws or hangs — to { ok: true, ...result } or { ok: false, code,
 // detail }, so the caller only has to show the outcome.
@@ -8,8 +9,8 @@ export const IMPORT_TIMEOUT_MS = 3000;
 let overrides = {};
 
 // Tests run the parsers directly (the test DOM's Worker never answers):
-// { svg: (text) => outcome, reticle: (text) => outcome }; {} restores the
-// worker.
+// { svg, reticle, reticleRecords }, each (text) => outcome; {} restores
+// the worker.
 export function setImportersForTests(fns) {
   overrides = fns || {};
 }
@@ -52,4 +53,10 @@ export function importSvg(text) {
 
 export function loadReticleFile(text) {
   return runJob('reticle', text, (data) => (data.doc ? { doc: data.doc } : null));
+}
+
+// Which of an import file's reticle records hold a valid reticle:
+// { ok: true, valid: [boolean per record] }.
+export function checkReticleRecords(records) {
+  return runJob('reticleRecords', JSON.stringify(records), (data) => (Array.isArray(data.valid) ? { valid: data.valid } : null));
 }

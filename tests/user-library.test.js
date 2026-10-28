@@ -312,3 +312,34 @@ test('sync adopting a stored-form record as a local edit (take theirs, history r
   assert.equal(stored.defaultClickVerticalRad, mradToRad(0.1));
   assert.equal(lib.decode(stored).defaultClickVerticalRad, mradToRad(0.1));
 });
+
+test('scopes: saved with a name derived from manufacturer and model, found by it, tombstoned keeping reticleIds', async () => {
+  const lib = await import('../src/user-library.js');
+  const { defaultScopeRecord } = await import('../src/scope-record.js');
+  const id = generateUserId('user-scope');
+  const saved = lib.saveUserScope({ ...defaultScopeRecord(), id, manufacturer: 'Acme', model: '5-25x56', reticleIds: ['sb-p4lf'] });
+  assert.equal(saved.name, 'Acme 5-25x56');
+  assert.equal(saved.unsaved, true);
+  assert.equal(lib.loadUserScopes()[0].reticleIds[0], 'sb-p4lf');
+  assert.equal(lib.findUserScopeByName(' acme 5-25X56').id, id);
+  assert.equal(lib.findUserScopeByName('Acme 5-25x56', { excludeId: id }), undefined);
+
+  lib.saveUserScope({ ...saved, model: '5-25x56 II' });
+  assert.equal(lib.loadUserScopes()[0].name, 'Acme 5-25x56 II', 'the name follows the model');
+  assert.equal(lib.loadUserScopes()[0].revision, 2);
+
+  lib.markUserScopesSaved([id]);
+  assert.equal(lib.loadUserScopes()[0].unsaved, false);
+  assert.deepEqual(lib.storedUserScopeOf(lib.loadUserScopes()[0]), lib.loadUserScopesWithTombstones()[0]);
+
+  lib.deleteUserScope(id);
+  assert.deepEqual(lib.loadUserScopes(), []);
+  const [tomb] = lib.loadUserScopesWithTombstones();
+  assert.equal(tomb.name, 'Acme 5-25x56 II');
+  assert.deepEqual(tomb.reticleIds, []);
+  assert.equal(lib.findUserScopeByName('Acme 5-25x56 II'), undefined);
+
+  const imported = lib.importUserScope({ ...defaultScopeRecord(), id: 'peer-scope', name: 'B C', manufacturer: 'B', model: 'C', revision: 9, modifiedAt: '2020-01-01T00:00:00.000Z' });
+  assert.equal(imported.revision, 9);
+  assert.equal(lib.loadUserScopes()[0].modifiedAt, '2020-01-01T00:00:00.000Z');
+});

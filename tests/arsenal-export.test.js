@@ -29,10 +29,10 @@ test('collectRifleBulletIds only includes cartridge bullets that are actually in
   assert.deepEqual([...ids], ['user-bullet-1']);
 });
 
-test('parseImportPayload accepts a well-formed export and returns just its bullets/rifles', () => {
+test('parseImportPayload accepts a well-formed export and returns just its bullets/rifles/scopes/reticles', () => {
   const payload = buildExportPayload({ bullets: [{ id: 'b1', name: 'B1' }], rifles: [{ id: 'r1', name: 'R1', cartridges: [] }] });
   const result = parseImportPayload(serializeExport(payload));
-  assert.deepEqual(result, { bullets: [{ id: 'b1', name: 'B1' }], rifles: [{ id: 'r1', name: 'R1', cartridges: [] }] });
+  assert.deepEqual(result, { bullets: [{ id: 'b1', name: 'B1' }], rifles: [{ id: 'r1', name: 'R1', cartridges: [] }], scopes: [], reticles: [] });
 });
 
 test('parseImportPayload rejects invalid JSON with code "invalid-json"', () => {
@@ -275,6 +275,7 @@ test('planImportBatch gives sequential, non-colliding copy names to two conflict
 test('parseImportPayload refuses a file from a newer format version, with code "unsupported-version"', () => {
   const file = (version) => JSON.stringify({ format: 'ebalka2-arsenal', version, bullets: [], rifles: [] });
   assert.throws(() => parseImportPayload(file(2)), (err) => err.code === 'unsupported-version');
-  assert.deepEqual(parseImportPayload(file(1)), { bullets: [], rifles: [] });
-  assert.deepEqual(parseImportPayload(JSON.stringify({ format: 'ebalka2-arsenal', bullets: [], rifles: [] })), { bullets: [], rifles: [] }, 'no version: read as the oldest format');
+  const empty = { bullets: [], rifles: [], scopes: [], reticles: [] };
+  assert.deepEqual(parseImportPayload(file(1)), empty);
+  assert.deepEqual(parseImportPayload(JSON.stringify({ format: 'ebalka2-arsenal', bullets: [], rifles: [] })), empty, 'no version: read as the oldest format');
 });

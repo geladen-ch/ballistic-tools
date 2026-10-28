@@ -1,14 +1,18 @@
 // One entry per user-authored library this app syncs — shared between
 // auto-sync.js's runSyncCycle() (Phase 5, folder-based) and
 // manual-sync.js's importPeerBundleText() (Phase 8a/8b, one-off file
-// based): both merge the exact same four lists the exact same way, they
+// based): both merge the exact same lists the exact same way, they
 // just get the remote bundle from a different place. `write` serves both
 // mergeRecords callbacks (importRaw and tombstone) — see merge.js's own
 // note on why that's one function, not two.
 import {
   loadUserBulletsWithTombstones, loadUserRiflesWithTombstones, importUserBullet, importUserRifle,
-  saveUserBullet, saveUserRifle
+  saveUserBullet, saveUserRifle, loadUserScopesWithTombstones, importUserScope, saveUserScope
 } from '../user-library.js';
+import { loadUserReticlesWithTombstones, importUserReticle, saveUserReticle } from '../reticle-library.js';
+import { decodeReticleRecord } from '../reticle/reticle-record.js';
+import { checkReticleRecords } from '../reticle/svg-import/client.js';
+import { logSyncEvent } from './sync-log.js';
 import { loadUserLocationsWithTombstones, importUserLocation, saveUserLocation } from '../location-library.js';
 import {
   loadRiflePrecisionProjectsWithTombstones, importRiflePrecisionProject, saveRiflePrecisionProject
@@ -21,6 +25,26 @@ import { RECORD_CODECS } from '../record-codec.js';
 // stored-form record too (a remote version or a history snapshot being
 // adopted as a local edit) and decodes it for the library's own save,
 // which encodes it afresh; `decode` is what the merge compares by.
+//
+// `screenRemote(list, peerLabel)`, where a library has one, runs on a
+// peer's list before it is merged, and gives back what may be merged.
+// Reticles are untrusted input, however they arrive: each one is checked
+// in the import worker, exactly as an import file's are, and one that
+// fails (or a list the worker couldn't finish in time) is left out of
+// this merge — so nothing unchecked is ever stored; the next cycle tries
+// again.
+async function screenReticles(list, peerLabel) {
+  if (list.length === 0) return list;
+  const outcome = await checkReticleRecords(list);
+  const valid = outcome.ok ? outcome.valid : list.map(() => false);
+  const kept = list.filter((_, i) => valid[i]);
+  if (kept.length < list.length) {
+    logSyncEvent('warn', 'merge: reticle — skipping', list.length - kept.length, 'unreadable record(s) from', peerLabel || 'peer',
+      outcome.ok ? '' : `(check failed: ${outcome.code})`);
+  }
+  return kept;
+}
+
 const LIBRARIES = [
   {
     recordType: 'bullet',
@@ -41,6 +65,23 @@ const LIBRARIES = [
     save: saveUserRifle
   },
   {
+    recordType: 'scope',
+    loadLocalWithTombstones: loadUserScopesWithTombstones,
+    remoteList: (bundle) => bundle.arsenal.scopes || [],
+    write: importUserScope,
+    save: saveUserScope
+  },
+  {
+    recordType: 'reticle',
+    loadLocalWithTombstones: loadUserReticlesWithTombstones,
+    remoteList: (bundle) => bundle.arsenal.reticles || [],
+    screenRemote: screenReticles,
+    write: importUserReticle,
+    save: saveUserReticle,
+    // Merged in its stored form (record-codec.js), held decoded.
+    saveDecode: decodeReticleRecord
+  },
+  {
     recordType: 'location',
     loadLocalWithTombstones: loadUserLocationsWithTombstones,
     remoteList: (bundle) => bundle.locations.locations,
@@ -58,5 +99,11 @@ const LIBRARIES = [
 
 export const SYNCED_LIBRARIES = LIBRARIES.map((lib) => {
   const { decode } = RECORD_CODECS[lib.recordType];
-  return { ...lib, decode, save: (stored) => lib.save(decode(stored)) };
+  const toSave = lib.saveDecode || decode;
+  return {
+    ...lib,
+    decode,
+    screenRemote: lib.screenRemote || (async (list) => list),
+    save: (stored) => lib.save(toSave(stored))
+  };
 });

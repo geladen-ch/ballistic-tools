@@ -73,7 +73,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 - No chronograph? You still come away with corrected scope settings for the distances you shot and a check of your zero, just no BC correction
 - Works while the bullet stays supersonic only. The heavy number-crunching runs in the background, so the screen never freezes
 
-## Guns (rifle/bullet/cartridge library)
+## Guns (rifle/bullet/cartridge/scope library)
 
 - One active configuration shared across Trajectory, Hit Probability, Range Solver, Truing Session
 - Built-in libraries: Geladen's own; Lapua Cd (radar-measured); Hornady Reverse (with bullet lengths cross-referenced from JBM's published bullet data), Berger Reverse, Sierra Reverse, and Lapua Reverse (all reverse-engineered from Hornady's own 4DOF calculator output); Berger Published BC (weight, diameter, OAL, and G7 — or G1 where Berger publishes no G7 — as published on Berger's own site); Swiss P (reverse-engineered from published tables)
@@ -82,6 +82,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 - Local-only storage (nothing ever leaves the browser), JSON backup/restore with per-item conflict resolution
 - ★ Zero with one cartridge (practice ammo, say), stay correct with all the others sharing the rifle — each recipient cartridge borrows its elevation solve from a designated donor's ballistics instead of assuming it was zeroed on its own
 - ★ Each cartridge can remember a BC correction (the *BC gain factor*) and the weather you zeroed it in, and every tool that uses the cartridge takes both into account
+- Scopes with their real optics — field of view at both ends of the zoom (the actual low magnification worked out from it), SFP calibration zoom, turret click unit and values — each offered with one or more reticles.
 
 ## Backup & Sync
 

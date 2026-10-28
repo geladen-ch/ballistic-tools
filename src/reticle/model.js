@@ -1,7 +1,10 @@
 // The reticle document and every edit to it, as pure functions returning a
 // new document — the shape history.js snapshots. No DOM.
 //
-// document = { name, scope, illumination, elements: [record...], groups: [{ id }], nextId }
+// document = { manufacturer, model, referenceScope, illumination, elements: [record...], groups: [{ id }], nextId }
+// `referenceScope` = the scope the reticle is drawn for (see scope.js).
+// A reticle record (reticle-record.js) is a document plus the record's
+// own id and bookkeeping.
 // `illumination` = { enabled, colour }: whether the reticle is illuminated
 // and in which colour; each element then says whether it is lit.
 // Element ids are 'e<n>', group ids 'g<n>', both drawn from nextId.
@@ -21,15 +24,15 @@
 // A plain line looks the same from either end, so neither rule applies to
 // it: both ends move freely, and so does the whole line (a newly drawn one
 // still gets the end nearer zero as its start).
-import { defaultScope } from './scope.js';
+import { defaultReferenceScope } from './scope.js';
 import { axisOf, endKeyOf, startOnAxis, endOnAxis, staysOnVerticalAxis, followsEndPointRule } from './element-types.js';
 import { translateRecord } from './geometry.js';
 
 export const ILLUMINATION_COLOURS = ['red', 'amber', 'green'];
 export const DEFAULT_ILLUMINATION = Object.freeze({ enabled: false, colour: 'red' });
 
-export function createDocument({ scope = defaultScope(), name = '' } = {}) {
-  return { name, scope, illumination: { ...DEFAULT_ILLUMINATION }, elements: [], groups: [], nextId: 1 };
+export function createDocument({ referenceScope = defaultReferenceScope(), manufacturer = '', model = '' } = {}) {
+  return { manufacturer, model, referenceScope, illumination: { ...DEFAULT_ILLUMINATION }, elements: [], groups: [], nextId: 1 };
 }
 
 // Switches illumination on or off, or picks its colour. Elements keep
@@ -320,10 +323,21 @@ export function duplicateElements(doc, ids, dx, dy) {
   return { doc: next, selection };
 }
 
-export function updateScope(doc, patch) {
-  return { ...doc, scope: { ...doc.scope, ...patch } };
+export function updateReferenceScope(doc, patch) {
+  return { ...doc, referenceScope: { ...doc.referenceScope, ...patch } };
 }
 
-export function setName(doc, name) {
-  return doc.name === name ? doc : { ...doc, name };
+// The manufacturer and/or model: { manufacturer?, model? }.
+export function setIdentity(doc, patch) {
+  const next = { ...doc, ...patch };
+  return next.manufacturer === doc.manufacturer && next.model === doc.model ? doc : next;
+}
+
+const DOCUMENT_KEYS = ['manufacturer', 'model', 'referenceScope', 'illumination', 'elements', 'groups', 'nextId'];
+
+// The document part of a reticle record.
+export function documentOf(reticle) {
+  const doc = {};
+  for (const key of DOCUMENT_KEYS) doc[key] = reticle[key];
+  return doc;
 }

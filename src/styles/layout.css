@@ -2132,14 +2132,15 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
    on narrow ones. The reticle view always shows a light "glass" with a
    black reticle, whatever the app theme: it depicts the view through the
    scope, not app chrome. */
-.reticle-designer { --reticle-ink: #000; --reticle-glass: #f3f3ee; --reticle-grid: rgba(0, 0, 0, 0.12); --reticle-grid-major: rgba(0, 0, 0, 0.24); --reticle-zero: #d0342c; --reticle-bdc: #1f6fd6; }
+.reticle-designer, .reticle-thumbnail { --reticle-ink: #000; --reticle-glass: #f3f3ee; --reticle-grid: rgba(0, 0, 0, 0.12); --reticle-grid-major: rgba(0, 0, 0, 0.24); --reticle-zero: #d0342c; --reticle-bdc: #1f6fd6; }
 .reticle-intro { color: var(--dim); max-width: 70ch; }
 .reticle-file-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; margin-bottom: 14px; }
-.reticle-name-field { flex: 1 1 220px; }
+.reticle-identity-field { flex: 1 1 200px; }
 .reticle-file-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .reticle-unsaved { font-size: 12px; color: var(--accent); }
 .reticle-file-message { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--danger); }
 .reticle-file-message:empty { display: none; }
+.reticle-file-message.ok { color: var(--ok); }
 .reticle-scope { margin-bottom: 14px; }
 .reticle-scope-summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
 .reticle-scope-title { font-weight: 600; }
@@ -2201,9 +2202,9 @@ button.reticle-tool.armed { background: var(--accent); color: var(--accent-text)
 /* Illumination: lit elements in the reticle's colour (a deeper shade on
    the light field, a brighter one on the dimmed field); a selected lit
    element keeps its colour and gets an accent outline. */
-.reticle-canvas.illum-red { --reticle-illum: #e3261c; }
-.reticle-canvas.illum-amber { --reticle-illum: #e08e00; }
-.reticle-canvas.illum-green { --reticle-illum: #16a334; }
+.reticle-canvas.illum-red, .reticle-thumbnail.illum-red { --reticle-illum: #e3261c; }
+.reticle-canvas.illum-amber, .reticle-thumbnail.illum-amber { --reticle-illum: #e08e00; }
+.reticle-canvas.illum-green, .reticle-thumbnail.illum-green { --reticle-illum: #16a334; }
 .reticle-canvas.dim { --reticle-glass: #26282b; --reticle-grid: rgba(255, 255, 255, 0.08); --reticle-grid-major: rgba(255, 255, 255, 0.18); }
 .reticle-canvas.dim.illum-red { --reticle-illum: #ff4a3d; }
 .reticle-canvas.dim.illum-amber { --reticle-illum: #ffb52e; }
@@ -2211,6 +2212,22 @@ button.reticle-tool.armed { background: var(--accent); color: var(--accent-text)
 .reticle-shape.lit, .reticle-shape.lit.selected { fill: var(--reticle-illum); stroke: var(--reticle-illum); }
 .reticle-shape.lit.stroked { fill: none; }
 .reticle-shape.lit.selected { filter: drop-shadow(1px 0 0 var(--accent)) drop-shadow(-1px 0 0 var(--accent)) drop-shadow(0 1px 0 var(--accent)) drop-shadow(0 -1px 0 var(--accent)); }
+/* A reticle thumbnail (ui/reticle-thumbnail.js). */
+.reticle-thumbnail { display: block; flex: none; border-radius: 50%; }
+/* The Arsenal's reticle rows: the thumbnail, then the name and summary
+   taking the room, then the actions. */
+.arsenal-reticle-row .arsenal-row-info { flex: 1 1 200px; min-width: 0; }
+/* The scope form's reticle picker: a checkbox, thumbnail and name each. */
+.scope-reticle-choices { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+.scope-reticle-group { margin-top: 6px; }
+.scope-reticle-choice { gap: 10px; }
+/* The Scopes tab's own Save/Load row. */
+.arsenal-tab-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* The legacy reticle form's preview, in its modal. */
+.legacy-reticle-preview { display: flex; justify-content: center; margin: 4px 0 10px; }
+/* A number input with its unit after it. */
+.field-input-with-unit { display: flex; align-items: center; gap: 6px; }
+.field-input-with-unit input { flex: 1 1 auto; min-width: 0; }
 .reticle-illumination { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .reticle-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 button.reticle-swatch { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-size: 12px; background: var(--panel-raised); color: var(--text); border: 1px solid var(--line); }

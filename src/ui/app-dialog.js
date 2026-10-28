@@ -31,12 +31,14 @@ function hide() {
   overlay.style.display = 'none';
 }
 
-// `buttons`: [{ label, onClick }, ...] — the first is styled as the
-// primary action (a plain `button`), the rest `.secondary`, same
+// `buttons`: [{ label, onClick, validate }, ...] — the first is styled as
+// the primary action (a plain `button`), the rest `.secondary`, same
 // convention every existing form's save/cancel pair already uses.
 // Clicking any of them hides the dialog and then calls that button's own
 // onClick — there's no other way to dismiss it (no backdrop click, no
-// Escape key): a choice is the only thing that closes it. A picker body
+// Escape key): a choice is the only thing that closes it. A button with a
+// `validate()` that returns false does nothing at all, the dialog staying
+// open — for a form body whose fields have to be right first. A picker body
 // (bodyNode) is expected to close the dialog itself on a row pick — see
 // hideDialog() below — since that's a third way out beyond either button,
 // not something this generic shell can wire up on its own.
@@ -49,9 +51,10 @@ export function showDialog({ message, bodyNode, buttons, wide = false }) {
   clear(bodyEl);
   bodyEl.appendChild(bodyNode || el('p', { class: 'app-dialog-message', text: message }));
   clear(actionsEl);
-  buttons.forEach(({ label, onClick }, i) => {
+  buttons.forEach(({ label, onClick, validate }, i) => {
     const button = el('button', { class: i === 0 ? '' : 'secondary', text: label });
     button.addEventListener('click', () => {
+      if (validate && !validate()) return;
       hide();
       if (onClick) onClick();
     });

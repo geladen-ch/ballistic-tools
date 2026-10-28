@@ -2,19 +2,22 @@
 // fixed, first- or second-focal-plane scope. Five panes around the
 // reticle: editing options (1), the reticle view (2), the element palette
 // (3), the selected element's settings (4) and the list of elements (5),
-// with the scope definition above them and New / Save to file / Load from
-// file.
+// with the scope definition above them and the reticle's manufacturer and
+// model, New, Save to arsenal and Discard changes. Reticles are kept in
+// the Arsenal (reticle-library.js), which opens them here to add or edit.
 //
 // The reticle, its undo history and the editor settings live in session
 // memory (reticle-designer-state.js): they survive moving to another tool
 // and back, not a reload — a reload with unsaved changes asks first.
 import { el, clear } from '../dom.js';
 import { t } from '../i18n.js';
-import { downloadFile } from '../download.js';
-import { hasUnsavedReticleChanges } from '../reticle-designer-state.js';
-import { serializeReticle, reticleFilename, FILE_EXTENSION, FILE_LIMITS } from '../reticle/file-codec.js';
-import { loadReticleFile } from '../reticle/svg-import/client.js';
-import { setName } from '../reticle/model.js';
+import { hasUnsavedReticleChanges, getReticleTarget, setReticleReturnToArsenal } from '../reticle-designer-state.js';
+import { setIdentity, documentOf } from '../reticle/model.js';
+import { getUserReticle, saveUserReticle, findUserReticleByName } from '../reticle-library.js';
+import { generateUserId } from '../user-library.js';
+import { opticLabel } from '../scope-record.js';
+import { setPendingArsenalTab } from '../arsenal-prefill.js';
+import { opticsManufacturerInput } from '../ui/arsenal/optics-manufacturer-field.js';
 import { createController } from '../ui/reticle-designer/controller.js';
 import { optionsPane } from '../ui/reticle-designer/options-pane.js';
 import { reticleView } from '../ui/reticle-designer/reticle-view.js';
@@ -30,8 +33,8 @@ const NUDGE_KEYS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], A
 
 let unloadGuardInstalled = false;
 
-// The browser's own "leave site?" prompt, while changes aren't saved to a
-// file — session memory doesn't survive a reload.
+// The browser's own "leave site?" prompt, while changes aren't saved to
+// the Arsenal — session memory doesn't survive a reload.
 function installUnloadGuard() {
   if (unloadGuardInstalled) return;
   unloadGuardInstalled = true;
@@ -55,13 +58,48 @@ export function mount(container) {
   const ctl = createController({ onChange: () => refresh() });
 
   // ---- file bar ----
-  const nameInput = el('input', { type: 'text', id: 'reticle-name', maxlength: '80', placeholder: t('reticleDesigner.file.namePlaceholder') });
-  nameInput.value = ctl.doc.name;
-  nameInput.addEventListener('input', () => ctl.commit(setName(ctl.doc, nameInput.value), { coalesceKey: 'name' }));
-  nameInput.addEventListener('blur', () => ctl.breakCoalescing());
+  // The reticle's identity: its manufacturer and model, each edit an undo
+  // step like any other.
+  // The manufacturer suggests scope and reticle makers, never bullet ones.
+  function identityInput(key, input) {
+    input.setAttribute('maxlength', '80');
+    input.value = ctl.doc[key];
+    input.addEventListener('input', () => setIdentityFrom(key, input));
+    input.addEventListener('blur', () => ctl.breakCoalescing());
+    return input;
+  }
+  function setIdentityFrom(key, input) {
+    input.classList.remove('field-invalid');
+    ctl.commit(setIdentity(ctl.doc, { [key]: input.value }), { coalesceKey: key });
+  }
+  const manufacturerSuggest = opticsManufacturerInput({
+    id: 'reticle-manufacturer',
+    onPick: () => {
+      setIdentityFrom('manufacturer', manufacturerSuggest.input);
+      ctl.breakCoalescing();
+    }
+  });
+  const manufacturerInput = identityInput('manufacturer', manufacturerSuggest.input);
+  const modelInput = identityInput('model', el('input', { type: 'text', id: 'reticle-model' }));
+  const identityField = (key, input, control = input) => el('label', { class: 'reticle-field reticle-identity-field', for: input.id }, [
+    el('span', { class: 'reticle-field-label', i18n: `reticleDesigner.file.${key}` }),
+    control
+  ]);
 
   const unsaved = el('span', { class: 'reticle-unsaved', i18n: 'reticleDesigner.file.unsaved' });
   const fileMessage = el('p', { class: 'reticle-file-message', role: 'status' });
+  function showMessage(key, { ok = false } = {}) {
+    fileMessage.textContent = key ? t(key) : '';
+    fileMessage.classList.toggle('ok', ok);
+  }
+
+  // Opened from the Arsenal: Save and Discard go back there, to the
+  // Scopes tab the reticle was opened from.
+  function returnToArsenal() {
+    setReticleReturnToArsenal(false);
+    setPendingArsenalTab('scopes');
+    location.hash = '#/guns/arsenal';
+  }
 
   // A fresh start: the reticle and its undo history are scrapped, so
   // unsaved changes are asked about first.
@@ -69,54 +107,56 @@ export function mount(container) {
   newButton.addEventListener('click', () => {
     if (hasUnsavedReticleChanges() && !confirm(t('reticleDesigner.file.confirmNew'))) return;
     ctl.newDocument();
-    nameInput.value = '';
-    fileMessage.textContent = '';
+    showMessage(null);
   });
 
-  const saveButton = el('button', { type: 'button', id: 'reticle-save', i18n: 'reticleDesigner.file.save' });
+  // Saves the reticle to the Arsenal: as the reticle it was opened as (or
+  // last saved as), or as a new one. Another reticle already under the same
+  // manufacturer and model is replaced, once confirmed — the reticle
+  // opened is then left as it was.
+  const saveButton = el('button', { type: 'button', id: 'reticle-save', i18n: 'reticleDesigner.file.saveToArsenal' });
   saveButton.addEventListener('click', () => {
-    downloadFile(reticleFilename(ctl.doc.name), serializeReticle(ctl.doc), 'application/json');
-    fileMessage.textContent = '';
-    ctl.markSaved();
+    const missing = [[manufacturerInput, 'manufacturer'], [modelInput, 'model']].filter(([, key]) => !ctl.doc[key].trim());
+    for (const [input] of missing) input.classList.add('field-invalid');
+    if (missing.length) {
+      showMessage('reticleDesigner.file.identityRequired');
+      return;
+    }
+    const { reticleId, fromArsenal } = getReticleTarget();
+    const current = reticleId ? getUserReticle(reticleId) : null;
+    const collision = findUserReticleByName(opticLabel(ctl.doc), { excludeId: current?.id });
+    if (collision && !confirm(t('reticleDesigner.file.confirmOverwrite', { name: collision.name }))) return;
+    const base = collision || current;
+    const { damaged, ...kept } = base || {};
+    const id = base ? base.id : generateUserId('user-reticle');
+    saveUserReticle({ ...kept, ...documentOf(ctl.doc), id });
+    ctl.markSaved(id);
+    if (fromArsenal) {
+      returnToArsenal();
+      return;
+    }
+    showMessage('reticleDesigner.file.saved', { ok: true });
   });
 
-  const fileInput = el('input', { type: 'file', accept: `${FILE_EXTENSION},application/json` });
-  fileInput.style.display = 'none';
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files && fileInput.files[0];
-    fileInput.value = '';
-    if (!file) return;
-    // A file is untrusted input: checked and parsed in the import worker,
-    // with a timeout, exactly like an SVG import.
-    const show = (key) => { fileMessage.textContent = t(`reticleDesigner.file.errors.${key}`); };
-    if (file.size > FILE_LIMITS.maxChars) return show('tooLarge');
-    let text;
-    try {
-      text = await file.text();
-    } catch {
-      return show('invalidFormat');
+  // Back to the reticle as last saved to the Arsenal (or an empty one if it
+  // never was), its undo history scrapped — asked first.
+  const discardButton = el('button', { type: 'button', class: 'secondary', id: 'reticle-discard', i18n: 'reticleDesigner.file.discard' });
+  discardButton.addEventListener('click', () => {
+    const changed = hasUnsavedReticleChanges();
+    if (changed && !confirm(t('reticleDesigner.file.confirmDiscard'))) return;
+    const { reticleId, fromArsenal } = getReticleTarget();
+    if (changed) {
+      const saved = reticleId ? getUserReticle(reticleId) : null;
+      ctl.revertTo(saved && !saved.damaged ? saved : null);
     }
-    const outcome = await loadReticleFile(text);
-    if (!outcome.ok) {
-      return show({ 'invalid-json': 'invalidJson', 'unsupported-version': 'newerVersion', 'too-large': 'tooLarge', timeout: 'timeout' }[outcome.code] || 'invalidFormat');
-    }
-    ctl.loadDocument(outcome.doc);
-    nameInput.value = outcome.doc.name;
-    fileMessage.textContent = '';
-  });
-  const loadButton = el('button', { type: 'button', class: 'secondary', id: 'reticle-load', i18n: 'reticleDesigner.file.load' });
-  loadButton.addEventListener('click', () => {
-    if (hasUnsavedReticleChanges() && !confirm(t('reticleDesigner.file.confirmReplace'))) return;
-    fileInput.click();
+    showMessage(null);
+    if (fromArsenal) returnToArsenal();
   });
 
   const fileBar = el('div', { class: 'card reticle-file-bar' }, [
-    el('label', { class: 'reticle-field reticle-name-field', for: 'reticle-name' }, [
-      el('span', { class: 'reticle-field-label', i18n: 'reticleDesigner.file.name' }),
-      nameInput
-    ]),
-    el('div', { class: 'reticle-file-actions' }, [newButton, saveButton, loadButton, unsaved]),
-    fileInput,
+    identityField('manufacturer', manufacturerInput, manufacturerSuggest.wrap),
+    identityField('model', modelInput),
+    el('div', { class: 'reticle-file-actions' }, [newButton, saveButton, discardButton, unsaved]),
     fileMessage
   ]);
 
@@ -141,8 +181,12 @@ export function mount(container) {
 
   function refresh() {
     for (const pane of panes) pane.update();
-    unsaved.style.display = hasUnsavedReticleChanges() ? '' : 'none';
-    if (document.activeElement !== nameInput && nameInput.value !== ctl.doc.name) nameInput.value = ctl.doc.name;
+    const changed = hasUnsavedReticleChanges();
+    unsaved.style.display = changed ? '' : 'none';
+    discardButton.disabled = !changed && !getReticleTarget().fromArsenal;
+    for (const [input, key] of [[manufacturerInput, 'manufacturer'], [modelInput, 'model']]) {
+      if (document.activeElement !== input && input.value !== ctl.doc[key]) input.value = ctl.doc[key];
+    }
   }
   refresh();
 

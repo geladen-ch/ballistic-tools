@@ -238,7 +238,7 @@ function assertActiveTab(container, key) {
   }
 }
 
-test('tabs: Rifles is open by default, with rifles on Rifles, bullets on Bullets and a placeholder on Scopes', async () => {
+test('tabs: Rifles is open by default, with rifles on Rifles, bullets on Bullets, scopes and reticles on Scopes', async () => {
   const container = makeElement('main');
   arsenalView.mount(container);
   await settle();
@@ -247,7 +247,8 @@ test('tabs: Rifles is open by default, with rifles on Rifles, bullets on Bullets
   assert.ok(findAnyById(tabPanel(container, 'rifles'), 'arsenal-add-rifle'));
   assert.ok(findAnyById(tabPanel(container, 'rifles'), 'comparison-section'));
   assert.ok(findAnyById(tabPanel(container, 'bullets'), 'arsenal-add-bullet'));
-  assert.ok(tabPanel(container, 'scopes').textContent.length > 0);
+  assert.ok(findAnyById(tabPanel(container, 'scopes'), 'arsenal-add-scope'));
+  assert.ok(findAnyById(tabPanel(container, 'scopes'), 'arsenal-add-reticle'));
   // Save/Load Library covers the whole library, so it sits above the
   // tabs, not inside any of them.
   for (const k of ['rifles', 'bullets', 'scopes']) {

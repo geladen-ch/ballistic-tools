@@ -1,6 +1,6 @@
 # geladen.ch ballistics User Manual — Guns/Arsenal section
 
-*Part of the* [geladen.ch ballistics suite](https://bc.geladen.ch)*. The rifle and bullet library shared by every other tool.*
+*Part of the* [geladen.ch ballistics suite](https://bc.geladen.ch)*. The rifle, bullet, scope and reticle library shared by every other tool.*
 
 ---
 
@@ -28,6 +28,8 @@ The corollary is the one you would expect: **if you clear your browser's site da
 
 Unlike Rifle Precision, Arsenal stores no photographs and no large binary data, so its footprint in `localStorage` is small regardless of how many rifles and bullets you keep. There is no built-in cap on how many of either you may save.
 
+Your own reticles are the one exception to "small": a reticle with an imported drawing can run to megabytes, so reticles are kept in the browser's IndexedDB rather than `localStorage`. Everything else above applies to them unchanged — on this device only, gone with the site data, backed up with the rest (§8).
+
 **Requirements.** Any reasonably current browser. The app installs as a PWA and works fully offline once loaded.
 
 ---
@@ -49,6 +51,16 @@ Rifle         a specific rifle: sight height, zero range, twist, scope clicks
 **A Cartridge** is what actually connects the two. It lives nested inside a rifle, never on its own, and it names one bullet plus the muzzle velocity that rifle achieves with it. This is also where the two most consequential, and most commonly guessed-at, numbers in external ballistics optionally live: the load's muzzle-velocity consistency (§5.4) and the rifle's own measured precision (§5.6) — both feeding directly into Hit Probability.
 
 **A rifle chambers one caliber.** The moment any cartridge on a rifle resolves to a real bullet, every other cartridge you add to that rifle has its bullet picker locked to bullets of that same caliber (§5.5). This is enforced, not just suggested — it reflects a fact about rifles, not a limitation of the tool. (And if you own a drilling or other combination gun that spans more than one caliber, don't get clever about it — just create a separate rifle entry per caliber.)
+
+Two more kinds of record describe the glass on top of the rifle:
+
+```
+Scope         a real scope: manufacturer and model, magnification, field of view, turret clicks
+  └─ its reticles   one or more Reticles it can be had with
+Reticle       a reticle drawing: manufacturer and model, the scope it was drawn for, illumination
+```
+
+**A Scope** stands alone, like a rifle or a bullet: it is the optic as sold — its nominal magnification, its field of view at both ends of the zoom range, its click unit and click values — and it lists the **Reticles** it can be had with. One scope can come with several reticles, and one reticle can sit in several scopes. A rifle may name **one scope** (and, when that scope offers several, one of its reticles); a scope without any reticle cannot be put on a rifle (§5.10). The app comes with a few built-in scopes and reticles; your own sit alongside them.
 
 ### 3.1 A note on units
 
@@ -117,6 +129,7 @@ A rifle with zero cartridges is saved but flagged **Unusable** (§6.4) — it ca
 - **Zero range** — required, the distance you normally zero this rifle at, in your distance unit (0–5000 m range).
 - **Rifling twist (distance per turn)** and **Twist direction** (right or left) — optional, left blank if unknown, in the independent twist-rate unit described in §3.1 (1–1000 mm/in range). Needed for stability and spin-drift, nothing else.
 - **Click unit**, **Horizontal click value**, **Vertical click value** — the scope's own turret values, in mrad or MOA as chosen here (0.01–5, independent of your global preference, per §3.1).
+- **Scope** — optional: one of your scopes or a built-in one, and, when it comes with several reticles, which **Reticle**. Choosing a scope copies its click unit and click values into the three fields below; from then on they are the rifle's own (§5.10).
 - **Source / notes** — free text, optional.
 
 A brand-new rifle saves with an empty cartridge list; you add its cartridges next, from the rifle's own row (§5.4).
@@ -172,6 +185,34 @@ The extreme version of the same problem is a rifle that runs both a supersonic l
 
 The Arsenal cartridge list marks both halves of the relationship — see §6.4. Deleting a donor clears the reference on every cartridge that pointed at it, immediately, rather than leaving it dangling; those recipients simply go back to solving their own zero.
 
+### 5.8 Adding a scope
+
+Scopes live on the **Scopes** tab. **+ Add Scope** opens a form:
+
+- **Manufacturer** and **Model** — both required; together they are the scope's name, with the same overwrite warning as rifles and bullets. The manufacturer suggests the makers of every scope and reticle known to the app, built-in and your own — never bullet makers.
+- **Type** — fixed magnification, variable first focal plane (FFP), or variable second focal plane (SFP).
+- **Magnification** — one figure for a fixed scope; **from** and **to** for a variable one: the range the scope is sold as, e.g. 3–20×.
+- **Field of view** — at the lowest and at the highest magnification (one figure for a fixed scope), and the distance it is measured at, in your distance unit; the manufacturer's data sheet has them. The field of view takes precedence over the advertised range: the highest magnification is taken to go with the narrowest field, and the scope's **actual low zoom** follows from the ratio of the two fields. It is shown as you type — a "3–20×" scope is often really 3.2–20×.
+- **Subtensions true at** — SFP only: the magnification at which the reticle's marks are worth what they say.
+- **Click unit** and the **horizontal** and **vertical click values** — default 0.1 mrad or 0.25 MOA, whichever unit you pick; switching the unit swaps a value still at its usual size, and converts any other.
+- **Reticles** — tick every reticle the scope can be had with, from your own and the built-in ones, each shown as a thumbnail. A hint appears if one was drawn for a different type of scope; the scope's own parameters always apply.
+
+**Your Scopes** lists each with a summary (type, range, click, number of reticles) and **Backup to file**, **Edit** and **Delete**. There is no "make active" for a scope: a scope is used through the rifle it sits on.
+
+### 5.9 Reticles and the Reticle Designer
+
+**Your Reticles**, on the same tab, lists each reticle with a thumbnail, the scope type and magnification it was drawn for, and how many of your scopes list it. Reticles are drawn in the **Reticle Designer**: **+ Add Reticle** opens it on an empty reticle, **Edit** on that reticle. There, **Save to arsenal** stores it and **Discard changes** goes back to the last saved version; either one returns you to the Scopes tab. The reticle's manufacturer and model are typed in the Designer, with the same suggestions as a scope's.
+
+In the Designer a reticle is drawn for a **reference scope** — just its type and magnification; the field of view is assumed from the magnification (12 m at 100 m at 3×), only so the Designer can draw the field the reticle sits in. The real scope a reticle is put in brings its own field of view.
+
+Deleting a reticle takes it off every scope that lists it; the confirmation says how many.
+
+### 5.10 Putting a scope on a rifle
+
+In the rifle form, **Scope** offers **None**, your scopes, and the built-in scopes; a scope with no reticle is listed but cannot be picked. Picking one **copies its click unit and click values** into the rifle's own fields — the rifle's clicks are still its own afterwards, to change if your turret differs, and nothing is ever written back to the scope. A built-in scope is linked, never copied into your Arsenal.
+
+The rifle's row then shows *"Scope: …"*. Deleting a scope leaves its rifles without one, their clicks unchanged; removing a reticle from a scope moves its rifles to the scope's only remaining reticle, or to none until you pick one. A scope the rifle names but this device does not have yet (say, not synced yet) shows as *"Scope not found"*, and the link is kept.
+
 ---
 
 ## 6. The Arsenal page: lists, filters, activation
@@ -183,7 +224,7 @@ The Arsenal cartridge list marks both halves of the relationship — see §6.4. 
 3. Three tabs. The page remembers the last one you opened until the app is reloaded, and a form opened from elsewhere (for example **Add bullet to arsenal**) switches to its own tab.
    1. **Rifles** — the filter card; the **Comparison** summary and section, only shown once 1–2 configurations are queued for it (§7); the **Active rifle**, the one rifle currently under your hand, with its cartridges; then **Other rifles**.
    2. **Bullets** — the filter card; **Your Bullets**, and the bullet form.
-   3. **Scopes** — empty for now; scope and reticle definitions will land here in a future release.
+   3. **Scopes** — **Save scopes and reticles** / **Load from file**; **Your Scopes** and the scope form; **Your Reticles** (§5.8–5.10).
 
 ### 6.2 The active rifle and activation
 
@@ -208,6 +249,8 @@ A rifle with no cartridges shows a warning in place of the list: *"This rifle ha
 - **Active** — the cartridge currently picked on the active rifle.
 - **Zero donor** — this cartridge's own elevation zero is currently being borrowed by one or more other cartridges on the rifle (§5.7).
 - **Zero recipient** — this cartridge is zeroed with a different cartridge; hovering names which one.
+- **Unusable**, on a scope — it has no reticle, so it cannot be put on a rifle.
+- **Damaged** — a reticle that could not be read; it can only be deleted.
 
 ### 6.5 Filters
 
@@ -239,6 +282,7 @@ Arsenal's storage lives in your browser. Back it up — see §2 for what happens
 
 - **Backup to file**, on any single bullet or rifle row, exports just that one item. For a rifle, the file bundles it together with every bullet its cartridges actually reference, so a single rifle's backup is always self-sufficient and re-importable on its own.
 - **Backup library to file…** opens the **Save Library** dialog: a checkbox against every bullet and every rifle you own, all checked by default. Checking a rifle automatically checks the bullets its cartridges need; unchecking a bullet automatically unchecks any rifle that needs it — the dialog will not let you export a rifle with a dangling bullet reference. **Export** writes one JSON file containing everything checked.
+- A rifle's **Backup to file** also takes its scope, when that is one of yours, and your reticles that scope lists; a scope's takes its reticles; a reticle's takes just the reticle. In **Save Library**, ticking a rifle ticks its scope and ticking a scope ticks its reticles — but these you may untick again: the link then waits for them on the device the file is loaded on. **Save scopes and reticles**, on the Scopes tab, is the same dialog with only those two lists. Built-in scopes and reticles are never written to a file, only referred to.
 
 Every successful export clears the **Not backed up** badge on everything it included.
 
@@ -254,6 +298,10 @@ Every successful export clears the **Not backed up** badge on everything it incl
 - **Import** applies your choices and reports the outcome: *"{{n}} item(s) imported, {{n}} skipped."*
 
 Rifles import after bullets, and each cartridge's bullet reference is re-mapped to whatever id its bullet actually ended up with in *your* library — so an imported bullet that got renamed to avoid a collision does not leave its imported rifle's cartridges pointing at nothing.
+
+Scopes and reticles in a file import the same way, before the rifles that use them, and every link is re-mapped likewise; renaming a scope or reticle gives it a new model, *"\<model\> - copy (1)"*. Every reticle in a file is checked before it is offered — the same checks as when drawing one — and one that fails is named and left out.
+
+A **reticle file saved by the Reticle Designer before the Arsenal kept reticles** (a `.reticle.json` file) can be loaded with either load button too. A dialog shows the reticle and asks what the file doesn't say: its manufacturer and model, and the magnification it was drawn for — prefilled from the file's field of view, so check it against the scope's sold range. Ticked by default, **Then add a scope with this file's field of view** opens the scope form next, filled in with that field of view, the new reticle and its magnification; add the scope's model and save.
 
 ---
 
@@ -333,7 +381,7 @@ If you later re-zero the rifle with the premium load directly, go back and clear
 
 ## 11. Provenance
 
-Arsenal has been part of the suite from its first commit, growing incrementally: multiple built-in bullet libraries and manufacturer autocomplete; unit-preference fixes across the cartridge list and bullet length; the current 4-DOF trajectory engine and the spin-drift/twist-direction fields it uses; and, most recently, muzzle velocity consistency and rifle precision on cartridges, together with the direct hand-off from the Rifle Precision Calculator described in §10.1 — the integration that turns two previously separate tools into one measured pipeline; and, more recently still, letting one cartridge borrow another's physical zero (§5.7), for the common case of zeroing with one load and carrying another.
+Arsenal has been part of the suite from its first commit, growing incrementally: multiple built-in bullet libraries and manufacturer autocomplete; unit-preference fixes across the cartridge list and bullet length; the current 4-DOF trajectory engine and the spin-drift/twist-direction fields it uses; and, most recently, muzzle velocity consistency and rifle precision on cartridges, together with the direct hand-off from the Rifle Precision Calculator described in §10.1 — the integration that turns two previously separate tools into one measured pipeline; and, more recently still, letting one cartridge borrow another's physical zero (§5.7), for the common case of zeroing with one load and carrying another. Most recently, scopes and reticles joined: scopes with their real field of view and clicks, reticles drawn in the Reticle Designer, both linkable to a rifle and synced with the rest of the Arsenal.
 
 The suite is licensed **AGPL-3.0-or-later**.
 

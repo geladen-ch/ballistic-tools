@@ -1,16 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installFakeDom, fireEvent, makeElement } from './helpers/fake-dom.js';
+import { installFakeDom, installFakeIndexedDb, fireEvent, makeElement } from './helpers/fake-dom.js';
 
 installFakeDom();
+installFakeIndexedDb();
 
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const view = await import('../src/views/reticle-designer-view.js');
 const state = await import('../src/reticle-designer-state.js');
 const { radToMrad, radToMoa } = await import('../src/quantity.js');
-const { visibleFieldRadius } = await import('../src/reticle/scope.js');
+const { visibleFieldRadius, referenceOptics } = await import('../src/reticle/scope.js');
 const svgClient = await import('../src/reticle/svg-import/client.js');
+const reticleLibrary = await import('../src/reticle-library.js');
+const { takePendingArsenalTab } = await import('../src/arsenal-prefill.js');
 const { extractShape } = await import('../src/reticle/svg-import/extract.js');
 const { parseReticle } = await import('../src/reticle/file-codec.js');
 // The parsers run in-process here (the test DOM's Worker never answers),
@@ -41,7 +44,7 @@ const doc = () => state.getReticleSession().history.present;
 
 // Drawing units per mrad at the default view (the field circle fits 470 of 1000 units).
 function unitsPerMrad() {
-  return 470 / radToMrad(visibleFieldRadius(doc().scope));
+  return 470 / radToMrad(visibleFieldRadius(referenceOptics(doc().referenceScope)));
 }
 function at(xMrad, yMrad) {
   const k = unitsPerMrad();
@@ -60,9 +63,13 @@ function inputLabelled(root, key) {
   return label && findAll(label, (n) => n.tagName === 'INPUT')[0];
 }
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) <= eps, `${a} !== ${b}`);
+const buttonText = (root, key) => findAll(root, (n) => n.tagName === 'BUTTON' && n.textContent === t(key))[0];
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   state.resetReticleDesignerStateForTests();
+  await reticleLibrary.resetReticleLibraryForTests();
+  global.location.hash = '#/reticle-designer';
+  takePendingArsenalTab();
 });
 
 test('mount() shows the five panes, the scope section and the file bar', () => {
@@ -74,7 +81,7 @@ test('mount() shows the five panes, the scope section and the file bar', () => {
   assert.ok(svgOf(container), 'expected the reticle view');
   assert.ok(container.textContent.includes(t('reticleDesigner.scope.title')));
   assert.ok(container.textContent.includes(t('reticleDesigner.list.empty')));
-  assert.ok(container.textContent.includes(t('reticleDesigner.file.save')));
+  assert.ok(container.textContent.includes(t('reticleDesigner.file.saveToArsenal')));
 });
 
 test('placing a dot with a click: snapped, selected, back to the arrow, one undo step', () => {
@@ -126,7 +133,7 @@ test('a plain click with a thinning bar runs it out to the field circle', () => 
   fireEvent(toolButton(container, 'vbar'), 'click');
   press(svgOf(container), at(0, 5));
   const bar = doc().elements[0];
-  near(bar.endY, visibleFieldRadius(doc().scope), 1e-12);
+  near(bar.endY, visibleFieldRadius(referenceOptics(doc().referenceScope)), 1e-12);
 });
 
 test('dragging a thinning bar moves it, and stops when its start reaches zero; a line moves freely across', () => {
@@ -245,18 +252,6 @@ test('dragging an end handle moves just that end: a bar within the end-point rul
   near(radToMrad(line.endX), 1, 1e-6);
 });
 
-test('saving marks the reticle saved', () => {
-  const container = makeElement('main');
-  view.mount(container);
-  fireEvent(toolButton(container, 'dot'), 'click');
-  press(svgOf(container), at(1, 1));
-  assert.equal(state.hasUnsavedReticleChanges(), true);
-  fireEvent(findAll(container, (n) => n.id === 'reticle-save')[0], 'click');
-  assert.equal(state.hasUnsavedReticleChanges(), false);
-});
-
-const buttonText = (root, key) => findAll(root, (n) => n.tagName === 'BUTTON' && n.textContent === t(key))[0];
-
 test('grouping from a multi-selection: the list shows the group, settings its position and shared settings', () => {
   const container = makeElement('main');
   view.mount(container);
@@ -283,33 +278,6 @@ test('grouping from a multi-selection: the list shows the group, settings its po
   assert.deepEqual(state.getReticleSession().editor.selection, [doc().elements[0].id]);
   fireEvent(buttonText(container, 'reticleDesigner.palette.ungroup'), 'click');
   assert.equal(doc().groups.length, 0);
-});
-
-test('loading a file replaces the reticle as one undoable step', async () => {
-  const container = makeElement('main');
-  view.mount(container);
-  fireEvent(toolButton(container, 'dot'), 'click');
-  press(svgOf(container), at(1, 1));
-  const { serializeReticle } = await import('../src/reticle/file-codec.js');
-  const saved = serializeReticle({ ...doc(), name: 'From file', elements: [...doc().elements, { ...doc().elements[0], id: 'x', x: 0.004 }] });
-  const fileInput = findAll(container, (n) => n.tagName === 'INPUT' && n.type === 'file')[0];
-  fileInput.files = [{ text: async () => saved }];
-  for (const handler of fileInput._listeners.change) await handler({ target: fileInput });
-  assert.equal(doc().elements.length, 2);
-  assert.equal(doc().name, 'From file');
-  assert.equal(state.hasUnsavedReticleChanges(), false);
-  fireEvent(buttonText(container, 'reticleDesigner.options.undo'), 'click');
-  assert.equal(doc().elements.length, 1);
-});
-
-test('a damaged file shows an error and leaves the reticle alone', async () => {
-  const container = makeElement('main');
-  view.mount(container);
-  const fileInput = findAll(container, (n) => n.tagName === 'INPUT' && n.type === 'file')[0];
-  fileInput.files = [{ text: async () => '{"format":"nope"}' }];
-  for (const handler of fileInput._listeners.change) await handler({ target: fileInput });
-  assert.ok(container.textContent.includes(t('reticleDesigner.file.errors.invalidFormat')));
-  assert.equal(doc().elements.length, 0);
 });
 
 test('dragging shows the dragged element\'s snapped coordinates next to the pointer, hidden on release', () => {
@@ -364,8 +332,8 @@ test('the magnification slider previews FFP zoom; reset goes back to the lowest 
   const slider = findAll(container, (n) => n.id === 'reticle-magnification')[0];
   const bar = byClass(container, 'reticle-magnification')[0];
   assert.equal(bar.style.display, '');
-  assert.equal(Number(slider.min), doc().scope.zoomMin);
-  near(Number(slider.max), doc().scope.zoomMax, 1e-9);
+  assert.equal(Number(slider.min), doc().referenceScope.zoomMin);
+  near(Number(slider.max), doc().referenceScope.zoomMax, 1e-9);
   const rim = byClass(container, 'reticle-rim')[0];
   const r0 = Number(rim.getAttribute('r'));
 
@@ -374,7 +342,7 @@ test('the magnification slider previews FFP zoom; reset goes back to the lowest 
   const dotPath = () => byClass(container, 'reticle-shape')[0].getAttribute('d');
   const before = dotPath();
 
-  slider.value = String(doc().scope.zoomMax);
+  slider.value = String(doc().referenceScope.zoomMax);
   fireEvent(slider, 'input');
   assert.equal(Number(rim.getAttribute('r')), r0, 'the field circle stays put on screen');
   assert.notEqual(dotPath(), before, 'an FFP reticle grows with the zoom');
@@ -387,10 +355,10 @@ test('the magnification slider previews FFP zoom; reset goes back to the lowest 
 });
 
 test('SFP: the slider shows what the subtensions are worth; a fixed scope has no slider', async () => {
-  const { updateScope } = await import('../src/reticle/model.js');
+  const { updateReferenceScope } = await import('../src/reticle/model.js');
   const { commit } = await import('../src/reticle/history.js');
   const session = state.getReticleSession();
-  state.setReticleHistory(commit(session.history, updateScope(session.history.present, { type: 'sfp', calibrationZoom: 10 })));
+  state.setReticleHistory(commit(session.history, updateReferenceScope(session.history.present, { type: 'sfp', calibrationZoom: 10 })));
   const container = makeElement('main');
   view.mount(container);
   const slider = findAll(container, (n) => n.id === 'reticle-magnification')[0];
@@ -399,7 +367,7 @@ test('SFP: the slider shows what the subtensions are worth; a fixed scope has no
   assert.ok(container.textContent.includes(t('reticleDesigner.view.sfpScale', { factor: '0.5' })));
 
   const s2 = state.getReticleSession();
-  state.setReticleHistory(commit(s2.history, updateScope(s2.history.present, { type: 'fixed' })));
+  state.setReticleHistory(commit(s2.history, updateReferenceScope(s2.history.present, { type: 'fixed' })));
   const again = makeElement('main');
   view.mount(again);
   assert.equal(byClass(again, 'reticle-magnification')[0].style.display, 'none');
@@ -497,17 +465,6 @@ test('SVG shape: refused input shows its reason and inserts nothing', async () =
   assert.ok(container.textContent.includes(t('reticleDesigner.svg.errors.notSvg')));
   fireEvent(buttonText(container, 'reticleDesigner.svg.cancel'), 'click');
   assert.equal(doc().elements.length, 0);
-});
-
-test('an oversized reticle file is refused before it is even read', async () => {
-  const container = makeElement('main');
-  view.mount(container);
-  const fileInput = findAll(container, (n) => n.tagName === 'INPUT' && n.type === 'file' && n.accept.includes('.reticle.json'))[0];
-  let read = false;
-  fileInput.files = [{ size: 50e6, text: async () => { read = true; return ''; } }];
-  for (const handler of fileInput._listeners.change) await handler({ target: fileInput });
-  assert.equal(read, false);
-  assert.ok(container.textContent.includes(t('reticleDesigner.file.errors.tooLarge')));
 });
 
 test('a multi-selection edits what its elements share; differing values show as mixed until set', () => {
@@ -659,7 +616,7 @@ test('New reticle scraps the reticle and its history, asking first when there ar
   state.patchReticleEditor({ units: 'moa', grid: false });
   fireEvent(toolButton(container, 'dot'), 'click');
   press(svgOf(container), at(2, 2));
-  const name = findAll(container, (n) => n.id === 'reticle-name')[0];
+  const name = findAll(container, (n) => n.id === 'reticle-manufacturer')[0];
   name.value = 'Old';
   fireEvent(name, 'input');
   const newButton = findAll(container, (n) => n.id === 'reticle-new')[0];
@@ -675,7 +632,7 @@ test('New reticle scraps the reticle and its history, asking first when there ar
     fireEvent(newButton, 'click');
     assert.equal(asked, 2);
     assert.equal(doc().elements.length, 0);
-    assert.equal(doc().name, '');
+    assert.equal(doc().manufacturer, '');
     assert.equal(name.value, '');
     const session = state.getReticleSession();
     assert.equal(session.history.past.length, 0, 'not undoable');
@@ -823,4 +780,200 @@ test('the selection rectangle never takes in a BDC mark; a group with one counts
   assert.deepEqual(state.getReticleSession().editor.selection, [dot], 'the mark at 3 mrad is left out');
   press(svg, at(-5, -5), at(-3, -3), { shiftKey: true });
   assert.deepEqual(state.getReticleSession().editor.selection, [dot, g]);
+});
+
+test('scope section: a reference scope by its magnification only, the field assumed from it', () => {
+  const container = makeElement('main');
+  view.mount(container);
+  const scopeBody = () => byClass(container, 'reticle-scope-body')[0];
+  const zoomInputs = () => findAll(scopeBody(), (n) => n.tagName === 'INPUT' && n.type === 'number');
+  const type = findAll(container, (n) => n.id === 'reticle-scope-type')[0];
+  const typeInto = (input, value) => {
+    fireEvent(input, 'focus');
+    input.value = value;
+    fireEvent(input, 'input');
+    fireEvent(input, 'blur');
+  };
+  const rim = () => Number(byClass(container, 'reticle-rim')[0].getAttribute('r'));
+
+  // FFP 5-25x by default: two zoom fields, no field-of-view inputs.
+  assert.equal(zoomInputs().length, 2);
+  assert.ok(scopeBody().textContent.includes(t('reticleDesigner.scope.referenceHint')));
+  typeInto(zoomInputs()[0], '3');
+  typeInto(zoomInputs()[1], '20');
+  assert.deepEqual(doc().referenceScope, { type: 'ffp', zoomMin: 3, zoomMax: 20, calibrationZoom: 20 }, 'the calibration zoom follows the top');
+  // 3x: 12 m at 100 m, the field circle drawn for it.
+  near(visibleFieldRadius(referenceOptics(doc().referenceScope)), Math.atan(0.06), 1e-15);
+  assert.equal(rim(), 470);
+
+  // An upside-down range is refused with a message, the last valid one kept.
+  const top = zoomInputs()[1];
+  fireEvent(top, 'focus');
+  top.value = '2';
+  fireEvent(top, 'input');
+  assert.ok(scopeBody().textContent.includes(t('reticleDesigner.errors.zoomMaxAboveMin')));
+  assert.equal(doc().referenceScope.zoomMax, 20);
+  fireEvent(top, 'blur');
+
+  // SFP adds the calibration zoom, which must lie in the range.
+  type.value = 'sfp';
+  fireEvent(type, 'change');
+  assert.equal(zoomInputs().length, 3);
+  typeInto(zoomInputs()[2], '10');
+  assert.equal(doc().referenceScope.calibrationZoom, 10);
+  const calibration = zoomInputs()[2];
+  fireEvent(calibration, 'focus');
+  calibration.value = '30';
+  fireEvent(calibration, 'input');
+  assert.ok(scopeBody().textContent.includes(t('reticleDesigner.errors.calibrationInRange')));
+  fireEvent(calibration, 'blur');
+
+  // Fixed: one magnification, held as both ends; back to variable gets a range above it.
+  type.value = 'fixed';
+  fireEvent(type, 'change');
+  assert.equal(zoomInputs().length, 1);
+  typeInto(zoomInputs()[0], '4');
+  assert.deepEqual(doc().referenceScope, { type: 'fixed', zoomMin: 4, zoomMax: 4, calibrationZoom: 4 });
+  type.value = 'ffp';
+  fireEvent(type, 'change');
+  assert.deepEqual(doc().referenceScope, { type: 'ffp', zoomMin: 4, zoomMax: 20, calibrationZoom: 20 });
+
+  // Every change is an undo step.
+  fireEvent(findAll(container, (n) => n.tagName === 'BUTTON' && n.textContent === t('reticleDesigner.options.undo'))[0], 'click');
+  assert.equal(doc().referenceScope.type, 'fixed');
+});
+
+// ---- the Arsenal ----
+
+const byId = (root, id) => findAll(root, (n) => n.id === id)[0];
+function typeIdentity(container, manufacturer, model) {
+  for (const [id, value] of [['reticle-manufacturer', manufacturer], ['reticle-model', model]]) {
+    const input = byId(container, id);
+    input.value = value;
+    fireEvent(input, 'input');
+  }
+}
+function withConfirm(answer, fn) {
+  const saved = global.confirm;
+  const asked = [];
+  global.confirm = (message) => { asked.push(message); return answer; };
+  try { fn(); } finally { global.confirm = saved; }
+  return asked;
+}
+
+test('Save to arsenal needs a manufacturer and a model, then saves the reticle there and stays bound to it', () => {
+  const container = makeElement('main');
+  view.mount(container);
+  fireEvent(toolButton(container, 'dot'), 'click');
+  press(svgOf(container), at(1, 1));
+  fireEvent(byId(container, 'reticle-save'), 'click');
+  assert.ok(container.textContent.includes(t('reticleDesigner.file.identityRequired')));
+  assert.deepEqual(reticleLibrary.loadUserReticles(), []);
+  assert.equal(state.hasUnsavedReticleChanges(), true);
+
+  typeIdentity(container, 'Acme', 'Dot');
+  fireEvent(byId(container, 'reticle-save'), 'click');
+  const [saved] = reticleLibrary.loadUserReticles();
+  assert.equal(saved.name, 'Acme Dot');
+  assert.equal(saved.elements.length, 1);
+  assert.deepEqual(saved.referenceScope, doc().referenceScope);
+  assert.equal(state.getReticleTarget().reticleId, saved.id);
+  assert.equal(state.hasUnsavedReticleChanges(), false);
+  assert.ok(container.textContent.includes(t('reticleDesigner.file.saved')));
+  assert.equal(global.location.hash, '#/reticle-designer', 'not opened from the Arsenal: stays');
+
+  // Saving again updates the same reticle.
+  fireEvent(toolButton(container, 'dot'), 'click');
+  press(svgOf(container), at(2, 2));
+  fireEvent(byId(container, 'reticle-save'), 'click');
+  assert.equal(reticleLibrary.loadUserReticles().length, 1);
+  assert.equal(reticleLibrary.loadUserReticles()[0].elements.length, 2);
+  assert.equal(reticleLibrary.loadUserReticles()[0].revision, 2);
+});
+
+test('saving under another reticle\'s name asks, and replaces that one, keeping its id', () => {
+  const other = reticleLibrary.saveUserReticle({ ...state.getReticleSession().history.present, id: 'user-reticle-other', manufacturer: 'Acme', model: 'Dot' });
+  const container = makeElement('main');
+  view.mount(container);
+  fireEvent(toolButton(container, 'dot'), 'click');
+  press(svgOf(container), at(1, 1));
+  typeIdentity(container, 'acme', 'dot ');
+  const declined = withConfirm(false, () => fireEvent(byId(container, 'reticle-save'), 'click'));
+  assert.equal(declined.length, 1);
+  assert.equal(reticleLibrary.getUserReticle(other.id).elements.length, 0, 'declined: untouched');
+  withConfirm(true, () => fireEvent(byId(container, 'reticle-save'), 'click'));
+  assert.equal(reticleLibrary.loadUserReticles().length, 1);
+  assert.equal(reticleLibrary.getUserReticle(other.id).elements.length, 1);
+  assert.equal(state.getReticleTarget().reticleId, other.id);
+});
+
+test('opened from the Arsenal: Save goes back to its Scopes tab; Discard reverts to the saved reticle and goes back too', () => {
+  const saved = reticleLibrary.saveUserReticle({ ...state.getReticleSession().history.present, id: 'user-reticle-1', manufacturer: 'Acme', model: 'Dot' });
+  state.openReticle(saved, { fromArsenal: true });
+  const container = makeElement('main');
+  view.mount(container);
+  assert.equal(byId(container, 'reticle-model').value, 'Dot');
+  fireEvent(toolButton(container, 'dot'), 'click');
+  press(svgOf(container), at(1, 1));
+
+  // Discard: asked, back to the saved (empty) reticle, then to the Arsenal.
+  const asked = withConfirm(true, () => fireEvent(byId(container, 'reticle-discard'), 'click'));
+  assert.equal(asked.length, 1);
+  assert.equal(doc().elements.length, 0);
+  assert.equal(state.hasUnsavedReticleChanges(), false);
+  assert.equal(global.location.hash, '#/guns/arsenal');
+  assert.equal(takePendingArsenalTab(), 'scopes');
+  assert.equal(state.getReticleTarget().fromArsenal, false, 'back once; a later visit stays');
+
+  // Save: back to the Arsenal as well.
+  state.openReticle(reticleLibrary.getUserReticle(saved.id), { fromArsenal: true });
+  global.location.hash = '#/reticle-designer';
+  const again = makeElement('main');
+  view.mount(again);
+  fireEvent(toolButton(again, 'dot'), 'click');
+  press(svgOf(again), at(1, 1));
+  fireEvent(byId(again, 'reticle-save'), 'click');
+  assert.equal(reticleLibrary.getUserReticle(saved.id).elements.length, 1);
+  assert.equal(global.location.hash, '#/guns/arsenal');
+  assert.equal(takePendingArsenalTab(), 'scopes');
+});
+
+test('Discard changes on a reticle never saved empties it; with nothing to discard and nowhere to go back to, it is off', () => {
+  const container = makeElement('main');
+  view.mount(container);
+  const discard = byId(container, 'reticle-discard');
+  assert.equal(discard.disabled, true);
+  fireEvent(toolButton(container, 'dot'), 'click');
+  press(svgOf(container), at(1, 1));
+  assert.equal(discard.disabled, false);
+  withConfirm(false, () => fireEvent(discard, 'click'));
+  assert.equal(doc().elements.length, 1, 'declined');
+  withConfirm(true, () => fireEvent(discard, 'click'));
+  assert.equal(doc().elements.length, 0);
+  assert.equal(state.getReticleSession().history.past.length, 0);
+});
+
+test('the manufacturer and model are undo steps, and follow an undo in their fields', () => {
+  const container = makeElement('main');
+  view.mount(container);
+  typeIdentity(container, 'Acme', 'Dot');
+  assert.equal(doc().manufacturer, 'Acme');
+  fireEvent(buttonText(container, 'reticleDesigner.options.undo'), 'click');
+  assert.equal(doc().model, '');
+  assert.equal(byId(container, 'reticle-model').value, '');
+});
+
+test('the reticle manufacturer suggests optics makers; picking one sets it as an undo step', async () => {
+  const container = makeElement('main');
+  view.mount(container);
+  await new Promise((resolve) => setTimeout(resolve, 60));
+  const input = byId(container, 'reticle-manufacturer');
+  fireEvent(input, 'focus');
+  const list = byClass(container, 'field-suggest-list')[0];
+  const row = list.childNodes.find((r) => r.textContent === 'Schmidt & Bender');
+  assert.ok(row);
+  fireEvent(row, 'mousedown');
+  assert.equal(doc().manufacturer, 'Schmidt & Bender');
+  fireEvent(buttonText(container, 'reticleDesigner.options.undo'), 'click');
+  assert.equal(doc().manufacturer, '');
 });

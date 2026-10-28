@@ -36,7 +36,7 @@ test('buildBackupBundle carries device identity, format/version, and every libra
   assert.equal(bundle.device.name, getDeviceName());
   assert.ok(typeof bundle.device.modifiedAt === 'string');
   assert.ok(typeof bundle.exportedAt === 'string');
-  assert.deepEqual(bundle.arsenal, { bullets: [], rifles: [] });
+  assert.deepEqual(bundle.arsenal, { bullets: [], rifles: [], scopes: [], reticles: [] });
   assert.deepEqual(bundle.locations, { locations: [] });
   assert.deepEqual(bundle.riflePrecision, { projects: [] });
 });

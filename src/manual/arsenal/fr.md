@@ -1,6 +1,6 @@
 # geladen.ch ballistics Manuel de l'utilisateur — Armes/Arsenal
 
-*Fait partie de la* [suite balistique geladen.ch](https://bc.geladen.ch)*. La bibliothèque de carabines et de balles partagée par tous les autres outils.*
+*Fait partie de la* [suite balistique geladen.ch](https://bc.geladen.ch)*. La bibliothèque de carabines, de balles, de lunettes et de réticules partagée par tous les autres outils.*
 
 ---
 
@@ -28,6 +28,8 @@ La conséquence est celle à laquelle on s'attend : **si vous effacez les donné
 
 Contrairement à la précision de tir, l'Arsenal ne stocke aucune photographie ni donnée binaire volumineuse, si bien que son empreinte dans le `localStorage` reste faible, quel que soit le nombre de carabines et de balles que vous conservez. Il n'existe aucune limite intégrée au nombre de l'une ou l'autre que vous pouvez enregistrer.
 
+Vos propres réticules sont la seule exception à « petit » : un réticule avec un dessin importé peut peser des mégaoctets, c’est pourquoi les réticules sont gardés dans l’IndexedDB du navigateur plutôt que dans `localStorage`. Tout le reste ci-dessus s’applique à eux sans changement — sur cet appareil seulement, perdus avec les données du site, sauvegardés avec le reste (§8).
+
 **Prérequis.** N'importe quel navigateur raisonnablement récent. L'application s'installe comme PWA et fonctionne entièrement hors ligne une fois chargée.
 
 ---
@@ -49,6 +51,16 @@ Carabine       une carabine précise : hauteur de lunette, distance de réglage,
 **Une Cartouche** est ce qui relie réellement les deux. Elle vit imbriquée dans une carabine, jamais seule, et nomme une balle plus la vitesse initiale que cette carabine atteint avec elle. C'est également là, en option, que résident les deux chiffres les plus lourds de conséquences et les plus souvent devinés de toute la balistique extérieure : la régularité de vitesse de la charge (§5.4) et la précision propre mesurée de la carabine (§5.6) — les deux alimentant directement Probabilité de toucher.
 
 **Une carabine chambre un calibre.** Dès qu'une cartouche d'une carabine se résout en une balle réelle, la sélection de balle de chaque autre cartouche que vous ajoutez à cette carabine se verrouille sur les balles de ce même calibre (§5.5). C'est imposé, pas simplement suggéré — cela reflète un fait sur les carabines, pas une limitation de l'outil. (Et si vous possédez un drilling ou une autre arme combinée à plusieurs calibres, pas la peine de faire le malin — créez simplement une entrée séparée par calibre.)
+
+Deux autres sortes d’enregistrements décrivent le verre posé sur la carabine :
+
+```
+Lunette       une vraie lunette : fabricant et modèle, grossissement, champ de vision, clics des tourelles
+  └─ ses réticules   un ou plusieurs Réticules avec lesquels elle est proposée
+Réticule      un dessin de réticule : fabricant et modèle, la lunette pour laquelle il est dessiné, éclairage
+```
+
+**Une Lunette** est autonome, comme une carabine ou une balle : c’est l’optique telle qu’elle est vendue — son grossissement nominal, son champ de vision aux deux extrémités de la plage de zoom, son unité et ses valeurs de clic — et elle énumère les **Réticules** avec lesquels elle est proposée. Une lunette peut avoir plusieurs réticules, et un réticule peut équiper plusieurs lunettes. Une carabine peut désigner **une lunette** (et, si celle-ci en propose plusieurs, l’un de ses réticules) ; une lunette sans réticule ne peut équiper aucune carabine (§5.10). L’application fournit quelques lunettes et réticules intégrés ; les vôtres s’y ajoutent.
 
 ### 3.1 Une remarque sur les unités
 
@@ -117,6 +129,7 @@ Une carabine sans aucune cartouche est enregistrée mais marquée **Inutilisable
 - **Distance de réglage** — requis, la distance à laquelle vous réglez habituellement cette carabine, dans votre unité de distance (plage 0–5000 m).
 - **Pas de rayure (distance par tour)** et **Sens de rayure** (droite ou gauche) — facultatif, laissé vide si inconnu, dans l'unité indépendante de pas de rayure décrite au §3.1 (plage 1–1000 mm/in). Nécessaire uniquement pour la stabilité et la dérive gyroscopique, rien d'autre.
 - **Unité du clic**, **Valeur du clic horizontal**, **Valeur du clic vertical** — les propres valeurs de tourelle de la lunette, en mrad ou en MOA selon le choix fait ici (0,01–5, indépendant de votre préférence globale, selon le §3.1).
+- **Lunette** — facultative : l’une de vos lunettes ou une lunette intégrée et, si elle a plusieurs réticules, lequel (**Réticule**). Choisir une lunette reprend son unité et ses valeurs de clic dans les trois champs ci-dessous ; elles appartiennent ensuite à la carabine (§5.10).
 - **Source / notes** — texte libre, facultatif.
 
 Une carabine tout juste créée s'enregistre avec une liste de cartouches vide ; vous ajoutez ses cartouches ensuite, depuis la propre ligne de la carabine (§5.4).
@@ -172,6 +185,34 @@ La version extrême du même problème est une carabine qui tire à la fois une 
 
 La liste des cartouches de l'Arsenal signale les deux moitiés de la relation — voir §6.4. Supprimer une donneuse efface la référence sur toutes les cartouches qui la désignaient, immédiatement, plutôt que de la laisser pointer dans le vide ; ces receveuses reviennent alors simplement à calculer leur propre zéro.
 
+### 5.8 Ajouter une lunette
+
+Les lunettes se trouvent dans l’onglet **Lunettes**. **+ Ajouter une lunette** ouvre un formulaire :
+
+- **Fabricant** et **Modèle** — tous deux obligatoires ; ensemble, ils forment le nom de la lunette, avec le même avertissement d’écrasement que pour les carabines et les balles. Le fabricant propose les fabricants de toutes les lunettes et de tous les réticules connus de l’application, intégrés et les vôtres — jamais ceux des balles.
+- **Type** — grossissement fixe, variable au premier plan focal (PPF) ou variable au second plan focal (SPF).
+- **Grossissement** — un seul chiffre pour une lunette fixe ; **de** et **à** pour une lunette variable : la plage sous laquelle elle est vendue, p. ex. 3–20×.
+- **Champ de vision** — au grossissement minimal et au maximal (un seul chiffre pour une lunette fixe), et la distance de mesure, dans votre unité de distance ; la fiche technique du fabricant les donne. Le champ de vision prime sur la plage annoncée : le grossissement maximal est associé au champ le plus étroit, et le **grossissement minimal réel** découle du rapport des deux champs. Il s’affiche pendant la saisie — une lunette « 3–20× » fait souvent en réalité 3,2–20×.
+- **Valeurs exactes à** — SPF seulement : le grossissement auquel les repères du réticule valent ce qu’ils indiquent.
+- **Unité du clic** et **valeurs du clic horizontal** et **vertical** — 0,1 mrad ou 0,25 MOA par défaut, selon l’unité choisie ; changer d’unité remplace une valeur encore à sa taille habituelle et convertit toute autre.
+- **Réticules** — cochez chaque réticule avec lequel la lunette est proposée, parmi les vôtres et les intégrés, chacun affiché en vignette. Une indication apparaît si l’un a été dessiné pour un autre type de lunette ; ce sont toujours les paramètres de la lunette qui s’appliquent.
+
+**Vos lunettes** liste chacune avec un résumé (type, plage, clic, nombre de réticules) et **Sauvegarder dans un fichier**, **Modifier** et **Supprimer**. Il n’y a pas d’« activation » pour une lunette : une lunette s’utilise à travers la carabine qui la porte.
+
+### 5.9 Les réticules et le Concepteur de réticule
+
+**Vos réticules**, dans le même onglet, liste chaque réticule avec une vignette, le type de lunette et le grossissement pour lesquels il est dessiné, et le nombre de vos lunettes qui l’utilisent. Les réticules se dessinent dans le **Concepteur de réticule** : **+ Ajouter un réticule** l’ouvre sur un réticule vide, **Modifier** sur ce réticule. Là, **Enregistrer dans l’arsenal** l’enregistre et **Abandonner les modifications** revient à la dernière version enregistrée ; l’un comme l’autre ramène à l’onglet Lunettes. Le fabricant et le modèle du réticule se saisissent dans le Concepteur, avec les mêmes suggestions que pour une lunette.
+
+Dans le Concepteur, un réticule est dessiné pour une **lunette de référence** — seulement son type et son grossissement ; le champ de vision est déduit du grossissement (12 m à 100 m à 3×), uniquement pour que le Concepteur puisse dessiner le champ dans lequel se trouve le réticule. La vraie lunette dans laquelle on monte un réticule apporte son propre champ de vision.
+
+Supprimer un réticule le retire de toutes les lunettes qui l’utilisent ; la confirmation indique combien.
+
+### 5.10 Monter une lunette sur une carabine
+
+Dans le formulaire de la carabine, **Lunette** propose **Aucune**, vos lunettes et les lunettes intégrées ; une lunette sans réticule figure dans la liste mais ne peut pas être choisie. En choisir une **reprend son unité et ses valeurs de clic** dans les champs de la carabine — ces clics restent ensuite ceux de la carabine, à modifier si votre tourelle diffère, et rien n’est jamais réécrit dans la lunette. Une lunette intégrée est liée, jamais copiée dans votre arsenal.
+
+La ligne de la carabine affiche alors *« Lunette : … »*. Supprimer une lunette laisse ses carabines sans lunette, leurs clics inchangés ; retirer un réticule d’une lunette fait passer ses carabines au seul réticule restant, ou à aucun jusqu’à ce que vous en choisissiez un. Une lunette que la carabine désigne mais que cet appareil n’a pas encore (pas encore synchronisée, par exemple) apparaît comme *« Lunette introuvable »*, et le lien est conservé.
+
 ---
 
 ## 6. La page Arsenal : listes, filtres, activation
@@ -183,7 +224,7 @@ La liste des cartouches de l'Arsenal signale les deux moitiés de la relation �
 3. Trois onglets. La page retient le dernier ouvert jusqu'au rechargement de l'application, et un formulaire ouvert depuis ailleurs (par exemple **Ajouter la balle à l'arsenal**) bascule sur son propre onglet.
    1. **Carabines** — la carte de filtres ; le résumé **Pour comparaison** et la section Comparaison, affichés seulement une fois 1–2 configurations mises en file d'attente pour cela (§7) ; la **Carabine active**, celle actuellement sous votre main, avec ses cartouches ; puis **Autres carabines**.
    2. **Balles** — la carte de filtres ; **Vos balles** et le formulaire de balle.
-   3. **Lunettes** — vide pour l'instant ; les définitions de lunettes et de réticules arriveront ici dans une prochaine version.
+   3. **Lunettes** — **Enregistrer lunettes et réticules** / **Charger depuis un fichier** ; **Vos lunettes** et le formulaire de lunette ; **Vos réticules** (§5.8–5.10).
 
 ### 6.2 La carabine active et l'activation
 
@@ -208,6 +249,8 @@ Une carabine sans cartouche affiche un avertissement à la place de la liste : *
 - **Active** — la cartouche actuellement choisie sur la carabine active.
 - **Donneur de zéro** — le zéro en hausse propre à cette cartouche est actuellement emprunté par une ou plusieurs autres cartouches de la carabine (§5.7).
 - **Receveur de zéro** — cette cartouche est réglée avec une cartouche différente ; le survol indique laquelle.
+- **Inutilisable**, sur une lunette — elle n’a pas de réticule et ne peut donc équiper aucune carabine.
+- **Endommagé** — un réticule qui n’a pas pu être lu ; il peut seulement être supprimé.
 
 ### 6.5 Filtres
 
@@ -239,6 +282,7 @@ Le stockage de l'Arsenal vit dans votre navigateur. Sauvegardez-le — voir §2 
 
 - **Sauvegarder dans un fichier**, sur n'importe quelle ligne de balle ou de carabine, n'exporte que cet unique élément. Pour une carabine, le fichier la regroupe avec chaque balle que ses cartouches référencent réellement, si bien que la sauvegarde d'une seule carabine est toujours autosuffisante et réimportable telle quelle.
 - **Sauvegarder la bibliothèque dans un fichier…** ouvre la boîte de dialogue **Enregistrer la bibliothèque** : une case à cocher pour chaque balle et chaque carabine que vous possédez, toutes cochées par défaut. Cocher une carabine coche automatiquement les balles dont ses cartouches ont besoin ; décocher une balle décoche automatiquement toute carabine qui en a besoin — la boîte de dialogue ne vous laissera pas exporter une carabine avec une référence de balle orpheline. **Exporter** écrit un unique fichier JSON contenant tout ce qui est coché.
+- **Sauvegarder dans un fichier** sur une carabine emporte aussi sa lunette, quand c’est l’une des vôtres, et vos réticules que cette lunette énumère ; sur une lunette, ses réticules ; sur un réticule, ce seul réticule. Dans **Enregistrer la bibliothèque**, cocher une carabine coche sa lunette, et cocher une lunette coche ses réticules — mais vous pouvez les décocher : le lien les attend alors sur l’appareil où le fichier est chargé. **Enregistrer lunettes et réticules**, dans l’onglet Lunettes, est le même dialogue limité à ces deux listes. Les lunettes et réticules intégrés ne sont jamais écrits dans un fichier, seulement désignés.
 
 Chaque export réussi efface la pastille **Sans sauvegarde** sur tout ce qu'il incluait.
 
@@ -254,6 +298,10 @@ Chaque export réussi efface la pastille **Sans sauvegarde** sur tout ce qu'il i
 - **Importer** applique vos choix et rapporte le résultat : *« {{n}} élément(s) importé(s), {{n}} ignoré(s). »*
 
 Les carabines s'importent après les balles, et la référence de balle de chaque cartouche est réaffectée à l'id sous lequel sa balle a réellement fini dans *votre* bibliothèque — de sorte qu'une balle importée renommée pour éviter une collision ne laisse pas les cartouches de la carabine importée pointer dans le vide.
+
+Les lunettes et réticules d’un fichier s’importent de la même façon, avant les carabines qui les utilisent, et chaque lien est réaffecté de même ; renommer une lunette ou un réticule lui donne un nouveau modèle, *« \<modèle\> - copy (1) »*. Chaque réticule d’un fichier est vérifié avant d’être proposé — avec les mêmes contrôles que lors de son dessin — et celui qui échoue est nommé et écarté.
+
+Un **fichier de réticule enregistré par le Concepteur de réticule avant que l’arsenal ne garde les réticules** (un fichier `.reticle.json`) se charge aussi avec l’un ou l’autre bouton de chargement. Un dialogue montre le réticule et demande ce que le fichier n’indique pas : son fabricant et son modèle, et le grossissement pour lequel il a été dessiné — prérempli d’après le champ de vision du fichier, donc à comparer avec la plage commerciale de la lunette. Coché par défaut, **Ajouter ensuite une lunette avec le champ de vision de ce fichier** ouvre ensuite le formulaire de lunette, rempli avec ce champ de vision, le nouveau réticule et son grossissement ; ajoutez le modèle de la lunette et enregistrez.
 
 ---
 
@@ -333,7 +381,7 @@ Si vous réglez ensuite à nouveau le zéro de la carabine directement avec la c
 
 ## 11. Origine
 
-L'Arsenal fait partie de la suite depuis son tout premier commit, et a grandi progressivement : plusieurs bibliothèques de balles intégrées et l'autocomplétion de fabricant ; des corrections de préférence d'unité à travers la liste de cartouches et la longueur de balle ; le moteur de trajectoire à 4 degrés de liberté actuel et les champs de dérive gyroscopique/sens de rayure qu'il utilise ; et, plus récemment, la régularité de vitesse initiale et la précision d'arme sur les cartouches, avec la transmission directe depuis la Calculette de précision de tir décrite au §10.1 — l'intégration qui transforme deux outils autrefois séparés en un seul pipeline mesuré ; et, plus récemment encore, la possibilité pour une cartouche d'emprunter le zéro physique d'une autre (§5.7), pour le cas courant où l'on règle le zéro avec une charge et où l'on emporte une autre.
+L'Arsenal fait partie de la suite depuis son tout premier commit, et a grandi progressivement : plusieurs bibliothèques de balles intégrées et l'autocomplétion de fabricant ; des corrections de préférence d'unité à travers la liste de cartouches et la longueur de balle ; le moteur de trajectoire à 4 degrés de liberté actuel et les champs de dérive gyroscopique/sens de rayure qu'il utilise ; et, plus récemment, la régularité de vitesse initiale et la précision d'arme sur les cartouches, avec la transmission directe depuis la Calculette de précision de tir décrite au §10.1 — l'intégration qui transforme deux outils autrefois séparés en un seul pipeline mesuré ; et, plus récemment encore, la possibilité pour une cartouche d'emprunter le zéro physique d'une autre (§5.7), pour le cas courant où l'on règle le zéro avec une charge et où l'on emporte une autre. Plus récemment, les lunettes et les réticules s’y sont ajoutés : des lunettes avec leur vrai champ de vision et leurs clics, des réticules dessinés dans le Concepteur de réticule, les deux pouvant être liés à une carabine et synchronisés avec le reste de l’arsenal.
 
 La suite est sous licence **AGPL-3.0-or-later**.
 

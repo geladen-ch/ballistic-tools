@@ -154,7 +154,7 @@ async function mergeOneBundle(bundle, { readAsset, clockSkewedDevices = [] }) {
 
   const totals = totalsShape();
   for (const lib of SYNCED_LIBRARIES) {
-    const remoteList = lib.remoteList(bundle);
+    const remoteList = await lib.screenRemote(lib.remoteList(bundle), peerLabel);
     const { counts, reviewItems, resolvedIds } = mergeRecords(lib.loadLocalWithTombstones(), remoteList, {
       importRaw: lib.write,
       tombstone: lib.write,

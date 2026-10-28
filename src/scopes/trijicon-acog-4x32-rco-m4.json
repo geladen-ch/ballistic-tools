@@ -1,0 +1,19 @@
+{
+  "id": "trijicon-acog-4x32-rco-m4",
+  "name": "Trijicon ACOG 4x32 USMC RCO M4/M4A1",
+  "manufacturer": "Trijicon",
+  "model": "ACOG 4x32 USMC RCO M4/M4A1",
+  "reticleIds": [
+    "trijicon-rco-m4-chevron"
+  ],
+  "type": "fixed",
+  "magnificationMin": 4,
+  "magnificationMax": 4,
+  "fovMaxRad": 0.12184901627651802,
+  "fovMinRad": null,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "arcmin",
+  "clickHorizontalRad": 0.0000727220521664304,
+  "clickVerticalRad": 0.0000727220521664304
+}

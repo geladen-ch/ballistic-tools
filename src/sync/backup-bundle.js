@@ -11,7 +11,8 @@
 // returns the payload whole — an older build ignores what it does not
 // recognise rather than rejecting the file — but any new field has to stay
 // optional and additive for that to keep holding.
-import { loadUserBulletsWithTombstones, loadUserRiflesWithTombstones } from '../user-library.js';
+import { loadUserBulletsWithTombstones, loadUserRiflesWithTombstones, loadUserScopesWithTombstones } from '../user-library.js';
+import { loadUserReticlesWithTombstones } from '../reticle-library.js';
 import { loadUserLocationsWithTombstones } from '../location-library.js';
 import { loadRiflePrecisionProjectsWithTombstones } from '../rifle-precision-library.js';
 import { getDeviceId } from './device-id.js';
@@ -86,7 +87,11 @@ export function buildBackupBundle() {
     photoStorage: 'inline',
     arsenal: {
       bullets: loadUserBulletsWithTombstones().map(stripLocalOnlyFields),
-      rifles: loadUserRiflesWithTombstones().map(stripLocalOnlyFields)
+      rifles: loadUserRiflesWithTombstones().map(stripLocalOnlyFields),
+      // Optional and additive, like devicesDeleted above: a build that
+      // predates scopes and reticles ignores them.
+      scopes: loadUserScopesWithTombstones().map(stripLocalOnlyFields),
+      reticles: loadUserReticlesWithTombstones().map(stripLocalOnlyFields)
     },
     locations: { locations: loadUserLocationsWithTombstones().map(stripLocalOnlyFields) },
     riflePrecision: { projects: loadRiflePrecisionProjectsWithTombstones().map(stripLocalOnlyFields) }

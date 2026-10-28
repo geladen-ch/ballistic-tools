@@ -1,0 +1,211 @@
+{
+  "id": "sb-p4lf",
+  "name": "Schmidt & Bender P4LF",
+  "manufacturer": "Schmidt & Bender",
+  "model": "P4LF",
+  "referenceScope": {
+    "type": "ffp",
+    "zoomMin": 3,
+    "zoomMax": 20
+  },
+  "illumination": {
+    "enabled": true,
+    "colour": "red"
+  },
+  "elements": [
+    {
+      "type": "hline",
+      "x": 0.005,
+      "y": 0,
+      "width": 0.0004,
+      "endX": 0.07,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.005,
+      "width": 0.0004,
+      "endY": -0.07
+    },
+    {
+      "type": "hline",
+      "x": 0.001,
+      "y": 0,
+      "width": 0.00005,
+      "endX": 0.005,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": 0.0008,
+      "width": 0.00005,
+      "endY": -0.0008,
+      "illuminated": true
+    },
+    {
+      "type": "hline",
+      "x": -0.0008,
+      "y": 0,
+      "width": 0.00005,
+      "endX": 0.0008,
+      "illuminated": true
+    },
+    {
+      "type": "vline",
+      "x": 0.001,
+      "y": -0.0002,
+      "width": 0.00005,
+      "endY": 0.0002,
+      "mirror": true,
+      "repeat": {
+        "direction": "right",
+        "count": 3,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "vline",
+      "x": 0.0015,
+      "y": -0.0001,
+      "width": 0.00005,
+      "endY": 0.0001,
+      "mirror": true,
+      "repeat": {
+        "direction": "right",
+        "count": 2,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.001,
+      "width": 0.00005,
+      "endY": -0.005
+    },
+    {
+      "type": "hline",
+      "x": 0.0002,
+      "y": -0.001,
+      "width": 0.00005,
+      "endX": -0.0002,
+      "repeat": {
+        "direction": "up",
+        "count": 3,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": 0.0001,
+      "y": -0.0015,
+      "width": 0.00005,
+      "endX": -0.0001,
+      "repeat": {
+        "direction": "up",
+        "count": 2,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "vline",
+      "x": 0.004200000000000001,
+      "y": 0,
+      "width": 0.00005,
+      "endY": -0.0001,
+      "mirror": true,
+      "repeat": {
+        "direction": "right",
+        "count": 3,
+        "step": 0.0002
+      }
+    },
+    {
+      "type": "hline",
+      "x": 0,
+      "y": -0.0048000000000000004,
+      "width": 0.00005,
+      "endX": 0.0001,
+      "repeat": {
+        "direction": "down",
+        "count": 3,
+        "step": 0.0002
+      }
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": 0.001,
+      "width": 0.00005,
+      "endY": 0.07
+    },
+    {
+      "type": "hline",
+      "x": -0.0002,
+      "y": 0.001,
+      "width": 0.00005,
+      "endX": 0.0002,
+      "repeat": {
+        "direction": "down",
+        "count": 68,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": -0.0001,
+      "y": 0.0015,
+      "width": 0.00005,
+      "endX": 0.0001,
+      "repeat": {
+        "direction": "down",
+        "count": 68,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": 0.005,
+      "width": 0.00005,
+      "endX": 0.0005
+    },
+    {
+      "type": "hline",
+      "x": -0.008,
+      "y": 0.01,
+      "width": 0.0001,
+      "endX": 0.008
+    },
+    {
+      "type": "hline",
+      "x": -0.005,
+      "y": 0.009000000000000001,
+      "width": 0.0001,
+      "endX": -0.008
+    },
+    {
+      "type": "hline",
+      "x": -0.001,
+      "y": 0.00875,
+      "width": 0.0001,
+      "endX": -0.004
+    },
+    {
+      "type": "hline",
+      "x": 0.001,
+      "y": 0.00833,
+      "width": 0.0001,
+      "endX": 0.004
+    },
+    {
+      "type": "hline",
+      "x": 0.005,
+      "y": 0.0075,
+      "width": 0.0001,
+      "endX": 0.008
+    }
+  ]
+}

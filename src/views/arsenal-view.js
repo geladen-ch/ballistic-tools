@@ -3,6 +3,7 @@ import { t } from '../i18n.js';
 import {
   loadUserBullets, saveUserBullet, deleteUserBullet, findUserBulletByName, markUserBulletsSaved, importUserBullet,
   loadUserRifles, saveUserRifle, deleteUserRifle, findUserRifleByName, markUserRiflesSaved, importUserRifle,
+  loadUserScopes, saveUserScope, deleteUserScope, findUserScopeByName, importUserScope, markUserScopesSaved,
   generateUserId
 } from '../user-library.js';
 import { loadCaliberDesignations, designationFor, caliberMmLabel, loadBullet } from '../bullets.js';
@@ -19,7 +20,9 @@ import { getSpinDriftMode } from '../spin-drift-prefs.js';
 import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { exportDialog } from '../ui/arsenal/export-dialog.js';
 import { importDialog } from '../ui/arsenal/import-dialog.js';
-import { buildExportPayload, serializeExport, collectRifleBulletIds, parseImportPayload, planImportBatch } from '../arsenal-export.js';
+import {
+  buildExportPayload, serializeExport, collectRifleBulletIds, parseImportPayload, planImportBatch, exportBundle, isLegacyReticleFile
+} from '../arsenal-export.js';
 import {
   getComparisonSelection, isSelectedForComparison, canAddToComparison,
   addToComparison, removeFromComparison, removeRifleFromComparison
@@ -31,7 +34,7 @@ import { unitField } from '../ui/unit-field.js';
 import { zoomRangeSlider } from '../ui/zoom-range-slider.js';
 import { chartColumnSelect as buildChartColumnSelect, lineOfSightSeries, lineOfSightLegendItem } from '../ui/chart-column-select.js';
 import { COLUMNS, CHART_POINTS_TARGET, MIN_ZOOM_WINDOW_M, CHART_DENSE_RANGE_STEP_M, resampleChartPoints, thinChartLabels } from '../trajectory-columns.js';
-import { siToDisplay, unitChoice, FIELD_BOUNDS } from '../units.js';
+import { siToDisplay, unitChoice, FIELD_BOUNDS, CLICK_UNITS, clickValueInUnit } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { LineChart } from '../vendor/chartist/index.js';
 import { downloadButton } from '../ui/download-button.js';
@@ -40,6 +43,21 @@ import { downloadFile } from '../download.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
 import { clickSettingsFromRifleRecord } from '../units.js';
+import {
+  loadUserReticles, deleteUserReticle, getUserReticle, saveUserReticle, importUserReticle, markUserReticlesSaved
+} from '../reticle-library.js';
+import { loadBuiltInReticles } from '../reticles.js';
+import { loadBuiltInScopes } from '../scopes.js';
+import { opticLabel, isUsableScope, isVariableScope } from '../scope-record.js';
+import { hasUnsavedReticleChanges, getReticleTarget, startNewReticle, openReticle, setReticleReturnToArsenal } from '../reticle-designer-state.js';
+import { takePendingArsenalTab } from '../arsenal-prefill.js';
+import { scopeForm } from '../ui/arsenal/scope-form.js';
+import { legacyReticleForm } from '../ui/arsenal/legacy-reticle-form.js';
+import { showDialog } from '../ui/app-dialog.js';
+import { loadReticleFile, checkReticleRecords } from '../reticle/svg-import/client.js';
+import { reticleRecordFromLegacy, scopeRecordFromLegacy } from '../reticle/legacy-file.js';
+import { FILE_LIMITS as RETICLE_FILE_LIMITS } from '../reticle/file-codec.js';
+import { reticleThumbnail } from '../ui/reticle-thumbnail.js';
 
 const ALL_VALUE = '__all__';
 
@@ -54,8 +72,8 @@ function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'arsenal';
 }
 
-// The Arsenal's three tabs, in tab-bar order. Scopes is a placeholder
-// until scope and reticle definitions land.
+// The Arsenal's three tabs, in tab-bar order. Scopes holds the user's
+// scopes and the reticles they come with.
 const ARSENAL_TABS = [
   { key: 'rifles', labelKey: 'arsenal.tabRifles' },
   { key: 'bullets', labelKey: 'arsenal.tabBullets' },
@@ -105,6 +123,7 @@ export function mount(container) {
   // there now.
   let bulletFormState = null;
   let rifleFormState = null;
+  let scopeFormState = null;
   // Cartridge management only ever applies to the *active* rifle (see
   // renderActiveRifle()) — { id: null } = adding a new cartridge to it,
   // { id: <string> } = editing one of its existing ones.
@@ -124,6 +143,7 @@ export function mount(container) {
     if (keep !== 'bullet') bulletFormState = null;
     if (keep !== 'rifle') rifleFormState = null;
     if (keep !== 'cartridge') cartridgeFormState = null;
+    if (keep !== 'scope') scopeFormState = null;
   }
 
   // The rifle currently shown in the "Active rifle" pane, and which of
@@ -156,6 +176,7 @@ export function mount(container) {
   // export; every other export (a single row's own "Save to file") just
   // exports that one item (plus, for a rifle, the bullets its cartridges
   // reference) directly, no picker needed.
+  // false, or the groups the open panel offers (export-dialog.js).
   let exportDialogState = false;
   // Set once a picked file has been read and parsed (see the hidden
   // fileInput below) — { bullets, rifles } as found in the file, or null
@@ -163,6 +184,7 @@ export function mount(container) {
   let importState = null;
   let importErrorKey = null; // set instead of importState when the picked file fails to parse
   let importSummary = null; // { saved, skipped } shown once, right after a completed import
+  let importSummaryText = null; // or a message of its own (a reticle file added), likewise once
 
   let designations = [];
 
@@ -216,9 +238,19 @@ export function mount(container) {
     renderBulletForm();
     scrollRifleFormIntoView();
   });
+  const scopeAddButton = el('button', { id: 'arsenal-add-scope', i18n: 'arsenal.addScopeButton' });
+  scopeAddButton.addEventListener('click', () => {
+    closeOtherForms('scope');
+    scopeFormState = { id: null };
+    renderScopeForm();
+    renderBulletForm();
+    renderRifleForm();
+    scrollScopeFormIntoView();
+  });
   function refreshAddButtonVisibility() {
     bulletAddButton.style.display = bulletFormState ? 'none' : '';
     rifleAddButton.style.display = (rifleFormState || cartridgeFormState) ? 'none' : '';
+    scopeAddButton.style.display = scopeFormState ? 'none' : '';
   }
   const exportDialogArea = el('div');
   const importArea = el('div');
@@ -359,6 +391,8 @@ export function mount(container) {
     renderActiveRifle();
     renderRifles();
     renderBullets();
+    renderScopes();
+    renderReticles();
   }
 
   // Purely local bookkeeping (see user-library.js) — never shown for a
@@ -378,25 +412,41 @@ export function mount(container) {
     return el('span', { class: 'unusable-badge', title: t('arsenal.unusableBadgeTitle'), text: t('arsenal.unusableBadge') });
   }
 
-  function exportSingleBullet(bullet) {
-    const payload = buildExportPayload({ bullets: [bullet], rifles: [] });
-    downloadJsonFile(`gb-bullet-${sanitizeFilename(bullet.name)}.json`, serializeExport(payload));
-    markUserBulletsSaved([bullet.id]);
+  // Writes one file of the given records and marks them saved.
+  function exportFile(filename, { bullets = [], rifles = [], scopes = [], reticles = [] }) {
+    downloadJsonFile(filename, serializeExport(buildExportPayload({ bullets, rifles, scopes, reticles })));
+    markUserBulletsSaved(bullets.map((b) => b.id));
+    markUserRiflesSaved(rifles.map((r) => r.id));
+    markUserScopesSaved(scopes.map((r) => r.id));
+    markUserReticlesSaved(reticles.map((r) => r.id));
     refreshLibraryView();
+  }
+
+  function exportSingleBullet(bullet) {
+    exportFile(`gb-bullet-${sanitizeFilename(bullet.name)}.json`, { bullets: [bullet] });
   }
 
   // Bundles the rifle together with whatever user-library bullets its own
   // cartridges reference — see the mount() function's own class comment
-  // for why every cartridge should already resolve to one.
+  // for why every cartridge should already resolve to one — and its scope,
+  // when that is one of the user's own, with the user's reticles it lists.
   function exportSingleRifle(rifle) {
     const allUserBullets = loadUserBullets();
     const bulletIds = collectRifleBulletIds(rifle, new Set(allUserBullets.map((b) => b.id)));
-    const bullets = allUserBullets.filter((b) => bulletIds.has(b.id));
-    const payload = buildExportPayload({ bullets, rifles: [rifle] });
-    downloadJsonFile(`gb-rifle-${sanitizeFilename(rifle.name)}.json`, serializeExport(payload));
-    markUserBulletsSaved([...bulletIds]);
-    markUserRiflesSaved([rifle.id]);
-    refreshLibraryView();
+    const optics = exportBundle({ rifles: [rifle], userScopes: loadUserScopes(), userReticles: loadUserReticles() });
+    exportFile(`gb-rifle-${sanitizeFilename(rifle.name)}.json`, {
+      bullets: allUserBullets.filter((b) => bulletIds.has(b.id)), rifles: [rifle], ...optics
+    });
+  }
+
+  // A scope, with the user's reticles it lists.
+  function exportSingleScope(scope) {
+    const optics = exportBundle({ scopes: [scope], userScopes: loadUserScopes(), userReticles: loadUserReticles() });
+    exportFile(`gb-scope-${sanitizeFilename(scope.name)}.json`, optics);
+  }
+
+  function exportSingleReticle(reticle) {
+    exportFile(`gb-reticle-${sanitizeFilename(reticle.name)}.json`, { reticles: [reticle] });
   }
 
   // Built-in-library records have no modifiedAt at all; a user record
@@ -1236,6 +1286,7 @@ export function mount(container) {
         unsavedBadge(rifle),
         unusableBadge(rifle),
         el('span', { class: 'hint', text: t('arsenal.cartridgeCount', { count: rifle.cartridges.length }) }),
+        rifleScopeLine(rifle),
         modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
       ]),
       el('div', { class: 'arsenal-row-actions' }, actionChildren)
@@ -1307,6 +1358,7 @@ export function mount(container) {
           unsavedBadge(rifle),
           unusableBadge(rifle),
           el('span', { class: 'hint', text: t('arsenal.cartridgeCount', { count: rifle.cartridges.length }) }),
+          rifleScopeLine(rifle),
           modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
         ]),
         el('div', { class: 'arsenal-row-actions' }, actionChildren)
@@ -1331,16 +1383,18 @@ export function mount(container) {
     const dialog = exportDialog({
       bullets: loadUserBullets(),
       rifles: loadUserRifles(),
-      onExport: ({ bulletIds, rifleIds }) => {
-        const bullets = loadUserBullets().filter((b) => bulletIds.includes(b.id));
-        const rifles = loadUserRifles().filter((r) => rifleIds.includes(r.id));
-        const payload = buildExportPayload({ bullets, rifles });
-        downloadJsonFile('gb-arsenal-library.json', serializeExport(payload));
-        markUserBulletsSaved(bulletIds);
-        markUserRiflesSaved(rifleIds);
+      scopes: loadUserScopes(),
+      reticles: loadUserReticles().filter((r) => !r.damaged),
+      groups: exportDialogState,
+      onExport: ({ bulletIds, rifleIds, scopeIds, reticleIds }) => {
+        const pick = (list, ids) => list.filter((item) => ids.includes(item.id));
+        const filename = exportDialogState.includes('rifles') ? 'gb-arsenal-library.json' : 'gb-arsenal-scopes.json';
         exportDialogState = false;
+        exportFile(filename, {
+          bullets: pick(loadUserBullets(), bulletIds), rifles: pick(loadUserRifles(), rifleIds),
+          scopes: pick(loadUserScopes(), scopeIds), reticles: pick(loadUserReticles(), reticleIds)
+        });
         renderExportDialog();
-        refreshLibraryView();
       },
       onCancel: () => {
         exportDialogState = false;
@@ -1363,35 +1417,47 @@ export function mount(container) {
       importErrorArea.style.display = '';
       importErrorKey = null;
     }
-    if (importSummary) {
-      importSummaryArea.textContent = t('arsenal.importSummary', importSummary);
+    if (importSummary || importSummaryText) {
+      importSummaryArea.textContent = importSummaryText || t('arsenal.importSummary', importSummary);
       importSummaryArea.style.display = '';
       importSummary = null;
+      importSummaryText = null;
     }
     if (!importState) return;
 
     const dialog = importDialog({
       bullets: importState.bullets,
       rifles: importState.rifles,
+      scopes: importState.scopes,
+      reticles: importState.reticles,
+      invalidReticleNames: importState.invalidReticleNames,
       existingBullets: loadUserBullets(),
       existingRifles: loadUserRifles(),
-      onImport: ({ bulletIds, rifleIds, mode }) => {
-        const selectedBullets = importState.bullets.filter((b) => bulletIds.includes(b.id));
-        const selectedRifles = importState.rifles.filter((r) => rifleIds.includes(r.id));
+      existingScopes: loadUserScopes(),
+      existingReticles: loadUserReticles(),
+      onImport: ({ bulletIds, rifleIds, scopeIds, reticleIds, mode }) => {
+        const pick = (list, ids) => list.filter((item) => ids.includes(item.id));
         const plan = planImportBatch({
-          bullets: selectedBullets, rifles: selectedRifles, mode,
+          bullets: pick(importState.bullets, bulletIds), rifles: pick(importState.rifles, rifleIds),
+          scopes: pick(importState.scopes, scopeIds), reticles: pick(importState.reticles, reticleIds), mode,
           existingBullets: loadUserBullets(), existingRifles: loadUserRifles(),
+          existingScopes: loadUserScopes(), existingReticles: loadUserReticles(),
           generateBulletId: () => generateUserId('user-bullet'),
-          generateRifleId: () => generateUserId('user-rifle')
+          generateRifleId: () => generateUserId('user-rifle'),
+          generateScopeId: () => generateUserId('user-scope'),
+          generateReticleId: () => generateUserId('user-reticle')
         });
 
         let saved = 0, skipped = 0;
-        for (const { resolved } of plan.bulletResults) {
-          if (resolved.action === 'save') { importUserBullet(resolved.record); saved++; } else skipped++;
-        }
-        for (const { resolved } of plan.rifleResults) {
-          if (resolved.action === 'save') { importUserRifle(resolved.record); saved++; } else skipped++;
-        }
+        const write = (results, importRecord) => {
+          for (const { resolved } of results) {
+            if (resolved.action === 'save') { importRecord(resolved.record); saved++; } else skipped++;
+          }
+        };
+        write(plan.reticleResults, importUserReticle);
+        write(plan.scopeResults, importUserScope);
+        write(plan.bulletResults, importUserBullet);
+        write(plan.rifleResults, importUserRifle);
 
         importState = null;
         importSummary = { saved, skipped };
@@ -1409,32 +1475,119 @@ export function mount(container) {
     ]));
   }
 
-  const fileInput = el('input', { type: 'file', accept: 'application/json' });
+  // Takes Arsenal export files, and reticle files of 4.3.x — those go
+  // through the legacy reticle form instead (see openLegacyReticle()). An
+  // export's reticles are checked off the main thread before anything is
+  // offered (a reticle is untrusted input, like an SVG import); one that
+  // fails is named and left out.
+  const fileInput = el('input', { type: 'file', accept: '.json,application/json' });
   fileInput.style.display = 'none';
   fileInput.addEventListener('change', async () => {
     const file = fileInput.files && fileInput.files[0];
     fileInput.value = ''; // clear so picking the same filename again still fires 'change'
     if (!file) return;
+    importState = null;
+    importSummary = null;
     try {
+      if (file.size > RETICLE_FILE_LIMITS.maxChars) throw Object.assign(new Error('too large'), { code: 'too-large' });
       const text = await file.text();
-      importState = parseImportPayload(text);
+      if (isLegacyReticleFile(text)) {
+        importErrorKey = null;
+        renderImportArea();
+        await openLegacyReticle(text, file.name || '');
+        return;
+      }
+      const parsed = parseImportPayload(text);
+      let invalidReticleNames = [];
+      if (parsed.reticles.length) {
+        const outcome = await checkReticleRecords(parsed.reticles);
+        const valid = outcome.ok ? outcome.valid : parsed.reticles.map(() => false);
+        invalidReticleNames = parsed.reticles.filter((_, i) => !valid[i]).map((r) => (typeof r.name === 'string' && r.name) || '?');
+        parsed.reticles = parsed.reticles.filter((_, i) => valid[i]);
+      }
+      importState = { ...parsed, invalidReticleNames };
       importErrorKey = null;
     } catch (err) {
       importState = null;
       importErrorKey = err.code === 'invalid-json' ? 'arsenal.importFileErrorInvalidJson'
         : err.code === 'unsupported-version' ? 'arsenal.importFileErrorNewerVersion'
-          : 'arsenal.importFileErrorInvalidFormat';
+          : err.code === 'too-large' ? 'reticleDesigner.file.errors.tooLarge'
+            : 'arsenal.importFileErrorInvalidFormat';
     }
-    importSummary = null;
     renderImportArea();
   });
+
+  // A reticle file of 4.3.x: read in the import worker, then completed in
+  // a modal (legacy-reticle-form.js) and added as an Arsenal reticle —
+  // followed, when asked, by the scope form, filled in with the file's
+  // optics, the new reticle and its magnification, to finish and save.
+  async function openLegacyReticle(text, fileName) {
+    const outcome = await loadReticleFile(text);
+    if (!outcome.ok) {
+      importErrorKey = `reticleDesigner.file.errors.${{ 'invalid-json': 'invalidJson', 'unsupported-version': 'newerVersion', 'too-large': 'tooLarge', timeout: 'timeout' }[outcome.code] || 'invalidFormat'}`;
+      renderImportArea();
+      return;
+    }
+    const doc = outcome.doc;
+    const form = legacyReticleForm({ doc, fileName });
+    showDialog({
+      bodyNode: form.node,
+      wide: true,
+      buttons: [
+        {
+          label: t('arsenal.legacyAddButton'),
+          validate: () => form.validate(),
+          onClick: () => {
+            const values = form.read();
+            const reticle = saveUserReticle({
+              ...reticleRecordFromLegacy(doc, values), id: generateUserId('user-reticle')
+            });
+            importSummaryText = t('arsenal.legacyAdded', { name: reticle.name });
+            selectTab('scopes');
+            if (values.createScope) {
+              const ref = values.referenceScope;
+              closeOtherForms('scope');
+              scopeFormState = {
+                id: null,
+                prefill: scopeRecordFromLegacy(doc.legacyScope, {
+                  manufacturer: values.manufacturer, model: '', reticleIds: [reticle.id],
+                  magnificationMin: ref.zoomMin, magnificationMax: ref.zoomMax
+                })
+              };
+            }
+            renderImportArea();
+            refreshLibraryView();
+            renderScopeForm();
+            scrollScopeFormIntoView();
+          }
+        },
+        { label: t('arsenal.cancelButton') }
+      ]
+    });
+  }
 
   const saveLibraryButton = el('button', { class: 'secondary', id: 'arsenal-save-library', i18n: 'arsenal.saveLibraryButton' });
   saveLibraryButton.addEventListener('click', () => {
     importState = null;
     renderImportArea();
-    exportDialogState = true;
+    exportDialogState = ['bullets', 'rifles', 'scopes', 'reticles'];
     renderExportDialog();
+  });
+  // The Scopes tab's own Save/Load: the same panel and file picker as
+  // Save/Load Library, the panel offering just scopes and reticles.
+  const saveOpticsButton = el('button', { class: 'secondary', id: 'arsenal-save-optics', i18n: 'arsenal.saveOpticsButton' });
+  saveOpticsButton.addEventListener('click', () => {
+    importState = null;
+    renderImportArea();
+    exportDialogState = ['scopes', 'reticles'];
+    renderExportDialog();
+    if (exportDialogArea.firstChild) exportDialogArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  const loadOpticsButton = el('button', { class: 'secondary', id: 'arsenal-load-optics', i18n: 'arsenal.loadOpticsButton' });
+  loadOpticsButton.addEventListener('click', () => {
+    exportDialogState = false;
+    renderExportDialog();
+    fileInput.click();
   });
   const loadLibraryButton = el('button', { class: 'secondary', id: 'arsenal-load-library', i18n: 'arsenal.loadLibraryButton' });
   loadLibraryButton.addEventListener('click', () => {
@@ -1453,6 +1606,7 @@ export function mount(container) {
   // the form go" and "what's inside it" stay decoupled the same way.
   function renderRifleForm() {
     clear(rifleFormArea);
+    openRifleForm = null;
     clear(cartridgeFormArea);
     refreshAddButtonVisibility();
     renderActiveRifle();
@@ -1468,6 +1622,8 @@ export function mount(container) {
     const form = rifleForm({
       initialValues: prefill || editing || {},
       excludeId: rifleFormState.id || undefined,
+      scopeChoices: () => ({ arsenal: loadUserScopes(), builtIn: builtInScopes }),
+      reticleName,
       onSave: (data) => {
         // Adding a brand-new rifle (not editing an existing one) makes it
         // the active rifle right away — there's nothing useful to leave
@@ -1505,6 +1661,7 @@ export function mount(container) {
       }
     });
 
+    openRifleForm = form;
     rifleFormArea.appendChild(el('div', { class: 'card' }, [
       el('h2', { i18n: rifleFormState.id ? 'arsenal.editRifleHeading' : 'arsenal.addRifleHeading' }),
       form.node
@@ -1520,6 +1677,248 @@ export function mount(container) {
   // whatever they were just looking at.
   function scrollRifleFormIntoView() {
     if (rifleFormArea.firstChild) rifleFormArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // === Scopes tab: the user's scopes, and the reticles they come with ===
+  //
+  // Reticles are drawn and edited in the Reticle Designer: Add/Edit here
+  // open one there, and its Save to arsenal / Discard changes come back to
+  // this tab. A scope's reticles can be the user's own or built-in ones;
+  // the built-in reticles load once, in the background, for its form.
+  const scopesListEl = el('div');
+  const scopeFormArea = el('div');
+  const reticlesListEl = el('div');
+  let builtInReticles = [];
+  let builtInScopes = [];
+  let openRifleForm = null;
+
+  function scopeById(id) {
+    return loadUserScopes().find((scope) => scope.id === id) || builtInScopes.find((scope) => scope.id === id) || null;
+  }
+  function reticleName(id) {
+    const reticle = getUserReticle(id) || builtInReticles.find((r) => r.id === id);
+    return reticle ? reticle.name : null;
+  }
+
+  // "Scope: …" on a rifle's row, with the reticle when its scope offers a
+  // choice of them; nothing for a rifle without one.
+  function rifleScopeLine(rifle) {
+    if (!rifle.scopeId) return null;
+    const scope = scopeById(rifle.scopeId);
+    let name = scope ? scope.name : t('arsenal.scopeMissing');
+    if (scope && scope.reticleIds.length > 1 && rifle.reticleId) name += ` — ${reticleName(rifle.reticleId) || t('arsenal.reticleMissing')}`;
+    return el('div', { class: 'hint', text: t('arsenal.rifleScopeLine', { name }) });
+  }
+
+  // Keeps the rifles linked to scope `fromId` consistent with `scope` —
+  // now that scope under its own id (the same one, or the one it was
+  // saved over), or null once gone. A rifle keeps its reticle while the
+  // scope still lists it; otherwise it takes the scope's only one, or none
+  // until picked. Its click values are its own and stay as they are.
+  function relinkRifles(fromId, scope) {
+    for (const rifle of loadUserRifles()) {
+      if (rifle.scopeId !== fromId) continue;
+      const next = !scope ? { scopeId: null, reticleId: null } : {
+        scopeId: scope.id,
+        reticleId: scope.reticleIds.includes(rifle.reticleId) ? rifle.reticleId : (scope.reticleIds.length === 1 ? scope.reticleIds[0] : null)
+      };
+      if (next.scopeId !== rifle.scopeId || next.reticleId !== rifle.reticleId) saveUserRifle({ ...rifle, ...next });
+    }
+  }
+
+  const scopeTypeShort = (type) => t(`arsenal.scopeTypeShort.${type}`);
+  const formatZoom = (v) => String(Number(v.toFixed(2)) + 0);
+  const zoomText = (min, max, variable) => (variable ? `${formatZoom(min)}–${formatZoom(max)}×` : `${formatZoom(min)}×`);
+
+  function scopeSummary(scope) {
+    const unitLabel = (CLICK_UNITS.find((u) => u.unit === scope.clickUnit) || CLICK_UNITS[0]).label;
+    return t('arsenal.scopeSummary', {
+      type: scopeTypeShort(scope.type),
+      zoom: zoomText(scope.magnificationMin, scope.magnificationMax, isVariableScope(scope)),
+      click: `${clickValueInUnit(scope.clickVerticalRad, scope.clickUnit)} ${unitLabel}`,
+      count: scope.reticleIds.length
+    });
+  }
+
+  function renderScopes() {
+    clear(scopesListEl);
+    const scopes = loadUserScopes();
+    if (scopes.length === 0) scopesListEl.appendChild(el('p', { class: 'hint', i18n: 'arsenal.noScopes' }));
+    const labels = disambiguateByName(scopes);
+    for (const scope of scopes) {
+      const modifiedLabel = lastModifiedLabel(scope);
+      const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
+      editButton.addEventListener('click', () => {
+        closeOtherForms('scope');
+        scopeFormState = { id: scope.id };
+        renderScopeForm();
+        renderBulletForm();
+        renderRifleForm();
+        scrollScopeFormIntoView();
+      });
+      const deleteButton = el('button', { class: 'secondary', i18n: 'arsenal.deleteButton' });
+      deleteButton.addEventListener('click', () => {
+        const rifleCount = loadUserRifles().filter((rifle) => rifle.scopeId === scope.id).length;
+        const message = rifleCount > 0
+          ? t('arsenal.confirmDeleteScopeWithRifles', { name: scope.name, count: rifleCount })
+          : t('arsenal.confirmDeleteScope', { name: scope.name });
+        if (!confirm(message)) return;
+        relinkRifles(scope.id, null);
+        deleteUserScope(scope.id);
+        refreshLibraryView();
+        if (scopeFormState && scopeFormState.id === scope.id) scopeFormState = null;
+        renderScopes();
+        renderReticles();
+        renderScopeForm();
+      });
+      const saveToFileButton = el('button', { class: 'secondary', i18n: 'arsenal.saveToFileButton' });
+      saveToFileButton.addEventListener('click', () => exportSingleScope(scope));
+      const unusable = isUsableScope(scope) ? null
+        : el('span', { class: 'unusable-badge', title: t('arsenal.scopeUnusableBadgeTitle'), text: t('arsenal.unusableBadge') });
+      scopesListEl.appendChild(el('div', { class: 'arsenal-row' }, [
+        el('div', { class: 'arsenal-row-info' }, [
+          el('strong', { text: labels.get(scope.id) || scope.name }),
+          unsavedBadge(scope),
+          unusable,
+          el('span', { class: 'hint', text: ` — ${scopeSummary(scope)}` }),
+          modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
+        ]),
+        el('div', { class: 'arsenal-row-actions' }, [saveToFileButton, editButton, deleteButton])
+      ]));
+      if (scopeFormState && scopeFormState.id === scope.id) scopesListEl.appendChild(scopeFormArea);
+    }
+    scopesListEl.appendChild(scopeAddButton);
+    if (scopeFormState && scopeFormState.id === null) scopesListEl.appendChild(scopeFormArea);
+  }
+
+  let openScopeForm = null;
+  function renderScopeForm() {
+    clear(scopeFormArea);
+    openScopeForm = null;
+    refreshAddButtonVisibility();
+    renderScopes();
+    if (!scopeFormState) return;
+    const editing = scopeFormState.id ? loadUserScopes().find((s) => s.id === scopeFormState.id) : null;
+    const form = scopeForm({
+      initialValues: editing || scopeFormState.prefill || {},
+      excludeId: scopeFormState.id || undefined,
+      reticleChoices: () => ({ arsenal: loadUserReticles(), builtIn: builtInReticles }),
+      // Same rule as a rifle's: a name already in the Arsenal is
+      // overwritten (the warning says so), and the entry being edited
+      // under another name goes.
+      onSave: (data) => {
+        const collision = findUserScopeByName(opticLabel(data), { excludeId: scopeFormState.id || undefined });
+        if (collision) {
+          const saved = saveUserScope({ ...collision, ...data, id: collision.id });
+          relinkRifles(collision.id, saved);
+          if (scopeFormState.id && scopeFormState.id !== collision.id) {
+            // The rifles on the scope saved over another go along with it.
+            relinkRifles(scopeFormState.id, saved);
+            deleteUserScope(scopeFormState.id);
+          }
+        } else {
+          const saved = saveUserScope({ ...editing, ...data, id: scopeFormState.id || generateUserId('user-scope') });
+          relinkRifles(saved.id, saved);
+        }
+        scopeFormState = null;
+        renderScopeForm();
+        refreshLibraryView();
+      },
+      onCancel: () => {
+        scopeFormState = null;
+        renderScopeForm();
+      }
+    });
+    openScopeForm = form;
+    scopeFormArea.appendChild(el('div', { class: 'card' }, [
+      el('h2', { i18n: scopeFormState.id ? 'arsenal.editScopeHeading' : 'arsenal.addScopeHeading' }),
+      form.node
+    ]));
+  }
+
+  function scrollScopeFormIntoView() {
+    if (scopeFormArea.firstChild) scopeFormArea.firstChild.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Opens a reticle in the Reticle Designer — an Arsenal one to edit, or a
+  // new one (null). Unsaved work on another reticle there is asked about
+  // first; the same reticle, still open there, is picked up where it was
+  // left.
+  function openInDesigner(reticle) {
+    const target = getReticleTarget();
+    const sameOpen = reticle && target.reticleId === reticle.id;
+    if (sameOpen) {
+      setReticleReturnToArsenal(true);
+    } else {
+      if (hasUnsavedReticleChanges() && !confirm(t('arsenal.confirmDiscardDesigner'))) return;
+      if (reticle) openReticle(reticle, { fromArsenal: true });
+      else startNewReticle({ fromArsenal: true });
+    }
+    location.hash = '#/reticle-designer';
+  }
+
+  const reticleAddButton = el('button', { id: 'arsenal-add-reticle', i18n: 'arsenal.addReticleButton' });
+  reticleAddButton.addEventListener('click', () => openInDesigner(null));
+
+  function reticleSummary(reticle) {
+    const ref = reticle.referenceScope;
+    const parts = [scopeTypeShort(ref.type), zoomText(ref.zoomMin, ref.zoomMax, ref.type !== 'fixed')];
+    if (reticle.illumination.enabled) parts.push(t('arsenal.reticleIlluminated'));
+    return parts.join(' · ');
+  }
+
+  function renderReticles() {
+    clear(reticlesListEl);
+    const reticles = loadUserReticles();
+    const scopes = loadUserScopes();
+    if (reticles.length === 0) reticlesListEl.appendChild(el('p', { class: 'hint', i18n: 'arsenal.noReticles' }));
+    const labels = disambiguateByName(reticles);
+    for (const reticle of reticles) {
+      const usedBy = scopes.filter((s) => s.reticleIds.includes(reticle.id));
+      const modifiedLabel = lastModifiedLabel(reticle);
+      const actions = [];
+      if (!reticle.damaged) {
+        const saveToFileButton = el('button', { class: 'secondary', i18n: 'arsenal.saveToFileButton' });
+        saveToFileButton.addEventListener('click', () => exportSingleReticle(reticle));
+        const editButton = el('button', { class: 'secondary', i18n: 'arsenal.editButton' });
+        editButton.addEventListener('click', () => openInDesigner(reticle));
+        actions.push(saveToFileButton, editButton);
+      }
+      const deleteButton = el('button', { class: 'secondary', i18n: 'arsenal.deleteButton' });
+      deleteButton.addEventListener('click', () => {
+        const message = usedBy.length > 0
+          ? t('arsenal.confirmDeleteReticleWithScopes', { name: reticle.name, count: usedBy.length })
+          : t('arsenal.confirmDeleteReticle', { name: reticle.name });
+        if (!confirm(message)) return;
+        // A scope keeps its other reticles; one left with none becomes
+        // unusable on a rifle until it gets another.
+        for (const scope of usedBy) {
+          const saved = saveUserScope({ ...scope, reticleIds: scope.reticleIds.filter((id) => id !== reticle.id) });
+          relinkRifles(scope.id, saved);
+        }
+        deleteUserReticle(reticle.id);
+        renderScopeForm();
+        refreshLibraryView();
+      });
+      actions.push(deleteButton);
+      const damaged = reticle.damaged
+        ? el('span', { class: 'unusable-badge', title: t('arsenal.damagedBadgeTitle'), text: t('arsenal.damagedBadge') })
+        : null;
+      const info = [
+        el('strong', { text: labels.get(reticle.id) || reticle.name }),
+        unsavedBadge(reticle),
+        damaged
+      ];
+      if (!reticle.damaged) info.push(el('span', { class: 'hint', text: ` — ${reticleSummary(reticle)}` }));
+      if (usedBy.length > 0) info.push(el('div', { class: 'hint', text: t('arsenal.reticleUsedBy', { count: usedBy.length }) }));
+      if (modifiedLabel) info.push(el('div', { class: 'hint' }, [modifiedLabel]));
+      reticlesListEl.appendChild(el('div', { class: 'arsenal-row arsenal-reticle-row' }, [
+        reticleThumbnail(reticle, { size: 64, label: reticle.name }),
+        el('div', { class: 'arsenal-row-info' }, info),
+        el('div', { class: 'arsenal-row-actions' }, actions)
+      ]));
+    }
+    reticlesListEl.appendChild(reticleAddButton);
   }
 
   // Rifles (with their cartridges and the comparison built from them),
@@ -1547,8 +1946,15 @@ export function mount(container) {
     ]),
     scopes: el('div', { id: 'arsenal-tab-scopes' }, [
       el('div', { class: 'card' }, [
+        el('div', { class: 'arsenal-tab-actions' }, [saveOpticsButton, loadOpticsButton])
+      ]),
+      el('div', { class: 'card' }, [
         el('h2', { i18n: 'arsenal.scopesHeading' }),
-        el('p', { class: 'hint', i18n: 'arsenal.noScopes' })
+        scopesListEl
+      ]),
+      el('div', { class: 'card' }, [
+        el('h2', { i18n: 'arsenal.reticlesHeading' }),
+        reticlesListEl
       ])
     ])
   };
@@ -1574,7 +1980,7 @@ export function mount(container) {
       filterCard.parentNode.removeChild(filterCard);
     }
   }
-  selectTab(lastArsenalTab);
+  selectTab(takePendingArsenalTab() || lastArsenalTab);
 
   container.appendChild(el('div', {}, [
     el('h1', { i18n: 'arsenal.title' }),
@@ -1654,6 +2060,17 @@ export function mount(container) {
       renderBulletForm();
     }
   }
+
+  Promise.all([loadBuiltInReticles(), loadBuiltInScopes()]).then(([reticles, scopes]) => {
+    builtInReticles = reticles;
+    builtInScopes = scopes;
+    if (openScopeForm) openScopeForm.refreshReticles();
+    if (openRifleForm) openRifleForm.refreshScopes();
+    renderActiveRifle();
+    renderRifles();
+  }).catch(() => {
+    // built-in optics unavailable — the forms offer the user's own only
+  });
 
   loadCaliberDesignations().then((list) => {
     designations = list;

@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createElement, NO_REPEAT } from '../src/reticle/element-types.js';
 import { createDocument, addElement, groupElements } from '../src/reticle/model.js';
-import { serializeReticle, parseReticle, reticleFilename, FILE_FORMAT } from '../src/reticle/file-codec.js';
+import { parseReticle, FILE_FORMAT } from '../src/reticle/file-codec.js';
+import { legacyReticleFile as serializeReticle } from './helpers/legacy-reticle-file.js';
 
 function sampleDoc() {
-  let doc = createDocument({ name: 'Test reticle' });
+  let doc = { ...createDocument(), name: 'Test reticle' };
   const ids = [];
   for (const e of [
     createElement('hline', { x: -0.005, y: 0, end: 0.005, units: 'mrad' }),
@@ -19,8 +20,6 @@ function sampleDoc() {
   return groupElements(doc, ids.slice(1)).doc;
 }
 
-const strip = (doc) => ({ ...doc, nextId: undefined });
-
 // An element as a save/load gives it back: the settings a file leaves out
 // (a repeat that is off, an unmirrored SVG shape's reflect) come back as
 // a new element has them.
@@ -30,17 +29,18 @@ function restored(e) {
   return out;
 }
 
-test('a reticle survives a save/load round trip unchanged, angles in radians', () => {
+test('a version 2 file reads back as the reticle it held, angles in radians', () => {
   const doc = sampleDoc();
-  const text = serializeReticle(doc);
-  assert.equal(JSON.parse(text).format, FILE_FORMAT);
-  const loaded = parseReticle(text);
-  assert.deepEqual(strip(loaded), strip({ ...doc, elements: doc.elements.map(restored) }));
+  const loaded = parseReticle(serializeReticle(doc));
+  assert.equal(loaded.name, 'Test reticle');
+  assert.deepEqual(loaded.referenceScope, doc.referenceScope);
+  assert.deepEqual(loaded.illumination, doc.illumination);
+  assert.deepEqual(loaded.elements, doc.elements.map(restored));
+  assert.deepEqual(loaded.groups, doc.groups);
 });
 
-test('a file holds only what shapes the reticle', () => {
+test('an element is stored with only what shapes the reticle; a file without a name reads as unnamed', () => {
   const raw = JSON.parse(serializeReticle(sampleDoc()));
-  assert.deepEqual(Object.keys(raw), ['format', 'version', 'name', 'scope', 'elements'], 'no default illumination, no group list');
   assert.deepEqual(raw.elements.map((e) => Object.keys(e).sort()), [
     ['endX', 'type', 'width', 'x', 'y'],
     ['diameter', 'groupId', 'mirror', 'type', 'x', 'y'],
@@ -59,16 +59,24 @@ test('a repeat is stored only when it is on, and loads back on', () => {
   assert.deepEqual(parseReticle(JSON.stringify(raw)).elements[0].repeat, { enabled: true, direction: 'up', count: 4, step: 0.002 });
 });
 
-test('a scope stores only the fields its type uses', () => {
-  const keysFor = (type) => Object.keys(JSON.parse(serializeReticle(updateScope(createDocument(), { type }))).scope);
-  assert.deepEqual(keysFor('fixed'), ['type', 'fovMaxRad', 'fovDistanceM']);
-  assert.deepEqual(keysFor('ffp'), ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax']);
-  assert.deepEqual(keysFor('sfp'), ['type', 'fovMaxRad', 'fovMinRad', 'fovDistanceM', 'zoomMin', 'zoomMax', 'calibrationZoom']);
-  const fixed = updateScope(createDocument(), { type: 'fixed', fovMaxRad: 0.05, fovDistanceM: 91.44 });
-  const loaded = parseReticle(serializeReticle(fixed)).scope;
-  assert.equal(loaded.type, 'fixed');
-  assert.equal(loaded.fovMaxRad, 0.05);
-  assert.equal(loaded.fovDistanceM, 91.44);
+test('a version 2 file\'s optics scope loads as a reference scope', () => {
+  const v2 = (scope) => JSON.stringify({ format: FILE_FORMAT, version: 2, scope, elements: [] });
+  // A variable scope keeps its zoom range and calibration zoom.
+  assert.deepEqual(
+    parseReticle(v2({ type: 'sfp', fovMaxRad: 0.12, fovMinRad: 0.03, fovDistanceM: 100, zoomMin: 3, zoomMax: 12, calibrationZoom: 10 })).referenceScope,
+    { type: 'sfp', zoomMin: 3, zoomMax: 12, calibrationZoom: 10 });
+  assert.deepEqual(
+    parseReticle(v2({ type: 'ffp', fovMaxRad: 0.13, fovMinRad: 0.021, fovDistanceM: 100, zoomMin: 3.23, zoomMax: 20 })).referenceScope,
+    { type: 'ffp', zoomMin: 3.23, zoomMax: 20, calibrationZoom: 20 });
+  // A fixed one gets the magnification its field stands for: 12 m at 100 m is 3x, 6 m is 6x.
+  const fixedAt = (widthM) => parseReticle(v2({ type: 'fixed', fovMaxRad: fieldOfViewAngle(widthM, 100), fovDistanceM: 100 })).referenceScope;
+  const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} !== ${b}`);
+  near(fixedAt(12).zoomMin, 3);
+  near(fixedAt(6).zoomMin, 6);
+  assert.equal(fixedAt(6).zoomMax, fixedAt(6).zoomMin);
+  // The optics as read come back too, only the fields the type uses.
+  const fixed = parseReticle(v2({ type: 'fixed', fovMaxRad: 0.12, fovMinRad: 0.01, fovDistanceM: 100, zoomMin: 9 }));
+  assert.deepEqual(fixed.legacyScope, { type: 'fixed', fovMaxRad: 0.12, fovDistanceM: 100 });
 });
 
 test('a version 1 file (4.3.0) still loads, its repeats by their enabled flag', () => {
@@ -108,15 +116,10 @@ test('rejects bad JSON, foreign files, newer versions and invalid elements', () 
   assert.equal(code('{nope'), 'invalid-json');
   assert.equal(code(JSON.stringify({ format: 'something-else', version: 1, elements: [] })), 'invalid-format');
   const raw = JSON.parse(serializeReticle(sampleDoc()));
-  assert.equal(code(JSON.stringify({ ...raw, version: 99 })), 'unsupported-version');
+  assert.equal(code(JSON.stringify({ ...raw, version: 3 })), 'unsupported-version');
   assert.equal(code(JSON.stringify({ ...raw, elements: [{ ...raw.elements[0], type: 'teapot' }] })), 'invalid-format');
   assert.equal(code(JSON.stringify({ ...raw, elements: [{ ...raw.elements[0], width: -1 }] })), 'invalid-format');
   assert.equal(code(JSON.stringify({ ...raw, elements: [{ ...raw.elements[0], x: 'left' }] })), 'invalid-format');
-});
-
-test('reticleFilename makes a safe name', () => {
-  assert.equal(reticleFilename('My  Reticle/v2'), 'My-Reticlev2.reticle.json');
-  assert.equal(reticleFilename(''), 'reticle.reticle.json');
 });
 
 test('numbers survive a round trip', () => {
@@ -134,12 +137,14 @@ test('numbers survive a round trip', () => {
 // ---- every element type, saved and loaded ----
 
 import { ELEMENT_TYPE_IDS } from '../src/reticle/element-types.js';
-import { updateScope } from '../src/reticle/model.js';
+import { updateReferenceScope } from '../src/reticle/model.js';
+import { fieldOfViewAngle } from '../src/quantity.js';
 import { extractShape } from '../src/reticle/svg-import/extract.js';
-import { storedElement, FILE_LIMITS } from '../src/reticle/file-codec.js';
+import { FILE_LIMITS } from '../src/reticle/file-codec.js';
+import { storedElement } from '../src/reticle/stored-reticle.js';
 
 function everyTypeDoc() {
-  let doc = updateScope(createDocument({ name: 'All types' }), { type: 'sfp', calibrationZoom: 12 });
+  let doc = updateReferenceScope({ ...createDocument(), name: 'All types' }, { type: 'sfp', calibrationZoom: 12 });
   const shape = extractShape('<svg xmlns="http://www.w3.org/2000/svg"><rect width="4" height="2"/><path d="M0 3L4 3" stroke="#000" stroke-width="0.5" stroke-linecap="round"/></svg>');
   for (const [i, type] of ELEMENT_TYPE_IDS.entries()) {
     const x = 0.0001 * (i + 1);
@@ -160,7 +165,7 @@ test('every element type saves and loads back exactly, with its groups and scope
   // import-time warnings (not stored).
   const comparable = (e) => (e.type === 'svg' ? { ...withoutIds(e), shape: { ...e.shape, warnings: undefined } } : withoutIds(e));
   assert.deepEqual(loaded.elements.map(comparable), doc.elements.map(restored).map(comparable));
-  assert.deepEqual(loaded.scope, doc.scope);
+  assert.deepEqual(loaded.referenceScope, doc.referenceScope);
   assert.equal(loaded.name, 'All types');
   assert.equal(loaded.groups.length, 1);
   assert.deepEqual(loaded.elements.map((e) => Boolean(e.groupId)), doc.elements.map((e) => Boolean(e.groupId)));
@@ -189,7 +194,7 @@ test('loading keeps only known fields, whatever else a file carries', () => {
   raw.elements[0] = JSON.parse(JSON.stringify(raw.elements[0]).replace('{', '{"__proto__":{"polluted":true},'));
   const loaded = parseReticle(JSON.stringify(raw));
   for (const e of loaded.elements) assert.ok(!('junk' in e) && !('onclick' in e) && !e.polluted, e.type);
-  assert.ok(!('extra' in loaded.scope));
+  assert.ok(!('extra' in loaded.legacyScope) && !('extra' in loaded.referenceScope));
   assert.equal({}.polluted, undefined);
 });
 
@@ -213,7 +218,10 @@ test('loading refuses out-of-range values, runaway repeats, tampered shapes and 
   assert.equal(code((r) => { r.elements[svg].shape.paths[0].d = 'M0 0' + ' L1 1'.repeat(100001); }), 'invalid-format');
   assert.equal(code((r) => { r.elements[svg].scale = 1e6; }), 'invalid-format');
   assert.equal(code((r) => { r.scope.fovMaxRad = -1; }), 'invalid-format');
+  assert.equal(code((r) => { r.scope.fovMinRad = 1; }), 'invalid-format', 'a field range upside down');
   assert.equal(code((r) => { r.scope.calibrationZoom = 1e9; }), 'invalid-format');
+  assert.equal(code((r) => { r.scope.zoomMax = '25'; }), 'invalid-format');
+  assert.equal(code((r) => { delete r.scope; }), 'invalid-format');
   // Many elements, each repeated hard: within the per-element limit, over the drawn-copy total.
   assert.equal(code((r) => {
     r.elements = Array.from({ length: 200 }, () => ({ ...base.elements[1], groupId: null, mirror: true, repeat: { enabled: true, direction: 'up', count: 500, step: 0.0001 } }));

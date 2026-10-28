@@ -1,6 +1,6 @@
 # geladen.ch ballistics Manuale d'uso — Armi/Arsenale
 
-*Parte della* [suite balistica geladen.ch](https://bc.geladen.ch)*. La libreria di fucili e proiettili condivisa da tutti gli altri strumenti.*
+*Parte della* [suite balistica geladen.ch](https://bc.geladen.ch)*. La libreria di fucili, proiettili, ottiche e reticoli condivisa da tutti gli altri strumenti.*
 
 ---
 
@@ -28,6 +28,8 @@ La conseguenza è quella prevedibile: **se cancelli i dati del sito del tuo brow
 
 A differenza della precisione di tiro, l'Arsenale non memorizza fotografie né dati binari di grandi dimensioni, quindi il suo ingombro nel `localStorage` resta piccolo indipendentemente da quanti fucili e proiettili conservi. Non esiste alcun limite integrato al numero di entrambi che puoi salvare.
 
+I tuoi reticoli sono l’unica eccezione al «piccolo»: un reticolo con un disegno importato può arrivare a megabyte, perciò i reticoli sono conservati nell’IndexedDB del browser anziché in `localStorage`. Tutto il resto qui sopra vale per loro senza cambiamenti — solo su questo dispositivo, persi con i dati del sito, salvati nel backup con il resto (§8).
+
 **Requisiti.** Qualsiasi browser ragionevolmente recente. L'app si installa come PWA e funziona interamente offline una volta caricata.
 
 ---
@@ -49,6 +51,16 @@ Fucile         un fucile preciso: altezza ottica, distanza di azzeramento, passo
 **Una Cartuccia** è ciò che effettivamente collega i due. Vive incorporata in un fucile, mai da sola, e nomina un proiettile più la velocità alla volata che quel fucile raggiunge con esso. È anche qui che vivono, facoltativamente, i due numeri più determinanti e più spesso indovinati di tutta la balistica esterna: la costanza della velocità della carica (§5.4) e la precisione propria misurata del fucile (§5.6) — entrambi alimentano direttamente Probabilità di colpire.
 
 **Un fucile camera un calibro.** Nel momento in cui una cartuccia di un fucile si risolve in un proiettile reale, la selezione di proiettile di ogni altra cartuccia che aggiungi a quel fucile si blocca su proiettili dello stesso calibro (§5.5). Questo è imposto, non semplicemente suggerito — riflette un fatto sui fucili, non un limite dello strumento. (E se possiedi un drilling o un'altra arma combinata multicalibro, non c'è bisogno di fare i furbi — basta creare una voce separata per ciascun calibro.)
+
+Altri due tipi di record descrivono il vetro sopra il fucile:
+
+```
+Ottica        un’ottica reale: produttore e modello, ingrandimento, campo visivo, click delle torrette
+  └─ i suoi reticoli   uno o più Reticoli con cui è disponibile
+Reticolo      il disegno di un reticolo: produttore e modello, l’ottica per cui è disegnato, illuminazione
+```
+
+**Un’Ottica** sta da sola, come un fucile o un proiettile: è l’ottica come viene venduta — il suo ingrandimento nominale, il campo visivo ai due estremi dello zoom, l’unità e i valori di click — ed elenca i **Reticoli** con cui è disponibile. Un’ottica può avere più reticoli, e un reticolo può stare in più ottiche. Un fucile può indicare **un’ottica** (e, se questa ne offre più d’uno, uno dei suoi reticoli); un’ottica senza reticoli non può andare su un fucile (§5.10). L’app include alcune ottiche e alcuni reticoli integrati; i tuoi si aggiungono a questi.
 
 ### 3.1 Una nota sulle unità
 
@@ -117,6 +129,7 @@ Un fucile con zero cartucce viene salvato ma contrassegnato **Inutilizzabile** (
 - **Distanza di azzeramento** — obbligatorio, la distanza a cui azzeri normalmente questo fucile, nella tua unità di distanza (intervallo 0–5000 m).
 - **Passo di rigatura (distanza per giro)** e **Direzione di rigatura** (destra o sinistra) — facoltativo, lasciato vuoto se sconosciuto, nell'unità indipendente di passo di rigatura descritta al §3.1 (intervallo 1–1000 mm/in). Necessario solo per stabilità e deriva giroscopica, nient'altro.
 - **Unità di click**, **Valore click orizzontale**, **Valore click verticale** — i valori propri delle torrette dell'ottica, in mrad o MOA come scelto qui (0,01–5, indipendente dalla tua preferenza globale, secondo il §3.1).
+- **Ottica** — facoltativa: una delle tue ottiche o una integrata e, se ha più reticoli, quale (**Reticolo**). Scegliere un’ottica ne copia l’unità e i valori di click nei tre campi qui sotto; da quel momento appartengono al fucile (§5.10).
 - **Fonte / note** — testo libero, facoltativo.
 
 Un fucile appena creato si salva con una lista di cartucce vuota; aggiungi le sue cartucce subito dopo, dalla riga propria del fucile (§5.4).
@@ -172,6 +185,34 @@ La versione estrema dello stesso problema è un fucile che spara sia una carica 
 
 La lista delle cartucce dell'Arsenale segnala entrambi i lati di questa relazione — vedi §6.4. Eliminare una donatrice cancella immediatamente il riferimento su ogni cartuccia che puntava a essa, invece di lasciarlo pendente; tali riceventi tornano semplicemente a calcolare il proprio zero.
 
+### 5.8 Aggiungere un’ottica
+
+Le ottiche si trovano nella scheda **Ottiche**. **+ Aggiungi ottica** apre un modulo:
+
+- **Produttore** e **Modello** — entrambi obbligatori; insieme formano il nome dell’ottica, con lo stesso avviso di sovrascrittura di fucili e proiettili. Il produttore suggerisce i produttori di tutte le ottiche e di tutti i reticoli noti all’app, integrati e tuoi — mai quelli dei proiettili.
+- **Tipo** — ingrandimento fisso, variabile sul primo piano focale (FFP) o variabile sul secondo piano focale (SFP).
+- **Ingrandimento** — un solo valore per un’ottica fissa; **da** e **a** per una variabile: l’intervallo con cui è venduta, p. es. 3–20×.
+- **Campo visivo** — all’ingrandimento minimo e al massimo (un solo valore per un’ottica fissa), e la distanza a cui è misurato, nella tua unità di distanza; la scheda tecnica del produttore li riporta. Il campo visivo prevale sull’intervallo dichiarato: l’ingrandimento massimo corrisponde al campo più stretto, e l’**ingrandimento minimo reale** deriva dal rapporto tra i due campi. Viene mostrato mentre scrivi — un’ottica «3–20×» spesso è in realtà 3,2–20×.
+- **Valori esatti a** — solo SFP: l’ingrandimento al quale i segni del reticolo valgono quanto indicano.
+- **Unità di click** e **valore click orizzontale** e **verticale** — 0,1 mrad o 0,25 MOA per impostazione predefinita, secondo l’unità scelta; cambiando unità, un valore ancora alla dimensione abituale viene sostituito, ogni altro convertito.
+- **Reticoli** — spunta ogni reticolo con cui l’ottica è disponibile, fra i tuoi e quelli integrati, ciascuno mostrato in miniatura. Compare un avviso se uno è stato disegnato per un altro tipo di ottica; valgono sempre i parametri dell’ottica.
+
+**Le tue ottiche** elenca ciascuna con un riepilogo (tipo, intervallo, click, numero di reticoli) e **Backup su file**, **Modifica** ed **Elimina**. Per un’ottica non esiste «rendi attiva»: un’ottica si usa attraverso il fucile su cui è montata.
+
+### 5.9 I reticoli e il Progettista di reticoli
+
+**I tuoi reticoli**, nella stessa scheda, elenca ogni reticolo con una miniatura, il tipo di ottica e l’ingrandimento per cui è disegnato, e quante delle tue ottiche lo usano. I reticoli si disegnano nel **Progettista di reticoli**: **+ Aggiungi reticolo** lo apre su un reticolo vuoto, **Modifica** su quel reticolo. Lì, **Salva nell’arsenale** lo salva e **Scarta le modifiche** torna all’ultima versione salvata; entrambi riportano alla scheda Ottiche. Produttore e modello del reticolo si inseriscono nel Progettista, con gli stessi suggerimenti di un’ottica.
+
+Nel Progettista un reticolo è disegnato per un’**ottica di riferimento** — solo il suo tipo e il suo ingrandimento; il campo visivo è ricavato dall’ingrandimento (12 m a 100 m a 3×), solo perché il Progettista possa disegnare il campo in cui si trova il reticolo. L’ottica reale in cui si monta un reticolo porta il proprio campo visivo.
+
+Eliminare un reticolo lo toglie da tutte le ottiche che lo usano; la conferma dice quante.
+
+### 5.10 Montare un’ottica su un fucile
+
+Nel modulo del fucile, **Ottica** offre **Nessuna**, le tue ottiche e quelle integrate; un’ottica senza reticoli compare nell’elenco ma non si può scegliere. Sceglierne una **ne copia l’unità e i valori di click** nei campi del fucile — i click restano poi del fucile, da modificare se la tua torretta è diversa, e nulla viene mai riscritto nell’ottica. Un’ottica integrata viene collegata, mai copiata nel tuo arsenale.
+
+La riga del fucile mostra quindi *«Ottica: …»*. Eliminare un’ottica lascia i suoi fucili senza, con i click invariati; togliere un reticolo da un’ottica sposta i suoi fucili sull’unico reticolo rimasto, o su nessuno finché non ne scegli uno. Un’ottica indicata dal fucile ma che questo dispositivo non ha ancora (per esempio non ancora sincronizzata) appare come *«Ottica non trovata»*, e il collegamento viene mantenuto.
+
 ---
 
 ## 6. La pagina Arsenale: liste, filtri, attivazione
@@ -183,7 +224,7 @@ La lista delle cartucce dell'Arsenale segnala entrambi i lati di questa relazion
 3. Tre schede. La pagina ricorda l'ultima aperta fino al ricaricamento dell'app, e un modulo aperto da altrove (per esempio **Aggiungi proiettile all'arsenale**) passa alla propria scheda.
    1. **Fucili** — la scheda filtri; il riepilogo **Per il confronto** e la sezione Confronto, mostrati solo una volta che 1–2 configurazioni sono messe in coda per esso (§7); il **Fucile attivo**, quello attualmente sotto la tua mano, con le sue cartucce; poi **Altri fucili**.
    2. **Proiettili** — la scheda filtri; **I tuoi proiettili** e il modulo del proiettile.
-   3. **Ottiche** — per ora vuota; le definizioni di ottiche e reticoli arriveranno qui in una versione futura.
+   3. **Ottiche** — **Salva ottiche e reticoli** / **Carica da file**; **Le tue ottiche** e il modulo dell’ottica; **I tuoi reticoli** (§5.8–5.10).
 
 ### 6.2 Il fucile attivo e l'attivazione
 
@@ -208,6 +249,8 @@ Un fucile senza cartucce mostra un avviso al posto della lista: *«Per questo fu
 - **Attiva** — la cartuccia attualmente scelta sul fucile attivo.
 - **Donatore di zero** — l'alzo di zero proprio di questa cartuccia è attualmente preso in prestito da una o più altre cartucce del fucile (§5.7).
 - **Ricevente di zero** — questa cartuccia è azzerata con una cartuccia diversa; il passaggio del mouse indica quale.
+- **Inutilizzabile**, su un’ottica — non ha reticoli, quindi non può andare su un fucile.
+- **Danneggiato** — un reticolo che non è stato possibile leggere; si può solo eliminare.
 
 ### 6.5 Filtri
 
@@ -239,6 +282,7 @@ La memorizzazione dell'Arsenale vive nel tuo browser. Fanne un backup — vedi �
 
 - **Backup su file**, su qualsiasi singola riga di proiettile o fucile, esporta solo quell'unico elemento. Per un fucile, il file lo raggruppa insieme a ogni proiettile che le sue cartucce referenziano effettivamente, così il backup di un singolo fucile è sempre autosufficiente e reimportabile da solo.
 - **Backup della libreria su file…** apre la finestra di dialogo **Salva libreria**: una casella di spunta per ogni proiettile e ogni fucile che possiedi, tutte spuntate per impostazione predefinita. Spuntare un fucile spunta automaticamente i proiettili di cui le sue cartucce hanno bisogno; deselezionare un proiettile deseleziona automaticamente qualsiasi fucile che ne ha bisogno — la finestra di dialogo non ti lascerà esportare un fucile con un riferimento a un proiettile orfano. **Esporta** scrive un unico file JSON contenente tutto ciò che è spuntato.
+- **Backup su file** su un fucile include anche la sua ottica, quando è una delle tue, e i tuoi reticoli che quell’ottica elenca; su un’ottica, i suoi reticoli; su un reticolo, solo il reticolo. In **Salva libreria**, spuntare un fucile spunta la sua ottica e spuntare un’ottica spunta i suoi reticoli — ma puoi togliere di nuovo la spunta: il collegamento li attende poi sul dispositivo in cui si carica il file. **Salva ottiche e reticoli**, nella scheda Ottiche, è la stessa finestra con solo queste due liste. Ottiche e reticoli integrati non vengono mai scritti in un file, solo indicati.
 
 Ogni esportazione riuscita cancella l'etichetta **Senza backup** su tutto ciò che includeva.
 
@@ -254,6 +298,10 @@ Ogni esportazione riuscita cancella l'etichetta **Senza backup** su tutto ciò c
 - **Importa** applica le tue scelte e riporta l'esito: *«{{n}} elemento/i importati, {{n}} saltati.»*
 
 I fucili vengono importati dopo i proiettili, e il riferimento al proiettile di ogni cartuccia viene rimappato all'id con cui il suo proiettile è effettivamente finito nella *tua* libreria — così un proiettile importato che è stato rinominato per evitare una collisione non lascia le cartucce del fucile importato a puntare al nulla.
+
+Ottiche e reticoli di un file si importano allo stesso modo, prima dei fucili che li usano, e ogni collegamento viene riassegnato allo stesso modo; rinominare un’ottica o un reticolo gli dà un nuovo modello, *«\<modello\> - copy (1)»*. Ogni reticolo di un file viene controllato prima di essere proposto — con gli stessi controlli usati quando lo si disegna — e quello che non li supera viene nominato ed escluso.
+
+Anche un **file di reticolo salvato dal Progettista di reticoli prima che l’arsenale conservasse i reticoli** (un file `.reticle.json`) si carica con l’uno o l’altro pulsante di caricamento. Una finestra mostra il reticolo e chiede ciò che il file non indica: produttore e modello, e l’ingrandimento per cui è stato disegnato — precompilato dal campo visivo del file, quindi da confrontare con l’intervallo commerciale dell’ottica. Spuntato per impostazione predefinita, **Poi aggiungi un’ottica con il campo visivo di questo file** apre poi il modulo dell’ottica, compilato con quel campo visivo, il nuovo reticolo e il suo ingrandimento; aggiungi il modello dell’ottica e salva.
 
 ---
 
@@ -333,7 +381,7 @@ Se in seguito riazzeri il fucile direttamente con la carica premium, torna indie
 
 ## 11. Provenienza
 
-L'Arsenale fa parte della suite fin dal suo primo commit, crescendo in modo incrementale: più librerie di proiettili integrate e completamento automatico del produttore; correzioni delle preferenze di unità nella lista delle cartucce e nella lunghezza del proiettile; l'attuale motore di traiettoria a 4 gradi di libertà e i campi di deriva giroscopica/direzione di rigatura che usa; e, più di recente, regolarità della velocità iniziale e precisione dell'arma sulle cartucce, insieme al passaggio di consegna diretto dal Calcolatore di precisione di tiro descritto al §10.1 — l'integrazione che trasforma due strumenti prima separati in un'unica pipeline misurata; e, più recentemente ancora, la possibilità per una cartuccia di prendere in prestito lo zero fisico di un'altra (§5.7), per il caso comune di azzerare con una carica e portarne un'altra.
+L'Arsenale fa parte della suite fin dal suo primo commit, crescendo in modo incrementale: più librerie di proiettili integrate e completamento automatico del produttore; correzioni delle preferenze di unità nella lista delle cartucce e nella lunghezza del proiettile; l'attuale motore di traiettoria a 4 gradi di libertà e i campi di deriva giroscopica/direzione di rigatura che usa; e, più di recente, regolarità della velocità iniziale e precisione dell'arma sulle cartucce, insieme al passaggio di consegna diretto dal Calcolatore di precisione di tiro descritto al §10.1 — l'integrazione che trasforma due strumenti prima separati in un'unica pipeline misurata; e, più recentemente ancora, la possibilità per una cartuccia di prendere in prestito lo zero fisico di un'altra (§5.7), per il caso comune di azzerare con una carica e portarne un'altra. Più di recente si sono aggiunti ottiche e reticoli: ottiche con il loro campo visivo reale e i loro click, reticoli disegnati nel Progettista di reticoli, entrambi collegabili a un fucile e sincronizzati con il resto dell’arsenale.
 
 La suite è rilasciata sotto licenza **AGPL-3.0-or-later**.
 

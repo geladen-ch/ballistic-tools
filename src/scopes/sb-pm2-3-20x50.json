@@ -1,0 +1,19 @@
+{
+  "id": "sb-pm2-3-20x50",
+  "name": "Schmidt & Bender 3-20x50 PM II",
+  "manufacturer": "Schmidt & Bender",
+  "model": "3-20x50 PM II",
+  "reticleIds": [
+    "sb-p4lf"
+  ],
+  "type": "ffp",
+  "magnificationMin": 3,
+  "magnificationMax": 20,
+  "fovMaxRad": 0.12981737938686694,
+  "fovMinRad": 0.020999228301047244,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "mrad",
+  "clickHorizontalRad": 0.0001,
+  "clickVerticalRad": 0.0001
+}

@@ -13,21 +13,22 @@
 //
 // Geometry stays in radians (reticle/geometry.js); this module maps it to
 // the SVG's own 1000×1000 drawing units with one scale factor, `k` (drawing
-// units per radian) — a view transform, not a unit conversion. Mapping in
-// script rather than with an SVG transform keeps sub-mrad shapes clear of
-// the renderer's single-precision coordinate rounding.
+// units per radian) — a view transform, not a unit conversion (see
+// reticle/render.js). The field circle is the reference scope's assumed
+// field (reticle/scope.js).
 import { el } from '../../dom.js';
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
 import { mradToRad } from '../../quantity.js';
-import { visibleFieldRadius, fieldRadiusAtZoom, zoomRange } from '../../reticle/scope.js';
+import { visibleFieldRadius, fieldRadiusAtZoom, zoomRange, referenceOptics } from '../../reticle/scope.js';
 import { axisOf, CLICK_LINE_LENGTH } from '../../reticle/element-types.js';
-import { elementPrimitives, elementsInRect, hitTestElements } from '../../reticle/geometry.js';
+import { elementsInRect, hitTestElements } from '../../reticle/geometry.js';
+import { fmt } from '../../reticle/render.js';
 import { findElement, groupMembers, isLit, moveEndpoint, spanSegment, translate, ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { snapAngle } from '../../reticle/angle-units.js';
 import { patchReticleEditor } from '../../reticle-designer-state.js';
 import { PALETTE_DRAG_TYPE } from './element-palette.js';
-import { shapePathNodes } from './shape-paths.js';
+import { elementNodes } from './element-nodes.js';
 
 // Imported strokes thinner than this many drawing units are drawn at it.
 const MIN_STROKE = 1.2;
@@ -54,16 +55,7 @@ const MAJOR_GRID_EVERY = 5;
 // Drawn while the scope's field of view is invalid (mid-edit, say).
 const FALLBACK_FIELD_RADIUS = mradToRad(50);
 
-const fmt = (v) => (Math.round(v * 100) / 100).toString();
 const signOr = (v, fallback) => (v > 0 ? 1 : v < 0 ? -1 : fallback);
-
-function polygonPath(points) {
-  return `M${points.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L')}Z`;
-}
-
-function circlePath(cx, cy, r) {
-  return `M${fmt(cx - r)} ${fmt(cy)}a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(2 * r)} 0a${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(-2 * r)} 0Z`;
-}
 
 export function reticleView(ctl) {
   const clipId = 'reticle-field-clip';
@@ -132,13 +124,14 @@ export function reticleView(ctl) {
 
   // ---- view transform ----
   const view = () => ctl.editor.view || { cx: 0, cy: 0, zoom: 1 };
+  const optics = () => referenceOptics(ctl.doc.referenceScope);
   function fieldRadius() {
-    const r = visibleFieldRadius(ctl.doc.scope);
+    const r = visibleFieldRadius(optics());
     return r > 0 && Number.isFinite(r) ? r : FALLBACK_FIELD_RADIUS;
   }
   // The magnification the view shows, within the scope's zoom range.
   function magnification() {
-    const range = zoomRange(ctl.doc.scope);
+    const range = zoomRange(optics());
     if (!range) return null;
     const m = ctl.editor.magnification ?? range[0];
     return Math.min(range[1], Math.max(range[0], m));
@@ -146,7 +139,7 @@ export function reticleView(ctl) {
   // Radius of the field circle as drawn: the field at the previewed
   // magnification.
   function displayRadius() {
-    const r = fieldRadiusAtZoom(ctl.doc.scope, magnification());
+    const r = fieldRadiusAtZoom(optics(), magnification());
     return r > 0 && Number.isFinite(r) ? r : FALLBACK_FIELD_RADIUS;
   }
   const scale = (v = view()) => (FIT_RADIUS / displayRadius()) * v.zoom;
@@ -188,23 +181,6 @@ export function reticleView(ctl) {
     : p);
 
   // ---- rendering ----
-  function primitivePath(p) {
-    const k = scale();
-    if (p.kind === 'polygon') return polygonPath(p.points.map(([x, y]) => toScreen(x, y)));
-    const [cx, cy] = toScreen(p.cx, p.cy);
-    if (p.kind === 'disk') return circlePath(cx, cy, p.r * k);
-    const ro = p.rOuter * k;
-    const ri = p.rInner * k;
-    if (p.kind === 'ring' || !(p.gap > 0)) return circlePath(cx, cy, ro) + (ri > 0 ? circlePath(cx, cy, ri) : '');
-    const a0 = p.gapCenter + p.gap / 2;
-    const a1 = p.gapCenter - p.gap / 2 + 2 * Math.PI;
-    const large = a1 - a0 > Math.PI ? 1 : 0;
-    const at = (r, a) => `${fmt(cx + r * Math.cos(a))} ${fmt(cy + r * Math.sin(a))}`;
-    const outer = `M${at(ro, a0)}A${fmt(ro)} ${fmt(ro)} 0 ${large} 1 ${at(ro, a1)}`;
-    if (!(ri > 0)) return `${outer}L${fmt(cx)} ${fmt(cy)}Z`;
-    return `${outer}L${at(ri, a1)}A${fmt(ri)} ${fmt(ri)} 0 ${large} 0 ${at(ri, a0)}Z`;
-  }
-
   function renderGrid(radius) {
     const show = ctl.editor.grid;
     gridMinor.style.display = show ? '' : 'none';
@@ -251,42 +227,20 @@ export function reticleView(ctl) {
   function renderElement(element, selection) {
     const selected = selection.has(element.id) || Boolean(element.groupId && selection.has(element.groupId));
     const lit = ctl.editor.showIllumination && isLit(ctl.doc, element);
-    for (const primitive of elementPrimitives(element)) {
-      const cls = ['reticle-shape'];
-      if (selected) cls.push('selected');
-      if (lit) cls.push('lit');
-      if (primitive.role === 'derived') cls.push('derived');
-      if (primitive.kind === 'svg') {
-        const [sx, sy] = toScreen(primitive.x, primitive.y);
-        const nodes = shapePathNodes(primitive.paths, {
-          x: sx, y: sy, size: primitive.scale * scale(), flip: primitive.flip,
-          className: cls.join(' '), minStroke: MIN_STROKE, data: { 'data-element': element.id }
-        });
-        for (const node of nodes) elementLayer.appendChild(node);
-        continue;
-      }
-      if (primitive.kind === 'text') {
-        // Digit outlines are in figure-height units: placed and scaled
-        // with a transform, one path per digit.
-        const size = primitive.scale * scale();
-        for (const glyph of primitive.glyphs) {
-          const [gx, gy] = toScreen(glyph.x, glyph.y);
-          elementLayer.appendChild(svgEl('path', {
-            class: cls.join(' '),
-            d: glyph.d,
-            transform: `translate(${fmt(gx)} ${fmt(gy)}) scale(${size.toPrecision(6)})`,
-            'data-element': element.id
-          }));
-        }
-        continue;
-      }
-      elementLayer.appendChild(svgEl('path', {
-        class: cls.join(' '),
-        d: primitivePath(primitive),
-        'fill-rule': 'evenodd',
-        'data-element': element.id
-      }));
-    }
+    const nodes = elementNodes(element, {
+      toScreen: (x, y) => toScreen(x, y),
+      k: scale(),
+      classFor: (primitive) => {
+        const cls = ['reticle-shape'];
+        if (selected) cls.push('selected');
+        if (lit) cls.push('lit');
+        if (primitive.role === 'derived') cls.push('derived');
+        return cls.join(' ');
+      },
+      minStroke: MIN_STROKE,
+      data: { 'data-element': element.id }
+    });
+    for (const node of nodes) elementLayer.appendChild(node);
   }
 
   function renderZero() {
@@ -355,7 +309,7 @@ export function reticleView(ctl) {
   }
 
   function renderMagnification() {
-    const range = zoomRange(ctl.doc.scope);
+    const range = zoomRange(optics());
     magnificationBar.style.display = range ? '' : 'none';
     if (!range) return;
     const m = magnification();
@@ -364,9 +318,10 @@ export function reticleView(ctl) {
     magnificationSlider.value = String(m);
     magnificationValue.textContent = `${String(Number(m.toFixed(1)))}×`;
     // SFP: the picture doesn't change, what the subtensions are worth does.
-    const sfp = ctl.doc.scope.type === 'sfp' && ctl.doc.scope.calibrationZoom > 0;
+    const ref = ctl.doc.referenceScope;
+    const sfp = ref.type === 'sfp' && ref.calibrationZoom > 0;
     sfpNote.textContent = sfp
-      ? t('reticleDesigner.view.sfpScale', { factor: String(Number((ctl.doc.scope.calibrationZoom / m).toFixed(2))) })
+      ? t('reticleDesigner.view.sfpScale', { factor: String(Number((ref.calibrationZoom / m).toFixed(2))) })
       : '';
   }
 

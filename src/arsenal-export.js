@@ -7,7 +7,15 @@
 // side (the `unsaved` flag, markUserBulletsSaved/importUserBullet etc.).
 // Files hold records in their stored form (record-codec.js): an export
 // writes what is stored, and an import stores what the file holds.
-import { storedUserBulletOf, storedUserRifleOf } from './user-library.js';
+//
+// Scopes and reticles (the user's own; built-in ones are only referred to
+// by id) travel in the same file, in lists of their own. The file format's
+// version is unchanged for them: a build that predates them ignores the
+// two lists and imports the rest, a rifle's scope link included (an
+// unknown field to it).
+import { storedUserBulletOf, storedUserRifleOf, storedUserScopeOf } from './user-library.js';
+import { storedUserReticleOf } from './reticle-library.js';
+import { opticLabel } from './scope-record.js';
 
 const FILE_FORMAT = 'ebalka2-arsenal';
 const FILE_VERSION = 1;
@@ -29,14 +37,29 @@ function stripLocalOnlyFields(entry) {
 }
 
 // Builds the plain object that gets JSON-serialized to the exported file.
-export function buildExportPayload({ bullets, rifles }) {
+export function buildExportPayload({ bullets = [], rifles = [], scopes = [], reticles = [] }) {
   return {
     format: FILE_FORMAT,
     version: FILE_VERSION,
     exportedAt: new Date().toISOString(),
     bullets: bullets.map((b) => stripLocalOnlyFields(storedUserBulletOf(b))),
-    rifles: rifles.map((r) => stripLocalOnlyFields(storedUserRifleOf(r)))
+    rifles: rifles.map((r) => stripLocalOnlyFields(storedUserRifleOf(r))),
+    scopes: scopes.map((s) => stripLocalOnlyFields(storedUserScopeOf(s))),
+    reticles: reticles.map((r) => stripLocalOnlyFields(storedUserReticleOf(r)))
   };
+}
+
+// What goes along with rifles, scopes and reticles chosen for one file: a
+// rifle's own scope (when it is one of the user's — a built-in one is
+// referred to by id), and every one of the user's reticles those scopes
+// list. `userScopes`/`userReticles`: the user's whole lists.
+export function exportBundle({ rifles = [], scopes = [], reticles = [], userScopes, userReticles }) {
+  const scopeIds = new Set(scopes.map((s) => s.id));
+  for (const rifle of rifles) if (rifle.scopeId) scopeIds.add(rifle.scopeId);
+  const bundledScopes = userScopes.filter((s) => scopeIds.has(s.id));
+  const reticleIds = new Set(reticles.map((r) => r.id));
+  for (const scope of bundledScopes) for (const id of scope.reticleIds) reticleIds.add(id);
+  return { scopes: bundledScopes, reticles: userReticles.filter((r) => reticleIds.has(r.id)) };
 }
 
 export function serializeExport(payload) {
@@ -69,9 +92,11 @@ export function parseImportPayload(text) {
   } catch {
     throw Object.assign(new Error('not valid JSON'), { code: 'invalid-json' });
   }
+  const optionalList = (v) => v === undefined || Array.isArray(v);
   const looksRight = payload && typeof payload === 'object'
     && payload.format === FILE_FORMAT
-    && Array.isArray(payload.bullets) && Array.isArray(payload.rifles);
+    && Array.isArray(payload.bullets) && Array.isArray(payload.rifles)
+    && optionalList(payload.scopes) && optionalList(payload.reticles);
   if (!looksRight) {
     throw Object.assign(new Error('not a recognized Arsenal export'), { code: 'invalid-format' });
   }
@@ -82,7 +107,18 @@ export function parseImportPayload(text) {
   if (typeof payload.version === 'number' && payload.version > FILE_VERSION) {
     throw Object.assign(new Error(`export format version ${payload.version} is newer than this build supports`), { code: 'unsupported-version' });
   }
-  return { bullets: payload.bullets, rifles: payload.rifles };
+  return { bullets: payload.bullets, rifles: payload.rifles, scopes: payload.scopes || [], reticles: payload.reticles || [] };
+}
+
+// Whether a file's text is a reticle file of 4.3.x (file-codec.js) rather
+// than an Arsenal export — read with legacy-file.js, not imported as is.
+export function isLegacyReticleFile(text) {
+  try {
+    const payload = JSON.parse(text);
+    return Boolean(payload) && payload.format === 'ebalka2-reticle';
+  } catch {
+    return false;
+  }
 }
 
 // 'newer'/'older'/'same' when both sides have a usable timestamp,
@@ -147,6 +183,14 @@ export function generateCopyName(baseName, nameTaken) {
   return candidate;
 }
 
+// The renamed copy of an imported item: a new name — or, for a scope or a
+// reticle, whose name is its manufacturer and model, a new model.
+function renamedCopy(item, nameTaken) {
+  if (typeof item.model !== 'string') return { ...item, name: generateCopyName(item.name, nameTaken) };
+  const model = generateCopyName(item.model, (candidate) => nameTaken(opticLabel({ manufacturer: item.manufacturer, model: candidate })));
+  return { ...item, model, name: opticLabel({ manufacturer: item.manufacturer, model }) };
+}
+
 // Resolves what to actually write for one imported item under the chosen
 // conflict mode. A genuinely new item (no match by id or name) keeps its
 // own id verbatim rather than minting a fresh one — required so a repeated
@@ -174,57 +218,63 @@ export function resolveImportItem(item, { existingList, mode, generateId, nameTa
     return { action: 'skip', reason: 'not-newer' };
   }
   if (mode === 'rename') {
-    const name = generateCopyName(item.name, nameTaken);
-    return { action: 'save', record: { ...item, id: generateId(), name } };
+    return { action: 'save', record: { ...renamedCopy(item, nameTaken), id: generateId() } };
   }
   throw new Error(`unknown import mode: ${mode}`);
 }
 
-// Orchestrates importing a whole selected batch: every bullet first
-// (building a map from the file's own bullet ids to whatever id each one
-// actually lands under locally — reused via overwrite, or freshly
-// minted), then every rifle, remapping its cartridges' bulletId
-// references through that map first so a renamed/re-idned bullet doesn't
-// leave the rifle pointing at an id that no longer resolves to anything.
-// A cartridge whose bullet wasn't part of *this* import batch (the user
-// deselected it, or an older/hand-built file never bundled it) is left
-// pointing at its original file id verbatim — harmless if that id
-// happens to already exist locally, a dangling (but not crashing)
-// reference otherwise.
+// Orchestrates importing a whole selected batch, each kind resolved
+// before the kinds that refer to it, building a map from the file's own
+// ids to whatever id each one actually lands under locally (reused via
+// overwrite, or freshly minted): reticles, then scopes (their reticleIds
+// remapped), then bullets, then rifles (their cartridges' bulletId, and
+// their scopeId and reticleId, remapped) — so a renamed/re-idned record
+// doesn't leave anything pointing at an id that no longer resolves. A
+// reference to something not part of *this* import batch (deselected, or
+// an older/hand-built file never bundled it, or a built-in scope or
+// reticle) is left as it is: harmless if that id already exists locally
+// (or is built in), a dangling (but not crashing) reference otherwise.
 export function planImportBatch({
-  bullets, rifles, mode, existingBullets, existingRifles, generateBulletId, generateRifleId
+  bullets = [], rifles = [], scopes = [], reticles = [], mode,
+  existingBullets = [], existingRifles = [], existingScopes = [], existingReticles = [],
+  generateBulletId, generateRifleId, generateScopeId, generateReticleId
 }) {
-  const claimedBulletNames = new Set(existingBullets.map((b) => normalizedName(b.name)));
-  const bulletIdMap = new Map(); // file id -> resolved local id
-  const bulletResults = [];
-
-  for (const item of bullets) {
-    const resolved = resolveImportItem(item, {
-      existingList: existingBullets, mode, generateId: generateBulletId,
-      nameTaken: (name) => claimedBulletNames.has(normalizedName(name))
-    });
-    if (resolved.action === 'save') {
-      claimedBulletNames.add(normalizedName(resolved.record.name));
-      bulletIdMap.set(item.id, resolved.record.id);
+  function resolveAll(items, existingList, generateId, remap = (item) => item) {
+    const claimed = new Set(existingList.map((e) => normalizedName(e.name)));
+    const idMap = new Map(); // file id -> resolved local id
+    const results = [];
+    for (const item of items) {
+      const resolved = resolveImportItem(remap(item), {
+        existingList, mode, generateId, nameTaken: (name) => claimed.has(normalizedName(name))
+      });
+      if (resolved.action === 'save') {
+        claimed.add(normalizedName(resolved.record.name));
+        idMap.set(item.id, resolved.record.id);
+      }
+      results.push({ item, resolved });
     }
-    bulletResults.push({ item, resolved });
+    return { results, idMap };
   }
+  const via = (map) => (id) => (id ? map.get(id) || id : id);
 
-  const claimedRifleNames = new Set(existingRifles.map((r) => normalizedName(r.name)));
-  const rifleResults = [];
+  const reticlePlan = resolveAll(reticles, existingReticles, generateReticleId);
+  const reticleId = via(reticlePlan.idMap);
+  const scopePlan = resolveAll(scopes, existingScopes, generateScopeId,
+    (item) => ({ ...item, reticleIds: (item.reticleIds || []).map(reticleId) }));
+  const scopeId = via(scopePlan.idMap);
+  const bulletPlan = resolveAll(bullets, existingBullets, generateBulletId);
+  const bulletId = via(bulletPlan.idMap);
+  const riflePlan = resolveAll(rifles, existingRifles, generateRifleId, (item) => {
+    const remapped = { ...item, cartridges: item.cartridges.map((c) => ({ ...c, bulletId: bulletId(c.bulletId) })) };
+    if ('scopeId' in item) remapped.scopeId = scopeId(item.scopeId);
+    if ('reticleId' in item) remapped.reticleId = reticleId(item.reticleId);
+    return remapped;
+  });
 
-  for (const item of rifles) {
-    const remapped = {
-      ...item,
-      cartridges: item.cartridges.map((c) => ({ ...c, bulletId: bulletIdMap.get(c.bulletId) || c.bulletId }))
-    };
-    const resolved = resolveImportItem(remapped, {
-      existingList: existingRifles, mode, generateId: generateRifleId,
-      nameTaken: (name) => claimedRifleNames.has(normalizedName(name))
-    });
-    if (resolved.action === 'save') claimedRifleNames.add(normalizedName(resolved.record.name));
-    rifleResults.push({ item, resolved });
-  }
-
-  return { bulletResults, rifleResults };
+  return {
+    bulletResults: bulletPlan.results,
+    rifleResults: riflePlan.results,
+    scopeResults: scopePlan.results,
+    reticleResults: reticlePlan.results
+  };
 }

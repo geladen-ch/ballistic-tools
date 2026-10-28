@@ -212,7 +212,8 @@ test('SVG shape element: origin placement, scale, reflect on and off when mirror
 test('SVG shape element: survives a file round trip; a tampered shape in a file is refused', async () => {
   const { createElement } = await import('../src/reticle/element-types.js');
   const { createDocument, addElement } = await import('../src/reticle/model.js');
-  const { serializeReticle, parseReticle } = await import('../src/reticle/file-codec.js');
+  const { parseReticle } = await import('../src/reticle/file-codec.js');
+  const { legacyReticleFile: serializeReticle } = await import('./helpers/legacy-reticle-file.js');
   const shape = extractShape(svg('<circle r="2"/>'));
   const doc = addElement(createDocument(), { ...createElement('svg', { x: 0.001, y: 0, units: 'mrad', svg: { shape, name: 'ring' } }), mirror: true, reflect: false }).doc;
   const loaded = parseReticle(serializeReticle(doc)).elements[0];

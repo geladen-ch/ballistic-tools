@@ -43,6 +43,7 @@
 // that way: never re-encode (migrate, normalise, "tidy") a record that was
 // not edited.
 import { clickValueInUnit } from './units.js';
+import { decodeScope, encodeScope } from './scope-record.js';
 import { converter, degToRad, radToDeg, mradToRad, radToMrad, hpaToPa, paToHpa, percentToFraction, fractionToPercent, mmToM, mToMm } from './quantity.js';
 
 const MATCH_TOLERANCE = 1e-9;
@@ -170,9 +171,17 @@ export function encodeRiflePrecisionProject(project) {
 // ---- by record type (the sync layer's names) ----
 const identity = (r) => r;
 
+// A scope's codec only sets its name (scope-record.js). A reticle is
+// compared, and passed around, in its stored form: decoding one validates
+// the whole reticle and gives it fresh element ids, and the stored form is
+// already canonical — it is only ever encoded when the reticle is saved —
+// so the sync layer turns it into the form the app holds only to save it
+// (synced-libraries.js).
 export const RECORD_CODECS = {
   bullet: { decode: identity, encode: identity },
   rifle: { decode: decodeRifle, encode: encodeRifle },
+  scope: { decode: decodeScope, encode: encodeScope },
+  reticle: { decode: identity, encode: identity },
   location: { decode: decodeLocation, encode: encodeLocation },
   'rifle-precision-project': { decode: decodeRiflePrecisionProject, encode: encodeRiflePrecisionProject }
 };

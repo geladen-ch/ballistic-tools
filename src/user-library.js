@@ -1,5 +1,5 @@
-// localStorage-backed CRUD for the user's own "Arsenal" — bullets and
-// rifles the user enters themselves, stored in the exact same shape as a
+// localStorage-backed CRUD for the user's own "Arsenal" — bullets,
+// rifles and scopes the user enters themselves, stored in the exact same shape as a
 // built-in library entry (see src/bullets/*.json, src/rifles/*.json) so
 // every place that already knows how to render/consume a built-in entry
 // works unchanged for a user one too. Unlike the built-in catalogs (fetched
@@ -10,11 +10,13 @@ import { getDeviceId } from './sync/device-id.js';
 import { notifyLibraryWrite } from './sync/write-hooks.js';
 import { nextLocalRevision } from './sync/revision.js';
 import { decodeRifle, encodeRifle } from './record-codec.js';
+import { decodeScope, encodeScope } from './scope-record.js';
 
 const BULLETS_KEY = 'ballistics_user_bullets_v1';
 const RIFLES_KEY = 'ballistics_user_rifles_v1';
+const SCOPES_KEY = 'ballistics_user_scopes_v1';
 
-const RECORD_TYPE_BY_KEY = { [BULLETS_KEY]: 'bullet', [RIFLES_KEY]: 'rifle' };
+const RECORD_TYPE_BY_KEY = { [BULLETS_KEY]: 'bullet', [RIFLES_KEY]: 'rifle', [SCOPES_KEY]: 'scope' };
 
 // Records are kept exactly as stored (see record-codec.js): what the app
 // reads is decoded into SI, what it saves is encoded back, and what sync
@@ -23,7 +25,8 @@ const RECORD_TYPE_BY_KEY = { [BULLETS_KEY]: 'bullet', [RIFLES_KEY]: 'rifle' };
 const identity = (r) => r;
 const CODEC_BY_KEY = {
   [BULLETS_KEY]: { decode: identity, encode: identity },
-  [RIFLES_KEY]: { decode: decodeRifle, encode: encodeRifle }
+  [RIFLES_KEY]: { decode: decodeRifle, encode: encodeRifle },
+  [SCOPES_KEY]: { decode: decodeScope, encode: encodeScope }
 };
 
 // A tombstone's deletedAt must outlive the longest plausible dormancy of an
@@ -46,7 +49,7 @@ function sweepTombstonesOnce() {
   if (sweptThisSession) return;
   sweptThisSession = true;
   const cutoff = Date.now() - TOMBSTONE_RETENTION_MS;
-  for (const key of [BULLETS_KEY, RIFLES_KEY]) {
+  for (const key of [BULLETS_KEY, RIFLES_KEY, SCOPES_KEY]) {
     const list = load(key);
     const pruned = list.filter((e) => !e.deletedAt || Date.parse(e.deletedAt) > cutoff);
     if (pruned.length !== list.length) save(key, pruned);
@@ -137,7 +140,7 @@ function upsertRaw(key, entry) {
 // stale remote copy silently resurrecting it on a future merge.
 // `childArrayField` carries forward an
 // empty child array matching the record's normal shape (`cartridges` for a
-// rifle, absent for a bullet) — see the plan's "tombstones must be
+// rifle, `reticleIds` for a scope, absent for a bullet) — see the plan's "tombstones must be
 // shape-preserving": several existing call sites reach into that array
 // with no guard, and a bare `{ id, deletedAt }` would crash them.
 function tombstone(key, id, childArrayField) {
@@ -274,4 +277,43 @@ export function storedUserRifleOf(rifle) {
 
 export function markUserRiflesSaved(ids) {
   markSaved(RIFLES_KEY, ids);
+}
+
+// Live records only — see loadUserBullets() above.
+export function loadUserScopes() {
+  sweepTombstonesOnce();
+  return load(SCOPES_KEY).filter(isLive).map(decodeScope);
+}
+
+export function loadUserScopesWithTombstones() {
+  sweepTombstonesOnce();
+  return load(SCOPES_KEY);
+}
+
+export function saveUserScope(scope) {
+  return upsert(SCOPES_KEY, scope);
+}
+
+// Used only by import and sync — see upsertRaw() above.
+export function importUserScope(scope) {
+  return upsertRaw(SCOPES_KEY, scope);
+}
+
+// Tombstoned with an empty reticleIds array — see tombstone() above.
+export function deleteUserScope(id) {
+  tombstone(SCOPES_KEY, id, 'reticleIds');
+}
+
+// `name` is the scope's manufacturer and model (scope-record.js's
+// opticLabel).
+export function findUserScopeByName(name, options) {
+  return findByName(SCOPES_KEY, name, options);
+}
+
+export function storedUserScopeOf(scope) {
+  return storedFormOf(SCOPES_KEY, scope);
+}
+
+export function markUserScopesSaved(ids) {
+  markSaved(SCOPES_KEY, ids);
 }

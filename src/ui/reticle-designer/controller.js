@@ -7,7 +7,7 @@
 // for all its members; a member can also be selected on its own (from the
 // elements list), which edits just that element.
 import {
-  getReticleSession, setReticleHistory, patchReticleEditor, markReticleSaved, startNewReticle
+  getReticleSession, setReticleHistory, patchReticleEditor, markReticleSaved, startNewReticle, openReticle
 } from '../../reticle-designer-state.js';
 import { commit, undo, redo, breakCoalescing, canUndo, canRedo } from '../../reticle/history.js';
 import {
@@ -225,23 +225,23 @@ export function createController({ onChange = () => {} } = {}) {
       if (moved.doc !== ctl.doc) ctl.commit(moved.doc, { coalesceKey });
     },
 
-    // A document read from a file replaces the current one, as one undo
-    // step (so a mistaken load can be undone).
-    loadDocument(doc) {
-      ctl.commit(doc, { selection: [] });
-      patchReticleEditor({ view: null });
-      markReticleSaved();
-      notify();
-    },
-
     // Scraps the reticle and its undo history for an empty one.
     newDocument() {
-      startNewReticle();
+      startNewReticle({ fromArsenal: session().target.fromArsenal });
       notify();
     },
 
-    markSaved() {
-      markReticleSaved();
+    // Back to `reticle` as saved in the Arsenal (null: an empty one), its
+    // undo history scrapped.
+    revertTo(reticle) {
+      const fromArsenal = session().target.fromArsenal;
+      if (reticle) openReticle(reticle, { fromArsenal });
+      else startNewReticle({ fromArsenal });
+      notify();
+    },
+
+    markSaved(reticleId) {
+      markReticleSaved(reticleId);
       notify();
     }
   };

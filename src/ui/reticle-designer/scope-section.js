@@ -1,21 +1,23 @@
-// The Scope section above the editor: what the reticle is designed for.
-// Its type (fixed magnification, first or second focal plane), its field
-// of view — "from X1 to X2 at Y" in the user's distance unit, held as
-// angles 2·atan(X/2/Y) — and, for variable scopes, the zoom range, where
-// typing either end derives the other from the actual fields of view. A
-// second-focal-plane reticle also needs the zoom its subtensions are true
-// at. Also whether the reticle is illuminated, and in which colour. Every
-// edit is one undo step, like any other change to the reticle.
+// The Scope section above the editor: the reference scope the reticle is
+// drawn for. Its type (fixed magnification, first or second focal plane)
+// and its magnification — one figure for a fixed scope, the zoom range for
+// a variable one — plus, for a second-focal-plane reticle, the zoom its
+// subtensions are true at. The field of view is not entered: it is assumed
+// from the magnification (see reticle/scope.js), only so the view can draw
+// the field the reticle sits in; a real scope brings its own optics. Also
+// whether the reticle is illuminated, and in which colour. Every edit is
+// one undo step, like any other change to the reticle.
 import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
-import { fieldOfViewAngle, fieldOfViewWidth } from '../../quantity.js';
-import { toDisplayUnit, fromDisplayUnit, quantityLabel, displayChoice } from '../../display-units.js';
-import { SCOPE_TYPES, zoomPartner, validateScope, visibleFieldRadius } from '../../reticle/scope.js';
-import { updateScope, ILLUMINATION_COLOURS } from '../../reticle/model.js';
+import { SCOPE_TYPES, validateReferenceScope, visibleFieldRadius, referenceOptics } from '../../reticle/scope.js';
+import { updateReferenceScope, ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { numberField, checkboxField } from './fields.js';
 
 const ZOOM_DECIMALS = 2;
 const ZOOM_FOLLOW_TOLERANCE = 1e-6;
+// A scope turned variable with no range above its magnification gets one
+// this many times it.
+const NEW_RANGE_RATIO = 5;
 
 let sectionOpen = true;
 
@@ -34,101 +36,46 @@ export function scopeSection(ctl) {
 
   let shownType = null;
   let syncs = [];
-  const scope = () => ctl.doc.scope;
+  const ref = () => ctl.doc.referenceScope;
 
-  const distanceDecimals = () => displayChoice('distance').decimals + 1;
-  const formatDistance = (v) => String(Number(v.toFixed(distanceDecimals())) + 0);
   const formatZoom = (v) => String(Number(v.toFixed(ZOOM_DECIMALS)) + 0);
 
-  // Applies a scope patch if it leaves the scope valid for the edited
+  // Applies a reference-scope patch if it leaves it valid for the edited
   // field; returns the error key to show otherwise.
   function apply(patch, field) {
-    const next = { ...scope(), ...patch };
-    const errors = validateScope(next);
-    const error = errors[field] || (field === 'fovMaxRad' && errors.fovMinRad);
+    const next = { ...ref(), ...patch };
+    const errors = validateReferenceScope(next);
+    const error = errors[field] || (field === 'zoomMin' && errors.zoomMax);
     if (error) return `reticleDesigner.errors.${error}`;
-    ctl.commit(updateScope(ctl.doc, patch), { coalesceKey: `scope:${field}` });
+    ctl.commit(updateReferenceScope(ctl.doc, patch), { coalesceKey: `scope:${field}` });
     return null;
   }
 
   // A calibration zoom left at the top of the range follows it when the
   // range changes.
-  function withZoom(patch) {
-    const s = { ...scope(), ...patch };
-    const next = { ...patch };
-    if (s.type !== 'fixed' && s.zoomMin > 0) {
-      const max = zoomPartner(s, 'min', s.zoomMin);
-      if (Number.isFinite(max)) next.zoomMax = max;
-      if (Math.abs(scope().calibrationZoom - scope().zoomMax) <= ZOOM_FOLLOW_TOLERANCE * scope().zoomMax) {
-        next.calibrationZoom = next.zoomMax ?? s.zoomMax;
-      }
-    }
-    return next;
-  }
-
-  function widthField(labelKey, angleKey) {
-    const field = numberField({
-      labelKey,
-      unitLabel: quantityLabel('distance'),
-      value: fieldOfViewWidth(scope()[angleKey], scope().fovDistanceM),
-      toDisplay: (m) => toDisplayUnit('distance', m),
-      fromDisplay: (v) => fromDisplayUnit('distance', v),
-      format: formatDistance,
-      onInput: (widthM) => {
-        if (!(widthM > 0)) return 'reticleDesigner.errors.positive';
-        return apply(withZoom({ [angleKey]: fieldOfViewAngle(widthM, scope().fovDistanceM) }), angleKey);
-      },
-      onCommitEnd: () => ctl.breakCoalescing()
-    });
-    syncs.push(() => field.refresh(fieldOfViewWidth(scope()[angleKey], scope().fovDistanceM)));
-    return field.node;
-  }
-
-  function distanceField() {
-    const field = numberField({
-      labelKey: 'reticleDesigner.scope.fovAt',
-      unitLabel: quantityLabel('distance'),
-      value: scope().fovDistanceM,
-      toDisplay: (m) => toDisplayUnit('distance', m),
-      fromDisplay: (v) => fromDisplayUnit('distance', v),
-      format: formatDistance,
-      // The field widths stay as entered; their angles follow the new
-      // distance.
-      onInput: (distanceM) => {
-        if (!(distanceM > 0)) return 'reticleDesigner.errors.positive';
-        const s = scope();
-        return apply({
-          fovDistanceM: distanceM,
-          fovMaxRad: fieldOfViewAngle(fieldOfViewWidth(s.fovMaxRad, s.fovDistanceM), distanceM),
-          fovMinRad: fieldOfViewAngle(fieldOfViewWidth(s.fovMinRad, s.fovDistanceM), distanceM)
-        }, 'fovDistanceM');
-      },
-      onCommitEnd: () => ctl.breakCoalescing()
-    });
-    syncs.push(() => field.refresh(scope().fovDistanceM));
-    return field.node;
+  function followingCalibration(patch) {
+    const current = ref();
+    if (!('zoomMax' in patch)) return patch;
+    const atTop = Math.abs(current.calibrationZoom - current.zoomMax) <= ZOOM_FOLLOW_TOLERANCE * current.zoomMax;
+    return atTop ? { ...patch, calibrationZoom: patch.zoomMax } : patch;
   }
 
   function zoomField(labelKey, key) {
     const field = numberField({
       labelKey,
       unitLabel: '×',
-      value: scope()[key],
+      value: ref()[key],
       format: formatZoom,
       onInput: (value) => {
         if (!(value > 0)) return 'reticleDesigner.errors.positive';
         if (key === 'calibrationZoom') return apply({ calibrationZoom: value }, key);
-        const which = key === 'zoomMin' ? 'min' : 'max';
-        const other = zoomPartner(scope(), which, value);
-        const patch = which === 'min' ? { zoomMin: value, zoomMax: other } : { zoomMax: value, zoomMin: other };
-        if (Math.abs(scope().calibrationZoom - scope().zoomMax) <= ZOOM_FOLLOW_TOLERANCE * scope().zoomMax) {
-          patch.calibrationZoom = patch.zoomMax;
-        }
-        return apply(patch, key);
+        // A fixed scope's one magnification is both ends of its range.
+        const patch = ref().type === 'fixed' ? { zoomMin: value, zoomMax: value } : { [key]: value };
+        return apply(followingCalibration(patch), key);
       },
       onCommitEnd: () => ctl.breakCoalescing()
     });
-    syncs.push(() => field.refresh(scope()[key]));
+    syncs.push(() => field.refresh(ref()[key]));
     return field.node;
   }
 
@@ -164,51 +111,51 @@ export function scopeSection(ctl) {
   function rebuild() {
     clear(body);
     syncs = [];
-    const type = scope().type;
+    const type = ref().type;
     const typeSelect = el('select', { id: 'reticle-scope-type' },
       SCOPE_TYPES.map((id) => el('option', { value: id, text: t(`reticleDesigner.scope.types.${id}`) })));
     typeSelect.value = type;
     typeSelect.addEventListener('change', () => {
       const next = typeSelect.value;
-      const patch = { type: next };
-      // A scope turned variable needs a minimum field below its maximum.
-      if (next !== 'fixed' && !(scope().fovMinRad > 0 && scope().fovMinRad < scope().fovMaxRad)) {
-        patch.fovMinRad = scope().fovMaxRad / 5;
+      const current = ref();
+      let patch = { type: next };
+      if (next === 'fixed') {
+        patch = { ...patch, zoomMax: current.zoomMin, calibrationZoom: current.zoomMin };
+      } else if (!(current.zoomMax > current.zoomMin)) {
+        // A scope turned variable needs a range above its magnification.
+        const zoomMax = current.zoomMin * NEW_RANGE_RATIO;
+        patch = { ...patch, zoomMax, calibrationZoom: zoomMax };
       }
-      ctl.commit(updateScope(ctl.doc, withZoom(patch)));
+      ctl.commit(updateReferenceScope(ctl.doc, patch));
     });
-    syncs.push(() => { typeSelect.value = scope().type; });
+    syncs.push(() => { typeSelect.value = ref().type; });
     body.appendChild(el('label', { class: 'reticle-field', for: typeSelect.id }, [
       el('span', { class: 'reticle-field-label', i18n: 'reticleDesigner.scope.type' }),
       el('span', { class: 'reticle-field-input' }, [typeSelect])
     ]));
 
-    const fov = [widthField(type === 'fixed' ? 'reticleDesigner.scope.fov' : 'reticleDesigner.scope.fovFrom', 'fovMaxRad')];
-    if (type !== 'fixed') fov.push(widthField('reticleDesigner.scope.fovTo', 'fovMinRad'));
-    fov.push(distanceField());
-    body.appendChild(el('div', { class: 'reticle-field-row' }, fov));
-
-    if (type !== 'fixed') {
-      const zoom = [zoomField('reticleDesigner.scope.zoomFrom', 'zoomMin'), zoomField('reticleDesigner.scope.zoomTo', 'zoomMax')];
-      if (type === 'sfp') zoom.push(zoomField('reticleDesigner.scope.calibrationZoom', 'calibrationZoom'));
-      body.appendChild(el('div', { class: 'reticle-field-row' }, zoom));
-      body.appendChild(el('p', { class: 'hint', i18n: type === 'sfp' ? 'reticleDesigner.scope.sfpHint' : 'reticleDesigner.scope.zoomHint' }));
-    }
+    const zoom = type === 'fixed'
+      ? [zoomField('reticleDesigner.scope.magnification', 'zoomMin')]
+      : [zoomField('reticleDesigner.scope.zoomFrom', 'zoomMin'), zoomField('reticleDesigner.scope.zoomTo', 'zoomMax')];
+    if (type === 'sfp') zoom.push(zoomField('reticleDesigner.scope.calibrationZoom', 'calibrationZoom'));
+    body.appendChild(el('div', { class: 'reticle-field-row' }, zoom));
+    body.appendChild(el('p', { class: 'hint', i18n: 'reticleDesigner.scope.referenceHint' }));
+    if (type === 'sfp') body.appendChild(el('p', { class: 'hint', i18n: 'reticleDesigner.scope.sfpHint' }));
     body.appendChild(illumination);
   }
 
   function update() {
-    if (scope().type !== shownType) {
-      shownType = scope().type;
+    if (ref().type !== shownType) {
+      shownType = ref().type;
       rebuild();
     } else {
       for (const sync of syncs) sync();
     }
     updateIllumination();
-    const diameter = 2 * visibleFieldRadius(scope());
+    const diameter = 2 * visibleFieldRadius(referenceOptics(ref()));
     const { enabled, colour } = ctl.doc.illumination;
     brief.textContent = t('reticleDesigner.scope.brief', {
-      type: t(`reticleDesigner.scope.types.${scope().type}`),
+      type: t(`reticleDesigner.scope.types.${ref().type}`),
       field: `${String(Number(ctl.units.toDisplay(diameter).toFixed(1)) + 0)} ${ctl.units.label}`
     }) + (enabled ? ` · ${t('reticleDesigner.illumination.brief', { colour: t(`reticleDesigner.illumination.colours.${colour}`) })}` : '');
   }

@@ -25,6 +25,7 @@ import { initSyncLog } from './sync/sync-log.js';
 import { initAssetState } from './sync/asset-state.js';
 import { migrateLegacyLocationStorage } from './location-storage-migration.js';
 import { initRiflePrecisionLibrary } from './rifle-precision-library.js';
+import { initReticleLibrary } from './reticle-library.js';
 import * as homeView from './views/home-view.js';
 import * as trajectoryView from './views/trajectory-view.js';
 import * as bcToolsView from './views/bc-tools-view.js';
@@ -177,7 +178,7 @@ try {
   // new conflicts get written against an empty mirror — the whole reason
   // Phase 4 persists them rather than keeping them in memory.
   await Promise.all([
-    initI18n(), initLocationLibrary(), initRiflePrecisionLibrary(), initChangeHistory(), initPendingReview(),
+    initI18n(), initLocationLibrary(), initRiflePrecisionLibrary(), initReticleLibrary(), initChangeHistory(), initPendingReview(),
     // The durable sync log. Joins this list rather than initialising lazily so that its
     // boot-time rotation runs once per load, and so lines logged during
     // the rest of boot land in the right place.
