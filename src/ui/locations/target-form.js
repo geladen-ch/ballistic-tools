@@ -1,5 +1,6 @@
 import { el } from '../../dom.js';
 import { unitField } from '../unit-field.js';
+import { angleMeterButton } from '../angle-meter/angle-meter-button.js';
 import { setPendingPlacement } from '../../location-placement-nav.js';
 import { FIELD_BOUNDS } from '../../units.js';
 import { degToRad } from '../../quantity.js';
@@ -40,7 +41,10 @@ export function targetForm({ initialValues = {}, locationId = null, locationPhot
   notesInput.value = values.notes || '';
 
   const rangeField = unitField({ id: 'targetRange', ...FIELD_BOUNDS.targetRange, step: 10, value: values.rangeM });
-  const losAngleField = unitField({ id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: values.losAngleRad });
+  const losAngleField = unitField({
+    id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: values.losAngleRad,
+    after: angleMeterButton({ onMeasure: (losAngleRad) => losAngleField.setEngineValue(losAngleRad) })
+  });
 
   const placeItButton = (locationPhoto && values.id) ? el('button', { type: 'button', class: 'secondary', i18n: 'rangeSolverLocations.placeItButton' }) : null;
   if (placeItButton) {

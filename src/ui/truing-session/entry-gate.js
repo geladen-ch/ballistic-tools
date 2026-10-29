@@ -13,7 +13,8 @@ import { riflePrecisionInputs } from '../rifle-precision-inputs.js';
 import { precisionToR50 } from '../../engine/dispersion-sources.js';
 import { radToMrad } from '../../quantity.js';
 import { formatTargetSummary } from '../locations/target-summary.js';
-import { fromFitIncline } from './fit-units.js';
+import { fromFitIncline, toFitIncline } from './fit-units.js';
+import { angleMeterButton } from '../angle-meter/angle-meter-button.js';
 import { locationPickerButton } from '../locations/location-picker-button.js';
 import { DEFAULT_BACKDROP_MARGIN_M } from '../../engine/truing-session.js';
 import { WIND_STRENGTHS, DEFAULT_WIND_STRENGTH, WIND_STRENGTH_LIMIT_MS } from './session-model.js';
@@ -291,7 +292,10 @@ export function locationIntakePanel({ location, gaps, persisted, backdropNode, o
       table.appendChild(el('tr', {}, [
         el('td', { text: tg.name || formatTargetSummary(tg.rangeM, fromFitIncline(tg.losAngleDeg)) }),
         el('td', {}, [rangeInput]),
-        rangeDeclaredFlat ? null : el('td', {}, [angleInput])
+        rangeDeclaredFlat ? null : el('td', {}, [el('div', { class: 'field-action-row' }, [
+          angleInput,
+          angleMeterButton({ onMeasure: (losAngleRad) => { angleInput.value = toFitIncline(losAngleRad).toFixed(1); applyEdit(); } })
+        ])])
       ]));
     }
     node.appendChild(table);

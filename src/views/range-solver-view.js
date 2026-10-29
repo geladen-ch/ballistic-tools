@@ -44,6 +44,8 @@ import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
 import { displayChoice, toDisplayUnit } from '../display-units.js';
 import { fractionToPercent, linearToAngleAtRange } from '../quantity.js';
+import { requestWakeLock } from '../wake-lock.js';
+import { angleMeterButton } from '../ui/angle-meter/angle-meter-button.js';
 
 const DEFAULT_LOS_ANGLE_RAD = 0;
 const DEFAULT_WIND_ANGLE_RAD = Math.PI / 2; // full crosswind from the right
@@ -76,16 +78,6 @@ function currentUnit(group) {
 // trajectory-columns.js's own elevMrad/elevMOA columns use.
 const OUTPUT_ANGULAR_UNIT = { mrad: 'mrad', moa: 'arcmin' };
 const OUTPUT_UNIT_LABEL = { mrad: 'mrad', moa: 'MOA' };
-
-async function requestWakeLock() {
-  if (!('wakeLock' in navigator)) return null;
-  try {
-    return await navigator.wakeLock.request('screen');
-  } catch {
-    // best-effort — low battery, backgrounded, or unsupported; not fatal
-    return null;
-  }
-}
 
 export function mount(container) {
   clear(container);
@@ -120,11 +112,14 @@ export function mount(container) {
     onInput: () => { saveTarget(); recompute(); }
   });
   const losAngleField = inlineNumberField({
-    id: 'losAngle', ...FIELD_BOUNDS.losAngle, decimals: 0,
+    id: 'losAngle', ...FIELD_BOUNDS.losAngle, decimals: 1,
     value: targetSaved.losAngleRad ?? DEFAULT_LOS_ANGLE_RAD,
     adornment: losAngleIcon(),
     ariaLabel: t('fields.losAngle'),
     onInput: () => { saveTarget(); recompute(); }
+  });
+  const measureLosAngleButton = angleMeterButton({
+    onMeasure: (losAngleRad) => { losAngleField.setEngineValue(losAngleRad); saveTarget(); recompute(); }
   });
 
   // ---- Locations & Targets library — active location/target picker ----
@@ -244,13 +239,13 @@ export function mount(container) {
   // hand-rolled copy of its rounding — is what a saved target's raw
   // rangeM/losAngleRad has to go through before comparing: otherwise a
   // target whose stored value has more precision than the field actually
-  // displays (e.g. a LOS angle of 5.5° against losAngleField's whole-
-  // degree `decimals: 0`) reads as "hand-edited" the instant it's loaded,
+  // displays (e.g. a LOS angle of 5.55° against losAngleField's tenth-
+  // of-a-degree `decimals: 1`) reads as "hand-edited" the instant it's loaded,
   // from the field's own display rounding alone — immediately deselecting
   // the very target selectTarget() just finished copying in, never having
   // been touched by hand at all. (This is exactly what a stale, duplicated
   // round-trip helper here used to get wrong for both fields — silently,
-  // for any target whose LOS angle wasn't a whole number.)
+  // for any target whose LOS angle had more digits than the field shows.)
   function detachIfHandEdited() {
     const target = resolvedActiveTarget();
     if (!target) return;
@@ -284,7 +279,8 @@ export function mount(container) {
 
   const targetParamsRow = el('div', { class: 'target-params-row' }, [
     targetRangeField.node,
-    losAngleField.node
+    losAngleField.node,
+    measureLosAngleButton
   ]);
   const targetTab = el('div', { class: 'input-section range-solver-tab-panel' }, [
     locationRow,

@@ -19,7 +19,7 @@ function saveWith(values, edit) {
   let saved = null;
   const form = targetForm({ initialValues: values, onSave: (v) => { saved = v; } });
   if (edit) edit(form.node);
-  const save = findAll(form.node, (n) => n.tagName === 'BUTTON')[0];
+  const save = findAll(form.node, (n) => n.tagName === 'BUTTON' && !/\bicon-button\b/.test(n.className || ''))[0];
   fireEvent(save, 'click');
   return saved;
 }

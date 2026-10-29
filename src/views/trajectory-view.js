@@ -1,6 +1,7 @@
 import { el, clear } from '../dom.js';
 import { getPool } from '../pool.js';
 import { unitField } from '../ui/unit-field.js';
+import { angleMeterButton } from '../ui/angle-meter/angle-meter-button.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
@@ -211,6 +212,9 @@ export function mount(container) {
   // via trajectory-state.js, same as them.
   const losAngleField = unitField({
     id: 'losAngle', ...FIELD_BOUNDS.losAngle, step: degToRad(1), value: savedInputs.losAngleRad ?? 0,
+    after: angleMeterButton({
+      onMeasure: (losAngleRad) => { losAngleField.setEngineValue(losAngleRad); handleShotInputChange(); persistInputs(); }
+    }),
     onInput: () => { handleShotInputChange(); persistInputs(); }
   });
   // The target this shot is being sized against for the direct-hit solve

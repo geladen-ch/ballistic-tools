@@ -1578,6 +1578,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v230": "Nouveau : mesurez les angles de ligne de mire avec la caméra et les capteurs d'orientation de l'appareil.",
       "v229": "Nouveau : lunettes et réticules dans l'Arsenal (bibliothèque intégrée incluse), associables aux carabines. Vue lunette du Calculateur de terrain : votre réticule à tout grossissement, avec le point de visée marqué, élévation au réticule ou à la tourelle.",
       "v228": "Modification : l'Arsenal est réparti en onglets Carabines, Balles et Lunettes. Le filtre calibre/fabricant est commun aux Carabines et aux Balles ; Lunettes est un emplacement réservé aux futures définitions de lunettes et de réticules.",
       "v227": "Modification : les fichiers de réticule n’enregistrent plus que les réglages utilisés (p. ex. aucun réglage de répétition quand la répétition est désactivée). Les fichiers enregistrés avec la 4.3.0 se chargent toujours.",
@@ -2090,5 +2091,45 @@
       "insert": "Insérer dans le réticule",
       "cancel": "Annuler"
     }
+  },
+  "angleMeter": {
+    "buttonLabel": "Mesurer l'angle avec la caméra",
+    "title": "Clinomètre à caméra",
+    "aim": "Placez le réticule sur la cible et tenez le téléphone immobile.",
+    "steady": "Stable — touchez Confirmer pour utiliser cet angle.",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "calibrate": "Étalonner",
+    "resetCalibration": "Réinitialiser l'étalonnage",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "zoomReset": "Réinitialiser le zoom",
+    "zoomGroup": "Zoom de la caméra",
+    "notCalibrated": "Non étalonné : les mesures peuvent s'écarter d'un degré ou plus. Touchez Étalonner une fois sur ce téléphone.",
+    "calibration": {
+      "stepCounter": "Mesure {{n}} sur {{total}}",
+      "upright": "Posez le téléphone debout sur son bord inférieur sur une surface ferme, écran vers vous (pas besoin qu'elle soit de niveau), et lâchez-le.",
+      "turned": "Faites-lui faire un demi-tour sur place, toujours debout sur son bord inférieur. Lâchez-le, puis passez de l'autre côté pour faire face à l'écran.",
+      "sightUpright": "Prenez le téléphone en main et placez le réticule sur une cible nette et lointaine, comme le haut d'un mât ou l'angle d'un bâtiment éloigné. Tenez-le immobile et touchez Mesurer.",
+      "sightUpsideDown": "Retournez le téléphone tête en bas et placez de nouveau le réticule sur la même cible. Tenez-le immobile et touchez Mesurer.",
+      "takeReading": "Mesurer",
+      "halfTurnLabel": "180°",
+      "stepRoundLabel": "puis passez de l'autre côté",
+      "statusPosition": "En attente que le téléphone soit posé ou tenu comme indiqué.",
+      "statusTurn": "Faites d'abord faire un demi-tour sur place au téléphone.",
+      "statusHold": "Ne bougez plus…",
+      "statusAim": "Sur la cible ? Tenez-le immobile et touchez Mesurer.",
+      "statusUnsteady": "Trop instable. Gardez un instant le réticule immobile sur la cible, puis touchez à nouveau.",
+      "statusCaptured": "Mesure prise.",
+      "done": "Étalonné.",
+      "failed": "Échec de l'étalonnage : les mesures ne concordent pas. Réessayez sur une surface ferme sans toucher le téléphone."
+    },
+    "error": {
+      "cameraDenied": "L'accès à la caméra a été refusé. L'angle est quand même mesuré, mais viser est plus difficile.",
+      "cameraUnavailable": "La caméra n'est pas disponible. L'angle est quand même mesuré, mais viser est plus difficile.",
+      "sensorDenied": "L'accès aux capteurs de mouvement a été refusé. Autorisez-le dans les réglages du navigateur pour mesurer des angles.",
+      "noSensor": "Les capteurs de cet appareil ne fournissent aucune mesure d'inclinaison."
+    },
+    "resultLabel": "Angle de ligne de mire"
   }
 }

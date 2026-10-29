@@ -1578,6 +1578,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v230": "New: measure line-of-sight angles with the device's camera and orientation sensors.",
       "v229": "New: scopes and reticles in the Arsenal (built-in library included), linkable to rifles. Range Solver scope view: your reticle at any zoom, with the aiming point marked, hold or dial elevation.",
       "v228": "Change: the Arsenal is split into Rifles, Bullets and Scopes tabs. The caliber/manufacturer filter is shared between Rifles and Bullets; Scopes is a placeholder for upcoming scope and reticle definitions.",
       "v227": "Change: reticle files now save only the settings in use (e.g. no repeat settings when repeat is off). Files saved by 4.3.0 still load.",
@@ -2090,5 +2091,45 @@
       "insert": "Insert into the reticle",
       "cancel": "Cancel"
     }
+  },
+  "angleMeter": {
+    "buttonLabel": "Measure the angle with the camera",
+    "title": "Camera clinometer",
+    "aim": "Put the crosshair on the target and hold the phone still.",
+    "steady": "Steady — tap Confirm to use this angle.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "calibrate": "Calibrate",
+    "resetCalibration": "Reset calibration",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "zoomReset": "Reset zoom",
+    "zoomGroup": "Camera zoom",
+    "notCalibrated": "Not calibrated: readings can be off by a degree or more. Tap Calibrate once on this phone.",
+    "calibration": {
+      "stepCounter": "Reading {{n}} of {{total}}",
+      "upright": "Stand the phone upright on its bottom edge on a firm surface, screen towards you (it need not be level), and let go.",
+      "turned": "Turn it half a turn on the spot, still upright on its bottom edge. Let go, then step round to face the screen.",
+      "sightUpright": "Pick up the phone and put the crosshair on a sharp, distant target, such as the top of a mast or the corner of a far building. Hold steady and tap Take reading.",
+      "sightUpsideDown": "Turn the phone upside down and put the crosshair on the same target again. Hold steady and tap Take reading.",
+      "takeReading": "Take reading",
+      "halfTurnLabel": "180°",
+      "stepRoundLabel": "then step round to face it",
+      "statusPosition": "Waiting for the phone to be placed or held as described.",
+      "statusTurn": "Turn the phone half a turn on the spot first.",
+      "statusHold": "Keep still…",
+      "statusAim": "On target? Hold steady and tap Take reading.",
+      "statusUnsteady": "Too unsteady. Hold the crosshair still on the target for a moment, then tap again.",
+      "statusCaptured": "Reading taken.",
+      "done": "Calibrated.",
+      "failed": "Calibration failed: the readings did not agree. Try again on a firm surface without touching the phone."
+    },
+    "error": {
+      "cameraDenied": "Camera access was denied. The angle is still measured, but aiming is harder.",
+      "cameraUnavailable": "The camera is not available. The angle is still measured, but aiming is harder.",
+      "sensorDenied": "Motion sensor access was denied. Allow it in the browser's settings to measure angles.",
+      "noSensor": "No tilt readings come from this device's sensors."
+    },
+    "resultLabel": "Line-of-sight angle"
   }
 }

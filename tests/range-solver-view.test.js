@@ -519,12 +519,13 @@ test('picking a different target in the select copies its range/LoS into the fie
   cleanup();
 });
 
-test('picking a target with a fractional LOS angle stays selected — detachIfHandEdited() must not mistake the field\'s own whole-degree display rounding for a hand edit', async () => {
-  // Regression: losAngleField rounds to whole degrees (decimals: 0) on
-  // every setEngineValue() — a target whose own stored losAngleDeg isn't a
-  // whole number (5.5° here) used to fail detachIfHandEdited()'s raw
+test('picking a target with a fractional LOS angle stays selected — detachIfHandEdited() must not mistake the field\'s own display rounding for a hand edit', async () => {
+  // Regression: losAngleField rounds to its display precision (whole
+  // degrees then, tenths now) on every setEngineValue() — a target whose
+  // own stored losAngleDeg has more digits than that (5.57° here) used to
+  // fail detachIfHandEdited()'s raw
   // `losAngleField.getEngineValue() !== target.losAngleDeg` comparison the
-  // instant selectTarget() copied it in (6 !== 5.5), silently deselecting
+  // instant selectTarget() copied it in (5.6 !== 5.57), silently deselecting
   // the target that was just picked — every existing target fixture up to
   // this test happened to use whole-number angles, which is why this went
   // uncaught. Range Card's table/photo-picker selection (range-card-
@@ -532,7 +533,7 @@ test('picking a target with a fractional LOS angle stays selected — detachIfHa
   // path, so a target like this one was simply un-selectable from any
   // entry point, not just this <select>.
   const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
-  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 5.5 });
+  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 5.57 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
   saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
@@ -546,7 +547,7 @@ test('picking a target with a fractional LOS angle stays selected — detachIfHa
   fireEvent(select, 'change');
 
   assert.equal(findById(container, 'targetRange').value, '300');
-  assert.equal(findById(container, 'losAngle').value, '6', 'displayed rounded to the field\'s own whole-degree precision');
+  assert.equal(findById(container, 'losAngle').value, '5.6', 'displayed rounded to the field\'s own tenth-of-a-degree precision');
   assert.equal(select.value, t2.id, 'still tracking the picked target — not silently detached to Manual entry');
   assert.equal(loadRangeSolverLocationState().targetId, t2.id);
 

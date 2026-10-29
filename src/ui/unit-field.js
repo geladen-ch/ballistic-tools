@@ -29,6 +29,11 @@ import { fieldValidity } from './field-validity.js';
 // preset/custom-value pairing can reuse this field's own unit-conversion
 // logic instead of duplicating it. Only applies in non-slider mode.
 //
+// `after`, if given, is a DOM node rendered directly to the right of the
+// number input — e.g. the camera clinometer's button beside a line-of-
+// sight angle (ui/angle-meter/angle-meter-button.js). Same non-slider-only
+// rule as `before`.
+//
 // `optional: true` lets the field start (and be cleared back to) blank —
 // a value nobody has to supply (rifle rifling twist, bullet length's own
 // hand-rolled equivalent before this existed) rather than one that's
@@ -43,7 +48,7 @@ import { fieldValidity } from './field-validity.js';
 // limit is another field's own current value, not a fixed number). Return
 // a violation message to fail validation the same way an out-of-range
 // value does, or a falsy value to pass.
-export function unitField({ id, min, max, step, value, slider = false, optional = false, before = null, extraCheck = null, onInput }) {
+export function unitField({ id, min, max, step, value, slider = false, optional = false, before = null, after = null, extraCheck = null, onInput }) {
   const meta = FIELD_UNITS[id];
   const group = meta ? UNIT_GROUPS[meta.group] : null;
   let displayUnit = meta ? getUnit(meta.group) : null;
@@ -87,7 +92,8 @@ export function unitField({ id, min, max, step, value, slider = false, optional 
   const unitSuffix = choice && !group.fixed ? document.createTextNode(` (${choice.label})`) : null;
   const labelChildren = [labelSpan, unitSuffix, ...(slider ? [number] : [])].filter(Boolean);
 
-  const inputRow = before && !slider ? el('div', { class: 'preset-row' }, [before, number]) : number;
+  const withAfter = after && !slider ? el('div', { class: 'field-action-row' }, [number, after]) : number;
+  const inputRow = before && !slider ? el('div', { class: 'preset-row' }, [before, withAfter]) : withAfter;
 
   // Live, per-field validation (red border + hint, only once actually
   // invalid — see field-validity.js) against this same min/max, in the

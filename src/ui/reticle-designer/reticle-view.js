@@ -16,6 +16,7 @@
 // units per radian) — a view transform, not a unit conversion (see
 // reticle/render.js). The field circle is the reference scope's assumed
 // field (reticle/scope.js).
+import { ZOOM_GLYPHS } from '../zoom-glyphs.js';
 import { el } from '../../dom.js';
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
@@ -122,9 +123,9 @@ export function reticleView(ctl) {
   ]);
 
   const controls = el('div', { class: 'reticle-zoom-controls' }, [
-    zoomButton('reticleDesigner.view.zoomIn', () => zoomAbout(HALF, HALF, BUTTON_ZOOM_STEP), '+'),
-    zoomButton('reticleDesigner.view.zoomOut', () => zoomAbout(HALF, HALF, 1 / BUTTON_ZOOM_STEP), '−'),
-    zoomButton('reticleDesigner.view.reset', resetView, '⟲')
+    zoomButton('reticleDesigner.view.zoomIn', () => zoomAbout(HALF, HALF, BUTTON_ZOOM_STEP), ZOOM_GLYPHS.in),
+    zoomButton('reticleDesigner.view.zoomOut', () => zoomAbout(HALF, HALF, 1 / BUTTON_ZOOM_STEP), ZOOM_GLYPHS.out),
+    zoomButton('reticleDesigner.view.reset', resetView, ZOOM_GLYPHS.reset)
   ]);
   // Live coordinates of the element being dragged, next to the pointer:
   // at normal zoom a snap step is smaller than a pixel, so the readout is

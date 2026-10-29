@@ -1898,8 +1898,10 @@ button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px;
   gap: 12px;
   margin-bottom: 14px;
 }
-.target-params-row .inline-number-field { margin-bottom: 0; flex: 2 1 0; min-width: 0; }
-.target-params-row .inline-number-field:last-child { flex: 1 1 0; }
+/* Equal halves: the LoS angle shows tenths of a degree ("−12.3"), as
+   wide as a typical range. */
+.target-params-row .inline-number-field { margin-bottom: 0; flex: 1 1 0; min-width: 0; }
+.target-params-row .angle-meter-button { align-self: center; color: var(--accent); }
 .inline-number-row {
   display: flex;
   align-items: baseline;
@@ -2440,3 +2442,208 @@ button.reticle-swatch.active { border-color: var(--accent); box-shadow: inset 0 
 .reticle-list-group { border: 1px dashed var(--line); border-radius: var(--radius); margin: 4px 0; }
 .reticle-list-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .reticle-list-pos, .reticle-list-marks { font-size: 11px; opacity: 0.8; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Camera clinometer (src/ui/angle-meter/) ----
+   A number input with a trailing action button (unitField's own `after`,
+   and the Truing Session's plain angle inputs). */
+.field-action-row { display: flex; align-items: center; gap: 6px; }
+.field-action-row > input { flex: 1 1 auto; min-width: 0; }
+
+/* The full-screen camera view sits over everything, the app dialog
+   included. It is always a camera picture, whatever the theme, so its
+   colours are its own: light text with a dark halo. */
+html.angle-meter-open, html.angle-meter-open body { overflow: hidden; }
+.angle-meter {
+  --angle-meter-text: #ffffff;
+  --angle-meter-scrim: rgba(0, 0, 0, 0.55);
+  --angle-meter-steady: #7ee29a;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: #000000;
+  color: var(--angle-meter-text);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.angle-meter-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.angle-meter-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(56vw, 56vh);
+  height: min(56vw, 56vh);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.angle-meter-crosshair-halo { stroke: rgba(0, 0, 0, 0.65); stroke-width: 3.2px; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.angle-meter-crosshair-line { stroke: var(--angle-meter-text); stroke-width: 1.4px; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.angle-meter-crosshair-dot { fill: var(--angle-meter-text); stroke: rgba(0, 0, 0, 0.65); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.angle-meter.steady .angle-meter-crosshair-line { stroke: var(--angle-meter-steady); }
+.angle-meter.calibrating:not(.sighting) .angle-meter-crosshair { display: none; }
+/* Sighting steps: the crosshair is what matters, so the schematic shrinks
+   to a small reminder under the instructions. */
+.angle-meter.sighting /* Camera zoom (camera-zoom.js): the Reticle Designer's zoom-button look,
+   at the stage's right edge, so it turns with the text. Only while the
+   camera is on. */
+.angle-meter-video { transform-origin: 50% 50%; }
+.angle-meter-zoom {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.angle-meter-zoom button.angle-meter-zoom-button { width: 44px; height: 44px; font-size: 22px; line-height: 1; background: rgba(0, 0, 0, 0.55); color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+.angle-meter-zoom button.angle-meter-zoom-button:disabled { opacity: 0.4; }
+.angle-meter-zoom-level { min-height: 1.2em; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px #000000; }
+.angle-meter.calibrating:not(.sighting) .angle-meter-zoom { display: none; }
+/* The confirmed angle, big on black for two seconds (showResult()). */
+.angle-meter.result { background: #000000; }
+.angle-meter.result .angle-meter-video,
+.angle-meter.result .angle-meter-crosshair,
+.angle-meter.result .angle-meter-stage > :not(.angle-meter-result) { display: none; }
+.angle-meter-result {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.angle-meter-result-value {
+  font-size: clamp(72px, 26vmin, 200px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--angle-meter-steady);
+}
+.angle-meter-result-label { font-size: 18px; opacity: 0.8; }
+.angle-meter-figure { align-items: flex-start; }
+.angle-meter.sighting .angle-meter-figure-svg { max-height: 18vh; }
+/* Text, buttons and the calibration schematic, turned as a whole to read
+   upright however the phone stands (angle-meter-overlay.js sizes it and
+   sets --quarter-turns; a quarter turn swaps its width and height). */
+.angle-meter-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform: translate(-50%, -50%) rotate(calc(var(--quarter-turns, 0) * 90deg));
+  transition: transform 0.2s ease;
+}
+@media (prefers-reduced-motion: reduce) { .angle-meter-stage { transition: none; } }
+.angle-meter-top,
+.angle-meter-bottom {
+  flex: 0 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  background: var(--angle-meter-scrim);
+  text-align: center;
+}
+.angle-meter-top { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: 10px; }
+.angle-meter-bottom { padding-top: 8px; padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+/* Camera zoom (camera-zoom.js): the Reticle Designer's zoom-button look,
+   at the stage's right edge, so it turns with the text. Only while the
+   camera is on. */
+.angle-meter-video { transform-origin: 50% 50%; }
+.angle-meter-zoom {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.angle-meter-zoom button.angle-meter-zoom-button { width: 44px; height: 44px; font-size: 22px; line-height: 1; background: rgba(0, 0, 0, 0.55); color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+.angle-meter-zoom button.angle-meter-zoom-button:disabled { opacity: 0.4; }
+.angle-meter-zoom-level { min-height: 1.2em; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px #000000; }
+.angle-meter.calibrating:not(.sighting) .angle-meter-zoom { display: none; }
+/* The confirmed angle, big on black for two seconds (showResult()). */
+.angle-meter.result { background: #000000; }
+.angle-meter.result .angle-meter-video,
+.angle-meter.result .angle-meter-crosshair,
+.angle-meter.result .angle-meter-stage > :not(.angle-meter-result) { display: none; }
+.angle-meter-result {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.angle-meter-result-value {
+  font-size: clamp(72px, 26vmin, 200px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--angle-meter-steady);
+}
+.angle-meter-result-label { font-size: 18px; opacity: 0.8; }
+.angle-meter-figure {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  pointer-events: none;
+}
+.angle-meter-figure-svg {
+  height: 100%;
+  width: auto;
+  max-width: 86%;
+  max-height: 320px;
+  color: var(--angle-meter-text);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+.angle-meter-figure-label { font-family: var(--font); }
+.angle-meter-figure-ring.captured { stroke: var(--angle-meter-steady); }
+@media (prefers-reduced-motion: no-preference) {
+  .angle-meter-figure-sweep { animation: angle-meter-sweep 2.4s ease-in-out infinite; }
+  @keyframes angle-meter-sweep { 0%, 15% { stroke-dashoffset: 210; } 70%, 100% { stroke-dashoffset: 0; } }
+}
+.angle-meter-instruction { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; text-shadow: 0 1px 3px #000000; }
+.angle-meter-note { margin: 6px 0 0; font-size: 13px; line-height: 1.35; opacity: 0.9; text-shadow: 0 1px 3px #000000; }
+.angle-meter-readout {
+  font-size: clamp(56px, 17vmin, 120px);
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 6px #000000;
+}
+.angle-meter.steady .angle-meter-readout { color: var(--angle-meter-steady); }
+.angle-meter.calibrating .angle-meter-readout { font-size: clamp(28px, 8vmin, 48px); }
+.angle-meter-links { display: flex; justify-content: center; gap: 8px; margin: 4px 0 10px; }
+.angle-meter-links button.angle-meter-link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--angle-meter-text);
+  text-decoration: underline;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.angle-meter-actions { display: flex; gap: 12px; max-width: 520px; margin: 0 auto; }
+.angle-meter-actions button { flex: 1 1 0; min-height: 52px; font-size: 17px; }
+.angle-meter-actions button:disabled { opacity: 0.45; }

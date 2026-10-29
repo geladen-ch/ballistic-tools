@@ -1578,6 +1578,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v230": "Novità: misura gli angoli della linea di mira con la fotocamera e i sensori di orientamento del dispositivo.",
       "v229": "Novità: ottiche e reticoli nell'Arsenale (libreria integrata inclusa), collegabili ai fucili. Vista cannocchiale del Calcolatore per il poligono: il tuo reticolo a ogni ingrandimento, con il punto di mira segnato, elevazione a reticolo o in torretta.",
       "v228": "Modifica: l'Arsenale è suddiviso nelle schede Fucili, Proiettili e Ottiche. Il filtro calibro/produttore è condiviso tra Fucili e Proiettili; Ottiche è un segnaposto per le prossime definizioni di ottiche e reticoli.",
       "v227": "Modifica: i file dei reticoli salvano ora solo le impostazioni in uso (ad es. nessuna impostazione di ripetizione quando la ripetizione è disattivata). I file salvati con la 4.3.0 si caricano ancora.",
@@ -2090,5 +2091,45 @@
       "insert": "Inserisci nel reticolo",
       "cancel": "Annulla"
     }
+  },
+  "angleMeter": {
+    "buttonLabel": "Misura l'angolo con la fotocamera",
+    "title": "Clinometro con fotocamera",
+    "aim": "Porta il reticolo sul bersaglio e tieni fermo il telefono.",
+    "steady": "Stabile — tocca Conferma per usare questo angolo.",
+    "confirm": "Conferma",
+    "cancel": "Annulla",
+    "calibrate": "Calibra",
+    "resetCalibration": "Azzera la calibrazione",
+    "zoomIn": "Ingrandisci",
+    "zoomOut": "Riduci",
+    "zoomReset": "Reimposta lo zoom",
+    "zoomGroup": "Zoom della fotocamera",
+    "notCalibrated": "Non calibrato: le letture possono scostarsi di un grado o più. Tocca Calibra una volta su questo telefono.",
+    "calibration": {
+      "stepCounter": "Lettura {{n}} di {{total}}",
+      "upright": "Appoggia il telefono in piedi sul bordo inferiore su una superficie solida, con lo schermo verso di te (non serve che sia in piano), e lascialo.",
+      "turned": "Giralo di mezzo giro sul posto, sempre in piedi sul bordo inferiore. Lascialo, poi spostati dall'altra parte per avere lo schermo di fronte.",
+      "sightUpright": "Prendi in mano il telefono e porta il reticolo su un bersaglio nitido e lontano, come la cima di un'antenna o lo spigolo di un edificio distante. Tienilo fermo e tocca Misura.",
+      "sightUpsideDown": "Capovolgi il telefono e porta di nuovo il reticolo sullo stesso bersaglio. Tienilo fermo e tocca Misura.",
+      "takeReading": "Misura",
+      "halfTurnLabel": "180°",
+      "stepRoundLabel": "poi spostati dall'altra parte",
+      "statusPosition": "In attesa che il telefono sia appoggiato o tenuto come descritto.",
+      "statusTurn": "Prima gira il telefono di mezzo giro sul posto.",
+      "statusHold": "Non muoverlo…",
+      "statusAim": "Sul bersaglio? Tienilo fermo e tocca Misura.",
+      "statusUnsteady": "Troppo instabile. Tieni il reticolo fermo sul bersaglio per un attimo, poi tocca di nuovo.",
+      "statusCaptured": "Lettura acquisita.",
+      "done": "Calibrato.",
+      "failed": "Calibrazione non riuscita: le letture non concordano. Riprova su una superficie solida senza toccare il telefono."
+    },
+    "error": {
+      "cameraDenied": "L'accesso alla fotocamera è stato negato. L'angolo viene comunque misurato, ma mirare è più difficile.",
+      "cameraUnavailable": "La fotocamera non è disponibile. L'angolo viene comunque misurato, ma mirare è più difficile.",
+      "sensorDenied": "L'accesso ai sensori di movimento è stato negato. Consentilo nelle impostazioni del browser per misurare gli angoli.",
+      "noSensor": "I sensori di questo dispositivo non forniscono letture di inclinazione."
+    },
+    "resultLabel": "Angolo linea di mira"
   }
 }

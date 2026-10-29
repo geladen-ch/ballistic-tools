@@ -7,6 +7,8 @@
 import { el } from '../../dom.js';
 import { t } from '../../i18n.js';
 import { dist, distLabel, fromDisplayDistance } from './units.js';
+import { toFitIncline } from './fit-units.js';
+import { angleMeterButton } from '../angle-meter/angle-meter-button.js';
 
 // `onSubmit({ newReadingM, angleDeg })` -- angleDeg is null when no angle
 // was asked for: never on a range declared flat, where a clinometer is
@@ -27,7 +29,11 @@ export function recheckPrompt({ target, rangeDeclaredFlat, angleMeasured, onSubm
   let angleInput = null;
   if (askAngle) {
     angleInput = el('input', { type: 'number', step: 0.1 });
-    node.appendChild(el('div', { class: 'field' }, [el('label', { i18n: 'truingSession.recheck.angleLabel' }), angleInput]));
+    const measureButton = angleMeterButton({ onMeasure: (losAngleRad) => { angleInput.value = toFitIncline(losAngleRad).toFixed(1); } });
+    node.appendChild(el('div', { class: 'field' }, [
+      el('label', { i18n: 'truingSession.recheck.angleLabel' }),
+      el('div', { class: 'field-action-row' }, [angleInput, measureButton])
+    ]));
   }
 
   const error = el('p', { class: 'hint warning', i18n: askAngle ? 'truingSession.recheck.needValues' : 'truingSession.recheck.needDistance' });

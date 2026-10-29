@@ -1578,6 +1578,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v230": "Neu: Ziellinienwinkel mit der Kamera und den Lagesensoren des Geräts messen.",
       "v229": "Neu: Zielfernrohre und Absehen im Arsenal (inklusive eingebauter Bibliothek), mit Gewehren verknüpfbar. Zielfernrohransicht im Feldrechner: dein Absehen bei jeder Vergrösserung, mit markiertem Haltepunkt, Höhe gehalten oder gedreht.",
       "v228": "Änderung: Das Arsenal ist in die Reiter Gewehre, Geschosse und Zielfernrohre aufgeteilt. Der Kaliber-/Herstellerfilter gilt gemeinsam für Gewehre und Geschosse; Zielfernrohre ist ein Platzhalter für kommende Zielfernrohr- und Absehen-Definitionen.",
       "v227": "Änderung: Absehen-Dateien speichern nur noch die verwendeten Einstellungen (z. B. keine Wiederholungseinstellungen, wenn die Wiederholung aus ist). Mit 4.3.0 gespeicherte Dateien lassen sich weiterhin laden.",
@@ -2090,5 +2091,45 @@
       "insert": "Ins Absehen einfügen",
       "cancel": "Abbrechen"
     }
+  },
+  "angleMeter": {
+    "buttonLabel": "Winkel mit der Kamera messen",
+    "title": "Kamera-Neigungsmesser",
+    "aim": "Fadenkreuz auf das Ziel richten und das Telefon ruhig halten.",
+    "steady": "Ruhig — Bestätigen tippen, um diesen Winkel zu übernehmen.",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "calibrate": "Kalibrieren",
+    "resetCalibration": "Kalibrierung zurücksetzen",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "zoomReset": "Zoom zurücksetzen",
+    "zoomGroup": "Kamerazoom",
+    "notCalibrated": "Nicht kalibriert: Die Messwerte können um ein Grad oder mehr abweichen. Auf diesem Telefon einmal Kalibrieren tippen.",
+    "calibration": {
+      "stepCounter": "Messung {{n}} von {{total}}",
+      "upright": "Das Telefon aufrecht auf seine Unterkante auf eine feste Unterlage stellen, Bildschirm zugewandt (sie muss nicht waagrecht sein), und loslassen.",
+      "turned": "An Ort und Stelle um eine halbe Drehung wenden, weiter aufrecht auf der Unterkante. Loslassen, dann auf die andere Seite gehen, sodass der Bildschirm wieder zugewandt ist.",
+      "sightUpright": "Das Telefon in die Hand nehmen und das Fadenkreuz auf ein scharf umrissenes, weit entferntes Ziel richten, etwa eine Mastspitze oder die Ecke eines fernen Gebäudes. Ruhig halten und Messen tippen.",
+      "sightUpsideDown": "Das Telefon auf den Kopf drehen und das Fadenkreuz erneut auf dasselbe Ziel richten. Ruhig halten und Messen tippen.",
+      "takeReading": "Messen",
+      "halfTurnLabel": "180°",
+      "stepRoundLabel": "dann auf die andere Seite gehen",
+      "statusPosition": "Warte, bis das Telefon wie beschrieben steht oder gehalten wird.",
+      "statusTurn": "Zuerst das Telefon an Ort und Stelle um eine halbe Drehung wenden.",
+      "statusHold": "Ruhig lassen…",
+      "statusAim": "Im Ziel? Ruhig halten und Messen tippen.",
+      "statusUnsteady": "Zu unruhig. Das Fadenkreuz einen Moment ruhig auf dem Ziel halten, dann erneut tippen.",
+      "statusCaptured": "Messung übernommen.",
+      "done": "Kalibriert.",
+      "failed": "Kalibrierung fehlgeschlagen: Die Messungen passen nicht zusammen. Erneut auf einer festen Unterlage versuchen, ohne das Telefon zu berühren."
+    },
+    "error": {
+      "cameraDenied": "Der Kamerazugriff wurde verweigert. Der Winkel wird trotzdem gemessen, das Zielen ist aber schwieriger.",
+      "cameraUnavailable": "Die Kamera ist nicht verfügbar. Der Winkel wird trotzdem gemessen, das Zielen ist aber schwieriger.",
+      "sensorDenied": "Der Zugriff auf die Bewegungssensoren wurde verweigert. In den Browser-Einstellungen erlauben, um Winkel zu messen.",
+      "noSensor": "Die Sensoren dieses Geräts liefern keine Neigungswerte."
+    },
+    "resultLabel": "Ziellinienwinkel"
   }
 }
