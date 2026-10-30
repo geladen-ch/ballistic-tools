@@ -22,6 +22,7 @@ const { fieldOfViewAngle, mradToRad } = await import('../src/quantity.js');
 const { resetUnits } = await import('../src/prefs.js');
 const { resolveRifleOptic, rifleOpticKey } = await import('../src/rifle-optic.js');
 const { zoomRingSlider } = await import('../src/ui/zoom-ring-slider.js');
+const { scopeView } = await import('../src/ui/range-solver/scope-view.js');
 const { settleZoom } = await import('../src/reticle/sight-picture.js');
 const rangeSolverView = await import('../src/views/range-solver-view.js');
 
@@ -33,6 +34,7 @@ test.beforeEach(async () => {
   resetRangeSolverStateForTests();
   prefs.setScopeViewOn(false);
   prefs.setScopeAimMode('hold');
+  prefs.setScopeRingPosition('auto');
   await reticleLibrary.resetReticleLibraryForTests();
 });
 
@@ -113,6 +115,84 @@ test('the scope view prefs round-trip and default to off / hold', () => {
   assert.equal(prefs.getScopeAimMode(), 'dialElevation');
   prefs.setScopeAimMode('nonsense');
   assert.equal(prefs.getScopeAimMode(), 'dialElevation');
+  assert.equal(prefs.getScopeRingPosition(), 'auto');
+  prefs.setScopeRingPosition('below');
+  assert.equal(prefs.getScopeRingPosition(), 'below');
+  prefs.setScopeRingPosition('nonsense');
+  assert.equal(prefs.getScopeRingPosition(), 'below');
+});
+
+test('zoom ring: switching orientation re-places the thumb and ticks along the other axis', () => {
+  const optics = { type: 'ffp', zoomMin: 4, zoomMax: 16 };
+  const ring = zoomRingSlider({ orientation: 'vertical' });
+  ring.setRing(optics, [4, 16], (z) => settleZoom(optics, z), 7);
+  const thumb = () => byClass(ring.node, 'zoom-ring-thumb')[0];
+  assert.equal(thumb().style.top, '75.000%');
+  assert.equal(thumb().style.left, '');
+  ring.setOrientation('horizontal');
+  assert.equal(ring.getOrientation(), 'horizontal');
+  assert.equal(ring.node.getAttribute('aria-orientation'), 'horizontal');
+  assert.ok(hasClass('zoom-ring-horizontal')(ring.node) && !hasClass('zoom-ring-vertical')(ring.node));
+  assert.equal(thumb().style.left, '25.000%');
+  assert.equal(thumb().style.top, '');
+  const ticks = byClass(ring.node, 'zoom-ring-tick');
+  assert.ok(ticks.length > 0 && ticks.every((tick) => tick.style.left && !tick.style.top));
+  assert.equal(ring.getValue(), 7, 'the value survives the switch');
+  ring.setOrientation('diagonal');
+  assert.equal(ring.getOrientation(), 'horizontal');
+});
+
+// A matchMedia stand-in answering each query from `state`, with the
+// listeners it was handed, so a test can flip the orientation.
+function fakeMedia(state) {
+  const listeners = new Set();
+  globalThis.matchMedia = (query) => ({
+    get matches() { return !!state[query]; },
+    addEventListener: (type, fn) => listeners.add(fn),
+    removeEventListener: (type, fn) => listeners.delete(fn)
+  });
+  return { flip: (next) => { Object.assign(state, next); for (const fn of listeners) fn(); }, listeners };
+}
+
+test('the scope ring lies below the reticle per the setting, the orientation and the mobile chrome', (t) => {
+  t.after(() => { delete globalThis.matchMedia; });
+  const NARROW = '(max-width: 780px)';
+  const PORTRAIT = '(orientation: portrait)';
+  const layoutOf = (view) => {
+    const main = byClass(view.node, 'scope-view-main')[0];
+    const ring = byClass(view.node, 'zoom-ring')[0];
+    return { below: hasClass('ring-below')(main), orientation: ring.getAttribute('aria-orientation') };
+  };
+
+  // Auto: below on a narrow portrait screen, beside once it turns.
+  const media = fakeMedia({ [NARROW]: true, [PORTRAIT]: true });
+  let view = scopeView();
+  assert.deepEqual(layoutOf(view), { below: true, orientation: 'horizontal' });
+  media.flip({ [PORTRAIT]: false });
+  assert.deepEqual(layoutOf(view), { below: false, orientation: 'vertical' });
+  view.dispose();
+  assert.equal(media.listeners.size, 0, 'dispose drops the media listeners');
+
+  // Auto on a wide portrait screen stays beside; Below does not.
+  fakeMedia({ [NARROW]: false, [PORTRAIT]: true });
+  view = scopeView();
+  assert.equal(layoutOf(view).below, false);
+  view.dispose();
+  prefs.setScopeRingPosition('below');
+  view = scopeView();
+  assert.equal(layoutOf(view).below, true);
+  view.dispose();
+
+  // Below never applies in landscape; Beside never moves.
+  fakeMedia({ [NARROW]: true, [PORTRAIT]: false });
+  view = scopeView();
+  assert.equal(layoutOf(view).below, false);
+  view.dispose();
+  prefs.setScopeRingPosition('beside');
+  fakeMedia({ [NARROW]: true, [PORTRAIT]: true });
+  view = scopeView();
+  assert.deepEqual(layoutOf(view), { below: false, orientation: 'vertical' });
+  view.dispose();
 });
 
 test('zoom ring: keys step, leave an SFP calibration snap, and stop at the ends', () => {

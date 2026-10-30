@@ -9,7 +9,12 @@
 // the reticle's reference scope. The maths is reticle/sight-picture.js.
 //
 // setOptic({ scope, reticle } | null), setShot({ elevationRad, windageRad }
-// | null) — the readout's correction as angles: what to draw; setRingOrientation('horizontal' | 'vertical').
+// | null) — the readout's correction as angles: what to draw.
+//
+// The zoom ring stands beside the reticle, or lies below it so the
+// reticle gets the full width — range-solver-prefs.js's scope ring
+// position, re-decided whenever the orientation or the viewport width
+// crosses the mobile chrome's breakpoint.
 import { el, clear } from '../../dom.js';
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
@@ -19,7 +24,7 @@ import { scopeOptics } from '../../scope-record.js';
 import {
   AIM_MODES, aimAngle, sightPicture, ringRange, settleZoom, initialZoom, zoomLabel, subtensionFactor
 } from '../../reticle/sight-picture.js';
-import { getScopeAimMode, setScopeAimMode } from '../../range-solver-prefs.js';
+import { getScopeAimMode, setScopeAimMode, getScopeRingPosition } from '../../range-solver-prefs.js';
 import { ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { reticleElementLayer, illuminationClass } from '../reticle-scene.js';
 import { zoomRingSlider } from '../zoom-ring-slider.js';
@@ -40,6 +45,29 @@ const HALO = 5;
 const ARROW_TIP = FIT_RADIUS - 12;
 const ARROW_BASE = FIT_RADIUS - 70;
 const ARROW_HALF_WIDTH = 26;
+
+// The mobile chrome's width breakpoint (layout.css's max-width: 780px,
+// overridden either way by display-mode-prefs.js's force-mobile /
+// force-desktop class on <html>).
+const NARROW_QUERY = '(max-width: 780px)';
+const PORTRAIT_QUERY = '(orientation: portrait)';
+
+const mediaQuery = (query) => (typeof matchMedia === 'function' ? matchMedia(query) : null);
+
+function isMobileChrome(narrow) {
+  const classes = typeof document !== 'undefined' ? document.documentElement?.classList : null;
+  if (classes?.contains('force-mobile')) return true;
+  if (classes?.contains('force-desktop')) return false;
+  return !!narrow?.matches;
+}
+
+// Whether the ring lies below the reticle, for a scope ring position.
+function ringBelow(position, narrow, portrait) {
+  if (!portrait?.matches) return false;
+  if (position === 'below') return true;
+  if (position === 'auto') return isMobileChrome(narrow);
+  return false;
+}
 
 // The last zoom per scope id, for the page lifetime.
 const zoomByScope = new Map();
@@ -112,6 +140,18 @@ export function scopeView() {
 
   const main = el('div', { class: 'scope-view-main' }, [sight, ringBox]);
   const node = el('div', { class: 'scope-view' }, [main, bar]);
+
+  const ringPosition = getScopeRingPosition();
+  const narrowQuery = mediaQuery(NARROW_QUERY);
+  const portraitQuery = mediaQuery(PORTRAIT_QUERY);
+  function applyRingLayout() {
+    const below = ringBelow(ringPosition, narrowQuery, portraitQuery);
+    main.classList.toggle('ring-below', below);
+    ring.setOrientation(below ? 'horizontal' : 'vertical');
+  }
+  const mediaQueries = [narrowQuery, portraitQuery].filter((q) => q && typeof q.addEventListener === 'function');
+  for (const q of mediaQueries) q.addEventListener('change', applyRingLayout);
+  applyRingLayout();
 
   function renderModeButtons() {
     for (const button of modeButtons) {
@@ -251,6 +291,7 @@ export function scopeView() {
     getZoom: () => zoom,
     getMode: () => mode,
     dispose: () => {
+      for (const q of mediaQueries) q.removeEventListener('change', applyRingLayout);
       ring.dispose();
       if (frame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame);
     }

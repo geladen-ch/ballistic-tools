@@ -780,6 +780,10 @@
     "rangeSolverLabelVisibilityDeclutter": "Masquer près du pointeur, afficher la cible la plus proche",
     "rangeSolverLabelVisibilityTap": "Masquer les étiquettes, afficher au premier appui, sélectionner au second",
     "rangeSolverLabelVisibilityHint": "Masquer les étiquettes près du pointeur n'a aucun effet sur les appareils sans souris.",
+    "rangeSolverScopeRingLabel": "Bague de grossissement de la vue lunette",
+    "rangeSolverScopeRingAuto": "Automatique (en dessous sur téléphone en portrait)",
+    "rangeSolverScopeRingBeside": "À côté du réticule",
+    "rangeSolverScopeRingBelow": "Sous le réticule (en portrait)",
     "dragModelsHeading": "Modèles balistiques",
     "dragModelsHint": "Masquez les modèles de traînée standard que vous n'utilisez pas, pour alléger le sélecteur de modèle. Un modèle masqué reste disponible partout où il est déjà sélectionné — le masquer ne change jamais un choix existant.",
     "csvExportHeading": "Export CSV",
@@ -1578,6 +1582,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v231": "Nouveau : la vue lunette du Calculateur de terrain peut placer la bague de grossissement sous le réticule, pour que le réticule occupe toute la largeur sur téléphone en portrait (automatique par défaut, réglable dans les Paramètres).",
       "v230": "Nouveau : mesurez les angles de ligne de mire avec la caméra et les capteurs d'orientation de l'appareil.",
       "v229": "Nouveau : lunettes et réticules dans l'Arsenal (bibliothèque intégrée incluse), associables aux carabines. Vue lunette du Calculateur de terrain : votre réticule à tout grossissement, avec le point de visée marqué, élévation au réticule ou à la tourelle.",
       "v228": "Modification : l'Arsenal est réparti en onglets Carabines, Balles et Lunettes. Le filtre calibre/fabricant est commun aux Carabines et aux Balles ; Lunettes est un emplacement réservé aux futures définitions de lunettes et de réticules.",

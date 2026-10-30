@@ -6,7 +6,8 @@ import { zoomTicks, zoomLabel } from '../reticle/sight-picture.js';
 // zoomTicks), the SFP calibration zoom highlighted. A custom
 // role="slider" rather than <input type="range">, which can carry
 // neither the graduation nor a dependable vertical orientation across
-// browsers. Vertical puts the highest zoom at the top.
+// browsers. Vertical puts the highest zoom at the top, horizontal at the
+// right; setOrientation() switches between them in place.
 //
 // `settle(zoom)` clamps and snaps a candidate zoom (sightPicture's
 // settleZoom for the scope); `onInput(zoom)` gets every settled change.
@@ -35,8 +36,13 @@ export function zoomRingSlider({ orientation = 'horizontal', label = '', onInput
 
   const fraction = (z) => (range ? (z - range[0]) / (range[1] - range[0]) : 0);
   const place = (target, f) => {
-    if (orientation === 'vertical') target.style.top = `${((1 - f) * 100).toFixed(3)}%`;
-    else target.style.left = `${(f * 100).toFixed(3)}%`;
+    if (orientation === 'vertical') {
+      target.style.top = `${((1 - f) * 100).toFixed(3)}%`;
+      target.style.left = '';
+    } else {
+      target.style.left = `${(f * 100).toFixed(3)}%`;
+      target.style.top = '';
+    }
   };
 
   function trackLength() {
@@ -164,9 +170,22 @@ export function zoomRingSlider({ orientation = 'horizontal', label = '', onInput
     renderValue();
   }
 
+  function setOrientation(next) {
+    if (next !== 'horizontal' && next !== 'vertical') return;
+    if (next === orientation) return;
+    node.classList.remove(`zoom-ring-${orientation}`);
+    orientation = next;
+    node.classList.add(`zoom-ring-${orientation}`);
+    node.setAttribute('aria-orientation', orientation);
+    renderScale();
+    renderValue();
+  }
+
   return {
     node,
     setRing,
+    setOrientation,
+    getOrientation: () => orientation,
     getValue: () => value,
     dispose: () => resizeObserver?.disconnect()
   };

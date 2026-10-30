@@ -693,6 +693,12 @@ button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px;
 .scope-view-corner { position: absolute; top: -6px; right: -6px; }
 .scope-view-corner-left { position: absolute; top: -6px; left: -6px; }
 .scope-view-ring { display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; flex: none; }
+/* Ring below (the scope ring position setting, see scope-view.js): the
+   reticle takes the full width and the horizontal ring runs under it,
+   its value on the left. */
+.scope-view-main.ring-below { flex-direction: column; align-items: center; }
+.scope-view-main.ring-below .scope-view-sight { width: min(100%, 520px); }
+.scope-view-main.ring-below .scope-view-ring { flex-direction: row-reverse; width: min(100%, 520px); }
 .scope-view-zoom-value { min-width: 3.2em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .scope-view-bar { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 12px; }
 .scope-view-sfp-note { font-size: 11.5px; color: var(--dim); }

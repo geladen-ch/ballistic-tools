@@ -15,7 +15,8 @@ import {
 import { WIND_DIAL_APPEARANCE_CHOICES, getWindDialAppearance, setWindDialAppearance } from '../wind-dial-prefs.js';
 import {
   INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit,
-  TARGET_LABEL_VISIBILITY_CHOICES, getTargetLabelVisibility, setTargetLabelVisibility
+  TARGET_LABEL_VISIBILITY_CHOICES, getTargetLabelVisibility, setTargetLabelVisibility,
+  SCOPE_RING_POSITION_CHOICES, getScopeRingPosition, setScopeRingPosition
 } from '../range-solver-prefs.js';
 import { UI_SCALE_CHOICES, getUiScale, setUiScale } from '../ui-scale-prefs.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
@@ -197,6 +198,14 @@ export function mount(container) {
   labelVisibilitySelect.value = getTargetLabelVisibility();
   labelVisibilitySelect.addEventListener('change', () => setTargetLabelVisibility(labelVisibilitySelect.value));
 
+  const scopeRingSelect = el(
+    'select',
+    { id: 'settings-range-solver-scope-ring' },
+    SCOPE_RING_POSITION_CHOICES.map((c) => el('option', { value: c.value, i18n: c.labelKey }))
+  );
+  scopeRingSelect.value = getScopeRingPosition();
+  scopeRingSelect.addEventListener('change', () => setScopeRingPosition(scopeRingSelect.value));
+
   // One checkbox per known standard drag model (see engine/drag-tables.js's
   // DRAG_MODELS) — data-driven so a future model added there gets a
   // checkbox here for free. At least one must always stay checked (every
@@ -262,6 +271,10 @@ export function mount(container) {
       el('label', { i18n: 'settings.rangeSolverLabelVisibilityLabel' }),
       labelVisibilitySelect,
       el('p', { class: 'hint', i18n: 'settings.rangeSolverLabelVisibilityHint' })
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.rangeSolverScopeRingLabel' }),
+      scopeRingSelect
     ])
   ]);
 

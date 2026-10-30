@@ -780,6 +780,10 @@
     "rangeSolverLabelVisibilityDeclutter": "Hide near pointer, show closest target",
     "rangeSolverLabelVisibilityTap": "Hide labels, tap to show, tap again to select",
     "rangeSolverLabelVisibilityHint": "Hiding labels near the pointer has no effect on devices that don't have a mouse.",
+    "rangeSolverScopeRingLabel": "Scope view magnification ring",
+    "rangeSolverScopeRingAuto": "Automatic (below on phones in portrait)",
+    "rangeSolverScopeRingBeside": "Beside the reticle",
+    "rangeSolverScopeRingBelow": "Below the reticle (in portrait)",
     "dragModelsHeading": "Ballistic models",
     "dragModelsHint": "Hide standard drag models you don't use, to declutter the drag-model picker. A hidden model stays available wherever it's already selected — hiding it never changes an existing choice.",
     "csvExportHeading": "CSV export",
@@ -1578,6 +1582,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v231": "New: Range Solver scope view can place the magnification ring below the reticle, so the reticle fills the full width on phones in portrait (automatic by default, adjustable in Settings).",
       "v230": "New: measure line-of-sight angles with the device's camera and orientation sensors.",
       "v229": "New: scopes and reticles in the Arsenal (built-in library included), linkable to rifles. Range Solver scope view: your reticle at any zoom, with the aiming point marked, hold or dial elevation.",
       "v228": "Change: the Arsenal is split into Rifles, Bullets and Scopes tabs. The caliber/manufacturer filter is shared between Rifles and Bullets; Scopes is a placeholder for upcoming scope and reticle definitions.",

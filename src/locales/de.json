@@ -780,6 +780,10 @@
     "rangeSolverLabelVisibilityDeclutter": "In Mauszeigernähe ausblenden, nächstes Ziel zeigen",
     "rangeSolverLabelVisibilityTap": "Beschriftungen ausblenden, bei Tippen anzeigen, erneut tippen zum Auswählen",
     "rangeSolverLabelVisibilityHint": "Das Ausblenden von Beschriftungen in Mauszeigernähe hat auf Geräten ohne Maus keine Wirkung.",
+    "rangeSolverScopeRingLabel": "Vergrösserungsring der Zielfernrohransicht",
+    "rangeSolverScopeRingAuto": "Automatisch (unten auf Smartphones im Hochformat)",
+    "rangeSolverScopeRingBeside": "Neben dem Absehen",
+    "rangeSolverScopeRingBelow": "Unter dem Absehen (im Hochformat)",
     "dragModelsHeading": "Ballistische Modelle",
     "dragModelsHint": "Blenden Sie nicht genutzte Standard-Luftwiderstandsmodelle aus, um die Modellauswahl übersichtlicher zu machen. Ein ausgeblendetes Modell bleibt dort verfügbar, wo es bereits ausgewählt ist — das Ausblenden ändert keine bestehende Auswahl.",
     "csvExportHeading": "CSV-Export",
@@ -1578,6 +1582,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v231": "Neu: Die Zielfernrohransicht im Feldrechner kann den Vergrösserungsring unter das Absehen legen, damit das Absehen auf Smartphones im Hochformat die volle Breite nutzt (standardmässig automatisch, einstellbar in den Einstellungen).",
       "v230": "Neu: Ziellinienwinkel mit der Kamera und den Lagesensoren des Geräts messen.",
       "v229": "Neu: Zielfernrohre und Absehen im Arsenal (inklusive eingebauter Bibliothek), mit Gewehren verknüpfbar. Zielfernrohransicht im Feldrechner: dein Absehen bei jeder Vergrösserung, mit markiertem Haltepunkt, Höhe gehalten oder gedreht.",
       "v228": "Änderung: Das Arsenal ist in die Reiter Gewehre, Geschosse und Zielfernrohre aufgeteilt. Der Kaliber-/Herstellerfilter gilt gemeinsam für Gewehre und Geschosse; Zielfernrohre ist ein Platzhalter für kommende Zielfernrohr- und Absehen-Definitionen.",

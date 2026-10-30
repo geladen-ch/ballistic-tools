@@ -187,3 +187,32 @@ export function setScopeAimMode(value) {
     // best-effort — losing persistence isn't fatal
   }
 }
+
+const SCOPE_RING_POSITION_COOKIE_NAME = 'ballistics_range_solver_scope_ring_position_v1';
+const DEFAULT_SCOPE_RING_POSITION = 'auto';
+
+// Where the scope view's zoom ring sits: 'auto' (the default — below the
+// reticle in the mobile chrome in portrait, so the reticle gets the full
+// width, beside it everywhere else), 'beside' (always the vertical ring
+// on the right), or 'below' (the horizontal ring under the reticle in
+// portrait). Short landscape keeps it beside whatever the choice: there
+// height is what runs out.
+export const SCOPE_RING_POSITION_CHOICES = [
+  { value: 'auto', labelKey: 'settings.rangeSolverScopeRingAuto' },
+  { value: 'beside', labelKey: 'settings.rangeSolverScopeRingBeside' },
+  { value: 'below', labelKey: 'settings.rangeSolverScopeRingBelow' }
+];
+
+export function getScopeRingPosition() {
+  const raw = getCookie(SCOPE_RING_POSITION_COOKIE_NAME);
+  return SCOPE_RING_POSITION_CHOICES.some((c) => c.value === raw) ? raw : DEFAULT_SCOPE_RING_POSITION;
+}
+
+export function setScopeRingPosition(value) {
+  if (!SCOPE_RING_POSITION_CHOICES.some((c) => c.value === value)) return;
+  try {
+    setCookie(SCOPE_RING_POSITION_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}

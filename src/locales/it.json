@@ -780,6 +780,10 @@
     "rangeSolverLabelVisibilityDeclutter": "Nascondi vicino al puntatore, mostra il bersaglio più vicino",
     "rangeSolverLabelVisibilityTap": "Nascondi le etichette, mostra al primo tocco, seleziona al secondo",
     "rangeSolverLabelVisibilityHint": "Nascondere le etichette vicino al puntatore non ha effetto sui dispositivi privi di mouse.",
+    "rangeSolverScopeRingLabel": "Anello di ingrandimento della vista cannocchiale",
+    "rangeSolverScopeRingAuto": "Automatico (sotto sugli smartphone in verticale)",
+    "rangeSolverScopeRingBeside": "Accanto al reticolo",
+    "rangeSolverScopeRingBelow": "Sotto il reticolo (in verticale)",
     "dragModelsHeading": "Modelli balistici",
     "dragModelsHint": "Nascondi i modelli di resistenza standard che non usi, per snellire il selettore del modello. Un modello nascosto resta disponibile ovunque sia già selezionato — nasconderlo non modifica mai una scelta esistente.",
     "csvExportHeading": "Esportazione CSV",
@@ -1578,6 +1582,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v231": "Novità: la vista cannocchiale del Calcolatore per il poligono può collocare l'anello di ingrandimento sotto il reticolo, così il reticolo occupa tutta la larghezza sugli smartphone in verticale (automatico per impostazione predefinita, regolabile nelle Impostazioni).",
       "v230": "Novità: misura gli angoli della linea di mira con la fotocamera e i sensori di orientamento del dispositivo.",
       "v229": "Novità: ottiche e reticoli nell'Arsenale (libreria integrata inclusa), collegabili ai fucili. Vista cannocchiale del Calcolatore per il poligono: il tuo reticolo a ogni ingrandimento, con il punto di mira segnato, elevazione a reticolo o in torretta.",
       "v228": "Modifica: l'Arsenale è suddiviso nelle schede Fucili, Proiettili e Ottiche. Il filtro calibro/produttore è condiviso tra Fucili e Proiettili; Ottiche è un segnaposto per le prossime definizioni di ottiche e reticoli.",
