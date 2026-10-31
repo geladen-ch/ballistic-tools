@@ -503,7 +503,10 @@
         "dialElevation": "Dial elevation"
       },
       "sfpScale": "Subtensions here: ×{{factor}} of nominal",
-      "offField": "aiming point outside the field of view"
+      "offField": "aiming point outside the field of view",
+      "reticleZoom": "Zoom to reticle",
+      "reticleZoomValue": "{{nominal}} {{extra}}",
+      "reticleZoomValueLabel": "{{nominal}} scope, shown {{extra}} larger"
     }
   },
   "rangeSolverLocations": {
@@ -1582,6 +1585,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v232": "New: zoom-to-reticle feature in range solver for fixed magnification scopes.",
       "v231": "New: Range Solver scope view can place the magnification ring below the reticle, so the reticle fills the full width on phones in portrait (automatic by default, adjustable in Settings).",
       "v230": "New: measure line-of-sight angles with the device's camera and orientation sensors.",
       "v229": "New: scopes and reticles in the Arsenal (built-in library included), linkable to rifles. Range Solver scope view: your reticle at any zoom, with the aiming point marked, hold or dial elevation.",

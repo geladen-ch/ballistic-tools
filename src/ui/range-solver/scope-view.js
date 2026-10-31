@@ -15,10 +15,16 @@
 // reticle gets the full width — range-solver-prefs.js's scope ring
 // position, re-decided whenever the orientation or the viewport width
 // crosses the mobile chrome's breakpoint.
+//
+// Zoom to reticle (fixed scopes only, reticle/reticle-zoom.js): a toggle
+// in the bottom-right corner magnifies the whole field — glass, reticle,
+// rim and the clip circle with them — about the centre, so a reticle
+// sitting small in the field fills it; the circle may grow past the
+// square. The aiming mark and the off-field arrow keep their size.
 import { el, clear } from '../../dom.js';
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
-import { holdIcon, dialElevationIcon } from '../nav-icons.js';
+import { holdIcon, dialElevationIcon, zoomToReticleIcon } from '../nav-icons.js';
 import { fmt } from '../../reticle/render.js';
 import { scopeOptics } from '../../scope-record.js';
 import {
@@ -28,6 +34,7 @@ import { getScopeAimMode, setScopeAimMode, getScopeRingPosition } from '../../ra
 import { ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { reticleElementLayer, illuminationClass } from '../reticle-scene.js';
 import { zoomRingSlider } from '../zoom-ring-slider.js';
+import { reticleZoomExtent, reticleZoomFactor } from '../../reticle/reticle-zoom.js';
 
 // Drawing units: the canvas and the field circle's radius within it.
 const SIZE = 1000;
@@ -69,40 +76,70 @@ function ringBelow(position, narrow, portrait) {
   return false;
 }
 
-// The last zoom per scope id, for the page lifetime.
+// The last zoom, and whether zoom to reticle was on, per scope id, for
+// the page lifetime.
 const zoomByScope = new Map();
+const reticleZoomByScope = new Map();
 
 let clipCounter = 0;
 
 export function scopeView() {
   clipCounter += 1;
   const clipId = `scope-view-clip-${clipCounter}`;
+  const markClipId = `scope-view-mark-clip-${clipCounter}`;
 
-  let optic = null; // { scope, reticle, optics, range, buildRadius, elementLayer }
+  let optic = null; // { scope, reticle, optics, range, buildRadius, reticleZoom }
   let shot = null;
   let zoom = NaN;
+  let reticleZoomOn = false;
   let mode = getScopeAimMode();
 
   const fieldCircle = (cls) => svgEl('circle', { class: cls, cx: fmt(HALF), cy: fmt(HALF), r: fmt(FIT_RADIUS) });
   const zoomGroup = svgEl('g', { class: 'scope-view-zoom' });
   const markLayer = svgEl('g', { class: 'scope-view-mark' });
   const arrowLayer = svgEl('g', { class: 'scope-view-arrow' });
+  // The field magnified by zoom to reticle; its clip path is in its own
+  // user space, so the clip circle scales with it. The mark sits outside
+  // it, at screen size, under a clip circle of the magnified radius.
+  const fieldGroup = svgEl('g', { class: 'scope-view-field' }, [
+    fieldCircle('reticle-glass'),
+    svgEl('g', { 'clip-path': `url(#${clipId})` }, [zoomGroup]),
+    fieldCircle('reticle-rim')
+  ]);
+  const markClipCircle = fieldCircle('');
   const svg = svgEl('svg', {
     viewBox: `0 0 ${SIZE} ${SIZE}`, class: 'scope-view-canvas', role: 'img', 'aria-label': t('rangeSolver.scopeView.canvasLabel')
   }, [
-    svgEl('defs', {}, [svgEl('clipPath', { id: clipId }, [fieldCircle('')])]),
+    svgEl('defs', {}, [
+      svgEl('clipPath', { id: clipId }, [fieldCircle('')]),
+      svgEl('clipPath', { id: markClipId }, [markClipCircle])
+    ]),
     svgEl('rect', { class: 'reticle-outside', x: '0', y: '0', width: String(SIZE), height: String(SIZE) }),
-    fieldCircle('reticle-glass'),
-    svgEl('g', { 'clip-path': `url(#${clipId})` }, [zoomGroup, markLayer]),
-    fieldCircle('reticle-rim'),
+    fieldGroup,
+    svgEl('g', { 'clip-path': `url(#${markClipId})` }, [markLayer]),
     arrowLayer
   ]);
-  // The square the reticle is drawn in. Its top corners, outside the
-  // field circle, hold controls laid over it: the aiming-point mode
-  // switch on the left, and a slot on the right for the caller's own.
+  // The square the reticle is drawn in. Its corners, outside the field
+  // circle, hold controls laid over it: the aiming-point mode switch top
+  // left, a slot top right for the caller's own, and zoom to reticle with
+  // its magnification label bottom right.
   const corner = el('div', { class: 'scope-view-corner' });
   const cornerLeft = el('div', { class: 'scope-view-corner-left' });
-  const square = el('div', { class: 'scope-view-frame' }, [svg, cornerLeft, corner]);
+  const reticleZoomValue = el('span', { class: 'scope-view-reticle-zoom-value' });
+  const reticleZoomName = t('rangeSolver.scopeView.reticleZoom');
+  const reticleZoomButton = el('button', {
+    type: 'button', class: 'icon-button scope-view-reticle-zoom-toggle', 'aria-pressed': 'false',
+    title: reticleZoomName, 'aria-label': reticleZoomName
+  }, [zoomToReticleIcon(20)]);
+  reticleZoomButton.addEventListener('click', () => {
+    if (!optic) return;
+    reticleZoomOn = !reticleZoomOn;
+    reticleZoomByScope.set(optic.scope.id, reticleZoomOn);
+    scheduleRender();
+  });
+  const cornerBottomRight = el('div', { class: 'scope-view-corner-bottom-right' }, [reticleZoomValue, reticleZoomButton]);
+  cornerBottomRight.style.display = 'none';
+  const square = el('div', { class: 'scope-view-frame' }, [svg, cornerLeft, corner, cornerBottomRight]);
   const sight = el('div', { class: 'scope-view-sight' }, [square]);
 
   const zoomValue = el('span', { class: 'scope-view-zoom-value' });
@@ -195,21 +232,55 @@ export function scopeView() {
     return nodes;
   }
 
-  function arrowNode(direction) {
+  // `fieldRadius`: the field circle's radius on screen, magnified by zoom
+  // to reticle; the arrow sits at whichever edge is nearer along its
+  // direction, the circle's or the square's.
+  function arrowNode(direction, fieldRadius) {
     const ux = Math.cos(direction);
     const uy = Math.sin(direction);
+    const inset = Math.min(fieldRadius, HALF / Math.max(Math.abs(ux), Math.abs(uy))) - FIT_RADIUS;
+    const tip = ARROW_TIP + inset;
+    const base = ARROW_BASE + inset;
     const at = (d, side) => `${fmt(HALF + ux * d - uy * side)} ${fmt(HALF + uy * d + ux * side)}`;
-    const d = `M${at(ARROW_TIP, 0)}L${at(ARROW_BASE, ARROW_HALF_WIDTH)}L${at(ARROW_BASE, -ARROW_HALF_WIDTH)}Z`;
+    const d = `M${at(tip, 0)}L${at(base, ARROW_HALF_WIDTH)}L${at(base, -ARROW_HALF_WIDTH)}Z`;
     return [
       svgEl('path', { class: 'scope-view-arrow-halo', d, 'stroke-width': fmt(2 * HALO) }),
       svgEl('path', { class: 'scope-view-arrow-head', d })
     ];
   }
 
+  const scaleTransform = (s) => (Math.abs(s - 1) < 1e-9
+    ? '' : `translate(${HALF} ${HALF}) scale(${s.toPrecision(6)}) translate(${-HALF} ${-HALF})`);
+
+  // Zoom to reticle's control and label, and the magnification it adds
+  // (1 while off or not offered).
+  function renderReticleZoom() {
+    const available = !!optic?.reticleZoom.available;
+    const on = available && reticleZoomOn;
+    const factor = on ? optic.reticleZoom.factor : 1;
+    cornerBottomRight.style.display = available ? '' : 'none';
+    reticleZoomButton.setAttribute('aria-pressed', on ? 'true' : 'false');
+    reticleZoomButton.classList.toggle('active', on);
+    svg.classList.toggle('reticle-zoomed', on);
+    fieldGroup.setAttribute('transform', scaleTransform(factor));
+    markClipCircle.setAttribute('r', fmt(FIT_RADIUS * factor));
+    if (on) {
+      const values = { nominal: zoomLabel(optic.optics.zoomMax), extra: zoomLabel(factor) };
+      reticleZoomValue.textContent = t('rangeSolver.scopeView.reticleZoomValue', values);
+      reticleZoomValue.setAttribute('aria-label', t('rangeSolver.scopeView.reticleZoomValueLabel', values));
+      reticleZoomValue.style.display = '';
+    } else {
+      reticleZoomValue.textContent = '';
+      reticleZoomValue.style.display = 'none';
+    }
+    return factor;
+  }
+
   function render() {
     clear(markLayer);
     clear(arrowLayer);
     svg.setAttribute('aria-label', t('rangeSolver.scopeView.canvasLabel'));
+    const magnification = renderReticleZoom();
     if (!optic) {
       zoomGroup.setAttribute('transform', '');
       zoomValue.textContent = '';
@@ -218,9 +289,7 @@ export function scopeView() {
     }
     const { optics } = optic;
     const k = scaleAt(zoom);
-    const s = k * optic.buildRadius / FIT_RADIUS;
-    if (Math.abs(s - 1) < 1e-9) zoomGroup.setAttribute('transform', '');
-    else zoomGroup.setAttribute('transform', `translate(${HALF} ${HALF}) scale(${s.toPrecision(6)}) translate(${-HALF} ${-HALF})`);
+    zoomGroup.setAttribute('transform', scaleTransform(k * optic.buildRadius / FIT_RADIUS));
 
     zoomValue.textContent = zoomLabel(zoom);
     const factor = subtensionFactor(optics, zoom);
@@ -231,17 +300,24 @@ export function scopeView() {
     if (!shot) return;
     const angle = aimAngle(shot, mode);
     if (!Number.isFinite(angle.x) || !Number.isFinite(angle.y)) return;
-    const picture = sightPicture(optics, zoom, angle, { margin: MARK_RADIUS / FIT_RADIUS });
-    if (picture.inside) {
-      for (const n of markNodes(HALF + picture.point.x * k, HALF + picture.point.y * k)) markLayer.appendChild(n);
+    // Inside: clear of the (magnified) rim and of the square's edges by
+    // the mark's radius.
+    const picture = sightPicture(optics, zoom, angle);
+    const fieldRadius = FIT_RADIUS * magnification;
+    const dx = picture.point.x * k * magnification;
+    const dy = picture.point.y * k * magnification;
+    const room = HALF - MARK_RADIUS;
+    const inside = Math.hypot(dx, dy) <= fieldRadius - MARK_RADIUS && Math.abs(dx) <= room && Math.abs(dy) <= room;
+    if (inside) {
+      for (const n of markNodes(HALF + dx, HALF + dy)) markLayer.appendChild(n);
     } else {
-      for (const n of arrowNode(picture.direction)) arrowLayer.appendChild(n);
+      for (const n of arrowNode(picture.direction, fieldRadius)) arrowLayer.appendChild(n);
       svg.setAttribute('aria-label', `${t('rangeSolver.scopeView.canvasLabel')} — ${t('rangeSolver.scopeView.offField')}`);
     }
   }
 
   // Coalesced to one frame: a zoom drag fires faster than it needs
-  // drawing. Without requestAnimationFrame (tests), drawn at once.
+  // drawing. Without requestAnimationFrame, drawn at once.
   let frame = null;
   function scheduleRender() {
     if (typeof requestAnimationFrame !== 'function') { render(); return; }
@@ -264,10 +340,14 @@ export function scopeView() {
     const optics = scopeOptics(next.scope);
     const range = ringRange(optics);
     const buildZoom = range ? range[0] : optics.zoomMax;
+    const buildRadius = sightPicture(optics, buildZoom, null).radius;
     optic = {
-      scope: next.scope, reticle: next.reticle, optics, range,
-      buildRadius: sightPicture(optics, buildZoom, null).radius
+      scope: next.scope, reticle: next.reticle, optics, range, buildRadius,
+      reticleZoom: optics.type === 'fixed'
+        ? reticleZoomFactor(reticleZoomExtent(next.reticle.elements, buildRadius), buildRadius)
+        : { available: false, factor: 1 }
     };
+    reticleZoomOn = reticleZoomByScope.get(next.scope.id) === true;
     const remembered = zoomByScope.get(next.scope.id);
     zoom = settleZoom(optics, Number.isFinite(remembered) ? remembered : initialZoom(optics));
     buildReticle();
@@ -290,6 +370,7 @@ export function scopeView() {
     setShot,
     getZoom: () => zoom,
     getMode: () => mode,
+    getReticleZoom: () => (optic?.reticleZoom.available && reticleZoomOn ? optic.reticleZoom.factor : 1),
     dispose: () => {
       for (const q of mediaQueries) q.removeEventListener('change', applyRingLayout);
       ring.dispose();

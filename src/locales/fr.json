@@ -503,7 +503,10 @@
         "dialElevation": "Élévation à la tourelle"
       },
       "sfpScale": "Graduations ici : ×{{factor}} de la valeur nominale",
-      "offField": "point de visée hors du champ de vision"
+      "offField": "point de visée hors du champ de vision",
+      "reticleZoom": "Zoomer sur le réticule",
+      "reticleZoomValue": "{{nominal}} {{extra}}",
+      "reticleZoomValueLabel": "Lunette {{nominal}}, affichée {{extra}} plus grande"
     }
   },
   "rangeSolverLocations": {
@@ -1582,6 +1585,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v232": "Nouveau : zoom sur le réticule dans le Calculateur de terrain pour les lunettes à grossissement fixe.",
       "v231": "Nouveau : la vue lunette du Calculateur de terrain peut placer la bague de grossissement sous le réticule, pour que le réticule occupe toute la largeur sur téléphone en portrait (automatique par défaut, réglable dans les Paramètres).",
       "v230": "Nouveau : mesurez les angles de ligne de mire avec la caméra et les capteurs d'orientation de l'appareil.",
       "v229": "Nouveau : lunettes et réticules dans l'Arsenal (bibliothèque intégrée incluse), associables aux carabines. Vue lunette du Calculateur de terrain : votre réticule à tout grossissement, avec le point de visée marqué, élévation au réticule ou à la tourelle.",

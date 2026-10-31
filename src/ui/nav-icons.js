@@ -237,6 +237,18 @@ export function scopeViewIcon(size = 18) {
   ]);
 }
 
+// A magnifying glass with a small crosshair in the lens — the scope
+// view's zoom to reticle.
+export function zoomToReticleIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('circle', { cx: '8.5', cy: '8.5', r: '5.5' }),
+    svgEl('line', { x1: '12.7', y1: '12.7', x2: '18', y2: '18' }),
+    svgEl('line', { x1: '8.5', y1: '5.2', x2: '8.5', y2: '11.8', 'stroke-width': '1' }),
+    svgEl('line', { x1: '5.2', y1: '8.5', x2: '11.8', y2: '8.5', 'stroke-width': '1' }),
+    svgEl('circle', { cx: '8.5', cy: '8.5', r: '1.1', fill: 'currentColor', stroke: 'none' })
+  ]);
+}
+
 // The Range Solver scope view's two aiming-point modes, as one reticle
 // shown two ways: Hold — the target sits off both axes, everything held;
 // Dial elevation — the vertical part has gone up on the turret (the arrow

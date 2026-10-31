@@ -692,6 +692,20 @@ button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px;
 /* Clear of the field circle down to a square about 160 px across. */
 .scope-view-corner { position: absolute; top: -6px; right: -6px; }
 .scope-view-corner-left { position: absolute; top: -6px; left: -6px; }
+/* Zoom to reticle (fixed scopes): the toggle in the bottom-right corner,
+   framed like the mode switch, and above it, while on, the scope's
+   power and the added magnification in a pill that stays legible once
+   the magnified glass reaches the corner. */
+.scope-view-corner-bottom-right { position: absolute; bottom: -6px; right: -6px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+button.icon-button.scope-view-reticle-zoom-toggle { width: 30px; height: 30px; background: var(--panel); border-color: var(--line); }
+button.icon-button.scope-view-reticle-zoom-toggle:hover { background: var(--panel); }
+button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.scope-view-reticle-zoom-value {
+  padding: 1px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
+  font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* Magnified, the glass may reach the square's corners. */
+.scope-view-canvas.reticle-zoomed { border-radius: 0; }
 .scope-view-ring { display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; flex: none; }
 /* Ring below (the scope ring position setting, see scope-view.js): the
    reticle takes the full width and the horizontal ring runs under it,

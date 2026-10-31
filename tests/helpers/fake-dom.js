@@ -221,7 +221,21 @@ export function installFakeDom() {
     }
   };
   global.location = { protocol: 'https:' };
-  global.requestAnimationFrame = (cb) => cb();
+  // As a browser has them: the callback runs later, on a timer standing in
+  // for the next frame, and the returned id is assigned before it does, so
+  // a view's `frame = requestAnimationFrame(...)` guard clears itself.
+  // Tests that check a frame's drawing await a tick first.
+  const frames = new Map();
+  let nextFrame = 1;
+  global.requestAnimationFrame = (cb) => {
+    const id = nextFrame++;
+    frames.set(id, setTimeout(() => { frames.delete(id); cb(performance.now()); }, 0));
+    return id;
+  };
+  global.cancelAnimationFrame = (id) => {
+    clearTimeout(frames.get(id));
+    frames.delete(id);
+  };
   // hit-probability-view.js reads a few theme colors via getComputedStyle
   // (see its own cssVar() helper) — there's no real CSS engine here (see
   // this file's own module comment), so every custom property just reads

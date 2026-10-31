@@ -503,7 +503,10 @@
         "dialElevation": "Elevazione in torretta"
       },
       "sfpScale": "Suddivisioni qui: ×{{factor}} del valore nominale",
-      "offField": "punto di mira fuori dal campo visivo"
+      "offField": "punto di mira fuori dal campo visivo",
+      "reticleZoom": "Zoom sul reticolo",
+      "reticleZoomValue": "{{nominal}} {{extra}}",
+      "reticleZoomValueLabel": "Cannocchiale {{nominal}}, mostrato {{extra}} più grande"
     }
   },
   "rangeSolverLocations": {
@@ -1582,6 +1585,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v232": "Novità: zoom sul reticolo nel Calcolatore per il poligono per i cannocchiali a ingrandimento fisso.",
       "v231": "Novità: la vista cannocchiale del Calcolatore per il poligono può collocare l'anello di ingrandimento sotto il reticolo, così il reticolo occupa tutta la larghezza sugli smartphone in verticale (automatico per impostazione predefinita, regolabile nelle Impostazioni).",
       "v230": "Novità: misura gli angoli della linea di mira con la fotocamera e i sensori di orientamento del dispositivo.",
       "v229": "Novità: ottiche e reticoli nell'Arsenale (libreria integrata inclusa), collegabili ai fucili. Vista cannocchiale del Calcolatore per il poligono: il tuo reticolo a ogni ingrandimento, con il punto di mira segnato, elevazione a reticolo o in torretta.",

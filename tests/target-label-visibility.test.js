@@ -3,18 +3,9 @@ import assert from 'node:assert/strict';
 import { installFakeDom } from './helpers/fake-dom.js';
 
 installFakeDom();
-// fake-dom.js's own requestAnimationFrame shim runs its callback
-// synchronously — real browsers instead assign the outer `rafId` (from
-// requestAnimationFrame's own return value) *before* the callback ever
-// runs, but here the callback's `rafId = null` reset fires first and gets
-// immediately clobbered back to `undefined` by that same assignment. So
-// after any wire()'d pointermove, rafId is `undefined`, not `null` —
-// still "not null" to the pointerleave handler's own guard, which then
-// calls cancelAnimationFrame(undefined). No test-env polyfill exists for
-// it (Node has no native rAF/cancelAnimationFrame either) — a harmless
-// local no-op here is enough, only this file's own Node test-runner
-// module gets it.
-global.cancelAnimationFrame = () => {};
+// Declutter runs on the next animation frame; fake-dom.js's stands in a
+// zero-delay timer, so one more such tick has seen it through.
+const nextFrame = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const HIDDEN_CLASS = 'target-photo-overlay-pin-label--hidden';
 
@@ -192,20 +183,21 @@ function makeThreePinScene() {
   return { label1, label2, label3Far, container };
 }
 
-test('"declutter" mode: hides labels near the pointer except the closest one', () => {
+test('"declutter" mode: hides labels near the pointer except the closest one', async () => {
   setTargetLabelVisibility('declutter');
   const lv = createTargetLabelVisibility();
   const { label1, label2, label3Far, container } = makeThreePinScene();
   lv.wire(container);
 
   container.fire('pointermove', { pointerType: 'mouse', clientX: 200, clientY: 200 });
+  await nextFrame();
 
   assert.equal(label1.classList.contains(HIDDEN_CLASS), false, 'closest target to the pointer stays visible');
   assert.equal(label2.classList.contains(HIDDEN_CLASS), true, 'a second nearby label is decluttered away');
   assert.equal(label3Far.classList.contains(HIDDEN_CLASS), false, 'a label far from the pointer is never touched');
 });
 
-test('"declutter" mode: a lone nearby label is left visible (nothing to declutter against)', () => {
+test('"declutter" mode: a lone nearby label is left visible (nothing to declutter against)', async () => {
   setTargetLabelVisibility('declutter');
   const lv = createTargetLabelVisibility();
   const label = makeLabel(40);
@@ -214,32 +206,48 @@ test('"declutter" mode: a lone nearby label is left visible (nothing to declutte
   lv.wire(container);
 
   container.fire('pointermove', { pointerType: 'mouse', clientX: 200, clientY: 200 });
+  await nextFrame();
 
   assert.equal(label.classList.contains(HIDDEN_CLASS), false, 'the only nearby label is also the closest one, so it is exempt');
 });
 
-test('"declutter" mode: non-mouse pointer types (touch/pen) never trigger hiding', () => {
+test('"declutter" mode: non-mouse pointer types (touch/pen) never trigger hiding', async () => {
   setTargetLabelVisibility('declutter');
   const lv = createTargetLabelVisibility();
   const { label1, label2, container } = makeThreePinScene();
   lv.wire(container);
 
   container.fire('pointermove', { pointerType: 'touch', clientX: 200, clientY: 200 });
+  await nextFrame();
 
   assert.equal(label1.classList.contains(HIDDEN_CLASS), false);
   assert.equal(label2.classList.contains(HIDDEN_CLASS), false, 'a touch/pen move must behave exactly like "always show" — no mouse on this device');
 });
 
-test('"declutter" mode: the pointer leaving the photo clears any hiding in effect', () => {
+test('"declutter" mode: the pointer leaving the photo clears any hiding in effect', async () => {
   setTargetLabelVisibility('declutter');
   const lv = createTargetLabelVisibility();
   const { label1, label2, container } = makeThreePinScene();
   lv.wire(container);
 
   container.fire('pointermove', { pointerType: 'mouse', clientX: 200, clientY: 200 });
+  await nextFrame();
   assert.equal(label2.classList.contains(HIDDEN_CLASS), true, 'sanity check: decluttering did kick in first');
 
   container.fire('pointerleave', { pointerType: 'mouse' });
   assert.equal(label1.classList.contains(HIDDEN_CLASS), false);
   assert.equal(label2.classList.contains(HIDDEN_CLASS), false);
+});
+
+test('"declutter" mode: the pointer leaving before the next frame cancels the pending declutter', async () => {
+  setTargetLabelVisibility('declutter');
+  const lv = createTargetLabelVisibility();
+  const { label1, label2, container } = makeThreePinScene();
+  lv.wire(container);
+
+  container.fire('pointermove', { pointerType: 'mouse', clientX: 200, clientY: 200 });
+  container.fire('pointerleave', { pointerType: 'mouse' });
+  await nextFrame();
+  assert.equal(label1.classList.contains(HIDDEN_CLASS), false);
+  assert.equal(label2.classList.contains(HIDDEN_CLASS), false, 'the frame never ran');
 });

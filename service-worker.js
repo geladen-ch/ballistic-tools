@@ -291,6 +291,7 @@ const APP_SHELL_URLS = [
   './src/reticle/angle-units.js',
   './src/reticle/scope.js',
   './src/reticle/sight-picture.js',
+  './src/reticle/reticle-zoom.js',
   './src/reticle/element-types.js',
   './src/reticle/geometry.js',
   './src/reticle/model.js',
