@@ -302,10 +302,12 @@ const smallReticle = reticleOf([
   { type: 'hline', x: -0.012, y: 0, endX: 0.012, width: 0.0002 }
 ]);
 
-test('zoom to reticle: offered for a fixed scope with a small reticle, magnifying the field and labelled', async () => {
+test('zoom to reticle: opens at the fit, magnifying the field, labelled, and stepped with − / +', async () => {
   const view = scopeView();
   const corner = byClass(view.node, 'scope-view-corner-bottom-right')[0];
   const button = byClass(view.node, 'scope-view-reticle-zoom-toggle')[0];
+  const steps = byClass(view.node, 'scope-view-reticle-zoom-steps')[0];
+  const [zoomOut, zoomIn] = steps.childNodes;
   const label = byClass(view.node, 'scope-view-reticle-zoom-value')[0];
   const field = byClass(view.node, 'scope-view-field')[0];
   const canvas = byClass(view.node, 'scope-view-canvas')[0];
@@ -318,6 +320,7 @@ test('zoom to reticle: offered for a fixed scope with a small reticle, magnifyin
   assert.equal(button.getAttribute('aria-label'), t('rangeSolver.scopeView.reticleZoom'));
   assert.equal(button.getAttribute('aria-pressed'), 'false');
   assert.equal(label.style.display, 'none');
+  assert.equal(steps.style.display, 'none', '− / + only while on');
   assert.equal(field.getAttribute('transform') || '', '');
   assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 1, 'the hold is inside the plain field');
 
@@ -325,6 +328,9 @@ test('zoom to reticle: offered for a fixed scope with a small reticle, magnifyin
   await settle();
   assert.equal(button.getAttribute('aria-pressed'), 'true');
   assert.ok(button.className.includes('active'));
+  assert.equal(steps.style.display, '');
+  assert.equal(zoomOut.getAttribute('aria-label'), t('rangeSolver.scopeView.reticleZoomOut'));
+  assert.equal(zoomIn.getAttribute('aria-label'), t('rangeSolver.scopeView.reticleZoomIn'));
   assert.equal(view.getReticleZoom(), 4.5);
   assert.equal(field.getAttribute('transform'), 'translate(500 500) scale(4.50000) translate(-500 -500)');
   assert.ok(canvas.classList.contains('reticle-zoomed'));
@@ -333,15 +339,35 @@ test('zoom to reticle: offered for a fixed scope with a small reticle, magnifyin
   assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 0, 'magnified, the hold leaves the view');
   assert.equal(byClass(view.node, 'scope-view-arrow-head').length, 1);
 
+  fireEvent(zoomOut, 'click');
+  await settle();
+  assert.equal(view.getReticleZoom(), 4);
+  assert.equal(label.textContent, t('rangeSolver.scopeView.reticleZoomValue', { nominal: '4×', extra: '4×' }));
+  for (let i = 0; i < 3; i++) fireEvent(zoomOut, 'click');
+  await settle();
+  assert.equal(view.getReticleZoom(), 1);
+  assert.equal(zoomOut.disabled, true);
+  assert.equal(field.getAttribute('transform') || '', '', '1×: the plain field');
+  assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 1);
+  for (let i = 0; i < 4; i++) fireEvent(zoomIn, 'click');
+  assert.equal(view.getReticleZoom(), 4.5, 'the fit is a stop');
+  for (let i = 0; i < 7; i++) fireEvent(zoomIn, 'click');
+  await settle();
+  assert.equal(view.getReticleZoom(), 10);
+  assert.equal(zoomIn.disabled, true);
+  assert.equal(zoomOut.disabled, false);
+
   fireEvent(button, 'click');
   await settle();
   assert.equal(view.getReticleZoom(), 1);
   assert.equal(field.getAttribute('transform') || '', '');
   assert.ok(!canvas.classList.contains('reticle-zoomed'));
+  fireEvent(button, 'click');
+  assert.equal(view.getReticleZoom(), 10, 'on again: the last setting');
   view.dispose();
 });
 
-test('zoom to reticle: not offered for variable scopes or a reticle that fills the field; remembered per scope', () => {
+test('zoom to reticle: any fixed scope, not variable ones; a full reticle opens at 1×; remembered per scope', () => {
   const view = scopeView();
   const corner = byClass(view.node, 'scope-view-corner-bottom-right')[0];
   const button = byClass(view.node, 'scope-view-reticle-zoom-toggle')[0];
@@ -350,12 +376,14 @@ test('zoom to reticle: not offered for variable scopes or a reticle that fills t
   assert.equal(corner.style.display, 'none');
   const full = reticleOf([{ type: 'dot', x: 0, y: 0.055, diameter: 0.001 }]);
   view.setOptic({ scope: fixedScope({ id: 'fixed-2' }), reticle: full });
-  assert.equal(corner.style.display, 'none');
+  assert.equal(corner.style.display, '');
+  fireEvent(button, 'click');
+  assert.equal(view.getReticleZoom(), 1);
 
   const bars = reticleOf([{ type: 'vbar', x: 0, y: 0.01, endY: 0.06, nominalWidth: 0.004, endWidth: 0.001, thinningLength: 0.01 }]);
   view.setOptic({ scope: fixedScope({ id: 'fixed-3' }), reticle: bars });
   fireEvent(button, 'click');
-  assert.equal(view.getReticleZoom(), 5, 'thinning bars only: the cap');
+  assert.equal(view.getReticleZoom(), 5, 'thinning bars only: the unfitted default');
   view.setOptic({ scope: fixedScope({ id: 'fixed-4' }), reticle: smallReticle });
   assert.equal(view.getReticleZoom(), 1, 'another scope starts off');
   view.setOptic({ scope: fixedScope({ id: 'fixed-3' }), reticle: bars });

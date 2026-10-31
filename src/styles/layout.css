@@ -693,10 +693,13 @@ button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px;
 .scope-view-corner { position: absolute; top: -6px; right: -6px; }
 .scope-view-corner-left { position: absolute; top: -6px; left: -6px; }
 /* Zoom to reticle (fixed scopes): the toggle in the bottom-right corner,
-   framed like the mode switch, and above it, while on, the scope's
-   power and the added magnification in a pill that stays legible once
-   the magnified glass reaches the corner. */
+   framed like the mode switch, and while on, − / + to its left and above
+   both the scope's power and the added magnification in a pill that
+   stays legible once the magnified glass reaches the corner. */
 .scope-view-corner-bottom-right { position: absolute; bottom: -6px; right: -6px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.scope-view-reticle-zoom-row { display: flex; align-items: center; gap: 4px; }
+.scope-view-reticle-zoom-steps button.scope-view-segment { color: var(--text); font-size: 18px; font-weight: 700; line-height: 1; }
+.scope-view-reticle-zoom-steps button.scope-view-segment:disabled { color: var(--dim); opacity: 0.45; cursor: default; }
 button.icon-button.scope-view-reticle-zoom-toggle { width: 30px; height: 30px; background: var(--panel); border-color: var(--line); }
 button.icon-button.scope-view-reticle-zoom-toggle:hover { background: var(--panel); }
 button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }

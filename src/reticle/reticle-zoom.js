@@ -1,31 +1,39 @@
-// Zoom to reticle: how much a fixed scope's view can be magnified so that
-// a reticle sitting small in the field fills it. Pure — no DOM. Angles in
-// radians (reticle subtensions, y positive down), the factor a plain ratio.
+// Zoom to reticle: the extra magnification a fixed scope's view can be
+// given on top of the scope's own, RETICLE_ZOOM_MIN to RETICLE_ZOOM_MAX,
+// and the one it opens at — the zoom at which the reticle fills the
+// field. Pure — no DOM. Angles in radians (reticle subtensions, y
+// positive down), zooms plain ratios.
 //
 // The view zooms about the reticle centre and never pans, so the extent
 // that matters is each axis's farthest reach from the centre, not the
 // bounding box: a tree hanging only below the centre counts as twice its
-// depth. The larger axis is fitted to RETICLE_ZOOM_FILL of the field
+// depth. The fit puts the larger axis at RETICLE_ZOOM_FILL of the field
 // diameter; corners may run past the view's edge.
 //
 // Not counted: thinning bars, and lines reaching RETICLE_ZOOM_FILL of the
 // field radius along their own axis — frame lines that would otherwise
-// keep the reticle "full" for good. With nothing counted the factor is
-// the cap.
+// keep the reticle "full" for good. With nothing counted there is no fit,
+// and the view opens at RETICLE_ZOOM_UNFITTED.
 import { elementPrimitives, primitiveBounds } from './geometry.js';
 
 export const RETICLE_ZOOM_FILL = 0.9;
-export const RETICLE_ZOOM_MAX = 5;
+export const RETICLE_ZOOM_MIN = 1;
+export const RETICLE_ZOOM_MAX = 10;
+export const RETICLE_ZOOM_UNFITTED = 5;
 
 const LINE_AXES = { hline: 'x', vline: 'y' };
+// Zooms this close (as a fraction) count as the same stop.
+const SAME_STOP = 1e-6;
 
-// { drawn, x, y }: whether any element draws anything, and the counted
-// elements' farthest reach from the centre along x and along y.
+const clampZoom = (z) => Math.min(RETICLE_ZOOM_MAX, Math.max(RETICLE_ZOOM_MIN, z));
+
+// { x, y }: the counted elements' farthest reach from the centre along x
+// and along y.
 export function reticleZoomExtent(elements, fieldRadius) {
-  let drawn = false;
   let x = 0;
   let y = 0;
   for (const element of elements || []) {
+    if (element.type === 'hbar' || element.type === 'vbar') continue;
     let primitives;
     try {
       primitives = elementPrimitives(element);
@@ -33,8 +41,6 @@ export function reticleZoomExtent(elements, fieldRadius) {
       continue;
     }
     for (const p of primitives) {
-      drawn = true;
-      if (element.type === 'hbar' || element.type === 'vbar') continue;
       const b = primitiveBounds(p);
       const reachX = Math.max(Math.abs(b.minX), Math.abs(b.maxX));
       const reachY = Math.max(Math.abs(b.minY), Math.abs(b.maxY));
@@ -44,16 +50,32 @@ export function reticleZoomExtent(elements, fieldRadius) {
       y = Math.max(y, reachY);
     }
   }
-  return { drawn, x, y };
+  return { x, y };
 }
 
-// { available, factor }: offered when something is drawn and the counted
-// reticle covers less than RETICLE_ZOOM_FILL of the field on both axes;
-// the factor fits the larger axis to it, capped at RETICLE_ZOOM_MAX.
-export function reticleZoomFactor(extent, fieldRadius) {
-  if (!extent?.drawn || !(fieldRadius > 0)) return { available: false, factor: 1 };
-  const reach = Math.max(extent.x, extent.y);
-  const raw = reach > 0 ? (RETICLE_ZOOM_FILL * fieldRadius) / reach : Infinity;
-  if (!(raw > 1)) return { available: false, factor: 1 };
-  return { available: true, factor: Math.min(RETICLE_ZOOM_MAX, raw) };
+// The zoom the view opens at: the larger axis fitted to RETICLE_ZOOM_FILL
+// of the field, within the range; RETICLE_ZOOM_UNFITTED with nothing to fit.
+export function reticleZoomFit(extent, fieldRadius) {
+  const reach = Math.max(extent?.x || 0, extent?.y || 0);
+  if (!(reach > 0) || !(fieldRadius > 0)) return RETICLE_ZOOM_UNFITTED;
+  return clampZoom((RETICLE_ZOOM_FILL * fieldRadius) / reach);
+}
+
+// The stops the − / + buttons step through: every whole zoom in the range
+// and the fit, ascending.
+export function reticleZoomStops(fit) {
+  const stops = [];
+  for (let z = RETICLE_ZOOM_MIN; z <= RETICLE_ZOOM_MAX; z += 1) stops.push(z);
+  if (Number.isFinite(fit) && !stops.some((z) => Math.abs(z / fit - 1) < SAME_STOP)) stops.push(clampZoom(fit));
+  return stops.sort((a, b) => a - b);
+}
+
+// The next stop above (`direction` 1) or below (-1) `zoom`, or `zoom`
+// itself at the end of the range.
+export function stepReticleZoom(zoom, direction, fit) {
+  const stops = reticleZoomStops(fit);
+  const next = direction > 0
+    ? stops.find((z) => z > zoom * (1 + SAME_STOP))
+    : stops.findLast((z) => z < zoom * (1 - SAME_STOP));
+  return next ?? zoom;
 }

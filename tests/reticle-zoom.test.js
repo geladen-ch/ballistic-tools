@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  reticleZoomExtent, reticleZoomFactor, RETICLE_ZOOM_FILL, RETICLE_ZOOM_MAX
+  reticleZoomExtent, reticleZoomFit, reticleZoomStops, stepReticleZoom,
+  RETICLE_ZOOM_FILL, RETICLE_ZOOM_MIN, RETICLE_ZOOM_MAX, RETICLE_ZOOM_UNFITTED
 } from '../src/reticle/reticle-zoom.js';
 
 const R = 0.06;
@@ -15,12 +16,9 @@ const hbar = (x, endX) => ({ type: 'hbar', x, y: 0, endX, nominalWidth: 0.004, e
 test('the extent is the farthest reach from the centre on each axis, not the bounding box', () => {
   // A tree hanging only below the centre.
   const extent = reticleZoomExtent([vline(0.001, 0.012), hline(-0.003, 0.003, 0.008)], R);
-  assert.equal(extent.drawn, true);
   close(extent.x, 0.003);
   close(extent.y, 0.012);
-  const { available, factor } = reticleZoomFactor(extent, R);
-  assert.equal(available, true);
-  close(factor, RETICLE_ZOOM_FILL * R / 0.012);
+  close(reticleZoomFit(extent, R), RETICLE_ZOOM_FILL * R / 0.012);
 });
 
 test('thinning bars and lines reaching the fill fraction of the radius do not count; shorter lines do', () => {
@@ -37,20 +35,24 @@ test('mirrored and repeated copies count; BDC marks draw nothing', () => {
   close(extent.x, 0.012);
   extent = reticleZoomExtent([{ ...dot(0, 0.001, 0), repeat: { enabled: true, count: 4, step: 0.003, direction: 'down' } }], R);
   close(extent.y, 0.013);
-  extent = reticleZoomExtent([{ type: 'bdc', y: 0.02 }], R);
-  assert.deepEqual(extent, { drawn: false, x: 0, y: 0 });
+  assert.deepEqual(reticleZoomExtent([{ type: 'bdc', y: 0.02 }], R), { x: 0, y: 0 });
 });
 
-test('the factor: offered only below the fill, capped, and the cap when nothing counts', () => {
-  const at = (reach) => reticleZoomFactor({ drawn: true, x: reach, y: 0 }, R);
-  assert.equal(at(RETICLE_ZOOM_FILL * R).available, false);
-  assert.equal(at(R).available, false);
-  assert.equal(at(RETICLE_ZOOM_FILL * R * 0.999).available, true);
-  assert.equal(at(0.001).factor, RETICLE_ZOOM_MAX);
-  // Bars and frame lines only.
-  const framesOnly = reticleZoomFactor(reticleZoomExtent([vbar(0.01, 0.06), hline(-0.07, 0.07)], R), R);
-  assert.deepEqual(framesOnly, { available: true, factor: RETICLE_ZOOM_MAX });
-  // Nothing drawn at all.
-  assert.equal(reticleZoomFactor(reticleZoomExtent([], R), R).available, false);
-  assert.equal(reticleZoomFactor(reticleZoomExtent([{ type: 'bdc', y: 0 }], R), R).available, false);
+test('the fit: within 1× to 10×, and the unfitted default with nothing to fit', () => {
+  const at = (reach) => reticleZoomFit({ x: reach, y: 0 }, R);
+  assert.equal(at(R), RETICLE_ZOOM_MIN, 'a reticle filling the field opens at 1×');
+  assert.equal(at(0.001), RETICLE_ZOOM_MAX, 'a tiny one is capped');
+  close(at(0.012), 4.5);
+  assert.equal(reticleZoomFit(reticleZoomExtent([vbar(0.01, 0.06), hline(-0.07, 0.07)], R), R), RETICLE_ZOOM_UNFITTED);
+  assert.equal(reticleZoomFit(reticleZoomExtent([], R), R), RETICLE_ZOOM_UNFITTED);
+});
+
+test('the − / + stops: whole zooms and the fit, stepping to the ends and no further', () => {
+  assert.deepEqual(reticleZoomStops(3.4), [1, 2, 3, 3.4, 4, 5, 6, 7, 8, 9, 10]);
+  assert.deepEqual(reticleZoomStops(5), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 'a whole fit is not doubled');
+  assert.equal(stepReticleZoom(3.4, 1, 3.4), 4);
+  assert.equal(stepReticleZoom(3.4, -1, 3.4), 3);
+  assert.equal(stepReticleZoom(3, 1, 3.4), 3.4, 'the fit can be stepped back to');
+  assert.equal(stepReticleZoom(10, 1, 3.4), 10);
+  assert.equal(stepReticleZoom(1, -1, 3.4), 1);
 });

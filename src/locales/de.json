@@ -506,7 +506,9 @@
       "offField": "Haltepunkt ausserhalb des Sehfelds",
       "reticleZoom": "Auf Absehen zoomen",
       "reticleZoomValue": "{{nominal}} {{extra}}",
-      "reticleZoomValueLabel": "{{nominal}}-Zielfernrohr, {{extra}} grösser dargestellt"
+      "reticleZoomValueLabel": "{{nominal}}-Zielfernrohr, {{extra}} grösser dargestellt",
+      "reticleZoomOut": "Verkleinern",
+      "reticleZoomIn": "Vergrössern"
     }
   },
   "rangeSolverLocations": {
@@ -1585,7 +1587,8 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
-      "v232": "Neu: Auf-Absehen-Zoom im Feldrechner für Zielfernrohre mit fester Vergrösserung.",
+      "v233": "Neu: Der Faktor des Auf-Absehen-Zooms lässt sich jetzt selbst einstellen.",
+      "v232": "Neu: Auf-Absehen-Zoom im Feldrechner für Zielfernrohre mit fester Vergrösserung, Idee von JerkyFreak.",
       "v231": "Neu: Die Zielfernrohransicht im Feldrechner kann den Vergrösserungsring unter das Absehen legen, damit das Absehen auf Smartphones im Hochformat die volle Breite nutzt (standardmässig automatisch, einstellbar in den Einstellungen).",
       "v230": "Neu: Ziellinienwinkel mit der Kamera und den Lagesensoren des Geräts messen.",
       "v229": "Neu: Zielfernrohre und Absehen im Arsenal (inklusive eingebauter Bibliothek), mit Gewehren verknüpfbar. Zielfernrohransicht im Feldrechner: dein Absehen bei jeder Vergrösserung, mit markiertem Haltepunkt, Höhe gehalten oder gedreht.",

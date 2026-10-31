@@ -18,9 +18,10 @@
 //
 // Zoom to reticle (fixed scopes only, reticle/reticle-zoom.js): a toggle
 // in the bottom-right corner magnifies the whole field — glass, reticle,
-// rim and the clip circle with them — about the centre, so a reticle
-// sitting small in the field fills it; the circle may grow past the
-// square. The aiming mark and the off-field arrow keep their size.
+// rim and the clip circle with them — about the centre, at first so the
+// reticle fills it, then as set with − / + beside the toggle; the circle
+// may grow past the square. The aiming mark and the off-field arrow keep
+// their size.
 import { el, clear } from '../../dom.js';
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
@@ -34,7 +35,9 @@ import { getScopeAimMode, setScopeAimMode, getScopeRingPosition } from '../../ra
 import { ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { reticleElementLayer, illuminationClass } from '../reticle-scene.js';
 import { zoomRingSlider } from '../zoom-ring-slider.js';
-import { reticleZoomExtent, reticleZoomFactor } from '../../reticle/reticle-zoom.js';
+import {
+  reticleZoomExtent, reticleZoomFit, stepReticleZoom, RETICLE_ZOOM_MIN, RETICLE_ZOOM_MAX
+} from '../../reticle/reticle-zoom.js';
 
 // Drawing units: the canvas and the field circle's radius within it.
 const SIZE = 1000;
@@ -76,8 +79,8 @@ function ringBelow(position, narrow, portrait) {
   return false;
 }
 
-// The last zoom, and whether zoom to reticle was on, per scope id, for
-// the page lifetime.
+// The last zoom, and zoom to reticle's state ({ on, zoom }), per scope
+// id, for the page lifetime.
 const zoomByScope = new Map();
 const reticleZoomByScope = new Map();
 
@@ -88,10 +91,13 @@ export function scopeView() {
   const clipId = `scope-view-clip-${clipCounter}`;
   const markClipId = `scope-view-mark-clip-${clipCounter}`;
 
-  let optic = null; // { scope, reticle, optics, range, buildRadius, reticleZoom }
+  let optic = null; // { scope, reticle, optics, range, buildRadius, reticleZoomFit }
   let shot = null;
   let zoom = NaN;
+  // Zoom to reticle: on or off, and the magnification it adds while on
+  // (NaN until first switched on for the scope).
   let reticleZoomOn = false;
+  let reticleZoom = NaN;
   let mode = getScopeAimMode();
 
   const fieldCircle = (cls) => svgEl('circle', { class: cls, cx: fmt(HALF), cy: fmt(HALF), r: fmt(FIT_RADIUS) });
@@ -131,13 +137,35 @@ export function scopeView() {
     type: 'button', class: 'icon-button scope-view-reticle-zoom-toggle', 'aria-pressed': 'false',
     title: reticleZoomName, 'aria-label': reticleZoomName
   }, [zoomToReticleIcon(20)]);
-  reticleZoomButton.addEventListener('click', () => {
-    if (!optic) return;
-    reticleZoomOn = !reticleZoomOn;
-    reticleZoomByScope.set(optic.scope.id, reticleZoomOn);
+  function rememberReticleZoom() {
+    reticleZoomByScope.set(optic.scope.id, { on: reticleZoomOn, zoom: reticleZoom });
     scheduleRender();
+  }
+  reticleZoomButton.addEventListener('click', () => {
+    if (!optic?.reticleZoomFit) return;
+    reticleZoomOn = !reticleZoomOn;
+    if (reticleZoomOn && !Number.isFinite(reticleZoom)) reticleZoom = optic.reticleZoomFit;
+    rememberReticleZoom();
   });
-  const cornerBottomRight = el('div', { class: 'scope-view-corner-bottom-right' }, [reticleZoomValue, reticleZoomButton]);
+  const reticleZoomStep = (direction, key, text) => {
+    const name = t(`rangeSolver.scopeView.${key}`);
+    const button = el('button', { type: 'button', class: 'scope-view-segment', title: name, 'aria-label': name }, [text]);
+    button.addEventListener('click', () => {
+      if (!optic?.reticleZoomFit || !reticleZoomOn) return;
+      reticleZoom = stepReticleZoom(reticleZoom, direction, optic.reticleZoomFit);
+      rememberReticleZoom();
+    });
+    return button;
+  };
+  const reticleZoomOut = reticleZoomStep(-1, 'reticleZoomOut', '−');
+  const reticleZoomIn = reticleZoomStep(1, 'reticleZoomIn', '+');
+  const reticleZoomSteps = el('div', {
+    class: 'scope-view-segmented scope-view-reticle-zoom-steps', role: 'group', 'aria-label': reticleZoomName
+  }, [reticleZoomOut, reticleZoomIn]);
+  const cornerBottomRight = el('div', { class: 'scope-view-corner-bottom-right' }, [
+    reticleZoomValue,
+    el('div', { class: 'scope-view-reticle-zoom-row' }, [reticleZoomSteps, reticleZoomButton])
+  ]);
   cornerBottomRight.style.display = 'none';
   const square = el('div', { class: 'scope-view-frame' }, [svg, cornerLeft, corner, cornerBottomRight]);
   const sight = el('div', { class: 'scope-view-sight' }, [square]);
@@ -255,12 +283,15 @@ export function scopeView() {
   // Zoom to reticle's control and label, and the magnification it adds
   // (1 while off or not offered).
   function renderReticleZoom() {
-    const available = !!optic?.reticleZoom.available;
+    const available = !!optic?.reticleZoomFit;
     const on = available && reticleZoomOn;
-    const factor = on ? optic.reticleZoom.factor : 1;
+    const factor = on ? reticleZoom : 1;
     cornerBottomRight.style.display = available ? '' : 'none';
     reticleZoomButton.setAttribute('aria-pressed', on ? 'true' : 'false');
     reticleZoomButton.classList.toggle('active', on);
+    reticleZoomSteps.style.display = on ? '' : 'none';
+    reticleZoomOut.disabled = !(factor > RETICLE_ZOOM_MIN);
+    reticleZoomIn.disabled = !(factor < RETICLE_ZOOM_MAX);
     svg.classList.toggle('reticle-zoomed', on);
     fieldGroup.setAttribute('transform', scaleTransform(factor));
     markClipCircle.setAttribute('r', fmt(FIT_RADIUS * factor));
@@ -343,11 +374,13 @@ export function scopeView() {
     const buildRadius = sightPicture(optics, buildZoom, null).radius;
     optic = {
       scope: next.scope, reticle: next.reticle, optics, range, buildRadius,
-      reticleZoom: optics.type === 'fixed'
-        ? reticleZoomFactor(reticleZoomExtent(next.reticle.elements, buildRadius), buildRadius)
-        : { available: false, factor: 1 }
+      reticleZoomFit: optics.type === 'fixed'
+        ? reticleZoomFit(reticleZoomExtent(next.reticle.elements, buildRadius), buildRadius)
+        : null
     };
-    reticleZoomOn = reticleZoomByScope.get(next.scope.id) === true;
+    const rememberedReticleZoom = reticleZoomByScope.get(next.scope.id);
+    reticleZoomOn = rememberedReticleZoom?.on === true;
+    reticleZoom = rememberedReticleZoom ? rememberedReticleZoom.zoom : NaN;
     const remembered = zoomByScope.get(next.scope.id);
     zoom = settleZoom(optics, Number.isFinite(remembered) ? remembered : initialZoom(optics));
     buildReticle();
@@ -370,7 +403,7 @@ export function scopeView() {
     setShot,
     getZoom: () => zoom,
     getMode: () => mode,
-    getReticleZoom: () => (optic?.reticleZoom.available && reticleZoomOn ? optic.reticleZoom.factor : 1),
+    getReticleZoom: () => (optic?.reticleZoomFit && reticleZoomOn ? reticleZoom : 1),
     dispose: () => {
       for (const q of mediaQueries) q.removeEventListener('change', applyRingLayout);
       ring.dispose();
