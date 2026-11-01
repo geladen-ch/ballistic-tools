@@ -1587,6 +1587,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v234": "Neu: Zielfernrohre und Absehen Element Optics Immersive 5x (Dank an JerkyFreak für die Geometrie). Einige Zielfernrohre und Absehen SB PM II nach Herstellerangaben übertragen.",
       "v233": "Neu: Der Faktor des Auf-Absehen-Zooms lässt sich jetzt selbst einstellen.",
       "v232": "Neu: Auf-Absehen-Zoom im Feldrechner für Zielfernrohre mit fester Vergrösserung, Idee von JerkyFreak.",
       "v231": "Neu: Die Zielfernrohransicht im Feldrechner kann den Vergrösserungsring unter das Absehen legen, damit das Absehen auf Smartphones im Hochformat die volle Breite nutzt (standardmässig automatisch, einstellbar in den Einstellungen).",

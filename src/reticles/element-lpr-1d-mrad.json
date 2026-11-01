@@ -1,0 +1,446 @@
+{
+  "id": "element-lpr-1d-mrad",
+  "name": "Element Optics LPR-1D MRAD",
+  "manufacturer": "Element Optics",
+  "model": "LPR-1D MRAD",
+  "source": "Redrawn from partial manufacturer's specs",
+  "referenceScope": {
+    "type": "fixed",
+    "zoomMin": 5
+  },
+  "illumination": {
+    "enabled": true,
+    "colour": "red"
+  },
+  "elements": [
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": 0,
+      "width": 0.00015,
+      "endX": 0.0005,
+      "illuminated": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": -0.0005,
+      "width": 0.00015,
+      "endY": 0.0005,
+      "illuminated": true
+    },
+    {
+      "type": "hline",
+      "x": 0.001,
+      "y": 0,
+      "width": 0.0001,
+      "endX": 0.003,
+      "illuminated": true,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0.003,
+      "y": -0.0002,
+      "width": 0.0001,
+      "endY": 0.00135,
+      "illuminated": true,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0.002,
+      "y": -0.0001,
+      "width": 0.0001,
+      "endY": 0.0009000000000000001,
+      "illuminated": true,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0.001,
+      "y": -0.00005,
+      "width": 0.0001,
+      "endY": 0.0005,
+      "illuminated": true,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": 0.001,
+      "width": 0.00012,
+      "endY": 0.003,
+      "illuminated": true
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": 0.001,
+      "width": 0.0001,
+      "endX": 0.0005,
+      "illuminated": true
+    },
+    {
+      "type": "hline",
+      "x": -0.00015,
+      "y": 0.0015,
+      "width": 0.00012,
+      "endX": 0.00015,
+      "illuminated": true,
+      "repeat": {
+        "direction": "down",
+        "count": 1,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": -0.0005,
+      "y": 0.002,
+      "width": 0.0001,
+      "endX": 0.0005,
+      "illuminated": true
+    },
+    {
+      "type": "hline",
+      "x": -0.001,
+      "y": 0.003,
+      "width": 0.0001,
+      "endX": 0.001,
+      "illuminated": true
+    },
+    {
+      "type": "vline",
+      "x": 0.0005,
+      "y": 0.00185,
+      "width": 0.0001,
+      "endY": 0.00215,
+      "illuminated": true,
+      "mirror": true,
+      "repeat": {
+        "direction": "down",
+        "count": 1,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "svg",
+      "x": 0,
+      "y": 0,
+      "scale": 0.00001,
+      "name": "circle-upper",
+      "reflect": true,
+      "shape": {
+        "runs": [
+          {
+            "fill": true,
+            "fillRule": "nonzero",
+            "stroke": 0,
+            "cap": "butt",
+            "join": "miter",
+            "miter": 4,
+            "d": [
+              "m597.9-50 29.3-170.9c-69.9-198.5-229.5-352.1-430.5-414.4l-146.7 37.4c291.9 24.4 523.5 256 547.9 547.9z"
+            ]
+          }
+        ]
+      },
+      "illuminated": true,
+      "mirror": true
+    },
+    {
+      "type": "svg",
+      "x": 0,
+      "y": 0,
+      "scale": 0.00001,
+      "name": "circle-lower",
+      "reflect": true,
+      "shape": {
+        "runs": [
+          {
+            "fill": true,
+            "fillRule": "nonzero",
+            "stroke": 0,
+            "cap": "butt",
+            "join": "miter",
+            "miter": 4,
+            "d": [
+              "m330.3 500.9 161.6-53.3c59.8-65.8 105.8-142.9 135.3-226.7l-29.3-170.9c-15.3 183.4-114 349.6-267.6 450.9z"
+            ]
+          }
+        ]
+      },
+      "illuminated": true,
+      "mirror": true
+    },
+    {
+      "type": "hbar",
+      "x": 0.005,
+      "y": 0,
+      "nominalWidth": 0.0008,
+      "endWidth": 0.0001,
+      "thinningLength": 0.011,
+      "endX": 0.03,
+      "mirror": true
+    },
+    {
+      "type": "dot",
+      "x": 0.004,
+      "y": 0,
+      "diameter": 0.0002,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0.006,
+      "y": -0.00025,
+      "width": 0.0001,
+      "endY": 0.00025,
+      "mirror": true,
+      "repeat": {
+        "direction": "right",
+        "count": 1,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "vline",
+      "x": 0.008,
+      "y": -0.0004,
+      "width": 0.0001,
+      "endY": 0.0004,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0.009000000000000001,
+      "y": -0.0005,
+      "width": 0.0001,
+      "endY": 0.0005,
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0.01,
+      "y": -0.0008,
+      "width": 0.0001,
+      "endY": 0.0008,
+      "mirror": true,
+      "repeat": {
+        "direction": "right",
+        "count": 1,
+        "step": 0.01
+      }
+    },
+    {
+      "type": "vline",
+      "x": 0.015,
+      "y": -0.0006500000000000001,
+      "width": 0.0001,
+      "endY": 0.0006500000000000001,
+      "mirror": true
+    },
+    {
+      "type": "number",
+      "x": 0.01,
+      "y": -0.00125,
+      "digitHeight": 0.0006,
+      "text": "10",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "number",
+      "x": 0.02,
+      "y": -0.00125,
+      "digitHeight": 0.0006,
+      "text": "20",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "vline",
+      "x": 0,
+      "y": 0.003,
+      "width": 0.0001,
+      "endY": 0.007
+    },
+    {
+      "type": "vbar",
+      "x": 0,
+      "y": 0.005,
+      "nominalWidth": 0.0008,
+      "endWidth": 0,
+      "thinningLength": 0.011,
+      "endY": 0.0298
+    },
+    {
+      "type": "hline",
+      "x": -0.00025,
+      "y": 0.004,
+      "width": 0.0001,
+      "endX": 0.00025,
+      "repeat": {
+        "direction": "down",
+        "count": 4,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "hline",
+      "x": -0.000375,
+      "y": 0.009000000000000001,
+      "width": 0.0001,
+      "endX": 0.000375
+    },
+    {
+      "type": "hline",
+      "x": -0.002,
+      "y": 0.01,
+      "width": 0.0001,
+      "endX": 0.002
+    },
+    {
+      "type": "hline",
+      "x": -0.0006,
+      "y": 0.015,
+      "width": 0.0001,
+      "endX": 0.0006
+    },
+    {
+      "type": "hline",
+      "x": -0.00075,
+      "y": 0.02,
+      "width": 0.0001,
+      "endX": 0.00075
+    },
+    {
+      "type": "number",
+      "x": 0.003,
+      "y": 0.01,
+      "digitHeight": 0.0006,
+      "text": "10",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "number",
+      "x": 0.00175,
+      "y": 0.02,
+      "digitHeight": 0.0006,
+      "text": "20",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "dot",
+      "x": 0.001,
+      "y": 0.002,
+      "diameter": 0.0002,
+      "mirror": true
+    },
+    {
+      "type": "dot",
+      "x": 0.002,
+      "y": 0.003,
+      "diameter": 0.0002,
+      "mirror": true,
+      "repeat": {
+        "direction": "down",
+        "count": 3,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "dot",
+      "x": 0.001,
+      "y": 0.004,
+      "diameter": 0.0002,
+      "mirror": true,
+      "repeat": {
+        "direction": "down",
+        "count": 2,
+        "step": 0.001
+      }
+    },
+    {
+      "type": "number",
+      "x": 0.002,
+      "y": 0.002,
+      "digitHeight": 0.0006,
+      "text": "2",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "number",
+      "x": 0.003,
+      "y": 0.004,
+      "digitHeight": 0.0006,
+      "text": "4",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "number",
+      "x": 0.003,
+      "y": 0.006,
+      "digitHeight": 0.0006,
+      "text": "6",
+      "anchor": "centre",
+      "font": "overpass-regular",
+      "mirror": true
+    },
+    {
+      "type": "bdc",
+      "y": 0
+    },
+    {
+      "type": "bdc",
+      "y": 0.001
+    },
+    {
+      "type": "bdc",
+      "y": 0.002
+    },
+    {
+      "type": "bdc",
+      "y": 0.003
+    },
+    {
+      "type": "bdc",
+      "y": 0.004
+    },
+    {
+      "type": "bdc",
+      "y": 0.005
+    },
+    {
+      "type": "bdc",
+      "y": 0.006
+    },
+    {
+      "type": "bdc",
+      "y": 0.007
+    },
+    {
+      "type": "bdc",
+      "y": 0.008
+    },
+    {
+      "type": "bdc",
+      "y": 0.009000000000000001
+    },
+    {
+      "type": "bdc",
+      "y": 0.01
+    }
+  ]
+}

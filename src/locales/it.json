@@ -1587,6 +1587,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v234": "Novità: cannocchiali e reticoli Element Optics Immersive 5x (grazie a JerkyFreak per la geometria). Alcuni cannocchiali e reticoli SB PM II trascritti dalle specifiche.",
       "v233": "Novità: il fattore dello zoom sul reticolo è ora regolabile dall'utente.",
       "v232": "Novità: zoom sul reticolo nel Calcolatore per il poligono per i cannocchiali a ingrandimento fisso, idea di JerkyFreak.",
       "v231": "Novità: la vista cannocchiale del Calcolatore per il poligono può collocare l'anello di ingrandimento sotto il reticolo, così il reticolo occupa tutta la larghezza sugli smartphone in verticale (automatico per impostazione predefinita, regolabile nelle Impostazioni).",

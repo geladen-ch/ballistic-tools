@@ -13,6 +13,8 @@ export const SCOPE_IDS = [
   'sb-pm2-5-45x56-high-power',
   'sb-pm2-3-27x56-high-power',
   'trijicon-acog-4x32-rco-m4',
+  'element-immersive-5x30-mrad',
+  'element-immersive-5x30-bdc',
   'generic-3-12x-ffp-mrad',
   'generic-4-16x-ffp-mrad',
   'generic-4-24x-ffp-mrad',

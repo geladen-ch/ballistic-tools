@@ -1,0 +1,20 @@
+{
+  "id": "element-immersive-5x30-bdc",
+  "name": "Element Optics Immersive 5x30 BDC",
+  "manufacturer": "Element Optics",
+  "model": "Immersive 5x30 BDC",
+  "reticleIds": [
+    "element-lpr-1d-bdc"
+  ],
+  "type": "fixed",
+  "magnificationMin": 5,
+  "magnificationMax": 5,
+  "fovMaxRad": 0.10191170375421495,
+  "fovMinRad": null,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "arcmin",
+  "clickHorizontalRad": 0.0000727220521664304,
+  "clickVerticalRad": 0.0000727220521664304,
+  "source": "Manufacturer's specs"
+}

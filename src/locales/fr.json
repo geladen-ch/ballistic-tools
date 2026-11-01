@@ -1587,6 +1587,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v234": "Nouveau : lunettes et réticules Element Optics Immersive 5x (merci à JerkyFreak pour la géométrie). Quelques lunettes et réticules SB PM II retranscrits d'après les spécifications.",
       "v233": "Nouveau : le facteur du zoom sur le réticule est désormais réglable par l'utilisateur.",
       "v232": "Nouveau : zoom sur le réticule dans le Calculateur de terrain pour les lunettes à grossissement fixe, idée de JerkyFreak.",
       "v231": "Nouveau : la vue lunette du Calculateur de terrain peut placer la bague de grossissement sous le réticule, pour que le réticule occupe toute la largeur sur téléphone en portrait (automatique par défaut, réglable dans les Paramètres).",

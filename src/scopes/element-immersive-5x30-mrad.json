@@ -1,0 +1,20 @@
+{
+  "id": "element-immersive-5x30-mrad",
+  "name": "Element Optics Immersive 5x30 MRAD",
+  "manufacturer": "Element Optics",
+  "model": "Immersive 5x30 MRAD",
+  "reticleIds": [
+    "element-lpr-1d-mrad"
+  ],
+  "type": "fixed",
+  "magnificationMin": 5,
+  "magnificationMax": 5,
+  "fovMaxRad": 0.10191170375421495,
+  "fovMinRad": null,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "mrad",
+  "clickHorizontalRad": 0.0001,
+  "clickVerticalRad": 0.0001,
+  "source": "Manufacturer's specs"
+}

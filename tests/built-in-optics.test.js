@@ -16,17 +16,19 @@ const GENERIC_SCOPES = ['generic-3-12x-ffp-mrad', 'generic-4-16x-ffp-mrad', 'gen
 const GENERIC_RETICLES = ['generic-mildot', 'generic-milhash', 'generic-tree-mrad'];
 const MSR2_RETICLES = ['finnaccuracy-msr2-sb', 'finnaccuracy-msr2-sb5', 'finnaccuracy-msr2-sb-high-power'];
 const MSR2_SCOPES = ['sb-pm2-3-20x50-ultra-short', 'sb-pm2-5-20x50-ultra-short', 'sb-pm2-5-25x56', 'sb-pm2-5-45x56-high-power', 'sb-pm2-3-27x56-high-power'];
+const ELEMENT_SCOPES = ['element-immersive-5x30-mrad', 'element-immersive-5x30-bdc'];
+const ELEMENT_RETICLES = ['element-lpr-1d-mrad', 'element-lpr-1d-bdc'];
 
 test('the built-in catalogs are plain id lists', () => {
-  assert.deepEqual(scopes.loadScopeCatalog(), ['sb-pm2-3-20x50', 'sb-cm2-6-36x56', ...MSR2_SCOPES, 'trijicon-acog-4x32-rco-m4', ...GENERIC_SCOPES]);
-  assert.deepEqual(reticles.loadReticleCatalog(), ['sb-p4fl', 'sb-tr2id', 'sb-gr2id', ...MSR2_RETICLES, 'trijicon-rco-m4-chevron', ...GENERIC_RETICLES]);
+  assert.deepEqual(scopes.loadScopeCatalog(), ['sb-pm2-3-20x50', 'sb-cm2-6-36x56', ...MSR2_SCOPES, 'trijicon-acog-4x32-rco-m4', ...ELEMENT_SCOPES, ...GENERIC_SCOPES]);
+  assert.deepEqual(reticles.loadReticleCatalog(), ['sb-p4fl', 'sb-tr2id', 'sb-gr2id', ...MSR2_RETICLES, 'trijicon-rco-m4-chevron', ...ELEMENT_RETICLES, ...GENERIC_RETICLES]);
   assert.ok(scopes.isBuiltInScopeId('sb-pm2-3-20x50') && !scopes.isBuiltInScopeId('user-scope-x'));
   assert.ok(reticles.isBuiltInReticleId('sb-p4fl') && !reticles.isBuiltInReticleId('user-reticle-x'));
 });
 
 test('every built-in scope is valid and lists only built-in reticles that load', async () => {
   const all = await scopes.loadBuiltInScopes();
-  assert.equal(all.length, 13);
+  assert.equal(all.length, 15);
   for (const scope of all) {
     assert.deepEqual(validateScopeRecord(scope), {}, scope.id);
     assert.ok(scope.reticleIds.length > 0, scope.id);
@@ -80,6 +82,21 @@ test('the S&B PM II scopes with the MSR2 reticles: FFP, 0.1 mrad, field of view 
   }
 });
 
+test('the Element Optics Immersive 5x30 scopes: fixed 5x, 10.2 m at 100 m, the MRAD variant in 0.1 mrad clicks and the BDC one in 1/4 MOA, each with its LPR-1D reticle', async () => {
+  for (const [i, [variant, clickUnit, click]] of [['MRAD', 'mrad', DEFAULT_CLICK_RAD.mrad], ['BDC', 'arcmin', DEFAULT_CLICK_RAD.arcmin]].entries()) {
+    const scope = await scopes.loadScope(ELEMENT_SCOPES[i]);
+    assert.equal(scope.name, `Element Optics Immersive 5x30 ${variant}`);
+    assert.deepEqual([scope.type, scope.magnificationMin, scope.magnificationMax, scope.clickUnit], ['fixed', 5, 5, clickUnit]);
+    close(scope.clickHorizontalRad, click, 1e-15);
+    close(scope.clickVerticalRad, click, 1e-15);
+    close(fieldOfViewWidth(scope.fovMaxRad, scope.fovDistanceM), 10.2, 1e-9);
+    assert.deepEqual(scope.reticleIds, [ELEMENT_RETICLES[i]]);
+    const reticle = await reticles.loadReticle(ELEMENT_RETICLES[i]);
+    assert.equal(reticle.name, `Element Optics LPR-1D ${variant}`);
+    assert.ok(reticle.elements.some((e) => e.type === 'svg'), reticle.id);
+  }
+});
+
 test('the generic scopes: FFP, 0.1 mrad, every generic reticle, the field of view from 12 m at 100 m at 3x', async () => {
   for (const [id, min, max] of [[0, 3, 12], [1, 4, 16], [2, 4, 24], [3, 5, 25], [4, 5, 30]]) {
     const scope = await scopes.loadScope(GENERIC_SCOPES[id]);
@@ -96,7 +113,7 @@ test('the generic scopes: FFP, 0.1 mrad, every generic reticle, the field of vie
 
 test('the built-in reticles decode, with their reference scopes', async () => {
   const all = await reticles.loadBuiltInReticles();
-  assert.deepEqual(all.map((r) => r.name), ['Schmidt & Bender P4FL', 'Schmidt & Bender TR²ID', 'Schmidt & Bender GR²ID', 'FinnAccuracy MSR2 SB', 'FinnAccuracy MSR2 SB5', 'FinnAccuracy MSR2 SB High Power', 'Trijicon RCO M4/M150 Chevron', 'Generic Mildot', 'Generic Milhash', 'Generic Tree (mrad)']);
+  assert.deepEqual(all.map((r) => r.name), ['Schmidt & Bender P4FL', 'Schmidt & Bender TR²ID', 'Schmidt & Bender GR²ID', 'FinnAccuracy MSR2 SB', 'FinnAccuracy MSR2 SB5', 'FinnAccuracy MSR2 SB High Power', 'Trijicon RCO M4/M150 Chevron', 'Element Optics LPR-1D MRAD', 'Element Optics LPR-1D BDC', 'Generic Mildot', 'Generic Milhash', 'Generic Tree (mrad)']);
   for (const r of all) {
     assert.deepEqual(validateReferenceScope(r.referenceScope), {}, r.id);
     assert.ok(r.elements.length > 0 && r.elements.every((e) => e.id), r.id);
@@ -110,6 +127,8 @@ test('the built-in reticles decode, with their reference scopes', async () => {
     { type: 'ffp', zoomMin: 5, zoomMax: 45, calibrationZoom: 45 },
     { type: 'ffp', zoomMin: 3, zoomMax: 27, calibrationZoom: 27 },
     { type: 'fixed', zoomMin: 4, zoomMax: 4, calibrationZoom: 4 },
+    { type: 'fixed', zoomMin: 5, zoomMax: 5, calibrationZoom: 5 },
+    { type: 'fixed', zoomMin: 5, zoomMax: 5, calibrationZoom: 5 },
     { type: 'ffp', zoomMin: 3, zoomMax: 12, calibrationZoom: 12 },
     { type: 'ffp', zoomMin: 5, zoomMax: 25, calibrationZoom: 25 },
     { type: 'ffp', zoomMin: 3, zoomMax: 18, calibrationZoom: 18 }
