@@ -198,3 +198,36 @@ test('a previously saved litz choice (mounted fresh) already shows the "zero for
   settingsView.mount(container);
   assert.ok(!isHidden(findById(container, 'settings-zero-for-spin-drift-enabled')));
 });
+
+test('reticle overlay colour: a visual picker of Auto / Vermillion / Blue, Auto by default, with a hint; shape: dots / hashes', async () => {
+  const prefs = await import('../src/range-solver-prefs.js');
+  removeCookie('ballistics_range_solver_reticle_overlay_color_v1');
+  removeCookie('ballistics_range_solver_reticle_overlay_shape_v1');
+  const container = makeElement('main');
+  settingsView.mount(container);
+  const options = [];
+  (function walk(n) {
+    if ((n.className || '').split(' ').includes('reticle-overlay-color-option')) options.push(n);
+    for (const c of n.childNodes || []) walk(c);
+  })(container);
+  assert.deepEqual(options.map((b) => b.getAttribute('data-value')), ['auto', 'vermillion', 'blue']);
+  assert.deepEqual(options.map((b) => b.getAttribute('aria-pressed')), ['true', 'false', 'false']);
+  const markStyles = options.map((b) => b.childNodes[0].childNodes[0].getAttribute('style'));
+  assert.ok(markStyles[0].includes('#D55E00') && markStyles[0].includes('#0072B2'), 'Auto shows both colours');
+  assert.ok(markStyles[1].includes('#D55E00'));
+  assert.ok(markStyles[2].includes('#0072B2'));
+  assert.ok(container.textContent.includes('vermillion'), 'the hint explains Auto');
+
+  fireEvent(options[2], 'click');
+  assert.equal(prefs.getReticleOverlayColor(), 'blue');
+  assert.deepEqual(options.map((b) => b.getAttribute('aria-pressed')), ['false', 'false', 'true']);
+
+  const shape = findById(container, 'settings-reticle-overlay-shape');
+  assert.deepEqual(Array.from(shape.childNodes).map((o) => o.value), ['dots', 'hashes']);
+  assert.equal(shape.value, 'dots');
+  shape.value = 'hashes';
+  fireEvent(shape, 'change');
+  assert.equal(prefs.getReticleOverlayShape(), 'hashes');
+  prefs.setReticleOverlayColor('auto');
+  prefs.setReticleOverlayShape('dots');
+});

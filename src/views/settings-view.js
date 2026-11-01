@@ -16,7 +16,8 @@ import { WIND_DIAL_APPEARANCE_CHOICES, getWindDialAppearance, setWindDialAppeara
 import {
   INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit,
   TARGET_LABEL_VISIBILITY_CHOICES, getTargetLabelVisibility, setTargetLabelVisibility,
-  SCOPE_RING_POSITION_CHOICES, getScopeRingPosition, setScopeRingPosition
+  SCOPE_RING_POSITION_CHOICES, getScopeRingPosition, setScopeRingPosition,
+  RETICLE_OVERLAY_SHAPE_CHOICES, getReticleOverlayShape, setReticleOverlayShape
 } from '../range-solver-prefs.js';
 import { UI_SCALE_CHOICES, getUiScale, setUiScale } from '../ui-scale-prefs.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
@@ -24,6 +25,7 @@ import { isDragModelVisible, setDragModelVisible } from '../drag-model-prefs.js'
 import { sectionGroup } from '../ui/section.js';
 import { themePicker } from '../ui/theme-picker.js';
 import { impactColorPicker } from '../ui/impact-color-picker.js';
+import { reticleOverlayColorPicker } from '../ui/reticle-overlay-color-picker.js';
 import { backupSyncSection } from '../ui/backup-sync-settings.js';
 import { changeHistorySection } from '../ui/change-history-settings.js';
 
@@ -206,6 +208,14 @@ export function mount(container) {
   scopeRingSelect.value = getScopeRingPosition();
   scopeRingSelect.addEventListener('change', () => setScopeRingPosition(scopeRingSelect.value));
 
+  const overlayShapeSelect = el(
+    'select',
+    { id: 'settings-reticle-overlay-shape' },
+    RETICLE_OVERLAY_SHAPE_CHOICES.map((c) => el('option', { value: c.value, i18n: c.labelKey }))
+  );
+  overlayShapeSelect.value = getReticleOverlayShape();
+  overlayShapeSelect.addEventListener('change', () => setReticleOverlayShape(overlayShapeSelect.value));
+
   // One checkbox per known standard drag model (see engine/drag-tables.js's
   // DRAG_MODELS) — data-driven so a future model added there gets a
   // checkbox here for free. At least one must always stay checked (every
@@ -275,6 +285,15 @@ export function mount(container) {
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.rangeSolverScopeRingLabel' }),
       scopeRingSelect
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.reticleOverlayColorLabel' }),
+      reticleOverlayColorPicker(),
+      el('p', { class: 'hint', i18n: 'settings.reticleOverlayColorHint' })
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.reticleOverlayShapeLabel' }),
+      overlayShapeSelect
     ])
   ]);
 

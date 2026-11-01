@@ -508,7 +508,9 @@
       "reticleZoomValue": "{{nominal}} {{extra}}",
       "reticleZoomValueLabel": "{{nominal}} scope, shown {{extra}} larger",
       "reticleZoomOut": "Zoom out",
-      "reticleZoomIn": "Zoom in"
+      "reticleZoomIn": "Zoom in",
+      "bdcOverlay": "BDC overlay",
+      "bdcReferenceWind": "Reference crosswind: {{value}}"
     }
   },
   "rangeSolverLocations": {
@@ -789,6 +791,14 @@
     "rangeSolverScopeRingAuto": "Automatic (below on phones in portrait)",
     "rangeSolverScopeRingBeside": "Beside the reticle",
     "rangeSolverScopeRingBelow": "Below the reticle (in portrait)",
+    "reticleOverlayColorLabel": "Reticle overlay color",
+    "reticleOverlayColorAuto": "Auto",
+    "reticleOverlayColorVermillion": "Vermillion",
+    "reticleOverlayColorBlue": "Blue",
+    "reticleOverlayColorHint": "The color of everything the scope view draws over the reticle: the aiming mark and the BDC overlay. Auto uses vermillion, and blue on a reticle lit red or amber, where vermillion would be hard to tell apart from the illumination. Both colors stay distinct for color-blind eyes.",
+    "reticleOverlayShapeLabel": "Reticle overlay shape",
+    "reticleOverlayShapeDots": "Dots",
+    "reticleOverlayShapeHashes": "Hashes (hold points as small crosses)",
     "dragModelsHeading": "Ballistic models",
     "dragModelsHint": "Hide standard drag models you don't use, to declutter the drag-model picker. A hidden model stays available wherever it's already selected — hiding it never changes an existing choice.",
     "csvExportHeading": "CSV export",
@@ -1587,6 +1597,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v235": "New: BDC overlay in Range Solver's scope view.",
       "v234": "New: Element Optics Immersive 5x scopes and reticles (props to JerkyFreak for geometry). A few SB PM II scopes and reticles transcribed from specs.",
       "v233": "New: zoom-to-reticle ratio controls exposed to the user.",
       "v232": "New: zoom-to-reticle feature in range solver for fixed magnification scopes, props to JerkyFreak for the idea.",

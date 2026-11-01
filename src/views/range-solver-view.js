@@ -25,6 +25,8 @@ import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
 import { getIndicatorStyle, getOutputUnit, isScopeViewOn, setScopeViewOn } from '../range-solver-prefs.js';
 import { scopeView as createScopeView } from '../ui/range-solver/scope-view.js';
+import { bdcTrajectories } from '../ui/range-solver/bdc-trajectories.js';
+import { referenceWindSpeed } from '../reticle/bdc-overlay.js';
 import { resolveRifleOptic, rifleOpticKey } from '../rifle-optic.js';
 import { INDICATOR_GLYPHS } from '../ui/dope-format.js';
 import { getSpinDriftMode } from '../spin-drift-prefs.js';
@@ -42,7 +44,7 @@ import { goToLocations } from '../locations-nav.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
-import { displayChoice, toDisplayUnit } from '../display-units.js';
+import { displayChoice, toDisplayUnit, fromDisplayUnit } from '../display-units.js';
 import { fractionToPercent, linearToAngleAtRange } from '../quantity.js';
 import { requestWakeLock } from '../wake-lock.js';
 import { angleMeterButton } from '../ui/angle-meter/angle-meter-button.js';
@@ -431,7 +433,17 @@ export function mount(container) {
   // the conditions row while the view is off, and in the corner of the
   // reticle's square while it is on, so the row needs only its text's
   // height then.
-  const scopeView = createScopeView();
+  const scopeView = createScopeView({ onBdcChange: updateBdc });
+  // The BDC overlay's trajectory: flown for the dialed target's
+  // conditions (its line-of-sight angle and the wind's head- or tailwind
+  // part included) whenever the overlay is on and they change.
+  const bdc = bdcTrajectories((tables) => { if (!disposed) scopeView.setBdcTables(tables); });
+  let bdcState = null;
+  function updateBdc() {
+    if (!bdcState || !scopeView.wantsBdc()) return;
+    const reference = fromDisplayUnit('windSpeed', referenceWindSpeed(displayChoice('windSpeed').unit));
+    bdc.update(bdcState, reference);
+  }
   scopeView.node.style.display = 'none';
   const scopeViewButton = el('button', {
     type: 'button', class: 'icon-button range-solver-scope-toggle', 'aria-pressed': 'false',
@@ -478,6 +490,7 @@ export function mount(container) {
     readout.classList.toggle('compact', active);
     layout.classList.toggle('scope-view-on', active);
     scopeView.setOptic(active ? rifleOptic : null);
+    updateBdc();
   }
 
   const outputPane = el('div', { class: 'range-solver-output-pane' }, [guns.node, conditionsRow, scopeView.node, readout, footer]);
@@ -726,6 +739,8 @@ export function mount(container) {
     updateConditions();
     detachIfHandEdited();
     const nominalStateBase = buildNominalStateBase();
+    bdcState = { ...nominalStateBase, losAngleRad: losAngleField.getEngineValue() };
+    updateBdc();
     const targetRangeM = targetRangeField.getEngineValue();
     const solved = solveClicks(nominalStateBase, targetRangeM, losAngleField.getEngineValue());
     if (!solved) {
@@ -785,6 +800,7 @@ export function mount(container) {
     wrapResizeObserver?.disconnect();
     if (wrapSyncFrame !== null) cancelAnimationFrame(wrapSyncFrame);
     rangeCard.dispose();
+    bdc.dispose();
     scopeView.dispose();
   };
 }

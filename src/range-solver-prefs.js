@@ -169,6 +169,23 @@ export function setScopeViewOn(on) {
   }
 }
 
+const SCOPE_BDC_OVERLAY_COOKIE_NAME = 'ballistics_range_solver_scope_bdc_overlay_v1';
+
+// Whether the scope view labels the reticle's BDC marks with their ranges
+// and wind holds (reticle/bdc-overlay.js) — only ever in effect for a
+// reticle that has BDC marks; global, not per reticle. Off by default.
+export function isScopeBdcOverlayOn() {
+  return getCookie(SCOPE_BDC_OVERLAY_COOKIE_NAME) === 'true';
+}
+
+export function setScopeBdcOverlayOn(on) {
+  try {
+    setCookie(SCOPE_BDC_OVERLAY_COOKIE_NAME, on ? 'true' : 'false');
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
+
 // What the scope view's aiming mark shows: 'hold' (nothing dialed) or
 // 'dialElevation' (elevation dialed, windage held) — reticle/
 // sight-picture.js's AIM_MODES.
@@ -212,6 +229,70 @@ export function setScopeRingPosition(value) {
   if (!SCOPE_RING_POSITION_CHOICES.some((c) => c.value === value)) return;
   try {
     setCookie(SCOPE_RING_POSITION_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
+
+const RETICLE_OVERLAY_COLOR_COOKIE_NAME = 'ballistics_range_solver_reticle_overlay_color_v1';
+const DEFAULT_RETICLE_OVERLAY_COLOR = 'auto';
+
+// The colour of everything the scope view lays over the reticle (the
+// aiming mark, its leads, the off-field arrow, the BDC overlay), from the
+// Okabe-Ito colour-blind-safe palette: 'vermillion', 'blue', or 'auto'
+// (the default) — vermillion, but blue on a reticle lit red or amber,
+// which vermillion would be lost against.
+export const RETICLE_OVERLAY_COLORS = Object.freeze({ vermillion: '#D55E00', blue: '#0072B2' });
+export const RETICLE_OVERLAY_COLOR_CHOICES = [
+  { value: 'auto', labelKey: 'settings.reticleOverlayColorAuto' },
+  { value: 'vermillion', labelKey: 'settings.reticleOverlayColorVermillion' },
+  { value: 'blue', labelKey: 'settings.reticleOverlayColorBlue' }
+];
+const ILLUMINATIONS_NEAR_VERMILLION = ['red', 'amber'];
+
+export function getReticleOverlayColor() {
+  const raw = getCookie(RETICLE_OVERLAY_COLOR_COOKIE_NAME);
+  return RETICLE_OVERLAY_COLOR_CHOICES.some((c) => c.value === raw) ? raw : DEFAULT_RETICLE_OVERLAY_COLOR;
+}
+
+export function setReticleOverlayColor(value) {
+  if (!RETICLE_OVERLAY_COLOR_CHOICES.some((c) => c.value === value)) return;
+  try {
+    setCookie(RETICLE_OVERLAY_COLOR_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
+
+// The hex colour a choice comes to for a reticle (its `illumination`,
+// reticle/model.js's { enabled, colour }).
+export function reticleOverlayHex(choice, illumination) {
+  if (choice === 'vermillion' || choice === 'blue') return RETICLE_OVERLAY_COLORS[choice];
+  const lit = illumination?.enabled && ILLUMINATIONS_NEAR_VERMILLION.includes(illumination.colour);
+  return RETICLE_OVERLAY_COLORS[lit ? 'blue' : 'vermillion'];
+}
+
+const RETICLE_OVERLAY_SHAPE_COOKIE_NAME = 'ballistics_range_solver_reticle_overlay_shape_v1';
+const DEFAULT_RETICLE_OVERLAY_SHAPE = 'dots';
+
+// How the scope view marks holds: 'dots' (the default) or 'hashes' —
+// upright ticks for the BDC overlay's crosswind holds (the reference's
+// longer and thicker) and a small upright cross for a hold point (the
+// aiming mark's centre, each BDC mark's own).
+export const RETICLE_OVERLAY_SHAPE_CHOICES = [
+  { value: 'dots', labelKey: 'settings.reticleOverlayShapeDots' },
+  { value: 'hashes', labelKey: 'settings.reticleOverlayShapeHashes' }
+];
+
+export function getReticleOverlayShape() {
+  const raw = getCookie(RETICLE_OVERLAY_SHAPE_COOKIE_NAME);
+  return RETICLE_OVERLAY_SHAPE_CHOICES.some((c) => c.value === raw) ? raw : DEFAULT_RETICLE_OVERLAY_SHAPE;
+}
+
+export function setReticleOverlayShape(value) {
+  if (!RETICLE_OVERLAY_SHAPE_CHOICES.some((c) => c.value === value)) return;
+  try {
+    setCookie(RETICLE_OVERLAY_SHAPE_COOKIE_NAME, value);
   } catch {
     // best-effort — losing persistence isn't fatal
   }

@@ -269,6 +269,20 @@ export function holdIcon(size = 18) {
   ]);
 }
 
+// The scope view's BDC overlay: a vertical stadia with rows of wind dots
+// below the centre, each row wider than the one above.
+export function bdcOverlayIcon(size = 18) {
+  const dot = (cx, cy, r) => svgEl('circle', { cx, cy, r, fill: 'currentColor', stroke: 'none' });
+  return icon(size, '0 0 20 20', [
+    svgEl('line', { x1: '10', y1: '1.5', x2: '10', y2: '18.5', 'stroke-width': '1' }),
+    svgEl('line', { x1: '4', y1: '4', x2: '16', y2: '4', 'stroke-width': '1' }),
+    dot('10', '8.5', '1.2'), dot('7.6', '8.5', '1.2'), dot('12.4', '8.5', '1.2'),
+    dot('10', '12.5', '1.2'), dot('6.6', '12.5', '1.2'), dot('13.4', '12.5', '1.2'),
+    dot('10', '16.5', '1.2'), dot('5.4', '16.5', '1.2'), dot('14.6', '16.5', '1.2'),
+    dot('2.4', '16.5', '0.8'), dot('17.6', '16.5', '0.8')
+  ]);
+}
+
 export function dialElevationIcon(size = 18) {
   return icon(size, '0 0 20 20', [
     ...aimModeReticle(),

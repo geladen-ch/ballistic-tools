@@ -508,7 +508,9 @@
       "reticleZoomValue": "{{nominal}} {{extra}}",
       "reticleZoomValueLabel": "Cannocchiale {{nominal}}, mostrato {{extra}} più grande",
       "reticleZoomOut": "Riduci",
-      "reticleZoomIn": "Ingrandisci"
+      "reticleZoomIn": "Ingrandisci",
+      "bdcOverlay": "Sovrapposizione BDC",
+      "bdcReferenceWind": "Vento laterale di riferimento: {{value}}"
     }
   },
   "rangeSolverLocations": {
@@ -789,6 +791,14 @@
     "rangeSolverScopeRingAuto": "Automatico (sotto sugli smartphone in verticale)",
     "rangeSolverScopeRingBeside": "Accanto al reticolo",
     "rangeSolverScopeRingBelow": "Sotto il reticolo (in verticale)",
+    "reticleOverlayColorLabel": "Colore della sovrapposizione al reticolo",
+    "reticleOverlayColorAuto": "Automatico",
+    "reticleOverlayColorVermillion": "Vermiglio",
+    "reticleOverlayColorBlue": "Blu",
+    "reticleOverlayColorHint": "Il colore di tutto ciò che la vista cannocchiale disegna sul reticolo: il punto di mira e la sovrapposizione BDC. Automatico usa il vermiglio, e il blu su un reticolo illuminato in rosso o ambra, dove il vermiglio si distinguerebbe a fatica dall'illuminazione. Entrambi i colori restano distinguibili anche per chi ha un'alterata visione dei colori.",
+    "reticleOverlayShapeLabel": "Forma della sovrapposizione al reticolo",
+    "reticleOverlayShapeDots": "Punti",
+    "reticleOverlayShapeHashes": "Tacche (punti di mira come piccole croci)",
     "dragModelsHeading": "Modelli balistici",
     "dragModelsHint": "Nascondi i modelli di resistenza standard che non usi, per snellire il selettore del modello. Un modello nascosto resta disponibile ovunque sia già selezionato — nasconderlo non modifica mai una scelta esistente.",
     "csvExportHeading": "Esportazione CSV",
@@ -1587,6 +1597,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v235": "Novità: sovrapposizione BDC nella vista cannocchiale del Range Solver.",
       "v234": "Novità: cannocchiali e reticoli Element Optics Immersive 5x (grazie a JerkyFreak per la geometria). Alcuni cannocchiali e reticoli SB PM II trascritti dalle specifiche.",
       "v233": "Novità: il fattore dello zoom sul reticolo è ora regolabile dall'utente.",
       "v232": "Novità: zoom sul reticolo nel Calcolatore per il poligono per i cannocchiali a ingrandimento fisso, idea di JerkyFreak.",

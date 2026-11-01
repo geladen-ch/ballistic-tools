@@ -508,7 +508,9 @@
       "reticleZoomValue": "{{nominal}} {{extra}}",
       "reticleZoomValueLabel": "{{nominal}}-Zielfernrohr, {{extra}} grösser dargestellt",
       "reticleZoomOut": "Verkleinern",
-      "reticleZoomIn": "Vergrössern"
+      "reticleZoomIn": "Vergrössern",
+      "bdcOverlay": "BDC-Einblendung",
+      "bdcReferenceWind": "Referenz-Seitenwind: {{value}}"
     }
   },
   "rangeSolverLocations": {
@@ -789,6 +791,14 @@
     "rangeSolverScopeRingAuto": "Automatisch (unten auf Smartphones im Hochformat)",
     "rangeSolverScopeRingBeside": "Neben dem Absehen",
     "rangeSolverScopeRingBelow": "Unter dem Absehen (im Hochformat)",
+    "reticleOverlayColorLabel": "Farbe der Absehen-Einblendung",
+    "reticleOverlayColorAuto": "Automatisch",
+    "reticleOverlayColorVermillion": "Zinnober",
+    "reticleOverlayColorBlue": "Blau",
+    "reticleOverlayColorHint": "Die Farbe von allem, was die Zielfernrohransicht über das Absehen legt: Haltepunkt und BDC-Einblendung. Automatisch nimmt Zinnober und bei rot oder bernsteinfarben beleuchtetem Absehen Blau, weil sich Zinnober dort kaum von der Beleuchtung abhebt. Beide Farben bleiben auch bei Farbenfehlsichtigkeit unterscheidbar.",
+    "reticleOverlayShapeLabel": "Form der Absehen-Einblendung",
+    "reticleOverlayShapeDots": "Punkte",
+    "reticleOverlayShapeHashes": "Striche (Haltepunkte als kleine Kreuze)",
     "dragModelsHeading": "Ballistische Modelle",
     "dragModelsHint": "Blenden Sie nicht genutzte Standard-Luftwiderstandsmodelle aus, um die Modellauswahl übersichtlicher zu machen. Ein ausgeblendetes Modell bleibt dort verfügbar, wo es bereits ausgewählt ist — das Ausblenden ändert keine bestehende Auswahl.",
     "csvExportHeading": "CSV-Export",
@@ -1587,6 +1597,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v235": "Neu: BDC-Einblendung in der Zielfernrohransicht des Range Solvers.",
       "v234": "Neu: Zielfernrohre und Absehen Element Optics Immersive 5x (Dank an JerkyFreak für die Geometrie). Einige Zielfernrohre und Absehen SB PM II nach Herstellerangaben übertragen.",
       "v233": "Neu: Der Faktor des Auf-Absehen-Zooms lässt sich jetzt selbst einstellen.",
       "v232": "Neu: Auf-Absehen-Zoom im Feldrechner für Zielfernrohre mit fester Vergrösserung, Idee von JerkyFreak.",

@@ -35,6 +35,9 @@ test.beforeEach(async () => {
   prefs.setScopeViewOn(false);
   prefs.setScopeAimMode('hold');
   prefs.setScopeRingPosition('auto');
+  prefs.setScopeBdcOverlayOn(false);
+  prefs.setReticleOverlayColor('auto');
+  prefs.setReticleOverlayShape('dots');
   await reticleLibrary.resetReticleLibraryForTests();
 });
 
@@ -293,6 +296,66 @@ test('the mode switch is remembered', async () => {
   cleanup();
 });
 
+test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled with its range and its crosswind holds, the aiming mark\'s ring kept', async (tc) => {
+  // The fake worker never answers: the trajectories fly inline instead.
+  const worker = global.Worker;
+  delete global.Worker;
+  tc.after(() => { global.Worker = worker; });
+  prefs.setScopeViewOn(true);
+  userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
+  saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
+  let mounted = await mountSolver();
+  assert.equal(byClass(mounted.container, 'scope-view-corner-bottom-left')[0].style.display, 'none', 'no BDC marks, no toggle');
+  mounted.cleanup();
+
+  userRifle({ scopeId: 'element-immersive-5x30-bdc', reticleId: 'element-lpr-1d-bdc' });
+  mounted = await mountSolver();
+  const { container, cleanup } = mounted;
+  const corner = byClass(container, 'scope-view-corner-bottom-left')[0];
+  const toggle = byClass(container, 'scope-view-bdc-toggle')[0];
+  assert.equal(corner.style.display, '');
+  assert.equal(toggle.parentNode, corner);
+  assert.equal(toggle.getAttribute('aria-label'), t('rangeSolver.scopeView.bdcOverlay'));
+  assert.equal(toggle.getAttribute('aria-pressed'), 'false');
+  assert.equal(byClass(container, 'scope-view-bdc-label').length, 0);
+  const windValue = byClass(container, 'scope-view-bdc-wind-value')[0];
+  assert.equal(windValue.parentNode, corner);
+  assert.equal(windValue.style.display, 'none', 'no reference crosswind while off');
+
+  fireEvent(toggle, 'click');
+  for (let i = 0; i < 100 && !byClass(container, 'scope-view-bdc-dot').length; i++) await settle(50);
+  assert.equal(prefs.isScopeBdcOverlayOn(), true);
+  assert.equal(toggle.getAttribute('aria-pressed'), 'true');
+  assert.equal(byClass(container, 'scope-view-mark-ring').length, 1, 'the ring stays');
+  assert.equal(byClass(container, 'scope-view-mark-dot').length, 1, 'and its dot');
+  const labels = byClass(container, 'scope-view-bdc-label');
+  const dots = byClass(container, 'scope-view-bdc-dot');
+  assert.ok(dots.length > 5, String(dots.length));
+  assert.ok(labels.length > 1 && labels.length <= dots.length, 'labels that would crowd each other are left out');
+  assert.equal(byClass(container, 'scope-view-bdc-wind').length, 12 * dots.length);
+  assert.equal(windValue.style.display, '');
+  assert.equal(windValue.textContent, '4 m/s', 'the reference crosswind above the toggle');
+  assert.equal(windValue.getAttribute('aria-label'), t('rangeSolver.scopeView.bdcReferenceWind', { value: '4 m/s' }));
+  const ranges = labels.map((n) => Number(n.textContent));
+  assert.ok(ranges.every((r, i) => i === 0 || r > ranges[i - 1]), `ranges grow down the reticle: ${ranges}`);
+  assert.equal(ranges[0], 100, 'the centre holds for the zero');
+
+  const dial = findAll(container, (n) => n.getAttribute && n.getAttribute('data-mode') === 'dialElevation')[0];
+  fireEvent(dial, 'click');
+  await settle();
+  const dialed = byClass(container, 'scope-view-bdc-label').map((n) => Number(n.textContent));
+  assert.equal(dialed[0], 500, 'dialed, the centre holds for the target');
+  assert.ok(dialed[1] > 500);
+
+  fireEvent(toggle, 'click');
+  await settle();
+  assert.equal(prefs.isScopeBdcOverlayOn(), false);
+  assert.equal(byClass(container, 'scope-view-bdc-label').length, 0);
+  assert.equal(byClass(container, 'scope-view-mark-ring').length, 1, 'the ring is still there');
+  assert.equal(windValue.style.display, 'none');
+  cleanup();
+});
+
 const fixedScope = (overrides = {}) => ({
   ...defaultScopeRecord(), id: 'fixed-1', type: 'fixed', magnificationMin: 4, magnificationMax: 4, fovMaxRad: 0.12, fovMinRad: null, ...overrides
 });
@@ -389,4 +452,86 @@ test('zoom to reticle: any fixed scope, not variable ones; a full reticle opens 
   view.setOptic({ scope: fixedScope({ id: 'fixed-3' }), reticle: bars });
   assert.equal(view.getReticleZoom(), 5, 'and the first is remembered');
   view.dispose();
+});
+
+test('the overlay colour: Auto is vermillion, blue on a reticle lit red or amber; a fixed choice is that colour', () => {
+  const { reticleOverlayHex, getReticleOverlayColor, getReticleOverlayShape } = prefs;
+  assert.equal(getReticleOverlayColor(), 'auto');
+  assert.equal(getReticleOverlayShape(), 'dots');
+  assert.equal(reticleOverlayHex('auto', undefined), '#D55E00');
+  assert.equal(reticleOverlayHex('auto', { enabled: false, colour: 'red' }), '#D55E00', 'unlit');
+  assert.equal(reticleOverlayHex('auto', { enabled: true, colour: 'red' }), '#0072B2');
+  assert.equal(reticleOverlayHex('auto', { enabled: true, colour: 'amber' }), '#0072B2');
+  assert.equal(reticleOverlayHex('auto', { enabled: true, colour: 'green' }), '#D55E00');
+  assert.equal(reticleOverlayHex('vermillion', { enabled: true, colour: 'red' }), '#D55E00');
+  assert.equal(reticleOverlayHex('blue', undefined), '#0072B2');
+  prefs.setReticleOverlayColor('nonsense');
+  assert.equal(getReticleOverlayColor(), 'auto');
+});
+
+test('the scope view takes its overlay colour per reticle', async () => {
+  const lit = (colour) => ({ illumination: { enabled: true, colour }, elements: smallReticle.elements });
+  let view = scopeView();
+  view.setOptic({ scope: fixedScope(), reticle: smallReticle });
+  assert.equal(view.node.style.getPropertyValue('--scope-mark'), '#D55E00');
+  view.setOptic({ scope: fixedScope({ id: 'fixed-2' }), reticle: lit('amber') });
+  assert.equal(view.node.style.getPropertyValue('--scope-mark'), '#0072B2');
+  prefs.setReticleOverlayColor('vermillion');
+  view = scopeView();
+  view.setOptic({ scope: fixedScope(), reticle: lit('red') });
+  assert.equal(view.node.style.getPropertyValue('--scope-mark'), '#D55E00');
+});
+
+test('hashes: the aiming mark\'s centre is a cross; the BDC overlay draws crosses and upright hashes, the reference\'s longer and thicker', async () => {
+  const { integrate } = await import('../src/engine/trajectory.js');
+  const { holdTable, withReferenceWind } = await import('../src/reticle/bdc-overlay.js');
+  prefs.setReticleOverlayShape('hashes');
+  const view = scopeView();
+  const reticle = reticleOf([...smallReticle.elements, { type: 'bdc', x: 0, y: 0 }, { type: 'bdc', x: 0, y: 0.004 }]);
+  view.setOptic({ scope: fixedScope(), reticle });
+  view.setShot({ elevationRad: 0.002, windageRad: 0.001 });
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 1, 'with its ring');
+  assert.equal(byClass(view.node, 'scope-view-mark-cross').length, 1);
+  assert.equal(byClass(view.node, 'scope-view-mark-dot').length, 0);
+
+  const state = { muzzleVelocity: 840, bc: 0.475, dragModel: 'G1', zeroRange: 100, sightHeightM: 0.05, maxRange: 1500, rangeStep: 5 };
+  const still = holdTable(integrate({ ...state, windSpeed: 0, windAngleRad: 0 }).points);
+  const reference = holdTable(integrate({ ...state, windSpeed: 4, windAngleRad: Math.PI / 2 }).points);
+  view.setBdcTables({ still: withReferenceWind(still, reference, 4), referenceSpeed: 4 });
+  fireEvent(byClass(view.node, 'scope-view-bdc-toggle')[0], 'click');
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 1, 'the ring stays with the overlay on');
+  assert.equal(byClass(view.node, 'scope-view-mark-cross').length, 1);
+  assert.equal(byClass(view.node, 'scope-view-bdc-cross').length, 2);
+  const hashes = byClass(view.node, 'scope-view-bdc-hash');
+  assert.equal(hashes.length, 24);
+  assert.equal(byClass(view.node, 'scope-view-bdc-dot').length + byClass(view.node, 'scope-view-bdc-wind').length, 0, 'no dots');
+  const strokes = [...new Set(hashes.map((h) => Number(h.getAttribute('stroke-width'))))].sort((a, b) => a - b);
+  assert.equal(strokes.length, 2, 'two weights');
+  const length = (h) => { const m = h.getAttribute('d').match(/M[-\d.]+ ([-\d.]+)V([-\d.]+)/); return Number(m[2]) - Number(m[1]); };
+  const thick = hashes.filter((h) => Number(h.getAttribute('stroke-width')) === strokes[1]);
+  const thin = hashes.filter((h) => Number(h.getAttribute('stroke-width')) === strokes[0]);
+  assert.equal(thick.length, 4, 'the reference, either side, on both rows');
+  assert.ok(length(thick[0]) > length(thin[0]), 'the reference\'s longer');
+  assert.equal(byClass(view.node, 'scope-view-bdc-label').length > 0, true);
+});
+
+test('the leads: in Hold to both axes; in Dial elevation none back to the centre along the horizontal axis', async () => {
+  const leads = (view) => byClass(view.node, 'scope-view-lead');
+  prefs.setScopeAimMode('hold');
+  let view = scopeView();
+  view.setOptic({ scope: fixedScope({ id: 'fixed-leads' }), reticle: smallReticle });
+  view.setShot({ elevationRad: 0.01, windageRad: 0.008 });
+  await settle();
+  assert.equal(leads(view).length, 2);
+
+  prefs.setScopeAimMode('dialElevation');
+  view = scopeView();
+  view.setOptic({ scope: fixedScope({ id: 'fixed-leads' }), reticle: smallReticle });
+  view.setShot({ elevationRad: 0.01, windageRad: 0.008 });
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 1, 'the mark is drawn');
+  assert.equal(leads(view).length, 0);
+  assert.equal(byClass(view.node, 'scope-view-lead-halo').length, 0);
 });

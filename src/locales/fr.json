@@ -508,7 +508,9 @@
       "reticleZoomValue": "{{nominal}} {{extra}}",
       "reticleZoomValueLabel": "Lunette {{nominal}}, affichée {{extra}} plus grande",
       "reticleZoomOut": "Dézoomer",
-      "reticleZoomIn": "Zoomer"
+      "reticleZoomIn": "Zoomer",
+      "bdcOverlay": "Superposition BDC",
+      "bdcReferenceWind": "Vent de travers de référence : {{value}}"
     }
   },
   "rangeSolverLocations": {
@@ -789,6 +791,14 @@
     "rangeSolverScopeRingAuto": "Automatique (en dessous sur téléphone en portrait)",
     "rangeSolverScopeRingBeside": "À côté du réticule",
     "rangeSolverScopeRingBelow": "Sous le réticule (en portrait)",
+    "reticleOverlayColorLabel": "Couleur de la superposition au réticule",
+    "reticleOverlayColorAuto": "Automatique",
+    "reticleOverlayColorVermillion": "Vermillon",
+    "reticleOverlayColorBlue": "Bleu",
+    "reticleOverlayColorHint": "La couleur de tout ce que la vue lunette dessine sur le réticule : le point de visée et la superposition BDC. Automatique utilise le vermillon, et le bleu sur un réticule éclairé en rouge ou en ambre, où le vermillon se distinguerait mal de l'éclairage. Les deux couleurs restent distinctes pour les personnes daltoniennes.",
+    "reticleOverlayShapeLabel": "Forme de la superposition au réticule",
+    "reticleOverlayShapeDots": "Points",
+    "reticleOverlayShapeHashes": "Traits (points de visée en petites croix)",
     "dragModelsHeading": "Modèles balistiques",
     "dragModelsHint": "Masquez les modèles de traînée standard que vous n'utilisez pas, pour alléger le sélecteur de modèle. Un modèle masqué reste disponible partout où il est déjà sélectionné — le masquer ne change jamais un choix existant.",
     "csvExportHeading": "Export CSV",
@@ -1587,6 +1597,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v235": "Nouveau : superposition BDC dans la vue lunette du Range Solver.",
       "v234": "Nouveau : lunettes et réticules Element Optics Immersive 5x (merci à JerkyFreak pour la géométrie). Quelques lunettes et réticules SB PM II retranscrits d'après les spécifications.",
       "v233": "Nouveau : le facteur du zoom sur le réticule est désormais réglable par l'utilisateur.",
       "v232": "Nouveau : zoom sur le réticule dans le Calculateur de terrain pour les lunettes à grossissement fixe, idée de JerkyFreak.",
