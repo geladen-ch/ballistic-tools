@@ -85,21 +85,25 @@ const MARK_CROSS = 9;
 const MARK_CROSS_STROKE = 3;
 // The BDC overlay, in drawing units: dot radii (a mark's own, a crosswind
 // hold's, the reference's); for the hashes shape a mark's cross (half its
-// arm, its stroke) and the crosswind holds' upright hashes (half their
-// length, their stroke; the reference's longer and thicker); their halo,
-// the range label's size and its baseline's gap below the mark's hold.
+// arm, its stroke) and the crosswind holds' upright hashes (their length,
+// hanging from the mark's level, and their stroke; the reference's longer
+// and thicker); their halo, and the range label's full size.
 const BDC_DOT = 5;
 const BDC_WIND_DOT = 3.5;
 const BDC_WIND_DOT_MAJOR = 6.5;
 const BDC_CROSS = 7;
 const BDC_CROSS_STROKE = 2.5;
-const BDC_HASH = 5;
-const BDC_HASH_STROKE = 2;
-const BDC_HASH_MAJOR = 10;
-const BDC_HASH_MAJOR_STROKE = 4;
+const BDC_HASH = 15;
+const BDC_HASH_STROKE = 3;
+const BDC_HASH_MAJOR = 20;
+const BDC_HASH_MAJOR_STROKE = 6;
 const BDC_HALO = 2.5;
-const BDC_LABEL_SIZE = 24;
-const BDC_LABEL_GAP = 4 + BDC_LABEL_SIZE * 0.75;
+const BDC_LABEL_SIZE = 36;
+// Labels crowding each other shrink down to this share of their size
+// before any is left out.
+const BDC_LABEL_MIN_SCALE = 0.75;
+// The label's outline, as a share of its size.
+const BDC_LABEL_OUTLINE = 7.5 / 36;
 // The least distance between two labels' baselines, in label sizes.
 const BDC_LABEL_PITCH = 1.1;
 
@@ -385,8 +389,10 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   // The overlay's rows at `zoom`, drawn at `scale` drawing units per
   // radian of reticle subtension. A dot's halo ring and the label's
   // outline keep it readable over the reticle's own lines; the labels go
-  // over every dot, and one that would run into the label above it is
-  // left out — zoom in (or zoom to reticle) to see it.
+  // over every dot. Where the rows in view come closer than the labels
+  // need, every label shrinks to fit the tightest of them, down to
+  // BDC_LABEL_MIN_SCALE; past that, one that would still run into the
+  // label above it is left out — zoom in (or zoom to reticle) to see it.
   function renderBdc(scale) {
     if (!wantsBdc() || !bdcTables || !shot) return;
     const { optics } = optic;
@@ -401,8 +407,10 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       svgEl('circle', { class: 'scope-view-bdc-halo', cx: fmt(cx), cy: fmt(cy), r: fmt(r), 'stroke-width': fmt(2 * BDC_HALO) }),
       svgEl('circle', { class: cls, cx: fmt(cx), cy: fmt(cy), r: fmt(r) })
     ];
-    const hash = (cx, cy, half, stroke) => {
-      const d = `M${fmt(cx)} ${fmt(cy - half)}V${fmt(cy + half)}`;
+    // A hash hangs from the mark's level, its top end on it; a cross
+    // (the mark's own hold) is centred on it.
+    const hash = (cx, cy, length, stroke) => {
+      const d = `M${fmt(cx)} ${fmt(cy)}V${fmt(cy + length)}`;
       return [
         svgEl('path', { class: 'scope-view-stroke-halo', d, 'stroke-width': fmt(stroke + 2 * BDC_HALO) }),
         svgEl('path', { class: 'scope-view-bdc-hash', d, 'stroke-width': fmt(stroke) })
@@ -414,7 +422,16 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     const holdNodes = (cx, cy) => (hashes
       ? crossNodes(cx, cy, BDC_CROSS, BDC_CROSS_STROKE, BDC_HALO, 'scope-view-bdc-cross')
       : dot(cx, cy, BDC_DOT, 'scope-view-bdc-dot'));
-    const labelDrop = (hashes ? BDC_CROSS : BDC_DOT) + BDC_LABEL_GAP;
+    let tightest = Infinity;
+    let above = null;
+    for (const row of rows) {
+      const cy = HALF + row.level * scale;
+      if (cy < 0 || cy > SIZE) continue;
+      if (above !== null) tightest = Math.min(tightest, cy - above);
+      above = cy;
+    }
+    const labelSize = Math.min(BDC_LABEL_SIZE, Math.max(BDC_LABEL_SIZE * BDC_LABEL_MIN_SCALE, tightest / BDC_LABEL_PITCH));
+    const labelDrop = (hashes ? BDC_CROSS : BDC_DOT) + 4 + labelSize * 0.75;
     const labels = [];
     let lastBaseline = -Infinity;
     for (const row of rows) {
@@ -425,10 +442,11 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       const cx = screenX(row.x);
       for (const n of holdNodes(cx, cy)) bdcLayer.appendChild(n);
       const baseline = cy + labelDrop;
-      if (baseline - lastBaseline < BDC_LABEL_SIZE * BDC_LABEL_PITCH) continue;
+      if (baseline - lastBaseline < labelSize * BDC_LABEL_PITCH) continue;
       lastBaseline = baseline;
       labels.push(svgEl('text', {
-        class: 'scope-view-bdc-label', x: fmt(cx), y: fmt(baseline), 'font-size': fmt(BDC_LABEL_SIZE), 'text-anchor': 'middle'
+        class: 'scope-view-bdc-label', x: fmt(cx), y: fmt(baseline), 'font-size': fmt(labelSize),
+        'stroke-width': fmt(labelSize * BDC_LABEL_OUTLINE), 'text-anchor': 'middle'
       }, [document.createTextNode(String(Math.round(toDisplayUnit('distance', row.rangeM))))]));
     }
     for (const n of labels) bdcLayer.appendChild(n);

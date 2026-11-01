@@ -759,7 +759,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .scope-view-bdc-hash, .scope-view-bdc-cross, .scope-view-mark-cross { fill: none; stroke: var(--scope-mark); stroke-linecap: butt; }
 .scope-view-stroke-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-linecap: square; }
 .scope-view-bdc-label {
-  fill: var(--scope-mark); stroke: rgba(255, 255, 255, 0.85); stroke-width: 5px; stroke-linejoin: round; paint-order: stroke;
+  fill: var(--scope-mark); stroke: rgba(255, 255, 255, 0.85); stroke-linejoin: round; paint-order: stroke;
   font-weight: 700; font-variant-numeric: tabular-nums;
 }
 

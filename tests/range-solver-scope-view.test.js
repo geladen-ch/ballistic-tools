@@ -42,6 +42,16 @@ test.beforeEach(async () => {
 });
 
 const settle = (ms = 60) => new Promise((resolve) => setTimeout(resolve, ms));
+// Waits for `ready()`, polling: what is loaded or computed asynchronously
+// (the rifle's optic, the BDC overlay's trajectories) takes as long as a
+// loaded machine makes it, so no fixed delay is safe.
+async function waitFor(ready, what, timeoutMs = 20000) {
+  const until = Date.now() + timeoutMs;
+  while (!ready()) {
+    if (Date.now() > until) throw new Error(`timed out waiting for ${what}`);
+    await settle(20);
+  }
+}
 
 function findAll(node, pred, out = []) {
   if (pred(node)) out.push(node);
@@ -305,12 +315,14 @@ test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled 
   userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
   saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
   let mounted = await mountSolver();
+  await waitFor(() => byClass(mounted.container, 'reticle-shape').length > 0, 'the P4F reticle');
   assert.equal(byClass(mounted.container, 'scope-view-corner-bottom-left')[0].style.display, 'none', 'no BDC marks, no toggle');
   mounted.cleanup();
 
   userRifle({ scopeId: 'element-immersive-5x30-bdc', reticleId: 'element-lpr-1d-bdc' });
   mounted = await mountSolver();
   const { container, cleanup } = mounted;
+  await waitFor(() => byClass(container, 'reticle-shape').length > 0, 'the LPR-1D BDC reticle');
   const corner = byClass(container, 'scope-view-corner-bottom-left')[0];
   const toggle = byClass(container, 'scope-view-bdc-toggle')[0];
   assert.equal(corner.style.display, '');
@@ -323,7 +335,7 @@ test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled 
   assert.equal(windValue.style.display, 'none', 'no reference crosswind while off');
 
   fireEvent(toggle, 'click');
-  for (let i = 0; i < 100 && !byClass(container, 'scope-view-bdc-dot').length; i++) await settle(50);
+  await waitFor(() => byClass(container, 'scope-view-bdc-dot').length > 0, 'the BDC overlay\'s trajectories');
   assert.equal(prefs.isScopeBdcOverlayOn(), true);
   assert.equal(toggle.getAttribute('aria-pressed'), 'true');
   assert.equal(byClass(container, 'scope-view-mark-ring').length, 1, 'the ring stays');
@@ -514,6 +526,9 @@ test('hashes: the aiming mark\'s centre is a cross; the BDC overlay draws crosse
   const thin = hashes.filter((h) => Number(h.getAttribute('stroke-width')) === strokes[0]);
   assert.equal(thick.length, 4, 'the reference, either side, on both rows');
   assert.ok(length(thick[0]) > length(thin[0]), 'the reference\'s longer');
+  const tops = new Set(hashes.map((h) => h.getAttribute('d').match(/M[-\d.]+ ([-\d.]+)V/)[1]));
+  const crossCentres = new Set(byClass(view.node, 'scope-view-bdc-cross').map((c) => c.getAttribute('d').match(/M[-\d.]+ ([-\d.]+)H/)[1]));
+  assert.deepEqual([...tops].sort(), [...crossCentres].sort(), 'the hashes hang from the levels the crosses are centred on');
   assert.equal(byClass(view.node, 'scope-view-bdc-label').length > 0, true);
 });
 
@@ -534,4 +549,34 @@ test('the leads: in Hold to both axes; in Dial elevation none back to the centre
   assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 1, 'the mark is drawn');
   assert.equal(leads(view).length, 0);
   assert.equal(byClass(view.node, 'scope-view-lead-halo').length, 0);
+});
+
+test('BDC labels crowding each other shrink to fit, down to 75 %, before any is left out', async () => {
+  const { integrate } = await import('../src/engine/trajectory.js');
+  const { holdTable, withReferenceWind } = await import('../src/reticle/bdc-overlay.js');
+  const state = { muzzleVelocity: 840, bc: 0.475, dragModel: 'G1', zeroRange: 100, sightHeightM: 0.05, maxRange: 2000, rangeStep: 5 };
+  const still = holdTable(integrate({ ...state, windSpeed: 0, windAngleRad: 0 }).points);
+  const reference = holdTable(integrate({ ...state, windSpeed: 4, windAngleRad: Math.PI / 2 }).points);
+  const tables = { still: withReferenceWind(still, reference, 4), referenceSpeed: 4 };
+  prefs.setScopeBdcOverlayOn(true);
+  // A 4x fixed scope with a 0.12 rad field: 490 drawing units over 0.06 rad,
+  // so the labels' full pitch (36 x 1.1) is about 4.85 mrad of rows.
+  async function labelsAt(spacingMrad, id) {
+    const view = scopeView();
+    const levels = [0, 1, 2, 3].map((i) => mradToRad(i * spacingMrad));
+    view.setOptic({ scope: fixedScope({ id }), reticle: reticleOf([...smallReticle.elements, ...levels.map((y) => ({ type: 'bdc', x: 0, y }))]) });
+    view.setShot({ elevationRad: 0.002, windageRad: 0 });
+    view.setBdcTables(tables);
+    await settle();
+    return byClass(view.node, 'scope-view-bdc-label').map((n) => Number(n.getAttribute('font-size')));
+  }
+  const wide = await labelsAt(6, 'fixed-labels-wide');
+  assert.deepEqual(wide, [36, 36, 36, 36], 'room enough: full size');
+  const medium = await labelsAt(4, 'fixed-labels-medium');
+  assert.equal(medium.length, 4, 'shrunk, every label still shown');
+  assert.ok(medium[0] < 36 && medium[0] > 27, String(medium[0]));
+  assert.ok(medium.every((size) => size === medium[0]), 'all at one size');
+  const tight = await labelsAt(2, 'fixed-labels-tight');
+  assert.ok(tight.length < 4 && tight.length > 0, `some left out: ${tight.length}`);
+  assert.ok(tight.every((size) => size === 27), 'only at 75 %');
 });
