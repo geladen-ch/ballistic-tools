@@ -3,6 +3,7 @@
   "name": "Generic Mildot",
   "manufacturer": "Generic",
   "model": "Mildot",
+  "source": "",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 3,

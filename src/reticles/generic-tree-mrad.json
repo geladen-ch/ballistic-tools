@@ -3,6 +3,7 @@
   "name": "Generic Tree (mrad)",
   "manufacturer": "Generic",
   "model": "Tree (mrad)",
+  "source": "",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 3,

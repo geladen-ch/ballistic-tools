@@ -3,6 +3,7 @@
   "name": "Schmidt & Bender P4LF",
   "manufacturer": "Schmidt & Bender",
   "model": "P4LF",
+  "source": "",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 3,

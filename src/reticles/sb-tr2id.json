@@ -3,6 +3,7 @@
   "name": "Schmidt & Bender TR²ID",
   "manufacturer": "Schmidt & Bender",
   "model": "TR²ID",
+  "source": "",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 6,

@@ -196,12 +196,13 @@ Zielfernrohre liegen im Reiter **Zielfernrohre**. **+ Zielfernrohr hinzufügen**
 - **Winkelwerte stimmen bei** — nur SFP: die Vergrößerung, bei der die Marken des Absehens das wert sind, was sie angeben.
 - **Klick-Einheit** und **horizontaler** und **vertikaler Klickwert** — vorgegeben 0,1 mrad oder 0,25 MOA, je nach gewählter Einheit; beim Wechsel der Einheit wird ein Wert, der noch auf der üblichen Größe steht, getauscht, jeder andere umgerechnet.
 - **Absehen** — jedes Absehen anhaken, mit dem das Zielfernrohr erhältlich ist, aus Ihren eigenen und den mitgelieferten, jedes als Vorschaubild. Ein Hinweis erscheint, wenn eines für einen anderen Zielfernrohrtyp gezeichnet wurde; es gelten immer die Werte des Zielfernrohrs selbst.
+- **Quelle / Anmerkungen** — Freitext, optional. Woher die Werte stammen, etwa aus dem Datenblatt, oder was Sie selbst gemessen haben.
 
 **Ihre Zielfernrohre** listet jedes mit einer Zusammenfassung (Typ, Bereich, Klick, Anzahl Absehen) und **In Datei sichern**, **Bearbeiten** und **Löschen**. Ein „Aktivieren“ gibt es für Zielfernrohre nicht: Ein Zielfernrohr wird über das Gewehr verwendet, auf dem es sitzt.
 
 ### 5.9 Absehen und der Absehen-Designer
 
-**Ihre Absehen**, im selben Reiter, listet jedes Absehen mit Vorschaubild, dem Zielfernrohrtyp und der Vergrößerung, für die es gezeichnet ist, und wie viele Ihrer Zielfernrohre es führen. Absehen werden im **Absehen-Designer** gezeichnet: **+ Absehen hinzufügen** öffnet ihn mit einem leeren Absehen, **Bearbeiten** mit diesem Absehen. Dort speichert **Im Arsenal speichern** es, und **Änderungen verwerfen** kehrt zur zuletzt gespeicherten Fassung zurück; beides führt zurück zum Reiter Zielfernrohre. Hersteller und Modell des Absehens werden im Designer eingegeben, mit denselben Vorschlägen wie bei einem Zielfernrohr.
+**Ihre Absehen**, im selben Reiter, listet jedes Absehen mit Vorschaubild, dem Zielfernrohrtyp und der Vergrößerung, für die es gezeichnet ist, und wie viele Ihrer Zielfernrohre es führen. Absehen werden im **Absehen-Designer** gezeichnet: **+ Absehen hinzufügen** öffnet ihn mit einem leeren Absehen, **Bearbeiten** mit diesem Absehen. Dort speichert **Im Arsenal speichern** es, und **Änderungen verwerfen** kehrt zur zuletzt gespeicherten Fassung zurück; beides führt zurück zum Reiter Zielfernrohre. Hersteller und Modell des Absehens werden im Designer eingegeben, mit denselben Vorschlägen wie bei einem Zielfernrohr, ebenso optional **Quelle / Anmerkungen** — woher die Teilungswerte stammen, oder was sonst dazu festgehalten werden soll.
 
 Im Designer wird ein Absehen für ein **Referenz-Zielfernrohr** gezeichnet — nur dessen Typ und Vergrößerung; das Sehfeld wird aus der Vergrößerung angenommen (12 m auf 100 m bei 3×), nur damit der Designer das Feld zeichnen kann, in dem das Absehen liegt. Das reale Zielfernrohr, in das ein Absehen kommt, bringt sein eigenes Sehfeld mit.
 

@@ -196,12 +196,13 @@ Les lunettes se trouvent dans l’onglet **Lunettes**. **+ Ajouter une lunette**
 - **Valeurs exactes à** — SPF seulement : le grossissement auquel les repères du réticule valent ce qu’ils indiquent.
 - **Unité du clic** et **valeurs du clic horizontal** et **vertical** — 0,1 mrad ou 0,25 MOA par défaut, selon l’unité choisie ; changer d’unité remplace une valeur encore à sa taille habituelle et convertit toute autre.
 - **Réticules** — cochez chaque réticule avec lequel la lunette est proposée, parmi les vôtres et les intégrés, chacun affiché en vignette. Une indication apparaît si l’un a été dessiné pour un autre type de lunette ; ce sont toujours les paramètres de la lunette qui s’appliquent.
+- **Source / notes** — texte libre, facultatif. D’où viennent les valeurs, par exemple la fiche technique, ou ce que vous avez mesuré vous-même.
 
 **Vos lunettes** liste chacune avec un résumé (type, plage, clic, nombre de réticules) et **Sauvegarder dans un fichier**, **Modifier** et **Supprimer**. Il n’y a pas d’« activation » pour une lunette : une lunette s’utilise à travers la carabine qui la porte.
 
 ### 5.9 Les réticules et le Concepteur de réticule
 
-**Vos réticules**, dans le même onglet, liste chaque réticule avec une vignette, le type de lunette et le grossissement pour lesquels il est dessiné, et le nombre de vos lunettes qui l’utilisent. Les réticules se dessinent dans le **Concepteur de réticule** : **+ Ajouter un réticule** l’ouvre sur un réticule vide, **Modifier** sur ce réticule. Là, **Enregistrer dans l’arsenal** l’enregistre et **Abandonner les modifications** revient à la dernière version enregistrée ; l’un comme l’autre ramène à l’onglet Lunettes. Le fabricant et le modèle du réticule se saisissent dans le Concepteur, avec les mêmes suggestions que pour une lunette.
+**Vos réticules**, dans le même onglet, liste chaque réticule avec une vignette, le type de lunette et le grossissement pour lesquels il est dessiné, et le nombre de vos lunettes qui l’utilisent. Les réticules se dessinent dans le **Concepteur de réticule** : **+ Ajouter un réticule** l’ouvre sur un réticule vide, **Modifier** sur ce réticule. Là, **Enregistrer dans l’arsenal** l’enregistre et **Abandonner les modifications** revient à la dernière version enregistrée ; l’un comme l’autre ramène à l’onglet Lunettes. Le fabricant et le modèle du réticule se saisissent dans le Concepteur, avec les mêmes suggestions que pour une lunette, de même qu’un champ facultatif **Source / notes** — d’où viennent les valeurs angulaires, ou tout ce qui mérite d’être noté avec lui.
 
 Dans le Concepteur, un réticule est dessiné pour une **lunette de référence** — seulement son type et son grossissement ; le champ de vision est déduit du grossissement (12 m à 100 m à 3×), uniquement pour que le Concepteur puisse dessiner le champ dans lequel se trouve le réticule. La vraie lunette dans laquelle on monte un réticule apporte son propre champ de vision.
 

@@ -196,12 +196,13 @@ Scopes live on the **Scopes** tab. **+ Add Scope** opens a form:
 - **Subtensions true at** — SFP only: the magnification at which the reticle's marks are worth what they say.
 - **Click unit** and the **horizontal** and **vertical click values** — default 0.1 mrad or 0.25 MOA, whichever unit you pick; switching the unit swaps a value still at its usual size, and converts any other.
 - **Reticles** — tick every reticle the scope can be had with, from your own and the built-in ones, each shown as a thumbnail. A hint appears if one was drawn for a different type of scope; the scope's own parameters always apply.
+- **Source / notes** — free text, optional. Where the figures came from, e.g. the data sheet, or what you measured yourself.
 
 **Your Scopes** lists each with a summary (type, range, click, number of reticles) and **Backup to file**, **Edit** and **Delete**. There is no "make active" for a scope: a scope is used through the rifle it sits on.
 
 ### 5.9 Reticles and the Reticle Designer
 
-**Your Reticles**, on the same tab, lists each reticle with a thumbnail, the scope type and magnification it was drawn for, and how many of your scopes list it. Reticles are drawn in the **Reticle Designer**: **+ Add Reticle** opens it on an empty reticle, **Edit** on that reticle. There, **Save to arsenal** stores it and **Discard changes** goes back to the last saved version; either one returns you to the Scopes tab. The reticle's manufacturer and model are typed in the Designer, with the same suggestions as a scope's.
+**Your Reticles**, on the same tab, lists each reticle with a thumbnail, the scope type and magnification it was drawn for, and how many of your scopes list it. Reticles are drawn in the **Reticle Designer**: **+ Add Reticle** opens it on an empty reticle, **Edit** on that reticle. There, **Save to arsenal** stores it and **Discard changes** goes back to the last saved version; either one returns you to the Scopes tab. The reticle's manufacturer and model are typed in the Designer, with the same suggestions as a scope's, and so is an optional **Source / notes** — where the subtensions came from, or anything else worth keeping with it.
 
 In the Designer a reticle is drawn for a **reference scope** — just its type and magnification; the field of view is assumed from the magnification (12 m at 100 m at 3×), only so the Designer can draw the field the reticle sits in. The real scope a reticle is put in brings its own field of view.
 

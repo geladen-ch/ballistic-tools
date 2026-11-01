@@ -3,9 +3,9 @@
 //
 // Held (decoded) — a reticle document (model.js) plus the record's own
 // fields, without the document's `name`:
-//   { id, name, manufacturer, model, referenceScope, illumination, elements, groups, nextId, ...bookkeeping }
+//   { id, name, manufacturer, model, source, referenceScope, illumination, elements, groups, nextId, ...bookkeeping }
 // Stored (encoded) — what stored-reticle.js keeps of the document:
-//   { id, name, manufacturer, model, referenceScope, illumination?, elements: [stored element...], ...bookkeeping }
+//   { id, name, manufacturer, model, source, referenceScope, illumination?, elements: [stored element...], ...bookkeeping }
 //
 // `name` is the manufacturer and model (scope-record.js's opticLabel), set
 // afresh on every encode and decode. Bookkeeping fields (modifiedAt,
@@ -24,15 +24,19 @@ import {
 const ELEMENT_FORMAT_VERSION = 2;
 // Document-only fields: rebuilt on decoding, never stored.
 const DOCUMENT_ONLY = ['groups', 'nextId'];
+// The longest source / notes text kept.
+const MAX_SOURCE = 2000;
 
-const text = (v) => (typeof v === 'string' ? v.slice(0, MAX_NAME) : '');
+const text = (v, max = MAX_NAME) => (typeof v === 'string' ? v.slice(0, max) : '');
 
 export function encodeReticleRecord(reticle) {
   if (!reticle || typeof reticle !== 'object' || reticle.deletedAt) return reticle;
-  const { id, manufacturer, model, referenceScope, illumination, elements, ...rest } = reticle;
+  const { id, manufacturer, model, source, referenceScope, illumination, elements, ...rest } = reticle;
   for (const key of DOCUMENT_ONLY) delete rest[key];
   delete rest.name;
-  const out = { id, name: opticLabel({ manufacturer, model }), manufacturer: text(manufacturer), model: text(model) };
+  const out = {
+    id, name: opticLabel({ manufacturer, model }), manufacturer: text(manufacturer), model: text(model), source: text(source, MAX_SOURCE)
+  };
   out.referenceScope = storedReferenceScope(referenceScope);
   const storedLight = storedIllumination(illumination);
   if (storedLight) out.illumination = storedLight;
@@ -51,6 +55,7 @@ export function decodeReticleRecord(stored) {
     name: opticLabel({ manufacturer, model }),
     manufacturer,
     model,
+    source: text(stored.source, MAX_SOURCE),
     referenceScope: parseReferenceScope(referenceScope),
     illumination: parseIllumination(illumination),
     ...parseElements(elements, ELEMENT_FORMAT_VERSION)

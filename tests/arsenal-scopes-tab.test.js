@@ -96,6 +96,7 @@ test('adding a scope: every field read in SI, the actual low zoom shown as typed
   type(container, 'arsenalScopeMagnificationMax', 20);
   type(container, 'arsenalScopeFovMax', 13);
   type(container, 'arsenalScopeFovMin', 2.1);
+  type(container, 'arsenalScopeSource', '  S&B catalog 2024  ');
   assert.ok(container.textContent.includes(t('arsenal.scopeActualLowZoom', { zoom: '3.23' })));
   const check = byId(container, `arsenalScopeReticle-${reticle.id}`);
   check.checked = true;
@@ -111,6 +112,7 @@ test('adding a scope: every field read in SI, the actual low zoom shown as typed
   assert.equal(scope.calibrationZoom, null);
   assert.equal(scope.clickHorizontalRad, DEFAULT_CLICK_RAD.mrad);
   assert.deepEqual(scope.reticleIds, [reticle.id]);
+  assert.equal(scope.source, 'S&B catalog 2024');
   // Listed, with its summary; the form gone.
   const tab = byId(container, 'arsenal-tab-scopes');
   assert.ok(tab.textContent.includes('Schmidt & Bender 3-20x50 PM II'));
@@ -321,4 +323,19 @@ test('the Scopes tab says how much of the largest loadable file the Arsenal take
   container = mountOnScopes();
   assert.ok(warning(container).textContent.includes(formatBytes(MAX_FILE_BYTES)));
   assert.notEqual(warning(container).textContent.slice(0, 30), t('arsenal.librarySizeNear', {}).slice(0, 30));
+});
+
+test('editing a scope shows its source / notes, and an older scope without one gets an empty field', () => {
+  saveUserScope(pm2({ source: 'Measured at 100 m' }));
+  const legacy = pm2({ id: 'user-scope-2', model: '5-25x56 PM II' });
+  delete legacy.source;
+  saveUserScope(legacy);
+  const container = mountOnScopes();
+  const editButtons = buttons(container, 'arsenal.editButton');
+  fireEvent(editButtons[0], 'click');
+  assert.equal(byId(container, 'arsenalScopeSource').value, 'Measured at 100 m');
+  fireEvent(buttons(container, 'arsenal.editButton')[1], 'click');
+  assert.equal(byId(container, 'arsenalScopeSource').value, '');
+  fireEvent(buttons(container, 'arsenal.saveScopeButton')[0], 'click');
+  assert.equal(loadUserScopes().find((s) => s.id === 'user-scope-2').source, '');
 });

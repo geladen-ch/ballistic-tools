@@ -1,7 +1,8 @@
 // The reticle document and every edit to it, as pure functions returning a
 // new document — the shape history.js snapshots. No DOM.
 //
-// document = { manufacturer, model, referenceScope, illumination, elements: [record...], groups: [{ id }], nextId }
+// document = { manufacturer, model, source, referenceScope, illumination, elements: [record...], groups: [{ id }], nextId }
+// `source` = optional free text: where the reticle's data comes from, notes.
 // `referenceScope` = the scope the reticle is drawn for (see scope.js).
 // A reticle record (reticle-record.js) is a document plus the record's
 // own id and bookkeeping.
@@ -31,8 +32,8 @@ import { translateRecord } from './geometry.js';
 export const ILLUMINATION_COLOURS = ['red', 'amber', 'green'];
 export const DEFAULT_ILLUMINATION = Object.freeze({ enabled: false, colour: 'red' });
 
-export function createDocument({ referenceScope = defaultReferenceScope(), manufacturer = '', model = '' } = {}) {
-  return { manufacturer, model, referenceScope, illumination: { ...DEFAULT_ILLUMINATION }, elements: [], groups: [], nextId: 1 };
+export function createDocument({ referenceScope = defaultReferenceScope(), manufacturer = '', model = '', source = '' } = {}) {
+  return { manufacturer, model, source, referenceScope, illumination: { ...DEFAULT_ILLUMINATION }, elements: [], groups: [], nextId: 1 };
 }
 
 // Switches illumination on or off, or picks its colour. Elements keep
@@ -364,17 +365,21 @@ export function updateReferenceScope(doc, patch) {
   return { ...doc, referenceScope: { ...doc.referenceScope, ...patch } };
 }
 
-// The manufacturer and/or model: { manufacturer?, model? }.
+const IDENTITY_KEYS = ['manufacturer', 'model', 'source'];
+
+// The manufacturer, model and/or source: { manufacturer?, model?, source? }.
 export function setIdentity(doc, patch) {
   const next = { ...doc, ...patch };
-  return next.manufacturer === doc.manufacturer && next.model === doc.model ? doc : next;
+  return IDENTITY_KEYS.every((key) => next[key] === doc[key]) ? doc : next;
 }
 
-const DOCUMENT_KEYS = ['manufacturer', 'model', 'referenceScope', 'illumination', 'elements', 'groups', 'nextId'];
+const DOCUMENT_KEYS = ['manufacturer', 'model', 'source', 'referenceScope', 'illumination', 'elements', 'groups', 'nextId'];
 
-// The document part of a reticle record.
+// The document part of a reticle record; a record from before reticles
+// had a source gets an empty one.
 export function documentOf(reticle) {
   const doc = {};
   for (const key of DOCUMENT_KEYS) doc[key] = reticle[key];
+  if (typeof doc.source !== 'string') doc.source = '';
   return doc;
 }

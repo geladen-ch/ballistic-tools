@@ -25,7 +25,7 @@ test('a reticle record round-trips; the name is manufacturer and model', () => {
   const reticle = sample();
   const stored = encodeReticleRecord(reticle);
   assert.equal(stored.name, 'Acme Mil-Dot');
-  assert.deepEqual(Object.keys(stored), ['id', 'name', 'manufacturer', 'model', 'referenceScope', 'elements']);
+  assert.deepEqual(Object.keys(stored), ['id', 'name', 'manufacturer', 'model', 'source', 'referenceScope', 'elements']);
   assert.ok(!('id' in stored.elements[0]), 'element ids are not stored');
   const back = decodeReticleRecord(stored);
   // What shapes the reticle comes back (a repeat that is off loses its
@@ -37,6 +37,16 @@ test('a reticle record round-trips; the name is manufacturer and model', () => {
   assert.deepEqual(back.elements.map((e) => Boolean(e.groupId)), [false, true, true]);
   assert.equal(back.groups.length, 1);
   assert.deepEqual(encodeReticleRecord(back), stored, 'and encodes back to the same record');
+});
+
+test('the source / notes round-trips; a record without one, or with a non-string, decodes to an empty one', () => {
+  const stored = encodeReticleRecord({ ...sample(), source: 'Manufacturer data sheet' });
+  assert.equal(stored.source, 'Manufacturer data sheet');
+  assert.equal(decodeReticleRecord(stored).source, 'Manufacturer data sheet');
+  const { source, ...older } = stored;
+  assert.equal(decodeReticleRecord(older).source, '');
+  assert.equal(decodeReticleRecord({ ...stored, source: 42 }).source, '');
+  assert.equal(decodeReticleRecord({ ...stored, source: 'x'.repeat(5000) }).source.length, 2000);
 });
 
 test('illumination is stored only when not the default', () => {

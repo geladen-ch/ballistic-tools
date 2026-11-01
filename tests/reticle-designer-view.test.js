@@ -1062,3 +1062,25 @@ test('the reticle manufacturer suggests optics makers; picking one sets it as an
   fireEvent(buttonLabelled(container, 'reticleDesigner.view.undo'), 'click');
   assert.equal(doc().manufacturer, '');
 });
+
+test('the source / notes is an undo step, saved with the reticle and shown again when it is opened', () => {
+  const container = makeElement('main');
+  view.mount(container);
+  typeIdentity(container, 'Acme', 'Dot');
+  const source = byId(container, 'reticle-source');
+  source.value = 'Measured on paper at 100 m';
+  fireEvent(source, 'input');
+  assert.equal(doc().source, 'Measured on paper at 100 m');
+  fireEvent(byId(container, 'reticle-save'), 'click');
+  const [saved] = reticleLibrary.loadUserReticles();
+  assert.equal(saved.source, 'Measured on paper at 100 m');
+  fireEvent(buttonLabelled(container, 'reticleDesigner.view.undo'), 'click');
+  assert.equal(doc().source, '');
+  assert.equal(byId(container, 'reticle-source').value, '');
+
+  state.openReticle(reticleLibrary.getUserReticle(saved.id), { fromArsenal: true });
+  const reopened = makeElement('main');
+  view.mount(reopened);
+  assert.equal(byId(reopened, 'reticle-source').value, 'Measured on paper at 100 m');
+  assert.equal(state.hasUnsavedReticleChanges(), false);
+});

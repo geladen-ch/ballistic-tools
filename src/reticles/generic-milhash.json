@@ -3,6 +3,7 @@
   "name": "Generic Milhash",
   "manufacturer": "Generic",
   "model": "Milhash",
+  "source": "",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 5,

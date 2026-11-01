@@ -15,5 +15,6 @@
   "calibrationZoom": null,
   "clickUnit": "arcmin",
   "clickHorizontalRad": 0.0000727220521664304,
-  "clickVerticalRad": 0.0000727220521664304
+  "clickVerticalRad": 0.0000727220521664304,
+  "source": ""
 }

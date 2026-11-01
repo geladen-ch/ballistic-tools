@@ -31,8 +31,9 @@ const formatNumber = (v, decimals) => String(Number(v.toFixed(decimals)) + 0);
 // manufacturer and model, type, nominal magnification, field of view (the
 // widths seen at a distance, in the user's distance unit, held as angles),
 // for an SFP the zoom its subtensions are true at, the turret's click unit
-// and click values, and the reticles it comes with. The actual lowest
-// magnification the field of view implies is shown as it is typed.
+// and click values, the reticles it comes with, and an optional source /
+// notes text. The actual lowest magnification the field of view implies
+// is shown as it is typed.
 //
 // `reticleChoices()` returns { arsenal, builtIn }: the reticles that can
 // be picked (records as reticle-library.js / reticles.js give them); call
@@ -67,6 +68,7 @@ export function scopeForm({ initialValues = {}, excludeId, reticleChoices, onSav
   });
   const manufacturerInput = manufacturer.input;
   const modelInput = textInput('arsenalScopeModel', values.model);
+  const sourceInput = textInput('arsenalScopeSource', values.source);
   const duplicateWarning = el('p', { class: 'hint warning', i18n: 'arsenal.duplicateNameWarning' });
   duplicateWarning.style.display = 'none';
   function refreshDuplicateWarning() {
@@ -203,7 +205,8 @@ export function scopeForm({ initialValues = {}, excludeId, reticleChoices, onSav
       calibrationZoom: type === 'sfp' ? keptOr(calibrationInput, calibrationShown, values.calibrationZoom, parseNumber) : null,
       clickUnit: clickUnitSelect.value,
       clickHorizontalRad: readClickRad(clickHInput, clickHShown, values.clickHorizontalRad),
-      clickVerticalRad: readClickRad(clickVInput, clickVShown, values.clickVerticalRad)
+      clickVerticalRad: readClickRad(clickVInput, clickVShown, values.clickVerticalRad),
+      source: sourceInput.value.trim()
     };
   }
 
@@ -318,6 +321,7 @@ export function scopeForm({ initialValues = {}, excludeId, reticleChoices, onSav
     reticleList,
     el('p', { class: 'hint', i18n: 'arsenal.scopeReticlesHint' }),
     reticleTypeHint,
+    el('div', { class: 'field' }, [el('label', { for: sourceInput.id, i18n: 'arsenal.sourceLabel' }), sourceInput]),
     el('div', { class: 'arsenal-form-actions' }, [saveButton, cancelButton])
   ]);
 

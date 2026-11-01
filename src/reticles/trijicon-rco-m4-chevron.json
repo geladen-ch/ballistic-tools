@@ -3,6 +3,7 @@
   "name": "Trijicon RCO M4/M150 Chevron",
   "manufacturer": "Trijicon",
   "model": "RCO M4/M150 Chevron",
+  "source": "",
   "referenceScope": {
     "type": "fixed",
     "zoomMin": 4

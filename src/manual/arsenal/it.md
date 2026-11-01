@@ -196,12 +196,13 @@ Le ottiche si trovano nella scheda **Ottiche**. **+ Aggiungi ottica** apre un mo
 - **Valori esatti a** — solo SFP: l’ingrandimento al quale i segni del reticolo valgono quanto indicano.
 - **Unità di click** e **valore click orizzontale** e **verticale** — 0,1 mrad o 0,25 MOA per impostazione predefinita, secondo l’unità scelta; cambiando unità, un valore ancora alla dimensione abituale viene sostituito, ogni altro convertito.
 - **Reticoli** — spunta ogni reticolo con cui l’ottica è disponibile, fra i tuoi e quelli integrati, ciascuno mostrato in miniatura. Compare un avviso se uno è stato disegnato per un altro tipo di ottica; valgono sempre i parametri dell’ottica.
+- **Fonte / note** — testo libero, facoltativo. Da dove vengono i valori, per esempio la scheda tecnica, o cosa hai misurato tu stesso.
 
 **Le tue ottiche** elenca ciascuna con un riepilogo (tipo, intervallo, click, numero di reticoli) e **Backup su file**, **Modifica** ed **Elimina**. Per un’ottica non esiste «rendi attiva»: un’ottica si usa attraverso il fucile su cui è montata.
 
 ### 5.9 I reticoli e il Progettista di reticoli
 
-**I tuoi reticoli**, nella stessa scheda, elenca ogni reticolo con una miniatura, il tipo di ottica e l’ingrandimento per cui è disegnato, e quante delle tue ottiche lo usano. I reticoli si disegnano nel **Progettista di reticoli**: **+ Aggiungi reticolo** lo apre su un reticolo vuoto, **Modifica** su quel reticolo. Lì, **Salva nell’arsenale** lo salva e **Scarta le modifiche** torna all’ultima versione salvata; entrambi riportano alla scheda Ottiche. Produttore e modello del reticolo si inseriscono nel Progettista, con gli stessi suggerimenti di un’ottica.
+**I tuoi reticoli**, nella stessa scheda, elenca ogni reticolo con una miniatura, il tipo di ottica e l’ingrandimento per cui è disegnato, e quante delle tue ottiche lo usano. I reticoli si disegnano nel **Progettista di reticoli**: **+ Aggiungi reticolo** lo apre su un reticolo vuoto, **Modifica** su quel reticolo. Lì, **Salva nell’arsenale** lo salva e **Scarta le modifiche** torna all’ultima versione salvata; entrambi riportano alla scheda Ottiche. Produttore e modello del reticolo si inseriscono nel Progettista, con gli stessi suggerimenti di un’ottica, così come un campo facoltativo **Fonte / note** — da dove vengono i valori angolari, o qualsiasi altra cosa valga la pena annotare.
 
 Nel Progettista un reticolo è disegnato per un’**ottica di riferimento** — solo il suo tipo e il suo ingrandimento; il campo visivo è ricavato dall’ingrandimento (12 m a 100 m a 3×), solo perché il Progettista possa disegnare il campo in cui si trova il reticolo. L’ottica reale in cui si monta un reticolo porta il proprio campo visivo.
 

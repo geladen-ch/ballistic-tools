@@ -4,7 +4,7 @@ import { createElement } from '../src/reticle/element-types.js';
 import {
   createDocument, addElement, updateElement, moveEndpoint, spanSegment, clampEnd, clampStart, axisMoveLimits, translate,
   groupElements, ungroup, groupPosition, setGroupPosition, deleteElements, duplicateElements, findElement, resolveElementIds,
-  insertReticle, setIllumination, setIdentity
+  insertReticle, setIllumination, setIdentity, documentOf
 } from '../src/reticle/model.js';
 
 function hline(x, endX, y = 0) {
@@ -252,4 +252,15 @@ test('insertReticle adopts the source\'s illumination and identity only where th
   assert.deepEqual([kept.manufacturer, kept.model], ['', 'Mine']);
   const empty = createDocument();
   assert.equal(insertReticle(empty, { ...source, elements: [] }).doc, empty);
+});
+
+test('the source is part of the identity: setting it is a change, setting it to the same is none; documentOf defaults it', () => {
+  const doc = createDocument();
+  assert.equal(doc.source, '');
+  const next = setIdentity(doc, { source: 'Data sheet' });
+  assert.equal(next.source, 'Data sheet');
+  assert.equal(setIdentity(next, { source: 'Data sheet' }), next);
+  const { source, ...older } = { ...next, id: 'r1' };
+  assert.equal(documentOf(older).source, '');
+  assert.equal(documentOf(next).source, 'Data sheet');
 });

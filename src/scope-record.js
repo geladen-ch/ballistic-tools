@@ -8,7 +8,8 @@
 //   magnificationMin, magnificationMax,   // nominal; equal for a fixed scope
 //   fovMaxRad, fovMinRad, fovDistanceM,   // field of view at both ends (fovMinRad: variable only)
 //   calibrationZoom,                      // SFP only: the zoom the subtensions are true at
-//   clickUnit: 'mrad' | 'arcmin', clickHorizontalRad, clickVerticalRad
+//   clickUnit: 'mrad' | 'arcmin', clickHorizontalRad, clickVerticalRad,
+//   source                                // optional free text: where the data comes from, notes
 // }
 //
 // The field of view takes precedence over the nominal low magnification:
@@ -88,7 +89,8 @@ export function defaultScopeRecord() {
     calibrationZoom: null,
     clickUnit: 'mrad',
     clickHorizontalRad: DEFAULT_CLICK_RAD.mrad,
-    clickVerticalRad: DEFAULT_CLICK_RAD.mrad
+    clickVerticalRad: DEFAULT_CLICK_RAD.mrad,
+    source: ''
   };
 }
 

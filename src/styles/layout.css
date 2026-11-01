@@ -2293,6 +2293,7 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
 .reticle-intro { color: var(--dim); max-width: 70ch; }
 .reticle-file-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; margin-bottom: 14px; }
 .reticle-identity-field { flex: 1 1 200px; }
+.reticle-source-field { flex-basis: 100%; }
 .reticle-file-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .reticle-unsaved { font-size: 12px; color: var(--accent); }
 .reticle-file-message { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--danger); }

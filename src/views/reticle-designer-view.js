@@ -2,8 +2,8 @@
 // fixed, first- or second-focal-plane scope. Five panes around the
 // reticle: editing options (1), the reticle view (2), the element palette
 // (3), the selected element's settings (4) and the list of elements (5),
-// with the scope definition above them and the reticle's manufacturer and
-// model, New, Save to arsenal, Discard changes and Insert whole reticle
+// with the scope definition above them and the reticle's manufacturer,
+// model and source / notes, New, Save to arsenal, Discard changes and Insert whole reticle
 // (another reticle's geometry, from the library). Reticles are kept in
 // the Arsenal (reticle-library.js), which opens them here to add or edit.
 //
@@ -63,11 +63,11 @@ export function mount(container) {
   const ctl = createController({ onChange: () => refresh() });
 
   // ---- file bar ----
-  // The reticle's identity: its manufacturer and model, each edit an undo
-  // step like any other.
+  // The reticle's identity: its manufacturer, model and optional source /
+  // notes, each edit an undo step like any other.
   // The manufacturer suggests scope and reticle makers, never bullet ones.
-  function identityInput(key, input) {
-    input.setAttribute('maxlength', '80');
+  function identityInput(key, input, maxLength = 80) {
+    input.setAttribute('maxlength', String(maxLength));
     input.value = ctl.doc[key];
     input.addEventListener('input', () => setIdentityFrom(key, input));
     input.addEventListener('blur', () => ctl.breakCoalescing());
@@ -86,10 +86,15 @@ export function mount(container) {
   });
   const manufacturerInput = identityInput('manufacturer', manufacturerSuggest.input);
   const modelInput = identityInput('model', el('input', { type: 'text', id: 'reticle-model' }));
-  const identityField = (key, input, control = input) => el('label', { class: 'reticle-field reticle-identity-field', for: input.id }, [
-    el('span', { class: 'reticle-field-label', i18n: `reticleDesigner.file.${key}` }),
+  const sourceInput = identityInput('source', el('input', { type: 'text', id: 'reticle-source' }), 2000);
+  const identityField = (labelKey, input, control = input) => el('label', { class: 'reticle-field reticle-identity-field', for: input.id }, [
+    el('span', { class: 'reticle-field-label', i18n: labelKey }),
     control
   ]);
+
+  // Free text, often longer than a name: a row of its own.
+  const sourceField = identityField('arsenal.sourceLabel', sourceInput);
+  sourceField.classList.add('reticle-source-field');
 
   const unsaved = el('span', { class: 'reticle-unsaved', i18n: 'reticleDesigner.file.unsaved' });
   const fileMessage = el('p', { class: 'reticle-file-message', role: 'status' });
@@ -169,8 +174,9 @@ export function mount(container) {
   const insertReticleButton = el('button', { type: 'button', class: 'secondary', id: 'reticle-insert-library', i18n: 'reticleDesigner.file.insertReticle' });
 
   const fileBar = el('div', { class: 'card reticle-file-bar' }, [
-    identityField('manufacturer', manufacturerInput, manufacturerSuggest.wrap),
-    identityField('model', modelInput),
+    identityField('reticleDesigner.file.manufacturer', manufacturerInput, manufacturerSuggest.wrap),
+    identityField('reticleDesigner.file.model', modelInput),
+    sourceField,
     el('div', { class: 'reticle-file-actions' }, [newButton, saveButton, discardButton, insertReticleButton, unsaved]),
     fileMessage
   ]);
@@ -209,7 +215,7 @@ export function mount(container) {
     const saveKey = changed ? 'reticleDesigner.file.saveToArsenal' : 'reticleDesigner.file.returnToArsenal';
     if (saveButton.getAttribute('data-i18n') !== saveKey) applyI18nText(saveButton, saveKey);
     discardButton.disabled = !changed;
-    for (const [input, key] of [[manufacturerInput, 'manufacturer'], [modelInput, 'model']]) {
+    for (const [input, key] of [[manufacturerInput, 'manufacturer'], [modelInput, 'model'], [sourceInput, 'source']]) {
       if (document.activeElement !== input && input.value !== ctl.doc[key]) input.value = ctl.doc[key];
     }
   }
