@@ -1,0 +1,22 @@
+{
+  "id": "sb-pm2-5-25x56",
+  "name": "Schmidt & Bender 5-25x56 PM II",
+  "manufacturer": "Schmidt & Bender",
+  "model": "5-25x56 PM II",
+  "reticleIds": [
+    "finnaccuracy-msr2-sb5",
+    "sb-p4fl",
+    "sb-gr2id"
+  ],
+  "type": "ffp",
+  "magnificationMin": 5,
+  "magnificationMax": 25,
+  "fovMaxRad": 0.0529875988081563,
+  "fovMinRad": 0.014999718759491805,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "mrad",
+  "clickHorizontalRad": 0.0001,
+  "clickVerticalRad": 0.0001,
+  "source": "Manufacturer's specs"
+}

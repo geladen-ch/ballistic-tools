@@ -85,9 +85,9 @@ test('a rifle\'s optic: its own reticle, else the scope\'s first that loads; any
   optic = await resolveRifleOptic({ id: 'r', scopeId: 'user-scope-1' });
   assert.equal(optic.reticle.id, 'user-reticle-2');
 
-  const builtIn = await resolveRifleOptic({ id: 'r', scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4lf' });
+  const builtIn = await resolveRifleOptic({ id: 'r', scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
   assert.equal(builtIn.scope.id, 'sb-pm2-3-20x50');
-  assert.equal(builtIn.reticle.id, 'sb-p4lf');
+  assert.equal(builtIn.reticle.id, 'sb-p4fl');
 
   assert.equal(await resolveRifleOptic(null), null);
   assert.equal(await resolveRifleOptic({ id: 'r' }), null);
@@ -239,7 +239,7 @@ test('no toggle for a rifle without a scope', async () => {
 });
 
 test('a rifle with a scope offers the toggle; on, the scope view shows above a compact readout with the aiming mark', async () => {
-  userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4lf' });
+  userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
   saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
   const { container, cleanup } = await mountSolver();
   const toggle = byClass(container, 'range-solver-scope-toggle')[0];
@@ -275,7 +275,7 @@ test('a rifle with a scope offers the toggle; on, the scope view shows above a c
 
 test('the mode switch is remembered', async () => {
   prefs.setScopeViewOn(true);
-  userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4lf' });
+  userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
   saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
   const { container, cleanup } = await mountSolver();
   const dial = findAll(container, (n) => n.getAttribute && n.getAttribute('data-mode') === 'dialElevation')[0];

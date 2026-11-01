@@ -1,0 +1,22 @@
+{
+  "id": "sb-pm2-5-45x56-high-power",
+  "name": "Schmidt & Bender 5-45x56 PM II High Power",
+  "manufacturer": "Schmidt & Bender",
+  "model": "5-45x56 PM II High Power",
+  "reticleIds": [
+    "finnaccuracy-msr2-sb5",
+    "sb-p4fl",
+    "sb-gr2id"
+  ],
+  "type": "ffp",
+  "magnificationMin": 5,
+  "magnificationMax": 45,
+  "fovMaxRad": 0.07796049005051707,
+  "fovMinRad": 0.008999939250738102,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "mrad",
+  "clickHorizontalRad": 0.0001,
+  "clickVerticalRad": 0.0001,
+  "source": "Manufacturer's specs"
+}

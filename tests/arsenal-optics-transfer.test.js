@@ -99,7 +99,7 @@ function rifle(overrides = {}) {
 // ---- arsenal-export.js ----
 
 test('exportBundle: a rifle brings its own scope and that scope\'s own reticles; built-in ones are only referred to', () => {
-  const userScopes = [{ id: 's1', reticleIds: ['r1', 'sb-p4lf'] }, { id: 's2', reticleIds: ['r2'] }];
+  const userScopes = [{ id: 's1', reticleIds: ['r1', 'sb-p4fl'] }, { id: 's2', reticleIds: ['r2'] }];
   const userReticles = [{ id: 'r1' }, { id: 'r2' }, { id: 'r3' }];
   const bundle = exportBundle({ rifles: [{ id: 'a', scopeId: 's1' }, { id: 'b', scopeId: 'sb-pm2-3-20x50' }], userScopes, userReticles });
   assert.deepEqual(bundle.scopes.map((s) => s.id), ['s1']);
@@ -112,7 +112,7 @@ test('planImportBatch: reticles, then scopes, then rifles, every link remapped t
   const plan = planImportBatch({
     mode: 'rename',
     reticles: [{ id: 'f-r1', name: 'Acme Dot', manufacturer: 'Acme', model: 'Dot' }],
-    scopes: [{ id: 'f-s1', name: 'Acme X', manufacturer: 'Acme', model: 'X', reticleIds: ['f-r1', 'sb-p4lf'] }],
+    scopes: [{ id: 'f-s1', name: 'Acme X', manufacturer: 'Acme', model: 'X', reticleIds: ['f-r1', 'sb-p4fl'] }],
     rifles: [
       { id: 'f-a', name: 'A', cartridges: [], scopeId: 'f-s1', reticleId: 'f-r1' },
       { id: 'f-b', name: 'B', cartridges: [], scopeId: 'trijicon-acog-4x32-rco-m4', reticleId: 'trijicon-rco-m4-chevron' }
@@ -126,7 +126,7 @@ test('planImportBatch: reticles, then scopes, then rifles, every link remapped t
     ['new-r', 'Dot - copy (1)', 'Acme Dot - copy (1)'], 'renamed: a new model, its name following');
   const [scopeResult] = plan.scopeResults;
   assert.equal(scopeResult.resolved.record.model, 'X - copy (1)');
-  assert.deepEqual(scopeResult.resolved.record.reticleIds, ['new-r', 'sb-p4lf']);
+  assert.deepEqual(scopeResult.resolved.record.reticleIds, ['new-r', 'sb-p4fl']);
   const [a, b] = plan.rifleResults.map((r) => r.resolved.record);
   assert.deepEqual([a.scopeId, a.reticleId], ['new-s', 'new-r']);
   assert.deepEqual([b.scopeId, b.reticleId], ['trijicon-acog-4x32-rco-m4', 'trijicon-rco-m4-chevron'], 'built-in links untouched');
@@ -143,7 +143,7 @@ test('isLegacyReticleFile tells a 4.3.x reticle file from an Arsenal export', ()
 test('a rifle\'s Save to file takes its own scope and that scope\'s own reticles along, all then saved', async () => {
   reticle('user-reticle-1', 'Dot');
   reticle('user-reticle-other', 'Other');
-  scope({ reticleIds: ['user-reticle-1', 'sb-p4lf'] });
+  scope({ reticleIds: ['user-reticle-1', 'sb-p4fl'] });
   rifle({ scopeId: 'user-scope-1', reticleId: 'user-reticle-1' });
   const container = makeElement('main');
   arsenalView.mount(container);
@@ -209,7 +209,7 @@ test('loading an export brings in its scopes and reticles, links intact; a retic
 });
 
 test('loading a 4.3.x reticle file asks for what it lacks, adds the reticle, then opens the scope form with the file\'s optics', async () => {
-  const text = readFileSync(new URL('../src/reticles/sb-p4lf.json', import.meta.url), 'utf8');
+  const text = readFileSync(new URL('../src/reticles/sb-p4fl.json', import.meta.url), 'utf8');
   // A 4.3.x file of that reticle, with the optics of a 3-20x scope (13 m to 2.1 m at 100 m).
   const doc = decodeReticleRecord(JSON.parse(text));
   const legacy = JSON.parse(legacyReticleFile({ ...doc, name: 'SB P4LF' }));

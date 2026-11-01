@@ -2,8 +2,12 @@
 // module for the same reason as rifles/rifle-catalog.js. Each id has its
 // record, in the stored form (reticle/reticle-record.js), at ./<id>.json.
 export const RETICLE_IDS = [
-  'sb-p4lf',
+  'sb-p4fl',
   'sb-tr2id',
+  'sb-gr2id',
+  'finnaccuracy-msr2-sb',
+  'finnaccuracy-msr2-sb5',
+  'finnaccuracy-msr2-sb-high-power',
   'trijicon-rco-m4-chevron',
   'generic-mildot',
   'generic-milhash',

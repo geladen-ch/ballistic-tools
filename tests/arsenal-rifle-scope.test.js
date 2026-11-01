@@ -17,6 +17,10 @@ const { defaultScopeRecord, DEFAULT_CLICK_RAD } = await import('../src/scope-rec
 const { createDocument } = await import('../src/reticle/model.js');
 const { fieldOfViewAngle, mradToRad } = await import('../src/quantity.js');
 const { resetUnits } = await import('../src/prefs.js');
+const { loadBuiltInReticles } = await import('../src/reticles.js');
+const { loadBuiltInScopes } = await import('../src/scopes.js');
+
+const SB_MSR2_SCOPES = ['sb-pm2-3-20x50-ultra-short', 'sb-pm2-5-20x50-ultra-short', 'sb-pm2-5-25x56', 'sb-pm2-5-45x56-high-power', 'sb-pm2-3-27x56-high-power'];
 
 test.beforeEach(async () => {
   localStorage.clear();
@@ -78,6 +82,9 @@ async function mountWithActive(rifleId) {
   if (rifleId) saveRifleState({ library: { rifleId, cartridgeId: null } });
   const container = makeElement('main');
   arsenalView.mount(container);
+  // The view fills its scope and reticle lists once the built-in library has loaded: wait for
+  // those same (cached) loads rather than a fixed delay, which a busy machine can outrun.
+  await Promise.all([loadBuiltInReticles(), loadBuiltInScopes()]);
   await settle();
   return container;
 }
@@ -95,7 +102,7 @@ test('the rifle\'s scope: none by default; the user\'s scopes, then the built-in
   editActiveRifle(container);
   const select = byId(container, 'arsenalRifleScope');
   assert.equal(select.value, '');
-  assert.deepEqual(optionValues(select), ['', 'user-scope-1', 'user-scope-bare', 'sb-pm2-3-20x50', 'sb-cm2-6-36x56', 'trijicon-acog-4x32-rco-m4',
+  assert.deepEqual(optionValues(select), ['', 'user-scope-1', 'user-scope-bare', 'sb-pm2-3-20x50', 'sb-cm2-6-36x56', ...SB_MSR2_SCOPES, 'trijicon-acog-4x32-rco-m4',
     'generic-3-12x-ffp-mrad', 'generic-4-16x-ffp-mrad', 'generic-4-24x-ffp-mrad', 'generic-5-25x-ffp-mrad', 'generic-5-30x-ffp-mrad']);
   assert.equal(option(select, 'user-scope-bare').disabled, true);
   assert.equal(byId(container, 'arsenalRifleReticle').parentNode.style.display, 'none', 'no reticle choice to make');

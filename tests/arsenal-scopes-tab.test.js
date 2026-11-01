@@ -201,7 +201,7 @@ test('the reticle picker offers the user\'s reticles and, once loaded, the built
   const container = mountOnScopes();
   fireEvent(byId(container, 'arsenal-add-scope'), 'click');
   await settle(60);
-  for (const id of ['sb-p4lf', 'sb-tr2id', 'trijicon-rco-m4-chevron']) assert.ok(byId(container, `arsenalScopeReticle-${id}`), id);
+  for (const id of ['sb-p4fl', 'sb-tr2id', 'trijicon-rco-m4-chevron']) assert.ok(byId(container, `arsenalScopeReticle-${id}`), id);
   const thumbs = findAll(byId(container, 'arsenal-tab-scopes'), (n) => classesOf(n).includes('reticle-thumbnail'));
   assert.ok(thumbs.length >= 4);
   const hint = findAll(container, (n) => n.textContent === t('arsenal.scopeReticleTypeHint'))[0];
@@ -214,7 +214,7 @@ test('the reticle picker offers the user\'s reticles and, once loaded, the built
 
 test('reticles are listed with a thumbnail and summary; deleting one asks and takes it off the scopes listing it', () => {
   const reticle = saveReticle({ illumination: { enabled: true, colour: 'red' } });
-  saveUserScope(pm2({ reticleIds: [reticle.id, 'sb-p4lf'] }));
+  saveUserScope(pm2({ reticleIds: [reticle.id, 'sb-p4fl'] }));
   const container = mountOnScopes();
   const tab = byId(container, 'arsenal-tab-scopes');
   const row = findAll(tab, (n) => classesOf(n).includes('arsenal-reticle-row'))[0];
@@ -227,7 +227,7 @@ test('reticles are listed with a thumbnail and summary; deleting one asks and ta
   assert.equal(reticleLibrary.loadUserReticles().length, 1);
   withConfirm(true, () => fireEvent(deleteReticle, 'click'));
   assert.deepEqual(reticleLibrary.loadUserReticles(), []);
-  assert.deepEqual(loadUserScopes()[0].reticleIds, ['sb-p4lf']);
+  assert.deepEqual(loadUserScopes()[0].reticleIds, ['sb-p4fl']);
 });
 
 test('a scope with no reticle is marked unusable; deleting a scope asks first', () => {

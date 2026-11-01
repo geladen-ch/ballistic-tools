@@ -1,9 +1,9 @@
 {
-  "id": "sb-p4lf",
-  "name": "Schmidt & Bender P4LF",
+  "id": "sb-p4fl",
+  "name": "Schmidt & Bender P4FL",
   "manufacturer": "Schmidt & Bender",
-  "model": "P4LF",
-  "source": "",
+  "model": "P4FL",
+  "source": "Manufacturer's specs",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 3,

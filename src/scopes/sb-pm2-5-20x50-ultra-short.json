@@ -1,0 +1,21 @@
+{
+  "id": "sb-pm2-5-20x50-ultra-short",
+  "name": "Schmidt & Bender 5-20x50 PM II Ultra Short",
+  "manufacturer": "Schmidt & Bender",
+  "model": "5-20x50 PM II Ultra Short",
+  "reticleIds": [
+    "finnaccuracy-msr2-sb",
+    "sb-p4fl"
+  ],
+  "type": "ffp",
+  "magnificationMin": 5,
+  "magnificationMax": 20,
+  "fovMaxRad": 0.07796049005051707,
+  "fovMinRad": 0.019999333373330475,
+  "fovDistanceM": 100,
+  "calibrationZoom": null,
+  "clickUnit": "mrad",
+  "clickHorizontalRad": 0.0001,
+  "clickVerticalRad": 0.0001,
+  "source": "Manufacturer's specs"
+}

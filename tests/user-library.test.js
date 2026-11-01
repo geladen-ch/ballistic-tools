@@ -317,10 +317,10 @@ test('scopes: saved with a name derived from manufacturer and model, found by it
   const lib = await import('../src/user-library.js');
   const { defaultScopeRecord } = await import('../src/scope-record.js');
   const id = generateUserId('user-scope');
-  const saved = lib.saveUserScope({ ...defaultScopeRecord(), id, manufacturer: 'Acme', model: '5-25x56', reticleIds: ['sb-p4lf'] });
+  const saved = lib.saveUserScope({ ...defaultScopeRecord(), id, manufacturer: 'Acme', model: '5-25x56', reticleIds: ['sb-p4fl'] });
   assert.equal(saved.name, 'Acme 5-25x56');
   assert.equal(saved.unsaved, true);
-  assert.equal(lib.loadUserScopes()[0].reticleIds[0], 'sb-p4lf');
+  assert.equal(lib.loadUserScopes()[0].reticleIds[0], 'sb-p4fl');
   assert.equal(lib.findUserScopeByName(' acme 5-25X56').id, id);
   assert.equal(lib.findUserScopeByName('Acme 5-25x56', { excludeId: id }), undefined);
 

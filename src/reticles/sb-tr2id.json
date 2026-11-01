@@ -3,7 +3,7 @@
   "name": "Schmidt & Bender TR²ID",
   "manufacturer": "Schmidt & Bender",
   "model": "TR²ID",
-  "source": "",
+  "source": "Manufacturer's specs",
   "referenceScope": {
     "type": "ffp",
     "zoomMin": 6,
@@ -1076,6 +1076,98 @@
     {
       "type": "bdc",
       "y": 0.014000000000000005
+    },
+    {
+      "type": "bdc",
+      "y": 0.015
+    },
+    {
+      "type": "bdc",
+      "y": 0.016
+    },
+    {
+      "type": "bdc",
+      "y": 0.017
+    },
+    {
+      "type": "bdc",
+      "y": 0.018
+    },
+    {
+      "type": "bdc",
+      "y": 0.019
+    },
+    {
+      "type": "bdc",
+      "y": 0.02
+    },
+    {
+      "type": "bdc",
+      "y": 0.021
+    },
+    {
+      "type": "bdc",
+      "y": 0.022
+    },
+    {
+      "type": "bdc",
+      "y": 0.023
+    },
+    {
+      "type": "bdc",
+      "y": 0.024
+    },
+    {
+      "type": "bdc",
+      "y": 0.025
+    },
+    {
+      "type": "bdc",
+      "y": 0.026
+    },
+    {
+      "type": "bdc",
+      "y": 0.027
+    },
+    {
+      "type": "bdc",
+      "y": 0.028
+    },
+    {
+      "type": "bdc",
+      "y": 0.029
+    },
+    {
+      "type": "bdc",
+      "y": 0.03
+    },
+    {
+      "type": "bdc",
+      "y": 0.031
+    },
+    {
+      "type": "bdc",
+      "y": 0.032
+    },
+    {
+      "type": "bdc",
+      "y": 0.033
+    },
+    {
+      "type": "bdc",
+      "y": 0.034
+    },
+    {
+      "type": "bdc",
+      "y": 0.035
+    },
+    {
+      "type": "bdc",
+      "y": 0.036
+    },
+    {
+      "type": "bdc",
+      "y": 0.037
     },
     {
       "type": "number",
