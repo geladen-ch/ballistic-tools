@@ -366,10 +366,12 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       if (toVerticalAxis) nodes.push(lead(HALF, cy, cls));
       if (Math.abs(cy - HALF) > MARK_RADIUS) nodes.push(lead(cx, HALF, cls));
     }
-    nodes.push(
+    // The ring and its halo see-through as one, so the reticle and the
+    // wind holds behind show; the centre's cross or dot stays opaque.
+    nodes.push(svgEl('g', { class: 'scope-view-mark-circle' }, [
       svgEl('circle', { class: 'scope-view-mark-halo', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_RADIUS), 'stroke-width': fmt(MARK_STROKE + 2 * HALO) }),
       svgEl('circle', { class: 'scope-view-mark-ring', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_RADIUS), 'stroke-width': fmt(MARK_STROKE) })
-    );
+    ]));
     if (hashes) nodes.push(...crossNodes(cx, cy, MARK_CROSS, MARK_CROSS_STROKE, HALO, 'scope-view-mark-cross'));
     else nodes.push(svgEl('circle', { class: 'scope-view-mark-dot', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_DOT) }));
     return nodes;

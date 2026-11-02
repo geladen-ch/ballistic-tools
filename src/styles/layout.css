@@ -745,6 +745,8 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
    the reticle overlay colour (Settings; scope-view.js sets --scope-mark
    per reticle, vermillion until then), haloed so it reads over black
    reticle lines. */
+/* The aiming mark's ring and halo, see-through as one. */
+.scope-view-mark-circle { opacity: 0.55; }
 .scope-view-mark-ring { fill: none; stroke: var(--scope-mark); }
 .scope-view-mark-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); }
 .scope-view-mark-dot { fill: var(--scope-mark); }
