@@ -104,7 +104,7 @@ const BDC_HASH = 15;
 const BDC_HASH_STROKE = 3;
 const BDC_HASH_MAJOR = 20;
 const BDC_HASH_MAJOR_STROKE = 6;
-const BDC_HALO = 2.5;
+const BDC_HALO = 1.25;
 const BDC_LABEL_SIZE = 36;
 // Labels crowding each other shrink down to this share of their size
 // before any is left out.
@@ -441,11 +441,13 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       factor: subtensionFactor(optics, zoom), dialedElevationRad: dialed
     });
     const screenX = (x) => HALF + toReticleSubtension({ x, y: 0 }, optics, zoom).x * scale;
-    // The holds' halo is faint, so what's behind them shows (the
-    // scope-view-bdc-faint-halo class).
-    const faint = (cls) => `${cls} scope-view-bdc-faint-halo`;
-    const dot = (cx, cy, r, cls) => [
-      svgEl('circle', { class: faint('scope-view-bdc-halo'), cx: fmt(cx), cy: fmt(cy), r: fmt(r), 'stroke-width': fmt(2 * BDC_HALO) }),
+    // The holds' halo is faint, so what's behind them shows: a wind
+    // hold's (scope-view-bdc-wind-halo) more than a mark's own
+    // (scope-view-bdc-mark-halo).
+    const WIND_HALO = 'scope-view-bdc-wind-halo';
+    const MARK_HALO = 'scope-view-bdc-mark-halo';
+    const dot = (cx, cy, r, cls, haloCls) => [
+      svgEl('circle', { class: `scope-view-bdc-halo ${haloCls}`, cx: fmt(cx), cy: fmt(cy), r: fmt(r), 'stroke-width': fmt(2 * BDC_HALO) }),
       svgEl('circle', { class: cls, cx: fmt(cx), cy: fmt(cy), r: fmt(r) })
     ];
     // A hash hangs from the mark's level, its top end on it; a cross
@@ -453,17 +455,17 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     const hash = (cx, cy, length, stroke) => {
       const d = `M${fmt(cx)} ${fmt(cy)}V${fmt(cy + length)}`;
       return [
-        svgEl('path', { class: faint('scope-view-stroke-halo'), d, 'stroke-width': fmt(stroke + 2 * BDC_HALO) }),
+        svgEl('path', { class: `scope-view-stroke-halo ${WIND_HALO}`, d, 'stroke-width': fmt(stroke + 2 * BDC_HALO) }),
         svgEl('path', { class: 'scope-view-bdc-hash', d, 'stroke-width': fmt(stroke) })
       ];
     };
     const windNodes = (x, cy, major) => (hashes
       ? hash(x, cy, major ? BDC_HASH_MAJOR : BDC_HASH, major ? BDC_HASH_MAJOR_STROKE : BDC_HASH_STROKE)
-      : dot(x, cy, major ? BDC_WIND_DOT_MAJOR : BDC_WIND_DOT, 'scope-view-bdc-wind'));
+      : dot(x, cy, major ? BDC_WIND_DOT_MAJOR : BDC_WIND_DOT, 'scope-view-bdc-wind', WIND_HALO));
     const holdNodes = (cx, cy) => {
-      if (!hashes) return dot(cx, cy, BDC_DOT, 'scope-view-bdc-dot');
+      if (!hashes) return dot(cx, cy, BDC_DOT, 'scope-view-bdc-dot', MARK_HALO);
       const [halo, cross] = crossNodes(cx, cy, BDC_CROSS, BDC_CROSS_STROKE, BDC_HALO, 'scope-view-bdc-cross');
-      halo.classList.add('scope-view-bdc-faint-halo');
+      halo.classList.add(MARK_HALO);
       return [halo, cross];
     };
     const rangeText = (row) => String(Math.round(toDisplayUnit('distance', row.rangeM)));

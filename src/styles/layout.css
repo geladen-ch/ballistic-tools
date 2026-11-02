@@ -751,7 +751,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .scope-view-mark-halo { fill: none; stroke: rgba(255, 255, 255, 0.45); }
 .scope-view-mark-dot { fill: var(--scope-mark); }
 .scope-view-lead { stroke: var(--scope-mark); stroke-width: 2.5; }
-.scope-view-lead-halo { stroke: rgba(255, 255, 255, 0.7); stroke-width: 8; }
+.scope-view-lead-halo { stroke: rgba(255, 255, 255, 0.5); stroke-width: 8; }
 .scope-view-arrow-head { fill: var(--scope-mark); }
 .scope-view-arrow-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-linejoin: round; }
 /* The BDC overlay: each mark's dot, its crosswind holds and its range,
@@ -766,8 +766,10 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .scope-view-bdc-label.off-glass { stroke: none; filter: brightness(1.35); }
 .scope-view-bdc-leader { fill: none; stroke: var(--scope-mark); stroke-linejoin: round; }
 .scope-view-stroke-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-linecap: square; }
-/* The BDC overlay's holds' halo, faint enough to see what's behind. */
-.scope-view-bdc-faint-halo { stroke: rgba(255, 255, 255, 0.25); }
+/* The BDC overlay's holds' halo, faint enough to see what's behind:
+   the wind holds' fainter than the marks' own. */
+.scope-view-bdc-wind-halo { stroke: rgba(255, 255, 255, 0.25); }
+.scope-view-bdc-mark-halo { stroke: rgba(255, 255, 255, 0.75); }
 .scope-view-bdc-label {
   fill: var(--scope-mark); stroke: rgba(255, 255, 255, 0.85); stroke-linejoin: round; paint-order: stroke;
   font-weight: 700; font-variant-numeric: tabular-nums;
