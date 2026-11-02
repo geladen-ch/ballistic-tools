@@ -441,8 +441,11 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       factor: subtensionFactor(optics, zoom), dialedElevationRad: dialed
     });
     const screenX = (x) => HALF + toReticleSubtension({ x, y: 0 }, optics, zoom).x * scale;
+    // The holds' halo is faint, so what's behind them shows (the
+    // scope-view-bdc-faint-halo class).
+    const faint = (cls) => `${cls} scope-view-bdc-faint-halo`;
     const dot = (cx, cy, r, cls) => [
-      svgEl('circle', { class: 'scope-view-bdc-halo', cx: fmt(cx), cy: fmt(cy), r: fmt(r), 'stroke-width': fmt(2 * BDC_HALO) }),
+      svgEl('circle', { class: faint('scope-view-bdc-halo'), cx: fmt(cx), cy: fmt(cy), r: fmt(r), 'stroke-width': fmt(2 * BDC_HALO) }),
       svgEl('circle', { class: cls, cx: fmt(cx), cy: fmt(cy), r: fmt(r) })
     ];
     // A hash hangs from the mark's level, its top end on it; a cross
@@ -450,16 +453,19 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     const hash = (cx, cy, length, stroke) => {
       const d = `M${fmt(cx)} ${fmt(cy)}V${fmt(cy + length)}`;
       return [
-        svgEl('path', { class: 'scope-view-stroke-halo', d, 'stroke-width': fmt(stroke + 2 * BDC_HALO) }),
+        svgEl('path', { class: faint('scope-view-stroke-halo'), d, 'stroke-width': fmt(stroke + 2 * BDC_HALO) }),
         svgEl('path', { class: 'scope-view-bdc-hash', d, 'stroke-width': fmt(stroke) })
       ];
     };
     const windNodes = (x, cy, major) => (hashes
       ? hash(x, cy, major ? BDC_HASH_MAJOR : BDC_HASH, major ? BDC_HASH_MAJOR_STROKE : BDC_HASH_STROKE)
       : dot(x, cy, major ? BDC_WIND_DOT_MAJOR : BDC_WIND_DOT, 'scope-view-bdc-wind'));
-    const holdNodes = (cx, cy) => (hashes
-      ? crossNodes(cx, cy, BDC_CROSS, BDC_CROSS_STROKE, BDC_HALO, 'scope-view-bdc-cross')
-      : dot(cx, cy, BDC_DOT, 'scope-view-bdc-dot'));
+    const holdNodes = (cx, cy) => {
+      if (!hashes) return dot(cx, cy, BDC_DOT, 'scope-view-bdc-dot');
+      const [halo, cross] = crossNodes(cx, cy, BDC_CROSS, BDC_CROSS_STROKE, BDC_HALO, 'scope-view-bdc-cross');
+      halo.classList.add('scope-view-bdc-faint-halo');
+      return [halo, cross];
+    };
     const rangeText = (row) => String(Math.round(toDisplayUnit('distance', row.rangeM)));
     if (bdcDisplay === 'callout') {
       // Each row's holds as drawn, as boxes (their ink, not their white
