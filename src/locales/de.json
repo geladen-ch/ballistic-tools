@@ -1875,7 +1875,9 @@
     "statusPlanned": "Geplant",
     "statusExperimental": "Experimentell",
     "reticleDesigner": "Absehen-Designer",
-    "reticleDesignerDesc": "Ein Zielfernrohr-Absehen per Drag-and-drop zeichnen, in mrad oder MOA, für FFP-, SFP- oder Festvergrößerungs-Optiken."
+    "reticleDesignerDesc": "Ein Zielfernrohr-Absehen per Drag-and-drop zeichnen, in mrad oder MOA, für FFP-, SFP- oder Festvergrößerungs-Optiken.",
+    "locations": "Standorte & Ziele",
+    "locationsDesc": "Schießstandorte und ihre Ziele verwalten, mit Distanzen, Winkeln, Höhe und Fotos, für den Feldrechner und die Einschieß-Sitzung."
   },
   "reticleDesigner": {
     "title": "Absehen-Designer",

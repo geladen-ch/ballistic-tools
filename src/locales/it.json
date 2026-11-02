@@ -1875,7 +1875,9 @@
     "statusPlanned": "Pianificato",
     "statusExperimental": "Sperimentale",
     "reticleDesigner": "Progettista di reticoli",
-    "reticleDesignerDesc": "Disegna un reticolo da cannocchiale con il trascinamento, in mrad o MOA, per cannocchiali FFP, SFP o a ingrandimento fisso."
+    "reticleDesignerDesc": "Disegna un reticolo da cannocchiale con il trascinamento, in mrad o MOA, per cannocchiali FFP, SFP o a ingrandimento fisso.",
+    "locations": "Postazioni e bersagli",
+    "locationsDesc": "Gestisci le postazioni di tiro e i loro bersagli, con distanze, angoli, altitudine e foto, per il Calcolatore per il poligono e la Sessione di taratura."
   },
   "reticleDesigner": {
     "title": "Progettista di reticoli",

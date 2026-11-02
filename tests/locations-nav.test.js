@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installFakeDom } from './helpers/fake-dom.js';
+import { installFakeDom, fireEvent } from './helpers/fake-dom.js';
 
 installFakeDom();
 
 const { setRangeSolverMode, setRangeSolverTab, getRangeSolverTab, resetRangeSolverNavForTests } = await import('../src/range-solver-nav.js');
-const { goToLocations, takeLocationsReturnPath, requestLocationsDone, resetLocationsNavForTests } = await import('../src/locations-nav.js');
+const { goToLocations, takeLocationsReturnPath, requestLocationsDone, resetLocationsNavForTests, interceptLocationsLink } = await import('../src/locations-nav.js');
 
 test.beforeEach(() => {
   resetLocationsNavForTests();
@@ -23,6 +23,22 @@ test('goToLocations records where it was opened from and opens Locations', () =>
   goToLocations();
   assert.equal(location.hash, '#/locations');
   assert.equal(takeLocationsReturnPath(), '/truing-session');
+});
+
+test('goToLocations opened from Home (empty hash) returns to Home, not the Range Solver', () => {
+  location.hash = '';
+  goToLocations();
+  assert.equal(takeLocationsReturnPath(), '/');
+});
+
+test('interceptLocationsLink routes a plain Locations link through goToLocations', () => {
+  location.hash = '#/utilities';
+  const link = document.createElement('a');
+  link.setAttribute('href', '#/locations');
+  assert.equal(interceptLocationsLink(link), link);
+  fireEvent(link, 'click');
+  assert.equal(location.hash, '#/locations');
+  assert.equal(takeLocationsReturnPath(), '/utilities');
 });
 
 test('the return path is one-shot', () => {

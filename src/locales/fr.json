@@ -1875,7 +1875,9 @@
     "statusPlanned": "Prévu",
     "statusExperimental": "Expérimental",
     "reticleDesigner": "Concepteur de réticule",
-    "reticleDesignerDesc": "Dessiner un réticule de lunette par glisser-déposer, en mrad ou MOA, pour lunettes PPF, SPF ou à grossissement fixe."
+    "reticleDesignerDesc": "Dessiner un réticule de lunette par glisser-déposer, en mrad ou MOA, pour lunettes PPF, SPF ou à grossissement fixe.",
+    "locations": "Emplacements et cibles",
+    "locationsDesc": "Gérer vos emplacements de tir et leurs cibles, avec distances, angles, altitude et photos, pour le Calculateur de terrain et la Session de calibrage."
   },
   "reticleDesigner": {
     "title": "Concepteur de réticule",

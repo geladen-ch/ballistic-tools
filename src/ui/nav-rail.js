@@ -27,7 +27,7 @@ import {
   isInRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, onRangeSolverTabChange, setRangeSolverTab
 } from '../range-solver-nav.js';
-import { isInLocationsMode, onLocationsModeChange, requestLocationsDone } from '../locations-nav.js';
+import { isInLocationsMode, onLocationsModeChange, requestLocationsDone, interceptLocationsLink } from '../locations-nav.js';
 import {
   isInPlacementMode, onPlacementModeChange, requestZoomIn, requestZoomOut, requestDone
 } from '../location-placement-nav.js';
@@ -231,10 +231,11 @@ export function mountNavRail(container) {
   function toolItem(tool, currentP) {
     const inner = [toolRow(tool), el('div', { class: 'desc', text: t(tool.descKey) })];
     if (tool.path) {
-      return el('a', {
+      const link = el('a', {
         href: '#' + tool.path,
         class: 'rail-tool' + (currentP === tool.path ? ' active' : '')
       }, inner);
+      return tool.id === 'locations' ? interceptLocationsLink(link) : link;
     }
     return el('div', { class: 'rail-tool disabled', 'aria-disabled': 'true' }, inner);
   }
@@ -242,10 +243,11 @@ export function mountNavRail(container) {
   function flyoutItem(tool, currentP) {
     const inner = [toolRow(tool), el('div', { class: 'desc', text: t(tool.descKey) })];
     if (tool.path) {
-      return el('a', {
+      const link = el('a', {
         href: '#' + tool.path,
         class: 'flyout-item' + (currentP === tool.path ? ' active' : '')
       }, inner);
+      return tool.id === 'locations' ? interceptLocationsLink(link) : link;
     }
     return el('div', { class: 'flyout-item disabled', 'aria-disabled': 'true' }, inner);
   }

@@ -1875,7 +1875,9 @@
     "statusPlanned": "Planned",
     "statusExperimental": "Experimental",
     "reticleDesigner": "Reticle Designer",
-    "reticleDesignerDesc": "Draw a scope reticle by drag and drop, in mrad or MOA, for FFP, SFP or fixed scopes."
+    "reticleDesignerDesc": "Draw a scope reticle by drag and drop, in mrad or MOA, for FFP, SFP or fixed scopes.",
+    "locations": "Locations & Targets",
+    "locationsDesc": "Keep your shooting locations and their targets, with distances, angles, altitude and photos, for use in the Range Solver and Truing Session."
   },
   "reticleDesigner": {
     "title": "Reticle Designer",

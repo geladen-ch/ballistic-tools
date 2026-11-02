@@ -19,11 +19,25 @@ const DEFAULT_RETURN_PATH = '/range-solver';
 // Shared click handler for every "open Locations" entry point -- captures
 // the current path to return to on Done, then jumps to Locations. Never
 // called from inside Locations itself (its own sub-routes, like the photo
-// placement, must not overwrite the original origin).
+// placement, must not overwrite the original origin). An empty hash is
+// Home (the router's default route), now reachable as an origin through
+// the Utilities card there.
 export function goToLocations() {
-  returnPath = location.hash.slice(1) || DEFAULT_RETURN_PATH;
+  returnPath = location.hash.slice(1) || '/';
   returnRangeSolverTab = isInRangeSolverMode() ? getRangeSolverTab() : null;
   location.hash = '#/locations';
+}
+
+// For the plain <a href="#/locations"> tool links the Utilities listings
+// render (Home, the hub page, both rail layouts): keeps the real href, but
+// routes the click through goToLocations() so Done comes back here, same
+// as guns-nav.js's goToGuns() links. Returns the link for inline use.
+export function interceptLocationsLink(link) {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    goToLocations();
+  });
+  return link;
 }
 
 // "Take" rather than "read", so a later Done without a fresh entry in

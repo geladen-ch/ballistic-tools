@@ -14,10 +14,12 @@ const {
 } = await import('../src/range-solver-nav.js');
 const { saveRifleState, resetShotStateForTests } = await import('../src/shot-state.js');
 const { saveUserRifle } = await import('../src/user-library.js');
+const { takeLocationsReturnPath, resetLocationsNavForTests } = await import('../src/locations-nav.js');
 
 test.beforeEach(() => {
   resetNavPrefsForTests();
   resetGunsNavForTests();
+  resetLocationsNavForTests();
   resetRangeSolverNavForTests();
   resetShotStateForTests();
   localStorage.clear();
@@ -42,11 +44,11 @@ test('renders expanded by default, with every group open', () => {
 
   assert.equal(container.className, 'app-rail');
   const tools = findByClass(container, 'rail-tool');
-  // 3 measurement + 3 visible analysis tools + 2 utilities tools (range-card
+  // 3 measurement + 3 visible analysis tools + 3 utilities tools (range-card
   // is hidden from listings; range-solver is a GROUPS.shooting tool, not an
   // accordion one — see nav-tools.js), all visible since every group
   // starts open
-  assert.equal(tools.length, 8);
+  assert.equal(tools.length, 9);
 });
 
 test('Shooting is a flat direct link (like Guns/Settings), not an accordion group', () => {
@@ -364,7 +366,7 @@ test('Utilities is an accordion group after Measurement, holding the unit conver
   assert.ok(link, 'expected the unit converter under Utilities');
 });
 
-test('in collapsed mode, the Utilities icon opens a flyout with the unit converter and the reticle designer', () => {
+test('in collapsed mode, the Utilities icon opens a flyout with the unit converter, the reticle designer and Locations & Targets', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   fireEvent(findByTag(container, 'BUTTON').find((b) => b.id === 'rail-collapse-toggle'), 'click');
@@ -373,5 +375,16 @@ test('in collapsed mode, the Utilities icon opens a flyout with the unit convert
   assert.ok(icon, 'expected a collapsed Utilities icon');
   fireEvent(icon, 'click');
   const items = findByClass(container, 'flyout-item');
-  assert.deepEqual(items.map((n) => n.getAttribute('href')), ['#/unit-conversion', '#/reticle-designer']);
+  assert.deepEqual(items.map((n) => n.getAttribute('href')), ['#/unit-conversion', '#/reticle-designer', '#/locations']);
+});
+
+test('the rail\'s Locations & Targets link records where it was opened from, so Done returns there', () => {
+  location.hash = '#/trajectory';
+  const container = makeElement('nav');
+  mountNavRail(container);
+  const link = findByClass(container, 'rail-tool').find((n) => n.getAttribute('href') === '#/locations');
+  assert.ok(link, 'expected Locations & Targets under Utilities');
+  fireEvent(link, 'click');
+  assert.equal(location.hash, '#/locations');
+  assert.equal(takeLocationsReturnPath(), '/trajectory');
 });

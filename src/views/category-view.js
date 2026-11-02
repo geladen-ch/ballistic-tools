@@ -1,6 +1,7 @@
 import { el, clear } from '../dom.js';
 import { GROUPS, toolsInGroup } from '../nav-tools.js';
 import { statusChip } from '../ui/status-chip.js';
+import { interceptLocationsLink } from '../locations-nav.js';
 
 // One shared view for the category hub pages (#/measurement, #/analysis,
 // #/utilities) — the mobile tab bar's group tabs land here rather than
@@ -34,7 +35,8 @@ export function toolCard(tool) {
     el('p', { i18n: tool.descKey })
   ];
   if (tool.path) {
-    return el('a', { href: '#' + tool.path, class: 'card category-card' }, inner);
+    const link = el('a', { href: '#' + tool.path, class: 'card category-card' }, inner);
+    return tool.id === 'locations' ? interceptLocationsLink(link) : link;
   }
   return el('div', { class: 'card category-card disabled', 'aria-disabled': 'true' }, inner);
 }

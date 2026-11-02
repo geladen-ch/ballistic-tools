@@ -36,7 +36,8 @@ export const GROUPS = {
     accordion: true
   },
   // Small helpers that belong to no analysis or measurement workflow —
-  // the unit converter and the reticle designer. Same hub-page/accordion
+  // the unit converter, the reticle designer and the Locations & Targets
+  // manager. Same hub-page/accordion
   // treatment as Analysis/Measurement.
   utilities: {
     id: 'utilities',
@@ -74,6 +75,10 @@ const TOOL_DEFS = [
 
   { id: 'unit-conversion', group: 'utilities', path: '/unit-conversion', nameKey: 'catalog.unitConversion', descKey: 'catalog.unitConversionDesc' },
   { id: 'reticle-designer', group: 'utilities', path: '/reticle-designer', nameKey: 'catalog.reticleDesigner', descKey: 'catalog.reticleDesignerDesc' },
+  // Opens in its own Done-only focused mode (see locations-nav.js), so
+  // every link to it goes through interceptLocationsLink() to record
+  // where Done should return to.
+  { id: 'locations', group: 'utilities', path: '/locations', nameKey: 'catalog.locations', descKey: 'catalog.locationsDesc' },
 
   { id: 'range-solver', group: 'shooting', path: '/range-solver', nameKey: 'catalog.rangeSolver', descKey: 'catalog.rangeSolverDesc' }
 ];
