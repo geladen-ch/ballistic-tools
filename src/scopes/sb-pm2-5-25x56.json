@@ -6,7 +6,8 @@
   "reticleIds": [
     "finnaccuracy-msr2-sb5",
     "sb-p4fl",
-    "sb-gr2id"
+    "sb-gr2id",
+    "finnaccuracy-msr"
   ],
   "type": "ffp",
   "magnificationMin": 5,

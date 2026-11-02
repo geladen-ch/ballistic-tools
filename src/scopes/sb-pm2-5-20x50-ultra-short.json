@@ -5,7 +5,8 @@
   "model": "5-20x50 PM II Ultra Short",
   "reticleIds": [
     "finnaccuracy-msr2-sb",
-    "sb-p4fl"
+    "sb-p4fl",
+    "finnaccuracy-msr"
   ],
   "type": "ffp",
   "magnificationMin": 5,

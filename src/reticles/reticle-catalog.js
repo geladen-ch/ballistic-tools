@@ -8,6 +8,7 @@ export const RETICLE_IDS = [
   'finnaccuracy-msr2-sb',
   'finnaccuracy-msr2-sb5',
   'finnaccuracy-msr2-sb-high-power',
+  'finnaccuracy-msr',
   'trijicon-rco-m4-chevron',
   'element-lpr-1d-mrad',
   'element-lpr-1d-bdc',

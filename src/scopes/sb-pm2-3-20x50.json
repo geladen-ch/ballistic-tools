@@ -5,7 +5,8 @@
   "model": "3-20x50 PM II",
   "reticleIds": [
     "sb-p4fl",
-    "sb-gr2id"
+    "sb-gr2id",
+    "finnaccuracy-msr"
   ],
   "type": "ffp",
   "magnificationMin": 3,
