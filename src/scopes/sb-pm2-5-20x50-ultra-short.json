@@ -7,7 +7,8 @@
     "finnaccuracy-msr2-sb",
     "sb-p4fl",
     "finnaccuracy-msr",
-    "horus-tremor-3"
+    "horus-tremor-3",
+    "horus-tremor-5"
   ],
   "type": "ffp",
   "magnificationMin": 5,
