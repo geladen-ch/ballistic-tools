@@ -688,7 +688,7 @@ button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px;
 .scope-view-main { display: flex; justify-content: center; gap: 10px; min-height: 0; }
 .scope-view-sight { width: min(calc(100% - 76px), 520px); min-width: 0; min-height: 0; }
 .scope-view-frame { position: relative; }
-.scope-view-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: 50%; touch-action: none; }
+.scope-view-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; touch-action: none; }
 /* Clear of the field circle down to a square about 160 px across. */
 .scope-view-corner { position: absolute; top: -6px; right: -6px; }
 .scope-view-corner-left { position: absolute; top: -6px; left: -6px; }
@@ -715,10 +715,6 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   padding: 1px 6px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
   font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-/* Magnified, the glass may reach the square's corners. */
-.scope-view-canvas.reticle-zoomed { border-radius: 0; }
-/* The Callout BDC range display's numbers reach beyond the field's rim. */
-.scope-view-canvas.bdc-callouts { border-radius: 0; }
 .scope-view-ring { display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; flex: none; }
 /* Ring below (the scope ring position setting, see scope-view.js): the
    reticle takes the full width and the horizontal ring runs under it,
@@ -763,7 +759,6 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .scope-view-bdc-hash, .scope-view-bdc-cross, .scope-view-mark-cross { fill: none; stroke: var(--scope-mark); stroke-linecap: butt; }
 /* The Callout BDC range display: its leaders, and its numbers on the
    black outside the field, without the outline the glass needs. */
-.scope-view-bdc-label.off-glass { stroke: none; filter: brightness(1.35); }
 .scope-view-bdc-leader { fill: none; stroke: var(--scope-mark); stroke-linejoin: round; }
 .scope-view-stroke-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-linecap: square; }
 /* The BDC overlay's holds' halo, faint enough to see what's behind:

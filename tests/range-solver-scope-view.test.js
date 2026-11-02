@@ -693,7 +693,9 @@ test('Callout: each number level with its mark, a leader each (but one on its ow
     const centre = Number(label.getAttribute('y')) - (0.72 * Number(label.getAttribute('font-size'))) / 2;
     assert.ok(dots.some((y) => Math.abs(y - centre) < 0.5), `level: ${centre}`);
   }
-  assert.equal(byClass(view.node, 'bdc-callouts').length, 1, 'the canvas isn\'t clipped to the circle');
+  const [outside] = byClass(view.node, 'reticle-outside');
+  assert.equal(outside.tagName.toLowerCase(), 'circle', 'black only round the field: the square\'s corners are the pane\'s');
+  assert.equal(byClass(view.node, 'off-glass').length, 0, 'every number outlined alike');
 });
 
 test('Upwind: each range beside its mark on the side the wind comes from (the right with none), that side\'s wind holds left out', async () => {

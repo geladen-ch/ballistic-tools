@@ -2,8 +2,9 @@
 // through its scope at a magnification set on a zoom ring, with the
 // solved shot's aiming point marked on it. No pan — the reticle centre is
 // always the view's centre. Light glass and black reticle in every
-// theme, everything beyond the field black, as the Reticle Designer and
-// the thumbnails draw it.
+// theme, the scope's black rim round the field, as the Reticle Designer
+// and the thumbnails draw it; the square's corners beyond the rim are the
+// pane's own.
 //
 // The optics are the scope's own (scope-record.js's scopeOptics), never
 // the reticle's reference scope. The maths is reticle/sight-picture.js.
@@ -209,7 +210,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       svgEl('clipPath', { id: clipId }, [fieldCircle('')]),
       svgEl('clipPath', { id: markClipId }, [markClipCircle])
     ]),
-    svgEl('rect', { class: 'reticle-outside', x: '0', y: '0', width: String(SIZE), height: String(SIZE) }),
+    svgEl('circle', { class: 'reticle-outside', cx: fmt(HALF), cy: fmt(HALF), r: fmt(HALF) }),
     fieldGroup,
     svgEl('g', { 'clip-path': `url(#${markClipId})` }, [bdcLayer, markLayer]),
     calloutLayer,
@@ -532,9 +533,9 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   }
 
   // The Callout display (bdc-callouts.js): only the marks in view get a
-  // number. A leader's halo stays inside the field (the clipped layer): on
-  // the black outside it only the line runs on; a number on the glass
-  // keeps its white outline, one on the black goes without.
+  // number. Its leaders and numbers look the same wherever they run, on
+  // the glass, the rim or the pane: haloed, outlined. The halos go first,
+  // under every leader.
   function renderCallouts(marks, scale, fieldRadius, text) {
     const inView = marks.filter(({ cx, cy }) => Math.hypot(cx - HALF, cy - HALF) <= fieldRadius && cy >= 0 && cy <= SIZE && cx >= 0 && cx <= SIZE);
     // The corners' controls that are shown, in drawing units at the
@@ -563,13 +564,12 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     for (const points of leaders) {
       if (!points) continue;
       const d = points.map((p, i) => `${i ? 'L' : 'M'}${fmt(p.x)} ${fmt(p.y)}`).join('');
-      bdcLayer.appendChild(svgEl('path', { class: 'scope-view-stroke-halo', d, 'stroke-width': fmt(LEADER_STROKE + 2 * BDC_LEADER_HALO) }));
+      calloutLayer.insertBefore(svgEl('path', { class: 'scope-view-stroke-halo', d, 'stroke-width': fmt(LEADER_STROKE + 2 * BDC_LEADER_HALO) }), calloutLayer.firstChild);
       calloutLayer.appendChild(svgEl('path', { class: 'scope-view-bdc-leader', d, 'stroke-width': fmt(LEADER_STROKE) }));
     }
     for (const { row, x, cy } of numbers) {
-      const onGlass = Math.hypot(x - HALF, cy - HALF) <= fieldRadius;
       calloutLayer.appendChild(svgEl('text', {
-        class: `scope-view-bdc-label${onGlass ? '' : ' off-glass'}`, x: fmt(x), y: fmt(cy + (CAP_HEIGHT * labelSize) / 2), 'font-size': fmt(labelSize),
+        class: 'scope-view-bdc-label', x: fmt(x), y: fmt(cy + (CAP_HEIGHT * labelSize) / 2), 'font-size': fmt(labelSize),
         'stroke-width': fmt(labelSize * BDC_LABEL_OUTLINE), 'text-anchor': 'middle'
       }, [document.createTextNode(text(row))]));
     }
@@ -609,9 +609,6 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     clear(markLayer);
     clear(bdcLayer);
     clear(calloutLayer);
-    // The Callout display's numbers use the square outside the field, so
-    // the canvas isn't clipped to the circle while they may be drawn.
-    svg.classList.toggle('bdc-callouts', wantsBdc() && bdcDisplay === 'callout');
     clear(arrowLayer);
     renderBdcToggle();
     svg.setAttribute('aria-label', t('rangeSolver.scopeView.canvasLabel'));
