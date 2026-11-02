@@ -717,6 +717,8 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 }
 /* Magnified, the glass may reach the square's corners. */
 .scope-view-canvas.reticle-zoomed { border-radius: 0; }
+/* The Callout BDC range display's numbers reach beyond the field's rim. */
+.scope-view-canvas.bdc-callouts { border-radius: 0; }
 .scope-view-ring { display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; flex: none; }
 /* Ring below (the scope ring position setting, see scope-view.js): the
    reticle takes the full width and the horizontal ring runs under it,
@@ -757,6 +759,10 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 /* The hashes shape: upright hashes and small crosses, stroked, over a
    wider white stroke as their halo. */
 .scope-view-bdc-hash, .scope-view-bdc-cross, .scope-view-mark-cross { fill: none; stroke: var(--scope-mark); stroke-linecap: butt; }
+/* The Callout BDC range display: its leaders, and its numbers on the
+   black outside the field, without the outline the glass needs. */
+.scope-view-bdc-label.off-glass { stroke: none; filter: brightness(1.35); }
+.scope-view-bdc-leader { fill: none; stroke: var(--scope-mark); stroke-linejoin: round; }
 .scope-view-stroke-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-linecap: square; }
 .scope-view-bdc-label {
   fill: var(--scope-mark); stroke: rgba(255, 255, 255, 0.85); stroke-linejoin: round; paint-order: stroke;

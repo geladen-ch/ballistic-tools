@@ -766,7 +766,12 @@ export function mount(container) {
     }
 
     renderReadout(solved.elevValue, solved.windValue, solved.decimals);
-    scopeView.setShot({ elevationRad: solved.elevationRad, windageRad: solved.windageRad });
+    scopeView.setShot({
+      elevationRad: solved.elevationRad, windageRad: solved.windageRad,
+      // The wind's crosswind part (positive from the right), for the
+      // Upwind BDC range display's side.
+      crosswindMs: wind.getEngineSpeed() * Math.sin(wind.getAngleRad())
+    });
     tofValue.textContent = `${solved.result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;
     energyValue.textContent = `${displayEnergy.toFixed(0)} ${energyChoice.label}`;

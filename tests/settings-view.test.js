@@ -231,3 +231,19 @@ test('reticle overlay colour: a visual picker of Auto / Vermillion / Blue, Auto 
   prefs.setReticleOverlayColor('auto');
   prefs.setReticleOverlayShape('dots');
 });
+
+test('BDC range display: Callout / Below / Upwind, Callout by default, remembered', async () => {
+  const prefs = await import('../src/range-solver-prefs.js');
+  removeCookie('ballistics_range_solver_bdc_range_display_v1');
+  const container = makeElement('main');
+  settingsView.mount(container);
+  const select = findById(container, 'settings-bdc-range-display');
+  assert.deepEqual(Array.from(select.childNodes).map((o) => o.value), ['callout', 'below', 'upwind']);
+  assert.equal(select.value, 'callout');
+  select.value = 'upwind';
+  fireEvent(select, 'change');
+  assert.equal(prefs.getBdcRangeDisplay(), 'upwind');
+  prefs.setBdcRangeDisplay('nonsense');
+  assert.equal(prefs.getBdcRangeDisplay(), 'upwind');
+  prefs.setBdcRangeDisplay('callout');
+});

@@ -17,7 +17,8 @@ import {
   INDICATOR_STYLE_CHOICES, getIndicatorStyle, setIndicatorStyle, OUTPUT_UNIT_CHOICES, getOutputUnit, setOutputUnit,
   TARGET_LABEL_VISIBILITY_CHOICES, getTargetLabelVisibility, setTargetLabelVisibility,
   SCOPE_RING_POSITION_CHOICES, getScopeRingPosition, setScopeRingPosition,
-  RETICLE_OVERLAY_SHAPE_CHOICES, getReticleOverlayShape, setReticleOverlayShape
+  RETICLE_OVERLAY_SHAPE_CHOICES, getReticleOverlayShape, setReticleOverlayShape,
+  BDC_RANGE_DISPLAY_CHOICES, getBdcRangeDisplay, setBdcRangeDisplay
 } from '../range-solver-prefs.js';
 import { UI_SCALE_CHOICES, getUiScale, setUiScale } from '../ui-scale-prefs.js';
 import { DRAG_MODELS } from '../engine/drag-tables.js';
@@ -216,6 +217,14 @@ export function mount(container) {
   overlayShapeSelect.value = getReticleOverlayShape();
   overlayShapeSelect.addEventListener('change', () => setReticleOverlayShape(overlayShapeSelect.value));
 
+  const bdcRangeDisplaySelect = el(
+    'select',
+    { id: 'settings-bdc-range-display' },
+    BDC_RANGE_DISPLAY_CHOICES.map((c) => el('option', { value: c.value, i18n: c.labelKey }))
+  );
+  bdcRangeDisplaySelect.value = getBdcRangeDisplay();
+  bdcRangeDisplaySelect.addEventListener('change', () => setBdcRangeDisplay(bdcRangeDisplaySelect.value));
+
   // One checkbox per known standard drag model (see engine/drag-tables.js's
   // DRAG_MODELS) — data-driven so a future model added there gets a
   // checkbox here for free. At least one must always stay checked (every
@@ -294,6 +303,11 @@ export function mount(container) {
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.reticleOverlayShapeLabel' }),
       overlayShapeSelect
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.bdcRangeDisplayLabel' }),
+      bdcRangeDisplaySelect,
+      el('p', { class: 'hint', i18n: 'settings.bdcRangeDisplayHint' })
     ])
   ]);
 

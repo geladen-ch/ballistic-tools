@@ -297,3 +297,31 @@ export function setReticleOverlayShape(value) {
     // best-effort — losing persistence isn't fatal
   }
 }
+
+const BDC_RANGE_DISPLAY_COOKIE_NAME = 'ballistics_range_solver_bdc_range_display_v1';
+const DEFAULT_BDC_RANGE_DISPLAY = 'callout';
+
+// Where the scope view's BDC overlay prints each mark's range: 'callout'
+// (the default — in a lane by the square's right edge, level with the
+// mark, a leader joining the two), 'below' (under the mark's hold) or
+// 'upwind' (beside the mark's hold, on the side the wind comes from — the
+// right with no crosswind — the wind holds on that side hidden).
+export const BDC_RANGE_DISPLAY_CHOICES = [
+  { value: 'callout', labelKey: 'settings.bdcRangeDisplayCallout' },
+  { value: 'below', labelKey: 'settings.bdcRangeDisplayBelow' },
+  { value: 'upwind', labelKey: 'settings.bdcRangeDisplayUpwind' }
+];
+
+export function getBdcRangeDisplay() {
+  const raw = getCookie(BDC_RANGE_DISPLAY_COOKIE_NAME);
+  return BDC_RANGE_DISPLAY_CHOICES.some((c) => c.value === raw) ? raw : DEFAULT_BDC_RANGE_DISPLAY;
+}
+
+export function setBdcRangeDisplay(value) {
+  if (!BDC_RANGE_DISPLAY_CHOICES.some((c) => c.value === value)) return;
+  try {
+    setCookie(BDC_RANGE_DISPLAY_COOKIE_NAME, value);
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}

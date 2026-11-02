@@ -264,6 +264,7 @@ const APP_SHELL_URLS = [
   './src/ui/locations/target-pin-glyphs.js',
   './src/ui/range-solver/range-card-panel.js',
   './src/ui/range-solver/bdc-trajectories.js',
+  './src/ui/range-solver/bdc-callouts.js',
   './src/ui/range-solver/scope-view.js',
   './src/ui/rifle-precision/project-form.js',
   './src/ui/rifle-precision/photo-add-flow.js',

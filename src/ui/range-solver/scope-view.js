@@ -8,8 +8,10 @@
 // The optics are the scope's own (scope-record.js's scopeOptics), never
 // the reticle's reference scope. The maths is reticle/sight-picture.js.
 //
-// setOptic({ scope, reticle } | null), setShot({ elevationRad, windageRad }
-// | null) — the readout's correction as angles: what to draw.
+// setOptic({ scope, reticle } | null), setShot({ elevationRad, windageRad,
+// crosswindMs } | null) — the readout's correction as angles: what to
+// draw; and the wind's crosswind part (m/s, positive from the right), for
+// the Upwind BDC range display.
 //
 // The zoom ring stands beside the reticle, or lies below it so the
 // reticle gets the full width — range-solver-prefs.js's scope ring
@@ -25,16 +27,20 @@
 //
 // BDC overlay (reticle/bdc-overlay.js), for a reticle with BDC marks: a
 // toggle in the bottom-left corner labels each mark with the range it
-// holds for — under a dot on the mark's level, moved across by spin
-// drift — and lays crosswind holds beside it, a dot every quarter of the
+// holds for — a dot on the mark's level, moved across by spin drift,
+// marks its hold — and lays crosswind holds beside it, a dot every quarter of the
 // reference wind up to one and a half times it, from either side, the
 // reference larger. In Dial elevation the centre holds for the target's
 // range, the elevation for it being on the turret, and the marks below
 // it for that elevation plus their own. Above the toggle, while on, the
-// reference crosswind in the user's unit. The trajectory is the
-// caller's (setBdcTables, asked for through onBdcChange whenever
-// wantsBdc() may have changed); the ranges follow the zoom, true for the
-// subtensions at it.
+// reference crosswind in the user's unit. Where the ranges go is the BDC
+// range display setting (range-solver-prefs.js): Callout (in a lane by
+// the square's right edge, joined to the marks by leaders —
+// bdc-callouts.js), Below (under each hold) or Upwind (beside it, on the
+// side the wind comes from, that side's wind holds left out). The
+// trajectory is the caller's (setBdcTables, asked for through
+// onBdcChange whenever wantsBdc() may have changed); the ranges follow
+// the zoom, true for the subtensions at it.
 //
 // Settings' reticle overlay colour (range-solver-prefs.js) colours all of
 // it — vermillion, blue, or Auto's choice between them for the reticle's
@@ -52,8 +58,9 @@ import {
 } from '../../reticle/sight-picture.js';
 import {
   getScopeAimMode, setScopeAimMode, getScopeRingPosition, isScopeBdcOverlayOn, setScopeBdcOverlayOn,
-  getReticleOverlayColor, reticleOverlayHex, getReticleOverlayShape
+  getReticleOverlayColor, reticleOverlayHex, getReticleOverlayShape, getBdcRangeDisplay
 } from '../../range-solver-prefs.js';
+import { calloutLayout, CAP_HEIGHT, LEADER_STROKE } from './bdc-callouts.js';
 import { bdcLevels, bdcOverlay } from '../../reticle/bdc-overlay.js';
 import { displayChoice, toDisplayUnit } from '../../display-units.js';
 import { ILLUMINATION_COLOURS } from '../../reticle/model.js';
@@ -107,6 +114,26 @@ const BDC_LABEL_OUTLINE = 7.5 / 36;
 // The least distance between two labels' baselines, in label sizes.
 const BDC_LABEL_PITCH = 1.1;
 
+// The Callout display's leaders as drawn: the stroke's halo (the stroke
+// itself is bdc-callouts.js's).
+const BDC_LEADER_HALO = 1.5;
+// The corners' controls (screen pixels, from the square's corner, their
+// largest extent — every control shown, the zoom to reticle steps and
+// the reference wind included): where the square's layout can't be
+// measured (tests), what the Callout display's numbers keep out of and
+// its leaders route round in a corner whose controls are shown. Measured
+// otherwise, so a hidden control keeps nothing out.
+const BDC_CONTROL_ZONES_PX = {
+  topLeft: { width: 72, height: 40 },
+  topRight: { width: 40, height: 40 },
+  bottomLeft: { width: 64, height: 64 },
+  bottomRight: { width: 104, height: 64 }
+};
+// The square's width on screen when it can't be measured (tests).
+const FALLBACK_SQUARE_PX = 560;
+// The Upwind display: the gap between a mark's hold and its range.
+const BDC_UPWIND_GAP = 6;
+
 // The mobile chrome's width breakpoint (layout.css's max-width: 780px,
 // overridden either way by display-mode-prefs.js's force-mobile /
 // force-desktop class on <html>).
@@ -149,6 +176,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   // page of its own, so they can't change under a mounted view.
   const overlayColor = getReticleOverlayColor();
   const hashes = getReticleOverlayShape() === 'hashes';
+  const bdcDisplay = getBdcRangeDisplay();
   let bdcTables = null;
   let zoom = NaN;
   // Zoom to reticle: on or off, and the magnification it adds while on
@@ -171,6 +199,9 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     fieldCircle('reticle-rim')
   ]);
   const markClipCircle = fieldCircle('');
+  // The Callout display's numbers and leaders, free to use the square
+  // outside the field.
+  const calloutLayer = svgEl('g', { class: 'scope-view-bdc-callouts' });
   const svg = svgEl('svg', {
     viewBox: `0 0 ${SIZE} ${SIZE}`, class: 'scope-view-canvas', role: 'img', 'aria-label': t('rangeSolver.scopeView.canvasLabel')
   }, [
@@ -181,6 +212,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     svgEl('rect', { class: 'reticle-outside', x: '0', y: '0', width: String(SIZE), height: String(SIZE) }),
     fieldGroup,
     svgEl('g', { 'clip-path': `url(#${markClipId})` }, [bdcLayer, markLayer]),
+    calloutLayer,
     arrowLayer
   ]);
   // The square the reticle is drawn in. Its corners, outside the field
@@ -387,13 +419,17 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   }
 
   // The overlay's rows at `zoom`, drawn at `scale` drawing units per
-  // radian of reticle subtension. A dot's halo ring and the label's
-  // outline keep it readable over the reticle's own lines; the labels go
-  // over every dot. Where the rows in view come closer than the labels
+  // radian of reticle subtension, their ranges as the BDC range display
+  // setting has them. A dot's halo ring and the label's outline keep it
+  // readable over the reticle's own lines; the labels go over every dot.
+  // Below and Upwind: where the rows in view come closer than the labels
   // need, every label shrinks to fit the tightest of them, down to
   // BDC_LABEL_MIN_SCALE; past that, one that would still run into the
   // label above it is left out — zoom in (or zoom to reticle) to see it.
-  function renderBdc(scale) {
+  // Upwind: the label beside the mark's hold on the side the wind comes
+  // from (`shot.crosswindMs`, positive from the right; the right with
+  // none), that side's wind holds left out. Callout: renderCallouts.
+  function renderBdc(scale, fieldRadius) {
     if (!wantsBdc() || !bdcTables || !shot) return;
     const { optics } = optic;
     const dialed = mode === 'dialElevation' ? shot.elevationRad : 0;
@@ -422,6 +458,30 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     const holdNodes = (cx, cy) => (hashes
       ? crossNodes(cx, cy, BDC_CROSS, BDC_CROSS_STROKE, BDC_HALO, 'scope-view-bdc-cross')
       : dot(cx, cy, BDC_DOT, 'scope-view-bdc-dot'));
+    const rangeText = (row) => String(Math.round(toDisplayUnit('distance', row.rangeM)));
+    if (bdcDisplay === 'callout') {
+      // Each row's holds as drawn, as boxes (their ink, not their white
+      // halo): its mark's own first, then the wind holds.
+      const holdBox = (x, cy, wind) => {
+        if (hashes && wind) {
+          const half = (wind.major ? BDC_HASH_MAJOR_STROKE : BDC_HASH_STROKE) / 2;
+          return { x0: x - half, x1: x + half, y0: cy, y1: cy + (wind.major ? BDC_HASH_MAJOR : BDC_HASH) };
+        }
+        const r = hashes ? BDC_CROSS : !wind ? BDC_DOT : wind.major ? BDC_WIND_DOT_MAJOR : BDC_WIND_DOT;
+        return { x0: x - r, x1: x + r, y0: cy - r, y1: cy + r };
+      };
+      const marks = rows.map((row) => {
+        const cy = HALF + row.level * scale;
+        const cx = screenX(row.x);
+        for (const wind of row.winds) {
+          for (const n of windNodes(screenX(wind.x), cy, wind.major)) bdcLayer.appendChild(n);
+        }
+        for (const n of holdNodes(cx, cy)) bdcLayer.appendChild(n);
+        return { row, cx, cy, holds: [holdBox(cx, cy, null), ...row.winds.map((wind) => holdBox(screenX(wind.x), cy, wind))] };
+      });
+      renderCallouts(marks, scale, fieldRadius, rangeText);
+      return;
+    }
     let tightest = Infinity;
     let above = null;
     for (const row of rows) {
@@ -431,25 +491,78 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       above = cy;
     }
     const labelSize = Math.min(BDC_LABEL_SIZE, Math.max(BDC_LABEL_SIZE * BDC_LABEL_MIN_SCALE, tightest / BDC_LABEL_PITCH));
-    const labelDrop = (hashes ? BDC_CROSS : BDC_DOT) + 4 + labelSize * 0.75;
+    const holdRadius = hashes ? BDC_CROSS : BDC_DOT;
+    const upwind = bdcDisplay === 'upwind';
+    const labelSide = upwind && shot.crosswindMs < 0 ? -1 : 1;
+    // Below: the baseline under the hold; Upwind: the figures centred on
+    // the mark's level.
+    const labelDrop = upwind ? (CAP_HEIGHT * labelSize) / 2 : holdRadius + 4 + labelSize * 0.75;
     const labels = [];
     let lastBaseline = -Infinity;
     for (const row of rows) {
       const cy = HALF + row.level * scale;
-      for (const wind of row.winds) {
-        for (const n of windNodes(screenX(wind.x), cy, wind.major)) bdcLayer.appendChild(n);
-      }
       const cx = screenX(row.x);
+      for (const wind of row.winds) {
+        const x = screenX(wind.x);
+        if (upwind && Math.sign(x - cx) === labelSide) continue;
+        for (const n of windNodes(x, cy, wind.major)) bdcLayer.appendChild(n);
+      }
       for (const n of holdNodes(cx, cy)) bdcLayer.appendChild(n);
       const baseline = cy + labelDrop;
       if (baseline - lastBaseline < labelSize * BDC_LABEL_PITCH) continue;
       lastBaseline = baseline;
       labels.push(svgEl('text', {
-        class: 'scope-view-bdc-label', x: fmt(cx), y: fmt(baseline), 'font-size': fmt(labelSize),
-        'stroke-width': fmt(labelSize * BDC_LABEL_OUTLINE), 'text-anchor': 'middle'
-      }, [document.createTextNode(String(Math.round(toDisplayUnit('distance', row.rangeM))))]));
+        class: 'scope-view-bdc-label',
+        x: fmt(upwind ? cx + labelSide * (holdRadius + BDC_HALO + BDC_UPWIND_GAP) : cx),
+        y: fmt(baseline), 'font-size': fmt(labelSize), 'stroke-width': fmt(labelSize * BDC_LABEL_OUTLINE),
+        'text-anchor': upwind ? (labelSide > 0 ? 'start' : 'end') : 'middle'
+      }, [document.createTextNode(rangeText(row))]));
     }
     for (const n of labels) bdcLayer.appendChild(n);
+  }
+
+  // The Callout display (bdc-callouts.js): only the marks in view get a
+  // number. A leader's halo stays inside the field (the clipped layer): on
+  // the black outside it only the line runs on; a number on the glass
+  // keeps its white outline, one on the black goes without.
+  function renderCallouts(marks, scale, fieldRadius, text) {
+    const inView = marks.filter(({ cx, cy }) => Math.hypot(cx - HALF, cy - HALF) <= fieldRadius && cy >= 0 && cy <= SIZE && cx >= 0 && cx <= SIZE);
+    // The corners' controls that are shown, in drawing units at the
+    // square's size on screen: as laid out, or at their largest where
+    // nothing is.
+    const squareRect = typeof svg.getBoundingClientRect === 'function' ? svg.getBoundingClientRect() : null;
+    const measured = !!squareRect?.width;
+    const unitsPerPx = SIZE / (measured ? squareRect.width : FALLBACK_SQUARE_PX);
+    const zone = (node, fallback, right, bottom) => {
+      if (node.style.display === 'none') return null;
+      let width = fallback.width, height = fallback.height;
+      if (measured) {
+        const box = node.getBoundingClientRect();
+        if (!box.width || !box.height) return null;
+        width = right ? squareRect.right - box.left : box.right - squareRect.left;
+        height = bottom ? squareRect.bottom - box.top : box.bottom - squareRect.top;
+      }
+      const w = width * unitsPerPx, h = height * unitsPerPx;
+      return { x0: right ? SIZE - w : 0, x1: right ? SIZE : w, y0: bottom ? SIZE - h : 0, y1: bottom ? SIZE : h };
+    };
+    const zones = [
+      zone(cornerLeft, BDC_CONTROL_ZONES_PX.topLeft, false, false), zone(corner, BDC_CONTROL_ZONES_PX.topRight, true, false),
+      zone(cornerBottomLeft, BDC_CONTROL_ZONES_PX.bottomLeft, false, true), zone(cornerBottomRight, BDC_CONTROL_ZONES_PX.bottomRight, true, true)
+    ].filter(Boolean);
+    const { labelSize, numbers, leaders } = calloutLayout({ marks: inView, size: SIZE, unit: scale, zones, text });
+    for (const points of leaders) {
+      if (!points) continue;
+      const d = points.map((p, i) => `${i ? 'L' : 'M'}${fmt(p.x)} ${fmt(p.y)}`).join('');
+      bdcLayer.appendChild(svgEl('path', { class: 'scope-view-stroke-halo', d, 'stroke-width': fmt(LEADER_STROKE + 2 * BDC_LEADER_HALO) }));
+      calloutLayer.appendChild(svgEl('path', { class: 'scope-view-bdc-leader', d, 'stroke-width': fmt(LEADER_STROKE) }));
+    }
+    for (const { row, x, cy } of numbers) {
+      const onGlass = Math.hypot(x - HALF, cy - HALF) <= fieldRadius;
+      calloutLayer.appendChild(svgEl('text', {
+        class: `scope-view-bdc-label${onGlass ? '' : ' off-glass'}`, x: fmt(x), y: fmt(cy + (CAP_HEIGHT * labelSize) / 2), 'font-size': fmt(labelSize),
+        'stroke-width': fmt(labelSize * BDC_LABEL_OUTLINE), 'text-anchor': 'middle'
+      }, [document.createTextNode(text(row))]));
+    }
   }
 
   const scaleTransform = (s) => (Math.abs(s - 1) < 1e-9
@@ -485,6 +598,10 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   function render() {
     clear(markLayer);
     clear(bdcLayer);
+    clear(calloutLayer);
+    // The Callout display's numbers use the square outside the field, so
+    // the canvas isn't clipped to the circle while they may be drawn.
+    svg.classList.toggle('bdc-callouts', wantsBdc() && bdcDisplay === 'callout');
     clear(arrowLayer);
     renderBdcToggle();
     svg.setAttribute('aria-label', t('rangeSolver.scopeView.canvasLabel'));
@@ -505,7 +622,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       ? t('rangeSolver.scopeView.sfpScale', { factor: String(Number(factor.toFixed(2))) })
       : '';
 
-    renderBdc(k * magnification);
+    renderBdc(k * magnification, FIT_RADIUS * magnification);
     if (!shot) return;
     const angle = aimAngle(shot, mode);
     if (!Number.isFinite(angle.x) || !Number.isFinite(angle.y)) return;

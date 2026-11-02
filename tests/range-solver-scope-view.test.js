@@ -36,6 +36,7 @@ test.beforeEach(async () => {
   prefs.setScopeAimMode('hold');
   prefs.setScopeRingPosition('auto');
   prefs.setScopeBdcOverlayOn(false);
+  prefs.setBdcRangeDisplay('callout');
   prefs.setReticleOverlayColor('auto');
   prefs.setReticleOverlayShape('dots');
   await reticleLibrary.resetReticleLibraryForTests();
@@ -559,6 +560,7 @@ test('BDC labels crowding each other shrink to fit, down to 75 %, before any is 
   const reference = holdTable(integrate({ ...state, windSpeed: 4, windAngleRad: Math.PI / 2 }).points);
   const tables = { still: withReferenceWind(still, reference, 4), referenceSpeed: 4 };
   prefs.setScopeBdcOverlayOn(true);
+  prefs.setBdcRangeDisplay('below');
   // A 4x fixed scope with a 0.12 rad field: 490 drawing units over 0.06 rad,
   // so the labels' full pitch (36 x 1.1) is about 4.85 mrad of rows.
   async function labelsAt(spacingMrad, id) {
@@ -579,4 +581,149 @@ test('BDC labels crowding each other shrink to fit, down to 75 %, before any is 
   const tight = await labelsAt(2, 'fixed-labels-tight');
   assert.ok(tight.length < 4 && tight.length > 0, `some left out: ${tight.length}`);
   assert.ok(tight.every((size) => size === 27), 'only at 75 %');
+});
+
+test('Callout: each number level with its mark, a leader each (but one on its own row\'s holds), crossing no other leader, number or wind hold at any zoom', async () => {
+  const { integrate } = await import('../src/engine/trajectory.js');
+  const { holdTable, withReferenceWind } = await import('../src/reticle/bdc-overlay.js');
+  const { loadScope } = await import('../src/scopes.js');
+  const { loadReticle } = await import('../src/reticles.js');
+  prefs.setScopeBdcOverlayOn(true);
+  const state = { muzzleVelocity: 790, bc: 0.243, dragModel: 'G7', zeroRange: 100, sightHeightM: 0.05, maxRange: 2000, rangeStep: 5 };
+  const still = holdTable(integrate({ ...state, windSpeed: 0, windAngleRad: 0 }).points);
+  const reference = holdTable(integrate({ ...state, windSpeed: 4, windAngleRad: Math.PI / 2 }).points);
+  const scope = await loadScope('element-immersive-5x30-bdc');
+  const reticle = await loadReticle('element-lpr-1d-bdc');
+  prefs.setBdcRangeDisplay('callout');
+  const view = scopeView();
+  view.setOptic({ scope: { ...scope, id: 'callouts-scope' }, reticle });
+  view.setShot({ elevationRad: 0.004, windageRad: 0.001 });
+  view.setBdcTables({ still: withReferenceWind(still, reference, 4), referenceSpeed: 4 });
+  const points = (d) => [...d.matchAll(/[ML]([-\d.]+) ([-\d.]+)/g)].map((m) => ({ x: Number(m[1]), y: Number(m[2]) }));
+  const side = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+  const cross = (a, b, c, d) => side(c, d, a) * side(c, d, b) < 0 && side(a, b, c) * side(a, b, d) < 0;
+  const hitsBox = (p, q, box) => {
+    for (let i = 0; i <= 50; i++) {
+      const x = p.x + ((q.x - p.x) * i) / 50, y = p.y + ((q.y - p.y) * i) / 50;
+      if (x > box.x0 && x < box.x1 && y > box.y0 && y < box.y1) return true;
+    }
+    return false;
+  };
+  const crossings = () => {
+    const leaders = byClass(view.node, 'scope-view-bdc-leader').map((n) => points(n.getAttribute('d')));
+    const labels = byClass(view.node, 'scope-view-bdc-label');
+    const boxes = labels.map((n) => {
+      const size = Number(n.getAttribute('font-size')), x = Number(n.getAttribute('x')), base = Number(n.getAttribute('y'));
+      const half = (n.textContent.length * 0.6 * size) / 2;
+      return { x0: x - half, x1: x + half, y0: base - 0.72 * size, y1: base };
+    });
+    // The overlay's holds as drawn (wind dots and marks' dots), a leader's
+    // own mark's dot — where it starts — aside.
+    const holds = byClass(view.node, 'scope-view-bdc-wind').concat(byClass(view.node, 'scope-view-bdc-dot')).map((c) => {
+      const x = Number(c.getAttribute('cx')), y = Number(c.getAttribute('cy')), r = Number(c.getAttribute('r'));
+      return { x0: x - r, x1: x + r, y0: y - r, y1: y + r };
+    });
+    // Each leader's own number: the one its end is up against. A number
+    // without a leader sits on its own row's holds.
+    const near = (p, b) => Math.hypot(Math.max(b.x0 - p.x, 0, p.x - b.x1), Math.max(b.y0 - p.y, 0, p.y - b.y1));
+    const own = leaders.map((a) => {
+      const end = a[a.length - 1];
+      return boxes.reduce((best, b, j) => (near(end, b) < near(end, boxes[best]) ? j : best), 0);
+    });
+    assert.equal(new Set(own).size, leaders.length, 'one leader per number at most');
+    boxes.forEach((box, j) => {
+      if (own.includes(j)) return;
+      const y = (box.y0 + box.y1) / 2;
+      const rowEnd = Math.max(...holds.filter((h) => h.y0 <= y && h.y1 >= y).map((h) => h.x1));
+      assert.ok(box.x0 <= rowEnd + 12, `${labels[j].textContent} has no leader but is clear of its row`);
+    });
+    let n = 0;
+    for (const a of leaders) {
+      const start = a[0];
+      const others = holds.filter((h) => !(start.x >= h.x0 && start.x <= h.x1 && start.y >= h.y0 && start.y <= h.y1));
+      for (let s = 1; s < a.length; s++) for (const h of others) if (hitsBox(a[s - 1], a[s], h)) n += 1;
+    }
+    leaders.forEach((a, i) => {
+      for (let s = 1; s < a.length; s++) {
+        leaders.forEach((b, j) => {
+          if (j <= i) return;
+          for (let t = 1; t < b.length; t++) if (cross(a[s - 1], a[s], b[t - 1], b[t])) n += 1;
+        });
+        boxes.forEach((box, j) => { if (j !== own[i] && hitsBox(a[s - 1], a[s], box)) n += 1; });
+      }
+    });
+    return { n, count: labels.length };
+  };
+  const zoomButton = byClass(view.node, 'scope-view-reticle-zoom-toggle')[0];
+  const zoomIn = byClass(view.node, 'scope-view-reticle-zoom-steps')[0].childNodes[1];
+  fireEvent(zoomButton, 'click');
+  const firstLegs = { upright: 0, diagonal: 0 };
+  for (let step = 0; step <= 6; step++) {
+    await settle();
+    const { n, count } = crossings();
+    assert.ok(count > 5, `${view.getReticleZoom().toFixed(1)}x: ${count} numbers`);
+    assert.equal(n, 0, `${view.getReticleZoom().toFixed(1)}x: ${n} crossings`);
+    // Leaving their mark, leaders go at 45 degrees rather than straight up
+    // or down — but where 45 degrees would run into a hold of the overlay.
+    const markXs = byClass(view.node, 'scope-view-bdc-dot').map((d) => Number(d.getAttribute('cx')));
+    const holdBoxes = byClass(view.node, 'scope-view-bdc-wind').concat(byClass(view.node, 'scope-view-bdc-dot')).map((h) => {
+      const x = Number(h.getAttribute('cx')), y = Number(h.getAttribute('cy')), r = Number(h.getAttribute('r')) + 1;
+      return { x0: x - r, x1: x + r, y0: y - r, y1: y + r };
+    });
+    for (const [a, b] of byClass(view.node, 'scope-view-bdc-leader').map((l) => points(l.getAttribute('d')))) {
+      if (!markXs.some((m) => Math.abs(m - a.x) < 0.5) || Math.abs(b.y - a.y) < 1e-6) continue;
+      if (Math.abs(b.x - a.x) > 1e-6) { firstLegs.diagonal += 1; continue; }
+      firstLegs.upright += 1;
+      const diagonal = { x: a.x + Math.abs(b.y - a.y), y: b.y };
+      const blocked = holdBoxes.some((h) => !(a.x >= h.x0 && a.x <= h.x1 && a.y >= h.y0 && a.y <= h.y1) && hitsBox(a, diagonal, h));
+      assert.ok(blocked, `${view.getReticleZoom().toFixed(1)}x: straight up where 45 degrees was clear`);
+    }
+    fireEvent(zoomIn, 'click');
+  }
+  assert.ok(firstLegs.diagonal > 0, JSON.stringify(firstLegs));
+  await settle();
+  // Zoomed in, some leaders start at their mark, the rest at their row's end.
+  const markXs = byClass(view.node, 'scope-view-bdc-dot').map((d) => Number(d.getAttribute('cx')));
+  const starts = byClass(view.node, 'scope-view-bdc-leader').map((n) => points(n.getAttribute('d'))[0].x);
+  const fromMark = starts.filter((x) => markXs.some((m) => Math.abs(m - x) < 0.5)).length;
+  assert.ok(fromMark > 0 && fromMark < starts.length, `${fromMark} of ${starts.length} from the mark`);
+  // Every number sits level with its mark's dot.
+  const dots = byClass(view.node, 'scope-view-bdc-dot').map((n) => Number(n.getAttribute('cy')));
+  for (const label of byClass(view.node, 'scope-view-bdc-label')) {
+    const centre = Number(label.getAttribute('y')) - (0.72 * Number(label.getAttribute('font-size'))) / 2;
+    assert.ok(dots.some((y) => Math.abs(y - centre) < 0.5), `level: ${centre}`);
+  }
+  assert.equal(byClass(view.node, 'bdc-callouts').length, 1, 'the canvas isn\'t clipped to the circle');
+});
+
+test('Upwind: each range beside its mark on the side the wind comes from (the right with none), that side\'s wind holds left out', async () => {
+  const { integrate } = await import('../src/engine/trajectory.js');
+  const { holdTable, withReferenceWind } = await import('../src/reticle/bdc-overlay.js');
+  const state = { muzzleVelocity: 840, bc: 0.475, dragModel: 'G1', zeroRange: 100, sightHeightM: 0.05, maxRange: 2000, rangeStep: 5 };
+  const still = holdTable(integrate({ ...state, windSpeed: 0, windAngleRad: 0 }).points);
+  const reference = holdTable(integrate({ ...state, windSpeed: 4, windAngleRad: Math.PI / 2 }).points);
+  prefs.setScopeBdcOverlayOn(true);
+  prefs.setBdcRangeDisplay('upwind');
+  const reticle = reticleOf([...smallReticle.elements, { type: 'bdc', x: 0, y: 0 }, { type: 'bdc', x: 0, y: mradToRad(5) }]);
+  for (const [crosswindMs, side] of [[3, 1], [-3, -1], [0, 1]]) {
+    const view = scopeView();
+    view.setOptic({ scope: fixedScope({ id: `upwind-${crosswindMs}` }), reticle });
+    view.setShot({ elevationRad: 0.002, windageRad: 0, crosswindMs });
+    view.setBdcTables({ still: withReferenceWind(still, reference, 4), referenceSpeed: 4 });
+    await settle();
+    const dots = byClass(view.node, 'scope-view-bdc-dot');
+    const labels = byClass(view.node, 'scope-view-bdc-label');
+    assert.equal(labels.length, 2, String(crosswindMs));
+    assert.equal(byClass(view.node, 'scope-view-bdc-leader').length, 0, 'no leaders');
+    for (const [i, label] of labels.entries()) {
+      const cx = Number(dots[i].getAttribute('cx'));
+      assert.equal(label.getAttribute('text-anchor'), side > 0 ? 'start' : 'end');
+      assert.ok(Math.sign(Number(label.getAttribute('x')) - cx) === side, `${crosswindMs}: label side`);
+    }
+    // Per row: the six holds on the far side drawn, none on the label's.
+    const cxs = dots.map((d) => Number(d.getAttribute('cx')));
+    const winds = byClass(view.node, 'scope-view-bdc-wind').map((w) => Number(w.getAttribute('cx')));
+    assert.equal(winds.length, 12, `${crosswindMs}: winds`);
+    assert.ok(winds.every((x) => cxs.some((c) => Math.sign(x - c) === -side)), `${crosswindMs}: only the far side`);
+  }
 });
