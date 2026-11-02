@@ -1597,6 +1597,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v236": "New: some more scopes and reticles.",
       "v235": "New: BDC overlay in Range Solver's scope view.",
       "v234": "New: Element Optics Immersive 5x scopes and reticles (props to JerkyFreak for geometry). A few SB PM II scopes and reticles transcribed from specs.",
       "v233": "New: zoom-to-reticle ratio controls exposed to the user.",

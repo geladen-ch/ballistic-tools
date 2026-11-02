@@ -1597,6 +1597,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v236": "Nouveau : quelques lunettes et réticules de plus.",
       "v235": "Nouveau : superposition BDC dans la vue lunette du Calculateur de terrain.",
       "v234": "Nouveau : lunettes et réticules Element Optics Immersive 5x (merci à JerkyFreak pour la géométrie). Quelques lunettes et réticules SB PM II retranscrits d'après les spécifications.",
       "v233": "Nouveau : le facteur du zoom sur le réticule est désormais réglable par l'utilisateur.",

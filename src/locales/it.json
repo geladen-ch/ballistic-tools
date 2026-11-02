@@ -1597,6 +1597,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v236": "Novità: altri cannocchiali e reticoli.",
       "v235": "Novità: sovrapposizione BDC nella vista cannocchiale del Calcolatore per il poligono.",
       "v234": "Novità: cannocchiali e reticoli Element Optics Immersive 5x (grazie a JerkyFreak per la geometria). Alcuni cannocchiali e reticoli SB PM II trascritti dalle specifiche.",
       "v233": "Novità: il fattore dello zoom sul reticolo è ora regolabile dall'utente.",
