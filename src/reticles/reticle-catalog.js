@@ -3,8 +3,10 @@
 // record, in the stored form (reticle/reticle-record.js), at ./<id>.json.
 export const RETICLE_IDS = [
   'sb-p4fl',
+  'sb-p5fl',
   'sb-tr2id',
   'sb-gr2id',
+  'sb-m1fl',
   'finnaccuracy-msr2-sb',
   'finnaccuracy-msr2-sb5',
   'finnaccuracy-msr2-sb-high-power',

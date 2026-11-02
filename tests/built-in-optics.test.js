@@ -23,7 +23,7 @@ const ELEMENT_RETICLES = ['element-lpr-1d-mrad', 'element-lpr-1d-bdc'];
 
 test('the built-in catalogs are plain id lists', () => {
   assert.deepEqual(scopes.loadScopeCatalog(), ['sb-pm2-3-20x50', 'sb-cm2-6-36x56', ...MSR2_SCOPES, 'trijicon-acog-4x32-rco-m4', ...ELEMENT_SCOPES, ...GENERIC_SCOPES]);
-  assert.deepEqual(reticles.loadReticleCatalog(), ['sb-p4fl', 'sb-tr2id', 'sb-gr2id', ...FINNACCURACY_RETICLES, ...HORUS_RETICLES, 'trijicon-rco-m4-chevron', ...ELEMENT_RETICLES, ...GENERIC_RETICLES]);
+  assert.deepEqual(reticles.loadReticleCatalog(), ['sb-p4fl', 'sb-p5fl', 'sb-tr2id', 'sb-gr2id', 'sb-m1fl', ...FINNACCURACY_RETICLES, ...HORUS_RETICLES, 'trijicon-rco-m4-chevron', ...ELEMENT_RETICLES, ...GENERIC_RETICLES]);
   assert.ok(scopes.isBuiltInScopeId('sb-pm2-3-20x50') && !scopes.isBuiltInScopeId('user-scope-x'));
   assert.ok(reticles.isBuiltInReticleId('sb-p4fl') && !reticles.isBuiltInReticleId('user-reticle-x'));
 });
@@ -51,6 +51,7 @@ test('the built-in scopes, as specified', async () => {
 
   const cm2 = await scopes.loadScope('sb-cm2-6-36x56');
   assert.deepEqual([cm2.model, cm2.magnificationMin, cm2.magnificationMax, cm2.reticleIds[0]], ['6-36x56 CM II', 6, 36, 'sb-tr2id']);
+  assert.deepEqual(cm2.reticleIds, ['sb-tr2id', 'sb-m1fl', 'sb-p5fl']);
   close(actualMagnificationMin(cm2), 6.16, 0.005);
 
   const acog = await scopes.loadScope('trijicon-acog-4x32-rco-m4');
@@ -63,7 +64,7 @@ test('the S&B PM II scopes with the MSR2 reticles: FFP, 0.1 mrad, field of view 
   const spec = [
     ['3-20x50 PM II Ultra Short', 3, 20, 13, 2.1, ['finnaccuracy-msr2-sb', 'sb-p4fl', 'horus-tremor-3']],
     ['5-20x50 PM II Ultra Short', 5, 20, 7.8, 2.0, ['finnaccuracy-msr2-sb', 'sb-p4fl', 'finnaccuracy-msr', 'horus-tremor-3', 'horus-tremor-5']],
-    ['5-25x56 PM II', 5, 25, 5.3, 1.5, ['finnaccuracy-msr2-sb5', 'sb-p4fl', 'sb-gr2id', 'finnaccuracy-msr', 'horus-tremor-3']],
+    ['5-25x56 PM II', 5, 25, 5.3, 1.5, ['finnaccuracy-msr2-sb5', 'sb-p4fl', 'sb-gr2id', 'finnaccuracy-msr', 'horus-tremor-3', 'sb-p5fl']],
     ['5-45x56 PM II High Power', 5, 45, 7.8, 0.9, ['finnaccuracy-msr2-sb5', 'sb-p4fl', 'sb-gr2id', 'horus-tremor-3']],
     ['3-27x56 PM II High Power', 3, 27, 13, 1.4, ['finnaccuracy-msr2-sb-high-power', 'sb-p4fl', 'sb-gr2id', 'horus-tremor-3']]
   ];
@@ -115,7 +116,7 @@ test('the generic scopes: FFP, 0.1 mrad, every generic reticle, the field of vie
 
 test('the built-in reticles decode, with their reference scopes', async () => {
   const all = await reticles.loadBuiltInReticles();
-  assert.deepEqual(all.map((r) => r.name), ['Schmidt & Bender P4FL', 'Schmidt & Bender TR²ID', 'Schmidt & Bender GR²ID', 'FinnAccuracy MSR2 SB', 'FinnAccuracy MSR2 SB5', 'FinnAccuracy MSR2 SB High Power', 'FinnAccuracy MSR', 'Horus Tremor 3', 'Horus Tremor 5', 'Trijicon RCO M4/M150 Chevron', 'Element Optics LPR-1D MRAD', 'Element Optics LPR-1D BDC', 'Generic Mildot', 'Generic Milhash', 'Generic Tree (mrad)']);
+  assert.deepEqual(all.map((r) => r.name), ['Schmidt & Bender P4FL', 'Schmidt & Bender P5FL', 'Schmidt & Bender TR²ID', 'Schmidt & Bender GR²ID', 'Schmidt & Bender M1FL', 'FinnAccuracy MSR2 SB', 'FinnAccuracy MSR2 SB5', 'FinnAccuracy MSR2 SB High Power', 'FinnAccuracy MSR', 'Horus Tremor 3', 'Horus Tremor 5', 'Trijicon RCO M4/M150 Chevron', 'Element Optics LPR-1D MRAD', 'Element Optics LPR-1D BDC', 'Generic Mildot', 'Generic Milhash', 'Generic Tree (mrad)']);
   for (const r of all) {
     assert.deepEqual(validateReferenceScope(r.referenceScope), {}, r.id);
     assert.ok(r.elements.length > 0 && r.elements.every((e) => e.id), r.id);
@@ -124,7 +125,9 @@ test('the built-in reticles decode, with their reference scopes', async () => {
   assert.deepEqual(all.map((r) => r.referenceScope), [
     { type: 'ffp', zoomMin: 3, zoomMax: 20, calibrationZoom: 20 },
     { type: 'ffp', zoomMin: 6, zoomMax: 36, calibrationZoom: 36 },
+    { type: 'ffp', zoomMin: 6, zoomMax: 36, calibrationZoom: 36 },
     { type: 'ffp', zoomMin: 3, zoomMax: 20, calibrationZoom: 20 },
+    { type: 'ffp', zoomMin: 6, zoomMax: 36, calibrationZoom: 36 },
     { type: 'ffp', zoomMin: 3, zoomMax: 20, calibrationZoom: 20 },
     { type: 'ffp', zoomMin: 5, zoomMax: 45, calibrationZoom: 45 },
     { type: 'ffp', zoomMin: 3, zoomMax: 27, calibrationZoom: 27 },

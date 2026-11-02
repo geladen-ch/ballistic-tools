@@ -4,7 +4,9 @@
   "manufacturer": "Schmidt & Bender",
   "model": "6-36x56 CM II",
   "reticleIds": [
-    "sb-tr2id"
+    "sb-tr2id",
+    "sb-m1fl",
+    "sb-p5fl"
   ],
   "type": "ffp",
   "magnificationMin": 6,
