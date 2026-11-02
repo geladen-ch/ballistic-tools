@@ -6,7 +6,8 @@
   "reticleIds": [
     "finnaccuracy-msr2-sb-high-power",
     "sb-p4fl",
-    "sb-gr2id"
+    "sb-gr2id",
+    "horus-tremor-3"
   ],
   "type": "ffp",
   "magnificationMin": 3,
