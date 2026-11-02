@@ -748,7 +748,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 /* The aiming mark's ring and halo, see-through as one. */
 .scope-view-mark-circle { opacity: 0.55; }
 .scope-view-mark-ring { fill: none; stroke: var(--scope-mark); }
-.scope-view-mark-halo { fill: none; stroke: rgba(255, 255, 255, 0.85); }
+.scope-view-mark-halo { fill: none; stroke: rgba(255, 255, 255, 0.45); }
 .scope-view-mark-dot { fill: var(--scope-mark); }
 .scope-view-lead { stroke: var(--scope-mark); stroke-width: 2.5; }
 .scope-view-lead-halo { stroke: rgba(255, 255, 255, 0.7); stroke-width: 8; }
