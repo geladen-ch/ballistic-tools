@@ -1602,7 +1602,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
-      "v238": "Nouveau : affichage optionnel en étiquettes reliées pour la superposition BDC.",
+      "v238": "Nouveau : modes optionnels d'affichage des distances BDC : « Étiquettes reliées » et « Côté vent » (merci à JerkyFreak pour l'idée).",
       "v237": "Nouveau : la gestion des emplacements et des cibles est désormais accessible directement sous « Utilitaires ».",
       "v236": "Nouveau : quelques lunettes et réticules de plus.",
       "v235": "Nouveau : superposition BDC dans la vue lunette du Calculateur de terrain.",

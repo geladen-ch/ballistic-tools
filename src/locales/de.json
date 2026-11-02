@@ -1602,7 +1602,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
-      "v238": "Neu: optionale Beschriftung mit Linien für die BDC-Einblendung.",
+      "v238": "Neu: optionale Anzeigemodi für die BDC-Distanzen: „Beschriftung mit Linie“ und „Windseitig“ (Dank an JerkyFreak für die Idee).",
       "v237": "Neu: Die Verwaltung von Standorten und Zielen ist jetzt direkt unter „Werkzeuge“ verfügbar.",
       "v236": "Neu: weitere Zielfernrohre und Absehen.",
       "v235": "Neu: BDC-Einblendung in der Zielfernrohransicht des Feldrechners.",

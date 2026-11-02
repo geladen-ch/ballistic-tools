@@ -1602,7 +1602,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
-      "v238": "New: optional callout display for BDC overlay.",
+      "v238": "New: optional BDC range overlay modes: callout and upwind (props to JerkyFreak for the idea).",
       "v237": "New: locations and targets management now available directly under \"Utilities\".",
       "v236": "New: some more scopes and reticles.",
       "v235": "New: BDC overlay in Range Solver's scope view.",
