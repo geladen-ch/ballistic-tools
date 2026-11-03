@@ -36,6 +36,8 @@ test.beforeEach(async () => {
   prefs.setScopeAimMode('hold');
   prefs.setScopeRingPosition('auto');
   prefs.setScopeBdcOverlayOn(false);
+  prefs.setScopeHoldoverOn(true);
+  prefs.setScopeWindHoldsOn(true);
   prefs.setBdcRangeDisplay('callout');
   prefs.setReticleOverlayColor('auto');
   prefs.setReticleOverlayShape('dots');
@@ -307,17 +309,20 @@ test('the mode switch is remembered', async () => {
   cleanup();
 });
 
-test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled with its range and its crosswind holds, the aiming mark\'s ring kept', async (tc) => {
+test('overlay toggles: holdover mark for every reticle, BDC range labels only with BDC marks, wind holds while either is on', async (tc) => {
   // The fake worker never answers: the trajectories fly inline instead.
   const worker = global.Worker;
   delete global.Worker;
   tc.after(() => { global.Worker = worker; });
+  prefs.setScopeWindHoldsOn(false);
   prefs.setScopeViewOn(true);
   userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
   saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
   let mounted = await mountSolver();
   await waitFor(() => byClass(mounted.container, 'reticle-shape').length > 0, 'the P4F reticle');
-  assert.equal(byClass(mounted.container, 'scope-view-corner-bottom-left')[0].style.display, 'none', 'no BDC marks, no toggle');
+  assert.equal(byClass(mounted.container, 'scope-view-corner-bottom-left')[0].style.display, '', 'the holdover toggle for any reticle');
+  assert.equal(byClass(mounted.container, 'scope-view-bdc-toggle')[0].style.display, 'none', 'no BDC marks, no range labels');
+  assert.equal(byClass(mounted.container, 'scope-view-wind-toggle')[0].style.display, '', 'wind holds with the holdover mark on');
   mounted.cleanup();
 
   userRifle({ scopeId: 'element-immersive-5x30-bdc', reticleId: 'element-lpr-1d-bdc' });
@@ -325,15 +330,21 @@ test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled 
   const { container, cleanup } = mounted;
   await waitFor(() => byClass(container, 'reticle-shape').length > 0, 'the LPR-1D BDC reticle');
   const corner = byClass(container, 'scope-view-corner-bottom-left')[0];
+  const holdover = byClass(container, 'scope-view-holdover-toggle')[0];
   const toggle = byClass(container, 'scope-view-bdc-toggle')[0];
+  const windToggle = byClass(container, 'scope-view-wind-toggle')[0];
   assert.equal(corner.style.display, '');
-  assert.equal(toggle.parentNode, corner);
+  assert.deepEqual([holdover, toggle, windToggle].map((b) => b.parentNode.parentNode), [corner, corner, corner]);
+  assert.equal(holdover.getAttribute('aria-label'), t('rangeSolver.scopeView.holdoverMark'));
   assert.equal(toggle.getAttribute('aria-label'), t('rangeSolver.scopeView.bdcOverlay'));
+  assert.equal(windToggle.getAttribute('aria-label'), t('rangeSolver.scopeView.windHolds'));
+  assert.equal(holdover.getAttribute('aria-pressed'), 'true');
   assert.equal(toggle.getAttribute('aria-pressed'), 'false');
+  assert.equal(windToggle.getAttribute('aria-pressed'), 'false');
   assert.equal(byClass(container, 'scope-view-bdc-label').length, 0);
   const windValue = byClass(container, 'scope-view-bdc-wind-value')[0];
   assert.equal(windValue.parentNode, corner);
-  assert.equal(windValue.style.display, 'none', 'no reference crosswind while off');
+  assert.equal(windValue.style.display, 'none', 'no reference crosswind while the wind holds are off');
 
   fireEvent(toggle, 'click');
   await waitFor(() => byClass(container, 'scope-view-bdc-dot').length > 0, 'the BDC overlay\'s trajectories');
@@ -345,9 +356,15 @@ test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled 
   const dots = byClass(container, 'scope-view-bdc-dot');
   assert.ok(dots.length > 5, String(dots.length));
   assert.ok(labels.length > 1 && labels.length <= dots.length, 'labels that would crowd each other are left out');
-  assert.equal(byClass(container, 'scope-view-bdc-wind').length, 12 * dots.length);
+  assert.equal(byClass(container, 'scope-view-bdc-wind').length, 0, 'no wind holds with them off');
+  assert.equal(windValue.style.display, 'none');
+
+  fireEvent(windToggle, 'click');
+  await settle();
+  assert.equal(prefs.isScopeWindHoldsOn(), true);
+  assert.equal(byClass(container, 'scope-view-bdc-wind').length, 12 * dots.length, 'wind holds on every mark');
   assert.equal(windValue.style.display, '');
-  assert.equal(windValue.textContent, '4 m/s', 'the reference crosswind above the toggle');
+  assert.equal(windValue.textContent, '4 m/s', 'the reference crosswind above the toggles');
   assert.equal(windValue.getAttribute('aria-label'), t('rangeSolver.scopeView.bdcReferenceWind', { value: '4 m/s' }));
   const ranges = labels.map((n) => Number(n.textContent));
   assert.ok(ranges.every((r, i) => i === 0 || r > ranges[i - 1]), `ranges grow down the reticle: ${ranges}`);
@@ -365,8 +382,75 @@ test('BDC overlay: only for a reticle with BDC marks; on, each mark is labelled 
   assert.equal(prefs.isScopeBdcOverlayOn(), false);
   assert.equal(byClass(container, 'scope-view-bdc-label').length, 0);
   assert.equal(byClass(container, 'scope-view-mark-ring').length, 1, 'the ring is still there');
+  assert.equal(byClass(container, 'scope-view-bdc-dot').length, 1, 'the aiming level\'s hold with no crosswind');
+  assert.equal(byClass(container, 'scope-view-bdc-wind').length, 12, 'and its wind holds');
+  assert.equal(windValue.style.display, '');
+
+  fireEvent(holdover, 'click');
+  await settle();
+  assert.equal(prefs.isScopeHoldoverOn(), false);
+  assert.equal(byClass(container, 'scope-view-mark-ring').length, 0, 'no aiming mark');
+  assert.equal(byClass(container, 'scope-view-bdc-wind').length + byClass(container, 'scope-view-bdc-dot').length, 0, 'nor its wind holds');
+  assert.equal(windToggle.style.display, 'none', 'no wind holds to offer');
+  assert.equal(windToggle.disabled, true);
   assert.equal(windValue.style.display, 'none');
+  assert.equal(prefs.isScopeWindHoldsOn(), true, 'remembered while hidden');
   cleanup();
+});
+
+test('holdover mark off: neither the aiming mark nor the off-field arrow', async () => {
+  prefs.setScopeHoldoverOn(false);
+  const view = scopeView();
+  view.setOptic({ scope: fixedScope(), reticle: smallReticle });
+  view.setShot({ elevationRad: 0.002, windageRad: 0.001 });
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-mark-ring').length, 0);
+  view.setShot({ elevationRad: 1, windageRad: 0 });
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-arrow-head').length, 0);
+  fireEvent(byClass(view.node, 'scope-view-holdover-toggle')[0], 'click');
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-arrow-head').length, 1);
+});
+
+test('wind holds on the aiming mark\'s level: round its hold with no crosswind, at the target\'s range', async () => {
+  const { integrate } = await import('../src/engine/trajectory.js');
+  const { holdTable, withReferenceWind } = await import('../src/reticle/bdc-overlay.js');
+  const view = scopeView();
+  view.setOptic({ scope: fixedScope(), reticle: smallReticle });
+  const state = { muzzleVelocity: 840, bc: 0.475, dragModel: 'G1', zeroRange: 100, sightHeightM: 0.05, maxRange: 1500, rangeStep: 5 };
+  const still = holdTable(integrate({ ...state, windSpeed: 0, windAngleRad: 0 }).points);
+  const reference = holdTable(integrate({ ...state, windSpeed: 4, windAngleRad: Math.PI / 2 }).points);
+  assert.equal(view.wantsBdcTables(), true, 'holdover and wind holds on: the trajectory is wanted');
+  view.setBdcTables({ still: withReferenceWind(still, reference, 4), referenceSpeed: 4 });
+  view.setShot({ elevationRad: 0.002, windageRad: 0, rangeM: 300 });
+  await settle();
+  const ring = byClass(view.node, 'scope-view-mark-ring')[0];
+  const dots = byClass(view.node, 'scope-view-bdc-dot');
+  const winds = byClass(view.node, 'scope-view-bdc-wind');
+  assert.equal(dots.length, 1);
+  assert.equal(winds.length, 12);
+  for (const n of [...dots, ...winds]) assert.equal(n.getAttribute('cy'), ring.getAttribute('cy'), 'on the aiming mark\'s level');
+  const xs = winds.map((w) => Number(w.getAttribute('cx')));
+  const centre = Number(dots[0].getAttribute('cx'));
+  assert.equal(xs.filter((x) => x < centre).length, 6);
+  assert.equal(xs.filter((x) => x > centre).length, 6);
+  assert.equal(byClass(view.node, 'scope-view-bdc-label').length, 0, 'no range labels');
+
+  fireEvent(byClass(view.node, 'scope-view-wind-toggle')[0], 'click');
+  await settle();
+  assert.equal(byClass(view.node, 'scope-view-bdc-dot').length + byClass(view.node, 'scope-view-bdc-wind').length, 0);
+  assert.equal(view.wantsBdcTables(), false);
+});
+
+test('wind holds: until first set, they follow the BDC overlay, which drew them before', () => {
+  document.cookie = 'ballistics_range_solver_scope_wind_holds_v1=; path=/; max-age=0';
+  prefs.setScopeBdcOverlayOn(true);
+  assert.equal(prefs.isScopeWindHoldsOn(), true);
+  prefs.setScopeBdcOverlayOn(false);
+  assert.equal(prefs.isScopeWindHoldsOn(), false);
+  prefs.setScopeWindHoldsOn(true);
+  assert.equal(prefs.isScopeWindHoldsOn(), true);
 });
 
 const fixedScope = (overrides = {}) => ({

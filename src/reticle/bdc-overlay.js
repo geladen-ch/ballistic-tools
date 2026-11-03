@@ -113,13 +113,21 @@ export function bdcOverlay({ levels, still, referenceSpeed, factor = 1, dialedEl
   for (const level of levels) {
     const rangeM = rangeForElevation(still, dialedElevationRad + level * factor);
     if (rangeM === null) continue;
-    const x = holdXAt(still, rangeM);
-    if (x === null) continue;
-    const perWind = holdXAt(still, rangeM, 'xPerWind');
-    const winds = perWind === null || !(referenceSpeed > 0) ? [] : BDC_WIND_SIDES.flatMap((side) => BDC_WIND_FRACTIONS.map((fraction) => ({
-      fraction, side, major: isMajorWindFraction(fraction), x: x + side * fraction * referenceSpeed * perWind
-    })));
-    rows.push({ level, rangeM, x, winds });
+    const holds = windHolds({ still, referenceSpeed, rangeM });
+    if (holds) rows.push({ level, ...holds });
   }
   return rows;
+}
+
+// The holds at `rangeM` on their own — the hold with no crosswind and the
+// crosswind holds round it — as bdcOverlay's rows have them, without a
+// level: { rangeM, x, winds }; null outside the table.
+export function windHolds({ still, referenceSpeed, rangeM }) {
+  const x = holdXAt(still, rangeM);
+  if (x === null) return null;
+  const perWind = holdXAt(still, rangeM, 'xPerWind');
+  const winds = perWind === null || !(referenceSpeed > 0) ? [] : BDC_WIND_SIDES.flatMap((side) => BDC_WIND_FRACTIONS.map((fraction) => ({
+    fraction, side, major: isMajorWindFraction(fraction), x: x + side * fraction * referenceSpeed * perWind
+  })));
+  return { rangeM, x, winds };
 }

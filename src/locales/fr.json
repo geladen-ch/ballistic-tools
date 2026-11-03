@@ -509,7 +509,9 @@
       "reticleZoomValueLabel": "Lunette {{nominal}}, affichée {{extra}} plus grande",
       "reticleZoomOut": "Dézoomer",
       "reticleZoomIn": "Zoomer",
-      "bdcOverlay": "Superposition BDC",
+      "holdoverMark": "Point de visée",
+      "bdcOverlay": "Distances BDC",
+      "windHolds": "Corrections de vent",
       "bdcReferenceWind": "Vent de travers de référence : {{value}}"
     }
   },
@@ -1602,6 +1604,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v239": "Modification : finitions de l'interface de la vue lunette.",
       "v238": "Nouveau : modes optionnels d'affichage des distances BDC : « Étiquettes reliées » et « Côté vent » (merci à JerkyFreak pour l'idée).",
       "v237": "Nouveau : la gestion des emplacements et des cibles est désormais accessible directement sous « Utilitaires ».",
       "v236": "Nouveau : quelques lunettes et réticules de plus.",

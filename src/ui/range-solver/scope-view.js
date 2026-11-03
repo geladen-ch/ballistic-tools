@@ -10,9 +10,10 @@
 // the reticle's reference scope. The maths is reticle/sight-picture.js.
 //
 // setOptic({ scope, reticle } | null), setShot({ elevationRad, windageRad,
-// crosswindMs } | null) — the readout's correction as angles: what to
-// draw; and the wind's crosswind part (m/s, positive from the right), for
-// the Upwind BDC range display.
+// crosswindMs, rangeM } | null) — the readout's correction as angles: what
+// to draw; the wind's crosswind part (m/s, positive from the right), for
+// the Upwind BDC range display; and the target's range, for the wind
+// holds on the aiming mark's level.
 //
 // The zoom ring stands beside the reticle, or lies below it so the
 // reticle gets the full width — range-solver-prefs.js's scope ring
@@ -26,22 +27,30 @@
 // may grow past the square. The aiming mark and the off-field arrow keep
 // their size.
 //
-// BDC overlay (reticle/bdc-overlay.js), for a reticle with BDC marks: a
-// toggle in the bottom-left corner labels each mark with the range it
-// holds for — a dot on the mark's level, moved across by spin drift,
-// marks its hold — and lays crosswind holds beside it, a dot every quarter of the
-// reference wind up to one and a half times it, from either side, the
-// reference larger. In Dial elevation the centre holds for the target's
-// range, the elevation for it being on the turret, and the marks below
-// it for that elevation plus their own. Above the toggle, while on, the
-// reference crosswind in the user's unit. Where the ranges go is the BDC
-// range display setting (range-solver-prefs.js): Callout (in a lane by
-// the square's right edge, joined to the marks by leaders —
-// bdc-callouts.js), Below (under each hold) or Upwind (beside it, on the
-// side the wind comes from, that side's wind holds left out). The
-// trajectory is the caller's (setBdcTables, asked for through
-// onBdcChange whenever wantsBdc() may have changed); the ranges follow
-// the zoom, true for the subtensions at it.
+// Overlays, three toggles in a row in the bottom-left corner, each
+// remembered (range-solver-prefs.js):
+// - Holdover mark: the aiming mark, and the off-field arrow standing in
+//   for it. Offered for every reticle.
+// - BDC range labels (reticle/bdc-overlay.js), for a reticle with BDC
+//   marks: each mark labelled with the range it holds for — a dot on the
+//   mark's level, moved across by spin drift, marks its hold. In Dial
+//   elevation the centre holds for the target's range, the elevation for
+//   it being on the turret, and the marks below it for that elevation
+//   plus their own. Where the ranges go is the BDC range display setting:
+//   Callout (in a lane by the square's right edge, joined to the marks by
+//   leaders — bdc-callouts.js), Below (under each hold) or Upwind (beside
+//   it, on the side the wind comes from, that side's wind holds left
+//   out).
+// - Wind holds, offered while either of the others is on: crosswind holds
+//   either side of a hold, a dot every quarter of the reference wind up
+//   to one and a half times it, the reference larger — on every BDC
+//   mark's level with the range labels on, otherwise on the aiming mark's
+//   level, round its hold with no crosswind (itself a dot). Above the
+//   row, while they are drawn, the reference crosswind in the user's
+//   unit.
+// The trajectory both read is the caller's (setBdcTables, asked for
+// through onBdcChange whenever wantsBdcTables() may have changed); the
+// ranges follow the zoom, true for the subtensions at it.
 //
 // Settings' reticle overlay colour (range-solver-prefs.js) colours all of
 // it — vermillion, blue, or Auto's choice between them for the reticle's
@@ -51,7 +60,9 @@
 import { el, clear } from '../../dom.js';
 import { svgEl } from '../../svg.js';
 import { t } from '../../i18n.js';
-import { holdIcon, dialElevationIcon, zoomToReticleIcon, bdcOverlayIcon } from '../nav-icons.js';
+import {
+  holdIcon, dialElevationIcon, zoomToReticleIcon, bdcOverlayIcon, holdoverMarkIcon, windHoldsIcon
+} from '../nav-icons.js';
 import { fmt } from '../../reticle/render.js';
 import { scopeOptics } from '../../scope-record.js';
 import {
@@ -59,10 +70,10 @@ import {
 } from '../../reticle/sight-picture.js';
 import {
   getScopeAimMode, setScopeAimMode, getScopeRingPosition, isScopeBdcOverlayOn, setScopeBdcOverlayOn,
-  getReticleOverlayColor, reticleOverlayHex, getReticleOverlayShape, getBdcRangeDisplay
+  isScopeHoldoverOn, setScopeHoldoverOn, isScopeWindHoldsOn, setScopeWindHoldsOn, getReticleOverlayColor, reticleOverlayHex, getReticleOverlayShape, getBdcRangeDisplay
 } from '../../range-solver-prefs.js';
 import { calloutLayout, CAP_HEIGHT, LEADER_STROKE } from './bdc-callouts.js';
-import { bdcLevels, bdcOverlay } from '../../reticle/bdc-overlay.js';
+import { bdcLevels, bdcOverlay, windHolds } from '../../reticle/bdc-overlay.js';
 import { displayChoice, toDisplayUnit } from '../../display-units.js';
 import { ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { reticleElementLayer, illuminationClass } from '../reticle-scene.js';
@@ -87,10 +98,12 @@ const HALO = 5;
 const ARROW_TIP = FIT_RADIUS - 12;
 const ARROW_BASE = FIT_RADIUS - 70;
 const ARROW_HALF_WIDTH = 26;
-// The aiming mark's centre as a cross (the hashes shape): half its arm
-// and its stroke, in drawing units.
+// The aiming mark's centre as a cross (the hashes shape), unhaloed: half
+// its arm and its stroke, in drawing units.
 const MARK_CROSS = 9;
 const MARK_CROSS_STROKE = 3;
+// The aiming mark's ring's halo, in drawing units.
+const MARK_RING_HALO = HALO / 2;
 // The BDC overlay, in drawing units: dot radii (a mark's own, a crosswind
 // hold's, the reference's); for the hashes shape a mark's cross (half its
 // arm, its stroke) and the crosswind holds' upright hashes (their length,
@@ -127,7 +140,7 @@ const BDC_LEADER_HALO = 1.5;
 const BDC_CONTROL_ZONES_PX = {
   topLeft: { width: 72, height: 40 },
   topRight: { width: 40, height: 40 },
-  bottomLeft: { width: 64, height: 64 },
+  bottomLeft: { width: 98, height: 64 },
   bottomRight: { width: 104, height: 64 }
 };
 // The square's width on screen when it can't be measured (tests).
@@ -173,6 +186,8 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   let optic = null; // { scope, reticle, optics, range, buildRadius, reticleZoomFit, bdcLevels }
   let shot = null;
   let bdcOn = isScopeBdcOverlayOn();
+  let holdoverOn = isScopeHoldoverOn();
+  let windOn = isScopeWindHoldsOn();
   // Settings' reticle overlay colour and shape, read once: Settings is a
   // page of its own, so they can't change under a mounted view.
   const overlayColor = getReticleOverlayColor();
@@ -218,7 +233,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   ]);
   // The square the reticle is drawn in. Its corners, outside the field
   // circle, hold controls laid over it: the aiming-point mode switch top
-  // left, a slot top right for the caller's own, the BDC overlay bottom
+  // left, a slot top right for the caller's own, the overlays bottom
   // left, and zoom to reticle with its magnification label bottom right.
   const corner = el('div', { class: 'scope-view-corner' });
   const cornerLeft = el('div', { class: 'scope-view-corner-left' });
@@ -258,18 +273,35 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     el('div', { class: 'scope-view-reticle-zoom-row' }, [reticleZoomSteps, reticleZoomButton])
   ]);
   cornerBottomRight.style.display = 'none';
-  const bdcName = t('rangeSolver.scopeView.bdcOverlay');
-  const bdcButton = el('button', {
-    type: 'button', class: 'icon-button scope-view-bdc-toggle', 'aria-pressed': 'false', title: bdcName, 'aria-label': bdcName
-  }, [bdcOverlayIcon(20)]);
-  bdcButton.addEventListener('click', () => {
+  const overlayToggle = (key, cls, icon, flip) => {
+    const name = t(`rangeSolver.scopeView.${key}`);
+    const button = el('button', {
+      type: 'button', class: `icon-button scope-view-overlay-toggle ${cls}`, 'aria-pressed': 'false', title: name, 'aria-label': name
+    }, [icon(20)]);
+    button.addEventListener('click', () => {
+      if (button.disabled) return;
+      flip();
+      onBdcChange();
+      scheduleRender();
+    });
+    return button;
+  };
+  const holdoverButton = overlayToggle('holdoverMark', 'scope-view-holdover-toggle', holdoverMarkIcon, () => {
+    holdoverOn = !holdoverOn;
+    setScopeHoldoverOn(holdoverOn);
+  });
+  const bdcButton = overlayToggle('bdcOverlay', 'scope-view-bdc-toggle', bdcOverlayIcon, () => {
     bdcOn = !bdcOn;
     setScopeBdcOverlayOn(bdcOn);
-    onBdcChange();
-    scheduleRender();
+  });
+  const windButton = overlayToggle('windHolds', 'scope-view-wind-toggle', windHoldsIcon, () => {
+    windOn = !windOn;
+    setScopeWindHoldsOn(windOn);
   });
   const bdcWindValue = el('span', { class: 'scope-view-bdc-wind-value' });
-  const cornerBottomLeft = el('div', { class: 'scope-view-corner-bottom-left' }, [bdcWindValue, bdcButton]);
+  const cornerBottomLeft = el('div', { class: 'scope-view-corner-bottom-left' }, [
+    bdcWindValue, el('div', { class: 'scope-view-overlay-row' }, [holdoverButton, bdcButton, windButton])
+  ]);
   cornerBottomLeft.style.display = 'none';
   const square = el('div', { class: 'scope-view-frame' }, [svg, cornerLeft, corner, cornerBottomLeft, cornerBottomRight]);
   const sight = el('div', { class: 'scope-view-sight' }, [square]);
@@ -370,10 +402,10 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     // The ring and its halo see-through as one, so the reticle and the
     // wind holds behind show; the centre's cross or dot stays opaque.
     nodes.push(svgEl('g', { class: 'scope-view-mark-circle' }, [
-      svgEl('circle', { class: 'scope-view-mark-halo', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_RADIUS), 'stroke-width': fmt(MARK_STROKE + 2 * HALO) }),
+      svgEl('circle', { class: 'scope-view-mark-halo', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_RADIUS), 'stroke-width': fmt(MARK_STROKE + 2 * MARK_RING_HALO) }),
       svgEl('circle', { class: 'scope-view-mark-ring', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_RADIUS), 'stroke-width': fmt(MARK_STROKE) })
     ]));
-    if (hashes) nodes.push(...crossNodes(cx, cy, MARK_CROSS, MARK_CROSS_STROKE, HALO, 'scope-view-mark-cross'));
+    if (hashes) nodes.push(crossNodes(cx, cy, MARK_CROSS, MARK_CROSS_STROKE, 0, 'scope-view-mark-cross')[1]);
     else nodes.push(svgEl('circle', { class: 'scope-view-mark-dot', cx: fmt(cx), cy: fmt(cy), r: fmt(MARK_DOT) }));
     return nodes;
   }
@@ -395,18 +427,34 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     ];
   }
 
-  // Whether the overlay is offered (a reticle with BDC marks) and on.
+  // Whether the BDC range labels are offered (a reticle with BDC marks)
+  // and on; whether the wind holds are offered (with either of the
+  // holdover mark or the range labels on) and on; whether they go on the
+  // aiming mark's level (the range labels off); and whether anything
+  // drawn needs the caller's trajectory.
   const bdcAvailable = () => !!optic && optic.bdcLevels.length > 0;
   const wantsBdc = () => bdcAvailable() && bdcOn;
+  const windAvailable = () => !!optic && (holdoverOn || wantsBdc());
+  const wantsWind = () => windAvailable() && windOn;
+  const wantsHoldoverWind = () => wantsWind() && holdoverOn && !wantsBdc();
+  const wantsBdcTables = () => wantsBdc() || wantsHoldoverWind();
 
-  function renderBdcToggle() {
-    const on = wantsBdc();
-    cornerBottomLeft.style.display = bdcAvailable() ? '' : 'none';
-    bdcButton.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bdcButton.classList.toggle('active', on);
-    // The reference crosswind the overlay's larger dots stand for, in the
-    // user's wind speed unit — once its trajectories are in.
-    const reference = on && bdcTables ? bdcTables.referenceSpeed : NaN;
+  function renderToggle(button, on) {
+    button.setAttribute('aria-pressed', on ? 'true' : 'false');
+    button.classList.toggle('active', on);
+  }
+
+  function renderOverlayToggles() {
+    cornerBottomLeft.style.display = optic ? '' : 'none';
+    renderToggle(holdoverButton, holdoverOn);
+    bdcButton.style.display = bdcAvailable() ? '' : 'none';
+    renderToggle(bdcButton, wantsBdc());
+    windButton.style.display = windAvailable() ? '' : 'none';
+    windButton.disabled = !windAvailable();
+    renderToggle(windButton, wantsWind());
+    // The reference crosswind the larger wind holds stand for, in the
+    // user's wind speed unit — once the trajectories are in.
+    const reference = wantsWind() && bdcTables ? bdcTables.referenceSpeed : NaN;
     if (Number.isFinite(reference)) {
       const choice = displayChoice('windSpeed');
       const value = `${String(Number(toDisplayUnit('windSpeed', reference).toFixed(choice.decimals)))} ${choice.label}`;
@@ -433,14 +481,10 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   // from (`shot.crosswindMs`, positive from the right; the right with
   // none), that side's wind holds left out. Callout: renderCallouts.
   function renderBdc(scale, fieldRadius) {
-    if (!wantsBdc() || !bdcTables || !shot) return;
+    if (!wantsBdcTables() || !bdcTables || !shot) return;
     const { optics } = optic;
     const dialed = mode === 'dialElevation' ? shot.elevationRad : 0;
     if (!Number.isFinite(dialed)) return;
-    const rows = bdcOverlay({
-      levels: optic.bdcLevels, still: bdcTables.still, referenceSpeed: bdcTables.referenceSpeed,
-      factor: subtensionFactor(optics, zoom), dialedElevationRad: dialed
-    });
     const screenX = (x) => HALF + toReticleSubtension({ x, y: 0 }, optics, zoom).x * scale;
     // The holds' halo is faint, so what's behind them shows: a wind
     // hold's (scope-view-bdc-wind-halo) more than a mark's own
@@ -469,6 +513,24 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       halo.classList.add(MARK_HALO);
       return [halo, cross];
     };
+    const windsOf = (row) => (wantsWind() ? row.winds : []);
+    if (!wantsBdc()) {
+      // The wind holds on the aiming mark's level, round its hold with no
+      // crosswind.
+      const holds = windHolds({ still: bdcTables.still, referenceSpeed: bdcTables.referenceSpeed, rangeM: shot.rangeM });
+      if (!holds) return;
+      const cy = HALF + aimAngle(shot, mode).y / subtensionFactor(optics, zoom) * scale;
+      if (!Number.isFinite(cy)) return;
+      for (const wind of holds.winds) {
+        for (const n of windNodes(screenX(wind.x), cy, wind.major)) bdcLayer.appendChild(n);
+      }
+      for (const n of holdNodes(screenX(holds.x), cy)) bdcLayer.appendChild(n);
+      return;
+    }
+    const rows = bdcOverlay({
+      levels: optic.bdcLevels, still: bdcTables.still, referenceSpeed: bdcTables.referenceSpeed,
+      factor: subtensionFactor(optics, zoom), dialedElevationRad: dialed
+    });
     const rangeText = (row) => String(Math.round(toDisplayUnit('distance', row.rangeM)));
     if (bdcDisplay === 'callout') {
       // Each row's holds as drawn, as boxes (their ink, not their white
@@ -484,11 +546,11 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       const marks = rows.map((row) => {
         const cy = HALF + row.level * scale;
         const cx = screenX(row.x);
-        for (const wind of row.winds) {
+        for (const wind of windsOf(row)) {
           for (const n of windNodes(screenX(wind.x), cy, wind.major)) bdcLayer.appendChild(n);
         }
         for (const n of holdNodes(cx, cy)) bdcLayer.appendChild(n);
-        return { row, cx, cy, holds: [holdBox(cx, cy, null), ...row.winds.map((wind) => holdBox(screenX(wind.x), cy, wind))] };
+        return { row, cx, cy, holds: [holdBox(cx, cy, null), ...windsOf(row).map((wind) => holdBox(screenX(wind.x), cy, wind))] };
       });
       renderCallouts(marks, scale, fieldRadius, rangeText);
       return;
@@ -513,7 +575,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     for (const row of rows) {
       const cy = HALF + row.level * scale;
       const cx = screenX(row.x);
-      for (const wind of row.winds) {
+      for (const wind of windsOf(row)) {
         const x = screenX(wind.x);
         if (upwind && Math.sign(x - cx) === labelSide) continue;
         for (const n of windNodes(x, cy, wind.major)) bdcLayer.appendChild(n);
@@ -610,7 +672,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     clear(bdcLayer);
     clear(calloutLayer);
     clear(arrowLayer);
-    renderBdcToggle();
+    renderOverlayToggles();
     svg.setAttribute('aria-label', t('rangeSolver.scopeView.canvasLabel'));
     const magnification = renderReticleZoom();
     if (!optic) {
@@ -630,7 +692,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       : '';
 
     renderBdc(k * magnification, FIT_RADIUS * magnification);
-    if (!shot) return;
+    if (!shot || !holdoverOn) return;
     const angle = aimAngle(shot, mode);
     if (!Number.isFinite(angle.x) || !Number.isFinite(angle.y)) return;
     // Inside: clear of the (magnified) rim and of the square's edges by
@@ -713,7 +775,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     setOptic,
     setShot,
     setBdcTables,
-    wantsBdc,
+    wantsBdcTables,
     getZoom: () => zoom,
     getMode: () => mode,
     getReticleZoom: () => (optic?.reticleZoomFit && reticleZoomOn ? reticleZoom : 1),

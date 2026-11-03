@@ -170,20 +170,49 @@ export function setScopeViewOn(on) {
 }
 
 const SCOPE_BDC_OVERLAY_COOKIE_NAME = 'ballistics_range_solver_scope_bdc_overlay_v1';
+const SCOPE_HOLDOVER_COOKIE_NAME = 'ballistics_range_solver_scope_holdover_v1';
+const SCOPE_WIND_HOLDS_COOKIE_NAME = 'ballistics_range_solver_scope_wind_holds_v1';
+
+function setFlagCookie(name, on) {
+  try {
+    setCookie(name, on ? 'true' : 'false');
+  } catch {
+    // best-effort — losing persistence isn't fatal
+  }
+}
 
 // Whether the scope view labels the reticle's BDC marks with their ranges
-// and wind holds (reticle/bdc-overlay.js) — only ever in effect for a
-// reticle that has BDC marks; global, not per reticle. Off by default.
+// (reticle/bdc-overlay.js) — only ever in effect for a reticle that has
+// BDC marks; global, not per reticle. Off by default.
 export function isScopeBdcOverlayOn() {
   return getCookie(SCOPE_BDC_OVERLAY_COOKIE_NAME) === 'true';
 }
 
 export function setScopeBdcOverlayOn(on) {
-  try {
-    setCookie(SCOPE_BDC_OVERLAY_COOKIE_NAME, on ? 'true' : 'false');
-  } catch {
-    // best-effort — losing persistence isn't fatal
-  }
+  setFlagCookie(SCOPE_BDC_OVERLAY_COOKIE_NAME, on);
+}
+
+// Whether the scope view draws the aiming mark (and the off-field arrow
+// standing in for it). On by default.
+export function isScopeHoldoverOn() {
+  return getCookie(SCOPE_HOLDOVER_COOKIE_NAME) !== 'false';
+}
+
+export function setScopeHoldoverOn(on) {
+  setFlagCookie(SCOPE_HOLDOVER_COOKIE_NAME, on);
+}
+
+// Whether the scope view draws crosswind holds — on the BDC marks' levels
+// with the BDC overlay on, otherwise on the aiming mark's. Until first
+// set it follows the BDC overlay, which drew them before they had a
+// switch of their own.
+export function isScopeWindHoldsOn() {
+  const raw = getCookie(SCOPE_WIND_HOLDS_COOKIE_NAME);
+  return raw === null ? isScopeBdcOverlayOn() : raw === 'true';
+}
+
+export function setScopeWindHoldsOn(on) {
+  setFlagCookie(SCOPE_WIND_HOLDS_COOKIE_NAME, on);
 }
 
 // What the scope view's aiming mark shows: 'hold' (nothing dialed) or

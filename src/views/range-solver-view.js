@@ -434,13 +434,14 @@ export function mount(container) {
   // reticle's square while it is on, so the row needs only its text's
   // height then.
   const scopeView = createScopeView({ onBdcChange: updateBdc });
-  // The BDC overlay's trajectory: flown for the dialed target's
-  // conditions (its line-of-sight angle and the wind's head- or tailwind
-  // part included) whenever the overlay is on and they change.
+  // The trajectory the BDC range labels and the wind holds read: flown for
+  // the dialed target's conditions (its line-of-sight angle and the wind's
+  // head- or tailwind part included) whenever either needs it and they
+  // change.
   const bdc = bdcTrajectories((tables) => { if (!disposed) scopeView.setBdcTables(tables); });
   let bdcState = null;
   function updateBdc() {
-    if (!bdcState || !scopeView.wantsBdc()) return;
+    if (!bdcState || !scopeView.wantsBdcTables()) return;
     const reference = fromDisplayUnit('windSpeed', referenceWindSpeed(displayChoice('windSpeed').unit));
     bdc.update(bdcState, reference);
   }
@@ -770,7 +771,9 @@ export function mount(container) {
       elevationRad: solved.elevationRad, windageRad: solved.windageRad,
       // The wind's crosswind part (positive from the right), for the
       // Upwind BDC range display's side.
-      crosswindMs: wind.getEngineSpeed() * Math.sin(wind.getAngleRad())
+      crosswindMs: wind.getEngineSpeed() * Math.sin(wind.getAngleRad()),
+      // For the wind holds on the aiming mark's level.
+      rangeM: targetRangeM
     });
     tofValue.textContent = `${solved.result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;

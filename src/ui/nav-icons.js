@@ -269,17 +269,43 @@ export function holdIcon(size = 18) {
   ]);
 }
 
-// The scope view's BDC overlay: a vertical stadia with rows of wind dots
-// below the centre, each row wider than the one above.
-export function bdcOverlayIcon(size = 18) {
-  const dot = (cx, cy, r) => svgEl('circle', { cx, cy, r, fill: 'currentColor', stroke: 'none' });
+const filledDot = (cx, cy, r) => svgEl('circle', { cx, cy, r, fill: 'currentColor', stroke: 'none' });
+
+// The scope view's holdover mark: the aiming ring off the crosshair's
+// centre, its leads back to both axes.
+export function holdoverMarkIcon(size = 18) {
   return icon(size, '0 0 20 20', [
-    svgEl('line', { x1: '10', y1: '1.5', x2: '10', y2: '18.5', 'stroke-width': '1' }),
-    svgEl('line', { x1: '4', y1: '4', x2: '16', y2: '4', 'stroke-width': '1' }),
-    dot('10', '8.5', '1.2'), dot('7.6', '8.5', '1.2'), dot('12.4', '8.5', '1.2'),
-    dot('10', '12.5', '1.2'), dot('6.6', '12.5', '1.2'), dot('13.4', '12.5', '1.2'),
-    dot('10', '16.5', '1.2'), dot('5.4', '16.5', '1.2'), dot('14.6', '16.5', '1.2'),
-    dot('2.4', '16.5', '0.8'), dot('17.6', '16.5', '0.8')
+    svgEl('line', { x1: '6', y1: '1.5', x2: '6', y2: '18.5', 'stroke-width': '1' }),
+    svgEl('line', { x1: '1.5', y1: '6', x2: '18.5', y2: '6', 'stroke-width': '1' }),
+    svgEl('line', { x1: '13', y1: '9.4', x2: '13', y2: '6', 'stroke-width': '1' }),
+    svgEl('line', { x1: '9.6', y1: '13', x2: '6', y2: '13', 'stroke-width': '1' }),
+    svgEl('circle', { cx: '13', cy: '13', r: '3.4' }),
+    filledDot('13', '13', '1.1')
+  ]);
+}
+
+// The scope view's BDC range labels: a vertical stadia, its marks below
+// the centre each with a range beside it (a short bar).
+export function bdcOverlayIcon(size = 18) {
+  const bar = (y, x2) => svgEl('line', { x1: '10.5', y1: y, x2, y2: y, 'stroke-width': '2.2' });
+  return icon(size, '0 0 20 20', [
+    svgEl('line', { x1: '6', y1: '1.5', x2: '6', y2: '18.5', 'stroke-width': '1' }),
+    svgEl('line', { x1: '2', y1: '4', x2: '10', y2: '4', 'stroke-width': '1' }),
+    filledDot('6', '8.5', '1.4'), bar('8.5', '15'),
+    filledDot('6', '12.5', '1.4'), bar('12.5', '17'),
+    filledDot('6', '16.5', '1.4'), bar('16.5', '17')
+  ]);
+}
+
+// The scope view's wind holds: a gust over a row of holds either side of
+// the one with no crosswind, the outer ones (the reference wind) larger.
+export function windHoldsIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('path', { d: 'M2 4.5h9.5a2 2 0 1 0-2-2' }),
+    svgEl('path', { d: 'M2 8.5h12.5a2 2 0 1 1-2 2' }),
+    filledDot('10', '15.5', '1.2'),
+    filledDot('6.8', '15.5', '1'), filledDot('13.2', '15.5', '1'),
+    filledDot('3', '15.5', '1.6'), filledDot('17', '15.5', '1.6')
   ]);
 }
 

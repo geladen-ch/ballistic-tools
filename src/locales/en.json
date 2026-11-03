@@ -509,7 +509,9 @@
       "reticleZoomValueLabel": "{{nominal}} scope, shown {{extra}} larger",
       "reticleZoomOut": "Zoom out",
       "reticleZoomIn": "Zoom in",
-      "bdcOverlay": "BDC overlay",
+      "holdoverMark": "Holdover mark",
+      "bdcOverlay": "BDC range labels",
+      "windHolds": "Wind holds",
       "bdcReferenceWind": "Reference crosswind: {{value}}"
     }
   },
@@ -1602,6 +1604,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v239": "Change: scope view UI polishing.",
       "v238": "New: optional BDC range overlay modes: callout and upwind (props to JerkyFreak for the idea).",
       "v237": "New: locations and targets management now available directly under \"Utilities\".",
       "v236": "New: some more scopes and reticles.",

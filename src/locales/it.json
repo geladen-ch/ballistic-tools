@@ -509,7 +509,9 @@
       "reticleZoomValueLabel": "Cannocchiale {{nominal}}, mostrato {{extra}} più grande",
       "reticleZoomOut": "Riduci",
       "reticleZoomIn": "Ingrandisci",
-      "bdcOverlay": "Sovrapposizione BDC",
+      "holdoverMark": "Punto di mira",
+      "bdcOverlay": "Distanze BDC",
+      "windHolds": "Correzioni per il vento",
       "bdcReferenceWind": "Vento laterale di riferimento: {{value}}"
     }
   },
@@ -1602,6 +1604,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v239": "Modifica: rifiniture all'interfaccia della vista cannocchiale.",
       "v238": "Novità: modalità opzionali di visualizzazione delle distanze BDC: «Etichette collegate» e «Lato vento» (grazie a JerkyFreak per l'idea).",
       "v237": "Novità: la gestione di postazioni e bersagli è ora disponibile direttamente in «Utilità».",
       "v236": "Novità: altri cannocchiali e reticoli.",
