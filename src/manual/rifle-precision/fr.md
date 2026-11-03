@@ -70,7 +70,7 @@ Deux des groupes d'unités de la suite entrent en jeu :
 - **Distance** (`m`, `yd`) — la distance du projet.
 - **Petite longueur** (`mm`, `cm`, `in`) — tout ce qui se mesure sur le papier : la règle de calibration que vous saisissez, le calibre, la dispersion maximale, et tous les résultats du rapport quand le sélecteur d'unités est réglé sur l'absolu plutôt que sur l'angulaire. Comme ce sont des mesures à l'échelle d'une balle, elles sont affichées plus finement que le réglage général de la suite : **2 décimales en mm, 3 en cm et en pouces**.
 
-En interne, le moteur travaille exclusivement en millimètres et en mètres, et la conversion n'a lieu qu'à la frontière de l'affichage. Cela a une conséquence pratique qu'il est bon de connaître : **changer votre préférence d'unités ne modifie jamais les données stockées ni aucun résultat calculé.** Passez des mm aux pouces et chaque projet existant se réaffiche correctement — la calibration que vous aviez saisie à 100 mm l'an dernier affiche désormais 3,937 in, décrit la même règle, et donne exactement les mêmes statistiques de dispersion.
+En interne, le moteur travaille en mètres (la longueur de la règle de calibration et le calibre sont stockés en millimètres), et la conversion n'a lieu qu'à la frontière de l'affichage. Cela a une conséquence pratique qu'il est bon de connaître : **changer votre préférence d'unités ne modifie jamais les données stockées ni aucun résultat calculé.** Passez des mm aux pouces et chaque projet existant se réaffiche correctement — la calibration que vous aviez saisie à 100 mm l'an dernier affiche désormais 3,937 in, décrit la même règle, et donne exactement les mêmes statistiques de dispersion.
 
 **Où les unités sont indiquées.** Les champs de saisie portent l'unité en suffixe vivant sur leur étiquette — *« Distance réelle (in) »* — qui se met à jour quand vous changez de préférence au lieu d'être figée dans la traduction. Les valeurs affichées portent l'unité en ligne : *« Disp. max. 1,78 in »*. L'export CSV nomme l'unité dans chaque en-tête de colonne (§8.7).
 
@@ -167,7 +167,7 @@ Seuls les points de la série **active** sont déplaçables. Les points de visé
 
 Tapez une fois pour le premier point, une fois de plus pour le second, puis saisissez la **distance réelle** entre les deux points.
 
-**Saisissez-la dans vos propres unités.** L'étiquette du champ porte un suffixe d'unité vivant — *« Distance réelle (mm) »*, *« (cm) »* ou *« (in) »* selon votre préférence de petite longueur — donc posez un réglet de 6 pouces sur la cible avec les pouces sélectionnés et vous tapez simplement **6**. Aucune conversion, aucune arithmétique, rien à inverser. La valeur est convertie vers les millimètres internes du moteur au moment d'être stockée, et c'est pourquoi changer votre préférence plus tard réaffiche correctement la même règle au lieu de la corrompre.
+**Saisissez-la dans vos propres unités.** L'étiquette du champ porte un suffixe d'unité vivant — *« Distance réelle (mm) »*, *« (cm) »* ou *« (in) »* selon votre préférence de petite longueur — donc posez un réglet de 6 pouces sur la cible avec les pouces sélectionnés et vous tapez simplement **6**. Aucune conversion, aucune arithmétique, rien à inverser. La valeur est convertie en millimètres au moment d'être stockée, et c'est pourquoi changer votre préférence plus tard réaffiche correctement la même règle au lieu de la corrompre.
 
 Le pas du champ et sa plus petite valeur acceptée sont la précision d'affichage de cette unité — 0,01 mm, ou 0,001 cm/in — de sorte que tout ce qui peut vous être montré peut aussi être saisi.
 
@@ -447,7 +447,7 @@ Si le R95 de votre carabine se situe autour de 1–1,5 MOA, une lunette en 12x o
 
 Tout ce qui suit est ce que l'outil calcule réellement, avec les dérivations. Ce n'est pas une lecture obligatoire pour se servir de l'outil, et c'est la partie la plus intéressante de l'outil.
 
-**Les unités de cette section sont celles du moteur, pas les vôtres.** En interne, l'outil travaille exclusivement en **millimètres** pour les longueurs sur le papier et en **mètres** pour la distance, et chaque unité visible par l'utilisateur — mm, cm, pouces, yards, pieds, mrad, MOA — est une conversion appliquée à la frontière de l'affichage et nulle part ailleurs. Aucune statistique ci-dessous n'est affectée par vos préférences ; changer vos unités change la façon dont un nombre est imprimé, jamais ce qui a été calculé.
+**Les unités de cette section sont celles du moteur, pas les vôtres.** En interne, l'outil travaille en **mètres**, pour les longueurs sur le papier comme pour la distance, et chaque unité visible par l'utilisateur — mm, cm, pouces, yards, pieds, mrad, MOA — est une conversion appliquée à la frontière de l'affichage et nulle part ailleurs. Aucune statistique ci-dessous n'est affectée par vos préférences ; changer vos unités change la façon dont un nombre est imprimé, jamais ce qui a été calculé.
 
 ### 11.1 Le modèle sous-jacent
 
@@ -470,19 +470,19 @@ Notez également que l'outil mesure la dispersion du *système entier tel que vo
 Pour chaque coup $i$ de la série $g$ sur la cible $T$ :
 
 1. Le coup et le point de visée de sa série sont stockés comme des fractions des dimensions natives en pixels de la photo, dans $[0,1]^2$. Ils sont convertis en pixels natifs en multipliant par la largeur et la hauteur de la photo.
-2. L'échelle $s_T$ de la cible (px/mm) vient de sa règle de calibration :
+2. L'échelle $s_T$ de la cible (px/m) vient de sa règle de calibration :
 
    $$s_T = \frac{\sqrt{(\Delta x_{\text{px}})^2 + (\Delta y_{\text{px}})^2}}{L_{\text{réel}}}$$
 
-   où le numérateur est la distance en pixels entre les deux points de calibration et $L_{\text{réel}}$ la longueur que vous avez saisie, en mm.
-3. Les coordonnées en pixels sont divisées par $s_T$ pour donner des millimètres.
+   où le numérateur est la distance en pixels entre les deux points de calibration et $L_{\text{réel}}$ la longueur que vous avez saisie, en mètres.
+3. Les coordonnées en pixels sont divisées par $s_T$ pour donner des mètres.
 4. Le coup est recentré sur le point de visée de sa propre série :
 
-   $$(x_i, y_i) = (x_i^{\text{mm}} - x_{g,\text{PV}}^{\text{mm}},\; y_i^{\text{mm}} - y_{g,\text{PV}}^{\text{mm}})$$
+   $$(x_i, y_i) = (x_i^{\text{m}} - x_{g,\text{PV}}^{\text{m}},\; y_i^{\text{m}} - y_{g,\text{PV}}^{\text{m}})$$
 
-Stocker les positions comme fractions de photo plutôt que comme millimètres est ce qui rend la recalibration rétroactive possible : corriger la règle des mois plus tard remet automatiquement à l'échelle tous les impacts de cette cible. C'est aussi ce qui rend l'outil agnostique aux unités par construction — un coup stocké n'a aucune unité, seulement une position sur une image. Les millimètres entrent pour la première fois à l'étape 2, via $L_{\text{réel}}$, elle-même convertie depuis l'unité dans laquelle vous l'avez saisie ; à partir de là toute la chaîne est métrique, et vos unités préférées ne réapparaissent qu'au moment où un nombre fini est imprimé.
+Stocker les positions comme fractions de photo plutôt que comme longueurs est ce qui rend la recalibration rétroactive possible : corriger la règle des mois plus tard remet automatiquement à l'échelle tous les impacts de cette cible. C'est aussi ce qui rend l'outil agnostique aux unités par construction — un coup stocké n'a aucune unité, seulement une position sur une image. Les longueurs entrent pour la première fois à l'étape 2, via $L_{\text{réel}}$, elle-même convertie depuis l'unité dans laquelle vous l'avez saisie ; à partir de là toute la chaîne est métrique, et vos unités préférées ne réapparaissent qu'au moment où un nombre fini est imprimé.
 
-**Repère de coordonnées.** L'origine de la fraction de photo est le coin supérieur gauche de l'image et son axe vertical croît **vers le bas**, donc les $y_i$ agrégés sont positifs *sous* le point de visée. Le moteur conserve ce repère de bout en bout, délibérément : c'est aussi le repère du SVG, et c'est ce qui permet au diagramme de dessiner les coups agrégés, les cercles de rayon, la grille et la boîte du point d'impact directement à partir de ces millimètres, sans aucune transformation.
+**Repère de coordonnées.** L'origine de la fraction de photo est le coin supérieur gauche de l'image et son axe vertical croît **vers le bas**, donc les $y_i$ agrégés sont positifs *sous* le point de visée. Le moteur conserve ce repère de bout en bout, délibérément : c'est aussi le repère du SVG, et c'est ce qui permet au diagramme de dessiner les coups agrégés, les cercles de rayon, la grille et la boîte du point d'impact directement à partir de ces coordonnées, sans autre transformation qu'une seule mise à l'échelle dans l'espace de dessin du diagramme, où une unité vaut un millimètre.
 
 Cela n'a aucun effet sur une quelconque statistique de dispersion. Chaque grandeur à partir du §11.3 ne dépend de $y$ qu'à travers des écarts au carré par rapport à la moyenne, invariants par changement de signe. Cela ne compte que pour l'unique grandeur signée que l'outil rapporte — le décalage vertical du zéro — qui est lue par un humain face à une tourelle et doit donc être positive *vers le haut*.
 

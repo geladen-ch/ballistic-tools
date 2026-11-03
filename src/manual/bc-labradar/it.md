@@ -449,7 +449,7 @@ Un lotto lo hai gratis: **una serie di messa a punto della carica è già una se
 
 Tutto ciò che segue è ciò che lo strumento calcola davvero, con il ragionamento e le prove. Non è lettura obbligatoria per usare lo strumento, ed è la parte più interessante dello strumento.
 
-**Le unità di tutta questa sezione sono quelle del motore.** Internamente è tutto metrico — metri, secondi, metri al secondo, temperature riferite al kelvin — e la conversione avviene solo ai due confini: le unità dichiarate dal file di traccia in entrata, e la tua preferenza di visualizzazione in uscita.
+**Le unità di tutta questa sezione sono quelle del motore.** Internamente è tutto metrico — metri, secondi, metri al secondo, temperature in gradi Celsius, convertite in kelvin solo dove lo richiede la legge dei gas — e la conversione avviene solo ai due confini: le unità dichiarate dal file di traccia in entrata, e la tua preferenza di visualizzazione in uscita.
 
 ### 12.1 Che cosa misura il dispositivo, e che cosa no
 

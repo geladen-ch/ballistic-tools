@@ -77,7 +77,7 @@ Vor dem ersten Schuss nimmt das Werkzeug an, dass der BC um etwa 4 % danebenlieg
 
 Das Werkzeug verwendet das aktive Gewehr und die aktive Patrone aus Arsenal sowie den aktiven Schießstandort. Eine eigene Gewehrauswahl hat es nicht.
 
-Es führt eigene Wettereingaben, und nichts, was Sie in einem anderen Werkzeug eingeben, ändert sie. Geben Sie den **Stationsdruck** ein, also das, was ein Barometer am Schießplatz anzeigt. Ein Telefon oder eine Wetter-App liefert meist den auf Meereshöhe reduzierten Druck (QNH), und dieser Wert ist hier falsch. Hat der Standort eine Höhenangabe, warnt das Werkzeug, wenn der Druck nach QNH aussieht. Lesen Sie die Temperatur am Schießplatz auf etwa 3 °C genau ab. Die Luftfeuchtigkeit spielt kaum eine Rolle.
+Es führt eigene Wettereingaben, und nichts, was Sie in einem anderen Werkzeug eingeben, ändert sie. Geben Sie das durchschnittliche Wetter ein, das Sie während des Schießens erwarten, nicht nur einen Momentwert: Es bestimmt, wie die Schüsse auf die Ziele verteilt werden und was Sie von der Sitzung erwarten können. Geben Sie den **Stationsdruck** ein, also das, was ein Barometer am Schießplatz anzeigt. Ein Telefon oder eine Wetter-App liefert meist den auf Meereshöhe reduzierten Druck (QNH), und dieser Wert ist hier falsch. Hat der Standort eine Höhenangabe, warnt das Werkzeug, wenn der Druck nach QNH aussieht. Ohne klare Vorhersage genügt der Standarddruck auf der Höhe des Schießplatzes. Lesen Sie die Temperatur am Schießplatz auf etwa 3 °C genau ab. Die Luftfeuchtigkeit spielt kaum eine Rolle.
 
 Vor dem Start bestätigen Sie die Bedingungen. Danach bleiben sie als Ausgangsluft der Sitzung fest, sodass eine spätere Wetteränderung an anderer Stelle bereits abgegebene Schüsse nicht verändern kann. Eine BC-Korrektur setzt voraus, dass diese Bedingungen stimmten, denn eine falsche Temperatur oder ein falscher Druck landet im Luftwiderstands-Term. Die Seite „Abschluss“ erinnert Sie daran.
 
@@ -114,7 +114,7 @@ Ein Druck darauf erstellt den Plan für diese Zahl. Es sind Mindestwerte, die nu
 
 ### 3.5 Das ferne Ziel neu anmessen
 
-Vor dem Start bittet Sie das Werkzeug, das ferne Ziel noch einmal zu messen. Messen Sie es mehrmals mit dem Entfernungsmesser an und prüfen Sie, dass der Strahl nicht etwas vor dem Ziel erfasst. Ist das Gelände nicht als flach erklärt, messen Sie auch seinen Winkel mit einem Neigungsmesser.
+Vor dem Start bittet Sie das Werkzeug, das ferne Ziel noch einmal zu messen. Messen Sie es mehrmals mit dem Entfernungsmesser an und prüfen Sie, dass der Strahl nicht etwas vor dem Ziel erfasst. Ist das Gelände nicht als flach erklärt, messen Sie auch seinen Winkel mit einem Neigungsmesser. Auf einem Telefon, das seine Neigung meldet, erledigt das das Kamera-Symbol neben dem Winkelfeld (siehe **Kamera-Neigungsmesser** im [Haupthandbuch](#/manual)).
 
 Das ist die wichtigste Minute der Sitzung. Das Ergebnis hängt von der fernen Distanz mehr ab als von allem anderen, und die Schüsse können sie kaum prüfen, denn ein Ziel, das weiter entfernt ist als gedacht, sieht genau aus wie ein Geschoss mit niedrigerem BC. Eine um 20 m falsche ferne Distanz lässt das Ergebnis an diesem Ziel typischerweise um etwa 0,3 mrad danebenliegen, auf 1000 m etwa 30 cm, und das Werkzeug kann das nicht erkennen.
 

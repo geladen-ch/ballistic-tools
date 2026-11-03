@@ -70,7 +70,7 @@ Zwei der Einheitengruppen der Suite sind im Spiel:
 - **Distanz** (`m`, `yd`) — die Distanz des Projekts.
 - **Kleine Länge** (`mm`, `cm`, `in`) — alles, was auf dem Papier gemessen wird: das Kalibrierlineal, das Sie eingeben, das Kaliber, die Streuung und jedes Ergebnis im Bericht, wenn die Ergebniseinheiten auf absolut statt auf winkelbezogen stehen. Da dies Messungen im Geschossmaßstab sind, werden sie feiner angezeigt als der allgemeine Standard der Suite: **2 Nachkommastellen in mm, 3 in cm und Zoll**.
 
-Intern arbeitet die Rechenmaschine ausschließlich in Millimetern und Metern, und die Umrechnung geschieht nur an der Anzeigegrenze. Das hat eine praktische Folge, die man kennen sollte: **eine Änderung Ihrer Einheiteneinstellung verändert niemals gespeicherte Daten oder irgendein berechnetes Ergebnis.** Wechseln Sie von mm auf Zoll, und jedes bestehende Projekt wird korrekt neu angezeigt — die Kalibrierung, die Sie letztes Jahr als 100 mm eingegeben haben, liest sich nun als 3,937 in, beschreibt dasselbe Lineal und liefert genau dieselben Streuungsstatistiken.
+Intern arbeitet die Rechenmaschine in Metern (Länge des Kalibrierlineals und Kaliber werden in Millimetern gespeichert), und die Umrechnung geschieht nur an der Anzeigegrenze. Das hat eine praktische Folge, die man kennen sollte: **eine Änderung Ihrer Einheiteneinstellung verändert niemals gespeicherte Daten oder irgendein berechnetes Ergebnis.** Wechseln Sie von mm auf Zoll, und jedes bestehende Projekt wird korrekt neu angezeigt — die Kalibrierung, die Sie letztes Jahr als 100 mm eingegeben haben, liest sich nun als 3,937 in, beschreibt dasselbe Lineal und liefert genau dieselben Streuungsstatistiken.
 
 **Wo Einheiten angezeigt werden.** Eingabefelder tragen die Einheit als lebendigen Zusatz an ihrer Beschriftung — *„Tatsächliche Länge (in)"* — der sich mitändert, wenn Sie Ihre Einstellung wechseln, statt in der Übersetzung festzustecken. Angezeigte Werte tragen die Einheit inline: *„ES 1,78 in"*. Der CSV-Export nennt die Einheit in jeder Spaltenüberschrift (§8.7).
 
@@ -167,7 +167,7 @@ Nur die Punkte der **aktiven** Gruppe sind ziehbar. Die Zielpunkte anderer Grupp
 
 Tippen Sie einmal für den ersten Punkt, ein weiteres Mal für den zweiten, und geben Sie dann die **tatsächliche Länge** zwischen den beiden Punkten ein.
 
-**Geben Sie sie in Ihren eigenen Einheiten ein.** Die Feldbeschriftung trägt einen lebendigen Einheitenzusatz — *„Tatsächliche Länge (mm)"*, *„(cm)"* oder *„(in)"* je nach Ihrer Einstellung für kleine Längen — legen Sie also einen 6-Zoll-Maßstab auf die Scheibe, während Zoll gewählt ist, und Sie tippen schlicht **6**. Keine Umrechnung, keine Rechnerei, nichts, was man verkehrt herum machen könnte. Der Wert wird auf dem Weg in den Speicher in die internen Millimeter der Rechenmaschine umgerechnet, und genau deshalb zeigt eine spätere Änderung Ihrer Einstellung dasselbe Lineal korrekt neu an, statt es zu beschädigen.
+**Geben Sie sie in Ihren eigenen Einheiten ein.** Die Feldbeschriftung trägt einen lebendigen Einheitenzusatz — *„Tatsächliche Länge (mm)"*, *„(cm)"* oder *„(in)"* je nach Ihrer Einstellung für kleine Längen — legen Sie also einen 6-Zoll-Maßstab auf die Scheibe, während Zoll gewählt ist, und Sie tippen schlicht **6**. Keine Umrechnung, keine Rechnerei, nichts, was man verkehrt herum machen könnte. Der Wert wird auf dem Weg in den Speicher in Millimeter umgerechnet, und genau deshalb zeigt eine spätere Änderung Ihrer Einstellung dasselbe Lineal korrekt neu an, statt es zu beschädigen.
 
 Die Schrittweite des Feldes und sein kleinster akzeptierter Wert sind die Anzeigegenauigkeit dieser Einheit — 0,01 mm oder 0,001 cm/in — sodass alles, was Ihnen gezeigt werden kann, auch eingegeben werden kann.
 
@@ -447,7 +447,7 @@ Liegt der R95 Ihres Gewehrs etwa bei 1–1,5 MOA, reicht ein Zielfernrohr mit 12
 
 Alles Folgende ist das, was das Werkzeug tatsächlich berechnet, samt Herleitungen. Es ist keine Pflichtlektüre für die Benutzung des Werkzeugs, und es ist der interessanteste Teil des Werkzeugs.
 
-**Die Einheiten in diesem Abschnitt sind die der Rechenmaschine, nicht Ihre.** Intern arbeitet das Werkzeug ausschließlich in **Millimetern** für Längen auf dem Papier und in **Metern** für die Distanz, und jede benutzerseitige Einheit — mm, cm, Zoll, Yards, Fuß, mrad, MOA — ist eine Umrechnung, die an der Anzeigegrenze und sonst nirgends angewandt wird. Keine Statistik unten wird von Ihren Einstellungen berührt; Ihre Einheiten zu ändern ändert, wie eine Zahl gedruckt wird, nie das, was gerechnet wurde.
+**Die Einheiten in diesem Abschnitt sind die der Rechenmaschine, nicht Ihre.** Intern arbeitet das Werkzeug in **Metern**, für Längen auf dem Papier ebenso wie für die Distanz, und jede benutzerseitige Einheit — mm, cm, Zoll, Yards, Fuß, mrad, MOA — ist eine Umrechnung, die an der Anzeigegrenze und sonst nirgends angewandt wird. Keine Statistik unten wird von Ihren Einstellungen berührt; Ihre Einheiten zu ändern ändert, wie eine Zahl gedruckt wird, nie das, was gerechnet wurde.
 
 ### 11.1 Das zugrunde liegende Modell
 
@@ -470,19 +470,19 @@ Beachten Sie ferner, dass das Werkzeug die Streuung des *gesamten Systems misst,
 Für jeden Schuss $i$ in Gruppe $g$ auf Zielscheibe $T$:
 
 1. Der Schuss und der Zielpunkt seiner Gruppe werden als Bruchteile der natürlichen Pixelmaße des Fotos gespeichert, in $[0,1]^2$. Sie werden in native Pixel umgerechnet, indem mit Breite und Höhe des Fotos multipliziert wird.
-2. Der Maßstab $s_T$ der Zielscheibe (px/mm) stammt von ihrem Kalibrierlineal:
+2. Der Maßstab $s_T$ der Zielscheibe (px/m) stammt von ihrem Kalibrierlineal:
 
    $$s_T = \frac{\sqrt{(\Delta x_{\text{px}})^2 + (\Delta y_{\text{px}})^2}}{L_{\text{real}}}$$
 
-   wobei der Zähler der Pixelabstand zwischen den beiden Kalibrierpunkten ist und $L_{\text{real}}$ die von Ihnen eingegebene Länge, in mm.
-3. Die Pixelkoordinaten werden durch $s_T$ geteilt, was Millimeter ergibt.
+   wobei der Zähler der Pixelabstand zwischen den beiden Kalibrierpunkten ist und $L_{\text{real}}$ die von Ihnen eingegebene Länge, in Metern.
+3. Die Pixelkoordinaten werden durch $s_T$ geteilt, was Meter ergibt.
 4. Der Schuss wird auf den Zielpunkt seiner eigenen Gruppe zentriert:
 
-   $$(x_i, y_i) = (x_i^{\text{mm}} - x_{g,\text{ZP}}^{\text{mm}},\; y_i^{\text{mm}} - y_{g,\text{ZP}}^{\text{mm}})$$
+   $$(x_i, y_i) = (x_i^{\text{m}} - x_{g,\text{ZP}}^{\text{m}},\; y_i^{\text{m}} - y_{g,\text{ZP}}^{\text{m}})$$
 
-Positionen als Fotobruchteile statt als Millimeter zu speichern ist das, was die rückwirkende Neukalibrierung möglich macht: das Lineal Monate später zu korrigieren skaliert automatisch jeden Treffer dieser Zielscheibe neu. Es ist auch das, was das Werkzeug konstruktionsbedingt einheitenagnostisch macht — ein gespeicherter Schuss hat überhaupt keine Einheit, nur eine Position auf einem Bild. Millimeter treten zum ersten Mal in Schritt 2 auf, über $L_{\text{real}}$, das seinerseits aus der Einheit umgerechnet wird, in der Sie es eingegeben haben; von da an ist die ganze Kette metrisch, und Ihre bevorzugten Einheiten tauchen erst wieder auf, wenn eine fertige Zahl gedruckt wird.
+Positionen als Fotobruchteile statt als Längen zu speichern ist das, was die rückwirkende Neukalibrierung möglich macht: das Lineal Monate später zu korrigieren skaliert automatisch jeden Treffer dieser Zielscheibe neu. Es ist auch das, was das Werkzeug konstruktionsbedingt einheitenagnostisch macht — ein gespeicherter Schuss hat überhaupt keine Einheit, nur eine Position auf einem Bild. Längen treten zum ersten Mal in Schritt 2 auf, über $L_{\text{real}}$, das seinerseits aus der Einheit umgerechnet wird, in der Sie es eingegeben haben; von da an ist die ganze Kette metrisch, und Ihre bevorzugten Einheiten tauchen erst wieder auf, wenn eine fertige Zahl gedruckt wird.
 
-**Bezugssystem.** Der Ursprung des Fotobruchteils ist die linke obere Ecke des Bildes, und seine senkrechte Achse wächst **nach unten**, die zusammengefassten $y_i$ sind also positiv *unterhalb* des Zielpunkts. Die Rechenmaschine behält dieses Bezugssystem bewusst durchgehend bei: es ist auch das Bezugssystem von SVG, und genau das erlaubt dem Diagramm, die zusammengefassten Schüsse, die Radienkreise, das Gitter und den Treffpunktkasten unmittelbar aus diesen Millimetern zu zeichnen, ganz ohne Transformation.
+**Bezugssystem.** Der Ursprung des Fotobruchteils ist die linke obere Ecke des Bildes, und seine senkrechte Achse wächst **nach unten**, die zusammengefassten $y_i$ sind also positiv *unterhalb* des Zielpunkts. Die Rechenmaschine behält dieses Bezugssystem bewusst durchgehend bei: es ist auch das Bezugssystem von SVG, und genau das erlaubt dem Diagramm, die zusammengefassten Schüsse, die Radienkreise, das Gitter und den Treffpunktkasten unmittelbar aus diesen Koordinaten zu zeichnen, ohne eine andere Transformation als eine einzige Skalierung in den Zeichenraum des Diagramms, in dem eine Einheit ein Millimeter ist.
 
 Auf keine Streuungsstatistik hat das eine Auswirkung. Jede Größe ab §11.3 hängt von $y$ nur über quadrierte Abweichungen vom Mittelwert ab, und die sind gegen einen Vorzeichenwechsel unempfindlich. Es zählt allein für die eine vorzeichenbehaftete Größe, die das Werkzeug angibt — den senkrechten Nullpunktversatz — die von einem Menschen gegen einen Turm gelesen wird und daher positiv *nach oben* sein muss.
 

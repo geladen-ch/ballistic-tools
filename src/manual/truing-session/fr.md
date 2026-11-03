@@ -77,7 +77,7 @@ Avant tout tir, l'outil suppose que le BC est faux d'environ 4 %. Une séance no
 
 L'outil utilise la carabine et la cartouche actives d'Arsenal ainsi que le lieu de tir actif. Il n'a pas de sélecteur de carabine propre.
 
-Il garde ses propres données météo, et rien de ce que vous saisissez dans un autre outil ne les modifie. Entrez la **pression station**, c'est-à-dire ce qu'indique un baromètre sur le pas de tir. Un téléphone ou une application météo donne en général la pression ramenée au niveau de la mer (QNH), et cette valeur est fausse ici. Si le lieu a une altitude, l'outil vous avertit quand la pression ressemble à un QNH. Relevez la température sur le pas de tir à environ 3 °C près. L'humidité compte peu.
+Il garde ses propres données météo, et rien de ce que vous saisissez dans un autre outil ne les modifie. Saisissez la météo moyenne que vous attendez pendant le tir, et non une simple mesure de l'instant : elle détermine la répartition des cartouches entre les cibles et ce que vous pouvez attendre de la session. Entrez la **pression station**, c'est-à-dire ce qu'indique un baromètre sur le pas de tir. Un téléphone ou une application météo donne en général la pression ramenée au niveau de la mer (QNH), et cette valeur est fausse ici. Si le lieu a une altitude, l'outil vous avertit quand la pression ressemble à un QNH. Sans prévision claire, la pression standard à l'altitude du pas de tir suffit. Relevez la température sur le pas de tir à environ 3 °C près. L'humidité compte peu.
 
 Vous confirmez les conditions avant de commencer. Elles restent ensuite fixées comme air de départ de la séance, de sorte qu'un changement de météo fait ailleurs plus tard ne peut pas modifier des tirs déjà effectués. Une correction de BC suppose que ces conditions étaient justes, car une température ou une pression fausse finit dans le terme de traînée. La page « Conclure » vous le rappelle.
 
@@ -114,7 +114,7 @@ Appuyer sur l'un établit le plan pour ce nombre. Ce sont des minimums qui ne co
 
 ### 3.5 Retélémétrer la cible lointaine
 
-Avant de commencer, l'outil vous demande de mesurer à nouveau la cible lointaine. Télémétrez-la plusieurs fois et vérifiez que le faisceau n'accroche pas quelque chose devant la cible. Si le terrain n'est pas déclaré plat, mesurez aussi son angle à l'inclinomètre.
+Avant de commencer, l'outil vous demande de mesurer à nouveau la cible lointaine. Télémétrez-la plusieurs fois et vérifiez que le faisceau n'accroche pas quelque chose devant la cible. Si le terrain n'est pas déclaré plat, mesurez aussi son angle à l'inclinomètre. Sur un téléphone qui indique son inclinaison, l'icône caméra à côté du champ d'angle s'en charge (voir **Clinomètre à caméra** dans le [manuel principal](#/manual)).
 
 C'est la minute la plus importante de la séance. Le résultat dépend de la distance lointaine plus que de tout le reste, et les tirs ne peuvent guère la vérifier, car une cible plus éloignée que vous ne le pensez ressemble exactement à une balle au BC plus faible. Une distance lointaine fausse de 20 m laisse typiquement le résultat faux d'environ 0,3 mrad sur cette cible, soit environ 30 cm à 1 000 m, et l'outil ne peut pas le signaler.
 

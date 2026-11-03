@@ -70,7 +70,7 @@ Due dei gruppi di unità della suite entrano in gioco:
 - **Distanza** (`m`, `yd`) — la distanza del progetto.
 - **Lunghezza piccola** (`mm`, `cm`, `in`) — tutto ciò che si misura sulla carta: il righello di calibrazione che digitate, il calibro, l'estensione, e ogni risultato del rapporto quando il selettore delle unità è impostato sull'assoluto anziché sull'angolare. Trattandosi di misure alla scala di una palla, sono mostrate con precisione più fine rispetto al valore generale della suite: **2 decimali in mm, 3 in cm e pollici**.
 
-Internamente il motore lavora esclusivamente in millimetri e metri, e la conversione avviene solo al confine della visualizzazione. Ciò ha una conseguenza pratica che vale la pena conoscere: **cambiare la preferenza sulle unità non altera mai i dati archiviati né alcun risultato calcolato.** Passate da mm a pollici e ogni progetto esistente si rivisualizza correttamente — la calibrazione che l'anno scorso avete digitato come 100 mm ora si legge 3,937 in, descrive lo stesso righello e produce esattamente le stesse statistiche di dispersione.
+Internamente il motore lavora in metri (la lunghezza del righello di calibrazione e il calibro sono archiviati in millimetri), e la conversione avviene solo al confine della visualizzazione. Ciò ha una conseguenza pratica che vale la pena conoscere: **cambiare la preferenza sulle unità non altera mai i dati archiviati né alcun risultato calcolato.** Passate da mm a pollici e ogni progetto esistente si rivisualizza correttamente — la calibrazione che l'anno scorso avete digitato come 100 mm ora si legge 3,937 in, descrive lo stesso righello e produce esattamente le stesse statistiche di dispersione.
 
 **Dove sono indicate le unità.** I campi di inserimento portano l'unità come suffisso vivo sull'etichetta — *«Distanza reale (in)»* — che si aggiorna quando cambiate preferenza invece di restare fissato nella traduzione. I valori mostrati portano l'unità in linea: *«ES 1,78 in»*. L'esportazione CSV nomina l'unità in ogni intestazione di colonna (§8.7).
 
@@ -167,7 +167,7 @@ Solo i punti del gruppo **attivo** sono trascinabili. I punti di mira degli altr
 
 Toccate una volta per il primo punto, una volta ancora per il secondo, quindi inserite la **distanza reale** tra i due punti.
 
-**Inseritela nelle vostre unità.** L'etichetta del campo porta un suffisso d'unità vivo — *«Distanza reale (mm)»*, *«(cm)»* o *«(in)»* secondo la vostra preferenza di lunghezza piccola — quindi appoggiate un righello da 6 pollici sul bersaglio con i pollici selezionati e digitate semplicemente **6**. Nessuna conversione, nessun conto, nulla da invertire. Il valore è convertito nei millimetri interni del motore nel momento in cui viene archiviato, ed è per questo che cambiare preferenza in seguito rivisualizza correttamente lo stesso righello invece di corromperlo.
+**Inseritela nelle vostre unità.** L'etichetta del campo porta un suffisso d'unità vivo — *«Distanza reale (mm)»*, *«(cm)»* o *«(in)»* secondo la vostra preferenza di lunghezza piccola — quindi appoggiate un righello da 6 pollici sul bersaglio con i pollici selezionati e digitate semplicemente **6**. Nessuna conversione, nessun conto, nulla da invertire. Il valore è convertito in millimetri nel momento in cui viene archiviato, ed è per questo che cambiare preferenza in seguito rivisualizza correttamente lo stesso righello invece di corromperlo.
 
 Il passo del campo e il suo valore minimo accettato sono la precisione di visualizzazione di quell'unità — 0,01 mm, oppure 0,001 cm/in — così che tutto ciò che può esservi mostrato possa anche essere digitato.
 
@@ -447,7 +447,7 @@ Se l'R95 della vostra carabina è nell'ordine di 1–1,5 MOA, un'ottica da 12x o
 
 Tutto ciò che segue è quello che lo strumento calcola davvero, con le derivazioni. Non è lettura obbligatoria per usare lo strumento, ed è la parte più interessante dello strumento.
 
-**Le unità di questa sezione sono quelle del motore, non le vostre.** Internamente lo strumento lavora esclusivamente in **millimetri** per le lunghezze sulla carta e in **metri** per la distanza, e ogni unità visibile all'utente — mm, cm, pollici, iarde, piedi, mrad, MOA — è una conversione applicata al confine della visualizzazione e da nessun'altra parte. Nessuna statistica qui sotto è influenzata dalle vostre preferenze; cambiare le unità cambia come un numero viene stampato, mai ciò che è stato calcolato.
+**Le unità di questa sezione sono quelle del motore, non le vostre.** Internamente lo strumento lavora in **metri**, per le lunghezze sulla carta come per la distanza, e ogni unità visibile all'utente — mm, cm, pollici, iarde, piedi, mrad, MOA — è una conversione applicata al confine della visualizzazione e da nessun'altra parte. Nessuna statistica qui sotto è influenzata dalle vostre preferenze; cambiare le unità cambia come un numero viene stampato, mai ciò che è stato calcolato.
 
 ### 11.1 Il modello di fondo
 
@@ -470,19 +470,19 @@ Notate inoltre che lo strumento misura la dispersione dell'*intero sistema così
 Per ogni colpo $i$ del gruppo $g$ sul bersaglio $T$:
 
 1. Il colpo e il punto di mira del suo gruppo sono archiviati come frazioni delle dimensioni native in pixel della foto, in $[0,1]^2$. Sono convertiti in pixel nativi moltiplicando per larghezza e altezza della foto.
-2. La scala $s_T$ del bersaglio (px/mm) viene dal suo righello di calibrazione:
+2. La scala $s_T$ del bersaglio (px/m) viene dal suo righello di calibrazione:
 
    $$s_T = \frac{\sqrt{(\Delta x_{\text{px}})^2 + (\Delta y_{\text{px}})^2}}{L_{\text{reale}}}$$
 
-   dove il numeratore è la distanza in pixel tra i due punti di calibrazione e $L_{\text{reale}}$ è la lunghezza che avete inserito, in mm.
-3. Le coordinate in pixel sono divise per $s_T$ per dare millimetri.
+   dove il numeratore è la distanza in pixel tra i due punti di calibrazione e $L_{\text{reale}}$ è la lunghezza che avete inserito, in metri.
+3. Le coordinate in pixel sono divise per $s_T$ per dare metri.
 4. Il colpo è ricentrato sul punto di mira del proprio gruppo:
 
-   $$(x_i, y_i) = (x_i^{\text{mm}} - x_{g,\text{PM}}^{\text{mm}},\; y_i^{\text{mm}} - y_{g,\text{PM}}^{\text{mm}})$$
+   $$(x_i, y_i) = (x_i^{\text{m}} - x_{g,\text{PM}}^{\text{m}},\; y_i^{\text{m}} - y_{g,\text{PM}}^{\text{m}})$$
 
-Archiviare le posizioni come frazioni della foto anziché come millimetri è ciò che rende possibile la ricalibrazione retroattiva: correggere il righello mesi dopo riscala automaticamente ogni impatto di quel bersaglio. È anche ciò che rende lo strumento agnostico alle unità per costruzione — un colpo archiviato non ha alcuna unità, solo una posizione su un'immagine. I millimetri entrano per la prima volta al passo 2, tramite $L_{\text{reale}}$, a sua volta convertita dall'unità in cui l'avete inserita; da lì in poi tutta la catena è metrica, e le vostre unità preferite riappaiono solo quando un numero finito viene stampato.
+Archiviare le posizioni come frazioni della foto anziché come lunghezze è ciò che rende possibile la ricalibrazione retroattiva: correggere il righello mesi dopo riscala automaticamente ogni impatto di quel bersaglio. È anche ciò che rende lo strumento agnostico alle unità per costruzione — un colpo archiviato non ha alcuna unità, solo una posizione su un'immagine. Le lunghezze entrano per la prima volta al passo 2, tramite $L_{\text{reale}}$, a sua volta convertita dall'unità in cui l'avete inserita; da lì in poi tutta la catena è metrica, e le vostre unità preferite riappaiono solo quando un numero finito viene stampato.
 
-**Sistema di riferimento.** L'origine della frazione della foto è l'angolo in alto a sinistra dell'immagine e il suo asse verticale cresce verso il **basso**, quindi le $y_i$ aggregate sono positive *sotto* il punto di mira. Il motore mantiene quel sistema fino in fondo, deliberatamente: è anche il sistema dell'SVG, ed è ciò che permette al diagramma di disegnare i colpi aggregati, i cerchi dei raggi, la griglia e il riquadro del punto di impatto direttamente da questi millimetri, senza alcuna trasformazione.
+**Sistema di riferimento.** L'origine della frazione della foto è l'angolo in alto a sinistra dell'immagine e il suo asse verticale cresce verso il **basso**, quindi le $y_i$ aggregate sono positive *sotto* il punto di mira. Il motore mantiene quel sistema fino in fondo, deliberatamente: è anche il sistema dell'SVG, ed è ciò che permette al diagramma di disegnare i colpi aggregati, i cerchi dei raggi, la griglia e il riquadro del punto di impatto direttamente da queste coordinate, senza altra trasformazione che un'unica scalatura nello spazio di disegno del diagramma, dove un'unità è un millimetro.
 
 Non ha alcun effetto su nessuna statistica di dispersione. Ogni grandezza dal §11.3 in poi dipende da $y$ solo attraverso scarti al quadrato dalla media, e questi sono invarianti per cambio di segno. Conta solo per l'unica grandezza con segno che lo strumento riporta — lo scostamento verticale dell'azzeramento — che è letta da un essere umano davanti a una torretta e deve quindi essere positiva verso l'**alto**.
 

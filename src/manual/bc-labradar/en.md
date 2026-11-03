@@ -449,7 +449,7 @@ One batch you get for free: **a load-development ladder is already a valid BC se
 
 Everything below is what the tool actually computes, with the reasoning and the evidence. It is not required reading for using the tool, and it is the most interesting part of the tool.
 
-**Units throughout this section are the engine's.** Internally everything is metric — metres, seconds, metres per second, kelvin-referenced temperatures — and conversion happens only at the two boundaries: the track file's own declared units on the way in, and your display preference on the way out.
+**Units throughout this section are the engine's.** Internally everything is metric — metres, seconds, metres per second, temperatures in degrees Celsius, taken to kelvin only where the gas law needs it — and conversion happens only at the two boundaries: the track file's own declared units on the way in, and your display preference on the way out.
 
 ### 12.1 What the device measures, and what it does not
 

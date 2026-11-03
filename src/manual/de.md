@@ -2,44 +2,24 @@
 
 *Friedlich. Präzise. Bewaffnet.*
 
-geladen.ch ballistics ist eine rein clientseitige Suite für die äußere
-Ballistik. Alles — Flugbahnintegration, Trefferwahrscheinlichkeits-Analyse,
-Ihre gespeicherten Gewehre und Geschosse — läuft in Ihrem Browser. **Es
-werden niemals Daten erfasst oder an einen Server übertragen.** Die App
-funktioniert offline, sobald sie geladen wurde, und lässt sich auf Desktop
-und Mobilgeräten als App installieren (PWA).
+geladen.ch ballistics ist eine rein clientseitige Suite für die äußere Ballistik. Alles — Flugbahnintegration, Trefferwahrscheinlichkeits-Analyse, Ihre gespeicherten Gewehre und Geschosse — läuft in Ihrem Browser. **Es werden niemals Daten erfasst oder an einen Server übertragen.** Die App funktioniert offline, sobald sie geladen wurde, und lässt sich auf Desktop und Mobilgeräten als App installieren (PWA).
 
-Diese Software wird ohne jegliche Garantie für die Eignung zu einem
-bestimmten Zweck bereitgestellt, oder was auch immer — blabla. Ich habe
-mein Bestes gegeben, um sie nützlich zu machen (ein verregnetes Wochenende
-ging dafür drauf), und ich glaube, sie ist einigermaßen genau — aber wenn
-Sie einen kreativen Weg finden, sich mithilfe eines ballistischen
-Rechners selbst zu verletzen, ist das Ihr eigenes Problem — wer bin ich,
-mich der natürlichen Auslese in den Weg zu stellen?
+Diese Software wird ohne jegliche Garantie für die Eignung zu einem bestimmten Zweck bereitgestellt, oder was auch immer — blabla. Ich habe mein Bestes gegeben, um sie nützlich zu machen (ein verregnetes Wochenende ging dafür drauf), und ich glaube, sie ist einigermaßen genau — aber wenn Sie einen kreativen Weg finden, sich mithilfe eines ballistischen Rechners selbst zu verletzen, ist das Ihr eigenes Problem — wer bin ich, mich der natürlichen Auslese in den Weg zu stellen?
 
-Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**,
-der **Feldrechner**, **Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge**, der
-**Gewehr-Präzisionsrechner** und **Einstellungen** — sowie die
-**Trefferwahrscheinlichkeit**, die für ihre aktuellen Szenarien nutzbar ist,
-aber noch aktiv weiterentwickelt wird, und die **Einschieß-Sitzung**, als
-Experimentell markiert — ihre Statistik ist validiert, hat aber noch keine
-Erprobung in der Praxis.
+Dieses Handbuch behandelt die voll funktionsfähigen Werkzeuge — **Flugbahn**, den **Feldrechner**, **Waffen**, **Cd-Mach-Kurve**, **BC-Werkzeuge**, den **Gewehr-Präzisionsrechner**, die Gruppe **Werkzeuge** (**Einheitenumrechnung**, **Absehen-Designer**, **Standorte & Ziele**) und **Einstellungen** — sowie die **Trefferwahrscheinlichkeit**, die für ihre aktuellen Szenarien nutzbar ist, aber noch aktiv weiterentwickelt wird, und die **Einschieß-Sitzung**, als Experimentell markiert — ihre Statistik ist validiert, hat aber noch keine Erprobung in der Praxis.
 
 ---
 
 ## Über dieses Handbuch
 
-Dies ist ein kurzer Überblick — ein Abschnitt pro Werkzeug, der beschreibt,
-was es tut und welches seine wichtigsten Bedienelemente sind. Einige
-Werkzeuge haben zusätzlich ein eigenes, ausführliches Handbuch, das tiefer
-auf die Methode, Sonderfälle und, wo zutreffend, die Statistik hinter den
-Zahlen eingeht:
+Dies ist ein kurzer Überblick — ein Abschnitt pro Werkzeug, der beschreibt, was es tut und welches seine wichtigsten Bedienelemente sind. Einige Werkzeuge haben zusätzlich ein eigenes, ausführliches Handbuch, das tiefer auf die Methode, Sonderfälle und, wo zutreffend, die Statistik hinter den Zahlen eingeht:
 
 - [Arsenal](#/manual/arsenal)
 - [Gewehr-Präzisionsrechner](#/manual/rifle-precision)
 - [Einschieß-Sitzung](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Sicherung & Synchronisierung](#/manual/backup-sync)
+- [Absehen-Designer](#/manual/reticle-designer)
 
 Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
 
@@ -49,614 +29,193 @@ Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
 
 ### Android (Chrome)
 
-Chrome kann diese App installieren, sodass sie sich wie jede andere App auf
-Ihrem Telefon verhält — ein eigenes Symbol auf dem Startbildschirm, ein
-eigenes Fenster ohne Browserleiste, und sie funktioniert weiterhin offline.
+Chrome kann diese App installieren, sodass sie sich wie jede andere App auf Ihrem Telefon verhält — ein eigenes Symbol auf dem Startbildschirm, ein eigenes Fenster ohne Browserleiste, und sie funktioniert weiterhin offline.
 
 - Öffnen Sie die App in Chrome.
-- Tippen Sie oben rechts auf das Menü **⋮** und wählen Sie **App
-   installieren** (in älteren Chrome-Versionen heißt dies **Zum
-   Startbildschirm hinzufügen**).
-- Bestätigen Sie. Ein Symbol erscheint auf Ihrem Startbildschirm oder in
-   der App-Übersicht, wie bei jeder anderen installierten App.
+- Tippen Sie oben rechts auf das Menü **⋮** und wählen Sie **App installieren** (in älteren Chrome-Versionen heißt dies **Zum Startbildschirm hinzufügen**).
+- Bestätigen Sie. Ein Symbol erscheint auf Ihrem Startbildschirm oder in der App-Übersicht, wie bei jeder anderen installierten App.
 
-**Ein eigenes Symbol für den Feldrechner.** Da der Feldrechner Teil
-derselben App ist, können Sie ihm ein eigenes Symbol geben, das direkt an
-der Startseite vorbei öffnet:
+**Ein eigenes Symbol für den Feldrechner.** Da der Feldrechner Teil derselben App ist, können Sie ihm ein eigenes Symbol geben, das direkt an der Startseite vorbei öffnet:
 
 - Öffnen Sie in Chrome die App und wechseln Sie zum **Feldrechner**.
-- Öffnen Sie erneut das Menü **⋮** — während der Feldrechner geöffnet ist —
-   und wählen Sie **Zum Startbildschirm hinzufügen**.
-- Wenn Chrome nach einem Namen fragt, vergeben Sie z. B. „Feldrechner",
-   damit Sie die beiden Symbole leicht unterscheiden können.
+- Öffnen Sie erneut das Menü **⋮** — während der Feldrechner geöffnet ist — und wählen Sie **Zum Startbildschirm hinzufügen**.
+- Wenn Chrome nach einem Namen fragt, vergeben Sie z. B. „Feldrechner", damit Sie die beiden Symbole leicht unterscheiden können.
 
-Tippen auf dieses zweite Symbol öffnet die App direkt im Feldrechner, ohne
-über die Startseite zu gehen — praktisch, wenn das im Feld das einzige
-Werkzeug ist, das Sie nutzen. Beide Symbole zeigen aktuell dasselbe Bild;
-nur die Namen unterscheiden sich.
+Tippen auf dieses zweite Symbol öffnet die App direkt im Feldrechner, ohne über die Startseite zu gehen — praktisch, wenn das im Feld das einzige Werkzeug ist, das Sie nutzen. Beide Symbole zeigen aktuell dasselbe Bild; nur die Namen unterscheiden sich.
 
 ### iPhone / iPad (Safari)
 
-Das funktioniert nur in **Safari** — andere Browser auf dem iPhone (auch
-Chrome) dürfen keine Apps zum Startbildschirm hinzufügen.
+Das funktioniert nur in **Safari** — andere Browser auf dem iPhone (auch Chrome) dürfen keine Apps zum Startbildschirm hinzufügen.
 
 - Öffnen Sie die App in Safari.
-- Tippen Sie auf das Symbol **Teilen** (das Quadrat mit dem Pfeil nach
-   oben, in der unteren Symbolleiste — auf dem iPad oben).
-- Scrollen Sie in der erscheinenden Liste nach unten und tippen Sie auf
-   **Zum Home-Bildschirm**.
-- Bestätigen Sie den Namen (oder ändern Sie ihn) und tippen Sie oben
-   rechts auf **Hinzufügen**.
+- Tippen Sie auf das Symbol **Teilen** (das Quadrat mit dem Pfeil nach oben, in der unteren Symbolleiste — auf dem iPad oben).
+- Scrollen Sie in der erscheinenden Liste nach unten und tippen Sie auf **Zum Home-Bildschirm**.
+- Bestätigen Sie den Namen (oder ändern Sie ihn) und tippen Sie oben rechts auf **Hinzufügen**.
 
-Ein Symbol erscheint auf Ihrem Startbildschirm und öffnet die App in einem
-eigenen Fenster ohne Safari-Adressleiste — genau wie bei Android.
+Ein Symbol erscheint auf Ihrem Startbildschirm und öffnet die App in einem eigenen Fenster ohne Safari-Adressleiste — genau wie bei Android.
 
-**Ein eigenes Symbol für den Feldrechner** funktioniert genauso: Öffnen Sie
-zuerst den **Feldrechner** in der App, wiederholen Sie dann **Teilen → Zum
-Home-Bildschirm**, während diese Seite geöffnet ist, und vergeben Sie einen
-unterscheidbaren Namen wie „Feldrechner". Wie bei Android zeigen beide
-Symbole aktuell dasselbe Bild; nur die Namen unterscheiden sich.
+**Ein eigenes Symbol für den Feldrechner** funktioniert genauso: Öffnen Sie zuerst den **Feldrechner** in der App, wiederholen Sie dann **Teilen → Zum Home-Bildschirm**, während diese Seite geöffnet ist, und vergeben Sie einen unterscheidbaren Namen wie „Feldrechner". Wie bei Android zeigen beide Symbole aktuell dasselbe Bild; nur die Namen unterscheiden sich.
 
 ## Flugbahn
 
-Geschosse fliegen nicht geradeaus, so sehr Sie sich das auch wünschen mögen.
-Flugbahn verfolgt den gesamten Flug — Fall, Windabtrieb, Geschwindigkeit,
-Flugzeit — für Ihr Gewehr und Ihre Ladung (festgelegt unter **Waffen**,
-unten), auf jede Distanz, die Sie interessiert.
+Geschosse fliegen nicht geradeaus, so sehr Sie sich das auch wünschen mögen. Flugbahn verfolgt den gesamten Flug — Fall, Windabtrieb, Geschwindigkeit, Flugzeit — für Ihr Gewehr und Ihre Ladung (festgelegt unter **Waffen**, unten), auf jede Distanz, die Sie interessiert.
 
-**Die Eingaben** beginnen mit dem aktiven Gewehr und der aktiven Ladung, als
-kurze Zusammenfassung mit einer Schaltfläche **Ändern** zurück zu Waffen,
-gefolgt von einem Atmosphäre-Abschnitt und einigen Einstellungen, die nur
-diese Tabelle und dieses Diagramm betreffen:
+**Die Eingaben** beginnen mit dem aktiven Gewehr und der aktiven Ladung, als kurze Zusammenfassung mit einer Schaltfläche **Ändern** zurück zu Waffen, gefolgt von einem Atmosphäre-Abschnitt und einigen Einstellungen, die nur diese Tabelle und dieses Diagramm betreffen:
 
-- **Maximale Distanz** / **Distanzschritt** — wie weit, und in welchen
-  Schritten, die Tabelle berechnet wird.
-- **Ziellinienwinkel** — Steigung/Gefälle des Schusses, in Grad, positiv
-  bergauf. Für einen ebenen Schuss auf 0 belassen. Der Nullpunkt-Erhöhungswinkel
-  wird davon nie beeinflusst: Das Gewehr gilt immer als auf ebener Strecke und
-  bei Windstille eingeschossen (in der Nullpunkt-Atmosphäre der Patrone, falls
-  Sie unter Waffen eine angegeben haben), daher zeigt sich eine Neigung in den
-  Korrekturen.
+- **Maximale Distanz** / **Distanzschritt** — wie weit, und in welchen Schritten, die Tabelle berechnet wird.
+- **Ziellinienwinkel** — Steigung/Gefälle des Schusses, in Grad, positiv bergauf. Für einen ebenen Schuss auf 0 belassen. Der Nullpunkt-Erhöhungswinkel wird davon nie beeinflusst: Das Gewehr gilt immer als auf ebener Strecke und bei Windstille eingeschossen (in der Nullpunkt-Atmosphäre der Patrone, falls Sie unter Waffen eine angegeben haben), daher zeigt sich eine Neigung in den Korrekturen. Auf einem Telefon oder Tablet, das seine Neigung meldet, misst das Kamera-Symbol neben dem Feld den Winkel für Sie — siehe **Kamera-Neigungsmesser** unter Werkzeuge weiter unten.
 
-**Die Tabelle** zeigt eine Zeile pro Distanzschritt, mit ein-/ausschaltbaren
-Spalten (Fall, Windabtrieb, Höhen-/Windkorrekturen in Klicks/mrad/MOA,
-Geschwindigkeit, Flugzeit, Mach, Energie). Die Höhenkorrektur ist so
-vorzeichenbehaftet, wie Sie ein Zielfernrohr tatsächlich verstellen würden:
-Ein Geschoss, das unter die Ziellinie gefallen ist, wird als *positive*
-Anzahl an Klicks angezeigt, die nach **oben** gedreht werden müssen.
+**Die Tabelle** zeigt eine Zeile pro Distanzschritt, mit ein-/ausschaltbaren Spalten (Fall, Windabtrieb, Höhen-/Windkorrekturen in Klicks/mrad/MOA, Geschwindigkeit, Flugzeit, Mach, Energie). Die Höhenkorrektur ist so vorzeichenbehaftet, wie Sie ein Zielfernrohr tatsächlich verstellen würden: Ein Geschoss, das unter die Ziellinie gefallen ist, wird als *positive* Anzahl an Klicks angezeigt, die nach **oben** gedreht werden müssen.
 
-Sie können **die Tabelle als CSV-Datei herunterladen** oder **als CSV in die
-Zwischenablage kopieren** — beides verwendet genau die aktuell aktivierten
-Spalten sowie das unter Einstellungen → CSV-Export festgelegte
-Feld-/Dezimaltrennzeichen (damit die Datei in der Tabellenkalkulations-Locale
-Ihrer Wahl korrekt geöffnet wird).
+Sie können **die Tabelle als CSV-Datei herunterladen** oder **als CSV in die Zwischenablage kopieren** — beides verwendet genau die aktuell aktivierten Spalten sowie das unter Einstellungen → CSV-Export festgelegte Feld-/Dezimaltrennzeichen (damit die Datei in der Tabellenkalkulations-Locale Ihrer Wahl korrekt geöffnet wird).
 
-**Das Diagramm** stellt eine beliebige Spalte über der Distanz dar, mit
-eigenem unabhängigem Zoom/Verschieben (die beiden Distanz-Schieberegler
-darunter ziehen — minimales Fenster 50 m). Es kann als **SVG heruntergeladen**
-werden (das kleine Symbol über dem Diagramm) — ein Format, das für die
-spätere Ansicht oder Bearbeitung nicht von dieser App abhängt.
+**Das Diagramm** stellt eine beliebige Spalte über der Distanz dar, mit eigenem unabhängigem Zoom/Verschieben (die beiden Distanz-Schieberegler darunter ziehen — minimales Fenster 50 m). Es kann als **SVG heruntergeladen** werden (das kleine Symbol über dem Diagramm) — ein Format, das für die spätere Ansicht oder Bearbeitung nicht von dieser App abhängt.
 
 ## Trefferwahrscheinlichkeit
 
-Schätzt die Wahrscheinlichkeit, ein Ziel bei einem gewählten Schussszenario
-zu treffen, und verbindet dazu Ihr Gewehr und Ihre Ladung mit Ihrer eigenen
-Schießpräzision und der Unsicherheit bei der Distanz-, Temperatur-, Druck-
-und Windschätzung. **Noch in aktiver Entwicklung** — weitere Szenarien und
-Ziele sind geplant; verstehen Sie die Ergebnisse als Anhaltspunkt, nicht als
-verlässliche Vorhersage.
+Schätzt die Wahrscheinlichkeit, ein Ziel bei einem gewählten Schussszenario zu treffen, und verbindet dazu Ihr Gewehr und Ihre Ladung mit Ihrer eigenen Schießpräzision und der Unsicherheit bei der Distanz-, Temperatur-, Druck- und Windschätzung. **Noch in aktiver Entwicklung** — weitere Szenarien und Ziele sind geplant; verstehen Sie die Ergebnisse als Anhaltspunkt, nicht als verlässliche Vorhersage.
 
-**Gewehr & Geschoss** zeigt dieselbe Zusammenfassung wie Flugbahn — die
-aktive, unter **Waffen** festgelegte Konfiguration; mit **Ändern** wählen
-oder bearbeiten Sie sie.
+**Gewehr & Geschoss** zeigt dieselbe Zusammenfassung wie Flugbahn — die aktive, unter **Waffen** festgelegte Konfiguration; mit **Ändern** wählen oder bearbeiten Sie sie.
 
 **Unsicherheit** legt die Größe jeder Fehlerquelle fest:
 
-- **Eigene Fehler** — Mündungsgeschwindigkeits-Konsistenz (Streuung), sowie
-  entweder detailliert Waffenpräzision + Schützenfertigkeit + Schießposition,
-  oder eine einzelne vereinfachte Gesamtpräzisionsangabe (eine Streukreisgröße
-  mit ihrer Konvention: ES-5, ES-10, R50 oder R99).
-- **Bedingungsfehler** — Distanz-, Temperatur-, Druck- und Windschätzfehler;
-  wenn **Bewegliches Ziel** aktiviert ist, zusätzlich die Querbewegung des
-  Ziels und der Fehler bei deren Schätzung.
+- **Eigene Fehler** — Mündungsgeschwindigkeits-Konsistenz (Streuung), sowie entweder detailliert Waffenpräzision + Schützenfertigkeit + Schießposition, oder eine einzelne vereinfachte Gesamtpräzisionsangabe (eine Streukreisgröße mit ihrer Konvention: ES-5, ES-10, R50 oder R99).
+- **Bedingungsfehler** — Distanz-, Temperatur-, Druck- und Windschätzfehler; wenn **Bewegliches Ziel** aktiviert ist, zusätzlich die Querbewegung des Ziels und der Fehler bei deren Schätzung.
 
-**Simulation** legt Distanz, Ziel, Atmosphäre (Temperatur, Druck, Höhe,
-Luftfeuchtigkeit), einen optionalen Gefechtszero (Gewehr auf eine andere
-Distanz als das Ziel eingeschossen) und einen Zielpunkt-Versatz fest.
+**Simulation** legt Distanz, Ziel, Atmosphäre (Temperatur, Druck, Höhe, Luftfeuchtigkeit), einen optionalen Gefechtszero (Gewehr auf eine andere Distanz als das Ziel eingeschossen) und einen Zielpunkt-Versatz fest.
 
 **Szenarien:**
 
-- **Einzelschuss** — ein einzelner Schuss; jede eigene Fehler- und
-  Bedingungsfehlerquelle wirkt sich direkt aus.
-- **Von Beobachter korrigierter Schuss** — ein Einschuss wird abgegeben und
-  sein Treffer von einem Beobachter angesagt, wodurch der systematische
-  Versatz im Erwartungswert aufgehoben wird; der Restfehler des korrigierten
-  Schusses besteht aus seiner eigenen Streuung plus der Ungenauigkeit der
-  Beobachterkorrektur. Bedingungsfehler treten beim korrigierten Schuss nicht
-  erneut auf, da die Ansage des Beobachters ihre Wirkung auf den Einschuss
-  bereits berücksichtigt.
+- **Einzelschuss** — ein einzelner Schuss; jede eigene Fehler- und Bedingungsfehlerquelle wirkt sich direkt aus.
+- **Von Beobachter korrigierter Schuss** — ein Einschuss wird abgegeben und sein Treffer von einem Beobachter angesagt, wodurch der systematische Versatz im Erwartungswert aufgehoben wird; der Restfehler des korrigierten Schusses besteht aus seiner eigenen Streuung plus der Ungenauigkeit der Beobachterkorrektur. Bedingungsfehler treten beim korrigierten Schuss nicht erneut auf, da die Ansage des Beobachters ihre Wirkung auf den Einschuss bereits berücksichtigt.
 
-**Ziele** — eine 40 × 60 cm-Scheibe (eine einzelne Treffer-/Fehlzone) und die
-ISSF-300m-Scheibe (zehn Wertungsringe). Weitere Ziele sind geplant.
+**Ziele** — eine 40 × 60 cm-Scheibe (eine einzelne Treffer-/Fehlzone) und die ISSF-300m-Scheibe (zehn Wertungsringe). Weitere Ziele sind geplant.
 
-**Ergebnisse** zeigen die Gesamttrefferwahrscheinlichkeit, die
-Wahrscheinlichkeit pro Zone, den Score als Prozentsatz des Maximums, eine
-Tabelle mit dem horizontalen/vertikalen/gesamten Beitrag jeder Fehlerquelle
-sowie eine Darstellung des Ziels mit einer Beispiel-Streuwolke, mittlerem
-Treffpunkt und 95-%-Ellipse — als SVG herunterladbar.
+**Ergebnisse** zeigen die Gesamttrefferwahrscheinlichkeit, die Wahrscheinlichkeit pro Zone, den Score als Prozentsatz des Maximums, eine Tabelle mit dem horizontalen/vertikalen/gesamten Beitrag jeder Fehlerquelle sowie eine Darstellung des Ziels mit einer Beispiel-Streuwolke, mittlerem Treffpunkt und 95-%-Ellipse — als SVG herunterladbar.
 
 ## Feldrechner
 
-Eine schnelle Lösung für eine einzelne Distanz: Klickwerte für einen Schuss,
-sofort, groß genug, um sie auf Armlänge oder in praller Sonne abzulesen —
-keine Tabelle, keine Analyse. Das gesamte Gestaltungsziel ist es, im Moment
-des Einstellens nur das zu zeigen, was gerade gebraucht wird: kein
-Kopfbereich, kein Beiwerk über eine kleine Navigation hinaus, keine Zahl, die
-gerade nicht benötigt wird.
+Eine schnelle Lösung für eine einzelne Distanz: Klickwerte für einen Schuss, sofort, groß genug, um sie auf Armlänge oder in praller Sonne abzulesen — keine Tabelle, keine Analyse. Das gesamte Gestaltungsziel ist es, im Moment des Einstellens nur das zu zeigen, was gerade gebraucht wird: kein Kopfbereich, kein Beiwerk über eine kleine Navigation hinaus, keine Zahl, die gerade nicht benötigt wird.
 
-Beim Öffnen ersetzt eine eigene Navigation die normale der App — **Ziel**,
-**Wind**, **Atmosphäre**, **Waffen** (springt zu Eigene/Arsenal; „Fertig"
-bringt Sie hierher zurück) und **Feldrechner verlassen** (führt immer zurück
-zur Startseite). Auf einem Smartphone oder Tablet, das dies unterstützt,
-wird der Bildschirm am Einschlafen gehindert, solange der Feldrechner
-geöffnet ist, damit er nicht mitten in einer Schussserie dunkel wird.
+Beim Öffnen ersetzt eine eigene Navigation die normale der App — **Ziel**, **Wind**, **Atmosphäre**, **Waffen** (springt zu Eigene/Arsenal; „Fertig" bringt Sie hierher zurück) und **Feldrechner verlassen** (führt immer zurück zur Startseite). Auf einem Smartphone oder Tablet, das dies unterstützt, wird der Bildschirm am Einschlafen gehindert, solange der Feldrechner geöffnet ist, damit er nicht mitten in einer Schussserie dunkel wird.
 
-- **Ziel** — Distanz und Ziellinienwinkel, von Hand eingegeben oder aus der
-  Zielliste eines gespeicherten Standorts ausgewählt — siehe **Standorte &
-  Ziele** unten.
-- **Wind** — Geschwindigkeit (großer +/−-Regler) und Richtung (derselbe
-  Regler wie anderswo, hier vergrößert).
-- **Atmosphäre** — Temperatur, Druck, Höhe, Luftfeuchtigkeit und
-  Voreinstellungen — dieselben Felder wie bei Flugbahn, nur ohne Wind, der
-  hier einen eigenen Tab hat.
+- **Ziel** — Distanz und Ziellinienwinkel, von Hand eingegeben (das Kamera-Symbol neben dem Winkel misst ihn — siehe **Kamera-Neigungsmesser** unter Werkzeuge weiter unten) oder aus der Zielliste eines gespeicherten Standorts ausgewählt — siehe **Standorte & Ziele**, ebenfalls unter Werkzeuge.
+- **Wind** — Geschwindigkeit (großer +/−-Regler) und Richtung (derselbe Regler wie anderswo, hier vergrößert).
+- **Atmosphäre** — Temperatur, Druck, Höhe, Luftfeuchtigkeit und Voreinstellungen — dieselben Felder wie bei Flugbahn, nur ohne Wind, der hier einen eigenen Tab hat.
 
-**Die Ausgabe** wird bei jeder Eingabeänderung sofort neu berechnet — ohne
-Berechnen-Schaltfläche. Höhe und Seite werden in ganzen Klicks angezeigt
-(nach den Klickeinstellungen des aktiven Gewehrs aus Waffen), jeweils mit
-vorangestelltem Richtungssymbol: aufwärts/abwärts für die Höhe, links/rechts
-für die Seite. Wählen Sie zwischen einem Pfeilsymbol oder einem
-**+ / −**-Zeichen (Einstellungen → **Anzeigesymbole im Feldrechner**) — **+**
-bedeutet immer nach oben oder nach rechts drehen. Eine kleine Fußzeile zeigt
-zusätzlich Flugzeit, Restgeschwindigkeit und Restenergie. Eine zusammen-
-fassende Bedingungsleiste über der Anzeige zeigt Distanz, Wind und
-Atmosphäre auf einen Blick, sodass Sie immer wissen, wofür eine bestimmte
-Höhen-/Seitenkorrektur eingestellt wurde. Wird ein Feld gerade bearbeitet
-(z. B. kurzzeitig leer), zeigt die Anzeige ein einfaches **—** statt eines
-fehlerhaften Ergebnisses.
+**Die Ausgabe** wird bei jeder Eingabeänderung sofort neu berechnet — ohne Berechnen-Schaltfläche. Höhe und Seite werden in ganzen Klicks angezeigt, nach den Klickeinstellungen des aktiven Gewehrs aus Waffen, oder auf Wunsch in mrad oder MOA (Einstellungen → **Ausgabe im Feldrechner**), jeweils mit vorangestelltem Richtungssymbol: aufwärts/abwärts für die Höhe, links/rechts für die Seite. Wählen Sie zwischen einem Pfeilsymbol oder einem **+ / −**-Zeichen (Einstellungen → **Anzeigesymbole im Feldrechner**) — **+** bedeutet immer nach oben oder nach rechts drehen. Eine kleine Fußzeile zeigt zusätzlich Flugzeit, Restgeschwindigkeit und Restenergie. Eine zusammenfassende Bedingungsleiste über der Anzeige zeigt Distanz, Wind und Atmosphäre auf einen Blick, sodass Sie immer wissen, wofür eine bestimmte Höhen-/Seitenkorrektur eingestellt wurde. Wird ein Feld gerade bearbeitet (z. B. kurzzeitig leer), zeigt die Anzeige ein einfaches **—** statt eines fehlerhaften Ergebnisses.
 
-Verwendet dasselbe aktive Gewehr, dieselbe Patrone und dasselbe Geschoss wie
-Flugbahn und Trefferwahrscheinlichkeit (festgelegt unter **Waffen**) sowie
-denselben Nullpunkt — hier gibt es keine separate Gefechtsnullpunkt-
-Einstellung.
+Verwendet dasselbe aktive Gewehr, dieselbe Patrone und dasselbe Geschoss wie Flugbahn und Trefferwahrscheinlichkeit (festgelegt unter **Waffen**) sowie denselben Nullpunkt — hier gibt es keine separate Gefechtsnullpunkt-Einstellung.
 
 ### Zielfernrohransicht
 
 Hat die aktive Waffe ein Zielfernrohr aus dem Arsenal (Waffen → Arsenal → Waffe → Zielfernrohr), erscheint am rechten Ende der Bedingungszeile eine Absehen-Schaltfläche. Sie zeigt das Absehen der Waffe, wie man es durch dieses Zielfernrohr sieht, über einer kleineren Anzeige. Die Einstellung bleibt gespeichert.
 
 - **Haltepunkt** — der Ring zeigt, wohin das Ziel gehört. **Halten** zeigt die ganze Korrektur als Haltepunkt im Absehen, nichts gedreht; **Höhe drehen** nimmt an, dass die Höhe am Turm eingestellt ist, und zeigt nur den Seitenhalt auf der waagrechten Achse. Bei **Halten** verbinden dünne Linien den Haltepunkt mit beiden Achsen, damit sich der Halt an der Teilung ablesen lässt. Liegt der Halt ausserhalb des Sehfelds, zeigt ein Pfeil am Rand in seine Richtung. Der erste Knopf in der linken unteren Ecke blendet Haltepunkt und Pfeil aus oder ein.
-- **Vergrösserungsring** — die Skala neben dem Absehen stellt die Vergrösserung über den tatsächlichen Zoombereich des Zielfernrohrs ein, mit einem Strich bei jeder ganzen Vergrösserung. Ziehen, tippen oder die Pfeiltasten verwenden (Bild auf / Bild ab für ganze Schritte). Ein Zielfernrohr mit fester Vergrösserung hat keinen Ring.
+- **Vergrösserungsring** — die Skala neben oder unter dem Absehen stellt die Vergrösserung über den tatsächlichen Zoombereich des Zielfernrohrs ein, mit einem Strich bei jeder ganzen Vergrösserung. Einstellungen → **Vergrösserungsring der Zielfernrohransicht** legt fest, wo sie steht: **Automatisch**, die Voreinstellung, setzt sie auf einem Smartphone im Hochformat unter das Absehen, damit es die volle Breite bekommt, und sonst daneben. Ziehen, tippen oder die Pfeiltasten verwenden (Bild auf / Bild ab für ganze Schritte). Ein Zielfernrohr mit fester Vergrösserung hat keinen Ring.
 - **Zweite Bildebene** — die Teilung stimmt nur bei einer Vergrösserung. Diese ist auf dem Ring hervorgehoben, und der Ring rastet innerhalb von 5 % darauf ein. Bei jeder anderen Vergrösserung zeigt ein Hinweis, was die Teilung wert ist, und der Haltepunkt wandert dorthin, wo der Halt bei dieser Vergrösserung im Absehen liegt.
 - **Auf Absehen zoomen** — bei einem Zielfernrohr mit fester Vergrösserung vergrössert eine Lupen-Schaltfläche unten rechts das ganze Bild zusätzlich zur Vergrösserung des Zielfernrohrs. Sie öffnet bei der Vergrösserung, bei der das Absehen das Bild ausfüllt (5× bei einem Absehen nur aus Balken), und − / + daneben stellen 1× bis 10× ein, in ganzen Stufen und über diesen Wert. Die Anzeige darüber zeigt die Vergrösserung des Zielfernrohrs und die zusätzliche, z. B. «4× 3.4×»; die letzte Einstellung bleibt pro Zielfernrohr bis zum Neuladen der Seite erhalten. Teilung und Halte bleiben unverändert; nur das Bild wird grösser.
 - **BDC-Distanzen** — bei einem Absehen mit BDC-Marken beschriftet der zweite Knopf in der linken unteren Ecke jede Marke mit der Distanz, für die sie gilt, berechnet für die aktuellen Bedingungen, den Ziellinienwinkel und den Gegen- oder Rückenwind (und bei einem Zielfernrohr mit zweiter Bildebene für die eingestellte Vergrösserung). Ein Punkt auf der Höhe der Marke zeigt den Haltepunkt, bei eingeschalteter Drallabweichung um diese seitlich verschoben. Bei **Höhe drehen** steht die Mitte für die Distanz des Ziels, dessen Höhe schon am Turm eingestellt ist, und jede Marke darunter für diese Höhe plus ihre eigene. Einstellungen → **BDC-Distanzanzeige** legt fest, wo die Distanzen stehen. **Beschriftung mit Linie**, die Vorgabe, setzt sie in eine Spalte rechts, jede auf Höhe ihrer Marke und mit ihr durch eine dünne Linie verbunden, die den anderen Linien, den Zahlen und den Windhaltepunkten ausweicht: von der Marke aus, wo Platz ist, sonst vom Ende der Reihe ihrer Windhaltepunkte. Zahlen, die sich überdecken würden, rücken in eine zweite Spalte und werden dann kleiner. **Darunter** setzt jede Distanz unter ihre Marke. **Windseitig** setzt sie neben die Marke, auf die Seite, von der der Wind kommt (rechts, wenn kein Seitenwind weht), und lässt dort die Haltepunkte für Wind von der Gegenseite weg. Wo sich Distanzen dann noch drängen würden, fallen einige weg; hineinzoomen zeigt sie. Die Einstellung bleibt gespeichert.
 - **Windhaltepunkte** — der dritte Knopf in der linken unteren Ecke, angeboten, solange der Haltepunkt oder die BDC-Distanzen gezeigt werden, fügt Seitenwind-Haltepunkte nach beiden Seiten hinzu: ein Punkt für jedes Viertel eines Referenzwinds bis zum Anderthalbfachen, der Referenzwind grösser. Mit eingeschalteten BDC-Distanzen liegen sie auf der Höhe jeder Marke neben ihrem Haltepunkt, sonst auf der Höhe des Haltepunkts, um einen Punkt für den Halt ohne Seitenwind. Der Referenzwind beträgt je nach Einheit für die Windgeschwindigkeit 4 m/s, 10 mph, 10 km/h oder 10 ft/s und steht über den Knöpfen, solange die Windhaltepunkte gezeigt werden. Alle drei Knöpfe bleiben gespeichert.
 - **Farbe und Form der Einblendung** — alles, was über das Absehen gelegt wird (Haltepunkt, seine Linien, der Pfeil, die BDC-Distanzen und die Windhaltepunkte), ist zinnoberrot oder blau (Einstellungen → **Farbe der Absehen-Einblendung**). **Automatisch**, die Vorgabe, nimmt Zinnober und bei rot oder bernsteinfarben beleuchtetem Absehen Blau. Einstellungen → **Form der Absehen-Einblendung** zeichnet die Haltepunkte als Punkte oder als senkrechte Striche (der des Referenzwinds länger und dicker), jeden Haltepunkt dann als kleines Kreuz.
 
-### Standorte & Ziele
-
-Optional: Speichern Sie die Ziele eines Schießplatzes einmal — Distanz und
-Ziellinienwinkel, und, falls Sie ein vom Schützenstandpunkt aus
-aufgenommenes Foto hinzufügen, wo sich jedes davon darauf befindet — und
-wählen Sie sie bei späteren Besuchen direkt im Reiter „Ziel" aus, statt
-Distanz und Winkel jedes Mal von Hand einzustellen. Wind und Atmosphäre
-gehören nie zu einem gespeicherten Ziel, nur Distanz, Winkel und (mit Foto)
-Position.
-
-Die eigene Zeile **Standorte & Ziele** im Reiter „Ziel" zeigt den Namen des
-aktuellen Standorts (nichts, falls Sie keinen verwenden), ein Auswahlmenü
-seiner Ziele, und bis zu drei Symbole:
-
-- Ein Fotorahmen-Symbol, **Ziel per Foto auswählen** (nur sichtbar, sobald
-  der aktuelle Standort ein Foto hat) — öffnet dieses Foto im
-  Vollbildmodus; auf die Markierung eines bereits platzierten Ziels tippen,
-  um es sofort auszuwählen, oder auf eine Chip-Markierung (oben links
-  gestapelt) für ein noch nicht platziertes Ziel. Es ändert sich nichts,
-  bis Sie eines antippen.
-- Ein Sync-Symbol, **Dieses Ziel mit der aktuellen Distanz/dem aktuellen
-  Winkel aktualisieren** — erscheint, sobald die gerade eingestellte
-  Distanz/der Winkel nicht mehr mit den gespeicherten Werten des
-  ausgewählten Ziels übereinstimmt (z. B. weil Sie die Distanz nach der
-  Auswahl von Hand nachjustiert haben). Aktualisiert das gespeicherte Ziel
-  auf die aktuell eingestellten Werte.
-- **Standorte verwalten** — öffnet die Bibliothek „Standorte & Ziele"
-  selbst (unten). „Fertig" dort bringt Sie zu diesem Reiter zurück.
-
-Die Auswahl eines Ziels (Menü, Foto oder Chip) kopiert dessen Distanz und
-Winkel als einmalige, freie Bearbeitung in den Reiter „Ziel" — keine
-dauerhafte Verknüpfung: Sie können die eingestellten Werte danach weiter
-von Hand nachjustieren, ohne das gespeicherte Ziel zu verändern (dafür ist
-das Sync-Symbol oben da, falls Sie es synchron halten möchten).
-
-**Standorte verwalten.** Der Bibliotheksbildschirm teilt Ihre Standorte in
-**Aktueller Standort** (der jeweils aktive, oder **Kein Standort —
-einzelnes Ziel, manuelle Eingabe**, falls keiner aktiv ist) und **Bekannte
-Standorte** (alle übrigen) auf. Ein Tippen auf einen bekannten Standort
-aktiviert ihn — verschiebt ihn zum aktuellen Standort und scrollt dorthin
-— ohne diesen Bildschirm zu verlassen. Nur der aktuelle Standort zeigt
-**Bearbeiten** und seine Zielliste; jeder Standort, aktuell oder bekannt,
-zeigt **In Datei sichern** und **Löschen**. **Bibliothek in Datei
-sichern…** / **Sicherung aus Datei laden…** oben sichern bzw. stellen die
-gesamte Bibliothek auf einmal wieder her, genauso wie im Arsenal für
-Gewehre und Geschosse.
-
-Ein Standort hat einen Namen, eine optionale Höhe (falls angegeben, füllt
-die Aktivierung des Standorts den Reiter „Atmosphäre" mit der
-Standardatmosphäre für diese Höhe und 50 % Luftfeuchtigkeit — jedoch nur,
-wenn Sie die Atmosphärenwerte in dieser Sitzung noch nicht selbst geändert
-haben), und ein optionales Foto. Seine Ziele haben jeweils einen Namen
-(optional — Standard „Ziel 1", „Ziel 2" usw.), Notizen, Distanz und
-Ziellinienwinkel.
-
-**Ein Ziel auf dem Foto platzieren.** Sobald ein Standort ein Foto hat,
-erhält jedes seiner Ziele eine Schaltfläche **Platzieren** (in seiner Zeile
-und im eigenen Bearbeitungsformular), die das Foto im Vollbildmodus für
-genau dieses Ziel öffnet: tippen oder ziehen, um die Markierung zu
-positionieren, auf freier Fläche ziehen zum Verschieben, zum Zoomen
-zusammen-/auseinanderziehen (oder die Schaltflächen **Vergrößern** /
-**Verkleinern** der Navigationsleiste). Jedes andere bereits platzierte
-Ziel auf demselben Foto erscheint als kleiner Punkt mit Name, Distanz und
-Winkel, sodass Sie das neue Ziel relativ dazu platzieren können.
-**Markierung entfernen** hebt die Platzierung auf; „Fertig" speichert sie
-und kehrt zur Bibliothek zurück. Ein Ziel, das auf dem (vorhandenen) Foto
-noch nicht platziert wurde, zeigt in seiner Zeile zur Erinnerung ein
-Abzeichen **Nicht platziert**.
-
 ## Waffen
 
-Das Gewehr, die Patrone und das Geschoss, die von jedem Werkzeug verwendet
-werden, das sie benötigt — derzeit **Flugbahn** und
-**Trefferwahrscheinlichkeit**. Überall dort, wo ein Werkzeug diese
-Konfiguration braucht, zeigt es eine kurze Zusammenfassung (Name, Quelle,
-Mündungsgeschwindigkeit) mit einer Schaltfläche **Ändern**, die hierher
-führt; was Sie hier wählen oder bearbeiten, gilt überall und **bleibt über
-einen Neustart hinweg erhalten**.
+Das Gewehr, die Patrone und das Geschoss, die von jedem Werkzeug verwendet werden, das sie benötigt — **Flugbahn**, **Feldrechner**, **Trefferwahrscheinlichkeit** und **Einschieß-Sitzung**. Überall dort, wo ein Werkzeug diese Konfiguration braucht, zeigt es eine kurze Zusammenfassung (Name, Quelle, Mündungsgeschwindigkeit) mit einer Schaltfläche **Ändern**, die hierher führt; was Sie hier wählen oder bearbeiten, gilt überall und **bleibt über einen Neustart hinweg erhalten**.
 
-**Ändern** führt Sie zu dem der beiden untenstehenden Reiter, der zur
-Quelle des aktiven Gewehrs passt — **Arsenal**, wenn es eines Ihrer eigenen
-gespeicherten Gewehre ist, sonst **Eigene**. Auf Mobilgeräten ersetzt das
-Öffnen von Waffen die untere Leiste durch **Eigene** / **Arsenal** /
-**Fertig**; auf dem Desktop wechselt die Seitenleiste auf dieselbe Weise.
-**Fertig** bringt Sie zurück zu dem Werkzeug, von dem aus Sie hierher
-gekommen sind.
+**Ändern** führt Sie zu dem der beiden untenstehenden Reiter, der zur Quelle des aktiven Gewehrs passt — **Arsenal**, wenn es eines Ihrer eigenen gespeicherten Gewehre ist, sonst **Eigene**. Auf Mobilgeräten ersetzt das Öffnen von Waffen die untere Leiste durch **Eigene** / **Arsenal** / **Fertig**; auf dem Desktop wechselt die Seitenleiste auf dieselbe Weise. **Fertig** bringt Sie zurück zu dem Werkzeug, von dem aus Sie hierher gekommen sind.
 
 ### Eigene
 
-Wählen Sie ein integriertes Gewehr, eines Ihrer eigenen Arsenal-Gewehre,
-oder geben Sie ein Gewehr und ein Geschoss vollständig von Hand ein — alle
-drei Optionen befinden sich im selben Formular. Einige Felder verdienen eine
-kurze Erklärung:
+Wählen Sie ein integriertes Gewehr, eines Ihrer eigenen Arsenal-Gewehre, oder geben Sie ein Gewehr und ein Geschoss vollständig von Hand ein — alle drei Optionen befinden sich im selben Formular. Einige Felder verdienen eine kurze Erklärung:
 
-- **Einschussdistanz** — die Distanz, auf die das Gewehr eingeschossen ist.
-  Die Berechnung ermittelt selbst den Abschusswinkel, bei dem das Geschoss
-  auf dieser Distanz die Ziellinie trifft; Sie stellen den Winkel nicht
-  selbst ein.
-- **Mündungsgeschwindigkeit vs. Temperatur** — modelliert optional, wie sich
-  die Mündungsgeschwindigkeit einer Patrone mit der Pulvertemperatur
-  ändert, anstatt einen festen Wert zu verwenden.
-- **Geschosswiderstand** — entweder ein ballistischer Koeffizient (BC) mit
-  einem Standard-Luftwiderstandsmodell (G1, G7 und weitere — siehe
-  **Einstellungen**), oder, bei Bibliotheksgeschossen, die eine solche
-  besitzen, eine direkt gemessene Cd-Mach-Tabelle (genauer,
-  ohne BC).
+- **Einschussdistanz** — die Distanz, auf die das Gewehr eingeschossen ist. Die Berechnung ermittelt selbst den Abschusswinkel, bei dem das Geschoss auf dieser Distanz die Ziellinie trifft; Sie stellen den Winkel nicht selbst ein.
+- **Mündungsgeschwindigkeit vs. Temperatur** — modelliert optional, wie sich die Mündungsgeschwindigkeit einer Patrone mit der Pulvertemperatur ändert, anstatt einen festen Wert zu verwenden.
+- **Geschosswiderstand** — entweder ein ballistischer Koeffizient (BC) mit einem Standard-Luftwiderstandsmodell (G1, G7 und weitere — siehe **Einstellungen**), oder, bei Bibliotheksgeschossen, die eine solche besitzen, eine direkt gemessene Cd-Mach-Tabelle (genauer, ohne BC).
 
-**Gewehr zum Arsenal hinzufügen** / **Geschoss zum Arsenal hinzufügen**,
-neben den jeweiligen Feldern, speichern den aktuellen Eintrag in Ihrer
-eigenen Arsenal-Bibliothek (unten) zur Wiederverwendung.
+**Gewehr zum Arsenal hinzufügen** / **Geschoss zum Arsenal hinzufügen**, neben den jeweiligen Feldern, speichern den aktuellen Eintrag in Ihrer eigenen Arsenal-Bibliothek (unten) zur Wiederverwendung.
 
 ### Arsenal
 
-Siehe das [ausführliche Handbuch](#/manual/arsenal) für die vollständige
-Referenz — jedes Feld, die Einheitenregeln und die Integration mit dem
-Gewehr-Präzisionsrechner.
+Siehe das [ausführliche Handbuch](#/manual/arsenal) für die vollständige Referenz — jedes Feld, die Einheitenregeln und die Integration mit dem Gewehr-Präzisionsrechner.
 
-Ihre eigene Bibliothek aus Gewehren und Geschossen, nur auf diesem Gerät
-gespeichert (lokaler Speicher des Browsers) — nichts davon verlässt jemals
-Ihren Browser.
+Ihre eigene Bibliothek aus Gewehren, Geschossen, Zielfernrohren und Absehen, nur auf diesem Gerät gespeichert (Speicher des Browsers) — nichts davon verlässt jemals Ihren Browser. Sie ist in drei Reiter aufgeteilt: **Gewehre** (mit dem Vergleich und dem aktiven Gewehr), **Geschosse** und **Zielfernrohre**, der Ihre Zielfernrohre und die im **Absehen-Designer** gezeichneten Absehen enthält (siehe **Werkzeuge** weiter unten). Ein Gewehr kann ein Zielfernrohr und eines von dessen Absehen nennen: Die Wahl des Zielfernrohrs übernimmt dessen Klickwerte in das Gewehr und gibt dem Feldrechner seine **Zielfernrohransicht**.
 
-**Integrierte Bibliotheken.** Die App wird mit einer integrierten
-Gewehrbibliothek und vier integrierten Geschossbibliotheken ausgeliefert —
-**Geladen's own** („Die Sammlung des Autors"), **Lapua Cd** (Radar-gemessene
-Cd-Mach-Kurven, wie vom Hersteller veröffentlicht), **Hornady Reverse
-Radar** (eigene Cd-Mach-Kurven, zurückentwickelt aus der Ausgabe des
-Hornady-4DOF-Rechners) und **Swiss P** (Cd-Mach-Kurven und optimale
-supersonische G7-BCs, zurückentwickelt aus Swiss Ps eigenen veröffentlichten
-Flugbahntabellen) — die alle neben allem angezeigt werden, was Sie
-selbst hinzufügen (Ihre eigenen Einträge sind mit einem vorangestellten „*"
-gekennzeichnet). Jede davon lässt sich **einzeln in Einstellungen
-abschalten**, falls Sie nicht möchten, dass sie Ihre Auswahllisten
-überladen. Ihre eigenen gespeicherten Einträge sind davon in keinem Fall
-betroffen.
+**Integrierte Bibliotheken.** Die App wird mit einer integrierten Gewehrbibliothek und acht integrierten Geschossbibliotheken ausgeliefert — **Geladen's own** („Die Sammlung des Autors"), **Lapua Cd** (Radar-gemessene Cd-Mach-Kurven, wie vom Hersteller veröffentlicht), **Hornady Reverse Radar** (eigene Cd-Mach-Kurven, zurückentwickelt aus der Ausgabe des Hornady-4DOF-Rechners), drei weitere, auf dieselbe Weise zurückentwickelt, für Geschosse von **Berger**, **Sierra** und **Lapua**, **Berger published BC** (BCs, wie auf Bergers eigener Website veröffentlicht) und **Swiss P** (Cd-Mach-Kurven und optimale supersonische G7-BCs, zurückentwickelt aus Swiss Ps eigenen veröffentlichten Flugbahntabellen) — die alle neben allem angezeigt werden, was Sie selbst hinzufügen (Ihre eigenen Einträge sind mit einem vorangestellten „*" gekennzeichnet). Jede davon lässt sich **einzeln in Einstellungen abschalten**, falls Sie nicht möchten, dass sie Ihre Auswahllisten überladen. Ihre eigenen gespeicherten Einträge sind davon in keinem Fall betroffen. Der Reiter Zielfernrohre zeigt neben Ihren eigenen auch integrierte Zielfernrohre und Absehen — generische und Modelle von Schmidt & Bender, Horus, FinnAccuracy, Element Optics und Trijicon; diese werden immer angezeigt.
 
-**Einträge hinzufügen und verwalten.** Fügen Sie ein Geschoss entweder
-komplett von Hand hinzu (Name, Kaliber, Masse, BC/Luftwiderstandsmodell oder
-eine eingefügte Cd-Mach-Tabelle) oder indem Sie ein integriertes Geschoss
-kopieren und anpassen. Fügen Sie ein Gewehr mit eigener Visierhöhe,
-Einschussdistanz und Klickwerten hinzu und hängen Sie ihm dann eine oder
-mehrere Patronen an (jede mit eigenem Geschoss und eigener
-Mündungsgeschwindigkeit). Klicken Sie ein Gewehr an, um es oben als
-„Aktives Gewehr" anzuzeigen, mit seinen eigenen Patronen und einer
-Bearbeiten-Schaltfläche; die dort gewählte Patrone ist es, die „Fertig"
-als aktive Konfiguration überall übernimmt, sobald Sie Waffen verlassen.
-Das Herstellerfeld schlägt automatisch Namen aus allen aktivierten
-Bibliotheken sowie Ihrem eigenen Arsenal vor.
+**Einträge hinzufügen und verwalten.** Fügen Sie ein Geschoss entweder komplett von Hand hinzu (Name, Kaliber, Masse, BC/Luftwiderstandsmodell oder eine eingefügte Cd-Mach-Tabelle) oder indem Sie ein integriertes Geschoss kopieren und anpassen. Fügen Sie ein Gewehr mit eigener Visierhöhe, Einschussdistanz und Klickwerten hinzu und hängen Sie ihm dann eine oder mehrere Patronen an (jede mit eigenem Geschoss und eigener Mündungsgeschwindigkeit). Klicken Sie ein Gewehr an, um es oben als „Aktives Gewehr" anzuzeigen, mit seinen eigenen Patronen und einer Bearbeiten-Schaltfläche; die dort gewählte Patrone ist es, die „Fertig" als aktive Konfiguration überall übernimmt, sobald Sie Waffen verlassen. Das Herstellerfeld schlägt automatisch Namen aus allen aktivierten Bibliotheken sowie Ihrem eigenen Arsenal vor.
 
-Kaliber- und Herstellerfilter verkürzen lange Listen. Ein Geschoss oder
-Gewehr, das bearbeitet, aber noch nicht exportiert wurde, zeigt das
-Abzeichen „Ungespeichert".
+Kaliber- und Herstellerfilter verkürzen lange Listen. Ein Geschoss oder Gewehr, das bearbeitet, aber noch nicht exportiert wurde, zeigt das Abzeichen „Ungespeichert".
 
-**Bibliothek speichern und laden.** Da nichts auf einem Server liegt, ist
-Ihre Bibliothek nur so sicher wie der lokale Speicher Ihres Browsers. **In
-Datei speichern** (pro Gewehr/Geschoss, oder „Bibliothek speichern…" für
-einen Export mit Mehrfachauswahl) schreibt eine JSON-Datei, die Sie sichern
-oder auf ein anderes Gerät übertragen können; **Bibliothek laden…**
-importiert eine solche Datei zurück, mit einer Wahlmöglichkeit pro Element,
-wie Namenskonflikte gelöst werden (überschreiben, nur überschreiben wenn
-neuer, oder beide behalten).
+**Bibliothek speichern und laden.** Da nichts auf einem Server liegt, ist Ihre Bibliothek nur so sicher wie der lokale Speicher Ihres Browsers. **In Datei speichern** (pro Gewehr/Geschoss, oder „Bibliothek speichern…" für einen Export mit Mehrfachauswahl) schreibt eine JSON-Datei, die Sie sichern oder auf ein anderes Gerät übertragen können; **Bibliothek laden…** importiert eine solche Datei zurück, mit einer Wahlmöglichkeit pro Element, wie Namenskonflikte gelöst werden (überschreiben, nur überschreiben wenn neuer, oder beide behalten).
 
-**Vergleich.** Markieren Sie bis zu zwei Ihrer eigenen gespeicherten
-Gewehr+Patrone-Konfigurationen „zum Vergleich" (aus der jeweiligen
-Gewehrzeile). Sobald zwei markiert sind, erscheint ein Vergleichsabschnitt
-mit einem gemeinsamen Diagramm, das die Flugbahnen beider Konfigurationen
-für dieselbe Spalte und dasselbe Distanzfenster darstellt — nützlich, um
-zwei Ladungen oder zwei Gewehre direkt gegeneinander zu beurteilen. Wie das
-Flugbahn-Diagramm hat es sein eigenes Zoom/Verschieben und kann als **SVG
-heruntergeladen** werden.
+**Vergleich.** Markieren Sie bis zu zwei Ihrer eigenen gespeicherten Gewehr+Patrone-Konfigurationen „zum Vergleich" (aus der jeweiligen Gewehrzeile). Sobald zwei markiert sind, erscheint ein Vergleichsabschnitt mit einem gemeinsamen Diagramm, das die Flugbahnen beider Konfigurationen für dieselbe Spalte und dasselbe Distanzfenster darstellt — nützlich, um zwei Ladungen oder zwei Gewehre direkt gegeneinander zu beurteilen. Wie das Flugbahn-Diagramm hat es sein eigenes Zoom/Verschieben und kann als **SVG heruntergeladen** werden.
 
 ## BC-Werkzeuge
 
-Ermittelt einen ballistischen Koeffizienten aus bekannten Daten, oder
-rechnet einen BC zwischen verschiedenen Modellen um — zusammengefasst in
-einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung**,
-**Mehrere BC** und **Labrabaco NG**, alle bereits voll nutzbar.
+Ermittelt einen ballistischen Koeffizienten aus bekannten Daten, oder rechnet einen BC zwischen verschiedenen Modellen um — zusammengefasst in einem Werkzeug mit den Reitern **BC-Berechnung**, **BC-Umrechnung**, **Mehrere BC** und **Labrabaco NG**, alle bereits voll nutzbar.
 
-Die **BC-Berechnung** ermittelt einen ballistischen Koeffizienten aus einem
-nahen Geschwindigkeits-/Distanzpaar und entweder einer fernen Geschwindigkeit
-oder einer gemessenen Flugzeit zwischen den beiden Distanzen, sowie einem
-Luftwiderstandsmodell (G1/G7) und der Atmosphäre. Wechseln Sie zwischen den
-Eingabemodi **Geschwindigkeit** und **Flugzeit**, je nachdem, was Sie
-gemessen haben (z. B. zwei Chronografmessungen, oder eine einzelne
-Flugzeitmessung über eine bekannte Distanz) — alles andere (nahe
-Geschwindigkeit, beide Distanzen, Luftwiderstandsmodell, Atmosphäre) bleibt
-in beiden Fällen gleich. Nützlich, wenn Sie den tatsächlichen
-Geschwindigkeitsverlust oder die tatsächliche Flugzeit über eine bekannte
-Distanz gemessen haben und den BC ermitteln möchten, der dies erklärt,
-anstatt sich auf einen veröffentlichten Wert zu verlassen.
+Die **BC-Berechnung** ermittelt einen ballistischen Koeffizienten aus einem nahen Geschwindigkeits-/Distanzpaar und entweder einer fernen Geschwindigkeit oder einer gemessenen Flugzeit zwischen den beiden Distanzen, sowie einem Luftwiderstandsmodell (G1/G7) und der Atmosphäre. Wechseln Sie zwischen den Eingabemodi **Geschwindigkeit** und **Flugzeit**, je nachdem, was Sie gemessen haben (z. B. zwei Chronografmessungen, oder eine einzelne Flugzeitmessung über eine bekannte Distanz) — alles andere (nahe Geschwindigkeit, beide Distanzen, Luftwiderstandsmodell, Atmosphäre) bleibt in beiden Fällen gleich. Nützlich, wenn Sie den tatsächlichen Geschwindigkeitsverlust oder die tatsächliche Flugzeit über eine bekannte Distanz gemessen haben und den BC ermitteln möchten, der dies erklärt, anstatt sich auf einen veröffentlichten Wert zu verlassen.
 
-**BC-Umrechnung** rechnet einen ballistischen Koeffizienten von einem
-Standard-Luftwiderstandsmodell in ein anderes um, bei einer einzelnen
-Referenzgeschwindigkeit — geben Sie das Ausgangsmodell und den BC ein, eine
-für den Sie interessierenden Distanzbereich repräsentative Geschwindigkeit,
-sowie das Zielmodell; das Ergebnis aktualisiert sich automatisch bei jeder
-Änderung, ohne dass Sie eine Schaltfläche drücken müssen. Die Umrechnung
-ist bei dieser einen Geschwindigkeit exakt und weicht umso mehr ab, je
-weiter die tatsächliche Geschwindigkeit Ihres Geschosses davon entfernt
-ist, da unterschiedliche Luftwiderstandsmodelle über den Geschwindigkeitsbereich
-unterschiedlich geformte Kurven haben. Beide Modell-Auswahllisten zeigen
-immer alle Standardmodelle, unabhängig davon, welche in den Einstellungen
-andernorts ein- oder ausgeblendet sind.
+**BC-Umrechnung** rechnet einen ballistischen Koeffizienten von einem Standard-Luftwiderstandsmodell in ein anderes um, bei einer einzelnen Referenzgeschwindigkeit — geben Sie das Ausgangsmodell und den BC ein, eine für den Sie interessierenden Distanzbereich repräsentative Geschwindigkeit, sowie das Zielmodell; das Ergebnis aktualisiert sich automatisch bei jeder Änderung, ohne dass Sie eine Schaltfläche drücken müssen. Die Umrechnung ist bei dieser einen Geschwindigkeit exakt und weicht umso mehr ab, je weiter die tatsächliche Geschwindigkeit Ihres Geschosses davon entfernt ist, da unterschiedliche Luftwiderstandsmodelle über den Geschwindigkeitsbereich unterschiedlich geformte Kurven haben. Beide Modell-Auswahllisten zeigen immer alle Standardmodelle, unabhängig davon, welche in den Einstellungen andernorts ein- oder ausgeblendet sind.
 
-**Mehrere BC** wandelt 2–5 vom Hersteller veröffentlichte BC-Werte, jeweils
-gültig für einen bestimmten Geschwindigkeitsbereich, in eine
-geschossspezifische Cd-Mach-Kurve um — ziehen Sie die Segmentgrenzen direkt
-im Diagramm, oder tragen Sie sie in die Tabelle darunter ein. Geben Sie
-Masse und Kaliber ein (beide beeinflussen direkt die resultierende Kurve
-und die optimalen BC-Werte darunter — bitte genau eingeben), wählen Sie ein
-Luftwiderstandsmodell und eine Geschwindigkeitseinheit; Kurve und
-Ergebnistabelle aktualisieren sich dabei live. Das Ergebnis lässt sich
-direkt ins Arsenal speichern, als CSV herunterladen/kopieren, oder als ein
-einzelner „optimaler Kompromiss"-BC pro Modell über den eigenen
-Überschallbereich des Geschosses ablesen.
+**Mehrere BC** wandelt 2–5 vom Hersteller veröffentlichte BC-Werte, jeweils gültig für einen bestimmten Geschwindigkeitsbereich, in eine geschossspezifische Cd-Mach-Kurve um — ziehen Sie die Segmentgrenzen direkt im Diagramm, oder tragen Sie sie in die Tabelle darunter ein. Geben Sie Masse und Kaliber ein (beide beeinflussen direkt die resultierende Kurve und die optimalen BC-Werte darunter — bitte genau eingeben), wählen Sie ein Luftwiderstandsmodell und eine Geschwindigkeitseinheit; Kurve und Ergebnistabelle aktualisieren sich dabei live. Das Ergebnis lässt sich direkt ins Arsenal speichern, als CSV herunterladen/kopieren, oder als ein einzelner „optimaler Kompromiss"-BC pro Modell über den eigenen Überschallbereich des Geschosses ablesen.
 
-**Labrabaco NG** ermittelt pro Schuss einen BC aus einem
-Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das
-Gerät pro Schuss auf seiner SD-Karte ablegt und die die Geschwindigkeit
-etwa jede Millisekunde während des Flugs aufzeichnen. Siehe das
-[ausführliche Handbuch](#/manual/bc-labradar) für die vollständige
-Methode, Sonderfälle und die Statistik hinter den Zahlen. Wählen Sie ein
-Luftwiderstandsmodell und die Atmosphäre (hier keine Voreinstellungen —
-Stationsdruck/Temperatur/Feuchtigkeit werden direkt eingegeben), dann
-wählen Sie das Zip; jeder Track wird automatisch geparst, von
-rauschenden/fehlerhaften Punkten bereinigt und für einen BC angepasst.
-Dateien im Zip, die keine echten Tracks sind (der Bericht oder die
-Projektdatei des Geräts, oder sonstige Fremddateien), werden ignoriert.
-Zwei einstellbare Filter sortieren unzuverlässige Tracks aus, bevor sie
-gemittelt werden: eine **Signalqualitätsschwelle** (wie gut die
-bereinigten Punkte eines Tracks auf eine Gerade passen) und ein
-**Ausreißer-Filter** (wie weit der eigene BC eines Tracks von den anderen
-abweicht) — nützlich, um z. B. einen von einer Nachbarbahn aufgezeichneten
-Track oder einen mit schlechtem Radar-Empfang auszuschließen. Klicken Sie
-auf die Zeile eines Tracks, um dessen eigenes Geschwindigkeit-Zeit-Diagramm
-zu sehen, mit behaltenen und verworfenen Punkten getrennt dargestellt, und
-deaktivieren Sie die Checkbox eines Tracks, um ihn manuell aus dem
-gemittelten Ergebnis auszuschließen (oder aktivieren Sie einen von den
-automatischen Filtern abgelehnten Track wieder). Die dahinterliegende
-Punktbereinigung und BC-Anpassung wurden an einem Korpus von **1.297 echten
-Labradar-Tracks** kalibriert — das Rauschen, das dabei korrigiert wird,
-wurde also gemessen und nicht angenommen.
+**Labrabaco NG** ermittelt pro Schuss einen BC aus einem Labradar-Chronographen-Export — einem **.zip** mit Track-Dateien, die das Gerät pro Schuss auf seiner SD-Karte ablegt und die die Geschwindigkeit etwa jede Millisekunde während des Flugs aufzeichnen. Siehe das [ausführliche Handbuch](#/manual/bc-labradar) für die vollständige Methode, Sonderfälle und die Statistik hinter den Zahlen. Wählen Sie ein Luftwiderstandsmodell und die Atmosphäre (hier keine Voreinstellungen — Stationsdruck/Temperatur/Feuchtigkeit werden direkt eingegeben), dann wählen Sie das Zip; jeder Track wird automatisch geparst, von rauschenden/fehlerhaften Punkten bereinigt und für einen BC angepasst. Dateien im Zip, die keine echten Tracks sind (der Bericht oder die Projektdatei des Geräts, oder sonstige Fremddateien), werden ignoriert. Zwei einstellbare Filter sortieren unzuverlässige Tracks aus, bevor sie gemittelt werden: eine **Signalqualitätsschwelle** (wie gut die bereinigten Punkte eines Tracks auf eine Gerade passen) und ein **Ausreißer-Filter** (wie weit der eigene BC eines Tracks von den anderen abweicht) — nützlich, um z. B. einen von einer Nachbarbahn aufgezeichneten Track oder einen mit schlechtem Radar-Empfang auszuschließen. Klicken Sie auf die Zeile eines Tracks, um dessen eigenes Geschwindigkeit-Zeit-Diagramm zu sehen, mit behaltenen und verworfenen Punkten getrennt dargestellt, und deaktivieren Sie die Checkbox eines Tracks, um ihn manuell aus dem gemittelten Ergebnis auszuschließen (oder aktivieren Sie einen von den automatischen Filtern abgelehnten Track wieder). Die dahinterliegende Punktbereinigung und BC-Anpassung wurden an einem Korpus von **1.297 echten Labradar-Tracks** kalibriert — das Rauschen, das dabei korrigiert wird, wurde also gemessen und nicht angenommen.
 
-**Merken Sie sich:** Müll rein = Müll raus. Die Atmosphäre ist *sehr*
-wichtig. Wenn Sie die Luftfeuchtigkeit nicht kennen, setzen Sie 50 %. Ein
-Kestrel reicht aus (auch wenn ich mir ein präziseres Thermometer wünschen
-würde). „Über das Internet von der angeblich ‚nächstgelegenen
-Wetterstation' bezogene Daten" reichen nicht aus. Achten Sie *unbedingt*
-darauf, den absoluten Druck (auch Stationsdruck genannt) zu verwenden, und
-nicht einen höhenbereinigten Wert (Kestrel verwendet irreführenderweise
-den Begriff „barometric pressure" für den auf Meereshöhe umgerechneten
-Druck — das ist *nicht* der Wert, den wir wollen). Wenn Sie auf 500 m Höhe
-oder darüber 1000+ hPa messen (29,5 inHg bzw. 1500 ft für unsere metrisch
-unkundigen Freunde), bedeutet das in der Regel entweder, dass Sie den
-falschen Druckwert ablesen (umgerechnet statt absolut/Station), oder dass
-das Ende der Welt näher ist als gedacht.
+**Merken Sie sich:** Müll rein = Müll raus. Die Atmosphäre ist *sehr* wichtig. Wenn Sie die Luftfeuchtigkeit nicht kennen, setzen Sie 50 %. Ein Kestrel reicht aus (auch wenn ich mir ein präziseres Thermometer wünschen würde). „Über das Internet von der angeblich ‚nächstgelegenen Wetterstation' bezogene Daten" reichen nicht aus. Achten Sie *unbedingt* darauf, den absoluten Druck (auch Stationsdruck genannt) zu verwenden, und nicht einen höhenbereinigten Wert (Kestrel verwendet irreführenderweise den Begriff „barometric pressure" für den auf Meereshöhe umgerechneten Druck — das ist *nicht* der Wert, den wir wollen). Wenn Sie auf 500 m Höhe oder darüber 1000+ hPa messen (29,5 inHg bzw. 1500 ft für unsere metrisch unkundigen Freunde), bedeutet das in der Regel entweder, dass Sie den falschen Druckwert ablesen (umgerechnet statt absolut/Station), oder dass das Ende der Welt näher ist als gedacht.
 
-**Merken Sie sich Nr. 2:** Labradar hat eine Einstellung namens „proj.
-offset"; diese legt den erwarteten Abstand von der Mündung zur Seite des
-Radars fest. Halten Sie sich daran (innerhalb von -5 cm) — das ist
-wichtig! Der Offset bezieht sich auf den Abstand vom Lauf, *nicht* auf den
-Abstand von der Mündung; denken Sie daran, wenn Ihre Mündung nicht auf
-gleicher Höhe mit dem Radar ist, sondern etwas davor oder dahinter.
+**Merken Sie sich Nr. 2:** Labradar hat eine Einstellung namens „proj. offset"; diese legt den erwarteten Abstand von der Mündung zur Seite des Radars fest. Halten Sie sich daran (innerhalb von -5 cm) — das ist wichtig! Der Offset bezieht sich auf den Abstand vom Lauf, *nicht* auf den Abstand von der Mündung; denken Sie daran, wenn Ihre Mündung nicht auf gleicher Höhe mit dem Radar ist, sondern etwas davor oder dahinter.
 
-**Merken Sie sich Nr. 3:** ein Schuss ist Schrott. Sie brauchen mindestens
-20 (bei brauchbarer Fabrikmunition), um die Fehler auszugleichen.
-Minderwertige Überschussgeschosse brauchen mehr Schüsse (rechnen Sie mit
-mindestens 30), während bei hochwertigen Geschossen 10 Schüsse reichen
-können. Generell gilt: mehr ist besser.
+**Merken Sie sich Nr. 3:** ein Schuss ist Schrott. Sie brauchen mindestens 20 (bei brauchbarer Fabrikmunition), um die Fehler auszugleichen. Minderwertige Überschussgeschosse brauchen mehr Schüsse (rechnen Sie mit mindestens 30), während bei hochwertigen Geschossen 10 Schüsse reichen können. Generell gilt: mehr ist besser.
 
 ## Cd-Mach-Kurve
 
-Ermittelt die eigene Widerstandskurve eines Geschosses (Cd über Mach) aus
-einer gemessenen Distanz-/Geschwindigkeitstabelle — z. B. Doppler-Radar-
-oder Mehrfach-Chronografmessungen —, indem der Luftwiderstandsbeiwert
-abschnittsweise ermittelt wird, statt eine Standardform (G1/G7)
-anzunehmen. Funktioniert am besten mit einer dünn besetzten Tabelle
-(Chronografmessungen alle ~100 m); dicht besetzte Tabellen (10–20 m
-Schrittweite) funktionieren ebenfalls, aber der Rundungsfehler jeder
-einzelnen Zeile wirkt sich dann stärker auf das Ergebnis genau dieses
-Abschnitts aus.
+Ermittelt die eigene Widerstandskurve eines Geschosses (Cd über Mach) aus einer gemessenen Distanz-/Geschwindigkeitstabelle — z. B. Doppler-Radar- oder Mehrfach-Chronografmessungen —, indem der Luftwiderstandsbeiwert abschnittsweise ermittelt wird, statt eine Standardform (G1/G7) anzunehmen. Funktioniert am besten mit einer dünn besetzten Tabelle (Chronografmessungen alle ~100 m); dicht besetzte Tabellen (10–20 m Schrittweite) funktionieren ebenfalls, aber der Rundungsfehler jeder einzelnen Zeile wirkt sich dann stärker auf das Ergebnis genau dieses Abschnitts aus.
 
-**Distanz-/Geschwindigkeitstabelle** — fügen Sie ein Distanz-/
-Geschwindigkeitspaar pro Zeile ein (getrennt durch Tabulator, Leerzeichen
-oder Semikolon; Dezimalpunkt oder -komma sind beide zulässig), mindestens
-3 Zeilen. **Tabelleneinheiten** legt fest, ob die eingefügten Zahlen
-**Modern (m, m/s)** oder **Archaisch (yd, fps)** sind — unabhängig von
-Ihrer eigenen Einheiteneinstellung, da die Einheiten der Quelldaten nicht
-mit denen übereinstimmen müssen, die Sie sonst in der App bevorzugen.
+**Distanz-/Geschwindigkeitstabelle** — fügen Sie ein Distanz-/ Geschwindigkeitspaar pro Zeile ein (getrennt durch Tabulator, Leerzeichen oder Semikolon; Dezimalpunkt oder -komma sind beide zulässig), mindestens 3 Zeilen. **Tabelleneinheiten** legt fest, ob die eingefügten Zahlen **Modern (m, m/s)** oder **Archaisch (yd, fps)** sind — unabhängig von Ihrer eigenen Einheiteneinstellung, da die Einheiten der Quelldaten nicht mit denen übereinstimmen müssen, die Sie sonst in der App bevorzugen.
 
-Unterhalb der Tabelle: dieselben Masse- und Kaliberfelder wie im Arsenal,
-sowie ein eigenständiger Abschnitt **Atmosphäre** (Standard: Standard-
-atmosphäre auf Meereshöhe) — der Löser braucht beides, um für jeden
-Abschnitt eine synthetische Flugbahn zu berechnen und so den Cd-Wert zu
-ermitteln, der den gemessenen Geschwindigkeitsverlust reproduziert.
+Unterhalb der Tabelle: dieselben Masse- und Kaliberfelder wie im Arsenal, sowie ein eigenständiger Abschnitt **Atmosphäre** (Standard: Standardatmosphäre auf Meereshöhe) — der Löser braucht beides, um für jeden Abschnitt eine synthetische Flugbahn zu berechnen und so den Cd-Wert zu ermitteln, der den gemessenen Geschwindigkeitsverlust reproduziert.
 
 **Berechnen** erzeugt zwei Tabellen:
 
-- **Interpoliert** — die ermittelte Kurve, zurückgelesen an einem festen,
-  dichten Satz von Referenz-Mach-Zahlen; dies ist die Tabelle für die
-  Weiterverwendung (z. B. Speichern ins Arsenal).
-- **Berechnet (roh, pro Abschnitt)** — die zugrundeliegenden Werte pro
-  Abschnitt vor der Interpolation, standardmäßig ausgeblendet (**Tabelle
-  pro Abschnitt (berechnet) anzeigen**).
+- **Interpoliert** — die ermittelte Kurve, zurückgelesen an einem festen, dichten Satz von Referenz-Mach-Zahlen; dies ist die Tabelle für die Weiterverwendung (z. B. Speichern ins Arsenal).
+- **Berechnet (roh, pro Abschnitt)** — die zugrundeliegenden Werte pro Abschnitt vor der Interpolation, standardmäßig ausgeblendet (**Tabelle pro Abschnitt (berechnet) anzeigen**).
 
-Beide Tabellen können **als CSV heruntergeladen** oder **als CSV kopiert**
-werden (das Feld-/Dezimaltrennzeichen aus Einstellungen → CSV-Export gilt
-auch hier). Ein Abschnitt, den der Löser nicht verwerten konnte — die
-Geschwindigkeit nahm nicht ab, die Distanz nahm nicht zu, oder die Lösung
-konvergierte nicht — wird übersprungen und aufgelistet, ohne den Rest der
-Tabelle zu beeinträchtigen.
+Beide Tabellen können **als CSV heruntergeladen** oder **als CSV kopiert** werden (das Feld-/Dezimaltrennzeichen aus Einstellungen → CSV-Export gilt auch hier). Ein Abschnitt, den der Löser nicht verwerten konnte — die Geschwindigkeit nahm nicht ab, die Distanz nahm nicht zu, oder die Lösung konvergierte nicht — wird übersprungen und aufgelistet, ohne den Rest der Tabelle zu beeinträchtigen.
 
-**Das Diagramm** zeigt die berechneten Punkte und die interpolierte Kurve,
-zusammen mit den Referenzkurven G1 und G7, skaliert auf Übereinstimmung
-mit der eigenen Kurve bei Mach 2.0 — ein schneller visueller Eindruck,
-wie standardmäßig (oder nicht) die Widerstandsform dieses Geschosses ist.
-Herunterladbar als SVG, ebenso wie das Diagramm der Flugbahn.
+**Das Diagramm** zeigt die berechneten Punkte und die interpolierte Kurve, zusammen mit den Referenzkurven G1 und G7, skaliert auf Übereinstimmung mit der eigenen Kurve bei Mach 2.0 — ein schneller visueller Eindruck, wie standardmäßig (oder nicht) die Widerstandsform dieses Geschosses ist. Herunterladbar als SVG, ebenso wie das Diagramm der Flugbahn.
 
-**Ins Arsenal speichern** führt zum Formular „Geschoss hinzufügen" im
-Arsenal, mit vorausgefüllter Masse, Kaliber und Cd-Mach-Tabelle — wählen
-Sie **Berechnet (roh, pro Abschnitt)** oder **Interpoliert (geglättet)**
-als Quelle neben der Schaltfläche. Erst aktiviert, sobald ein Ergebnis
-vorliegt.
+**Ins Arsenal speichern** führt zum Formular „Geschoss hinzufügen" im Arsenal, mit vorausgefüllter Masse, Kaliber und Cd-Mach-Tabelle — wählen Sie **Berechnet (roh, pro Abschnitt)** oder **Interpoliert (geglättet)** als Quelle neben der Schaltfläche. Erst aktiviert, sobald ein Ergebnis vorliegt.
 
 ## Gewehr-Präzisionsrechner
 
-Siehe das [ausführliche Handbuch](#/manual/rifle-precision) für
-die vollständige Methode, Sonderfälle und die Statistik hinter den Zahlen.
+Siehe das [ausführliche Handbuch](#/manual/rifle-precision) für die vollständige Methode, Sonderfälle und die Statistik hinter den Zahlen.
 
-Misst die tatsächliche Präzision eines Gewehrs anhand von Fotos beschossener
-Papierscheiben — kein Laser-Entfernungsmesser, keine besondere Ausrüstung
-nötig, nur ein Handyfoto von einem Lineal und Ihren Einschusslöchern. Die
-Arbeit gliedert sich in **Projekte** (eine Kombination aus Gewehr, Ladung
-und Distanz) → **Zielscheiben** (je ein Foto) → **Gruppen** (ein Zielpunkt
-und die darauf abgegebenen Schüsse) — und bündelt jede auswertbare Gruppe
-auf jeder auswertbaren Zielscheibe eines Projekts zu einem einzigen,
-kombinierten Präzisionsbericht.
+Misst die tatsächliche Präzision eines Gewehrs anhand von Fotos beschossener Papierscheiben — kein Laser-Entfernungsmesser, keine besondere Ausrüstung nötig, nur ein Handyfoto von einem Lineal und Ihren Einschusslöchern. Die Arbeit gliedert sich in **Projekte** (eine Kombination aus Gewehr, Ladung und Distanz) → **Zielscheiben** (je ein Foto) → **Gruppen** (ein Zielpunkt und die darauf abgegebenen Schüsse) — und bündelt jede auswertbare Gruppe auf jeder auswertbaren Zielscheibe eines Projekts zu einem einzigen, kombinierten Präzisionsbericht.
 
-**Projekte.** Ein Projekt hat einen Namen, die Distanz zum Ziel und das
-Kaliber — für jede Zielscheibe und jede Gruppe darin wird angenommen, dass
-auf dieselbe Distanz mit demselben Kaliber geschossen wurde. **In Datei
-sichern** / **Bibliothek in Datei sichern…** / **Sicherung aus Datei
-laden…**, oben sowie pro Projekt, sichern bzw. stellen Projekte genauso
-wieder her, wie das Arsenal es für Gewehre und Geschosse tut — nichts davon
-verlässt jemals Ihren Browser.
+**Projekte.** Ein Projekt hat einen Namen, die Distanz zum Ziel und das Kaliber — für jede Zielscheibe und jede Gruppe darin wird angenommen, dass auf dieselbe Distanz mit demselben Kaliber geschossen wurde. **In Datei sichern** / **Bibliothek in Datei sichern…** / **Sicherung aus Datei laden…**, oben sowie pro Projekt, sichern bzw. stellen Projekte genauso wieder her, wie das Arsenal es für Gewehre und Geschosse tut — nichts davon verlässt jemals Ihren Browser.
 
-**Eine Zielscheibe hinzufügen.** Wählen Sie ein Foto der beschossenen
-Scheibe (bei Bedarf drehen, dann bestätigen) — das führt direkt in die
-Markierung:
+**Eine Zielscheibe hinzufügen.** Wählen Sie ein Foto der beschossenen Scheibe (bei Bedarf drehen, dann bestätigen) — das führt direkt in die Markierung:
 
-- **Maßstab kalibrieren** — tippen Sie auf zwei Punkte mit bekanntem
-  Abstand (ein auf die Zielscheibe gelegtes Lineal, oder ein beliebiges
-  Merkmal bekannter Länge), und geben Sie anschließend diese reale Länge
-  ein. **Kalibrierung abschließen** fährt fort; **Neu kalibrieren** ruft die
-  Kalibrierung später erneut auf, ohne die vorhandenen Punkte zu verlieren.
-- **Zielpunkt festlegen** — tippen Sie dorthin, wohin bei dieser Gruppe
-  gezielt wurde.
-- **Treffer markieren** — tippen Sie auf jedes Einschussloch; weitertippen
-  fügt weitere hinzu. Jeder gesetzte Punkt (Kalibrierung, Zielpunkt,
-  Treffer) lässt sich nachträglich per Ziehen verschieben. **Treffer
-  löschen** wechselt in einen Modus, in dem das Antippen der eigenen Nummer
-  eines Treffers ihn entfernt.
-- Eine Zielscheibe kann mehrere **Gruppen** enthalten (z. B. mehr als eine
-  5-Schuss-Gruppe auf demselben Blatt) — wechseln Sie zwischen ihnen oder
-  beginnen Sie über die Gruppenauswahl eine neue. Jede Gruppenzeile zeigt
-  ihre Schusszahl und den **ES**-Wert (Extreme Spread — der Abstand
-  zwischen den beiden am weitesten auseinanderliegenden Treffern).
-- **Gruppenübersichtsbild speichern** lädt ein PNG der gerade aktiven
-  Gruppe wie markiert herunter, zugeschnitten auf den aktuell
-  gezoomten/verschobenen Ausschnitt.
+- **Maßstab kalibrieren** — tippen Sie auf zwei Punkte mit bekanntem Abstand (ein auf die Zielscheibe gelegtes Lineal, oder ein beliebiges Merkmal bekannter Länge), und geben Sie anschließend diese reale Länge ein. **Kalibrierung abschließen** fährt fort; **Neu kalibrieren** ruft die Kalibrierung später erneut auf, ohne die vorhandenen Punkte zu verlieren.
+- **Zielpunkt festlegen** — tippen Sie dorthin, wohin bei dieser Gruppe gezielt wurde.
+- **Treffer markieren** — tippen Sie auf jedes Einschussloch; weitertippen fügt weitere hinzu. Jeder gesetzte Punkt (Kalibrierung, Zielpunkt, Treffer) lässt sich nachträglich per Ziehen verschieben. **Treffer löschen** wechselt in einen Modus, in dem das Antippen der eigenen Nummer eines Treffers ihn entfernt.
+- Eine Zielscheibe kann mehrere **Gruppen** enthalten (z. B. mehr als eine 5-Schuss-Gruppe auf demselben Blatt) — wechseln Sie zwischen ihnen oder beginnen Sie über die Gruppenauswahl eine neue. Jede Gruppenzeile zeigt ihre Schusszahl und den **ES**-Wert (Extreme Spread — der Abstand zwischen den beiden am weitesten auseinanderliegenden Treffern).
+- **Gruppenübersichtsbild speichern** lädt ein PNG der gerade aktiven Gruppe wie markiert herunter, zugeschnitten auf den aktuell gezoomten/verschobenen Ausschnitt.
 
-Eine Zielscheibe braucht eine Kalibrierung, einen Zielpunkt und mindestens
-einen Treffer, um auswertbar zu sein; fehlt eines davon, zeigen ein
-Abzeichen und ein Hinweis genau an, was noch fehlt.
+Eine Zielscheibe braucht eine Kalibrierung, einen Zielpunkt und mindestens einen Treffer, um auswertbar zu sein; fehlt eines davon, zeigen ein Abzeichen und ein Hinweis genau an, was noch fehlt.
 
-**Der Bericht** („Bericht anzeigen", sobald mindestens eine Zielscheibe
-auswertbar ist) bündelt jeden Schuss jeder auswertbaren Gruppe und
-Zielscheibe — jeder Schuss gemessen relativ zum Zielpunkt seiner eigenen
-Gruppe, sodass auch auf unterschiedliche Stellen des Blatts gezielte
-Gruppen korrekt zusammengeführt werden — zu einem einzigen Satz von
-Statistiken:
+**Der Bericht** („Bericht anzeigen", sobald mindestens eine Zielscheibe auswertbar ist) bündelt jeden Schuss jeder auswertbaren Gruppe und Zielscheibe — jeder Schuss gemessen relativ zum Zielpunkt seiner eigenen Gruppe, sodass auch auf unterschiedliche Stellen des Blatts gezielte Gruppen korrekt zusammengeführt werden — zu einem einzigen Satz von Statistiken:
 
-- Eine Auswahl **Anzeigeeinheiten der Ergebnisse** (Ihre eigene
-  eingestellte Einheit, mrad oder MOA) bestimmt jeden Wert in der Legende
-  und der Tabelle „Zahlen" darunter.
-- **Aggregierte Ergebnisse** — das gebündelte Streudiagramm — und ihre
-  **Legende** stehen nebeneinander. Nur die Treffer selbst, der Zielpunkt
-  und der mittlere Treffpunkt werden immer eingezeichnet; alles Weitere
-  ist optional.
-- Die Tabelle **Zahlen** listet jede Kennzahl auf (Vertrauensintervall,
-  mittlerer Treffpunkt, Standardabweichung, R50/R95/R99 — der Radius eines
-  Kreises, in dem 50/95/99 % der Treffer erwartet werden —, das
-  Vertrauensintervall von R95, sowie ES5x/ES10x, die durchschnittlich
-  erwartete Streuung (ES) einer 5- bzw. 10-Schuss-Gruppe) mit einer
-  Checkbox **Im Bild anzeigen** pro Zeile, die die jeweilige Kennzahl
-  zugleich im Diagramm, in der Legende und im exportierten Bild ergänzt.
-- **Bildoptionen** — Gitter (mrad- oder MOA-Abstand), maßstabsgetreu
-  gezeichnete Treffer, eine 1-MOA-Referenz, ein per Schieberegler
-  gesteuerter Trefferwahrscheinlichkeitsradius, ein Maßstabsbalken, sowie
-  **Legende mit Ergebnisbild speichern** (standardmäßig aktiv) für den
-  SVG-Export weiter unten.
-- Der **Vertrauensmesser** bewertet, wie sehr einer Gruppe dieser Größe
-  tatsächlich zu trauen ist — wenige Schüsse und ein breites
-  Vertrauensintervall landen deutlich unter der „Bullshit-Schwelle";
-  genug Schüsse, und die Bewertung klettert Richtung „Hervorragend
-  (IDKFA!)". Das fließt auch in den SVG-Export ein, wo es den reinen
-  Vertrauensintervall-Text ersetzt.
-- **CSV exportieren** lädt die rohen Koordinaten jedes gebündelten Schusses
-  herunter — in den bevorzugten Einheiten, mit der jeweiligen Einheit in der
-  Spaltenüberschrift; das kleine Symbol neben „Aggregierte Ergebnisse"
-  **exportiert das Diagramm als SVG** — inklusive Legende und
-  Vertrauensmesser, sofern die entsprechende Checkbox aktiv ist.
+- Eine Auswahl **Anzeigeeinheiten der Ergebnisse** (Ihre eigene eingestellte Einheit, mrad oder MOA) bestimmt jeden Wert in der Legende und der Tabelle „Zahlen" darunter.
+- **Aggregierte Ergebnisse** — das gebündelte Streudiagramm — und ihre **Legende** stehen nebeneinander. Nur die Treffer selbst, der Zielpunkt und der mittlere Treffpunkt werden immer eingezeichnet; alles Weitere ist optional.
+- Die Tabelle **Zahlen** listet jede Kennzahl auf (Vertrauensintervall, mittlerer Treffpunkt, Standardabweichung, R50/R95/R99 — der Radius eines Kreises, in dem 50/95/99 % der Treffer erwartet werden —, das Vertrauensintervall von R95, sowie ES5x/ES10x, die durchschnittlich erwartete Streuung (ES) einer 5- bzw. 10-Schuss-Gruppe) mit einer Checkbox **Im Bild anzeigen** pro Zeile, die die jeweilige Kennzahl zugleich im Diagramm, in der Legende und im exportierten Bild ergänzt.
+- **Bildoptionen** — Gitter (mrad- oder MOA-Abstand), maßstabsgetreu gezeichnete Treffer, eine 1-MOA-Referenz, ein per Schieberegler gesteuerter Trefferwahrscheinlichkeitsradius, ein Maßstabsbalken, sowie **Legende mit Ergebnisbild speichern** (standardmäßig aktiv) für den SVG-Export weiter unten.
+- Der **Vertrauensmesser** bewertet, wie sehr einer Gruppe dieser Größe tatsächlich zu trauen ist — wenige Schüsse und ein breites Vertrauensintervall landen deutlich unter der „Bullshit-Schwelle"; genug Schüsse, und die Bewertung klettert Richtung „Hervorragend (IDKFA!)". Das fließt auch in den SVG-Export ein, wo es den reinen Vertrauensintervall-Text ersetzt.
+- **CSV exportieren** lädt die rohen Koordinaten jedes gebündelten Schusses herunter — in den bevorzugten Einheiten, mit der jeweiligen Einheit in der Spaltenüberschrift; das kleine Symbol neben „Aggregierte Ergebnisse" **exportiert das Diagramm als SVG** — inklusive Legende und Vertrauensmesser, sofern die entsprechende Checkbox aktiv ist.
 
-Jede dieser Einstellungen — Anzeigeeinheiten, welche Kennzahlen im Bild
-erscheinen, Gitter, Bildoptionen, Position des Schiebereglers — wird
-gespeichert und beim nächsten Öffnen dieses Berichts wiederhergestellt,
-selbst nach einem Neustart der App.
+Jede dieser Einstellungen — Anzeigeeinheiten, welche Kennzahlen im Bild erscheinen, Gitter, Bildoptionen, Position des Schiebereglers — wird gespeichert und beim nächsten Öffnen dieses Berichts wiederhergestellt, selbst nach einem Neustart der App.
 
 ## Einschieß-Sitzung
 
@@ -666,72 +225,78 @@ Wenn Gewehr und App nicht übereinstimmen, sagt ein Fehlschuss allein nicht, war
 
 Das Werkzeug arbeitet mit dem aktiven Gewehr und Patrone aus dem Arsenal und dem aktiven Schießstandort und läuft in drei Schritten ab:
 
-- **Vorbereiten** — geben Sie den Stationsluftdruck des Tages (nicht den auf Meereshöhe reduzierten Druck, den ein Telefon anzeigt) und die Temperatur ein, haken Sie die Vorbereitung ab, die Sie wirklich erledigt haben, und legen Sie die Gesamtzahl der Schüsse fest. Das Werkzeug wählt das beste Nah-/Fern-Paar aus den Zielen Ihres Standorts, verteilt die Schüsse darauf, schlägt Schusszahlen von minimal bis deluxe vor und benotet den Plan von A bis D, noch bevor Sie einen Schuss abgeben. Vor dem Start bittet es Sie, das ferne Ziel erneut anzumessen und, sofern der Stand nicht als eben erklärt ist, seinen Winkel zu messen. Das Ergebnis hängt von dieser Entfernung mehr ab als von allem anderen.
+- **Vorbereiten** — geben Sie das durchschnittliche Wetter ein, das Sie während des Schießens erwarten, nicht nur einen Momentwert: Es bestimmt, wie die Schüsse auf die Ziele verteilt werden und was Sie von der Sitzung erwarten können. Verwenden Sie den Stationsluftdruck (nicht den auf Meereshöhe reduzierten Druck, den ein Telefon anzeigt); ohne klare Vorhersage genügt der Standarddruck auf der Höhe des Schießplatzes. Haken Sie die Vorbereitung ab, die Sie wirklich erledigt haben, und legen Sie die Gesamtzahl der Schüsse fest. Das Werkzeug wählt das beste Nah-/Fern-Paar aus den Zielen Ihres Standorts, verteilt die Schüsse darauf, schlägt Schusszahlen von minimal bis deluxe vor und benotet den Plan von A bis D, noch bevor Sie einen Schuss abgeben. Vor dem Start bittet es Sie, das ferne Ziel erneut anzumessen und, sofern der Stand nicht als eben erklärt ist, seinen Winkel zu messen. Das Ergebnis hängt von dieser Entfernung mehr ab als von allem anderen.
 - **Schießen** — das Werkzeug führt Sie Schritt für Schritt von nah nach fern, jeden Schritt erst, nachdem der vorherige auf dem Kugelfang gelandet ist. Vor jeder Serie von höchstens drei Schüssen zeigt es, was einzustellen ist. Sie erfassen die Höhenverstellung, die die Treffer auf den Haltepunkt bringen würde, wie gut Sie die Treffer ablesen konnten, den eingestellten Wind und, mit Chronograph, die Geschwindigkeit jedes Schusses. Eine Serie, die Sie nicht sehen konnten, ist ein normales Ergebnis: Das Werkzeug geht einen Schritt zurück und versucht es erneut. Eine Live-Anzeige zeigt, was es bisher gelernt hat.
 - **Abschluss** — eine nach Bedeutung geordnete Liste von Befunden, jeder mit Größe und Spielraum: eine Korrektur des Luftwiderstands (BC), eine Nullpunktkorrektur, korrigierte Höhenverstellungen für die beschossenen Entfernungen, die Mündungsgeschwindigkeit und alles, was die Sitzung nicht bestimmen konnte. Eine BC-Korrektur wird nur bei Note A oder B und mindestens fünf Chronographenmessungen aus der Sitzung angeboten. Das Speichern schreibt einen **BC-Verstärkungsfaktor** in die Patrone (standardmäßig 1,00; die Daten des Geschosses selbst bleiben unverändert), den danach Flugbahn, Feldrechner und Trefferwahrscheinlichkeit verwenden.
 
 Ein Chronograph ist das Wertvollste, was Sie mitbringen können: Ohne ihn bietet das Werkzeug nie eine BC-Korrektur an, und Sie erhalten nur Höhenverstellungen und eine Nullpunktprüfung für die beschossenen Entfernungen. Nur Überschallflug.
 
+## Werkzeuge
+
+Kleine Helfer, die zu keinem einzelnen Arbeitsablauf gehören, unter einer eigenen Überschrift auf der Startseite, auf der Seite „Werkzeuge" und im Menü. Auf einem schmalen Telefon lässt die untere Leiste ihren Reiter „Werkzeuge" weg, wenn er keinen Platz hat; die Startseite listet sie immer auf.
+
+### Einheitenumrechnung
+
+Rechnet einen Wert zwischen modernen und archaischen Einheiten für Winkel, Distanz, Länge, Geschwindigkeit, Masse, Temperatur und Druck um: Bearbeiten Sie ein beliebiges Feld, und alle anderen Einheiten seiner Gruppe werden sofort angepasst.
+
+### Absehen-Designer
+
+Zeichnet ein Zielfernrohr-Absehen per Ziehen und Ablegen — für ein Zielfernrohr mit fester Vergrösserung, erster Bildebene (FFP) oder zweiter Bildebene (SFP), in mrad oder MOA — und speichert es im Arsenal, wo ein Zielfernrohr es aufführen kann (siehe §5.9 des [Arsenal-Handbuchs](#/manual/arsenal)). Der Reiter Zielfernrohre im Arsenal öffnet ihn mit einem neuen Absehen oder mit dem, das Sie bearbeiten möchten. Siehe das [ausführliche Handbuch](#/manual/reticle-designer) für jedes Element, jede Option und jede Grenze.
+
+- **Elemente** — waagrechte und senkrechte Linien, Punkte, sich verjüngende Balken, Kreise, Hufeisen, Winkel, Zahlen, eigene SVG-Formen und BDC-Marken, die die Zielfernrohransicht des Feldrechners mit Distanzen beschriftet. Wählen Sie eines aus der Palette und klicken oder ziehen Sie in der Ansicht, um es zu platzieren; danach lässt es sich verschieben oder in seinen Einstellungen genau einstellen. Jede Position wird von der Absehenmitte aus gemessen.
+- **Bearbeiten** — ein Element spiegeln oder wiederholen, mehrere gruppieren und ihre gemeinsamen Einstellungen auf einmal setzen, mit einem Rechteck auswählen, und mit den Symbolen über der Ansicht rückgängig machen oder wiederholen. Das Einrasten zeigt beim Platzieren einen Live-Wert.
+- **Beleuchtung und Vergrösserung** — ein Absehen kann Element für Element rot, bernsteinfarben oder grün beleuchtet sein; der Vergrösserungsregler zeigt, wie es bei anderen Einstellungen des Referenz-Zielfernrohrs aussieht.
+- **Ganzes Absehen einfügen…** kopiert eines Ihrer Absehen oder ein integriertes in das gerade bearbeitete, als ein einziger Rückgängig-Schritt — ein schneller Start für eine Variante.
+- **Im Arsenal speichern** speichert das Absehen und lässt Sie im Designer, mit einer kurzen Bestätigung; ist nichts ungespeichert, heisst die Schaltfläche **Zurück zum Arsenal**. **Änderungen verwerfen** kehrt zur zuletzt gespeicherten Fassung zurück, **Neues Absehen** beginnt von vorn. Zum Speichern sind Hersteller und Modell nötig.
+
+### Standorte & Ziele
+
+Optional: Speichern Sie die Ziele eines Schießplatzes einmal — Distanz und Ziellinienwinkel, und, falls Sie ein vom Schützenstandpunkt aus aufgenommenes Foto hinzufügen, wo sich jedes davon darauf befindet — und wählen Sie sie bei späteren Besuchen direkt im Reiter „Ziel" aus, statt Distanz und Winkel jedes Mal von Hand einzustellen. Wind und Atmosphäre gehören nie zu einem gespeicherten Ziel, nur Distanz, Winkel und (mit Foto) Position.
+
+**Standorte & Ziele** ist ein eigenes Werkzeug unter Werkzeuge und öffnet sich auch aus dem Reiter „Ziel" des Feldrechners und aus der Einschieß-Sitzung, die mit den Zielen des aktiven Standorts arbeitet. **Fertig** bringt Sie dorthin zurück, wo Sie es geöffnet haben. Der Rest dieses Abschnitts geht vom Reiter „Ziel" des Feldrechners aus.
+
+Die eigene Zeile **Standorte & Ziele** im Reiter „Ziel" zeigt den Namen des aktuellen Standorts (nichts, falls Sie keinen verwenden), ein Auswahlmenü seiner Ziele, und bis zu drei Symbole:
+
+- Ein Fotorahmen-Symbol, **Ziel per Foto auswählen** (nur sichtbar, sobald der aktuelle Standort ein Foto hat) — öffnet dieses Foto im Vollbildmodus; auf die Markierung eines bereits platzierten Ziels tippen, um es sofort auszuwählen, oder auf eine Chip-Markierung (oben links gestapelt) für ein noch nicht platziertes Ziel. Es ändert sich nichts, bis Sie eines antippen.
+- Ein Sync-Symbol, **Dieses Ziel mit der aktuellen Distanz/dem aktuellen Winkel aktualisieren** — erscheint, sobald die gerade eingestellte Distanz/der Winkel nicht mehr mit den gespeicherten Werten des ausgewählten Ziels übereinstimmt (z. B. weil Sie die Distanz nach der Auswahl von Hand nachjustiert haben). Aktualisiert das gespeicherte Ziel auf die aktuell eingestellten Werte.
+- **Standorte verwalten** — öffnet die Bibliothek „Standorte & Ziele" selbst (unten). „Fertig" dort bringt Sie zu diesem Reiter zurück.
+
+Die Auswahl eines Ziels (Menü, Foto oder Chip) kopiert dessen Distanz und Winkel als einmalige, freie Bearbeitung in den Reiter „Ziel" — keine dauerhafte Verknüpfung: Sie können die eingestellten Werte danach weiter von Hand nachjustieren, ohne das gespeicherte Ziel zu verändern (dafür ist das Sync-Symbol oben da, falls Sie es synchron halten möchten).
+
+**Standorte verwalten.** Der Bibliotheksbildschirm teilt Ihre Standorte in **Aktueller Standort** (der jeweils aktive, oder **Kein Standort — einzelnes Ziel, manuelle Eingabe**, falls keiner aktiv ist) und **Bekannte Standorte** (alle übrigen) auf. Ein Tippen auf einen bekannten Standort aktiviert ihn — verschiebt ihn zum aktuellen Standort und scrollt dorthin — ohne diesen Bildschirm zu verlassen. Nur der aktuelle Standort zeigt **Bearbeiten** und seine Zielliste; jeder Standort, aktuell oder bekannt, zeigt **In Datei sichern** und **Löschen**. **Bibliothek in Datei sichern…** / **Sicherung aus Datei laden…** oben sichern bzw. stellen die gesamte Bibliothek auf einmal wieder her, genauso wie im Arsenal für Gewehre und Geschosse.
+
+Ein Standort hat einen Namen, eine optionale Höhe (falls angegeben, füllt die Aktivierung des Standorts den Reiter „Atmosphäre" mit der Standardatmosphäre für diese Höhe und 50 % Luftfeuchtigkeit — jedoch nur, wenn Sie die Atmosphärenwerte in dieser Sitzung noch nicht selbst geändert haben), und ein optionales Foto. Seine Ziele haben jeweils einen Namen (optional — Standard „Ziel 1", „Ziel 2" usw.), Notizen, Distanz und Ziellinienwinkel.
+
+**Ein Ziel auf dem Foto platzieren.** Sobald ein Standort ein Foto hat, erhält jedes seiner Ziele eine Schaltfläche **Platzieren** (in seiner Zeile und im eigenen Bearbeitungsformular), die das Foto im Vollbildmodus für genau dieses Ziel öffnet: tippen oder ziehen, um die Markierung zu positionieren, auf freier Fläche ziehen zum Verschieben, zum Zoomen zusammen-/auseinanderziehen (oder die Schaltflächen **Vergrößern** / **Verkleinern** der Navigationsleiste). Jedes andere bereits platzierte Ziel auf demselben Foto erscheint als kleiner Punkt mit Name, Distanz und Winkel, sodass Sie das neue Ziel relativ dazu platzieren können. **Markierung entfernen** hebt die Platzierung auf; „Fertig" speichert sie und kehrt zur Bibliothek zurück. Ein Ziel, das auf dem (vorhandenen) Foto noch nicht platziert wurde, zeigt in seiner Zeile zur Erinnerung ein Abzeichen **Nicht platziert**.
+
+### Kamera-Neigungsmesser
+
+Auf einem Telefon oder Tablet, dessen Bewegungssensoren die Neigung melden, steht neben jedem Feld für den Ziellinienwinkel ein Kamera-Symbol (**Winkel mit der Kamera messen**): in der Flugbahn, im Reiter „Ziel" des Feldrechners, im Zielformular eines Standorts und bei der Kontrolle des fernen Ziels und den Nachmessungen der Einschieß-Sitzung. Es öffnet die rückseitige Kamera bildschirmfüllend, mit einem Fadenkreuz auf der optischen Achse und dem laufenden Winkel auf 0,1°. Setzen Sie das Fadenkreuz aufs Ziel, halten Sie still, bis „ruhig" angezeigt wird, und tippen Sie auf **Bestätigen**; der Winkel erscheint zwei Sekunden lang gross und wird ins Feld übernommen. Zoomen Sie mit den Schaltflächen oder durch Aufziehen mit zwei Fingern. Ohne Kamerazugriff wird der Winkel trotzdem gemessen; nur das Zielen ist schwieriger.
+
+Unkalibriert kann eine Messung um ein Grad oder mehr danebenliegen. **Kalibrieren**, einmal pro Telefon, nimmt zwei Messpaare auf: das Telefon aufrecht auf seiner Unterkante auf einer festen Fläche, dann eine halbe Drehung weiter, ohne es zu berühren; danach ein scharfes, fernes Ziel, mit aufrechtem Telefon anvisiert, und noch einmal kopfüber. Die Kalibrierung wird nur auf diesem Gerät gespeichert; **Kalibrierung zurücksetzen** löscht sie.
+
 ## Einstellungen
 
 - **Sprache** — English, Français, Русский, Deutsch, Italiano.
-- **Einheiten** — eine bevorzugte Einheit pro Messgröße (Geschwindigkeit,
-  Windgeschwindigkeit, Distanz, kleine Längen, Höhe, Temperatur, Druck,
-  Winkelstreuung, Energie), metrisch und imperial frei mischbar; gilt
-  überall dort, wo die Messgröße vorkommt.
-- **Integrierte Bibliotheken** — die integrierte Gewehrbibliothek und jede
-  der drei integrierten Geschossbibliotheken einzeln ein-/ausblenden (siehe
-  **Waffen** oben).
-- **Ballistische Modelle** — einzelne Standard-Luftwiderstandsmodelle (G1,
-  G7, ...) in jeder Modellauswahl der App ein-/ausblenden, um sie auf die
-  tatsächlich genutzten zu reduzieren. Ein ausgeblendetes Modell bleibt
-  dort verfügbar, wo es bereits ausgewählt ist (ein manuell eingegebenes
-  Geschoss, das eigene Modell eines Bibliotheksgeschosses) — das
-  Ausblenden betrifft nur künftige Auswahlen, nie eine bestehende. Mindestens
-  ein Modell muss immer sichtbar bleiben.
-- **Design** — Auswahl aus drei bebilderten Miniaturansichten, sofort überall
-  angewendet: **Dunkel** (Standard), **Kontrastreich hell** (weißer
-  Hintergrund, schwarzer Text — für maximale Sichtbarkeit bei praller
-  Sonne) und **Kontrastreich dunkel** (schwarzer Hintergrund mit maximal
-  kontrastreichem Text und Farben — für wenn die Bildschirmhelligkeit hoch
-  gestellt werden muss, um draußen etwas zu erkennen, und dabei Akku
-  gespart werden soll).
-- **Trefferfarbe** — die Farbe, in der jeder gezeichnete Treffer dargestellt
-  wird, wählbar aus fünf Farbfeldern. Sie gilt für die simulierten Treffer
-  der Trefferwahrscheinlichkeit ebenso wie für die markierten Treffer des
-  Gewehr-Präzisionsrechners — auf dem Foto beim Markieren, im PNG der
-  Serienübersicht sowie im Diagramm, in der Legende und im SVG-Export des
-  Präzisionsberichts. Der weiß-dunkle Rand um jeden Treffer bleibt bewusst
-  unverändert: Er hält den Umriss des Punktes sichtbar, egal auf welcher
-  Zielscheibe oder welchem Foto er landet und welche Farbe gewählt wurde.
-- **Anzeigesymbole im Feldrechner** — ob die Höhe-/Seite-Anzeige des
-  Feldrechners einen Richtungspfeil oder ein **+ / −**-Zeichen zeigt (siehe
-  **Feldrechner** oben).
-- **Berechnungsmethode für Drallabweichung** — wie (oder ob) die durch den
-  Eigendrall des Geschosses verursachte horizontale Abweichung in die
-  Seitenabweichung einfließt, in Flugbahn, Feldrechner und Arsenal:
+- **Einheiten** — eine bevorzugte Einheit pro Messgröße (Geschwindigkeit, Windgeschwindigkeit, Distanz, kleine Längen, Höhe, Temperatur, Druck, Winkelstreuung, Energie), metrisch und imperial frei mischbar; gilt überall dort, wo die Messgröße vorkommt.
+- **Integrierte Bibliotheken** — die integrierte Gewehrbibliothek und jede der acht integrierten Geschossbibliotheken einzeln ein-/ausblenden (siehe **Waffen** oben).
+- **Ballistische Modelle** — einzelne Standard-Luftwiderstandsmodelle (G1, G7, ...) in jeder Modellauswahl der App ein-/ausblenden, um sie auf die tatsächlich genutzten zu reduzieren. Ein ausgeblendetes Modell bleibt dort verfügbar, wo es bereits ausgewählt ist (ein manuell eingegebenes Geschoss, das eigene Modell eines Bibliotheksgeschosses) — das Ausblenden betrifft nur künftige Auswahlen, nie eine bestehende. Mindestens ein Modell muss immer sichtbar bleiben.
+- **Design** — Auswahl aus drei bebilderten Miniaturansichten, sofort überall angewendet: **Dunkel** (Standard), **Kontrastreich hell** (weißer Hintergrund, schwarzer Text — für maximale Sichtbarkeit bei praller Sonne) und **Kontrastreich dunkel** (schwarzer Hintergrund mit maximal kontrastreichem Text und Farben — für wenn die Bildschirmhelligkeit hoch gestellt werden muss, um draußen etwas zu erkennen, und dabei Akku gespart werden soll).
+- **Trefferfarbe** — die Farbe, in der jeder gezeichnete Treffer dargestellt wird, wählbar aus fünf Farbfeldern. Sie gilt für die simulierten Treffer der Trefferwahrscheinlichkeit ebenso wie für die markierten Treffer des Gewehr-Präzisionsrechners — auf dem Foto beim Markieren, im PNG der Serienübersicht sowie im Diagramm, in der Legende und im SVG-Export des Präzisionsberichts. Der weiß-dunkle Rand um jeden Treffer bleibt bewusst unverändert: Er hält den Umriss des Punktes sichtbar, egal auf welcher Zielscheibe oder welchem Foto er landet und welche Farbe gewählt wurde.
+- **Anzeigesymbole im Feldrechner** — ob die Höhe-/Seite-Anzeige des Feldrechners einen Richtungspfeil oder ein **+ / −**-Zeichen zeigt (siehe **Feldrechner** oben).
+- **Ausgabe im Feldrechner** — ob der Feldrechner Höhe und Seite in **Klicks** (Voreinstellung, nach den Klickwerten des aktiven Gewehrs), in mrad oder in MOA angibt.
+- **Sichtbarkeit der Zielbeschriftungen** — wie die Zielnamen erscheinen, wenn Sie ein Ziel auf dem Foto eines Standorts wählen: immer, in Mauszeigernähe ausgeblendet mit dem nächsten Ziel angezeigt, oder ausgeblendet bis zum Antippen (erneut tippen zum Auswählen). Das Ausblenden in Zeigernähe braucht eine Maus.
+- **Vergrösserungsring der Zielfernrohransicht** — wo die Zielfernrohransicht des Feldrechners ihren Zoomring zeigt: **Automatisch** (auf einem Smartphone im Hochformat unter dem Absehen, sonst daneben), immer daneben, oder im Hochformat darunter.
+- **Farbe der Absehen-Einblendung**, **Form der Absehen-Einblendung**, **BDC-Distanzanzeige** — wie die Zielfernrohransicht über das Absehen zeichnet (siehe **Zielfernrohransicht** oben).
+- **Oberflächenskalierung** — vergrössert die gesamte Oberfläche, von 100 % bis 200 %.
+- **Darstellung des Windrichtungsreglers** — **Uhr** oder **Schlicht**, für den Windrichtungsregler überall, wo er vorkommt.
+- **Berechnungsmethode für Drallabweichung** — wie (oder ob) die durch den Eigendrall des Geschosses verursachte horizontale Abweichung in die Seitenabweichung einfließt, in Flugbahn, Feldrechner und Arsenal:
   - **Aus** (Standard) — die Seitenabweichung berücksichtigt nur den Wind.
   - **Einfach (Litz)** — Bryan Litz' etablierte empirische Formel.
-  - **Erweitert (McCoy 4-DOF)** — ein vollständiges physikalisches Modell
-    mit 4 Freiheitsgraden, berechnet aus Masse, Kaliber, Länge und
-    Drallrate des Geschosses.
+  - **Erweitert (McCoy 4-DOF)** — ein vollständiges physikalisches Modell mit 4 Freiheitsgraden, berechnet aus Masse, Kaliber, Länge und Drallrate des Geschosses.
 
-  Beide Methoden fallen automatisch zurück (Erweitert → Einfach → Aus),
-  wenn dem aktiven Geschoss die dafür nötigen Daten fehlen. **Beim
-  Einschießen Drallabweichung berücksichtigen**, die erst erscheint,
-  sobald eine Methode gewählt ist, verschiebt die horizontale
-  Ausrichtung des Gewehrs selbst so, dass der Einschuss die Abweichung
-  bis zur Einschussdistanz bereits ausgleicht — dasselbe, was das Drehen
-  des Seitenverstellturms am Zielfernrohr auf dieser Distanz bewirken
-  würde.
-- **CSV-Export** — das Feldtrennzeichen (Komma/Semikolon/Tabulator) und das
-  Dezimaltrennzeichen (Punkt/Komma) für den CSV-Download und das Kopieren in
-  der Flugbahn. Wählen Sie das Paar, das Ihre Tabellenkalkulation erwartet.
-- **Sicherung & Synchronisierung** — experimentell, standardmäßig
-  ausgeschaltet. Hält Ihre Arsenal-, Standort- und
-  Präzisionsprojekt-Bibliotheken über Ihre eigenen Geräte hinweg
-  synchron, über einen Ordner, den Ihr Cloud-Dienst bereits synchronisiert
-  (OneDrive, Google Drive, NextCloud, ...) — kein Konto bei dieser App,
-  nichts wird an irgendeinen Server von mir gesendet. Siehe das
-  [ausführliche Handbuch](#/manual/backup-sync) für die Einrichtung und
-  seine sehr realen, auf Chrome beschränkten Grenzen.
+  Beide Methoden fallen automatisch zurück (Erweitert → Einfach → Aus), wenn dem aktiven Geschoss die dafür nötigen Daten fehlen. **Beim Einschießen Drallabweichung berücksichtigen**, die erst erscheint, sobald eine Methode gewählt ist, verschiebt die horizontale Ausrichtung des Gewehrs selbst so, dass der Einschuss die Abweichung bis zur Einschussdistanz bereits ausgleicht — dasselbe, was das Drehen des Seitenverstellturms am Zielfernrohr auf dieser Distanz bewirken würde.
+- **CSV-Export** — das Feldtrennzeichen (Komma/Semikolon/Tabulator) und das Dezimaltrennzeichen (Punkt/Komma) für den CSV-Download und das Kopieren in der Flugbahn. Wählen Sie das Paar, das Ihre Tabellenkalkulation erwartet.
+- **Sicherung & Synchronisierung** — experimentell, standardmäßig ausgeschaltet. Hält Ihre Arsenal-, Standort- und Präzisionsprojekt-Bibliotheken über Ihre eigenen Geräte hinweg synchron, über einen Ordner, den Ihr Cloud-Dienst bereits synchronisiert (OneDrive, Google Drive, NextCloud, ...) — kein Konto bei dieser App, nichts wird an irgendeinen Server von mir gesendet. Siehe das [ausführliche Handbuch](#/manual/backup-sync) für die Einrichtung und seine sehr realen, auf Chrome beschränkten Grenzen.
+- **Über App-Updates benachrichtigen** — standardmässig an: meldet, wenn die App aktualisiert wurde.
+- **Bereich „Fehlerbehebung" auf der Startseite anzeigen** — standardmässig aus: fügt der Startseite einen Bereich hinzu, der Diagnoseinformationen zu Start und Zwischenspeicher der App herunterlädt und den Offline-Speicher neu aufbauen kann — nützlich, wenn Sie ein Problem melden.

@@ -77,7 +77,7 @@ Before any shots, the tool assumes the BC is off by about 4 %. A grade D session
 
 The tool uses the active rifle and cartridge from Arsenal and the active shooting location. It has no rifle picker of its own.
 
-It keeps its own weather inputs, and nothing you enter in another tool changes them. Enter the **station pressure**, which is what a barometer reads at the range. A phone or weather app usually gives the pressure corrected to sea level (QNH), and that value is wrong here. If the location has an altitude, the tool warns you when the pressure looks like QNH. Read the temperature at the range to about 3 °C. Humidity matters little.
+It keeps its own weather inputs, and nothing you enter in another tool changes them. Enter the average weather you expect while you shoot, not just a reading of the moment: it shapes how the rounds are split between the targets and what you can expect from the session. Enter the **station pressure**, which is what a barometer reads at the range. A phone or weather app usually gives the pressure corrected to sea level (QNH), and that value is wrong here. If the location has an altitude, the tool warns you when the pressure looks like QNH. Without a clear forecast, the standard pressure at the range's altitude is fine. Read the temperature at the range to about 3 °C. Humidity matters little.
 
 You confirm the conditions before you start. They then stay fixed as the session's starting air, so a weather change made elsewhere later cannot alter shots already fired. A BC correction assumes these conditions were right, because a wrong temperature or pressure ends up in the drag term. The Conclude page reminds you of this.
 
@@ -114,7 +114,7 @@ Pressing one makes the plan for that count. These are minimums that count only r
 
 ### 3.5 Re-range the far target
 
-Before you start, the tool asks you to measure the far target again. Range it with the rangefinder several times, and check that the beam is not catching something in front of the target. Unless the range is declared flat, also measure its angle with a clinometer.
+Before you start, the tool asks you to measure the far target again. Range it with the rangefinder several times, and check that the beam is not catching something in front of the target. Unless the range is declared flat, also measure its angle with a clinometer. On a phone that reports its tilt, the camera icon next to the angle field does that (see **Camera clinometer** in the [main manual](#/manual)).
 
 This is the most important minute of the session. The result depends on the far distance more than on anything else, and the shots can hardly check it, because a target that is farther than you think looks exactly like a bullet with a lower BC. A far distance off by 20 m typically leaves the result about 0.3 mrad off at that target, which is about 30 cm at 1,000 m, and the tool cannot flag it.
 

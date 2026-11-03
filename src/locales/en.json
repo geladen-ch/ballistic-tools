@@ -1604,6 +1604,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v240": "New: reticle designer manual. All other manuals reviewed and updated to reflect the latest status.",
       "v239": "Change: scope view UI polishing.",
       "v238": "New: optional BDC range overlay modes: callout and upwind (props to JerkyFreak for the idea).",
       "v237": "New: locations and targets management now available directly under \"Utilities\".",

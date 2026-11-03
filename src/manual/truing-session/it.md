@@ -77,7 +77,7 @@ Prima di qualsiasi colpo, lo strumento assume che il BC sia sbagliato di circa i
 
 Lo strumento usa il fucile e la cartuccia attivi dall'Arsenale e la postazione di tiro attiva. Non ha un proprio selettore di fucile.
 
-Tiene i propri dati meteo, e nulla di ciò che inserite in un altro strumento li modifica. Inserite la **pressione di stazione**, cioè ciò che legge un barometro sul campo. Un telefono o un'app meteo dà di solito la pressione ridotta al livello del mare (QNH), e quel valore qui è sbagliato. Se la postazione ha un'altitudine, lo strumento vi avvisa quando la pressione sembra un QNH. Leggete la temperatura sul campo con un'approssimazione di circa 3 °C. L'umidità conta poco.
+Tiene i propri dati meteo, e nulla di ciò che inserite in un altro strumento li modifica. Inserite il tempo medio che vi aspettate durante il tiro, non solo una lettura del momento: determina come i colpi vengono ripartiti tra i bersagli e cosa potete aspettarvi dalla sessione. Inserite la **pressione di stazione**, cioè ciò che legge un barometro sul campo. Un telefono o un'app meteo dà di solito la pressione ridotta al livello del mare (QNH), e quel valore qui è sbagliato. Se la postazione ha un'altitudine, lo strumento vi avvisa quando la pressione sembra un QNH. Senza una previsione chiara va bene la pressione standard all'altitudine del poligono. Leggete la temperatura sul campo con un'approssimazione di circa 3 °C. L'umidità conta poco.
 
 Confermate le condizioni prima di iniziare. Da quel momento restano fissate come aria di partenza della sessione, così un cambio di meteo fatto altrove in seguito non può alterare colpi già sparati. Una correzione del BC presuppone che queste condizioni fossero giuste, perché una temperatura o una pressione sbagliata finisce nel termine di resistenza. La pagina «Conclusione» ve lo ricorda.
 
@@ -114,7 +114,7 @@ Premendone uno si crea il piano per quel numero. Sono minimi che contano solo i 
 
 ### 3.5 Rimisurare il bersaglio lontano
 
-Prima di iniziare, lo strumento vi chiede di misurare di nuovo il bersaglio lontano. Misuratelo più volte col telemetro e controllate che il raggio non agganci qualcosa davanti al bersaglio. Se il campo non è dichiarato piatto, misuratene anche l'angolo con l'inclinometro.
+Prima di iniziare, lo strumento vi chiede di misurare di nuovo il bersaglio lontano. Misuratelo più volte col telemetro e controllate che il raggio non agganci qualcosa davanti al bersaglio. Se il campo non è dichiarato piatto, misuratene anche l'angolo con l'inclinometro. Su un telefono che rileva la propria inclinazione, se ne occupa l'icona della fotocamera accanto al campo dell'angolo (vedi **Clinometro con fotocamera** nel [manuale principale](#/manual)).
 
 È il minuto più importante della sessione. Il risultato dipende dalla distanza lontana più che da qualsiasi altra cosa, e i colpi non possono quasi verificarla, perché un bersaglio più lontano di quanto pensate sembra esattamente un proiettile con un BC più basso. Una distanza lontana sbagliata di 20 m lascia tipicamente il risultato sbagliato di circa 0,3 mrad su quel bersaglio, circa 30 cm a 1000 m, e lo strumento non può segnalarlo.
 

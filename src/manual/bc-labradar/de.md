@@ -449,7 +449,7 @@ Einen Stapel bekommen Sie geschenkt: **eine Ladeentwicklungsserie ist bereits ei
 
 Alles Folgende ist das, was das Werkzeug tatsächlich rechnet, mit Begründung und Belegen. Es ist keine Pflichtlektüre für die Benutzung, und es ist der interessanteste Teil des Werkzeugs.
 
-**Die Einheiten in diesem Abschnitt sind die der Engine.** Intern ist alles metrisch — Meter, Sekunden, Meter pro Sekunde, kelvinbezogene Temperaturen —, und umgerechnet wird nur an den beiden Rändern: die in der Track-Datei deklarierten Einheiten beim Hereinkommen und Ihre Anzeigevorliebe beim Hinausgehen.
+**Die Einheiten in diesem Abschnitt sind die der Engine.** Intern ist alles metrisch — Meter, Sekunden, Meter pro Sekunde, Temperaturen in Grad Celsius, die nur dort in Kelvin umgerechnet werden, wo das Gasgesetz es verlangt —, und umgerechnet wird nur an den beiden Rändern: die in der Track-Datei deklarierten Einheiten beim Hereinkommen und Ihre Anzeigevorliebe beim Hinausgehen.
 
 ### 12.1 Was das Gerät misst und was nicht
 

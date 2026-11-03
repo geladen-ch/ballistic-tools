@@ -26,7 +26,7 @@ It is not the **Rifle Precision Calculator**, which measures a rifle's actual me
 
 The corollary is the one you would expect: **if you clear your browser's site data, your Arsenal is gone.** There is no server-side copy to restore from. Use the backup functions (§8) if the data matters to you — and Arsenal tells you, item by item, when something has never been backed up (§9).
 
-Unlike Rifle Precision, Arsenal stores no photographs and no large binary data, so its footprint in `localStorage` is small regardless of how many rifles and bullets you keep. There is no built-in cap on how many of either you may save.
+Unlike Rifle Precision, Arsenal stores no photographs and no large binary data, so its footprint in `localStorage` is small regardless of how many rifles and bullets you keep. There is no cap on how many of either you may save; the one size limit, on loading an Arsenal file, comes from reticles (§5.9).
 
 Your own reticles are the one exception to "small": a reticle with an imported drawing can run to megabytes, so reticles are kept in the browser's IndexedDB rather than `localStorage`. Everything else above applies to them unchanged — on this device only, gone with the site data, backed up with the rest (§8).
 
@@ -202,7 +202,7 @@ Scopes live on the **Scopes** tab. **+ Add Scope** opens a form:
 
 ### 5.9 Reticles and the Reticle Designer
 
-**Your Reticles**, on the same tab, lists each reticle with a thumbnail, the scope type and magnification it was drawn for, and how many of your scopes list it. Reticles are drawn in the **Reticle Designer**: **+ Add Reticle** opens it on an empty reticle, **Edit** on that reticle. There, **Save to arsenal** stores it and **Discard changes** goes back to the last saved version; either one returns you to the Scopes tab. The reticle's manufacturer and model are typed in the Designer, with the same suggestions as a scope's, and so is an optional **Source / notes** — where the subtensions came from, or anything else worth keeping with it.
+**Your Reticles**, on the same tab, lists each reticle with a thumbnail, the scope type and magnification it was drawn for, and how many of your scopes list it. Reticles are drawn in the **Reticle Designer**: **+ Add Reticle** opens it on an empty reticle, **Edit** on that reticle. There, **Save to arsenal** stores it and keeps you in the Designer, with a short confirmation; while nothing is unsaved, the same button reads **Return to arsenal** and takes you back to the Scopes tab. **Discard changes**, offered only when there is something to discard, goes back to the last saved version and returns you to the Scopes tab. **New reticle** starts over on an empty one, and **Insert whole reticle…** copies one of your reticles or a built-in one into the reticle being edited, as a single undo step. The reticle's manufacturer and model are typed in the Designer, with the same suggestions as a scope's, and so is an optional **Source / notes** — where the subtensions came from, or anything else worth keeping with it. The Designer has a [manual of its own](#/manual/reticle-designer).
 
 In the Designer a reticle is drawn for a **reference scope** — just its type and magnification; the field of view is assumed from the magnification (12 m at 100 m at 3×), only so the Designer can draw the field the reticle sits in. The real scope a reticle is put in brings its own field of view.
 

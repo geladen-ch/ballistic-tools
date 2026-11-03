@@ -2,43 +2,24 @@
 
 *Pacifico. Preciso. Armato.*
 
-geladen.ch ballistics è una suite di balistica esterna interamente lato
-client. Tutto — l'integrazione della traiettoria, l'analisi di probabilità
-di colpire, i tuoi fucili e proiettili salvati — viene eseguito nel tuo
-browser. **Nessun dato viene mai raccolto o trasmesso a un server.**
-Funziona offline una volta caricata e si installa come app su desktop e
-dispositivi mobili (PWA).
+geladen.ch ballistics è una suite di balistica esterna interamente lato client. Tutto — l'integrazione della traiettoria, l'analisi di probabilità di colpire, i tuoi fucili e proiettili salvati — viene eseguito nel tuo browser. **Nessun dato viene mai raccolto o trasmesso a un server.** Funziona offline una volta caricata e si installa come app su desktop e dispositivi mobili (PWA).
 
-Questo software viene fornito senza alcuna garanzia di idoneità per uno
-scopo particolare, o quel che è — bla bla bla. Ho fatto del mio meglio
-per renderlo utile (mi ci sono tenuto occupato per un weekend piovoso), e
-credo sia ragionevolmente accurato, ma se trovi un modo creativo per
-usare in modo improprio una calcolatrice balistica fino a farti male,
-sono affari tuoi — chi sono io per mettermi di traverso alla selezione
-naturale?
+Questo software viene fornito senza alcuna garanzia di idoneità per uno scopo particolare, o quel che è — bla bla bla. Ho fatto del mio meglio per renderlo utile (mi ci sono tenuto occupato per un weekend piovoso), e credo sia ragionevolmente accurato, ma se trovi un modo creativo per usare in modo improprio una calcolatrice balistica fino a farti male, sono affari tuoi — chi sono io per mettermi di traverso alla selezione naturale?
 
-Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**,
-il **Calcolatore per il poligono**, **Armi**, **Curva Cd-Mach**, **Strumenti
-BC**, il **Calcolatore di precisione di tiro** e **Impostazioni** — oltre a
-**Probabilità di colpire**, utilizzabile per i suoi scenari attuali ma
-ancora in sviluppo attivo, e alla **Sessione di taratura**, contrassegnata
-come Sperimentale — la sua statistica è validata ma non ha ancora
-un'esperienza sul campo.
+Questo manuale copre gli strumenti pienamente funzionanti — **Traiettoria**, il **Calcolatore per il poligono**, **Armi**, **Curva Cd-Mach**, **Strumenti BC**, il **Calcolatore di precisione di tiro**, le **Utilità** (**Conversione unità**, **Progettista di reticoli**, **Postazioni e bersagli**) e **Impostazioni** — oltre a **Probabilità di colpire**, utilizzabile per i suoi scenari attuali ma ancora in sviluppo attivo, e alla **Sessione di taratura**, contrassegnata come Sperimentale — la sua statistica è validata ma non ha ancora un'esperienza sul campo.
 
 ---
 
 ## Informazioni su questo manuale
 
-Questo è una panoramica sintetica — una sezione per strumento, che descrive
-cosa fa e i suoi comandi principali. Alcuni strumenti hanno anche un proprio
-manuale dettagliato, che approfondisce il metodo, i casi particolari e, dove
-applicabile, le statistiche dietro i numeri:
+Questo è una panoramica sintetica — una sezione per strumento, che descrive cosa fa e i suoi comandi principali. Alcuni strumenti hanno anche un proprio manuale dettagliato, che approfondisce il metodo, i casi particolari e, dove applicabile, le statistiche dietro i numeri:
 
 - [Arsenale](#/manual/arsenal)
 - [Calcolatore di precisione di tiro](#/manual/rifle-precision)
 - [Sessione di taratura](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Backup e sincronizzazione](#/manual/backup-sync)
+- [Progettista di reticoli](#/manual/reticle-designer)
 
 Altri manuali dettagliati per gli altri strumenti sono previsti.
 
@@ -48,604 +29,193 @@ Altri manuali dettagliati per gli altri strumenti sono previsti.
 
 ### Android (Chrome)
 
-Chrome può installare questa app in modo che si comporti come qualsiasi
-altra app sul telefono — una propria icona sulla schermata Home, una
-propria finestra senza barra del browser, e continua a funzionare offline.
+Chrome può installare questa app in modo che si comporti come qualsiasi altra app sul telefono — una propria icona sulla schermata Home, una propria finestra senza barra del browser, e continua a funzionare offline.
 
 - Apri l'app in Chrome.
-- Tocca il menu **⋮** (in alto a destra) e scegli **Installa app** (nelle
-   versioni precedenti di Chrome si chiama **Aggiungi a schermata Home**).
-- Conferma. Un'icona apparirà sulla schermata Home o nel cassetto delle
-   app, come qualsiasi altra app installata.
+- Tocca il menu **⋮** (in alto a destra) e scegli **Installa app** (nelle versioni precedenti di Chrome si chiama **Aggiungi a schermata Home**).
+- Conferma. Un'icona apparirà sulla schermata Home o nel cassetto delle app, come qualsiasi altra app installata.
 
-**Un'icona separata per il Calcolatore per il poligono.** Poiché il
-Calcolatore per il poligono fa parte della stessa app, puoi dargli una
-propria icona che si apre direttamente, saltando la Home:
+**Un'icona separata per il Calcolatore per il poligono.** Poiché il Calcolatore per il poligono fa parte della stessa app, puoi dargli una propria icona che si apre direttamente, saltando la Home:
 
 - In Chrome, apri l'app e vai al **Calcolatore per il poligono**.
-- Apri di nuovo il menu **⋮** — mentre il Calcolatore per il poligono è
-   aperto — e scegli **Aggiungi a schermata Home**.
-- Quando Chrome chiede un nome, indica ad esempio "Calcolatore per il
-   poligono" così puoi distinguere facilmente le due icone.
+- Apri di nuovo il menu **⋮** — mentre il Calcolatore per il poligono è aperto — e scegli **Aggiungi a schermata Home**.
+- Quando Chrome chiede un nome, indica ad esempio "Calcolatore per il poligono" così puoi distinguere facilmente le due icone.
 
-Toccando questa seconda icona l'app si apre direttamente sul Calcolatore
-per il poligono, saltando la Home — comodo se è l'unico strumento che usi
-sul campo. Al momento entrambe le icone mostrano la stessa immagine; cambia
-solo il nome.
+Toccando questa seconda icona l'app si apre direttamente sul Calcolatore per il poligono, saltando la Home — comodo se è l'unico strumento che usi sul campo. Al momento entrambe le icone mostrano la stessa immagine; cambia solo il nome.
 
 ### iPhone / iPad (Safari)
 
-Questo funziona solo in **Safari** — gli altri browser su iPhone (incluso
-Chrome) non possono installare app sulla schermata Home.
+Questo funziona solo in **Safari** — gli altri browser su iPhone (incluso Chrome) non possono installare app sulla schermata Home.
 
 - Apri l'app in Safari.
-- Tocca il pulsante **Condividi** (il quadrato con la freccia verso
-   l'alto, nella barra degli strumenti in basso — su iPad si trova in
-   alto).
-- Scorri verso il basso nel foglio che appare e tocca **Aggiungi a
-   Home**.
+- Tocca il pulsante **Condividi** (il quadrato con la freccia verso l'alto, nella barra degli strumenti in basso — su iPad si trova in alto).
+- Scorri verso il basso nel foglio che appare e tocca **Aggiungi a Home**.
 - Conferma il nome (o modificalo) e tocca **Aggiungi**, in alto a destra.
 
-Un'icona apparirà sulla schermata Home e aprirà l'app in una propria
-finestra, senza la barra degli indirizzi di Safari — come su Android.
+Un'icona apparirà sulla schermata Home e aprirà l'app in una propria finestra, senza la barra degli indirizzi di Safari — come su Android.
 
-**Un'icona separata per il Calcolatore per il poligono** funziona allo
-stesso modo: apri prima il **Calcolatore per il poligono** nell'app, poi
-ripeti **Condividi → Aggiungi a Home** mentre questa pagina è aperta, e
-assegna un nome distintivo come "Calcolatore per il poligono". Come su
-Android, al momento entrambe le icone mostrano la stessa immagine; cambia
-solo il nome.
+**Un'icona separata per il Calcolatore per il poligono** funziona allo stesso modo: apri prima il **Calcolatore per il poligono** nell'app, poi ripeti **Condividi → Aggiungi a Home** mentre questa pagina è aperta, e assegna un nome distintivo come "Calcolatore per il poligono". Come su Android, al momento entrambe le icone mostrano la stessa immagine; cambia solo il nome.
 
 ## Traiettoria
 
-Un proiettile non vola mai in linea retta, per quanto tu lo desideri.
-Traiettoria segue l'intero volo — caduta, deriva, velocità, tempo di volo —
-per il fucile e la carica che hai impostato in **Armi**, qui sotto, a ogni
-distanza che ti interessa.
+Un proiettile non vola mai in linea retta, per quanto tu lo desideri. Traiettoria segue l'intero volo — caduta, deriva, velocità, tempo di volo — per il fucile e la carica che hai impostato in **Armi**, qui sotto, a ogni distanza che ti interessa.
 
-**I parametri** partono dal fucile e dalla carica attivi, mostrati come un
-breve riepilogo con un pulsante **Cambia** verso Armi, seguito da una
-sezione Atmosfera e da alcune impostazioni specifiche di questa tabella e di
-questo grafico:
+**I parametri** partono dal fucile e dalla carica attivi, mostrati come un breve riepilogo con un pulsante **Cambia** verso Armi, seguito da una sezione Atmosfera e da alcune impostazioni specifiche di questa tabella e di questo grafico:
 
-- **Distanza massima** / **Passo di distanza** — fino a dove, e con quale
-  incremento, viene calcolata la tabella.
-- **Angolo linea di mira** — inclinazione del tiro (in salita/discesa), in
-  gradi, positivo verso l'alto. Lascia a 0 per un tiro in piano. L'angolo di
-  elevazione dello zero non ne è mai influenzato: l'arma si considera sempre
-  azzerata in piano e in aria calma (nell'atmosfera di zero della cartuccia, se
-  ne hai specificata una in Armi), quindi un'inclinazione compare nelle
-  correzioni.
+- **Distanza massima** / **Passo di distanza** — fino a dove, e con quale incremento, viene calcolata la tabella.
+- **Angolo linea di mira** — inclinazione del tiro (in salita/discesa), in gradi, positivo verso l'alto. Lascia a 0 per un tiro in piano. L'angolo di elevazione dello zero non ne è mai influenzato: l'arma si considera sempre azzerata in piano e in aria calma (nell'atmosfera di zero della cartuccia, se ne hai specificata una in Armi), quindi un'inclinazione compare nelle correzioni. Su un telefono o un tablet che rileva la propria inclinazione, l'icona della fotocamera accanto al campo misura l'angolo per te — vedi **Clinometro con fotocamera** in Utilità più sotto.
 
-**La tabella** mostra una riga per ogni passo di distanza, con colonne
-attivabili (caduta, deriva, correzioni di elevazione/deriva in
-click/mrad/MOA, velocità, tempo di volo, Mach, energia). La correzione di
-elevazione è segnata in base a come si regola realmente un'ottica: un
-proiettile caduto sotto la linea di mira viene mostrato come un numero
-*positivo* di click da girare verso l'**alto**.
+**La tabella** mostra una riga per ogni passo di distanza, con colonne attivabili (caduta, deriva, correzioni di elevazione/deriva in click/mrad/MOA, velocità, tempo di volo, Mach, energia). La correzione di elevazione è segnata in base a come si regola realmente un'ottica: un proiettile caduto sotto la linea di mira viene mostrato come un numero *positivo* di click da girare verso l'**alto**.
 
-Puoi **scaricare la tabella come file CSV**, oppure **copiarla negli
-appunti** in formato CSV — entrambe le opzioni usano esattamente le colonne
-attualmente attivate e il separatore di campo/decimale impostato in
-Impostazioni → Esportazione CSV (in modo che si apra correttamente con le
-impostazioni internazionali del tuo foglio di calcolo).
+Puoi **scaricare la tabella come file CSV**, oppure **copiarla negli appunti** in formato CSV — entrambe le opzioni usano esattamente le colonne attualmente attivate e il separatore di campo/decimale impostato in Impostazioni → Esportazione CSV (in modo che si apra correttamente con le impostazioni internazionali del tuo foglio di calcolo).
 
-**Il grafico** traccia una qualsiasi colonna rispetto alla distanza, con
-zoom/scorrimento propri e indipendenti (trascina i due cursori di distanza
-sottostanti — finestra minima di 50 m). Può essere **scaricato come SVG**
-(la piccola icona sopra il grafico), un formato che non dipende da questa
-app per essere visualizzato o modificato in seguito.
+**Il grafico** traccia una qualsiasi colonna rispetto alla distanza, con zoom/scorrimento propri e indipendenti (trascina i due cursori di distanza sottostanti — finestra minima di 50 m). Può essere **scaricato come SVG** (la piccola icona sopra il grafico), un formato che non dipende da questa app per essere visualizzato o modificato in seguito.
 
 ## Probabilità di colpire
 
-Stima la probabilità di colpire un bersaglio per uno scenario di tiro
-scelto, combinando il tuo fucile e la tua carica con la tua precisione di
-tiro e l'incertezza nella stima di distanza, temperatura, pressione e
-vento. **Ancora in sviluppo attivo** — sono previsti altri scenari e
-bersagli; considera i risultati come indicativi, non come una previsione
-certificata.
+Stima la probabilità di colpire un bersaglio per uno scenario di tiro scelto, combinando il tuo fucile e la tua carica con la tua precisione di tiro e l'incertezza nella stima di distanza, temperatura, pressione e vento. **Ancora in sviluppo attivo** — sono previsti altri scenari e bersagli; considera i risultati come indicativi, non come una previsione certificata.
 
-**Fucile e proiettile** mostra lo stesso riepilogo di Traiettoria — la
-configurazione attiva impostata in **Armi**; usa **Cambia** per sceglierla o
-modificarla.
+**Fucile e proiettile** mostra lo stesso riepilogo di Traiettoria — la configurazione attiva impostata in **Armi**; usa **Cambia** per sceglierla o modificarla.
 
 **Incertezza** imposta l'ampiezza di ogni fonte di errore:
 
-- **Errori propri** — costanza della velocità alla volata (deviazione
-  standard), e in dettaglio la precisione dell'arma da banco + l'abilità del
-  tiratore + la posizione di tiro, oppure un unico valore di precisione
-  combinata semplificato (una dimensione di gruppo e la sua convenzione:
-  ES-5, ES-10, R50 o R99).
-- **Errori di condizione** — errore di stima di distanza, temperatura,
-  pressione e vento; se **Bersaglio in movimento** è selezionato, anche la
-  velocità laterale del bersaglio e il tuo errore nello stimarla.
+- **Errori propri** — costanza della velocità alla volata (deviazione standard), e in dettaglio la precisione dell'arma da banco + l'abilità del tiratore + la posizione di tiro, oppure un unico valore di precisione combinata semplificato (una dimensione di gruppo e la sua convenzione: ES-5, ES-10, R50 o R99).
+- **Errori di condizione** — errore di stima di distanza, temperatura, pressione e vento; se **Bersaglio in movimento** è selezionato, anche la velocità laterale del bersaglio e il tuo errore nello stimarla.
 
-**Simulazione** imposta la distanza, il bersaglio, l'atmosfera (temperatura,
-pressione, altitudine, umidità), un azzeramento da combattimento opzionale
-(fucile azzerato a una distanza diversa dal bersaglio) e uno scostamento del
-punto di mira.
+**Simulazione** imposta la distanza, il bersaglio, l'atmosfera (temperatura, pressione, altitudine, umidità), un azzeramento da combattimento opzionale (fucile azzerato a una distanza diversa dal bersaglio) e uno scostamento del punto di mira.
 
 **Scenari:**
 
-- **Colpo singolo** — un solo colpo; ogni fonte di errore proprio e di
-  condizione si applica direttamente.
-- **Colpo corretto da osservatore** — viene sparato un colpo di prova e il
-  suo impatto viene comunicato da un osservatore, annullando in media lo
-  scostamento sistematico; l'errore residuo del colpo corretto è la propria
-  dispersione più l'imprecisione della correzione dell'osservatore. Gli
-  errori di condizione non si ripresentano nel colpo corretto, poiché la
-  comunicazione dell'osservatore tiene già conto del loro effetto sul colpo
-  di prova.
+- **Colpo singolo** — un solo colpo; ogni fonte di errore proprio e di condizione si applica direttamente.
+- **Colpo corretto da osservatore** — viene sparato un colpo di prova e il suo impatto viene comunicato da un osservatore, annullando in media lo scostamento sistematico; l'errore residuo del colpo corretto è la propria dispersione più l'imprecisione della correzione dell'osservatore. Gli errori di condizione non si ripresentano nel colpo corretto, poiché la comunicazione dell'osservatore tiene già conto del loro effetto sul colpo di prova.
 
-**Bersagli** — una piastra 40 × 60 cm (una singola zona colpito/mancato) e
-il bersaglio ISSF 300 m (dieci anelli di punteggio). Sono previsti altri
-bersagli.
+**Bersagli** — una piastra 40 × 60 cm (una singola zona colpito/mancato) e il bersaglio ISSF 300 m (dieci anelli di punteggio). Sono previsti altri bersagli.
 
-**I risultati** mostrano la probabilità di colpire totale, la probabilità
-per zona, il punteggio come percentuale del massimo, una tabella del
-contributo orizzontale/verticale/totale di ogni fonte di errore, e
-un'illustrazione del bersaglio con una nuvola di impatti di esempio, il
-punto medio di impatto e l'ellisse al 95% — scaricabile come SVG.
+**I risultati** mostrano la probabilità di colpire totale, la probabilità per zona, il punteggio come percentuale del massimo, una tabella del contributo orizzontale/verticale/totale di ogni fonte di errore, e un'illustrazione del bersaglio con una nuvola di impatti di esempio, il punto medio di impatto e l'ellisse al 95% — scaricabile come SVG.
 
 ## Calcolatore per il poligono
 
-Una soluzione rapida per una singola distanza: i valori da impostare per un
-colpo, subito, abbastanza grandi da leggersi a distanza di un braccio o
-sotto il sole diretto — non una tabella, non un'analisi. Il suo intero
-obiettivo di progettazione è mostrare solo ciò che serve nel momento in cui
-si regola l'ottica: nessuna intestazione, nessun elemento superfluo oltre a
-una piccola navigazione, nessun numero che non si sta per usare.
+Una soluzione rapida per una singola distanza: i valori da impostare per un colpo, subito, abbastanza grandi da leggersi a distanza di un braccio o sotto il sole diretto — non una tabella, non un'analisi. Il suo intero obiettivo di progettazione è mostrare solo ciò che serve nel momento in cui si regola l'ottica: nessuna intestazione, nessun elemento superfluo oltre a una piccola navigazione, nessun numero che non si sta per usare.
 
-Aprendolo, la normale navigazione dell'app viene sostituita dalla propria —
-**Bersaglio**, **Vento**, **Atmosfera**, **Armi** (porta a Personalizzato/
-Arsenale; "Fatto" riporta qui) ed **Esci dal calcolatore** (torna sempre
-alla Home). Su un telefono o tablet che lo supporta, lo schermo viene
-impedito di spegnersi finché il Calcolatore per il poligono è aperto, così
-non si oscura a metà di una serie di colpi.
+Aprendolo, la normale navigazione dell'app viene sostituita dalla propria — **Bersaglio**, **Vento**, **Atmosfera**, **Armi** (porta a Personalizzato/Arsenale; "Fatto" riporta qui) ed **Esci dal calcolatore** (torna sempre alla Home). Su un telefono o tablet che lo supporta, lo schermo viene impedito di spegnersi finché il Calcolatore per il poligono è aperto, così non si oscura a metà di una serie di colpi.
 
-- **Bersaglio** — distanza e angolo della linea di mira, inseriti a mano,
-  oppure scelti dall'elenco bersagli di una postazione salvata — vedi
-  **Postazioni e bersagli** più sotto.
-- **Vento** — velocità (grande selettore +/−) e direzione (la stessa
-  manopola usata altrove, qui ingrandita).
-- **Atmosfera** — temperatura, pressione, altitudine, umidità e preimpostazioni
-  — gli stessi campi di Traiettoria, senza il vento, che qui ha una scheda
-  propria.
+- **Bersaglio** — distanza e angolo della linea di mira, inseriti a mano (l'icona della fotocamera accanto all'angolo lo misura — vedi **Clinometro con fotocamera** in Utilità più sotto), oppure scelti dall'elenco bersagli di una postazione salvata — vedi **Postazioni e bersagli**, anch'esso in Utilità.
+- **Vento** — velocità (grande selettore +/−) e direzione (la stessa manopola usata altrove, qui ingrandita).
+- **Atmosfera** — temperatura, pressione, altitudine, umidità e preimpostazioni — gli stessi campi di Traiettoria, senza il vento, che qui ha una scheda propria.
 
-**Il risultato** si ricalcola in tempo reale a ogni modifica di un campo —
-senza pulsante Calcola. Elevazione e vento vengono mostrati in click interi
-(secondo le impostazioni di click del fucile attivo definite in Armi),
-ciascuno preceduto da un indicatore di direzione: su/giù per l'elevazione,
-sinistra/destra per il vento. Scegli tra una freccia o un segno **+ / −**
-(Impostazioni → **Indicatori di output del Calcolatore per il poligono**) —
-**+** significa sempre regolare verso l'alto o verso destra. Una piccola
-riga in fondo aggiunge tempo di volo, velocità residua ed energia residua.
-Una barra riassuntiva delle condizioni sopra la lettura mostra distanza,
-vento e atmosfera a colpo d'occhio, così sai sempre per cosa è stata
-regolata una certa elevazione/deriva. Se un campo è in fase di modifica (ad
-esempio momentaneamente vuoto), la lettura mostra un semplice **—** invece
-di un risultato errato.
+**Il risultato** si ricalcola in tempo reale a ogni modifica di un campo — senza pulsante Calcola. Elevazione e vento vengono mostrati in click interi, secondo le impostazioni di click del fucile attivo definite in Armi, oppure, se preferisci, in mrad o MOA (Impostazioni → **Output del Calcolatore per il poligono**), ciascuno preceduto da un indicatore di direzione: su/giù per l'elevazione, sinistra/destra per il vento. Scegli tra una freccia o un segno **+ / −** (Impostazioni → **Indicatori di output del Calcolatore per il poligono**) — **+** significa sempre regolare verso l'alto o verso destra. Una piccola riga in fondo aggiunge tempo di volo, velocità residua ed energia residua. Una barra riassuntiva delle condizioni sopra la lettura mostra distanza, vento e atmosfera a colpo d'occhio, così sai sempre per cosa è stata regolata una certa elevazione/deriva. Se un campo è in fase di modifica (ad esempio momentaneamente vuoto), la lettura mostra un semplice **—** invece di un risultato errato.
 
-Usa lo stesso fucile, cartuccia e proiettile attivi di Traiettoria e
-Probabilità di colpire (impostati in **Armi**) e lo stesso azzeramento —
-qui non c'è un'impostazione separata di azzeramento da combattimento.
+Usa lo stesso fucile, cartuccia e proiettile attivi di Traiettoria e Probabilità di colpire (impostati in **Armi**) e lo stesso azzeramento — qui non c'è un'impostazione separata di azzeramento da combattimento.
 
 ### Vista cannocchiale
 
 Quando l'arma attiva ha un cannocchiale dell'Arsenale (Armi → Arsenale → arma → Ottica), all'estremità destra della barra delle condizioni compare un pulsante reticolo. Mostra il reticolo dell'arma come si vede in quel cannocchiale, sopra una lettura ridotta. L'impostazione viene ricordata.
 
 - **Punto di mira** — l'anello indica dove mettere il bersaglio. **Correzione a reticolo** mostra tutta la correzione presa sul reticolo, niente in torretta; **Elevazione in torretta** presuppone l'elevazione impostata in torretta e mostra solo la correzione per il vento, sull'asse orizzontale. In **Correzione a reticolo**, sottili linee collegano il punto ai due assi, per leggere la correzione sulle tacche. Se il punto cade fuori dal campo visivo, una freccia sul bordo ne indica la direzione. Il primo pulsante nell'angolo in basso a sinistra nasconde o mostra il punto e la freccia.
-- **Anello degli ingrandimenti** — la scala accanto al reticolo imposta l'ingrandimento sull'escursione reale del cannocchiale, con una tacca a ogni ingrandimento intero. Trascinala, toccala o usa i tasti freccia (Pagina su / Pagina giù per passi interi). Un cannocchiale a ingrandimento fisso non ha l'anello.
+- **Anello degli ingrandimenti** — la scala accanto o sotto il reticolo imposta l'ingrandimento sull'escursione reale del cannocchiale, con una tacca a ogni ingrandimento intero. Impostazioni → **Anello di ingrandimento della vista cannocchiale** stabilisce dove sta: **Automatico**, il predefinito, lo mette sotto il reticolo su uno smartphone in verticale, così il reticolo ha tutta la larghezza, e accanto altrimenti. Trascinala, toccala o usa i tasti freccia (Pagina su / Pagina giù per passi interi). Un cannocchiale a ingrandimento fisso non ha l'anello.
 - **Secondo piano focale** — le suddivisioni sono esatte a un solo ingrandimento. È evidenziato sull'anello, che vi si aggancia entro il 5 %. A ogni altro ingrandimento una nota indica quanto valgono le suddivisioni, e il punto si sposta dove la correzione cade sul reticolo a quell'ingrandimento.
 - **Zoom sul reticolo** — su un cannocchiale a ingrandimento fisso, un pulsante lente in basso a destra ingrandisce l'intera vista oltre l'ingrandimento del cannocchiale. Si apre all'ingrandimento in cui il reticolo riempie la vista (5× per un reticolo fatto solo di barre), e − / + accanto regolano da 1× a 10×, per ingrandimenti interi e per quel valore. L'indicazione sopra mostra l'ingrandimento del cannocchiale e quello aggiunto, ad es. «4× 3.4×»; l'ultima impostazione resta per cannocchiale fino al ricaricamento della pagina. Suddivisioni e correzioni restano invariate; solo l'immagine è più grande.
 - **Distanze BDC** — su un reticolo con tacche BDC, il secondo pulsante nell'angolo in basso a sinistra indica su ogni tacca la distanza a cui corrisponde, calcolata per le condizioni attuali, l'angolo della linea di mira e il vento frontale o in coda (e, su un cannocchiale in secondo piano focale, per l'ingrandimento impostato). Un punto al livello della tacca mostra dove mirare, spostato lateralmente dalla deriva giroscopica se attiva. In **Elevazione in torretta**, il centro corrisponde alla distanza del bersaglio, con la sua elevazione già in torretta, e ogni tacca sotto a quell'elevazione più la propria. Impostazioni → **Visualizzazione distanze BDC** stabilisce dove compaiono le distanze. **Etichette collegate**, il predefinito, le mette in una colonna a destra, ciascuna all'altezza della sua tacca e unita a essa da una linea sottile che evita le altre linee, i numeri e le correzioni per il vento: dalla tacca quando c'è spazio, altrimenti dalla fine della sua fila di correzioni. I numeri che si sovrapporrebbero passano in una seconda colonna, poi rimpiccioliscono. **Sotto** mette ogni distanza sotto la sua tacca. **Lato vento** la mette accanto alla tacca, dal lato da cui viene il vento (a destra senza vento laterale), e lì omette le correzioni per il vento opposto. Dove le distanze si sovrapporrebbero ancora, alcune vengono omesse; ingrandisci per vederle. L'impostazione viene ricordata.
 - **Correzioni per il vento** — il terzo pulsante nell'angolo in basso a sinistra, offerto finché il punto di mira o le distanze BDC sono visibili, aggiunge i punti di correzione per vento laterale da entrambi i lati: un punto per ogni quarto di un vento di riferimento fino a una volta e mezza, il riferimento più grande. Con le distanze BDC attive stanno al livello di ogni tacca, accanto al suo punto; altrimenti al livello del punto di mira, attorno a un punto per la mira senza vento laterale. Il vento di riferimento è 4 m/s, 10 mph, 10 km/h o 10 ft/s, secondo l'unità di velocità del vento scelta, ed è indicato sopra i pulsanti finché le correzioni sono visibili. Tutti e tre i pulsanti vengono ricordati.
 - **Colore e forma della sovrapposizione** — tutto ciò che è disegnato sul reticolo (il punto di mira, le sue linee, la freccia, le distanze BDC e le correzioni per il vento) è vermiglio o blu (Impostazioni → **Colore della sovrapposizione al reticolo**). **Automatico**, il predefinito, usa il vermiglio, e il blu su un reticolo illuminato in rosso o ambra. Impostazioni → **Forma della sovrapposizione al reticolo** disegna le correzioni come punti, o come tacche verticali (quella del vento di riferimento più lunga e spessa), con ogni punto di mira come piccola croce.
 
-### Postazioni e bersagli
-
-Facoltativo: salva una volta i bersagli di una postazione di tiro — la loro
-distanza e angolo della linea di mira e, se aggiungi una foto scattata
-dalla posizione di tiro, dove si trova ciascuno su di essa — poi richiamali
-direttamente dalla scheda Bersaglio nelle visite successive, invece di
-regolare distanza e angolo a mano ogni volta. Vento e atmosfera non fanno
-mai parte di un bersaglio salvato, solo distanza, angolo e (con una foto)
-posizione.
-
-La riga **Postazioni e bersagli** della scheda Bersaglio mostra il nome
-della postazione attuale (niente, se non ne stai usando una), un menu a
-tendina dei suoi bersagli, e fino a tre icone:
-
-- Un'icona a forma di cornice fotografica, **Scegli bersaglio dalla foto**
-  (visibile solo quando la postazione attuale ha una foto) — apre quella
-  foto a schermo intero; tocca il segnalino di un bersaglio già
-  posizionato per selezionarlo subito, oppure un chip (impilati in alto a
-  sinistra) per uno non ancora posizionato sulla foto. Non cambia nulla
-  finché non ne tocchi uno.
-- Un'icona di sincronizzazione, **Aggiorna questo bersaglio con la
-  distanza/l'angolo attuali** — appare quando la distanza/l'angolo
-  attualmente regolati non corrispondono più ai valori salvati del
-  bersaglio selezionato (ad esempio se hai regolato la distanza a mano
-  dopo averlo scelto). Aggiorna il bersaglio salvato in modo che
-  corrisponda a ciò che è attualmente regolato.
-- **Gestisci postazioni** — apre la libreria Postazioni e bersagli stessa
-  (più sotto). "Fatto" lì ti riporta a questa scheda.
-
-Scegliere un bersaglio (menu, foto o chip) copia la sua distanza e angolo
-nella scheda Bersaglio come modifica libera e occasionale, non un
-collegamento permanente — puoi comunque regolare in seguito i valori
-impostati a mano senza toccare il bersaglio salvato (a questo serve
-l'icona di sincronizzazione sopra, se vuoi mantenerlo sincronizzato).
-
-**Gestire le postazioni.** La schermata della libreria divide le tue
-postazioni in **Postazione attuale** (quella attiva, o **Nessuna postazione
-— bersaglio singolo, inserimento manuale** se nessuna lo è) e **Postazioni
-conosciute** (tutte le altre). Toccare una postazione conosciuta la attiva
-— la sposta in Postazione attuale e scorre fino a lì — senza uscire da
-questa schermata. Solo la postazione attuale mostra **Modifica** e il suo
-elenco bersagli; ogni postazione, attuale o conosciuta, mostra **Backup su
-file** ed **Elimina**. **Backup della libreria su file…** / **Carica backup
-da file…**, in alto, eseguono il backup o ripristinano l'intera libreria
-in una volta, allo stesso modo dell'Arsenale per fucili e proiettili.
-
-Una postazione ha un nome, un'altitudine facoltativa (se impostata,
-attivare la postazione compila la scheda Atmosfera con l'atmosfera
-standard a quell'altitudine e il 50% di umidità — ma solo se non hai già
-modificato tu stesso i valori atmosferici in questa sessione), e una foto
-facoltativa. Ciascuno dei suoi bersagli ha un nome (facoltativo — di
-default "Bersaglio 1", "Bersaglio 2", ecc.), note, distanza e angolo della
-linea di mira.
-
-**Posizionare un bersaglio sulla foto.** Una volta che una postazione ha
-una foto, ciascuno dei suoi bersagli riceve un pulsante **Posiziona**
-(nella sua riga, e nel proprio modulo di modifica) che apre la foto a
-schermo intero per quel bersaglio: tocca o trascina per posizionare il suo
-segnalino, trascina uno spazio vuoto per spostare la vista, pizzica (oppure
-usa i pulsanti **Ingrandisci** / **Riduci** della barra di navigazione) per
-zoomare. Ogni altro bersaglio già posizionato sulla stessa foto appare come
-un piccolo punto etichettato con nome, distanza e angolo, così puoi
-posizionare quello nuovo rispetto a loro. **Rimuovi segnalino** annulla il
-posizionamento; "Fatto" lo salva e torna alla libreria. Un bersaglio non
-ancora posizionato sulla foto (su una postazione che ne ha una) mostra un
-badge **Non posizionato** nella sua riga, come promemoria.
-
 ## Armi
 
-Il fucile, la cartuccia e il proiettile usati da ogni strumento che ne ha
-bisogno — attualmente **Traiettoria** e **Probabilità di colpire**. Ovunque
-uno strumento abbia bisogno di questa configurazione, mostra un breve
-riepilogo (nome, origine, velocità alla volata) con un pulsante **Cambia**
-che porta qui; ciò che scegli o modifichi si applica ovunque e **persiste
-dopo un riavvio**.
+Il fucile, la cartuccia e il proiettile usati da ogni strumento che ne ha bisogno — **Traiettoria**, **Calcolatore per il poligono**, **Probabilità di colpire** e **Sessione di taratura**. Ovunque uno strumento abbia bisogno di questa configurazione, mostra un breve riepilogo (nome, origine, velocità alla volata) con un pulsante **Cambia** che porta qui; ciò che scegli o modifichi si applica ovunque e **persiste dopo un riavvio**.
 
-**Cambia** ti porta a quale dei due tab sottostanti corrisponde all'origine
-del fucile attivo — **Arsenale** se è uno dei tuoi fucili salvati,
-**Personalizzato** altrimenti. Su mobile, aprendo Armi la barra inferiore
-viene sostituita da **Personalizzato** / **Arsenale** / **Fatto**; su
-desktop, la barra laterale cambia allo stesso modo. **Fatto** ti riporta
-allo strumento da cui sei arrivato.
+**Cambia** ti porta a quale dei due tab sottostanti corrisponde all'origine del fucile attivo — **Arsenale** se è uno dei tuoi fucili salvati, **Personalizzato** altrimenti. Su mobile, aprendo Armi la barra inferiore viene sostituita da **Personalizzato** / **Arsenale** / **Fatto**; su desktop, la barra laterale cambia allo stesso modo. **Fatto** ti riporta allo strumento da cui sei arrivato.
 
 ### Personalizzato
 
-Scegli un fucile integrato, uno dei tuoi fucili dell'Arsenale, oppure
-inserisci un fucile e un proiettile interamente a mano — tutte e tre le
-opzioni vivono nello stesso modulo. Alcuni campi meritano una spiegazione:
+Scegli un fucile integrato, uno dei tuoi fucili dell'Arsenale, oppure inserisci un fucile e un proiettile interamente a mano — tutte e tre le opzioni vivono nello stesso modulo. Alcuni campi meritano una spiegazione:
 
-- **Distanza di azzeramento** — la distanza a cui il fucile è azzerato. Il
-  motore calcola da sé l'angolo di lancio che porta il proiettile sulla
-  linea di mira a questa distanza; l'angolo non si imposta manualmente.
-- **Velocità alla volata in funzione della temperatura** — modella
-  facoltativamente come la velocità alla volata di una cartuccia varia con
-  la temperatura della polvere, invece di usare un valore fisso.
-- **Resistenza del proiettile** — un coefficiente balistico (BC) con un
-  modello di resistenza standard (G1, G7 e altri — vedi
-  **Impostazioni**), oppure, per i proiettili di libreria che ne
-  dispongono, una tabella Cd-Mach misurata direttamente (più
-  precisa, senza BC).
+- **Distanza di azzeramento** — la distanza a cui il fucile è azzerato. Il motore calcola da sé l'angolo di lancio che porta il proiettile sulla linea di mira a questa distanza; l'angolo non si imposta manualmente.
+- **Velocità alla volata in funzione della temperatura** — modella facoltativamente come la velocità alla volata di una cartuccia varia con la temperatura della polvere, invece di usare un valore fisso.
+- **Resistenza del proiettile** — un coefficiente balistico (BC) con un modello di resistenza standard (G1, G7 e altri — vedi **Impostazioni**), oppure, per i proiettili di libreria che ne dispongono, una tabella Cd-Mach misurata direttamente (più precisa, senza BC).
 
-**Aggiungi fucile all'arsenale** / **Aggiungi proiettile all'arsenale**,
-accanto ai rispettivi campi, salvano la voce corrente nella tua libreria
-Arsenale (sotto) per il riutilizzo.
+**Aggiungi fucile all'arsenale** / **Aggiungi proiettile all'arsenale**, accanto ai rispettivi campi, salvano la voce corrente nella tua libreria Arsenale (sotto) per il riutilizzo.
 
 ### Arsenale
 
-Vedi il [manuale dettagliato](#/manual/arsenal) per il riferimento completo
-— ogni campo, le regole delle unità e l'integrazione con il Calcolatore di
-precisione di tiro.
+Vedi il [manuale dettagliato](#/manual/arsenal) per il riferimento completo — ogni campo, le regole delle unità e l'integrazione con il Calcolatore di precisione di tiro.
 
-La tua libreria personale di fucili e proiettili, memorizzata solo su
-questo dispositivo (archiviazione locale del browser) — nulla qui lascia
-mai il tuo browser.
+La tua libreria personale di fucili, proiettili, ottiche e reticoli, memorizzata solo su questo dispositivo (archiviazione del browser) — nulla qui lascia mai il tuo browser. È divisa in tre schede: **Fucili** (con il confronto e il fucile attivo), **Proiettili** e **Ottiche**, che contiene le tue ottiche e i reticoli disegnati nel **Progettista di reticoli** (vedi **Utilità** più sotto). Un fucile può indicare un'ottica e uno dei suoi reticoli: scegliere l'ottica ne copia i valori di click nel fucile e dà al Calcolatore per il poligono la sua **Vista cannocchiale**.
 
-**Librerie integrate.** L'app include una libreria integrata di fucili e
-quattro librerie integrate di proiettili — **Geladen's own** (la collezione
-dell'autore), **Lapua Cd** (curve Cd-Mach misurate al radar da Lapua, come
-pubblicate dal produttore), **Hornady Reverse Radar** (curve Cd-Mach
-personalizzate, ricavate tramite reverse engineering dall'output del
-calcolatore Hornady 4DOF) e **Swiss P** (curve Cd-Mach e BC G7 supersonici
-ottimali, ricavati tramite reverse engineering dalle tabelle di traiettoria
-pubblicate da Swiss P) — mostrate accanto a tutto ciò che aggiungi tu
-stesso (le tue voci personali sono contrassegnate da un "*" iniziale).
-Ciascuna può essere **disattivata singolarmente in Impostazioni** se non
-vuoi che affollino i tuoi elenchi di selezione; le tue voci salvate non ne
-sono influenzate in nessun caso.
+**Librerie integrate.** L'app include una libreria integrata di fucili e otto librerie integrate di proiettili — **Geladen's own** (la collezione dell'autore), **Lapua Cd** (curve Cd-Mach misurate al radar da Lapua, come pubblicate dal produttore), **Hornady Reverse Radar** (curve Cd-Mach personalizzate, ricavate tramite reverse engineering dall'output del calcolatore Hornady 4DOF), altre tre ricavate allo stesso modo per proiettili **Berger**, **Sierra** e **Lapua**, **Berger published BC** (BC come pubblicati sul sito di Berger) e **Swiss P** (curve Cd-Mach e BC G7 supersonici ottimali, ricavati tramite reverse engineering dalle tabelle di traiettoria pubblicate da Swiss P) — mostrate accanto a tutto ciò che aggiungi tu stesso (le tue voci personali sono contrassegnate da un "*" iniziale). Ciascuna può essere **disattivata singolarmente in Impostazioni** se non vuoi che affollino i tuoi elenchi di selezione; le tue voci salvate non ne sono influenzate in nessun caso. La scheda Ottiche mostra anche, accanto alle tue, ottiche e reticoli integrati — generici, e modelli di Schmidt & Bender, Horus, FinnAccuracy, Element Optics e Trijicon; questi sono sempre visibili.
 
-**Aggiungere e gestire le voci.** Aggiungi un proiettile completamente da
-zero (nome, calibro, massa, BC/modello di resistenza o una tabella Cd-Mach
-incollata) oppure copiando un proiettile integrato e modificandolo. Aggiungi
-un fucile con la propria altezza ottica, distanza di azzeramento e valori
-dei click, quindi collega una o più cartucce (ciascuna con il proprio
-proiettile e la propria velocità alla volata). Fai clic su un fucile per
-renderlo il "Fucile attivo" mostrato in alto, con le sue cartucce e un
-pulsante Modifica; la cartuccia scelta lì è quella che "Fatto" applica come
-configurazione attiva ovunque, una volta usciti da Armi. Il campo produttore
-si completa automaticamente attingendo a ogni libreria attiva più il tuo
-Arsenale personale.
+**Aggiungere e gestire le voci.** Aggiungi un proiettile completamente da zero (nome, calibro, massa, BC/modello di resistenza o una tabella Cd-Mach incollata) oppure copiando un proiettile integrato e modificandolo. Aggiungi un fucile con la propria altezza ottica, distanza di azzeramento e valori dei click, quindi collega una o più cartucce (ciascuna con il proprio proiettile e la propria velocità alla volata). Fai clic su un fucile per renderlo il "Fucile attivo" mostrato in alto, con le sue cartucce e un pulsante Modifica; la cartuccia scelta lì è quella che "Fatto" applica come configurazione attiva ovunque, una volta usciti da Armi. Il campo produttore si completa automaticamente attingendo a ogni libreria attiva più il tuo Arsenale personale.
 
-I filtri per calibro e produttore riducono elenchi lunghi. Un proiettile o
-un fucile modificato ma non ancora esportato mostra un badge "Non salvato".
+I filtri per calibro e produttore riducono elenchi lunghi. Un proiettile o un fucile modificato ma non ancora esportato mostra un badge "Non salvato".
 
-**Salvare e caricare la libreria.** Poiché nulla risiede su un server, la
-tua libreria è sicura quanto lo è l'archiviazione locale del tuo browser.
-**Salva su file** (per singolo fucile/proiettile, oppure "Salva libreria…"
-per un'esportazione a selezione multipla) scrive un file JSON che puoi
-salvare come backup o trasferire su un altro dispositivo; **Carica
-libreria…** lo reimporta, con una scelta per ciascun elemento su come
-risolvere i conflitti di nome (sovrascrivi, sovrascrivi solo se più recente,
-oppure mantieni entrambi).
+**Salvare e caricare la libreria.** Poiché nulla risiede su un server, la tua libreria è sicura quanto lo è l'archiviazione locale del tuo browser. **Salva su file** (per singolo fucile/proiettile, oppure "Salva libreria…" per un'esportazione a selezione multipla) scrive un file JSON che puoi salvare come backup o trasferire su un altro dispositivo; **Carica libreria…** lo reimporta, con una scelta per ciascun elemento su come risolvere i conflitti di nome (sovrascrivi, sovrascrivi solo se più recente, oppure mantieni entrambi).
 
-**Confronto.** Contrassegna fino a due delle tue configurazioni
-fucile+cartuccia salvate "per il confronto" (dalla riga di ciascun fucile).
-Una volta contrassegnate due configurazioni, appare una sezione Confronto
-con un grafico condiviso che traccia le traiettorie di entrambe le
-configurazioni per la stessa colonna e la stessa finestra di distanza —
-utile per confrontare direttamente due cariche, o due fucili. Come il
-grafico di Traiettoria, ha zoom/scorrimento propri e può essere **scaricato
-come SVG**.
+**Confronto.** Contrassegna fino a due delle tue configurazioni fucile+cartuccia salvate "per il confronto" (dalla riga di ciascun fucile). Una volta contrassegnate due configurazioni, appare una sezione Confronto con un grafico condiviso che traccia le traiettorie di entrambe le configurazioni per la stessa colonna e la stessa finestra di distanza — utile per confrontare direttamente due cariche, o due fucili. Come il grafico di Traiettoria, ha zoom/scorrimento propri e può essere **scaricato come SVG**.
 
 ## Strumenti BC
 
-Calcola un coefficiente balistico da dati noti, oppure converte un BC tra
-modelli diversi — raggruppati in un unico strumento con le schede
-**Calcolo BC**, **Conversione BC**, **BC multipli** e **Labrabaco NG**, già
-tutte pienamente utilizzabili.
+Calcola un coefficiente balistico da dati noti, oppure converte un BC tra modelli diversi — raggruppati in un unico strumento con le schede **Calcolo BC**, **Conversione BC**, **BC multipli** e **Labrabaco NG**, già tutte pienamente utilizzabili.
 
-Il **Calcolo BC** ricava un coefficiente balistico da una coppia
-velocità/distanza vicina e da una velocità lontana oppure da un tempo di
-volo misurato tra le due distanze, più un modello di resistenza (G1/G7) e
-l'atmosfera. Passa tra le modalità di inserimento **Velocità** e **Tempo di
-volo** a seconda di cosa hai misurato (ad es. due letture al cronografo,
-oppure una singola misura di tempo di volo su una distanza nota) — tutto il
-resto (velocità vicina, entrambe le distanze, modello di resistenza,
-atmosfera) resta invariato in entrambi i casi. Utile quando hai misurato
-una perdita di velocità reale, o un tempo di volo reale, su una distanza
-nota e vuoi il BC che lo spiega, invece di affidarti a un valore pubblicato.
+Il **Calcolo BC** ricava un coefficiente balistico da una coppia velocità/distanza vicina e da una velocità lontana oppure da un tempo di volo misurato tra le due distanze, più un modello di resistenza (G1/G7) e l'atmosfera. Passa tra le modalità di inserimento **Velocità** e **Tempo di volo** a seconda di cosa hai misurato (ad es. due letture al cronografo, oppure una singola misura di tempo di volo su una distanza nota) — tutto il resto (velocità vicina, entrambe le distanze, modello di resistenza, atmosfera) resta invariato in entrambi i casi. Utile quando hai misurato una perdita di velocità reale, o un tempo di volo reale, su una distanza nota e vuoi il BC che lo spiega, invece di affidarti a un valore pubblicato.
 
-La **Conversione BC** converte un coefficiente balistico da un modello di
-resistenza standard a un altro, a una singola velocità di riferimento —
-inserisci il modello di origine e il BC, una velocità rappresentativa della
-fascia di distanza che ti interessa, e il modello di destinazione; il
-risultato si aggiorna automaticamente a ogni modifica, senza pulsanti da
-premere. La conversione è esatta a quella velocità e si scosta tanto più
-quanto la velocità reale del tuo proiettile se ne allontana, poiché modelli
-di resistenza diversi hanno curve di forma diversa lungo la gamma di
-velocità. Entrambi gli elenchi dei modelli mostrano sempre tutti i modelli
-standard, indipendentemente da quali siano nascosti altrove nelle
-Impostazioni.
+La **Conversione BC** converte un coefficiente balistico da un modello di resistenza standard a un altro, a una singola velocità di riferimento — inserisci il modello di origine e il BC, una velocità rappresentativa della fascia di distanza che ti interessa, e il modello di destinazione; il risultato si aggiorna automaticamente a ogni modifica, senza pulsanti da premere. La conversione è esatta a quella velocità e si scosta tanto più quanto la velocità reale del tuo proiettile se ne allontana, poiché modelli di resistenza diversi hanno curve di forma diversa lungo la gamma di velocità. Entrambi gli elenchi dei modelli mostrano sempre tutti i modelli standard, indipendentemente da quali siano nascosti altrove nelle Impostazioni.
 
-**BC multipli** trasforma 2-5 valori di BC pubblicati dal produttore,
-ciascuno valido per una propria fascia di velocità, in una curva Cd-Mach
-specifica per questo proiettile — trascina i confini dei segmenti
-direttamente sul grafico, oppure digitali nella tabella sottostante.
-Inserisci massa e calibro (influiscono entrambi direttamente sulla curva
-risultante e sui valori di BC ottimali qui sotto — inseriscili con
-precisione), scegli un modello di resistenza e un'**unità di velocità**, e
-la curva e la tabella dei risultati si aggiornano in tempo reale a ogni
-modifica. Il risultato può essere salvato direttamente nell'Arsenale,
-scaricato/copiato come CSV, oppure letto come un unico BC "di compromesso
-ottimale" per modello, sulla gamma supersonica propria del proiettile.
+**BC multipli** trasforma 2-5 valori di BC pubblicati dal produttore, ciascuno valido per una propria fascia di velocità, in una curva Cd-Mach specifica per questo proiettile — trascina i confini dei segmenti direttamente sul grafico, oppure digitali nella tabella sottostante. Inserisci massa e calibro (influiscono entrambi direttamente sulla curva risultante e sui valori di BC ottimali qui sotto — inseriscili con precisione), scegli un modello di resistenza e un'**unità di velocità**, e la curva e la tabella dei risultati si aggiornano in tempo reale a ogni modifica. Il risultato può essere salvato direttamente nell'Arsenale, scaricato/copiato come CSV, oppure letto come un unico BC "di compromesso ottimale" per modello, sulla gamma supersonica propria del proiettile.
 
-**Labrabaco NG** calcola un BC per ogni colpo a partire da un'esportazione
-del cronografo Labradar — uno **.zip** di file di traccia che il
-dispositivo scrive sulla sua scheda SD, uno per colpo, registrando la
-velocità circa ogni millisecondo durante il volo. Vedi il [manuale
-dettagliato](#/manual/bc-labradar) per il metodo completo, i casi
-particolari e le statistiche dietro i numeri. Scegli un modello di
-resistenza e l'atmosfera (qui non ci sono preimpostazioni — inserisci
-direttamente la tua pressione di stazione/temperatura/umidità), poi scegli
-lo zip; ogni traccia viene analizzata, ripulita dai punti rumorosi/errati e
-adattata automaticamente per ottenere un BC. I file nello zip che non sono
-vere tracce (il report o il file di progetto del dispositivo, o altri file
-estranei) vengono ignorati. Due filtri regolabili scartano le tracce
-inaffidabili prima che vengano mediate: una **soglia di qualità del
-segnale** (quanto bene i punti ripuliti di una traccia seguono una retta) e
-un **rigetto dei valori anomali** (quanto il BC di una traccia si discosta
-dagli altri) — utile per escludere ad esempio una traccia captata da una
-corsia di tiro vicina, o una in cui il radar ha semplicemente ricevuto un
-segnale scadente. Fai clic sulla riga di una traccia per vedere il suo
-grafico velocità-tempo, con i punti mantenuti e quelli scartati mostrati
-separatamente, e deseleziona la casella di una traccia per escluderla
-manualmente dal risultato medio (o riseleziona una traccia scartata dai
-filtri automatici). La pulizia dei punti e l'adattamento del BC
-alla base di tutto questo sono stati calibrati su un corpus di **1.297
-tracce Labradar reali**: il rumore così corretto è stato misurato, non
-ipotizzato.
+**Labrabaco NG** calcola un BC per ogni colpo a partire da un'esportazione del cronografo Labradar — uno **.zip** di file di traccia che il dispositivo scrive sulla sua scheda SD, uno per colpo, registrando la velocità circa ogni millisecondo durante il volo. Vedi il [manuale dettagliato](#/manual/bc-labradar) per il metodo completo, i casi particolari e le statistiche dietro i numeri. Scegli un modello di resistenza e l'atmosfera (qui non ci sono preimpostazioni — inserisci direttamente la tua pressione di stazione/temperatura/umidità), poi scegli lo zip; ogni traccia viene analizzata, ripulita dai punti rumorosi/errati e adattata automaticamente per ottenere un BC. I file nello zip che non sono vere tracce (il report o il file di progetto del dispositivo, o altri file estranei) vengono ignorati. Due filtri regolabili scartano le tracce inaffidabili prima che vengano mediate: una **soglia di qualità del segnale** (quanto bene i punti ripuliti di una traccia seguono una retta) e un **rigetto dei valori anomali** (quanto il BC di una traccia si discosta dagli altri) — utile per escludere ad esempio una traccia captata da una corsia di tiro vicina, o una in cui il radar ha semplicemente ricevuto un segnale scadente. Fai clic sulla riga di una traccia per vedere il suo grafico velocità-tempo, con i punti mantenuti e quelli scartati mostrati separatamente, e deseleziona la casella di una traccia per escluderla manualmente dal risultato medio (o riseleziona una traccia scartata dai filtri automatici). La pulizia dei punti e l'adattamento del BC alla base di tutto questo sono stati calibrati su un corpus di **1.297 tracce Labradar reali**: il rumore così corretto è stato misurato, non ipotizzato.
 
-**Ricorda:** garbage in = garbage out (spazzatura in entrata, spazzatura
-in uscita). L'atmosfera è *molto* importante. Se non conosci l'umidità,
-imposta 50%. Un Kestrel va bene (anche se avrei preferito un termometro
-più preciso). "Dati presi da Internet dalla presunta 'stazione meteo più
-vicina'" non bastano. Assicurati *assolutamente* di usare la pressione
-assoluta (detta anche pressione di stazione), e non un valore corretto
-per l'altitudine (il Kestrel usa in modo fuorviante il termine
-"barometric pressure" per indicare la pressione ridotta al livello del
-mare — questa *non* è quella che vogliamo). In genere, se stai misurando
-1000+ hPa a un'altitudine di 500 m o superiore (29,5 inHg e 1500 ft per i
-nostri amici poco avvezzi al sistema metrico), probabilmente significa o
-che stai leggendo il valore di pressione sbagliato (corretto anziché
-assoluto/di stazione), oppure che la Fine del Mondo è più vicina del
-previsto.
+**Ricorda:** garbage in = garbage out (spazzatura in entrata, spazzatura in uscita). L'atmosfera è *molto* importante. Se non conosci l'umidità, imposta 50%. Un Kestrel va bene (anche se avrei preferito un termometro più preciso). "Dati presi da Internet dalla presunta 'stazione meteo più vicina'" non bastano. Assicurati *assolutamente* di usare la pressione assoluta (detta anche pressione di stazione), e non un valore corretto per l'altitudine (il Kestrel usa in modo fuorviante il termine "barometric pressure" per indicare la pressione ridotta al livello del mare — questa *non* è quella che vogliamo). In genere, se stai misurando 1000+ hPa a un'altitudine di 500 m o superiore (29,5 inHg e 1500 ft per i nostri amici poco avvezzi al sistema metrico), probabilmente significa o che stai leggendo il valore di pressione sbagliato (corretto anziché assoluto/di stazione), oppure che la Fine del Mondo è più vicina del previsto.
 
-**Ricorda #2:** il Labradar ha un'impostazione chiamata "proj. offset";
-definisce la distanza prevista tra la volata e il lato del radar.
-Rispettala (con una tolleranza di -5 cm) — è importante! L'offset si
-riferisce alla distanza dalla canna, *non* dalla volata; tienilo a mente
-se la tua volata non è allineata con il radar, ma leggermente più avanti
-o più indietro.
+**Ricorda #2:** il Labradar ha un'impostazione chiamata "proj. offset"; definisce la distanza prevista tra la volata e il lato del radar. Rispettala (con una tolleranza di -5 cm) — è importante! L'offset si riferisce alla distanza dalla canna, *non* dalla volata; tienilo a mente se la tua volata non è allineata con il radar, ma leggermente più avanti o più indietro.
 
-**Ricorda #3:** un colpo non fa primavera. Ne servono almeno 20 (per
-munizioni da fabbrica decenti) per compensare gli errori. Proiettili
-scadenti di surplus ne richiedono di più (conta almeno 30), mentre con
-proiettili di alta qualità 10 colpi possono bastare. In generale, più
-sono meglio è.
+**Ricorda #3:** un colpo non fa primavera. Ne servono almeno 20 (per munizioni da fabbrica decenti) per compensare gli errori. Proiettili scadenti di surplus ne richiedono di più (conta almeno 30), mentre con proiettili di alta qualità 10 colpi possono bastare. In generale, più sono meglio è.
 
 ## Curva Cd-Mach
 
-Ricava la curva di resistenza propria di un proiettile (Cd in funzione di
-Mach) da una tabella distanza/velocità misurata — ad es. letture radar
-Doppler o multi-cronografo —, risolvendo il coefficiente di resistenza
-segmento per segmento invece di assumere una forma standard G1/G7.
-Funziona meglio con una tabella poco densa (letture al cronografo ogni
-~100 m); anche le tabelle dense (passi di 10-20 m) funzionano, ma l'errore
-di arrotondamento di ogni riga pesa di più sul risultato di quel singolo
-segmento.
+Ricava la curva di resistenza propria di un proiettile (Cd in funzione di Mach) da una tabella distanza/velocità misurata — ad es. letture radar Doppler o multi-cronografo —, risolvendo il coefficiente di resistenza segmento per segmento invece di assumere una forma standard G1/G7. Funziona meglio con una tabella poco densa (letture al cronografo ogni ~100 m); anche le tabelle dense (passi di 10-20 m) funzionano, ma l'errore di arrotondamento di ogni riga pesa di più sul risultato di quel singolo segmento.
 
-**Tabella distanza / velocità** — incolla una coppia distanza/velocità per
-riga (separate da tabulazione, spazio o punto e virgola; punto o virgola
-decimale sono entrambi validi), almeno 3 righe. **Unità della tabella**
-indica se i numeri incollati sono in **Moderne (m, m/s)** o **Arcaiche
-(yd, fps)** — indipendentemente dalla tua preferenza di unità personale,
-poiché le unità dei dati di origine non devono corrispondere a quelle che
-preferisci vedere altrove nell'app.
+**Tabella distanza / velocità** — incolla una coppia distanza/velocità per riga (separate da tabulazione, spazio o punto e virgola; punto o virgola decimale sono entrambi validi), almeno 3 righe. **Unità della tabella** indica se i numeri incollati sono in **Moderne (m, m/s)** o **Arcaiche (yd, fps)** — indipendentemente dalla tua preferenza di unità personale, poiché le unità dei dati di origine non devono corrispondere a quelle che preferisci vedere altrove nell'app.
 
-Sotto la tabella: gli stessi campi di massa e calibro dell'Arsenale, e una
-sezione **Atmosfera** indipendente (predefinita: atmosfera standard al
-livello del mare) — il risolutore necessita di entrambi per simulare una
-traiettoria sintetica su ciascun segmento e ricavare il Cd che riproduce
-la perdita di velocità misurata.
+Sotto la tabella: gli stessi campi di massa e calibro dell'Arsenale, e una sezione **Atmosfera** indipendente (predefinita: atmosfera standard al livello del mare) — il risolutore necessita di entrambi per simulare una traiettoria sintetica su ciascun segmento e ricavare il Cd che riproduce la perdita di velocità misurata.
 
 **Calcola** produce due tabelle:
 
-- **Interpolata** — la curva ricavata, riletta su un insieme fisso e denso
-  di numeri di Mach di riferimento; è quella da usare in seguito (ad es.
-  per il salvataggio nell'Arsenale).
-- **Calcolata (grezza, per segmento)** — i valori per segmento
-  sottostanti, prima dell'interpolazione, nascosti per impostazione
-  predefinita (**Mostra tabella per segmento (calcolata)**).
+- **Interpolata** — la curva ricavata, riletta su un insieme fisso e denso di numeri di Mach di riferimento; è quella da usare in seguito (ad es. per il salvataggio nell'Arsenale).
+- **Calcolata (grezza, per segmento)** — i valori per segmento sottostanti, prima dell'interpolazione, nascosti per impostazione predefinita (**Mostra tabella per segmento (calcolata)**).
 
-Entrambe le tabelle possono essere **scaricate come CSV** o **copiate
-negli appunti** (il separatore di campo/decimale di Impostazioni →
-Esportazione CSV si applica anche qui). Un segmento che il risolutore non
-è riuscito a usare — la velocità non è diminuita, la distanza non è
-aumentata, oppure la risoluzione non è convergente — viene saltato ed
-elencato, senza influire sul resto della tabella.
+Entrambe le tabelle possono essere **scaricate come CSV** o **copiate negli appunti** (il separatore di campo/decimale di Impostazioni → Esportazione CSV si applica anche qui). Un segmento che il risolutore non è riuscito a usare — la velocità non è diminuita, la distanza non è aumentata, oppure la risoluzione non è convergente — viene saltato ed elencato, senza influire sul resto della tabella.
 
-**Il grafico** traccia i punti Calcolata e la curva Interpolata, insieme
-alle curve di riferimento G1 e G7 scalate per corrispondere alla curva
-propria del proiettile a Mach 2.0 — un rapido riscontro visivo di quanto
-la forma di resistenza di questo proiettile sia standard, o meno.
-Scaricabile come SVG, come il grafico di Traiettoria.
+**Il grafico** traccia i punti Calcolata e la curva Interpolata, insieme alle curve di riferimento G1 e G7 scalate per corrispondere alla curva propria del proiettile a Mach 2.0 — un rapido riscontro visivo di quanto la forma di resistenza di questo proiettile sia standard, o meno. Scaricabile come SVG, come il grafico di Traiettoria.
 
-**Salva nell'Arsenale** ti porta al modulo "Aggiungi proiettile"
-dell'Arsenale, con massa, calibro e tabella Cd-Mach precompilati — scegli
-**Calcolata (grezza, per segmento)** o **Interpolata (smussata)** come
-sorgente accanto al pulsante. Attivo solo quando è disponibile un
-risultato.
+**Salva nell'Arsenale** ti porta al modulo "Aggiungi proiettile" dell'Arsenale, con massa, calibro e tabella Cd-Mach precompilati — scegli **Calcolata (grezza, per segmento)** o **Interpolata (smussata)** come sorgente accanto al pulsante. Attivo solo quando è disponibile un risultato.
 
 ## Calcolatore di precisione di tiro
 
-Vedi il [manuale dettagliato](#/manual/rifle-precision) per il
-metodo completo, i casi particolari e le statistiche dietro i numeri.
+Vedi il [manuale dettagliato](#/manual/rifle-precision) per il metodo completo, i casi particolari e le statistiche dietro i numeri.
 
-Misura la precisione reale del fucile a partire da foto di bersagli di
-carta — niente telemetro laser né attrezzatura sofisticata, solo la foto di
-un righello e dei tuoi fori di proiettile scattata con il telefono.
-Organizza il lavoro in **Progetti** (una combinazione fucile/carica/
-distanza) → **Bersagli** (una foto ciascuno) → **Gruppi** (un punto di mira
-e i colpi sparati su di esso) — e raggruppa ogni gruppo utilizzabile di
-ogni bersaglio utilizzabile di un progetto in un unico rapporto di
-precisione combinato.
+Misura la precisione reale del fucile a partire da foto di bersagli di carta — niente telemetro laser né attrezzatura sofisticata, solo la foto di un righello e dei tuoi fori di proiettile scattata con il telefono. Organizza il lavoro in **Progetti** (una combinazione fucile/carica/distanza) → **Bersagli** (una foto ciascuno) → **Gruppi** (un punto di mira e i colpi sparati su di esso) — e raggruppa ogni gruppo utilizzabile di ogni bersaglio utilizzabile di un progetto in un unico rapporto di precisione combinato.
 
-**Progetti.** Un progetto ha un nome, la distanza dal bersaglio e il
-calibro — ogni bersaglio e gruppo al suo interno si presume sparato a
-quella stessa distanza con quello stesso calibro. **Backup su file** /
-**Backup della libreria su file…** / **Carica backup da file…**, in alto e
-per singolo progetto, eseguono il backup o ripristinano i progetti allo
-stesso modo dell'Arsenale per fucili e proiettili — nulla qui lascia mai il
-tuo browser.
+**Progetti.** Un progetto ha un nome, la distanza dal bersaglio e il calibro — ogni bersaglio e gruppo al suo interno si presume sparato a quella stessa distanza con quello stesso calibro. **Backup su file** / **Backup della libreria su file…** / **Carica backup da file…**, in alto e per singolo progetto, eseguono il backup o ripristinano i progetti allo stesso modo dell'Arsenale per fucili e proiettili — nulla qui lascia mai il tuo browser.
 
-**Aggiungere un bersaglio.** Scegli una foto del foglio bersaglio (ruotala
-se necessario, poi conferma), il che apre direttamente la fase di
-marcatura:
+**Aggiungere un bersaglio.** Scegli una foto del foglio bersaglio (ruotala se necessario, poi conferma), il che apre direttamente la fase di marcatura:
 
-- **Calibra la scala** — tocca due punti a distanza nota tra loro (un
-  righello appoggiato sul bersaglio, o qualsiasi elemento di lunghezza
-  nota), poi digita quella lunghezza reale. **Fine calibrazione** procede;
-  **Ricalibra** permette di rivedere la calibrazione in seguito senza
-  perdere i punti già inseriti.
-- **Indica il punto di mira** — tocca il punto verso cui è stato mirato
-  questo gruppo.
-- **Segna i colpi** — tocca ogni foro di proiettile; continua a toccare per
-  aggiungerne altri. Ogni punto posizionato (calibrazione, punto di mira,
-  colpi) può essere trascinato per aggiustarlo in seguito. **Elimina
-  colpo** passa a una modalità in cui toccare il numero di un colpo lo
-  rimuove.
-- Un foglio bersaglio può contenere più **gruppi** (ad es. più di un gruppo
-  da 5 colpi stampati sullo stesso foglio) — passa dall'uno all'altro o
-  avviane uno nuovo dal selettore di gruppo. La riga di ogni gruppo mostra
-  il suo conteggio colpi e l'**ES** (extreme spread, la distanza tra i suoi
-  due impatti più distanti tra loro).
-- **Salva immagine panoramica del gruppo** scarica un PNG del gruppo
-  attualmente attivo così come marcato, ritagliato in base allo
-  zoom/spostamento attuale.
+- **Calibra la scala** — tocca due punti a distanza nota tra loro (un righello appoggiato sul bersaglio, o qualsiasi elemento di lunghezza nota), poi digita quella lunghezza reale. **Fine calibrazione** procede; **Ricalibra** permette di rivedere la calibrazione in seguito senza perdere i punti già inseriti.
+- **Indica il punto di mira** — tocca il punto verso cui è stato mirato questo gruppo.
+- **Segna i colpi** — tocca ogni foro di proiettile; continua a toccare per aggiungerne altri. Ogni punto posizionato (calibrazione, punto di mira, colpi) può essere trascinato per aggiustarlo in seguito. **Elimina colpo** passa a una modalità in cui toccare il numero di un colpo lo rimuove.
+- Un foglio bersaglio può contenere più **gruppi** (ad es. più di un gruppo da 5 colpi stampati sullo stesso foglio) — passa dall'uno all'altro o avviane uno nuovo dal selettore di gruppo. La riga di ogni gruppo mostra il suo conteggio colpi e l'**ES** (extreme spread, la distanza tra i suoi due impatti più distanti tra loro).
+- **Salva immagine panoramica del gruppo** scarica un PNG del gruppo attualmente attivo così come marcato, ritagliato in base allo zoom/spostamento attuale.
 
-Un bersaglio necessita di calibrazione, punto di mira e almeno un colpo per
-essere utilizzabile; se manca qualcosa, un badge e un suggerimento indicano
-esattamente cosa resta da fare.
+Un bersaglio necessita di calibrazione, punto di mira e almeno un colpo per essere utilizzabile; se manca qualcosa, un badge e un suggerimento indicano esattamente cosa resta da fare.
 
-**Il rapporto** (**Vedi rapporto**, disponibile appena almeno un bersaglio
-è utilizzabile) raggruppa ogni colpo di ogni gruppo e bersaglio
-utilizzabile — ciascun colpo misurato rispetto al punto di mira del
-proprio gruppo, così che gruppi mirati in punti diversi del foglio si
-combinino comunque correttamente — in un unico insieme di statistiche:
+**Il rapporto** (**Vedi rapporto**, disponibile appena almeno un bersaglio è utilizzabile) raggruppa ogni colpo di ogni gruppo e bersaglio utilizzabile — ciascun colpo misurato rispetto al punto di mira del proprio gruppo, così che gruppi mirati in punti diversi del foglio si combinino comunque correttamente — in un unico insieme di statistiche:
 
-- Un selettore di **unità di visualizzazione dei risultati** (la tua unità
-  configurata, mrad o MOA) governa ogni valore nella legenda e nella
-  tabella Numeri sottostanti.
-- **Risultati aggregati** — il grafico a dispersione dei colpi raggruppati
-  — e la sua **Legenda** sono affiancati. Solo gli impatti stessi, il punto
-  di mira e il punto medio di impatto vengono sempre disegnati; tutto il
-  resto è facoltativo.
-- La tabella **Numeri** elenca ogni statistica (intervallo di confidenza,
-  media degli impatti, deviazione standard, R50/R95/R99 — il raggio del
-  cerchio in cui si prevede cada rispettivamente il 50/95/99% degli
-  impatti — l'intervallo di confidenza dell'R95, ed ES5x/ES10x,
-  l'estensione media prevista per un gruppo di 5 e 10 colpi) con una
-  casella **Mostra nell'immagine** per riga, che la aggiunge al diagramma,
-  alla legenda e all'immagine esportata.
-- **Opzioni immagine** — sovrapposizione **Griglia** (passo in mrad o
-  MOA), **Colpi in scala** (disegnati al diametro reale del calibro), un
-  **Riferimento 1 MOA**, un **Raggio di probabilità di colpire** regolato
-  da un cursore, una **Scala**, e **Salva la legenda con l'immagine dei
-  risultati** (attivo per impostazione predefinita) per l'esportazione SVG
-  qui sotto.
-- Il **Confidenziometro** valuta quanto ci si possa davvero fidare di un
-  gruppo di questa dimensione — pochi colpi e un ampio intervallo di
-  confidenza ti lasciano ben al di sotto della "soglia stronzate";
-  abbastanza colpi e sale verso "Magnifico". È incorporato anche
-  nell'esportazione SVG, dove sostituisce il semplice testo dell'intervallo
-  di confidenza.
-- **Esporta CSV** scarica le coordinate grezze di ogni colpo raggruppato,
-  nelle tue unità preferite e con l'unità indicata in ogni intestazione di
-  colonna;
-  la piccola icona accanto a Risultati aggregati **salva il diagramma come
-  immagine** SVG — con legenda e indicatore di confidenza inclusi se quella
-  casella è attiva.
+- Un selettore di **unità di visualizzazione dei risultati** (la tua unità configurata, mrad o MOA) governa ogni valore nella legenda e nella tabella Numeri sottostanti.
+- **Risultati aggregati** — il grafico a dispersione dei colpi raggruppati — e la sua **Legenda** sono affiancati. Solo gli impatti stessi, il punto di mira e il punto medio di impatto vengono sempre disegnati; tutto il resto è facoltativo.
+- La tabella **Numeri** elenca ogni statistica (intervallo di confidenza, media degli impatti, deviazione standard, R50/R95/R99 — il raggio del cerchio in cui si prevede cada rispettivamente il 50/95/99% degli impatti — l'intervallo di confidenza dell'R95, ed ES5x/ES10x, l'estensione media prevista per un gruppo di 5 e 10 colpi) con una casella **Mostra nell'immagine** per riga, che la aggiunge al diagramma, alla legenda e all'immagine esportata.
+- **Opzioni immagine** — sovrapposizione **Griglia** (passo in mrad o MOA), **Colpi in scala** (disegnati al diametro reale del calibro), un **Riferimento 1 MOA**, un **Raggio di probabilità di colpire** regolato da un cursore, una **Scala**, e **Salva la legenda con l'immagine dei risultati** (attivo per impostazione predefinita) per l'esportazione SVG qui sotto.
+- Il **Confidenziometro** valuta quanto ci si possa davvero fidare di un gruppo di questa dimensione — pochi colpi e un ampio intervallo di confidenza ti lasciano ben al di sotto della "soglia stronzate"; abbastanza colpi e sale verso "Magnifico". È incorporato anche nell'esportazione SVG, dove sostituisce il semplice testo dell'intervallo di confidenza.
+- **Esporta CSV** scarica le coordinate grezze di ogni colpo raggruppato, nelle tue unità preferite e con l'unità indicata in ogni intestazione di colonna; la piccola icona accanto a Risultati aggregati **salva il diagramma come immagine** SVG — con legenda e indicatore di confidenza inclusi se quella casella è attiva.
 
-Ognuna di queste impostazioni — unità di visualizzazione, quali numeri
-compaiono sull'immagine, griglia, opzioni immagine, posizione del cursore —
-viene ricordata e ripristinata la prossima volta che apri questo rapporto,
-anche dopo un riavvio dell'app.
+Ognuna di queste impostazioni — unità di visualizzazione, quali numeri compaiono sull'immagine, griglia, opzioni immagine, posizione del cursore — viene ricordata e ripristinata la prossima volta che apri questo rapporto, anche dopo un riavvio dell'app.
 
 ## Sessione di taratura
 
@@ -655,72 +225,78 @@ Quando il fucile e l'app non concordano, un colpo fuori dal punto non dice da so
 
 Lo strumento lavora sul fucile e sulla cartuccia attivi dell'Arsenale e sulla postazione di tiro attiva, e si svolge in tre passi:
 
-- **Prepara** — inserite la pressione di stazione del giorno (non la pressione riportata al livello del mare che mostra un telefono) e la temperatura, spuntate la preparazione che avete davvero fatto e impostate il numero totale di colpi. Lo strumento sceglie la migliore coppia vicino/lontano tra i bersagli della vostra postazione, vi ripartisce i colpi, suggerisce numeri di colpi da minimo a deluxe e assegna al piano un voto da A a D prima ancora del primo colpo. Prima di iniziare vi chiede di rimisurare il bersaglio lontano e, a meno che la linea di tiro non sia dichiarata piana, di misurarne l'angolo. Il risultato dipende da quella distanza più che da qualsiasi altra cosa.
+- **Prepara** — inserite il tempo medio che vi aspettate durante il tiro, non solo una lettura del momento: determina come i colpi vengono ripartiti tra i bersagli e cosa potete aspettarvi dalla sessione. Usate la pressione di stazione (non la pressione riportata al livello del mare che mostra un telefono); senza una previsione chiara va bene la pressione standard all'altitudine del poligono. Spuntate la preparazione che avete davvero fatto e impostate il numero totale di colpi. Lo strumento sceglie la migliore coppia vicino/lontano tra i bersagli della vostra postazione, vi ripartisce i colpi, suggerisce numeri di colpi da minimo a deluxe e assegna al piano un voto da A a D prima ancora del primo colpo. Prima di iniziare vi chiede di rimisurare il bersaglio lontano e, a meno che la linea di tiro non sia dichiarata piana, di misurarne l'angolo. Il risultato dipende da quella distanza più che da qualsiasi altra cosa.
 - **Spara** — lo strumento vi porta dal vicino al lontano un passo alla volta, ogni passo solo dopo che il precedente è arrivato sul parapalle. Prima di ogni serie di al massimo tre colpi mostra cosa impostare. Registrate la correzione in elevazione che porterebbe gli impatti sul punto mirato, quanto bene avete potuto leggerli, il vento impostato e, con un cronografo, la velocità di ogni colpo. Una serie che non avete potuto vedere è un esito normale: lo strumento torna indietro di un passo e riprova. Un'indicazione dal vivo mostra cosa ha imparato finora.
 - **Conclusione** — un elenco ordinato di risultati, ciascuno con la sua entità e il suo margine: una correzione della resistenza (BC), una correzione dello zero, correzioni in elevazione per le distanze tirate, la velocità alla volata e tutto ciò che la sessione non ha potuto determinare. Una correzione del BC viene proposta solo con voto A o B e almeno cinque letture del cronografo durante la sessione. Salvarla scrive un **fattore di guadagno BC** sulla cartuccia (1,00 per impostazione predefinita; i dati della palla stessa non cambiano), che poi Traiettoria, Calcolatore per il poligono e Probabilità di colpire utilizzano.
 
 Un cronografo è la cosa più preziosa che possiate portare: senza, lo strumento non propone mai una correzione del BC, e ottenete solo correzioni in elevazione e una verifica dello zero per le distanze tirate. Solo volo supersonico.
 
+## Utilità
+
+Piccoli strumenti che non appartengono a un singolo flusso di lavoro, raccolti sotto un titolo proprio nella Home, nella pagina Utilità e nel menu. Su un telefono stretto la barra in basso omette la scheda Utilità quando non c'è spazio; la Home li elenca sempre.
+
+### Conversione unità
+
+Converte un valore tra unità moderne e arcaiche per angolo, distanza, lunghezza, velocità, massa, temperatura e pressione: modifica un campo qualsiasi, e tutte le altre unità del suo gruppo si aggiornano subito.
+
+### Progettista di reticoli
+
+Disegna un reticolo da cannocchiale con il trascinamento — per un'ottica a ingrandimento fisso, in primo piano focale (FFP) o in secondo piano focale (SFP), in mrad o MOA — e lo salva nell'Arsenale, dove un'ottica può elencarlo (vedi il §5.9 del [manuale dell'Arsenale](#/manual/arsenal)). La scheda Ottiche dell'Arsenale lo apre su un reticolo nuovo o su quello che hai scelto di modificare. Vedi il [manuale dettagliato](#/manual/reticle-designer) per ogni elemento, opzione e limite.
+
+- **Elementi** — linee orizzontali e verticali, punti, barre rastremate, cerchi, ferri di cavallo, chevron, numeri, forme SVG tue e tacche BDC, che la vista cannocchiale del Calcolatore per il poligono etichetta con le distanze. Scegline uno dalla tavolozza e fai clic o trascina nella vista per posizionarlo, poi spostalo o regolalo nelle sue impostazioni. Ogni posizione è misurata dal centro del reticolo.
+- **Modifica** — specchia o ripeti un elemento, raggruppane diversi e imposta in una volta le impostazioni comuni, seleziona con un rettangolo, e annulla o ripeti con le icone sopra la vista. L'aggancio mostra un valore in tempo reale mentre posizioni.
+- **Illuminazione e ingrandimento** — un reticolo può essere illuminato in rosso, ambra o verde, elemento per elemento; il cursore dell'ingrandimento mostra come appare alle altre impostazioni dell'ottica di riferimento.
+- **Inserisci un reticolo intero…** copia uno dei tuoi reticoli o uno integrato in quello in modifica, come un unico passo di annullamento — una partenza rapida per una variante.
+- **Salva nell'arsenale** salva il reticolo e ti lascia nel Progettista, con una breve conferma; senza nulla di non salvato il pulsante diventa **Torna all'arsenale**. **Scarta le modifiche** torna all'ultima versione salvata, e **Nuovo reticolo** ricomincia da capo. Per salvare servono produttore e modello.
+
+### Postazioni e bersagli
+
+Facoltativo: salva una volta i bersagli di una postazione di tiro — la loro distanza e angolo della linea di mira e, se aggiungi una foto scattata dalla posizione di tiro, dove si trova ciascuno su di essa — poi richiamali direttamente dalla scheda Bersaglio nelle visite successive, invece di regolare distanza e angolo a mano ogni volta. Vento e atmosfera non fanno mai parte di un bersaglio salvato, solo distanza, angolo e (con una foto) posizione.
+
+**Postazioni e bersagli** è uno strumento a sé in Utilità, e si apre anche dalla scheda Bersaglio del Calcolatore per il poligono e dalla Sessione di taratura, che lavora sui bersagli della postazione attiva. **Fatto** ti riporta dove l'hai aperto. Il resto di questa sezione parte dalla scheda Bersaglio del Calcolatore per il poligono.
+
+La riga **Postazioni e bersagli** della scheda Bersaglio mostra il nome della postazione attuale (niente, se non ne stai usando una), un menu a tendina dei suoi bersagli, e fino a tre icone:
+
+- Un'icona a forma di cornice fotografica, **Scegli bersaglio dalla foto** (visibile solo quando la postazione attuale ha una foto) — apre quella foto a schermo intero; tocca il segnalino di un bersaglio già posizionato per selezionarlo subito, oppure un chip (impilati in alto a sinistra) per uno non ancora posizionato sulla foto. Non cambia nulla finché non ne tocchi uno.
+- Un'icona di sincronizzazione, **Aggiorna questo bersaglio con la distanza/l'angolo attuali** — appare quando la distanza/l'angolo attualmente regolati non corrispondono più ai valori salvati del bersaglio selezionato (ad esempio se hai regolato la distanza a mano dopo averlo scelto). Aggiorna il bersaglio salvato in modo che corrisponda a ciò che è attualmente regolato.
+- **Gestisci postazioni** — apre la libreria Postazioni e bersagli stessa (più sotto). "Fatto" lì ti riporta a questa scheda.
+
+Scegliere un bersaglio (menu, foto o chip) copia la sua distanza e angolo nella scheda Bersaglio come modifica libera e occasionale, non un collegamento permanente — puoi comunque regolare in seguito i valori impostati a mano senza toccare il bersaglio salvato (a questo serve l'icona di sincronizzazione sopra, se vuoi mantenerlo sincronizzato).
+
+**Gestire le postazioni.** La schermata della libreria divide le tue postazioni in **Postazione attuale** (quella attiva, o **Nessuna postazione — bersaglio singolo, inserimento manuale** se nessuna lo è) e **Postazioni conosciute** (tutte le altre). Toccare una postazione conosciuta la attiva — la sposta in Postazione attuale e scorre fino a lì — senza uscire da questa schermata. Solo la postazione attuale mostra **Modifica** e il suo elenco bersagli; ogni postazione, attuale o conosciuta, mostra **Backup su file** ed **Elimina**. **Backup della libreria su file…** / **Carica backup da file…**, in alto, eseguono il backup o ripristinano l'intera libreria in una volta, allo stesso modo dell'Arsenale per fucili e proiettili.
+
+Una postazione ha un nome, un'altitudine facoltativa (se impostata, attivare la postazione compila la scheda Atmosfera con l'atmosfera standard a quell'altitudine e il 50% di umidità — ma solo se non hai già modificato tu stesso i valori atmosferici in questa sessione), e una foto facoltativa. Ciascuno dei suoi bersagli ha un nome (facoltativo — di default "Bersaglio 1", "Bersaglio 2", ecc.), note, distanza e angolo della linea di mira.
+
+**Posizionare un bersaglio sulla foto.** Una volta che una postazione ha una foto, ciascuno dei suoi bersagli riceve un pulsante **Posiziona** (nella sua riga, e nel proprio modulo di modifica) che apre la foto a schermo intero per quel bersaglio: tocca o trascina per posizionare il suo segnalino, trascina uno spazio vuoto per spostare la vista, pizzica (oppure usa i pulsanti **Ingrandisci** / **Riduci** della barra di navigazione) per zoomare. Ogni altro bersaglio già posizionato sulla stessa foto appare come un piccolo punto etichettato con nome, distanza e angolo, così puoi posizionare quello nuovo rispetto a loro. **Rimuovi segnalino** annulla il posizionamento; "Fatto" lo salva e torna alla libreria. Un bersaglio non ancora posizionato sulla foto (su una postazione che ne ha una) mostra un badge **Non posizionato** nella sua riga, come promemoria.
+
+### Clinometro con fotocamera
+
+Su un telefono o un tablet i cui sensori di movimento rilevano l'inclinazione, accanto a ogni campo dell'angolo della linea di mira c'è un'icona della fotocamera (**Misura l'angolo con la fotocamera**): in Traiettoria, nella scheda Bersaglio del Calcolatore per il poligono, nel modulo bersaglio di una postazione, e nel controllo del bersaglio lontano e nelle nuove misure della Sessione di taratura. Apre la fotocamera posteriore a schermo intero, con un mirino sull'asse ottico e l'angolo in tempo reale al decimo di grado. Metti il mirino sul bersaglio, resta fermo finché non risulta stabile, e tocca **Conferma**; l'angolo appare in grande per due secondi e finisce nel campo. Ingrandisci con i pulsanti o allargando due dita. Senza accesso alla fotocamera l'angolo viene misurato comunque; solo mirare è più difficile.
+
+Senza calibrazione una lettura può sbagliare di un grado o più. **Calibra**, una volta per telefono, prende due coppie di letture: il telefono in piedi sul bordo inferiore su una superficie stabile, poi girato di mezzo giro, senza toccarlo; quindi un bersaglio nitido e lontano mirato con il telefono dritto, e di nuovo capovolto. La calibrazione resta solo su questo dispositivo; **Azzera la calibrazione** la cancella.
+
 ## Impostazioni
 
 - **Lingua** — English, Français, Русский, Deutsch, Italiano.
-- **Unità** — un'unità preferita per ogni tipo di misura (velocità,
-  velocità del vento, distanza, lunghezze ridotte, altitudine, temperatura,
-  pressione, dispersione angolare, energia), mescolando liberamente metrico
-  e imperiale; si applica ovunque compaia quella misura.
-- **Librerie integrate** — mostra/nascondi la libreria integrata di fucili
-  e ciascuna delle tre librerie integrate di proiettili singolarmente
-  (vedi **Armi** sopra).
-- **Modelli balistici** — mostra/nascondi i singoli modelli di resistenza
-  standard (G1, G7, ...) in ogni selettore di modello dell'app, per
-  ridurlo a quelli che usi davvero. Un modello nascosto resta disponibile
-  ovunque sia già selezionato (un proiettile inserito manualmente, il
-  modello proprio di un proiettile di libreria) — nasconderlo influisce
-  solo sulle scelte future, mai su una già fatta. Almeno un modello deve
-  restare sempre visibile.
-- **Tema** — scelta tra tre miniature illustrate, applicata ovunque
-  immediatamente: **Scuro** (predefinito), **Alto contrasto chiaro** (sfondo
-  bianco, testo nero — per la massima visibilità sotto il sole diretto) e
-  **Alto contrasto scuro** (sfondo nero con testo e colori al massimo
-  contrasto — per quando serve alzare la luminosità dello schermo per
-  vederlo all'aperto, risparmiando allo stesso tempo la batteria).
-- **Colore degli impatti** — il colore con cui viene disegnato ogni impatto,
-  da scegliere fra cinque campioni. Vale sia per gli impatti simulati della
-  Probabilità di colpire sia per quelli segnati nel Calcolatore di precisione
-  di tiro — sulla foto mentre si segna, nel PNG della panoramica del gruppo e
-  nel diagramma, nella legenda e nell'esportazione SVG del rapporto di
-  precisione. Il bordo bianco e scuro attorno a ogni impatto resta
-  volutamente invariato: è quello che mantiene visibile il contorno del
-  punto, qualunque colore si scelga.
-- **Indicatori di output del Calcolatore per il poligono** — se la lettura
-  elevazione/vento del Calcolatore per il poligono mostra una freccia di
-  direzione o un segno **+ / −** (vedi **Calcolatore per il poligono**
-  sopra).
-- **Metodo di calcolo della deriva giroscopica** — come (o se) la deriva
-  orizzontale causata dalla rotazione propria del proiettile viene
-  inclusa nella deriva del vento, in Traiettoria, Calcolatore per il
-  poligono e Arsenale:
+- **Unità** — un'unità preferita per ogni tipo di misura (velocità, velocità del vento, distanza, lunghezze ridotte, altitudine, temperatura, pressione, dispersione angolare, energia), mescolando liberamente metrico e imperiale; si applica ovunque compaia quella misura.
+- **Librerie integrate** — mostra/nascondi singolarmente la libreria integrata di fucili e ciascuna delle otto librerie integrate di proiettili (vedi **Armi** sopra).
+- **Modelli balistici** — mostra/nascondi i singoli modelli di resistenza standard (G1, G7, ...) in ogni selettore di modello dell'app, per ridurlo a quelli che usi davvero. Un modello nascosto resta disponibile ovunque sia già selezionato (un proiettile inserito manualmente, il modello proprio di un proiettile di libreria) — nasconderlo influisce solo sulle scelte future, mai su una già fatta. Almeno un modello deve restare sempre visibile.
+- **Tema** — scelta tra tre miniature illustrate, applicata ovunque immediatamente: **Scuro** (predefinito), **Alto contrasto chiaro** (sfondo bianco, testo nero — per la massima visibilità sotto il sole diretto) e **Alto contrasto scuro** (sfondo nero con testo e colori al massimo contrasto — per quando serve alzare la luminosità dello schermo per vederlo all'aperto, risparmiando allo stesso tempo la batteria).
+- **Colore degli impatti** — il colore con cui viene disegnato ogni impatto, da scegliere fra cinque campioni. Vale sia per gli impatti simulati della Probabilità di colpire sia per quelli segnati nel Calcolatore di precisione di tiro — sulla foto mentre si segna, nel PNG della panoramica del gruppo e nel diagramma, nella legenda e nell'esportazione SVG del rapporto di precisione. Il bordo bianco e scuro attorno a ogni impatto resta volutamente invariato: è quello che mantiene visibile il contorno del punto, qualunque colore si scelga.
+- **Indicatori di output del Calcolatore per il poligono** — se la lettura elevazione/vento del Calcolatore per il poligono mostra una freccia di direzione o un segno **+ / −** (vedi **Calcolatore per il poligono** sopra).
+- **Output del Calcolatore per il poligono** — se il Calcolatore per il poligono indica elevazione e deriva in **Clic** (il predefinito, secondo i valori di click del fucile attivo), in mrad o in MOA.
+- **Visibilità delle etichette bersaglio** — come appaiono i nomi dei bersagli quando ne scegli uno sulla foto di una postazione: sempre, nascosti vicino al puntatore mostrando il bersaglio più vicino, oppure nascosti fino al tocco (un secondo tocco seleziona). Nascondere vicino al puntatore richiede un mouse.
+- **Anello di ingrandimento della vista cannocchiale** — dove la vista cannocchiale del Calcolatore per il poligono mette il suo anello di zoom: **Automatico** (sotto il reticolo su uno smartphone in verticale, accanto altrimenti), sempre accanto, oppure sotto in verticale.
+- **Colore della sovrapposizione al reticolo**, **Forma della sovrapposizione al reticolo**, **Visualizzazione distanze BDC** — come la vista cannocchiale disegna sul reticolo (vedi **Vista cannocchiale** sopra).
+- **Scala dell'interfaccia** — ingrandisce l'intera interfaccia, dal 100 % al 200 %.
+- **Aspetto della manopola di direzione del vento** — **Orologio** o **Essenziale**, per la manopola di direzione del vento ovunque compaia.
+- **Metodo di calcolo della deriva giroscopica** — come (o se) la deriva orizzontale causata dalla rotazione propria del proiettile viene inclusa nella deriva del vento, in Traiettoria, Calcolatore per il poligono e Arsenale:
   - **Disattivato** (predefinito) — la deriva riflette solo il vento.
   - **Semplice (Litz)** — la formula empirica consolidata di Bryan Litz.
-  - **Avanzato (McCoy 4-DOF)** — un modello fisico completo a 4 gradi di
-    libertà, costruito a partire da massa, calibro, lunghezza e velocità
-    di rotazione propri del proiettile.
+  - **Avanzato (McCoy 4-DOF)** — un modello fisico completo a 4 gradi di libertà, costruito a partire da massa, calibro, lunghezza e velocità di rotazione propri del proiettile.
 
-  Ciascun metodo torna automaticamente indietro (Avanzato → Semplice →
-  Disattivato) se al proiettile attivo mancano i dati necessari.
-  **Compensa la deriva giroscopica nell'azzeramento**, mostrata solo
-  dopo aver scelto un metodo, sposta la mira orizzontale propria del
-  fucile in modo che il suo azzeramento assorba già la deriva fino alla
-  distanza di azzeramento — lo stesso effetto che avrebbe ruotare la
-  torretta di deriva dell'ottica a quella distanza.
-- **Esportazione CSV** — il separatore di campo (virgola/punto e
-  virgola/tabulazione) e il separatore decimale (punto/virgola) usati dal
-  download e dalla copia CSV di Traiettoria. Scegli la coppia attesa dal
-  tuo foglio di calcolo.
-- **Backup e sincronizzazione** — sperimentale, disattivato per default.
-  Mantiene sincronizzate le tue librerie Arsenale, Località e Precisione
-  fucile tra i tuoi dispositivi, attraverso una cartella che il tuo
-  servizio cloud sincronizza già (OneDrive, Google Drive, NextCloud, ...)
-  — nessun account presso questa app, nulla inviato a un server mio. Vedi
-  il [manuale dettagliato](#/manual/backup-sync) per la configurazione, e
-  i suoi limiti molto reali legati a Chrome.
+  Ciascun metodo torna automaticamente indietro (Avanzato → Semplice → Disattivato) se al proiettile attivo mancano i dati necessari. **Compensa la deriva giroscopica nell'azzeramento**, mostrata solo dopo aver scelto un metodo, sposta la mira orizzontale propria del fucile in modo che il suo azzeramento assorba già la deriva fino alla distanza di azzeramento — lo stesso effetto che avrebbe ruotare la torretta di deriva dell'ottica a quella distanza.
+- **Esportazione CSV** — il separatore di campo (virgola/punto e virgola/tabulazione) e il separatore decimale (punto/virgola) usati dal download e dalla copia CSV di Traiettoria. Scegli la coppia attesa dal tuo foglio di calcolo.
+- **Backup e sincronizzazione** — sperimentale, disattivato per default. Mantiene sincronizzate le tue librerie Arsenale, Località e Precisione fucile tra i tuoi dispositivi, attraverso una cartella che il tuo servizio cloud sincronizza già (OneDrive, Google Drive, NextCloud, ...) — nessun account presso questa app, nulla inviato a un server mio. Vedi il [manuale dettagliato](#/manual/backup-sync) per la configurazione, e i suoi limiti molto reali legati a Chrome.
+- **Notificami gli aggiornamenti dell'app** — attivo per default: ti avvisa quando l'app è stata aggiornata.
+- **Mostra il pannello Risoluzione dei problemi nella Home** — disattivato per default: aggiunge alla Home un pannello che scarica informazioni diagnostiche sull'avvio e sulla cache dell'app e può ricostruire la cache offline — utile quando segnali un problema.

@@ -2,42 +2,24 @@
 
 *Pacifique. Précis. Armé.*
 
-geladen.ch ballistics est une suite balistique extérieure fonctionnant
-entièrement côté client. Tout — l'intégration de trajectoire, l'analyse de
-probabilité d'impact, vos carabines et balles enregistrées — s'exécute dans
-votre navigateur. **Aucune donnée n'est jamais collectée ni transmise à un
-serveur.** L'application fonctionne hors ligne une fois chargée, et
-s'installe comme une application sur ordinateur et mobile (PWA).
+geladen.ch ballistics est une suite balistique extérieure fonctionnant entièrement côté client. Tout — l'intégration de trajectoire, l'analyse de probabilité d'impact, vos carabines et balles enregistrées — s'exécute dans votre navigateur. **Aucune donnée n'est jamais collectée ni transmise à un serveur.** L'application fonctionne hors ligne une fois chargée, et s'installe comme une application sur ordinateur et mobile (PWA).
 
-Ce logiciel est fourni sans aucune garantie d'adéquation à un usage
-particulier, ou je ne sais quoi — bla bla bla. J'ai fait de mon mieux pour
-le rendre utile (ça m'a occupé tout un week-end pluvieux), et je pense
-qu'il est raisonnablement précis, mais si vous trouvez un moyen créatif
-de détourner un calculateur balistique au point de vous blesser, ça vous
-regarde — qui suis-je pour faire obstacle à la sélection naturelle ?
+Ce logiciel est fourni sans aucune garantie d'adéquation à un usage particulier, ou je ne sais quoi — bla bla bla. J'ai fait de mon mieux pour le rendre utile (ça m'a occupé tout un week-end pluvieux), et je pense qu'il est raisonnablement précis, mais si vous trouvez un moyen créatif de détourner un calculateur balistique au point de vous blesser, ça vous regarde — qui suis-je pour faire obstacle à la sélection naturelle ?
 
-Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**, le
-**Calculateur de terrain**, **Armes**, **Courbe Cd-Mach**, **Outils BC**, la
-**Calculette de précision de tir** et **Paramètres** — ainsi que
-**Probabilité d'impact**, utilisable pour ses scénarios actuels mais encore
-en développement actif, et **Session de calibrage**, marquée Expérimental —
-ses statistiques sont validées mais n'ont pas encore été éprouvées sur le
-terrain.
+Ce manuel couvre les outils pleinement fonctionnels — **Trajectoire**, le **Calculateur de terrain**, **Armes**, **Courbe Cd-Mach**, **Outils BC**, la **Calculette de précision de tir**, les **Utilitaires** (**Conversion d'unités**, **Concepteur de réticule**, **Emplacements et cibles**) et **Paramètres** — ainsi que **Probabilité d'impact**, utilisable pour ses scénarios actuels mais encore en développement actif, et **Session de calibrage**, marquée Expérimental — ses statistiques sont validées mais n'ont pas encore été éprouvées sur le terrain.
 
 ---
 
 ## À propos de ce manuel
 
-Ceci est un aperçu succinct — une section par outil, décrivant ce qu'il fait
-et ses principales commandes. Certains outils disposent aussi de leur propre
-manuel détaillé, qui va plus loin dans la méthode, les cas particuliers et,
-le cas échéant, les statistiques derrière les chiffres :
+Ceci est un aperçu succinct — une section par outil, décrivant ce qu'il fait et ses principales commandes. Certains outils disposent aussi de leur propre manuel détaillé, qui va plus loin dans la méthode, les cas particuliers et, le cas échéant, les statistiques derrière les chiffres :
 
 - [Arsenal](#/manual/arsenal)
 - [Calculette de précision de tir](#/manual/rifle-precision)
 - [Session de calibrage](#/manual/truing-session)
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Sauvegarde et synchronisation](#/manual/backup-sync)
+- [Concepteur de réticule](#/manual/reticle-designer)
 
 D'autres manuels détaillés pour les autres outils sont prévus.
 
@@ -47,608 +29,193 @@ D'autres manuels détaillés pour les autres outils sont prévus.
 
 ### Android (Chrome)
 
-Chrome peut installer cette application pour qu'elle se comporte comme
-n'importe quelle autre application sur votre téléphone — sa propre icône
-sur l'écran d'accueil, sa propre fenêtre sans barre de navigateur, et elle
-continue de fonctionner hors ligne.
+Chrome peut installer cette application pour qu'elle se comporte comme n'importe quelle autre application sur votre téléphone — sa propre icône sur l'écran d'accueil, sa propre fenêtre sans barre de navigateur, et elle continue de fonctionner hors ligne.
 
 - Ouvrez l'application dans Chrome.
-- Appuyez sur le menu **⋮** (en haut à droite) et choisissez **Installer
-   l'application** (les anciennes versions de Chrome l'appellent **Ajouter
-   à l'écran d'accueil**).
-- Confirmez. Une icône apparaît sur votre écran d'accueil ou dans le
-   tiroir d'applications, comme n'importe quelle autre application
-   installée.
+- Appuyez sur le menu **⋮** (en haut à droite) et choisissez **Installer l'application** (les anciennes versions de Chrome l'appellent **Ajouter à l'écran d'accueil**).
+- Confirmez. Une icône apparaît sur votre écran d'accueil ou dans le tiroir d'applications, comme n'importe quelle autre application installée.
 
-**Une icône séparée pour le Calculateur de terrain.** Puisque le
-Calculateur de terrain fait partie de la même application, vous pouvez lui
-donner sa propre icône qui ouvre directement dessus, sans passer par
-l'accueil :
+**Une icône séparée pour le Calculateur de terrain.** Puisque le Calculateur de terrain fait partie de la même application, vous pouvez lui donner sa propre icône qui ouvre directement dessus, sans passer par l'accueil :
 
-- Dans Chrome, ouvrez l'application et allez dans le **Calculateur de
-   terrain**.
-- Ouvrez à nouveau le menu **⋮** — pendant que le Calculateur de terrain
-   est ouvert — et choisissez **Ajouter à l'écran d'accueil**.
-- Quand Chrome demande un nom, indiquez par exemple « Calculateur de
-   terrain » pour distinguer facilement les deux icônes.
+- Dans Chrome, ouvrez l'application et allez dans le **Calculateur de terrain**.
+- Ouvrez à nouveau le menu **⋮** — pendant que le Calculateur de terrain est ouvert — et choisissez **Ajouter à l'écran d'accueil**.
+- Quand Chrome demande un nom, indiquez par exemple « Calculateur de terrain » pour distinguer facilement les deux icônes.
 
-Appuyer sur cette seconde icône ouvre l'application directement sur le
-Calculateur de terrain, en sautant l'accueil — pratique si c'est le seul
-outil que vous utilisez sur le terrain. Les deux icônes affichent
-actuellement la même image ; seuls les noms diffèrent.
+Appuyer sur cette seconde icône ouvre l'application directement sur le Calculateur de terrain, en sautant l'accueil — pratique si c'est le seul outil que vous utilisez sur le terrain. Les deux icônes affichent actuellement la même image ; seuls les noms diffèrent.
 
 ### iPhone / iPad (Safari)
 
-Cela ne fonctionne que dans **Safari** — les autres navigateurs sur iPhone
-(y compris Chrome) ne sont pas autorisés à installer des applications sur
-l'écran d'accueil.
+Cela ne fonctionne que dans **Safari** — les autres navigateurs sur iPhone (y compris Chrome) ne sont pas autorisés à installer des applications sur l'écran d'accueil.
 
 - Ouvrez l'application dans Safari.
-- Appuyez sur le bouton **Partager** (le carré avec une flèche vers le
-   haut, dans la barre d'outils du bas — en haut sur iPad).
-- Faites défiler la liste qui apparaît et appuyez sur **Sur l'écran
-   d'accueil**.
-- Confirmez le nom (ou modifiez-le) et appuyez sur **Ajouter**, en haut à
-   droite.
+- Appuyez sur le bouton **Partager** (le carré avec une flèche vers le haut, dans la barre d'outils du bas — en haut sur iPad).
+- Faites défiler la liste qui apparaît et appuyez sur **Sur l'écran d'accueil**.
+- Confirmez le nom (ou modifiez-le) et appuyez sur **Ajouter**, en haut à droite.
 
-Une icône apparaît sur votre écran d'accueil et ouvre l'application dans sa
-propre fenêtre, sans barre d'adresse Safari — comme sur Android.
+Une icône apparaît sur votre écran d'accueil et ouvre l'application dans sa propre fenêtre, sans barre d'adresse Safari — comme sur Android.
 
-**Une icône séparée pour le Calculateur de terrain** fonctionne de la même
-façon : ouvrez d'abord le **Calculateur de terrain** dans l'application,
-puis répétez **Partager → Sur l'écran d'accueil** pendant que cette page
-est ouverte, et donnez-lui un nom distinctif comme « Calculateur de
-terrain ». Comme sur Android, les deux icônes affichent actuellement la
-même image ; seuls les noms diffèrent.
+**Une icône séparée pour le Calculateur de terrain** fonctionne de la même façon : ouvrez d'abord le **Calculateur de terrain** dans l'application, puis répétez **Partager → Sur l'écran d'accueil** pendant que cette page est ouverte, et donnez-lui un nom distinctif comme « Calculateur de terrain ». Comme sur Android, les deux icônes affichent actuellement la même image ; seuls les noms diffèrent.
 
 ## Trajectoire
 
-Une balle ne vole jamais en ligne droite, même si vous le voudriez.
-Trajectoire en suit tout le vol — chute, dérive, vitesse, temps de vol —
-pour la carabine et la munition configurées dans **Armes**, ci-dessous, à
-toutes les distances qui vous intéressent.
+Une balle ne vole jamais en ligne droite, même si vous le voudriez. Trajectoire en suit tout le vol — chute, dérive, vitesse, temps de vol — pour la carabine et la munition configurées dans **Armes**, ci-dessous, à toutes les distances qui vous intéressent.
 
-**Les paramètres** commencent par la carabine et la cartouche actives, affichées
-sous forme d'un court résumé avec un bouton **Modifier** vers Armes, puis une
-section Atmosphère, et quelques réglages propres à cette table et à ce
-graphique :
+**Les paramètres** commencent par la carabine et la cartouche actives, affichées sous forme d'un court résumé avec un bouton **Modifier** vers Armes, puis une section Atmosphère, et quelques réglages propres à cette table et à ce graphique :
 
-- **Distance maximale** / **Pas de distance** — jusqu'où, et avec quel
-  incrément, la table est calculée.
-- **Angle de ligne de mire** — inclinaison du tir (montée/descente), en
-  degrés, positif vers le haut. Laissez à 0 pour un tir à plat. L'angle
-  d'élévation du zéro n'en est jamais affecté : l'arme est toujours considérée
-  comme réglée à plat et par temps calme (dans l'atmosphère de zéro de la
-  cartouche, si vous en avez indiqué une dans Armes), si bien qu'une inclinaison
-  apparaît dans les corrections.
+- **Distance maximale** / **Pas de distance** — jusqu'où, et avec quel incrément, la table est calculée.
+- **Angle de ligne de mire** — inclinaison du tir (montée/descente), en degrés, positif vers le haut. Laissez à 0 pour un tir à plat. L'angle d'élévation du zéro n'en est jamais affecté : l'arme est toujours considérée comme réglée à plat et par temps calme (dans l'atmosphère de zéro de la cartouche, si vous en avez indiqué une dans Armes), si bien qu'une inclinaison apparaît dans les corrections. Sur un téléphone ou une tablette qui indique son inclinaison, l'icône caméra à côté du champ mesure l'angle pour vous — voir **Clinomètre à caméra** dans Utilitaires plus bas.
 
-**Le tableau** affiche une ligne par pas de distance, avec des colonnes
-activables (chute, dérive, corrections d'élévation/dérive en clics/mrad/MOA,
-vitesse, temps de vol, Mach, énergie). La correction d'élévation est signée
-pour correspondre à la façon dont vous réglez réellement une lunette : une
-balle qui est tombée sous la ligne de mire s'affiche comme un nombre
-*positif* de clics à tourner vers le **haut**.
+**Le tableau** affiche une ligne par pas de distance, avec des colonnes activables (chute, dérive, corrections d'élévation/dérive en clics/mrad/MOA, vitesse, temps de vol, Mach, énergie). La correction d'élévation est signée pour correspondre à la façon dont vous réglez réellement une lunette : une balle qui est tombée sous la ligne de mire s'affiche comme un nombre *positif* de clics à tourner vers le **haut**.
 
-Vous pouvez **télécharger le tableau en fichier CSV**, ou **le copier dans
-le presse-papiers** au format CSV — les deux utilisent exactement les
-colonnes actuellement activées, et le séparateur de champs/décimal défini
-dans Paramètres → Export CSV (pour une ouverture correcte quelle que soit
-la langue de votre tableur).
+Vous pouvez **télécharger le tableau en fichier CSV**, ou **le copier dans le presse-papiers** au format CSV — les deux utilisent exactement les colonnes actuellement activées, et le séparateur de champs/décimal défini dans Paramètres → Export CSV (pour une ouverture correcte quelle que soit la langue de votre tableur).
 
-**Le graphique** trace n'importe quelle colonne en fonction de la distance,
-avec son propre zoom/déplacement indépendant (faites glisser les deux
-curseurs de distance en dessous — fenêtre minimale de 50 m). Il peut être
-**téléchargé en SVG** (la petite icône au-dessus du graphique), un format
-qui ne dépend pas de cette application pour être consulté ou modifié plus
-tard.
+**Le graphique** trace n'importe quelle colonne en fonction de la distance, avec son propre zoom/déplacement indépendant (faites glisser les deux curseurs de distance en dessous — fenêtre minimale de 50 m). Il peut être **téléchargé en SVG** (la petite icône au-dessus du graphique), un format qui ne dépend pas de cette application pour être consulté ou modifié plus tard.
 
 ## Probabilité de toucher
 
-Estime la probabilité d'atteindre une cible pour un scénario de tir choisi,
-en combinant votre carabine et votre charge avec votre propre précision de
-tir et l'incertitude sur l'estimation de la distance, de la température, de
-la pression et du vent. **Encore en développement actif** — d'autres
-scénarios et cibles sont prévus ; considérez les résultats comme indicatifs,
-non comme une prédiction certifiée.
+Estime la probabilité d'atteindre une cible pour un scénario de tir choisi, en combinant votre carabine et votre charge avec votre propre précision de tir et l'incertitude sur l'estimation de la distance, de la température, de la pression et du vent. **Encore en développement actif** — d'autres scénarios et cibles sont prévus ; considérez les résultats comme indicatifs, non comme une prédiction certifiée.
 
-**Carabine et balle** affiche le même résumé que Trajectoire — la
-configuration active définie dans **Armes** ; utilisez **Modifier** pour la
-choisir ou la modifier.
+**Carabine et balle** affiche le même résumé que Trajectoire — la configuration active définie dans **Armes** ; utilisez **Modifier** pour la choisir ou la modifier.
 
 **Incertitude** définit l'ampleur de chaque source d'erreur :
 
-- **Erreurs propres** — régularité de la vitesse initiale (écart-type), et
-  soit en détail la précision de la carabine + l'habileté du tireur + la
-  position de tir, soit une seule valeur de précision combinée simplifiée
-  (une taille de groupement et sa convention : ES-5, ES-10, R50 ou R99).
-- **Erreurs de conditions** — erreur d'estimation de la distance, de la
-  température, de la pression et du vent ; si **Cible mobile** est coché,
-  également la vitesse latérale de la cible et votre erreur d'estimation de
-  celle-ci.
+- **Erreurs propres** — régularité de la vitesse initiale (écart-type), et soit en détail la précision de la carabine + l'habileté du tireur + la position de tir, soit une seule valeur de précision combinée simplifiée (une taille de groupement et sa convention : ES-5, ES-10, R50 ou R99).
+- **Erreurs de conditions** — erreur d'estimation de la distance, de la température, de la pression et du vent ; si **Cible mobile** est coché, également la vitesse latérale de la cible et votre erreur d'estimation de celle-ci.
 
-**Simulation** définit la distance, la cible, l'atmosphère (température,
-pression, altitude, humidité), un réglage de combat optionnel (carabine
-réglée pour une distance différente de la cible) et un décalage du point de
-visée.
+**Simulation** définit la distance, la cible, l'atmosphère (température, pression, altitude, humidité), un réglage de combat optionnel (carabine réglée pour une distance différente de la cible) et un décalage du point de visée.
 
 **Scénarios :**
 
-- **Tir unique** — un seul coup ; chaque source d'erreur propre et de
-  condition s'applique directement.
-- **Tir corrigé par observateur** — un tir de réglage est tiré et son impact
-  est annoncé par un observateur, ce qui annule le décalage systématique en
-  espérance ; l'erreur résiduelle du tir corrigé est sa propre dispersion
-  plus l'imprécision de la correction de l'observateur. Les erreurs de
-  conditions ne réapparaissent pas dans le tir corrigé, puisque l'annonce de
-  l'observateur tient déjà compte de leur effet sur le tir de réglage.
+- **Tir unique** — un seul coup ; chaque source d'erreur propre et de condition s'applique directement.
+- **Tir corrigé par observateur** — un tir de réglage est tiré et son impact est annoncé par un observateur, ce qui annule le décalage systématique en espérance ; l'erreur résiduelle du tir corrigé est sa propre dispersion plus l'imprécision de la correction de l'observateur. Les erreurs de conditions ne réapparaissent pas dans le tir corrigé, puisque l'annonce de l'observateur tient déjà compte de leur effet sur le tir de réglage.
 
-**Cibles** — une plaque de 40 × 60 cm (une seule zone touché/manqué) et la
-cible ISSF 300 m (dix anneaux de score). D'autres cibles sont prévues.
+**Cibles** — une plaque de 40 × 60 cm (une seule zone touché/manqué) et la cible ISSF 300 m (dix anneaux de score). D'autres cibles sont prévues.
 
-**Les résultats** affichent la probabilité d'impact totale, la probabilité
-par zone, le score en pourcentage du maximum, un tableau de la contribution
-horizontale/verticale/totale de chaque source d'erreur, ainsi qu'une
-illustration de la cible avec un nuage d'impacts d'exemple, le point d'impact
-moyen et l'ellipse à 95 % — téléchargeable en SVG.
+**Les résultats** affichent la probabilité d'impact totale, la probabilité par zone, le score en pourcentage du maximum, un tableau de la contribution horizontale/verticale/totale de chaque source d'erreur, ainsi qu'une illustration de la cible avec un nuage d'impacts d'exemple, le point d'impact moyen et l'ellipse à 95 % — téléchargeable en SVG.
 
 ## Calculateur de terrain
 
-Une solution rapide à une seule distance : les valeurs à régler pour un tir,
-tout de suite, en assez grand pour se lire à bout de bras ou en plein
-soleil — pas une table, pas une analyse. Tout son objectif de conception est
-de n'afficher que ce dont vous avez besoin au moment de régler la lunette :
-pas d'en-tête, pas d'habillage au-delà d'une petite navigation, aucun chiffre
-que vous n'êtes pas sur le point d'utiliser.
+Une solution rapide à une seule distance : les valeurs à régler pour un tir, tout de suite, en assez grand pour se lire à bout de bras ou en plein soleil — pas une table, pas une analyse. Tout son objectif de conception est de n'afficher que ce dont vous avez besoin au moment de régler la lunette : pas d'en-tête, pas d'habillage au-delà d'une petite navigation, aucun chiffre que vous n'êtes pas sur le point d'utiliser.
 
-L'ouvrir remplace la navigation habituelle de l'application par la sienne —
-**Cible**, **Vent**, **Atmosphère**, **Armes** (mène à Personnalisé/Arsenal ;
-Terminé vous ramène ici), et **Quitter le calculateur** (retourne toujours à
-l'accueil). Sur un téléphone ou une tablette qui le permet, l'écran est
-empêché de se mettre en veille tant que le Calculateur de terrain est
-ouvert, pour qu'il ne s'assombrisse pas en pleine série de tirs.
+L'ouvrir remplace la navigation habituelle de l'application par la sienne — **Cible**, **Vent**, **Atmosphère**, **Armes** (mène à Personnalisé/Arsenal ; Terminé vous ramène ici), et **Quitter le calculateur** (retourne toujours à l'accueil). Sur un téléphone ou une tablette qui le permet, l'écran est empêché de se mettre en veille tant que le Calculateur de terrain est ouvert, pour qu'il ne s'assombrisse pas en pleine série de tirs.
 
-- **Cible** — distance et angle de ligne de mire, saisis à la main, ou
-  choisis dans la liste de cibles d'un emplacement enregistré — voir
-  **Emplacements et cibles** ci-dessous.
-- **Vent** — vitesse (grand bouton +/− ) et direction (le même cadran
-  qu'ailleurs, agrandi ici).
-- **Atmosphère** — température, pression, altitude, humidité et préréglages
-  — les mêmes champs que dans Trajectoire, sans le vent, qui a son propre
-  onglet ici.
+- **Cible** — distance et angle de ligne de mire, saisis à la main (l'icône caméra à côté de l'angle le mesure — voir **Clinomètre à caméra** dans Utilitaires plus bas), ou choisis dans la liste de cibles d'un emplacement enregistré — voir **Emplacements et cibles**, également dans Utilitaires.
+- **Vent** — vitesse (grand bouton +/− ) et direction (le même cadran qu'ailleurs, agrandi ici).
+- **Atmosphère** — température, pression, altitude, humidité et préréglages — les mêmes champs que dans Trajectoire, sans le vent, qui a son propre onglet ici.
 
-**Le résultat** se recalcule en direct à chaque changement d'un champ — pas
-de bouton Calculer. L'élévation et le vent s'affichent en clics entiers
-(selon les réglages de clic propres à la carabine active, définis dans
-Armes), chacun précédé d'un indicateur de direction : haut/bas pour
-l'élévation, gauche/droite pour le vent. Choisissez entre une flèche ou un
-signe **+ / −** (Paramètres → **Indicateurs de sortie du Calculateur de
-terrain**) — **+** signifie toujours régler vers le haut ou vers la droite.
-Une petite ligne en bas ajoute le temps de vol, la vitesse résiduelle et
-l'énergie résiduelle. Une barre récapitulative des conditions au-dessus de
-l'affichage montre la distance, le vent et l'atmosphère en un coup d'œil,
-pour toujours savoir pour quoi une élévation/dérive donnée a été réglée. Si
-un champ est en cours de modification (par exemple momentanément vide),
-l'affichage montre un simple **—** plutôt qu'un résultat erroné.
+**Le résultat** se recalcule en direct à chaque changement d'un champ — pas de bouton Calculer. L'élévation et le vent s'affichent en clics entiers, selon les réglages de clic propres à la carabine active, définis dans Armes, ou si vous préférez en mrad ou en MOA (Paramètres → **Sortie du Calculateur de terrain**), chacun précédé d'un indicateur de direction : haut/bas pour l'élévation, gauche/droite pour le vent. Choisissez entre une flèche ou un signe **+ / −** (Paramètres → **Indicateurs de sortie du Calculateur de terrain**) — **+** signifie toujours régler vers le haut ou vers la droite. Une petite ligne en bas ajoute le temps de vol, la vitesse résiduelle et l'énergie résiduelle. Une barre récapitulative des conditions au-dessus de l'affichage montre la distance, le vent et l'atmosphère en un coup d'œil, pour toujours savoir pour quoi une élévation/dérive donnée a été réglée. Si un champ est en cours de modification (par exemple momentanément vide), l'affichage montre un simple **—** plutôt qu'un résultat erroné.
 
-Utilise la même carabine, cartouche et balle actives que Trajectoire et
-Probabilité d'impact (définies dans **Armes**), avec le même zéro — pas de
-réglage de zéro de combat séparé ici.
+Utilise la même carabine, cartouche et balle actives que Trajectoire et Probabilité d'impact (définies dans **Armes**), avec le même zéro — pas de réglage de zéro de combat séparé ici.
 
 ### Vue lunette
 
 Lorsque l'arme active a une lunette de l'Arsenal (Armes → Arsenal → arme → Lunette), un bouton réticule apparaît à droite de la barre des conditions. Il affiche le réticule de l'arme tel qu'on le voit dans cette lunette, au-dessus d'un affichage réduit. Le réglage est mémorisé.
 
 - **Point de visée** — l'anneau indique où placer la cible. **Correction au réticule** montre toute la correction prise au réticule, rien à la tourelle ; **Élévation à la tourelle** suppose l'élévation réglée à la tourelle et ne montre que la correction de dérive, sur l'axe horizontal. En **Correction au réticule**, de fines lignes relient le point aux deux axes pour lire la correction sur les graduations. Si le point tombe hors du champ de vision, une flèche au bord indique sa direction. Le premier bouton du coin inférieur gauche masque ou affiche le point et la flèche.
-- **Bague de grossissement** — l'échelle à côté du réticule règle le grossissement sur la plage réelle de la lunette, avec un trait à chaque grossissement entier. Faites-la glisser, touchez-la ou utilisez les flèches du clavier (Page préc. / Page suiv. pour des pas entiers). Une lunette à grossissement fixe n'a pas de bague.
+- **Bague de grossissement** — l'échelle à côté du réticule ou en dessous règle le grossissement sur la plage réelle de la lunette, avec un trait à chaque grossissement entier. Paramètres → **Bague de grossissement de la vue lunette** décide de sa place : **Automatique**, par défaut, la met sous le réticule sur un téléphone en portrait, pour que le réticule ait toute la largeur, et à côté sinon. Faites-la glisser, touchez-la ou utilisez les flèches du clavier (Page préc. / Page suiv. pour des pas entiers). Une lunette à grossissement fixe n'a pas de bague.
 - **Second plan focal** — les graduations ne sont justes qu'à un seul grossissement. Il est mis en évidence sur la bague, qui s'y arrête à moins de 5 %. À tout autre grossissement, une note indique la valeur des graduations, et le point se déplace là où la correction tombe sur le réticule à ce grossissement.
 - **Zoomer sur le réticule** — sur une lunette à grossissement fixe, un bouton loupe en bas à droite agrandit toute la vue en plus du grossissement de la lunette. Il s'ouvre au grossissement où le réticule remplit la vue (5× pour un réticule fait uniquement de barres), et − / + à côté règlent de 1× à 10×, par grossissements entiers et par cette valeur. L'indication au-dessus donne le grossissement de la lunette et l'agrandissement ajouté, par ex. « 4× 3.4× » ; le dernier réglage est conservé par lunette jusqu'au rechargement de la page. Les graduations et les corrections ne changent pas ; seule l'image est plus grande.
 - **Distances BDC** — sur un réticule à repères BDC, le deuxième bouton du coin inférieur gauche inscrit sur chaque repère la distance à laquelle il correspond, calculée pour les conditions actuelles, l'angle de ligne de mire et le vent de face ou arrière (et, sur une lunette au second plan focal, pour le grossissement réglé). Un point au niveau du repère montre où viser, décalé latéralement par la dérive gyroscopique si elle est activée. En **Élévation à la tourelle**, le centre correspond à la distance de la cible, son élévation déjà réglée à la tourelle, et chaque repère en dessous à cette élévation plus la sienne. Réglages → **Affichage des distances BDC** définit où s'affichent les distances. **Étiquettes reliées**, par défaut, les place dans une colonne à droite, chacune au niveau de son repère et reliée à lui par un trait fin qui évite les autres traits, les nombres et les corrections de vent : depuis le repère quand il y a la place, sinon depuis le bout de sa rangée de corrections de vent. Les nombres qui se chevaucheraient passent dans une seconde colonne, puis rapetissent. **En dessous** place chaque distance sous son repère. **Côté vent** la place à côté du repère, du côté d'où vient le vent (à droite sans vent de travers), et y omet les corrections pour le vent opposé. Là où les distances se chevaucheraient encore, certaines sont omises ; zoomez pour les voir. Le réglage est mémorisé.
 - **Corrections de vent** — le troisième bouton du coin inférieur gauche, proposé tant que le point de visée ou les distances BDC sont affichés, ajoute des points de correction de vent de travers des deux côtés : un point par quart d'un vent de référence jusqu'à une fois et demie celui-ci, la référence plus grosse. Avec les distances BDC, ils se placent au niveau de chaque repère, à côté de son point ; sinon au niveau du point de visée, autour d'un point marquant la visée sans vent de travers. Le vent de référence est de 4 m/s, 10 mph, 10 km/h ou 10 ft/s, selon votre unité de vitesse du vent, et s'affiche au-dessus des boutons tant que les corrections de vent sont affichées. Les trois boutons sont mémorisés.
 - **Couleur et forme de la superposition** — tout ce qui est dessiné sur le réticule (le point de visée, ses lignes, la flèche, les distances BDC et les corrections de vent) est vermillon ou bleu (Réglages → **Couleur de la superposition au réticule**). **Automatique**, par défaut, utilise le vermillon, et le bleu sur un réticule éclairé en rouge ou en ambre. Réglages → **Forme de la superposition au réticule** dessine les corrections en points, ou en traits verticaux (celui du vent de référence plus long et plus épais), chaque point de visée devenant alors une petite croix.
 
-### Emplacements et cibles
-
-Facultatif : enregistrez une fois les cibles d'un pas de tir — leur
-distance et leur angle de ligne de mire, et, si vous ajoutez une photo
-prise depuis le poste de tir, leur emplacement sur celle-ci — puis
-retrouvez-les directement dans l'onglet Cible lors de vos prochaines
-visites, au lieu de régler distance et angle à la main à chaque fois. Le
-vent et l'atmosphère ne font jamais partie d'une cible enregistrée,
-seulement la distance, l'angle et (avec une photo) la position.
-
-La ligne **Emplacements et cibles** de l'onglet Cible affiche le nom de
-l'emplacement actuel (rien, si vous n'en utilisez pas), un menu déroulant
-de ses cibles, et jusqu'à trois icônes :
-
-- Une icône en forme de cadre photo, **Choisir la cible sur la photo**
-  (visible seulement une fois que l'emplacement actuel a une photo) —
-  ouvre cette photo en plein écran ; touchez le repère d'une cible déjà
-  placée pour la sélectionner immédiatement, ou une puce (empilées en haut
-  à gauche) pour une cible pas encore placée sur la photo. Rien ne change
-  tant que vous n'en touchez pas une.
-- Une icône de synchronisation, **Mettre à jour cette cible avec la
-  distance/l'angle actuels** — apparaît dès que la distance/l'angle
-  actuellement réglés ne correspondent plus aux valeurs enregistrées de la
-  cible sélectionnée (par exemple si vous avez ajusté la distance à la main
-  après l'avoir choisie). Met à jour la cible enregistrée pour qu'elle
-  corresponde à ce qui est actuellement réglé.
-- **Gérer les emplacements** — ouvre la bibliothèque Emplacements et cibles
-  elle-même (ci-dessous). Terminé, là-bas, vous ramène à cet onglet.
-
-Choisir une cible (menu, photo ou puce) copie sa distance et son angle dans
-l'onglet Cible comme une modification libre et ponctuelle, pas un lien
-permanent — vous pouvez toujours ajuster ensuite les valeurs réglées à la
-main sans toucher à la cible enregistrée (c'est à ça que sert l'icône de
-synchronisation ci-dessus, si vous voulez la garder synchronisée).
-
-**Gérer les emplacements.** L'écran de la bibliothèque répartit vos
-emplacements entre **Emplacement actuel** (celui qui est actif, ou **Aucun
-emplacement — cible unique, saisie manuelle** si aucun ne l'est) et
-**Emplacements connus** (tous les autres). Toucher un emplacement connu
-l'active — le déplace vers Emplacement actuel et fait défiler la page
-jusque-là — sans quitter cet écran. Seul l'emplacement actuel affiche
-**Modifier** et sa liste de cibles ; chaque emplacement, actuel ou connu,
-affiche **Sauvegarder dans un fichier** et **Supprimer**. **Sauvegarder la
-bibliothèque dans un fichier…** / **Charger une sauvegarde depuis un
-fichier…**, en haut, sauvegardent ou restaurent toute la bibliothèque
-d'un coup, de la même façon que l'Arsenal pour les carabines et les
-balles.
-
-Un emplacement a un nom, une altitude facultative (si elle est renseignée,
-activer l'emplacement remplit l'onglet Atmosphère avec l'atmosphère
-standard à cette altitude et 50 % d'humidité — mais seulement si vous
-n'avez pas déjà modifié vous-même les valeurs d'atmosphère durant cette
-session), et une photo facultative. Chacune de ses cibles a un nom
-(facultatif — par défaut « Cible 1 », « Cible 2 », etc.), des notes, une
-distance et un angle de ligne de mire.
-
-**Placer une cible sur la photo.** Dès qu'un emplacement a une photo,
-chacune de ses cibles reçoit un bouton **Placer** (dans sa ligne, et dans
-son propre formulaire de modification) qui ouvre la photo en plein écran
-pour cette cible : touchez ou faites glisser pour positionner son repère,
-faites glisser une zone vide pour déplacer la vue, pincez (ou utilisez les
-boutons **Zoom avant** / **Zoom arrière** de la barre de navigation) pour
-zoomer. Chaque autre cible déjà placée sur la même photo apparaît comme un
-petit point étiqueté avec son nom, sa distance et son angle, pour que vous
-puissiez placer la nouvelle par rapport à elles. **Retirer le repère**
-annule le placement ; Terminé l'enregistre et revient à la bibliothèque.
-Une cible pas encore placée sur la photo (sur un emplacement qui en a une)
-affiche un badge **Non placée** dans sa ligne, en rappel.
-
 ## Armes
 
-La carabine, la cartouche et la balle utilisées par tout outil qui en a
-besoin — actuellement **Trajectoire** et **Probabilité d'impact**. Partout
-où un outil a besoin de cette configuration, il affiche un court résumé
-(nom, source, vitesse initiale) avec un bouton **Modifier** qui mène ici ;
-ce que vous choisissez ou modifiez s'applique partout et **persiste après un
-redémarrage**.
+La carabine, la cartouche et la balle utilisées par tout outil qui en a besoin — **Trajectoire**, **Calculateur de terrain**, **Probabilité d'impact** et **Session de calibrage**. Partout où un outil a besoin de cette configuration, il affiche un court résumé (nom, source, vitesse initiale) avec un bouton **Modifier** qui mène ici ; ce que vous choisissez ou modifiez s'applique partout et **persiste après un redémarrage**.
 
-**Modifier** vous dirige vers celui des deux onglets ci-dessous qui
-correspond à la source de la carabine active — **Arsenal** s'il s'agit
-d'une de vos propres carabines enregistrées, **Personnalisé** sinon. Sur
-mobile, l'ouverture d'Armes remplace la barre inférieure par **Personnalisé**
-/ **Arsenal** / **Terminé** ; sur ordinateur, le rail latéral se transforme
-de la même façon. **Terminé** vous ramène vers l'outil d'où vous êtes venu.
+**Modifier** vous dirige vers celui des deux onglets ci-dessous qui correspond à la source de la carabine active — **Arsenal** s'il s'agit d'une de vos propres carabines enregistrées, **Personnalisé** sinon. Sur mobile, l'ouverture d'Armes remplace la barre inférieure par **Personnalisé** / **Arsenal** / **Terminé** ; sur ordinateur, le rail latéral se transforme de la même façon. **Terminé** vous ramène vers l'outil d'où vous êtes venu.
 
 ### Personnalisé
 
-Choisissez une carabine intégrée, l'une de vos propres carabines de
-l'Arsenal, ou saisissez une carabine et une balle entièrement à la main —
-les trois options vivent dans le même formulaire. Quelques champs méritent
-une explication :
+Choisissez une carabine intégrée, l'une de vos propres carabines de l'Arsenal, ou saisissez une carabine et une balle entièrement à la main — les trois options vivent dans le même formulaire. Quelques champs méritent une explication :
 
-- **Distance de réglage** — la distance à laquelle la carabine est réglée
-  (zérotée). Le moteur calcule l'angle de tir qui place la balle sur la
-  ligne de mire à cette distance ; vous ne réglez pas l'angle vous-même.
-- **Vitesse initiale en fonction de la température** — modélise en option la
-  variation de la vitesse initiale d'une cartouche avec la température de la
-  poudre, au lieu d'utiliser une valeur fixe.
-- **Traînée de la balle** — soit un coefficient balistique (BC) avec un
-  modèle de traînée standard (G1, G7 et d'autres — voir **Paramètres**),
-  soit, pour les balles de la bibliothèque qui en possèdent une, une table
-  Cd-Mach directement mesurée (plus précise,
-  sans BC).
+- **Distance de réglage** — la distance à laquelle la carabine est réglée (zérotée). Le moteur calcule l'angle de tir qui place la balle sur la ligne de mire à cette distance ; vous ne réglez pas l'angle vous-même.
+- **Vitesse initiale en fonction de la température** — modélise en option la variation de la vitesse initiale d'une cartouche avec la température de la poudre, au lieu d'utiliser une valeur fixe.
+- **Traînée de la balle** — soit un coefficient balistique (BC) avec un modèle de traînée standard (G1, G7 et d'autres — voir **Paramètres**), soit, pour les balles de la bibliothèque qui en possèdent une, une table Cd-Mach directement mesurée (plus précise, sans BC).
 
-**Ajouter la carabine à l'arsenal** / **Ajouter la balle à l'arsenal**, à
-côté des champs correspondants, enregistrent l'entrée actuelle dans votre
-propre bibliothèque Arsenal (ci-dessous) pour réutilisation.
+**Ajouter la carabine à l'arsenal** / **Ajouter la balle à l'arsenal**, à côté des champs correspondants, enregistrent l'entrée actuelle dans votre propre bibliothèque Arsenal (ci-dessous) pour réutilisation.
 
 ### Arsenal
 
-Voir le [manuel détaillé](#/manual/arsenal) pour la référence complète —
-chaque champ, les règles d'unités et l'intégration avec la Calculette de
-précision de tir.
+Voir le [manuel détaillé](#/manual/arsenal) pour la référence complète — chaque champ, les règles d'unités et l'intégration avec la Calculette de précision de tir.
 
-Votre propre bibliothèque de carabines et de balles, stockée uniquement sur
-cet appareil (stockage local du navigateur) — rien ici ne quitte jamais
-votre navigateur.
+Votre propre bibliothèque de carabines, de balles, de lunettes et de réticules, stockée uniquement sur cet appareil (stockage du navigateur) — rien ici ne quitte jamais votre navigateur. Elle est répartie en trois onglets : **Carabines** (avec la comparaison et la carabine active), **Balles** et **Lunettes**, qui contient vos lunettes et les réticules dessinés dans le **Concepteur de réticule** (voir **Utilitaires** plus bas). Une carabine peut désigner une lunette, et l'un des réticules de celle-ci : choisir la lunette copie ses valeurs de clic dans la carabine et donne au Calculateur de terrain sa **Vue lunette**.
 
-**Bibliothèques intégrées.** L'application est fournie avec une bibliothèque
-intégrée de carabines et quatre bibliothèques intégrées de balles — **Geladen's
-own** (« La collection de l'auteur »), **Lapua Cd** (courbes Cd-Mach mesurées
-au radar par Lapua, telles que publiées par le fabricant), **Hornady
-Reverse Radar** (courbes Cd-Mach personnalisées, obtenues par
-rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF) et
-**Swiss P** (courbes Cd-Mach et BC G7 supersoniques optimaux, obtenus par
-rétro-ingénierie à partir des tables de trajectoire publiées par Swiss P) —
-affichées à côté de tout ce que vous ajoutez vous-même (vos propres entrées
-sont marquées d'un « * » en préfixe). Chacune peut être **désactivée
-individuellement dans Paramètres** si vous ne voulez pas qu'elle encombre vos
-listes de sélection ; vos propres entrées enregistrées ne sont affectées dans
-aucun cas.
+**Bibliothèques intégrées.** L'application est fournie avec une bibliothèque intégrée de carabines et huit bibliothèques intégrées de balles — **Geladen's own** (« La collection de l'auteur »), **Lapua Cd** (courbes Cd-Mach mesurées au radar par Lapua, telles que publiées par le fabricant), **Hornady Reverse Radar** (courbes Cd-Mach personnalisées, obtenues par rétro-ingénierie à partir de la sortie du calculateur Hornady 4DOF), trois autres obtenues de la même façon pour des balles **Berger**, **Sierra** et **Lapua**, **Berger published BC** (BC tels que publiés sur le site de Berger) et **Swiss P** (courbes Cd-Mach et BC G7 supersoniques optimaux, obtenus par rétro-ingénierie à partir des tables de trajectoire publiées par Swiss P) — affichées à côté de tout ce que vous ajoutez vous-même (vos propres entrées sont marquées d'un « * » en préfixe). Chacune peut être **désactivée individuellement dans Paramètres** si vous ne voulez pas qu'elle encombre vos listes de sélection ; vos propres entrées enregistrées ne sont affectées dans aucun cas. L'onglet Lunettes présente aussi, à côté des vôtres, des lunettes et réticules intégrés — génériques, et des modèles de Schmidt & Bender, Horus, FinnAccuracy, Element Optics et Trijicon ; ceux-ci sont toujours affichés.
 
-**Ajouter et gérer des entrées.** Ajoutez une balle soit entièrement à la
-main (nom, calibre, masse, BC/modèle de traînée ou une table Cd-Mach
-collée), soit en copiant une balle intégrée et en l'ajustant. Ajoutez une
-carabine avec sa propre hauteur de lunette, distance de réglage et valeurs
-de clic, puis attachez-lui une ou plusieurs cartouches (chacune avec sa
-propre balle et vitesse initiale). Cliquez sur une carabine pour en faire la
-« Carabine active » affichée en haut, avec ses propres cartouches et un
-bouton Modifier ; la cartouche choisie là est celle que « Terminé » applique
-comme configuration active partout, une fois que vous quittez Armes. Le
-champ fabricant se complète automatiquement à partir de toutes les
-bibliothèques activées et de votre propre Arsenal.
+**Ajouter et gérer des entrées.** Ajoutez une balle soit entièrement à la main (nom, calibre, masse, BC/modèle de traînée ou une table Cd-Mach collée), soit en copiant une balle intégrée et en l'ajustant. Ajoutez une carabine avec sa propre hauteur de lunette, distance de réglage et valeurs de clic, puis attachez-lui une ou plusieurs cartouches (chacune avec sa propre balle et vitesse initiale). Cliquez sur une carabine pour en faire la « Carabine active » affichée en haut, avec ses propres cartouches et un bouton Modifier ; la cartouche choisie là est celle que « Terminé » applique comme configuration active partout, une fois que vous quittez Armes. Le champ fabricant se complète automatiquement à partir de toutes les bibliothèques activées et de votre propre Arsenal.
 
-Les filtres par calibre et fabricant réduisent les longues listes. Une balle
-ou une carabine modifiée mais pas encore exportée affiche un badge « Non
-enregistré ».
+Les filtres par calibre et fabricant réduisent les longues listes. Une balle ou une carabine modifiée mais pas encore exportée affiche un badge « Non enregistré ».
 
-**Enregistrer et charger votre bibliothèque.** Puisque rien n'est stocké sur
-un serveur, votre bibliothèque n'est en sécurité que si le stockage local de
-votre navigateur l'est. **Enregistrer dans un fichier** (par carabine/balle,
-ou « Enregistrer la bibliothèque… » pour un export à sélection multiple)
-écrit un fichier JSON que vous pouvez sauvegarder ou transférer vers un
-autre appareil ; **Charger une bibliothèque…** en réimporte un, avec un
-choix par élément pour résoudre les conflits de nom (écraser, écraser
-seulement si plus récent, ou conserver les deux).
+**Enregistrer et charger votre bibliothèque.** Puisque rien n'est stocké sur un serveur, votre bibliothèque n'est en sécurité que si le stockage local de votre navigateur l'est. **Enregistrer dans un fichier** (par carabine/balle, ou « Enregistrer la bibliothèque… » pour un export à sélection multiple) écrit un fichier JSON que vous pouvez sauvegarder ou transférer vers un autre appareil ; **Charger une bibliothèque…** en réimporte un, avec un choix par élément pour résoudre les conflits de nom (écraser, écraser seulement si plus récent, ou conserver les deux).
 
-**Comparaison.** Marquez jusqu'à deux de vos propres configurations
-carabine+cartouche enregistrées « pour comparaison » (depuis la ligne de
-chaque carabine). Une fois deux configurations marquées, une section
-Comparaison apparaît avec un graphique partagé traçant les trajectoires des
-deux configurations pour la même colonne et la même fenêtre de distance —
-utile pour juger deux charges, ou deux carabines, directement l'une par
-rapport à l'autre. Comme le graphique de Trajectoire, il a son propre
-zoom/déplacement et peut être **téléchargé en SVG**.
+**Comparaison.** Marquez jusqu'à deux de vos propres configurations carabine+cartouche enregistrées « pour comparaison » (depuis la ligne de chaque carabine). Une fois deux configurations marquées, une section Comparaison apparaît avec un graphique partagé traçant les trajectoires des deux configurations pour la même colonne et la même fenêtre de distance — utile pour juger deux charges, ou deux carabines, directement l'une par rapport à l'autre. Comme le graphique de Trajectoire, il a son propre zoom/déplacement et peut être **téléchargé en SVG**.
 
 ## Outils BC
 
-Calcule un coefficient balistique à partir de données connues, ou convertit
-un BC entre différents modèles — regroupés sous un seul outil avec les
-onglets **Calcul BC**, **Conversion BC**, **BC multiples** et **Labrabaco
-NG**, tous déjà pleinement utilisables.
+Calcule un coefficient balistique à partir de données connues, ou convertit un BC entre différents modèles — regroupés sous un seul outil avec les onglets **Calcul BC**, **Conversion BC**, **BC multiples** et **Labrabaco NG**, tous déjà pleinement utilisables.
 
-Le **Calcul BC** déduit un coefficient balistique à partir d'une paire
-vitesse/distance proche et soit une vitesse éloignée, soit un temps de vol
-mesuré entre les deux distances, ainsi qu'un modèle de traînée (G1/G7) et
-l'atmosphère. Basculez entre les modes de saisie **Vitesse** et **Temps de
-vol** selon ce que vous avez mesuré (par exemple deux mesures au
-chronographe, ou une seule mesure de temps de vol sur une distance connue)
-— tout le reste (vitesse proche, les deux distances, modèle de traînée,
-atmosphère) reste identique dans les deux cas. Utile lorsque vous avez
-mesuré une perte de vitesse réelle, ou un temps de vol réel, sur une
-distance connue et que vous voulez le BC qui l'explique, plutôt que de vous
-fier à une valeur publiée.
+Le **Calcul BC** déduit un coefficient balistique à partir d'une paire vitesse/distance proche et soit une vitesse éloignée, soit un temps de vol mesuré entre les deux distances, ainsi qu'un modèle de traînée (G1/G7) et l'atmosphère. Basculez entre les modes de saisie **Vitesse** et **Temps de vol** selon ce que vous avez mesuré (par exemple deux mesures au chronographe, ou une seule mesure de temps de vol sur une distance connue) — tout le reste (vitesse proche, les deux distances, modèle de traînée, atmosphère) reste identique dans les deux cas. Utile lorsque vous avez mesuré une perte de vitesse réelle, ou un temps de vol réel, sur une distance connue et que vous voulez le BC qui l'explique, plutôt que de vous fier à une valeur publiée.
 
-La **Conversion BC** convertit un coefficient balistique d'un modèle de
-traînée standard à un autre, à une seule vitesse de référence — indiquez le
-modèle source et le BC, une vitesse représentative de la tranche de
-distance qui vous intéresse, et le modèle de destination ; le résultat se
-met à jour automatiquement à chaque modification, sans bouton à presser. La
-conversion est exacte à cette vitesse et s'écarte d'autant plus que la
-vitesse réelle de votre balle s'en éloigne, car les différents modèles de
-traînée ont des courbes de forme différente selon la vitesse. Les deux
-listes de modèles affichent toujours tous les modèles standard, quels que
-soient ceux masqués ailleurs par les Paramètres.
+La **Conversion BC** convertit un coefficient balistique d'un modèle de traînée standard à un autre, à une seule vitesse de référence — indiquez le modèle source et le BC, une vitesse représentative de la tranche de distance qui vous intéresse, et le modèle de destination ; le résultat se met à jour automatiquement à chaque modification, sans bouton à presser. La conversion est exacte à cette vitesse et s'écarte d'autant plus que la vitesse réelle de votre balle s'en éloigne, car les différents modèles de traînée ont des courbes de forme différente selon la vitesse. Les deux listes de modèles affichent toujours tous les modèles standard, quels que soient ceux masqués ailleurs par les Paramètres.
 
-**BC multiples** transforme 2 à 5 valeurs de BC publiées par le fabricant,
-chacune valable sur sa propre plage de vitesse, en une courbe Cd-Mach propre
-à cette balle — faites glisser les bornes de segment directement sur le
-graphique, ou saisissez-les dans le tableau en dessous. Indiquez la masse et
-le calibre (les deux influencent directement la courbe résultante et les
-valeurs de BC optimales ci-dessous — saisissez-les avec précision), choisissez
-un modèle de traînée et une unité de vitesse, et le graphique ainsi que le
-tableau de résultats se mettent à jour en direct au fur et à mesure. Le
-résultat peut
-être enregistré directement dans l'Arsenal, téléchargé/copié en CSV, ou lu
-comme un seul BC de « compromis optimal » par modèle sur la plage
-supersonique propre à la balle.
+**BC multiples** transforme 2 à 5 valeurs de BC publiées par le fabricant, chacune valable sur sa propre plage de vitesse, en une courbe Cd-Mach propre à cette balle — faites glisser les bornes de segment directement sur le graphique, ou saisissez-les dans le tableau en dessous. Indiquez la masse et le calibre (les deux influencent directement la courbe résultante et les valeurs de BC optimales ci-dessous — saisissez-les avec précision), choisissez un modèle de traînée et une unité de vitesse, et le graphique ainsi que le tableau de résultats se mettent à jour en direct au fur et à mesure. Le résultat peut être enregistré directement dans l'Arsenal, téléchargé/copié en CSV, ou lu comme un seul BC de « compromis optimal » par modèle sur la plage supersonique propre à la balle.
 
-**Labrabaco NG** ajuste un BC par coup à partir d'un export du chronographe
-Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur
-sa carte SD, un par coup, enregistrant la vitesse environ toutes les
-millisecondes pendant le vol. Voir le [manuel détaillé](#/manual/bc-labradar)
-pour la méthode complète, les cas particuliers et les statistiques derrière
-les chiffres. Choisissez un modèle de traînée et
-l'atmosphère (pas de préréglages ici — saisissez directement votre propre
-pression station/température/humidité), puis sélectionnez le zip ; chaque
-trajectoire est analysée, débarrassée des points bruités/erronés, et
-ajustée pour un BC automatiquement. Les fichiers du zip qui ne sont pas de
-vraies trajectoires (le rapport ou le fichier projet de l'appareil, ou tout
-autre fichier parasite) sont ignorés. Deux filtres réglables écartent les
-trajectoires peu fiables avant qu'elles ne soient moyennées : un **seuil de
-qualité du signal** (à quel point les points nettoyés d'une trajectoire
-suivent une droite) et un **rejet des valeurs aberrantes** (à quel point le
-BC d'une trajectoire s'écarte des autres) — utile pour exclure par exemple
-une trajectoire captée depuis un pas de tir voisin, ou une dont le radar a
-simplement mal capté le signal. Cliquez sur la ligne d'une trajectoire pour
-voir son propre graphique vitesse/temps, avec les points conservés et
-écartés affichés séparément, et décochez la case d'une trajectoire pour
-l'exclure manuellement du résultat moyenné (ou recochez-en une que les
-filtres automatiques avaient rejetée). Le nettoyage des points et
-l'ajustement du BC qui sous-tendent tout cela ont été calibrés sur un corpus
-de **1 297 trajectoires Labradar réelles** : le bruit ainsi corrigé a été
-mesuré, et non supposé.
+**Labrabaco NG** ajuste un BC par coup à partir d'un export du chronographe Labradar — un **.zip** de fichiers de trajectoire que l'appareil écrit sur sa carte SD, un par coup, enregistrant la vitesse environ toutes les millisecondes pendant le vol. Voir le [manuel détaillé](#/manual/bc-labradar) pour la méthode complète, les cas particuliers et les statistiques derrière les chiffres. Choisissez un modèle de traînée et l'atmosphère (pas de préréglages ici — saisissez directement votre propre pression station/température/humidité), puis sélectionnez le zip ; chaque trajectoire est analysée, débarrassée des points bruités/erronés, et ajustée pour un BC automatiquement. Les fichiers du zip qui ne sont pas de vraies trajectoires (le rapport ou le fichier projet de l'appareil, ou tout autre fichier parasite) sont ignorés. Deux filtres réglables écartent les trajectoires peu fiables avant qu'elles ne soient moyennées : un **seuil de qualité du signal** (à quel point les points nettoyés d'une trajectoire suivent une droite) et un **rejet des valeurs aberrantes** (à quel point le BC d'une trajectoire s'écarte des autres) — utile pour exclure par exemple une trajectoire captée depuis un pas de tir voisin, ou une dont le radar a simplement mal capté le signal. Cliquez sur la ligne d'une trajectoire pour voir son propre graphique vitesse/temps, avec les points conservés et écartés affichés séparément, et décochez la case d'une trajectoire pour l'exclure manuellement du résultat moyenné (ou recochez-en une que les filtres automatiques avaient rejetée). Le nettoyage des points et l'ajustement du BC qui sous-tendent tout cela ont été calibrés sur un corpus de **1 297 trajectoires Labradar réelles** : le bruit ainsi corrigé a été mesuré, et non supposé.
 
-**À retenir :** garbage in = garbage out (des données pourries donnent
-des résultats pourris). L'atmosphère est *très* importante. Si vous ne
-connaissez pas l'humidité, mettez 50 %. Un Kestrel suffit (même si
-j'aurais préféré un thermomètre plus précis). « Des données récupérées
-sur Internet depuis la "station météo la plus proche" » ne suffisent pas.
-Assurez-vous *impérativement* d'utiliser la pression absolue (dite
-pression station), et non une valeur ajustée à l'altitude (le Kestrel
-utilise de façon trompeuse le terme « barometric pressure » pour désigner
-la pression ramenée au niveau de la mer — ce n'est *pas* celle que l'on
-veut). En général, si vous mesurez 1000+ hPa à une altitude de 500 m ou
-plus (29,5 inHg et 1500 ft pour nos amis non métriques), cela signifie
-probablement soit que vous lisez la mauvaise valeur de pression (ajustée
-au lieu d'absolue/station), soit que la fin du monde est plus proche que
-prévu.
+**À retenir :** garbage in = garbage out (des données pourries donnent des résultats pourris). L'atmosphère est *très* importante. Si vous ne connaissez pas l'humidité, mettez 50 %. Un Kestrel suffit (même si j'aurais préféré un thermomètre plus précis). « Des données récupérées sur Internet depuis la "station météo la plus proche" » ne suffisent pas. Assurez-vous *impérativement* d'utiliser la pression absolue (dite pression station), et non une valeur ajustée à l'altitude (le Kestrel utilise de façon trompeuse le terme « barometric pressure » pour désigner la pression ramenée au niveau de la mer — ce n'est *pas* celle que l'on veut). En général, si vous mesurez 1000+ hPa à une altitude de 500 m ou plus (29,5 inHg et 1500 ft pour nos amis non métriques), cela signifie probablement soit que vous lisez la mauvaise valeur de pression (ajustée au lieu d'absolue/station), soit que la fin du monde est plus proche que prévu.
 
-**À retenir n° 2 :** le Labradar a un réglage appelé « proj. offset » ; il
-définit la distance attendue entre la bouche du canon et le côté du
-radar. Respectez-le (à -5 cm près) — c'est important ! Ce décalage se
-mesure depuis le canon, *pas* depuis la bouche ; gardez cela en tête si
-votre bouche n'est pas alignée avec le radar, mais légèrement devant ou
-derrière.
+**À retenir n° 2 :** le Labradar a un réglage appelé « proj. offset » ; il définit la distance attendue entre la bouche du canon et le côté du radar. Respectez-le (à -5 cm près) — c'est important ! Ce décalage se mesure depuis le canon, *pas* depuis la bouche ; gardez cela en tête si votre bouche n'est pas alignée avec le radar, mais légèrement devant ou derrière.
 
-**À retenir n° 3 :** un coup ne fait pas le printemps. Il vous en faut au
-moins 20 (pour des munitions d'usine correctes) pour lisser les erreurs.
-Des balles de surplus médiocres en demandent davantage (comptez au moins
-30), tandis qu'avec des projectiles de haute qualité, 10 coups peuvent
-suffire. En général, plus il y en a, mieux c'est.
+**À retenir n° 3 :** un coup ne fait pas le printemps. Il vous en faut au moins 20 (pour des munitions d'usine correctes) pour lisser les erreurs. Des balles de surplus médiocres en demandent davantage (comptez au moins 30), tandis qu'avec des projectiles de haute qualité, 10 coups peuvent suffire. En général, plus il y en a, mieux c'est.
 
 ## Courbe Cd-Mach
 
-Déduit la courbe de traînée propre à une balle (Cd en fonction de Mach) à
-partir d'un tableau distance/vitesse mesuré — p. ex. relevés radar Doppler
-ou multi-chronographe —, en résolvant le coefficient de traînée segment par
-segment plutôt qu'en supposant une forme standard G1/G7. Fonctionne mieux
-avec un tableau peu dense (mesures au chronographe tous les ~100 m) ; les
-tableaux denses (pas de 10 à 20 m) fonctionnent aussi, mais l'erreur
-d'arrondi de chaque ligne pèse alors davantage sur le résultat de ce seul
-segment.
+Déduit la courbe de traînée propre à une balle (Cd en fonction de Mach) à partir d'un tableau distance/vitesse mesuré — p. ex. relevés radar Doppler ou multi-chronographe —, en résolvant le coefficient de traînée segment par segment plutôt qu'en supposant une forme standard G1/G7. Fonctionne mieux avec un tableau peu dense (mesures au chronographe tous les ~100 m) ; les tableaux denses (pas de 10 à 20 m) fonctionnent aussi, mais l'erreur d'arrondi de chaque ligne pèse alors davantage sur le résultat de ce seul segment.
 
-**Tableau distance / vitesse** — collez une paire distance/vitesse par
-ligne (séparées par une tabulation, une espace ou un point-virgule ; point
-ou virgule décimale acceptés), au moins 3 lignes. **Unités du tableau**
-indique si les valeurs collées sont en **Moderne (m, m/s)** ou en
-**Archaïque (yd, fps)** — indépendamment de votre propre préférence
-d'unités, puisque les unités des données sources n'ont pas à correspondre à
-celles que vous préférez voir ailleurs dans l'application.
+**Tableau distance / vitesse** — collez une paire distance/vitesse par ligne (séparées par une tabulation, une espace ou un point-virgule ; point ou virgule décimale acceptés), au moins 3 lignes. **Unités du tableau** indique si les valeurs collées sont en **Moderne (m, m/s)** ou en **Archaïque (yd, fps)** — indépendamment de votre propre préférence d'unités, puisque les unités des données sources n'ont pas à correspondre à celles que vous préférez voir ailleurs dans l'application.
 
-Sous le tableau : les mêmes champs de masse et de calibre que l'Arsenal, et
-une section **Atmosphère** indépendante (par défaut, atmosphère standard au
-niveau de la mer) — le solveur a besoin des deux pour simuler une
-trajectoire synthétique sur chaque segment et en déduire le Cd qui
-reproduit la perte de vitesse mesurée.
+Sous le tableau : les mêmes champs de masse et de calibre que l'Arsenal, et une section **Atmosphère** indépendante (par défaut, atmosphère standard au niveau de la mer) — le solveur a besoin des deux pour simuler une trajectoire synthétique sur chaque segment et en déduire le Cd qui reproduit la perte de vitesse mesurée.
 
 **Calculer** produit deux tableaux :
 
-- **Interpolé** — la courbe déduite, relue à un ensemble fixe et dense de
-  nombres de Mach de référence ; c'est celui à utiliser ensuite (p. ex.
-  pour l'enregistrement dans l'Arsenal).
-- **Calculé (brut, par segment)** — les valeurs par segment sous-jacentes,
-  avant interpolation, masquées par défaut (**Afficher le tableau par
-  segment (calculé)**).
+- **Interpolé** — la courbe déduite, relue à un ensemble fixe et dense de nombres de Mach de référence ; c'est celui à utiliser ensuite (p. ex. pour l'enregistrement dans l'Arsenal).
+- **Calculé (brut, par segment)** — les valeurs par segment sous-jacentes, avant interpolation, masquées par défaut (**Afficher le tableau par segment (calculé)**).
 
-Chaque tableau peut être **téléchargé en CSV** ou **copié dans le
-presse-papiers** (le séparateur de champs/décimal de Paramètres → Export
-CSV s'applique aussi ici). Un segment que le solveur n'a pas pu exploiter —
-la vitesse n'a pas diminué, la distance n'a pas augmenté, ou la résolution
-n'a pas convergé — est ignoré et listé, sans affecter le reste du tableau.
+Chaque tableau peut être **téléchargé en CSV** ou **copié dans le presse-papiers** (le séparateur de champs/décimal de Paramètres → Export CSV s'applique aussi ici). Un segment que le solveur n'a pas pu exploiter — la vitesse n'a pas diminué, la distance n'a pas augmenté, ou la résolution n'a pas convergé — est ignoré et listé, sans affecter le reste du tableau.
 
-**Le graphique** trace les points Calculé et la courbe Interpolé, avec les
-courbes de référence G1 et G7 mises à l'échelle pour correspondre à la
-courbe propre de la balle à Mach 2.0 — un aperçu visuel rapide de si la
-forme de traînée de cette balle est standard ou non. Téléchargeable en SVG,
-comme le graphique de Trajectoire.
+**Le graphique** trace les points Calculé et la courbe Interpolé, avec les courbes de référence G1 et G7 mises à l'échelle pour correspondre à la courbe propre de la balle à Mach 2.0 — un aperçu visuel rapide de si la forme de traînée de cette balle est standard ou non. Téléchargeable en SVG, comme le graphique de Trajectoire.
 
-**Enregistrer dans l'Arsenal** vous envoie vers le formulaire « Ajouter une
-balle » de l'Arsenal, avec la masse, le calibre et le tableau Cd-Mach
-pré-remplis — choisissez **Calculé (brut, par segment)** ou **Interpolé
-(lissé)** comme source à côté du bouton. Actif uniquement une fois un
-résultat obtenu.
+**Enregistrer dans l'Arsenal** vous envoie vers le formulaire « Ajouter une balle » de l'Arsenal, avec la masse, le calibre et le tableau Cd-Mach pré-remplis — choisissez **Calculé (brut, par segment)** ou **Interpolé (lissé)** comme source à côté du bouton. Actif uniquement une fois un résultat obtenu.
 
 ## Calculette de précision de tir
 
-Voir le [manuel détaillé](#/manual/rifle-precision) pour la
-méthode complète, les cas particuliers et les statistiques derrière les
-chiffres.
+Voir le [manuel détaillé](#/manual/rifle-precision) pour la méthode complète, les cas particuliers et les statistiques derrière les chiffres.
 
-Mesure la précision réelle d'une carabine à partir de photos de cibles
-papier — pas besoin de télémètre laser ni de matériel sophistiqué, juste une
-photo au téléphone d'une règle et de vos trous de balle. Organise le travail
-en **Projets** (une combinaison carabine/charge/distance) → **Cibles** (une
-photo chacune) → **Séries** (un point de visée et les coups tirés dessus) —
-puis regroupe chaque série utilisable de chaque cible utilisable d'un projet
-en un seul rapport de précision combiné.
+Mesure la précision réelle d'une carabine à partir de photos de cibles papier — pas besoin de télémètre laser ni de matériel sophistiqué, juste une photo au téléphone d'une règle et de vos trous de balle. Organise le travail en **Projets** (une combinaison carabine/charge/distance) → **Cibles** (une photo chacune) → **Séries** (un point de visée et les coups tirés dessus) — puis regroupe chaque série utilisable de chaque cible utilisable d'un projet en un seul rapport de précision combiné.
 
-**Projets.** Un projet a un nom, la distance à la cible et le calibre —
-chaque cible et chaque série qu'il contient est supposée tirée à cette même
-distance avec ce même calibre. **Sauvegarder dans un fichier** /
-**Sauvegarder la bibliothèque dans un fichier…** / **Charger une sauvegarde
-depuis un fichier…**, en haut et par projet, sauvegardent ou restaurent les
-projets de la même façon que l'Arsenal pour les carabines et les balles —
-rien ici ne quitte jamais votre navigateur.
+**Projets.** Un projet a un nom, la distance à la cible et le calibre — chaque cible et chaque série qu'il contient est supposée tirée à cette même distance avec ce même calibre. **Sauvegarder dans un fichier** / **Sauvegarder la bibliothèque dans un fichier…** / **Charger une sauvegarde depuis un fichier…**, en haut et par projet, sauvegardent ou restaurent les projets de la même façon que l'Arsenal pour les carabines et les balles — rien ici ne quitte jamais votre navigateur.
 
-**Ajouter une cible.** Choisissez une photo de la cible papier (pivotez-la
-si nécessaire, puis confirmez), ce qui ouvre directement le marquage :
+**Ajouter une cible.** Choisissez une photo de la cible papier (pivotez-la si nécessaire, puis confirmez), ce qui ouvre directement le marquage :
 
-- **Calibrer l'échelle** — touchez deux points séparés d'une distance
-  connue (une règle posée sur la cible, ou tout élément de longueur connue),
-  puis saisissez cette longueur réelle. **Terminer l'étalonnage** passe à la
-  suite ; **Recalibrer** permet d'y revenir plus tard sans perdre les points
-  déjà placés.
+- **Calibrer l'échelle** — touchez deux points séparés d'une distance connue (une règle posée sur la cible, ou tout élément de longueur connue), puis saisissez cette longueur réelle. **Terminer l'étalonnage** passe à la suite ; **Recalibrer** permet d'y revenir plus tard sans perdre les points déjà placés.
 - **Indiquer le point de visée** — touchez l'endroit visé par cette série.
-- **Marquer les impacts** — touchez chaque trou de balle ; continuez à
-  toucher pour en ajouter d'autres. Chaque point placé (calibration, point
-  de visée, impacts) peut ensuite être glissé pour l'ajuster. **Supprimer un
-  impact** bascule vers un mode où toucher le numéro d'un coup le supprime.
-- Une cible papier peut contenir plusieurs **séries** (par exemple plusieurs
-  groupements de 5 coups imprimés sur la même feuille) — passez de l'une à
-  l'autre ou commencez-en une nouvelle depuis le sélecteur de séries. La
-  ligne de chaque série indique son nombre de coups et sa **Disp. max.**
-  (dispersion maximale — la distance entre ses deux impacts les plus
-  éloignés).
-- **Enregistrer l'image d'ensemble de la série** télécharge un PNG de la
-  série actuellement active telle que marquée, recadré selon le
-  zoom/déplacement en cours.
+- **Marquer les impacts** — touchez chaque trou de balle ; continuez à toucher pour en ajouter d'autres. Chaque point placé (calibration, point de visée, impacts) peut ensuite être glissé pour l'ajuster. **Supprimer un impact** bascule vers un mode où toucher le numéro d'un coup le supprime.
+- Une cible papier peut contenir plusieurs **séries** (par exemple plusieurs groupements de 5 coups imprimés sur la même feuille) — passez de l'une à l'autre ou commencez-en une nouvelle depuis le sélecteur de séries. La ligne de chaque série indique son nombre de coups et sa **Disp. max.** (dispersion maximale — la distance entre ses deux impacts les plus éloignés).
+- **Enregistrer l'image d'ensemble de la série** télécharge un PNG de la série actuellement active telle que marquée, recadré selon le zoom/déplacement en cours.
 
-Une cible doit être calibrée, avoir un point de visée et au moins un impact
-pour être utilisable ; s'il en manque un, un badge et une indication
-précisent exactement ce qu'il reste à faire.
+Une cible doit être calibrée, avoir un point de visée et au moins un impact pour être utilisable ; s'il en manque un, un badge et une indication précisent exactement ce qu'il reste à faire.
 
-**Le rapport** (« Voir le rapport », dès qu'au moins une cible est
-utilisable) regroupe chaque coup de chaque série et cible utilisable —
-chaque coup étant mesuré par rapport au point de visée de sa propre série,
-si bien que des séries visées à des endroits différents de la feuille se
-combinent quand même correctement — en un seul jeu de statistiques :
+**Le rapport** (« Voir le rapport », dès qu'au moins une cible est utilisable) regroupe chaque coup de chaque série et cible utilisable — chaque coup étant mesuré par rapport au point de visée de sa propre série, si bien que des séries visées à des endroits différents de la feuille se combinent quand même correctement — en un seul jeu de statistiques :
 
-- Un sélecteur d'**Unités d'affichage des résultats** (votre propre unité
-  configurée, mrad, ou MOA) régit toutes les valeurs de la légende et du
-  tableau Chiffres ci-dessous.
-- **Résultats agrégés** — le nuage de points combiné — et sa **Légende**
-  sont côte à côte. Seuls les impacts eux-mêmes, le point de visée et le
-  point d'impact moyen sont toujours dessinés ; tout le reste est optionnel.
-- Le tableau **Chiffres** liste toutes les statistiques (intervalle de
-  confiance, moyenne des impacts, écart type, R50/R95/R99 — le rayon d'un
-  cercle dans lequel 50/95/99 % des impacts sont attendus — l'intervalle de
-  confiance du R95, et ES5x/ES10x, l'écart maximal moyen attendu pour un
-  groupement de 5 et de 10 coups) avec une case **Afficher sur l'image** par
-  ligne qui l'ajoute à la fois au diagramme, à la légende et à l'image
-  exportée.
-- **Options de l'image** — grille (espacement en mrad ou en MOA),
-  **Impacts à l'échelle** du calibre réel, un cercle de **Référence 1 MOA**,
-  un cercle de **Rayon de probabilité d'impact** piloté par un curseur, une
-  **Échelle**, et **Enregistrer la légende avec l'image des résultats**
-  (activé par défaut) pour l'export SVG ci-dessous.
-- L'**Indice de confiance** évalue à quel point une série de cette taille
-  peut réellement être crue — peu de coups et un large intervalle de
-  confiance vous placent bien en dessous du « seuil de foutaises » ; assez
-  de coups et il grimpe vers « Excellent ». Il est aussi intégré à l'export
-  SVG, où il remplace le simple texte de l'intervalle de confiance.
-- **Exporter en CSV** télécharge les coordonnées brutes de chaque coup
-  combiné, dans vos unités préférées et avec l'unité indiquée dans chaque
-  en-tête de colonne ; la petite icône à côté de Résultats agrégés **exporte le
-  diagramme en SVG** — avec la légende et l'indice de confiance inclus si
-  cette case est cochée.
+- Un sélecteur d'**Unités d'affichage des résultats** (votre propre unité configurée, mrad, ou MOA) régit toutes les valeurs de la légende et du tableau Chiffres ci-dessous.
+- **Résultats agrégés** — le nuage de points combiné — et sa **Légende** sont côte à côte. Seuls les impacts eux-mêmes, le point de visée et le point d'impact moyen sont toujours dessinés ; tout le reste est optionnel.
+- Le tableau **Chiffres** liste toutes les statistiques (intervalle de confiance, moyenne des impacts, écart type, R50/R95/R99 — le rayon d'un cercle dans lequel 50/95/99 % des impacts sont attendus — l'intervalle de confiance du R95, et ES5x/ES10x, l'écart maximal moyen attendu pour un groupement de 5 et de 10 coups) avec une case **Afficher sur l'image** par ligne qui l'ajoute à la fois au diagramme, à la légende et à l'image exportée.
+- **Options de l'image** — grille (espacement en mrad ou en MOA), **Impacts à l'échelle** du calibre réel, un cercle de **Référence 1 MOA**, un cercle de **Rayon de probabilité d'impact** piloté par un curseur, une **Échelle**, et **Enregistrer la légende avec l'image des résultats** (activé par défaut) pour l'export SVG ci-dessous.
+- L'**Indice de confiance** évalue à quel point une série de cette taille peut réellement être crue — peu de coups et un large intervalle de confiance vous placent bien en dessous du « seuil de foutaises » ; assez de coups et il grimpe vers « Excellent ». Il est aussi intégré à l'export SVG, où il remplace le simple texte de l'intervalle de confiance.
+- **Exporter en CSV** télécharge les coordonnées brutes de chaque coup combiné, dans vos unités préférées et avec l'unité indiquée dans chaque en-tête de colonne ; la petite icône à côté de Résultats agrégés **exporte le diagramme en SVG** — avec la légende et l'indice de confiance inclus si cette case est cochée.
 
-Chacun de ces réglages — unités d'affichage, chiffres affichés sur l'image,
-grille, options de l'image, position du curseur — est mémorisé et restauré
-la prochaine fois que vous ouvrez ce rapport, même après un redémarrage de
-l'application.
+Chacun de ces réglages — unités d'affichage, chiffres affichés sur l'image, grille, options de l'image, position du curseur — est mémorisé et restauré la prochaine fois que vous ouvrez ce rapport, même après un redémarrage de l'application.
 
 ## Session de calibrage
 
@@ -658,71 +225,78 @@ Quand la carabine et l'application ne sont pas d'accord, un impact manqué ne di
 
 L'outil travaille sur la carabine et la cartouche actives de l'Arsenal et sur le lieu de tir actif, et se déroule en trois étapes :
 
-- **Préparer** — saisissez la pression de station du jour (et non la pression ramenée au niveau de la mer qu'affiche un téléphone) et la température, cochez les préparatifs que vous avez réellement faits, et fixez le nombre total de cartouches. L'outil choisit la meilleure paire proche/lointaine parmi les cibles de votre lieu, y répartit les cartouches, propose des nombres de cartouches de minimal à deluxe et note le plan de A à D avant même le premier tir. Avant de commencer, il vous demande de retélémétrer la cible lointaine et, sauf si le stand est déclaré plat, d'en mesurer l'angle. Le résultat dépend de cette distance plus que de toute autre chose.
+- **Préparer** — saisissez la météo moyenne que vous attendez pendant le tir, et non une simple mesure de l'instant : elle détermine la répartition des cartouches entre les cibles et ce que vous pouvez attendre de la session. Utilisez la pression de station (et non la pression ramenée au niveau de la mer qu'affiche un téléphone) ; sans prévision claire, la pression standard à l'altitude du pas de tir suffit. Cochez les préparatifs que vous avez réellement faits, et fixez le nombre total de cartouches. L'outil choisit la meilleure paire proche/lointaine parmi les cibles de votre lieu, y répartit les cartouches, propose des nombres de cartouches de minimal à deluxe et note le plan de A à D avant même le premier tir. Avant de commencer, il vous demande de retélémétrer la cible lointaine et, sauf si le stand est déclaré plat, d'en mesurer l'angle. Le résultat dépend de cette distance plus que de toute autre chose.
 - **Tirer** — l'outil vous fait avancer du proche au lointain une étape à la fois, chaque étape seulement après que la précédente a touché le pare-balles. Avant chaque série d'au plus trois cartouches, il indique ce qu'il faut afficher. Vous saisissez la correction en hausse qui mettrait les impacts sur le point visé, la qualité de votre lecture des impacts, le vent réglé et, avec un chronographe, la vitesse de chaque cartouche. Une série que vous n'avez pas pu voir est un résultat normal : l'outil recule d'une étape et réessaie. Un aperçu en direct montre ce qu'il a appris jusque-là.
 - **Conclure** — une liste de constats classés, chacun avec son ampleur et sa marge : une correction de traînée (BC), une correction de zéro, des corrections en hausse pour les distances tirées, la vitesse initiale, et tout ce que la séance n'a pas pu déterminer. Une correction de BC n'est proposée qu'aux notes A ou B avec au moins cinq mesures au chronographe pendant la séance. L'enregistrer écrit un **facteur de gain BC** dans la cartouche (1,00 par défaut ; les données de la balle elle-même ne changent pas), que Trajectoire, Calculateur de terrain et Probabilité de toucher utilisent ensuite.
 
 Un chronographe est ce que vous pouvez apporter de plus précieux : sans lui, l'outil ne propose jamais de correction de BC, et vous n'obtenez que des corrections en hausse et une vérification du zéro pour les distances tirées. Vol supersonique uniquement.
 
+## Utilitaires
+
+De petits outils qui n'appartiennent à aucun flux de travail particulier, regroupés sous leur propre titre sur l'accueil, sur la page Utilitaires et dans le menu. Sur un téléphone étroit, la barre du bas omet son onglet Utilitaires faute de place ; l'accueil les liste toujours.
+
+### Conversion d'unités
+
+Convertit une valeur entre unités modernes et archaïques pour l'angle, la distance, la longueur, la vitesse, la masse, la température et la pression : modifiez n'importe quel champ, et toutes les autres unités de son groupe se mettent à jour immédiatement.
+
+### Concepteur de réticule
+
+Dessine un réticule de lunette par glisser-déposer — pour une lunette à grossissement fixe, au premier plan focal (FFP) ou au second plan focal (SFP), en mrad ou en MOA — et l'enregistre dans l'Arsenal, où une lunette peut le proposer (voir le §5.9 du [manuel de l'Arsenal](#/manual/arsenal)). L'onglet Lunettes de l'Arsenal l'ouvre sur un nouveau réticule ou sur celui que vous avez choisi de modifier. Voir le [manuel détaillé](#/manual/reticle-designer) pour chaque élément, chaque option et chaque limite.
+
+- **Éléments** — lignes horizontales et verticales, points, barres effilées, cercles, fers à cheval, chevrons, nombres, vos propres formes SVG, et repères BDC, que la vue lunette du Calculateur de terrain légende de leurs distances. Choisissez-en un dans la palette et cliquez ou faites glisser dans la vue pour le placer, puis déplacez-le ou ajustez-le dans ses réglages. Toute position est mesurée depuis le centre du réticule.
+- **Édition** — mettre un élément en symétrie ou le répéter, en grouper plusieurs et régler leurs paramètres communs d'un coup, sélectionner par un rectangle, et annuler ou rétablir avec les icônes au-dessus de la vue. Le magnétisme affiche une valeur en direct pendant le placement.
+- **Éclairage et grossissement** — un réticule peut être éclairé en rouge, ambre ou vert, élément par élément ; le curseur de grossissement montre son aspect aux autres réglages de la lunette de référence.
+- **Insérer un réticule entier…** copie l'un de vos réticules ou un réticule intégré dans celui en cours d'édition, en une seule étape d'annulation — un point de départ rapide pour une variante.
+- **Enregistrer dans l'arsenal** enregistre le réticule et vous laisse dans le Concepteur, avec une brève confirmation ; sans modification non enregistrée, le bouton devient **Retour à l'arsenal**. **Abandonner les modifications** revient à la dernière version enregistrée, et **Nouveau réticule** repart de zéro. Le fabricant et le modèle sont requis pour enregistrer.
+
+### Emplacements et cibles
+
+Facultatif : enregistrez une fois les cibles d'un pas de tir — leur distance et leur angle de ligne de mire, et, si vous ajoutez une photo prise depuis le poste de tir, leur emplacement sur celle-ci — puis retrouvez-les directement dans l'onglet Cible lors de vos prochaines visites, au lieu de régler distance et angle à la main à chaque fois. Le vent et l'atmosphère ne font jamais partie d'une cible enregistrée, seulement la distance, l'angle et (avec une photo) la position.
+
+**Emplacements et cibles** est un outil à part entière dans Utilitaires ; il s'ouvre aussi depuis l'onglet Cible du Calculateur de terrain et depuis la Session de calibrage, qui travaille sur les cibles de l'emplacement actif. **Terminé** vous ramène là où vous l'avez ouvert. La suite de cette section part de l'onglet Cible du Calculateur de terrain.
+
+La ligne **Emplacements et cibles** de l'onglet Cible affiche le nom de l'emplacement actuel (rien, si vous n'en utilisez pas), un menu déroulant de ses cibles, et jusqu'à trois icônes :
+
+- Une icône en forme de cadre photo, **Choisir la cible sur la photo** (visible seulement une fois que l'emplacement actuel a une photo) — ouvre cette photo en plein écran ; touchez le repère d'une cible déjà placée pour la sélectionner immédiatement, ou une puce (empilées en haut à gauche) pour une cible pas encore placée sur la photo. Rien ne change tant que vous n'en touchez pas une.
+- Une icône de synchronisation, **Mettre à jour cette cible avec la distance/l'angle actuels** — apparaît dès que la distance/l'angle actuellement réglés ne correspondent plus aux valeurs enregistrées de la cible sélectionnée (par exemple si vous avez ajusté la distance à la main après l'avoir choisie). Met à jour la cible enregistrée pour qu'elle corresponde à ce qui est actuellement réglé.
+- **Gérer les emplacements** — ouvre la bibliothèque Emplacements et cibles elle-même (ci-dessous). Terminé, là-bas, vous ramène à cet onglet.
+
+Choisir une cible (menu, photo ou puce) copie sa distance et son angle dans l'onglet Cible comme une modification libre et ponctuelle, pas un lien permanent — vous pouvez toujours ajuster ensuite les valeurs réglées à la main sans toucher à la cible enregistrée (c'est à ça que sert l'icône de synchronisation ci-dessus, si vous voulez la garder synchronisée).
+
+**Gérer les emplacements.** L'écran de la bibliothèque répartit vos emplacements entre **Emplacement actuel** (celui qui est actif, ou **Aucun emplacement — cible unique, saisie manuelle** si aucun ne l'est) et **Emplacements connus** (tous les autres). Toucher un emplacement connu l'active — le déplace vers Emplacement actuel et fait défiler la page jusque-là — sans quitter cet écran. Seul l'emplacement actuel affiche **Modifier** et sa liste de cibles ; chaque emplacement, actuel ou connu, affiche **Sauvegarder dans un fichier** et **Supprimer**. **Sauvegarder la bibliothèque dans un fichier…** / **Charger une sauvegarde depuis un fichier…**, en haut, sauvegardent ou restaurent toute la bibliothèque d'un coup, de la même façon que l'Arsenal pour les carabines et les balles.
+
+Un emplacement a un nom, une altitude facultative (si elle est renseignée, activer l'emplacement remplit l'onglet Atmosphère avec l'atmosphère standard à cette altitude et 50 % d'humidité — mais seulement si vous n'avez pas déjà modifié vous-même les valeurs d'atmosphère durant cette session), et une photo facultative. Chacune de ses cibles a un nom (facultatif — par défaut « Cible 1 », « Cible 2 », etc.), des notes, une distance et un angle de ligne de mire.
+
+**Placer une cible sur la photo.** Dès qu'un emplacement a une photo, chacune de ses cibles reçoit un bouton **Placer** (dans sa ligne, et dans son propre formulaire de modification) qui ouvre la photo en plein écran pour cette cible : touchez ou faites glisser pour positionner son repère, faites glisser une zone vide pour déplacer la vue, pincez (ou utilisez les boutons **Zoom avant** / **Zoom arrière** de la barre de navigation) pour zoomer. Chaque autre cible déjà placée sur la même photo apparaît comme un petit point étiqueté avec son nom, sa distance et son angle, pour que vous puissiez placer la nouvelle par rapport à elles. **Retirer le repère** annule le placement ; Terminé l'enregistre et revient à la bibliothèque. Une cible pas encore placée sur la photo (sur un emplacement qui en a une) affiche un badge **Non placée** dans sa ligne, en rappel.
+
+### Clinomètre à caméra
+
+Sur un téléphone ou une tablette dont les capteurs de mouvement indiquent l'inclinaison, une icône caméra (**Mesurer l'angle avec la caméra**) accompagne chaque champ d'angle de ligne de mire : dans Trajectoire, dans l'onglet Cible du Calculateur de terrain, dans le formulaire de cible d'un emplacement, et lors du contrôle de la cible lointaine et des nouvelles mesures de la Session de calibrage. Elle ouvre la caméra arrière en plein écran, avec une croix sur l'axe optique et l'angle en direct au dixième de degré. Placez la croix sur la cible, restez immobile jusqu'à l'indication de stabilité, et touchez **Confirmer** ; l'angle s'affiche en grand pendant deux secondes puis passe dans le champ. Zoomez avec les boutons ou en écartant deux doigts. Sans accès à la caméra, l'angle est quand même mesuré ; seule la visée est plus difficile.
+
+Sans étalonnage, une mesure peut être fausse d'un degré ou plus. **Étalonner**, une fois par téléphone, prend deux paires de mesures : le téléphone debout sur son bord inférieur sur une surface ferme, puis tourné d'un demi-tour, sans le toucher ; ensuite une cible nette et lointaine visée téléphone droit, puis téléphone à l'envers. L'étalonnage n'est conservé que sur cet appareil ; **Réinitialiser l'étalonnage** l'efface.
+
 ## Paramètres
 
 - **Langue** — English, Français, Русский, Deutsch, Italiano.
-- **Unités** — une unité préférée par type de mesure (vitesse, vitesse du
-  vent, distance, petites longueurs, altitude, température, pression,
-  dispersion angulaire, énergie), mélangeant librement métrique et
-  impérial ; s'applique partout où cette mesure apparaît.
-- **Bibliothèques intégrées** — afficher/masquer la bibliothèque intégrée de
-  carabines et chacune des trois bibliothèques intégrées de balles
-  individuellement (voir **Armes** ci-dessus).
-- **Modèles balistiques** — afficher/masquer chaque modèle de traînée
-  standard (G1, G7, ...) dans tous les sélecteurs de modèle de l'application,
-  pour n'y garder que ceux que vous utilisez réellement. Un modèle masqué
-  reste disponible partout où il est déjà sélectionné (une balle saisie
-  manuellement, le modèle propre d'une balle de bibliothèque) — le masquer
-  n'affecte que les choix futurs, jamais un choix existant. Au moins un
-  modèle doit toujours rester visible.
-- **Thème** — à choisir parmi trois vignettes illustrées, appliqué partout
-  immédiatement : **Sombre** (par défaut), **Contraste élevé clair** (fond
-  blanc, texte noir, pour une visibilité maximale en plein soleil), et
-  **Contraste élevé sombre** (fond noir avec un texte et des couleurs à
-  contraste maximal, pour quand vous devez monter la luminosité de l'écran
-  pour le voir en extérieur tout en économisant la batterie).
-- **Couleur des impacts** — la couleur de chaque impact dessiné, à choisir
-  parmi cinq échantillons. Elle s'applique aussi bien aux impacts simulés de
-  la Probabilité de toucher qu'à ceux marqués dans la Calculette de précision
-  de tir — sur la photo pendant le marquage, dans le PNG de la vue d'ensemble
-  du groupe, et dans le diagramme, la légende et l'export SVG du rapport de
-  précision. Le liseré blanc et sombre autour de chaque impact reste
-  volontairement fixe : c'est lui qui garde le contour du point visible,
-  quelle que soit la couleur choisie.
-- **Indicateurs de sortie du Calculateur de terrain** — si l'affichage
-  élévation/vent du Calculateur de terrain montre une flèche de direction ou
-  un signe **+ / −** (voir **Calculateur de terrain** ci-dessus).
-- **Méthode de calcul de la dérive gyroscopique** — comment (ou si) la
-  dérive horizontale causée par le propre spin gyroscopique de la balle
-  est intégrée à la dérive du vent, dans Trajectoire, le Calculateur de
-  terrain et l'Arsenal :
+- **Unités** — une unité préférée par type de mesure (vitesse, vitesse du vent, distance, petites longueurs, altitude, température, pression, dispersion angulaire, énergie), mélangeant librement métrique et impérial ; s'applique partout où cette mesure apparaît.
+- **Bibliothèques intégrées** — afficher/masquer la bibliothèque intégrée de carabines et chacune des huit bibliothèques intégrées de balles individuellement (voir **Armes** plus haut).
+- **Modèles balistiques** — afficher/masquer chaque modèle de traînée standard (G1, G7, ...) dans tous les sélecteurs de modèle de l'application, pour n'y garder que ceux que vous utilisez réellement. Un modèle masqué reste disponible partout où il est déjà sélectionné (une balle saisie manuellement, le modèle propre d'une balle de bibliothèque) — le masquer n'affecte que les choix futurs, jamais un choix existant. Au moins un modèle doit toujours rester visible.
+- **Thème** — à choisir parmi trois vignettes illustrées, appliqué partout immédiatement : **Sombre** (par défaut), **Contraste élevé clair** (fond blanc, texte noir, pour une visibilité maximale en plein soleil), et **Contraste élevé sombre** (fond noir avec un texte et des couleurs à contraste maximal, pour quand vous devez monter la luminosité de l'écran pour le voir en extérieur tout en économisant la batterie).
+- **Couleur des impacts** — la couleur de chaque impact dessiné, à choisir parmi cinq échantillons. Elle s'applique aussi bien aux impacts simulés de la Probabilité de toucher qu'à ceux marqués dans la Calculette de précision de tir — sur la photo pendant le marquage, dans le PNG de la vue d'ensemble du groupe, et dans le diagramme, la légende et l'export SVG du rapport de précision. Le liseré blanc et sombre autour de chaque impact reste volontairement fixe : c'est lui qui garde le contour du point visible, quelle que soit la couleur choisie.
+- **Indicateurs de sortie du Calculateur de terrain** — si l'affichage élévation/vent du Calculateur de terrain montre une flèche de direction ou un signe **+ / −** (voir **Calculateur de terrain** ci-dessus).
+- **Sortie du Calculateur de terrain** — si le Calculateur de terrain donne l'élévation et la dérive en **Clics** (par défaut, selon les valeurs de clic de la carabine active), en mrad ou en MOA.
+- **Visibilité des étiquettes de cible** — comment les noms des cibles s'affichent quand vous choisissez une cible sur la photo d'un emplacement : toujours, masqués près du pointeur avec la cible la plus proche affichée, ou masqués jusqu'à un appui (un second appui sélectionne). Le masquage près du pointeur demande une souris.
+- **Bague de grossissement de la vue lunette** — où la vue lunette du Calculateur de terrain place sa bague de zoom : **Automatique** (sous le réticule sur un téléphone en portrait, à côté sinon), toujours à côté, ou en dessous en portrait.
+- **Couleur de la superposition au réticule**, **Forme de la superposition au réticule**, **Affichage des distances BDC** — comment la vue lunette dessine sur le réticule (voir **Vue lunette** plus haut).
+- **Échelle de l'interface** — agrandit toute l'interface, de 100 % à 200 %.
+- **Apparence du cadran de direction du vent** — **Horloge** ou **Épurée**, pour le cadran de direction du vent partout où il apparaît.
+- **Méthode de calcul de la dérive gyroscopique** — comment (ou si) la dérive horizontale causée par le propre spin gyroscopique de la balle est intégrée à la dérive du vent, dans Trajectoire, le Calculateur de terrain et l'Arsenal :
   - **Désactivée** (par défaut) — la dérive ne reflète que le vent.
   - **Simple (Litz)** — la formule empirique bien établie de Bryan Litz.
-  - **Avancée (McCoy 4-DOF)** — un modèle physique complet à 4 degrés de
-    liberté, construit à partir de la masse, du calibre, de la longueur
-    et du taux de rotation propres de la balle.
+  - **Avancée (McCoy 4-DOF)** — un modèle physique complet à 4 degrés de liberté, construit à partir de la masse, du calibre, de la longueur et du taux de rotation propres de la balle.
 
-  Chaque méthode revient automatiquement en arrière (Avancée → Simple →
-  Désactivée) si la balle active manque des données nécessaires.
-  **Compenser la dérive gyroscopique lors du réglage du zéro**, affiché
-  une fois une méthode choisie, décale le pointage horizontal propre de
-  la carabine pour que son zéro absorbe déjà la dérive jusqu'à la
-  distance de réglage — ce que ferait tourner la tourelle de dérive de
-  la lunette à cette distance.
-- **Export CSV** — le séparateur de champs (virgule/point-virgule/
-  tabulation) et le séparateur décimal (point/virgule) utilisés par le
-  téléchargement et la copie CSV de Trajectoire. Choisissez la paire
-  attendue par votre tableur.
-- **Sauvegarde et synchronisation** — expérimental, désactivé par défaut.
-  Garde vos bibliothèques Arsenal, Emplacements et Précision de tir
-  synchronisées entre vos propres appareils via un dossier déjà synchronisé
-  par votre service cloud (OneDrive, Google Drive, NextCloud, ...) — pas de
-  compte auprès de cette appli, rien envoyé vers un quelconque serveur qui
-  m'appartiendrait. Voir le [manuel détaillé](#/manual/backup-sync) pour la
-  mise en place, et ses limitations bien réelles côté Chrome.
+  Chaque méthode revient automatiquement en arrière (Avancée → Simple → Désactivée) si la balle active manque des données nécessaires. **Compenser la dérive gyroscopique lors du réglage du zéro**, affiché une fois une méthode choisie, décale le pointage horizontal propre de la carabine pour que son zéro absorbe déjà la dérive jusqu'à la distance de réglage — ce que ferait tourner la tourelle de dérive de la lunette à cette distance.
+- **Export CSV** — le séparateur de champs (virgule/point-virgule/tabulation) et le séparateur décimal (point/virgule) utilisés par le téléchargement et la copie CSV de Trajectoire. Choisissez la paire attendue par votre tableur.
+- **Sauvegarde et synchronisation** — expérimental, désactivé par défaut. Garde vos bibliothèques Arsenal, Emplacements et Précision de tir synchronisées entre vos propres appareils via un dossier déjà synchronisé par votre service cloud (OneDrive, Google Drive, NextCloud, ...) — pas de compte auprès de cette appli, rien envoyé vers un quelconque serveur qui m'appartiendrait. Voir le [manuel détaillé](#/manual/backup-sync) pour la mise en place, et ses limitations bien réelles côté Chrome.
+- **Me notifier des mises à jour de l'application** — activé par défaut : vous signale que l'application a été mise à jour.
+- **Afficher le panneau Dépannage sur la page d'accueil** — désactivé par défaut : ajoute à l'accueil un panneau qui télécharge des informations de diagnostic sur le démarrage et le cache de l'application, et peut reconstruire le cache hors ligne — utile pour signaler un problème.

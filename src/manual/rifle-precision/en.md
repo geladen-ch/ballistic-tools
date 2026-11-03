@@ -70,7 +70,7 @@ Two of the suite's unit groups are in play:
 - **Distance** (`m`, `yd`) — the project's range.
 - **Small length** (`mm`, `cm`, `in`) — everything measured on the paper: the calibration ruler you type in, caliber, extreme spread, and every result in the report when the results selector is set to absolute rather than angular. Because these are bullet-scale measurements, they are shown to finer precision than the suite's general small-length default: **2 decimals in mm, 3 in cm and inches**.
 
-Internally the engine works exclusively in millimetres and metres, and conversion happens only at the display boundary. This has a practical consequence worth knowing: **changing your unit preference never alters stored data or any computed result.** Switch from mm to inches and every existing project re-displays correctly — the calibration you typed as 100 mm last year now reads 3.937 in, describes the same ruler, and yields exactly the same dispersion statistics.
+Internally the engine works in metres (the calibration ruler's length and the caliber are stored in millimetres), and conversion happens only at the display boundary. This has a practical consequence worth knowing: **changing your unit preference never alters stored data or any computed result.** Switch from mm to inches and every existing project re-displays correctly — the calibration you typed as 100 mm last year now reads 3.937 in, describes the same ruler, and yields exactly the same dispersion statistics.
 
 **Where units are shown.** Fields that take a value carry the unit as a live suffix on their label — *"Real-world distance (in)"* — which updates when you change your preference rather than being baked into the translation. Displayed values carry the unit inline: *"ES 1.78 in"*. The CSV export names the unit in each column header (§8.7).
 
@@ -167,7 +167,7 @@ Only the **active** group's points are draggable. Other groups' points of aim re
 
 Tap once for the first point, once more for the second, then type the **real-world distance** between the two taps.
 
-**Type it in your own units.** The field's label carries a live unit suffix — *"Real-world distance (mm)"*, *"(cm)"* or *"(in)"* according to your small-length preference — so lay a 6-inch rule on the target with inches selected and you simply type **6**. No conversion, no arithmetic, nothing to get backwards. The value is converted to the engine's internal millimetres on the way to storage, which is why changing your preference later re-displays the same ruler correctly instead of corrupting it.
+**Type it in your own units.** The field's label carries a live unit suffix — *"Real-world distance (mm)"*, *"(cm)"* or *"(in)"* according to your small-length preference — so lay a 6-inch rule on the target with inches selected and you simply type **6**. No conversion, no arithmetic, nothing to get backwards. The value is converted to millimetres on the way to storage, which is why changing your preference later re-displays the same ruler correctly instead of corrupting it.
 
 The input's step and its smallest accepted value are that unit's own display precision — 0.01 mm, or 0.001 cm/in — so anything you can be shown you can also type.
 
@@ -447,7 +447,7 @@ If your rifle's R95 is within roughly 1–1.5 MOA, a 12x or 15x scope is entirel
 
 Everything below is what the tool actually computes, with the derivations. It is not required reading for using the tool, and it is the most interesting part of the tool.
 
-**Units throughout this section are the engine's, not yours.** Internally the tool works exclusively in **millimetres** for lengths on the paper and **metres** for range, and every user-facing unit — mm, cm, inches, yards, feet, mrad, MOA — is a conversion applied at the display boundary and nowhere else. No statistic below is affected by your preferences; changing your units changes how a number is printed, never what was computed.
+**Units throughout this section are the engine's, not yours.** Internally the tool works in **metres**, for lengths on the paper and for range alike, and every user-facing unit — mm, cm, inches, yards, feet, mrad, MOA — is a conversion applied at the display boundary and nowhere else. No statistic below is affected by your preferences; changing your units changes how a number is printed, never what was computed.
 
 ### 11.1 The underlying model
 
@@ -470,19 +470,19 @@ Note also that the tool measures the dispersion of the *whole system as you fire
 For each shot $i$ in group $g$ on target $T$:
 
 1. The shot and its group's point of aim are stored as fractions of the photograph's natural pixel dimensions, in $[0,1]^2$. They are converted to native pixels by multiplying by the photo's width and height.
-2. The target's scale $s_T$ (px/mm) comes from its calibration ruler:
+2. The target's scale $s_T$ (px/m) comes from its calibration ruler:
 
    $$s_T = \frac{\sqrt{(\Delta x_{\text{px}})^2 + (\Delta y_{\text{px}})^2}}{L_{\text{real}}}$$
 
-   where the numerator is the pixel distance between the two calibration points and $L_{\text{real}}$ is the length you typed, in mm.
-3. Pixel coordinates are divided by $s_T$ to give millimetres.
+   where the numerator is the pixel distance between the two calibration points and $L_{\text{real}}$ is the length you typed, in metres.
+3. Pixel coordinates are divided by $s_T$ to give metres.
 4. The shot is re-centred on its own group's point of aim:
 
-   $$(x_i, y_i) = (x_i^{\text{mm}} - x_{g,\text{POA}}^{\text{mm}},\; y_i^{\text{mm}} - y_{g,\text{POA}}^{\text{mm}})$$
+   $$(x_i, y_i) = (x_i^{\text{m}} - x_{g,\text{POA}}^{\text{m}},\; y_i^{\text{m}} - y_{g,\text{POA}}^{\text{m}})$$
 
-Storing positions as photo fractions rather than as millimetres is what makes retroactive recalibration work: fixing the ruler months later rescales every impact on that target automatically. It is also what makes the tool unit-agnostic by construction — a stored shot has no unit at all, only a position on an image. Millimetres enter for the first time at step 2, via $L_{\text{real}}$, which is itself converted from whatever unit you typed it in; from there the whole pipeline is metric, and your preferred units reappear only when a finished number is printed.
+Storing positions as photo fractions rather than as lengths is what makes retroactive recalibration work: fixing the ruler months later rescales every impact on that target automatically. It is also what makes the tool unit-agnostic by construction — a stored shot has no unit at all, only a position on an image. Lengths enter for the first time at step 2, via $L_{\text{real}}$, which is itself converted from whatever unit you typed it in; from there the whole pipeline is metric, and your preferred units reappear only when a finished number is printed.
 
-**Coordinate frame.** The photo fraction's origin is the image's top-left corner and its vertical axis increases **downward**, so the pooled $y_i$ are positive *below* the point of aim. The engine keeps that frame all the way through, deliberately: it is also SVG's frame, which is what lets the diagram draw pooled shots, radius circles, the grid and the POI box straight from these millimetres with no transform at all.
+**Coordinate frame.** The photo fraction's origin is the image's top-left corner and its vertical axis increases **downward**, so the pooled $y_i$ are positive *below* the point of aim. The engine keeps that frame all the way through, deliberately: it is also SVG's frame, which is what lets the diagram draw pooled shots, radius circles, the grid and the POI box straight from these coordinates, with no transform beyond one scaling into the diagram's drawing space, where one unit is one millimetre.
 
 It has no effect on any dispersion statistic. Every quantity from §11.3 onward depends on $y$ only through squared deviations from the mean, and those are invariant under a sign flip. It matters only for the one signed quantity the tool reports — the vertical zero offset — which is read by a human against a turret and must therefore be positive *upward*.
 

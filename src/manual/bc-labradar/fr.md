@@ -451,7 +451,7 @@ Un lot vous est offert : **une série de mise au point de charge est déjà une 
 
 Tout ce qui suit est ce que l'outil calcule réellement, avec le raisonnement et les preuves. Ce n'est pas une lecture obligatoire pour se servir de l'outil, et c'est la partie la plus intéressante de l'outil.
 
-**Les unités de toute cette section sont celles du moteur.** En interne tout est métrique — mètres, secondes, mètres par seconde, températures rapportées au kelvin — et la conversion n'a lieu qu'aux deux frontières : les unités déclarées par le fichier de piste à l'entrée, et votre préférence d'affichage à la sortie.
+**Les unités de toute cette section sont celles du moteur.** En interne tout est métrique — mètres, secondes, mètres par seconde, températures en degrés Celsius, converties en kelvins seulement là où la loi des gaz l'exige — et la conversion n'a lieu qu'aux deux frontières : les unités déclarées par le fichier de piste à l'entrée, et votre préférence d'affichage à la sortie.
 
 ### 12.1 Ce que l'appareil mesure, et ce qu'il ne mesure pas
 
