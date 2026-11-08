@@ -75,6 +75,10 @@ software:
   [i18next](https://www.i18next.com/)
 - Kevin C. Olbrich and contributors —
   [js-quantities](https://github.com/gentooboontoo/js-quantities)
+- James Hall, yWorks and contributors —
+  [jsPDF](https://github.com/parallax/jsPDF)
+- yWorks and contributors —
+  [svg2pdf.js](https://github.com/yWorks/svg2pdf.js)
 - [Ron Kok](https://github.com/ronkok) and contributors —
   [Temml](https://temml.org/)
 
@@ -89,3 +93,5 @@ all under the SIL Open Font License 1.1:
   [Barlow](https://github.com/jpt/barlow)
 - Delve Withrington, Red Hat and the Overpass Project Authors —
   [Overpass](https://github.com/RedHatOfficial/Overpass)
+
+Overpass is also the typeface of the PDF documents the app generates.

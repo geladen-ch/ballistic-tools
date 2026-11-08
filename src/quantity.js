@@ -55,8 +55,25 @@ const converterCache = new Map();
 const DEGREE_RAD = Math.PI / 180;
 const DEGREE_UNITS = new Set(['deg', 'degree', 'degrees']);
 
+// The typographic (PostScript/PDF) point is exactly 1/72 in, but
+// js-quantities stores it as a truncated metre factor (0.000352777778), so
+// 72 pt would come out 1.6e-11 m off an inch. Points are therefore
+// converted through the exact inch. Spelled 'point': js-quantities reads
+// 'pt' as the pint.
+const POINTS_PER_INCH = 72;
+const POINT_UNITS = new Set(['point', 'points']);
+
 function buildConverter(from, to) {
   if (from === to) return (v) => v;
+  if (POINT_UNITS.has(from) && POINT_UNITS.has(to)) return (v) => v;
+  if (POINT_UNITS.has(from)) {
+    const inTo = converter('in', to);
+    return (v) => inTo(v / POINTS_PER_INCH);
+  }
+  if (POINT_UNITS.has(to)) {
+    const toIn = converter(from, 'in');
+    return (v) => toIn(v) * POINTS_PER_INCH;
+  }
   if (DEGREE_UNITS.has(from) && DEGREE_UNITS.has(to)) return (v) => v;
   if (DEGREE_UNITS.has(from)) {
     const radTo = converter('rad', to);
@@ -163,6 +180,8 @@ export const cmToM = converter('cm', 'm');
 export const mToCm = converter('m', 'cm');
 export const inToM = converter('in', 'm');
 export const mToIn = converter('m', 'in');
+export const pointToM = converter('point', 'm');
+export const mToPoint = converter('m', 'point');
 
 export const kgToGrain = converter('kg', 'grain');
 export const grainToKg = converter('grain', 'kg');

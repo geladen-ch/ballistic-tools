@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PDF template check</title>
+<style>
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 1.5rem; max-width: 60rem; }
+  li.pass::marker { content: '✔ '; color: #070; }
+  li.fail::marker { content: '✘ '; color: #b00; }
+  pre { white-space: pre-wrap; font-size: 12px; background: #f4f4f4; padding: .5rem; }
+</style>
+</head>
+<body>
+<h1>PDF template check</h1>
+<p>Developer page for the PDF template infrastructure (src/pdf/). Serve the repository with <code>npm run serve</code> and open <code>/tools/pdf-templates/check.html</code>. It builds a two-page PDF from the test fixture and runs each error path once. The page is not part of the app and is not precached.</p>
+<p><button id="download" disabled>Download sample PDF</button></p>
+<ol id="results"></ol>
+<script type="module">
+import { buildTemplatePdf, TemplatePdfError } from '../../src/pdf/template-pdf.js';
+import { downloadFile } from '../../src/download.js';
+
+const TEMPLATE = new URL('../../tests/fixtures/pdf/sample-pdf-template.svg', import.meta.url);
+
+// Generated content: 200 × 100 units, larger than the 90 × 90 slots, so
+// 'fit' has to scale it down and 'clip' has to crop it.
+const CONTENT = `<rect width="200" height="100" fill="#fa0"/>
+  <circle cx="100" cy="50" r="45" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="100" y="58" font-family="Overpass" font-weight="bold" font-size="24" text-anchor="middle">ПРИВЕТ 1000</text>`;
+
+const page = (replacements, slots) => ({ templateUrl: TEMPLATE, replacements, slots });
+const goodSlots = [
+  { id: 'slot-fit', content: CONTENT, mode: 'fit', viewBox: [0, 0, 200, 100] },
+  { id: 'slot-clip', content: CONTENT, mode: 'clip' }
+];
+const PAGES = [
+  page([['LABEL_TITLE', 'Range card'], ['LABEL_DISTANCE', 'Distance'], ['[RANGE]', '1000 m']], goodSlots),
+  page([['LABEL_TITLE', 'Карточка стрельбы'], ['LABEL_DISTANCE', 'Дистанция'], ['[RANGE]', '300 м']], goodSlots)
+];
+const OTHER_SIZE = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="148mm" height="105mm" viewBox="0 0 148 105"><text x="5" y="10" font-family="Overpass">x</text></svg>');
+
+const ERROR_CASES = [
+  ['string that matches nowhere', [page([['NOT THERE', 'x']], [])], /does not occur/],
+  ['character missing from the face', [page([['[RANGE]', '1000 m ☃']], [])], /no glyph for U\+2603/],
+  ['unregistered face in generated content',
+    [page([], [{ id: 'slot-fit', content: '<text font-family="Overpass" font-weight="500">x</text>', mode: 'fit', viewBox: [0, 0, 10, 10] }])],
+    /Overpass 500 normal .* not registered/],
+  ['page sizes differ', [page([], []), { templateUrl: OTHER_SIZE }], /page size differs/],
+  ['fit without viewBox', [page([], [{ id: 'slot-fit', content: CONTENT, mode: 'fit' }])], /needs viewBox/],
+  ['slot id that is not a rect', [page([], [{ id: 'band', content: CONTENT, mode: 'clip' }])], /must be a <rect>/]
+];
+
+const results = [];
+function report(name, ok, detail = '') {
+  results.push({ name, ok, detail });
+  const li = document.createElement('li');
+  li.className = ok ? 'pass' : 'fail';
+  li.textContent = name;
+  if (detail) {
+    const pre = document.createElement('pre');
+    pre.textContent = detail;
+    li.append(pre);
+  }
+  document.getElementById('results').append(li);
+}
+
+async function run() {
+  let bytes = null;
+  try {
+    const t0 = performance.now();
+    bytes = await buildTemplatePdf(PAGES, { title: 'PDF template check', lang: 'en' });
+    report('two-page sample PDF', true, `${bytes.length} bytes in ${(performance.now() - t0).toFixed(0)} ms`);
+    const btn = document.getElementById('download');
+    btn.disabled = false;
+    btn.onclick = () => downloadFile('pdf-template-check.pdf', bytes, 'application/pdf');
+  } catch (e) {
+    report('two-page sample PDF', false, String(e.stack || e));
+  }
+  for (const [name, pages, expected] of ERROR_CASES) {
+    try {
+      await buildTemplatePdf(pages);
+      report(`error: ${name}`, false, 'no error raised');
+    } catch (e) {
+      const ok = e instanceof TemplatePdfError && expected.test(e.message);
+      report(`error: ${name}`, ok, e.message);
+    }
+  }
+  let pdfBase64 = null;
+  if (bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    pdfBase64 = btoa(s);
+  }
+  window.pdfCheck = { results, pdfBase64 };
+}
+run();
+</script>
+</body>
+</html>

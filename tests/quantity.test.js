@@ -4,7 +4,7 @@ import Qty from '../src/vendor/js-quantities/quantities.mjs';
 import {
   QUANTITY_KINDS, converter, convert, kindOfUnit, internalUnit, toInternal, fromInternal,
   degToRad, radToDeg, mradToRad, radToMrad, moaToRad, radToMoa, percentToFraction, fractionToPercent,
-  hpaToPa, paToHpa, mmToM, mToMm, cmToM, mToCm, inToM, mToIn, kgToGrain, grainToKg, kgToG, gToKg,
+  hpaToPa, paToHpa, mmToM, mToMm, cmToM, mToCm, inToM, mToIn, pointToM, mToPoint, kgToGrain, grainToKg, kgToG, gToKg,
   celsiusToKelvin, kelvinToCelsius, angleToLinearAtRange, linearToAngleAtRange
 } from '../src/quantity.js';
 import { UNIT_GROUPS } from '../src/units.js';
@@ -136,6 +136,14 @@ test('angle and linear offset at range: the small-angle definition shooting unit
   assert.ok(relClose(angleToLinearAtRange(mradToRad(1), 100), 0.1));
   assert.ok(relClose(linearToAngleAtRange(0.1, 100), mradToRad(1)));
   assert.equal(linearToAngleAtRange(0.1, 0), 0);
+});
+
+test('typographic points convert through the exact 1/72 in, not js-quantities\' truncated point factor', () => {
+  assert.equal(pointToM(72), inToM(1));
+  assert.equal(mToPoint(inToM(1)), 72);
+  assert.ok(relClose(mToPoint(mmToM(210)), 595.2755905511812));
+  assert.equal(convert(1, 'in', 'point'), 72);
+  assert.throws(() => converter('m', 'pt')); // 'pt' is js-quantities' pint
 });
 
 test('degrees convert through the exact pi/180, not js-quantities\' truncated degree factor', () => {
