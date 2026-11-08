@@ -53,7 +53,12 @@ function loadTemplateText(url) {
   const key = String(url);
   let p = templateTexts.get(key);
   if (!p) {
-    p = fetch(url).then((res) => {
+    // 'no-cache': always revalidate with the server. A host that sends no
+    // Cache-Control lets the browser reuse a stale template from its HTTP
+    // cache heuristically, and a template that no longer matches the code
+    // filling it prints its placeholders. (Offline, the service worker
+    // still answers from its own cache.)
+    p = fetch(url, { cache: 'no-cache' }).then((res) => {
       if (!res.ok) throw new Error(`${templateLabel(url)}: HTTP ${res.status}`);
       return res.text();
     });
@@ -92,6 +97,33 @@ async function preparePage(page, index) {
   try { size = pageSizeM(svg.getAttribute('width'), svg.getAttribute('height')); }
   catch (e) { problems.push(`${label}: root ${e.message}`); }
   return { svg, label, size, problems };
+}
+
+// Widths of text as the PDF will draw it, from jsPDF's metrics of the
+// registered faces. Only for deciding what goes into a template (does a
+// value fit, or does it take its clipped variant): never for positioning
+// text, which templates do with text-anchor alone. `faces` lists the
+// { family, weight, style } to be measured with; the result is
+// `width(text, { family, weight, style }, fontSize)` in the units of
+// `fontSize`.
+export async function createTextMeasurer(faces) {
+  const jsPDF = await loadRenderer();
+  const pdf = new jsPDF({ unit: 'pt', compress: false, putOnlyUsedFonts: true });
+  const registered = new Map();
+  for (const { family, weight, style } of faces) {
+    const face = findFace(family, weight, style);
+    if (!face) throw new TemplatePdfError([`face ${describeFace(family, weight, style)} is not registered`]);
+    const key = styleKey(face.weight, face.style);
+    if (registered.has(`${family}|${key}`)) continue;
+    pdf.addFileToVFS(face.file, await loadFaceBinary(face));
+    pdf.addFont(face.file, face.family, key, undefined, 'Identity-H');
+    registered.set(`${family}|${key}`, true);
+  }
+  return (text, { family, weight = 400, style = 'normal' }, fontSize) => {
+    if (!text) return 0;
+    pdf.setFont(family, styleKey(weight, style));
+    return pdf.getStringUnitWidth(String(text)) * fontSize;
+  };
 }
 
 export async function buildTemplatePdf(pages, { title = '', lang = '' } = {}) {

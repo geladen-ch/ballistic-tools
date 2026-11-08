@@ -176,18 +176,118 @@ function ringBelow(position, narrow, portrait) {
 const zoomByScope = new Map();
 const reticleZoomByScope = new Map();
 
+// Where a scope view keeps its settings: the overlay toggles, the aiming
+// mode, and per scope id the zoom and zoom to reticle's state. The Range
+// Solver's: its remembered preferences (range-solver-prefs.js) and the
+// page-lifetime maps above. A caller with settings of its own (the
+// Printable card, printable-card-state.js) passes an object of the same
+// shape as the `settings` option.
+export const rangeSolverScopeSettings = {
+  bdcOn: isScopeBdcOverlayOn,
+  setBdcOn: setScopeBdcOverlayOn,
+  holdoverOn: isScopeHoldoverOn,
+  setHoldoverOn: setScopeHoldoverOn,
+  windOn: isScopeWindHoldsOn,
+  setWindOn: setScopeWindHoldsOn,
+  aimMode: getScopeAimMode,
+  setAimMode: setScopeAimMode,
+  zoomFor: (scopeId) => zoomByScope.get(scopeId),
+  setZoomFor: (scopeId, z) => { zoomByScope.set(scopeId, z); },
+  reticleZoomFor: (scopeId) => reticleZoomByScope.get(scopeId),
+  setReticleZoomFor: (scopeId, value) => { reticleZoomByScope.set(scopeId, value); }
+};
+
 let clipCounter = 0;
 
-export function scopeView({ onBdcChange = () => {} } = {}) {
+// ---- Print styling (exportPrintSvg) ----
+//
+// Text is written at this many times its size under the inverse scale.
+const PRINT_TEXT_SCALE = 10;
+// The reticle's hairline, which the screen draws one fixed screen width
+// wide (.reticle-shape, non-scaling), and the rim's, in drawing units of
+// the unscaled square.
+const PRINT_HAIRLINE = 1.2;
+const PRINT_RIM = 2;
+const PRINT_HALO_OPACITY = { 'scope-view-bdc-wind-halo': 0.25, 'scope-view-bdc-mark-halo': 0.75 };
+const PRINT_DEFAULT_HALO_OPACITY = 0.85;
+
+// The product of the scale() factors in a transform attribute (the view
+// only ever scales uniformly about the centre).
+function transformScale(transform) {
+  let s = 1;
+  for (const m of String(transform || '').matchAll(/scale\(\s*([-\d.eE+]+)/g)) s *= Number(m[1]);
+  return Number.isFinite(s) && s > 0 ? s : 1;
+}
+
+function setAttrs(node, attrs) {
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
+}
+
+// Writes each node's on-screen look as attributes, recursively. `scale`:
+// drawing units per local unit of `node`'s parent.
+function printStyle(node, scale, inks) {
+  const { reticleInk, overlayInk, fontFamily } = inks;
+  for (const child of [...node.children]) {
+    const classes = (child.getAttribute('class') || '').split(/\s+/).filter(Boolean);
+    const has = (c) => classes.includes(c);
+    child.removeAttribute('class');
+    child.removeAttribute('role');
+    child.removeAttribute('aria-label');
+    const local = scale * transformScale(child.getAttribute('transform'));
+    const haloOpacity = classes.map((c) => PRINT_HALO_OPACITY[c]).find((v) => v !== undefined) ?? PRINT_DEFAULT_HALO_OPACITY;
+    if (has('reticle-outside')) { child.remove(); continue; }
+    if (has('reticle-glass')) setAttrs(child, { fill: '#ffffff', stroke: 'none' });
+    else if (has('reticle-rim')) setAttrs(child, { fill: 'none', stroke: reticleInk, 'stroke-width': PRINT_RIM / local });
+    else if (has('reticle-shape')) {
+      if (has('stroked')) setAttrs(child, { fill: 'none', stroke: reticleInk });
+      else setAttrs(child, { fill: reticleInk, stroke: reticleInk, 'stroke-width': PRINT_HAIRLINE / local });
+    } else if (has('scope-view-bdc-dot') || has('scope-view-bdc-wind')) setAttrs(child, { fill: overlayInk, stroke: 'none' });
+    else if (has('scope-view-bdc-halo')) setAttrs(child, { fill: 'none', stroke: '#ffffff', 'stroke-opacity': haloOpacity });
+    else if (has('scope-view-bdc-hash') || has('scope-view-bdc-cross') || has('scope-view-mark-cross')) {
+      setAttrs(child, { fill: 'none', stroke: overlayInk, 'stroke-linecap': 'butt' });
+    } else if (has('scope-view-stroke-halo')) {
+      setAttrs(child, { fill: 'none', stroke: '#ffffff', 'stroke-opacity': haloOpacity, 'stroke-linecap': 'square' });
+    } else if (has('scope-view-bdc-leader')) setAttrs(child, { fill: 'none', stroke: overlayInk, 'stroke-linejoin': 'round' });
+    else if (has('scope-view-bdc-label')) {
+      printLabel(child, overlayInk, fontFamily);
+      continue;
+    }
+    if (child.tagName.toLowerCase() === 'clippath') continue;
+    printStyle(child, local, inks);
+  }
+}
+
+// A range number: white outline under black figures, as two copies (the
+// PDF renderer has no paint-order), each at PRINT_TEXT_SCALE times its size
+// under the inverse scale.
+function printLabel(text, ink, fontFamily) {
+  const k = PRINT_TEXT_SCALE;
+  const num = (name) => Number(text.getAttribute(name));
+  const outline = num('stroke-width');
+  setAttrs(text, {
+    transform: `scale(${1 / k})`, x: num('x') * k, y: num('y') * k, 'font-size': num('font-size') * k,
+    'font-family': fontFamily, 'font-weight': 700
+  });
+  text.removeAttribute('stroke-width');
+  const halo = text.cloneNode(true);
+  setAttrs(halo, { fill: '#ffffff', stroke: '#ffffff', 'stroke-opacity': PRINT_DEFAULT_HALO_OPACITY, 'stroke-width': (Number.isFinite(outline) ? outline : 0) * k, 'stroke-linejoin': 'round' });
+  setAttrs(text, { fill: ink, stroke: 'none' });
+  text.parentNode.insertBefore(halo, text);
+}
+
+// `settings`: see rangeSolverScopeSettings. `aimMode`: a fixed aiming
+// mode ('hold' or 'dialElevation') with its switch left out, or null for
+// the switch. `holdover`: whether the holdover mark is offered at all.
+export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeSettings, aimMode = null, holdover = true } = {}) {
   clipCounter += 1;
   const clipId = `scope-view-clip-${clipCounter}`;
   const markClipId = `scope-view-mark-clip-${clipCounter}`;
 
   let optic = null; // { scope, reticle, optics, range, buildRadius, reticleZoomFit, bdcLevels }
   let shot = null;
-  let bdcOn = isScopeBdcOverlayOn();
-  let holdoverOn = isScopeHoldoverOn();
-  let windOn = isScopeWindHoldsOn();
+  let bdcOn = settings.bdcOn();
+  let holdoverOn = holdover && settings.holdoverOn();
+  let windOn = settings.windOn();
   // Settings' reticle overlay colour and shape, read once: Settings is a
   // page of its own, so they can't change under a mounted view.
   const overlayColor = getReticleOverlayColor();
@@ -199,7 +299,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   // (NaN until first switched on for the scope).
   let reticleZoomOn = false;
   let reticleZoom = NaN;
-  let mode = getScopeAimMode();
+  let mode = aimMode ?? settings.aimMode();
 
   const fieldCircle = (cls) => svgEl('circle', { class: cls, cx: fmt(HALF), cy: fmt(HALF), r: fmt(FIT_RADIUS) });
   const zoomGroup = svgEl('g', { class: 'scope-view-zoom' });
@@ -244,7 +344,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     title: reticleZoomName, 'aria-label': reticleZoomName
   }, [zoomToReticleIcon(20)]);
   function rememberReticleZoom() {
-    reticleZoomByScope.set(optic.scope.id, { on: reticleZoomOn, zoom: reticleZoom });
+    settings.setReticleZoomFor(optic.scope.id, { on: reticleZoomOn, zoom: Number.isFinite(reticleZoom) ? reticleZoom : null });
     scheduleRender();
   }
   reticleZoomButton.addEventListener('click', () => {
@@ -288,15 +388,15 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
   };
   const holdoverButton = overlayToggle('holdoverMark', 'scope-view-holdover-toggle', holdoverMarkIcon, () => {
     holdoverOn = !holdoverOn;
-    setScopeHoldoverOn(holdoverOn);
+    settings.setHoldoverOn(holdoverOn);
   });
   const bdcButton = overlayToggle('bdcOverlay', 'scope-view-bdc-toggle', bdcOverlayIcon, () => {
     bdcOn = !bdcOn;
-    setScopeBdcOverlayOn(bdcOn);
+    settings.setBdcOn(bdcOn);
   });
   const windButton = overlayToggle('windHolds', 'scope-view-wind-toggle', windHoldsIcon, () => {
     windOn = !windOn;
-    setScopeWindHoldsOn(windOn);
+    settings.setWindOn(windOn);
   });
   const bdcWindValue = el('span', { class: 'scope-view-bdc-wind-value' });
   const cornerBottomLeft = el('div', { class: 'scope-view-corner-bottom-left' }, [
@@ -312,7 +412,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     label: t('rangeSolver.scopeView.zoomLabel'),
     onInput: (z) => {
       zoom = z;
-      if (optic) zoomByScope.set(optic.scope.id, z);
+      if (optic) settings.setZoomFor(optic.scope.id, z);
       scheduleRender();
     }
   });
@@ -329,14 +429,14 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     button.addEventListener('click', () => {
       if (mode === value) return;
       mode = value;
-      setScopeAimMode(value);
+      settings.setAimMode(value);
       renderModeButtons();
       scheduleRender();
     });
     return button;
   });
   const modeSwitch = el('div', { class: 'scope-view-segmented', role: 'group', 'aria-label': t('rangeSolver.scopeView.modeLabel') }, modeButtons);
-  cornerLeft.appendChild(modeSwitch);
+  if (!aimMode) cornerLeft.appendChild(modeSwitch);
   const bar = el('div', { class: 'scope-view-bar' }, [sfpNote]);
 
   const main = el('div', { class: 'scope-view-main' }, [sight, ringBox]);
@@ -446,6 +546,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
 
   function renderOverlayToggles() {
     cornerBottomLeft.style.display = optic ? '' : 'none';
+    holdoverButton.style.display = holdover ? '' : 'none';
     renderToggle(holdoverButton, holdoverOn);
     bdcButton.style.display = bdcAvailable() ? '' : 'none';
     renderToggle(bdcButton, wantsBdc());
@@ -744,10 +845,10 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
       bdcLevels: bdcLevels(next.reticle.elements)
     };
     node.style.setProperty('--scope-mark', reticleOverlayHex(overlayColor, next.reticle.illumination));
-    const rememberedReticleZoom = reticleZoomByScope.get(next.scope.id);
+    const rememberedReticleZoom = settings.reticleZoomFor(next.scope.id);
     reticleZoomOn = rememberedReticleZoom?.on === true;
-    reticleZoom = rememberedReticleZoom ? rememberedReticleZoom.zoom : NaN;
-    const remembered = zoomByScope.get(next.scope.id);
+    reticleZoom = Number.isFinite(rememberedReticleZoom?.zoom) ? rememberedReticleZoom.zoom : NaN;
+    const remembered = settings.zoomFor(next.scope.id);
     zoom = settleZoom(optics, Number.isFinite(remembered) ? remembered : initialZoom(optics));
     buildReticle();
     ring.setRing(optics, range, (z) => settleZoom(optics, z), zoom);
@@ -767,6 +868,36 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     scheduleRender();
   }
 
+  // The picture as shown, for print (the Printable card's PDF): the same
+  // drawing with every colour written out, since a PDF renderer reads no
+  // stylesheet — the reticle in `reticleInk`, the overlay (holds, leaders,
+  // range numbers) in `overlayInk`, halos white, no pane round the field.
+  // Strokes the screen draws at a fixed screen width get a fixed drawing
+  // width instead. Text is written at PRINT_TEXT_SCALE times its size under
+  // the inverse scale, so its font size is ample for the PDF renderer to
+  // measure (tools/pdf-templates/README.md), and in `fontFamily`, bold.
+  // Returns { content, viewBox } for a fit-mode slot, or null without an
+  // optic.
+  function exportPrintSvg({ reticleInk, overlayInk, fontFamily, idPrefix = 'scope-print' } = {}) {
+    if (!optic) return null;
+    if (frame !== null && typeof cancelAnimationFrame === 'function') { cancelAnimationFrame(frame); frame = null; }
+    render();
+    const clone = svg.cloneNode(true);
+    const ids = new Map();
+    for (const node of clone.querySelectorAll('[id]')) {
+      const id = `${idPrefix}-${node.getAttribute('id')}`;
+      ids.set(node.getAttribute('id'), id);
+      node.setAttribute('id', id);
+    }
+    for (const node of clone.querySelectorAll('[clip-path]')) {
+      const ref = /^url\(#(.+)\)$/.exec(node.getAttribute('clip-path'));
+      if (ref && ids.has(ref[1])) node.setAttribute('clip-path', `url(#${ids.get(ref[1])})`);
+    }
+    printStyle(clone, 1, { reticleInk, overlayInk, fontFamily });
+    const content = [...clone.childNodes].map((n) => (n.nodeType === 1 ? n.outerHTML : '')).join('');
+    return { content, viewBox: [0, 0, SIZE, SIZE] };
+  }
+
   renderModeButtons();
 
   return {
@@ -779,6 +910,7 @@ export function scopeView({ onBdcChange = () => {} } = {}) {
     getZoom: () => zoom,
     getMode: () => mode,
     getReticleZoom: () => (optic?.reticleZoomFit && reticleZoomOn ? reticleZoom : 1),
+    exportPrintSvg,
     dispose: () => {
       for (const q of mediaQueries) q.removeEventListener('change', applyRingLayout);
       ring.dispose();

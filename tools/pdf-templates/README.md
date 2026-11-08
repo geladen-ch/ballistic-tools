@@ -77,6 +77,7 @@ How the renderer looks a face up (for reference; the app derives the registratio
 1. **[checked]** **[app]** The root `<svg>` has `width` and `height` with an absolute unit (`mm`, `cm`, `in`, `pt`). This is the PDF page size.
 2. **[checked]** The root has a `viewBox` with the same aspect ratio as `width` × `height`. All coordinates inside the template are unitless user units of that `viewBox`.
 3. **[app]** All pages of one document have the same page size.
+4. Choose a user unit small enough that every font size is at least 100 user units (see "Text" below). With millimetre geometry, 1 user unit = 0.01 mm works: an A4 page is `width="210mm" height="297mm" viewBox="0 0 21000 29700"`, and 8 pt text is about `font-size="282"`. Inkscape still shows and edits the document in the unit of `width` and `height`.
 
 ### Elements
 
@@ -93,10 +94,12 @@ How the renderer looks a face up (for reference; the app derives the registratio
 5. **[checked]** **[app]** Every element that declares `font-family` resolves, with the weight and style in effect on that element, to a registered face, even if it has no text of its own. The renderer looks the family up where it is declared; if that lookup fails, it uses Times for the element and every descendant, including descendants whose own weight would match. Example: `<g font-family="Overpass" font-weight="500">` breaks all text inside it unless Overpass 500 is registered.
 6. **[checked]** `letter-spacing`, `word-spacing`, `font-variant`, `font-stretch`, the `font` shorthand, `text-decoration`, `dominant-baseline` and `writing-mode` are not used. The renderer ignores most of them, so the PDF would differ from the browser.
 7. **[checked]** `text-anchor` is `start`, `middle` or `end`. It is the way to centre or right-align text, including substituted values of unknown length.
-8. The `y` of a `text` or `tspan` is the baseline. Do not align text with baseline properties.
-9. Runs of several spaces collapse to one unless the text element has `xml:space="preserve"`.
-10. Text is single-line: one `text` element (or `tspan` with its own position) per line. Nothing wraps.
-11. Fixed text stays text, and is selectable and searchable in the PDF.
+8. `font-size` is at least 100 user units. svg2pdf.js places centred and right-aligned text (and a `tspan` that follows other text) by measuring it in the browser at the font size taken as pixels. At a few pixels the browser rounds every glyph's advance, so the text measures too wide and lands too far left: at 2.9 user units a line of Overpass Bold measures 13 % too wide, at 29 user units 0.7 %, and from 100 user units on the measurement is exact. A template with millimetre user units and `font-size="2.9"` therefore shows ragged right-aligned columns in the PDF, although it looks right in a browser. The rule is not checked by the offline checker; it is the template author's responsibility, and it applies to generated content in slots too (in its own `viewBox` units for fit mode).
+9. Align text with `text-anchor` and fixed `x` positions only. Do not position text from widths computed in code (e.g. an estimated digit width): the shipped fonts have proportional digits and no kerning tables, and only the renderer's own measurement matches what it draws.
+10. The `y` of a `text` or `tspan` is the baseline. Do not align text with baseline properties.
+11. Runs of several spaces collapse to one unless the text element has `xml:space="preserve"`.
+12. Text is single-line: one `text` element (or `tspan` with its own position) per line. Nothing wraps.
+13. Fixed text stays text, and is selectable and searchable in the PDF.
 
 ### Replaceable strings
 

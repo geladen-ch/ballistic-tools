@@ -29,6 +29,17 @@ import { isZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { canComputeStability } from '../engine/stability.js';
 import { collapsibleHint } from '../ui/collapsible-hint.js';
 import { loadTrajectoryInputsState, saveTrajectoryInputsState } from '../trajectory-state.js';
+import { tabSwitcher } from '../ui/section-tabs.js';
+import { printableCardPanel } from '../ui/printable-card/card-panel.js';
+
+// The tool's two tabs: Data (the table, chart and their inputs) and
+// Printable card. Which one is open is remembered for the page lifetime
+// only, not across a reload.
+const TABS = [
+  { key: 'data', labelKey: 'trajectory.tabData' },
+  { key: 'printableCard', labelKey: 'trajectory.tabPrintableCard' }
+];
+let activeTab = 'data';
 
 export function mount(container) {
   clear(container);
@@ -134,7 +145,11 @@ export function mount(container) {
   // hypothetical zero range), so recompute() below kicks it off itself
   // once new points actually land, rather than racing it here against
   // stale ones.
+  // The Printable card panel, once built (below); the sections can report
+  // a change before that, while their library records load.
+  let cardPanel = null;
   function handleShotInputChange() {
+    if (cardPanel && activeTab === 'printableCard') cardPanel.refresh();
     scheduleRecompute();
     scheduleRecomputeChart();
     scheduleRecomputeDirectHit();
@@ -746,10 +761,32 @@ export function mount(container) {
     ])
   ]);
 
+  // The Printable card is solved for this same setup, at the rifle's own
+  // zero (readBaseState(), never the zero override) — see card-panel.js.
+  const card = printableCardPanel({
+    getSetup: () => ({
+      base: readBaseState(),
+      cartridge: cartridge.getValues(),
+      rifle: rifle.getValues(),
+      clicks: rifle.getClickSettings(),
+      atmosphere: atmosphere.getValues(),
+      selectedRifle: rifle.getSelectedRifle()
+    })
+  });
+  cardPanel = card;
+  const dataPanel = el('div', { class: 'tool-layout' }, [controls, results]);
+  const tabs = tabSwitcher(TABS, { data: dataPanel, printableCard: card.node }, (key) => {
+    activeTab = key;
+    if (key === 'printableCard') card.refresh();
+  }, activeTab);
+
   container.appendChild(el('div', {}, [
     el('h1', { i18n: 'trajectory.title' }),
-    el('div', { class: 'tool-layout' }, [controls, results])
+    tabs.node,
+    dataPanel,
+    card.node
   ]));
+  if (activeTab === 'printableCard') card.refresh();
 
   // Everything the engine needs *except* the zero-range-override
   // decision below — its own function since recomputeDangerZone() needs
@@ -941,6 +978,7 @@ export function mount(container) {
   recomputeDirectHit();
 
   return () => {
+    card.dispose();
     latestRequestId++; // invalidate any in-flight response after unmount
     latestChartRequestId++;
     latestDirectHitRequestId++;

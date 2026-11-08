@@ -1,20 +1,11 @@
 import { el, clear } from '../../dom.js';
 import { t } from '../../i18n.js';
 import { sectionGroup } from '../section.js';
-import { loadRifleState, loadCartridgeState } from '../../shot-state.js';
-import { loadUserRifles, loadUserBullets } from '../../user-library.js';
-import { loadRifle } from '../../rifles.js';
-import { loadBullet } from '../../bullets.js';
+import { loadCartridgeState } from '../../shot-state.js';
+import { resolveGunNames } from '../../gun-names.js';
 import { siToDisplay, unitChoice } from '../../units.js';
 import { getUnit } from '../../prefs.js';
 import { goToGuns } from '../../guns-nav.js';
-
-// Matches bullet-section.js's own private "no library bullet picked"
-// sentinel (its local OTHER_VALUE) — not exported there since it's only
-// ever compared against its own <select>'s value, but the string it
-// writes into shot-state.js's cartridgeState.bullet.selectedId is a
-// stable, de-facto part of that state's shape.
-const BULLET_OTHER = '__other__';
 
 // Replaces the full rifle+cartridge picker everywhere it used to be
 // embedded inline (Trajectory, Hit Probability): a one-line summary of
@@ -45,64 +36,8 @@ export function gunsSummary({ bare = false } = {}) {
   const node = bare ? summary : sectionGroup('sections.gunsHeading', [summary]);
 
   async function refresh() {
-    const rifleState = loadRifleState();
     const cartridgeState = loadCartridgeState();
-
-    let rifleName = t('guns.customRifleLabel');
-    let isArsenalRifle = false;
-    // The rifle's own cartridge record, when a library rifle+cartridge is
-    // active — the authoritative source for that cartridge's bullet/
-    // velocity, not cartridgeState below. cartridge-section.js's
-    // setLibraryCartridge() only ever pre-fills and disables its *fields*
-    // to match this same record (see its own comment); it deliberately
-    // never persists them into shot-state.js's cartridgeState, since a
-    // freshly mounted rifleSection()+cartridgeSection() pair always
-    // re-derives them straight from rifleState.library + this record
-    // instead. This summary has no such pair of its own, so it must
-    // re-derive the same way, rather than trusting cartridgeState — which
-    // is otherwise still whatever a *previous* custom/manual selection
-    // last wrote there.
-    let libraryCartridge = null;
-    if (rifleState && rifleState.library) {
-      const { rifleId, cartridgeId } = rifleState.library;
-      const userRifle = loadUserRifles().find((r) => r.id === rifleId);
-      let rifle = userRifle;
-      if (userRifle) {
-        rifleName = userRifle.name;
-        isArsenalRifle = true;
-      } else {
-        try {
-          rifle = await loadRifle(rifleId);
-          rifleName = rifle.name;
-        } catch {
-          // built-in catalog unavailable (offline, etc.) — keep the generic label
-        }
-      }
-      if (rifle) libraryCartridge = rifle.cartridges.find((c) => c.id === cartridgeId) || null;
-    }
-
-    // The line names the active cartridge (e.g. "174gr GP11"), not its
-    // bullet. A custom/manual load has no cartridge record, so there the
-    // bullet's own name (or the generic label) still stands in for it.
-    let loadName = t('guns.customBulletLabel');
-    const bulletId = libraryCartridge
-      ? libraryCartridge.bulletId
-      : cartridgeState && cartridgeState.bullet && cartridgeState.bullet.selectedId;
-    if (libraryCartridge && libraryCartridge.name) {
-      loadName = libraryCartridge.name;
-    } else if (bulletId && bulletId !== BULLET_OTHER) {
-      const userBullet = loadUserBullets().find((b) => b.id === bulletId);
-      if (userBullet) {
-        loadName = userBullet.name;
-      } else {
-        try {
-          const bullet = await loadBullet(bulletId);
-          loadName = bullet.name;
-        } catch {
-          // built-in catalog unavailable — keep the generic label
-        }
-      }
-    }
+    const { rifleName, isArsenalRifle, loadName, libraryCartridge } = await resolveGunNames();
 
     clear(rifleLine);
     rifleLine.appendChild(document.createTextNode(rifleName));

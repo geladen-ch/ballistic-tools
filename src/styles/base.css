@@ -1173,6 +1173,24 @@ th { color: var(--dim); font-weight: 500; }
 .info-pane-row { display: flex; justify-content: space-between; padding: 4px 0; }
 .info-pane-value { font-variant-numeric: tabular-nums; color: var(--text); }
 
+/* Printable card's "On the card" summary (src/ui/printable-card/card-panel.js):
+   one bordered block per info box of the card, side by side as space allows,
+   each narrow enough that a row's label and value read as a pair. */
+/* Its "Card settings" sections the same way; the last one (columns,
+   location, reticle) holds the scope view, so it takes a whole row. */
+.printable-card-summary, .printable-card-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.printable-card-summary .printable-card-summary-box { margin: 0; max-width: 28rem; }
+.printable-card-settings { margin-bottom: 16px; }
+.printable-card-settings > .input-section { margin: 0; }
+.printable-card-settings > .input-section:last-child { grid-column: 1 / -1; }
+.printable-card-summary-box .info-pane-row { gap: 12px; }
+.printable-card-summary-box .info-pane-value { text-align: right; }
+
 /* Labradar track list rows (src/ui/labradar/track-list.js) — clickable
    rows (a track that resolved far enough to have a chart) get a pointer
    cursor and a subtle hover, and the currently-charted row stays

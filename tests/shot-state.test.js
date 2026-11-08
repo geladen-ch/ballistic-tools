@@ -73,10 +73,22 @@ test('rifle/cartridge state survives a fresh module load (an app restart)', asyn
   assert.deepEqual(fresh.loadCartridgeState(), { muzzleVelocity: 810, bullet: { selectedId: 'my-bullet' } });
 });
 
-test('atmosphere state does NOT survive a fresh module load — session-only, unlike rifle/cartridge', async () => {
-  saveAtmosphereState({ tempC: 30 });
+test('atmosphere state survives a fresh module load (an app restart), in its own cookie', async () => {
+  saveAtmosphereState({ tempC: 30, pressurePa: 95000, humidity: 0.2, atmospherePreset: 'custom' });
+  saveAtmosphereState({ windSpeed: 4 });
+  assert.ok(getCookie('ballistics_atmosphere_v1'));
+  assert.equal(JSON.parse(getCookie(GUN_COOKIE) ?? 'null'), null);
   const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
-  assert.equal(fresh.loadAtmosphereState(), null);
+  assert.deepEqual(fresh.loadAtmosphereState(), { tempC: 30, pressurePa: 95000, humidity: 0.2, atmospherePreset: 'custom', windSpeed: 4 });
+});
+
+test('a damaged atmosphere field is dropped on load; the rest are kept', async () => {
+  setCookie('ballistics_atmosphere_v1', JSON.stringify({ tempC: 'warm', pressurePa: 90000, atmospherePreset: 'mars', extra: 1 }));
+  const fresh = await import(`../src/shot-state.js?reload=${freshId()}`);
+  assert.deepEqual(fresh.loadAtmosphereState(), { pressurePa: 90000 });
+  setCookie('ballistics_atmosphere_v1', 'not json');
+  const fresh2 = await import(`../src/shot-state.js?reload=${freshId()}`);
+  assert.equal(fresh2.loadAtmosphereState(), null);
 });
 
 test('resetShotStateForTests() also clears the cookie itself, not just the in-memory mirror', async () => {

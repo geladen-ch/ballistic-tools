@@ -38,11 +38,11 @@ const ATMOSPHERE_PRESETS = {
 // this still back-derives a real altitude from station pressure below,
 // same as every other "custom" atmosphere in this app already does.
 //
-// `load`/`save` default to shot-state.js's own session-only atmosphereState
-// (shared live across Trajectory/Hit Probability/BC Estimator) but can be
-// overridden — Range Solver passes its own cookie-backed pair (see
-// range-solver-state.js) instead, since its own inputs need to survive an
-// app restart, unlike the shared one.
+// `load`/`save` default to shot-state.js's own atmosphereState (shared
+// live across Trajectory/Hit Probability/BC Estimator, cookie-backed so it
+// survives an app restart) but can be overridden — Range Solver passes its
+// own cookie-backed pair (see range-solver-state.js), keeping its
+// conditions apart from the shared ones.
 //
 // `combinedWind: true` (Trajectory and Arsenal's rifle comparison, so
 // far) swaps the plain windSpeedField+windAngleDial pair below for the

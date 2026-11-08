@@ -165,6 +165,12 @@ export const FIELD_UNITS = {
   movingTargetSpeed: { group: 'velocity', kind: 'velocity' },
 
   maxRange: { group: 'distance', kind: 'length' },
+  // The Printable card's max distance and reference crosswind.
+  cardMaxDistance: { group: 'distance', kind: 'length' },
+  cardCrosswind: { group: 'windSpeed', kind: 'velocity' },
+  cardTemperature: { group: 'temperature', kind: 'temperature' },
+  // A step between two columns, not a reading: 5 °C is 9 °F.
+  cardTemperatureStep: { group: 'temperature', kind: 'temperatureDelta' },
   rangeStep: { group: 'distance', kind: 'length' },
   // Not a form field — used to display a computed trajectory-table range
   // value (in meters from the engine) in the same distance unit the user
@@ -355,6 +361,10 @@ export const FIELD_BOUNDS = {
   sightingShotCount: { min: 1, max: 5 }, // count, integer
   convBc: { min: 0.05, max: 1.5 }, // matches bc
   maxRange: { min: 100, max: 5000 }, // m — matches targetRange, same physical quantity
+  cardMaxDistance: { min: 100, max: 4800 }, // m — the card's rows; its neighbours are flown up to maxRange's max
+  cardCrosswind: { min: 0, max: 35 }, // m/s — as windSpeed
+  cardTemperature: { min: -60, max: 60 }, // °C — the first temperature column
+  cardTemperatureStep: { min: 0.5, max: 20 }, // °C span between columns
   rangeStep: { min: 1, max: 500 }, // m
   benchPrecision: { min: 0, max: mradToRad(3) }, // rad
   shooterSkill: { min: 0, max: mradToRad(3) }, // rad

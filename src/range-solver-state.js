@@ -1,7 +1,7 @@
 // Persisted Target/Wind/Atmosphere/Location inputs for Range Solver —
 // cookie-backed (survives navigation *and* an app restart), deliberately
-// separate from shot-state.js's own atmosphereState, which is explicitly
-// session-only by design and shared with Trajectory/Hit Probability. The
+// separate from shot-state.js's own atmosphereState, which is shared with
+// Trajectory/Hit Probability (and persisted on its own). The
 // active rifle profile itself is *not* owned here — it stays
 // shot-state.js's, changing only via Guns, same as every other tool.
 //

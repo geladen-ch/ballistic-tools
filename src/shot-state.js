@@ -10,14 +10,16 @@
 // cartridge/rifle are cookie-backed (survive a reload/app restart) — this
 // is "the active gun configuration" the Guns section centers the whole
 // app on now (see guns-view.js), so it has to outlive a session the same
-// way a unit preference does (see prefs.js). Atmosphere stays session-
-// only/in-memory, same as before — not part of that configuration.
+// way a unit preference does (see prefs.js). The shared atmosphere is
+// cookie-backed too, in its own cookie (it is not part of the gun
+// configuration): every view sharing it comes back with the last
+// conditions entered after a restart.
 //
 // Saves merge into whatever's already stored rather than replacing it
 // outright — e.g. BC Estimator's atmosphere has no wind fields, and a
 // save from there must not erase a windSpeed/windAngle a wind-aware view
 // stored earlier.
-import { removeCookie } from './cookies.js';
+import { getCookie, removeCookie } from './cookies.js';
 import { decodeLegacy, clickSettingsFromStored } from './legacy-units.js';
 import { loadVersionedCookie, saveCookieState } from './versioned-cookie.js';
 
@@ -41,10 +43,32 @@ function saveGunCookie() {
   saveCookieState(GUN_COOKIE_NAME, { cartridge: cartridgeState, rifle: rifleState });
 }
 
+// The shared atmosphere, in SI as held in memory (tempC in °C, humidity a
+// fraction). Every field is checked on load: one damaged or unknown is
+// dropped, so the section's own default stands in for it.
+const ATMOSPHERE_COOKIE_NAME = 'ballistics_atmosphere_v1';
+const ATMOSPHERE_NUMBER_KEYS = ['windSpeed', 'windAngleRad', 'tempC', 'pressurePa', 'altitudeM', 'humidity'];
+const ATMOSPHERE_PRESETS = ['standard', 'swiss', 'soviet', 'custom'];
+
+function loadAtmosphereCookie() {
+  let stored = null;
+  try {
+    const raw = getCookie(ATMOSPHERE_COOKIE_NAME);
+    stored = raw ? JSON.parse(raw) : null;
+  } catch {
+    return null; // malformed -- treated as absent
+  }
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return null;
+  const state = {};
+  for (const key of ATMOSPHERE_NUMBER_KEYS) if (Number.isFinite(stored[key])) state[key] = stored[key];
+  if (ATMOSPHERE_PRESETS.includes(stored.atmospherePreset)) state.atmospherePreset = stored.atmospherePreset;
+  return Object.keys(state).length ? state : null;
+}
+
 const initialGunState = loadGunCookie();
 let cartridgeState = initialGunState.cartridge;
 let rifleState = initialGunState.rifle;
-let atmosphereState = null;
+let atmosphereState = loadAtmosphereCookie();
 
 export function loadCartridgeState() {
   return cartridgeState;
@@ -70,6 +94,7 @@ export function loadAtmosphereState() {
 
 export function saveAtmosphereState(partial) {
   atmosphereState = { ...atmosphereState, ...partial };
+  saveCookieState(ATMOSPHERE_COOKIE_NAME, atmosphereState);
 }
 
 // Test-only: resets every slice back to "nothing saved yet" (and clears
@@ -84,6 +109,7 @@ export function resetShotStateForTests() {
   try {
     removeCookie(GUN_COOKIE_NAME);
     removeCookie(LEGACY_GUN_COOKIE_NAME);
+    removeCookie(ATMOSPHERE_COOKIE_NAME);
   } catch {
     // best-effort
   }

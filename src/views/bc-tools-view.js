@@ -1,4 +1,5 @@
 import { el, clear } from '../dom.js';
+import { tabSwitcher } from '../ui/section-tabs.js';
 import { getPool } from '../pool.js';
 import { unitField } from '../ui/unit-field.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
@@ -82,31 +83,9 @@ function persistedUnitField(id, { onInput, ...rest }) {
   return field;
 }
 
-// A tiny reusable tab-switcher: `tabs` is [{ key, labelKey }], `onSwitch`
-// is called with the newly active key after the button classes and
-// visibility are already updated. `initialKey` (defaults to the first
-// tab) picks which tab/panel starts active — also applied to `panels`'
-// initial display, so callers no longer need to hide their non-default
-// panels by hand. Same hand-rolled pattern already shipping in
-// hit-probability-view.js (own buttons/panels, no route change, no
-// shared component) — used twice here, once for the outer
-// Calculation/Conversion/Labradar tabs and once for the inner Velocity/ToF
-// mode switch.
-function tabSwitcher(tabs, panels, onSwitch, initialKey) {
-  const activeKey = tabs.some((tabDef) => tabDef.key === initialKey) ? initialKey : tabs[0].key;
-  const buttons = tabs.map((tabDef) => {
-    const btn = el('button', { type: 'button', class: 'tab-btn' + (tabDef.key === activeKey ? ' active' : ''), i18n: tabDef.labelKey });
-    btn.addEventListener('click', () => {
-      for (const b of buttons) b.className = 'tab-btn';
-      btn.className = 'tab-btn active';
-      for (const key of Object.keys(panels)) panels[key].style.display = key === tabDef.key ? '' : 'none';
-      if (onSwitch) onSwitch(tabDef.key);
-    });
-    return btn;
-  });
-  for (const key of Object.keys(panels)) panels[key].style.display = key === activeKey ? '' : 'none';
-  return { node: el('div', { class: 'section-tabs' }, buttons) };
-}
+// The tab switcher (ui/section-tabs.js) is used twice here, once for the
+// outer Calculation/Conversion/Labradar tabs and once for the inner
+// Velocity/ToF mode switch.
 
 // Legacy's own two selectable "odd tracks filter" thresholds — replicated
 // as-is per the
