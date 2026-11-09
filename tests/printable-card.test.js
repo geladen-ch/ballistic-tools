@@ -85,10 +85,10 @@ function referenceRow(d) {
 }
 
 test('the table: fonts of 100 units and more, values aligned by text-anchor only, at fixed edges', () => {
-  for (const count of [10, 31]) {
+  for (const count of [10, 37]) {
     const rows = Array.from({ length: count }, (_, i) => referenceRow(100 * (i + 1)));
     rows.splice(2, 0, { kind: 'target', id: 'T1', angle: '+4°', distance: '312', elevation: '+24', windage: '6', spin: '−1' });
-    const svg = tableSvg({ rows, labels: LABELS, spin: true, slope: true, temperature: true, widthMm: 190, heightMm: 104.4, slopeAngles: [10, 15, 20, 25, 30] });
+    const svg = tableSvg({ rows, labels: LABELS, spin: true, slope: true, temperature: true, widthMm: 190, heightMm: 123.8, slopeAngles: [10, 15, 20, 25, 30] });
     assert.ok(Math.min(...fontSizes(svg)) >= 100, `${count} rows: smallest font ${Math.min(...fontSizes(svg))}`);
     assert.ok(!/\btextLength\b|letter-spacing|dominant-baseline/.test(svg));
     // Every reference row's elevation sits on the same right edge.
@@ -104,8 +104,8 @@ test('the table widens to the full width without the optional columns', () => {
 });
 
 test('with all optional columns, the table keeps its designed font sizes for realistic values', () => {
-  const rows = Array.from({ length: 31 }, (_, i) => referenceRow(50 * (i + 1)));
-  const args = { rows, labels: LABELS, spin: true, slope: true, temperature: true, widthMm: 190, heightMm: 104.4, slopeAngles: [10, 15, 20, 25, 30] };
+  const rows = Array.from({ length: 37 }, (_, i) => referenceRow(50 * (i + 1)));
+  const args = { rows, labels: LABELS, spin: true, slope: true, temperature: true, widthMm: 190, heightMm: 123.8, slopeAngles: [10, 15, 20, 25, 30] };
   // A generous measure (0.6 em per character): everything fits as designed.
   const measure = (s, _face, size) => s.length * size * 0.6;
   assert.equal(tableSvg({ ...args, measure }), tableSvg(args));
@@ -113,7 +113,7 @@ test('with all optional columns, the table keeps its designed font sizes for rea
 
 test('values too long for their room shrink the whole table\'s fonts, keeping every edge', () => {
   const rows = Array.from({ length: 12 }, (_, i) => ({ ...referenceRow(200 * (i + 1)), elevation: 'U 1650.5' }));
-  const args = { rows, labels: LABELS, spin: true, slope: true, temperature: true, widthMm: 190, heightMm: 104.4, slopeAngles: [10, 15, 20, 25, 30] };
+  const args = { rows, labels: LABELS, spin: true, slope: true, temperature: true, widthMm: 190, heightMm: 123.8, slopeAngles: [10, 15, 20, 25, 30] };
   const measure = (s, _face, size) => s.length * size * 0.6;
   const plain = tableSvg(args);
   const fitted = tableSvg({ ...args, measure });
@@ -184,7 +184,7 @@ test('the templates\' fixed text is i18n keys only, each translated in every loc
       textKeys(s).forEach((k) => keys.add(k));
     }
   }
-  assert.ok(keys.size >= 20);
+  assert.ok(keys.size >= 8);
   const { changeLanguage, getLanguage } = await import('../src/i18n.js');
   const before = getLanguage();
   for (const { code } of SUPPORTED_LANGUAGES) {
@@ -200,7 +200,7 @@ test('the templates\' fixed text is i18n keys only, each translated in every loc
   await changeLanguage(before);
   assert.equal(templateTranslator(t)('printableCard.pdf.noSuchKey'), null);
   const svg = templateText('printable-card-a4-pdf-template.svg');
-  for (const placeholder of ['[rifle]', '[rifle (long)]', '[cartridge (long)]', '[bullet (long)]', '[card title]', '[date]', '[table note]', '[reticle heading]', '[targets heading]']) {
+  for (const placeholder of ['[rifle]', '[rifle (long)]', '[cartridge (long)]', '[bullet (long)]', '[card title]', '[date]', '[drag label]', '[drag]', '[conditions heading]', '[corrections heading]', '[reticle heading]', '[targets heading]']) {
     assert.ok(svg.includes(placeholder), placeholder);
   }
   for (const id of ['table', 'reticle', 'photo']) assert.ok(svg.includes(`id="${id}"`), id);

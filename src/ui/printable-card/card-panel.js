@@ -415,7 +415,7 @@ export function printableCardPanel({ getSetup }) {
     for (const box of cardInfoBoxes(values)) {
       summary.appendChild(el('div', { class: 'input-section printable-card-summary-box' }, [
         el('h3', { i18n: box.headingKey }),
-        ...box.rows.map((row) => el('div', { class: 'info-pane-row' }, [el('span', { i18n: row.labelKey }), el('span', { class: 'info-pane-value', text: row.value })]))
+        ...box.rows.map((row) => el('div', { class: 'info-pane-row' }, [el('span', row.labelKey ? { i18n: row.labelKey } : { text: row.label }), el('span', { class: 'info-pane-value', text: row.value })]))
       ]));
     }
     titleInput.placeholder = defaultCardTitle(names);
@@ -531,7 +531,6 @@ export function printableCardPanel({ getSetup }) {
           ...values,
           cardTitle: title,
           date: formatCardDate(iso, lang),
-          tableNote: t('printableCard.pdf.tableNote', { zero: values.zero }),
           appLink: APP_LINK,
           version: RELEASE_ID
         },

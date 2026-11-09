@@ -26,7 +26,7 @@ export const NEIGHBOUR_OFFSETS = {
 export const DISTANCE_GRID = 5;
 
 // The most rows (reference distances and targets together) the card holds.
-export const MAX_ROWS = 31;
+export const MAX_ROWS = 37;
 
 // [{ distance, step }] up to `maxDistance` inclusive. `elevationAt(d)` is
 // the elevation to dial at distance d, in the output unit, or a non-finite

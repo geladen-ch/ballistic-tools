@@ -12,7 +12,7 @@ import { notesSvg, photoSvg } from './photo-svg.js';
 import { SLOPE_ANGLES_DEG } from './card-data.js';
 
 const FULL_PAGE_LAYOUT = {
-  slots: { table: { widthMm: 190, heightMm: 104.4 }, reticle: { widthMm: 72.45, heightMm: 72.45 }, photo: { widthMm: 113.55, heightMm: 72.45 } },
+  slots: { table: { widthMm: 190, heightMm: 123.8 }, reticle: { widthMm: 72.45, heightMm: 72.45 }, photo: { widthMm: 113.55, heightMm: 72.45 } },
   // The rifle box's inner width, and where a free-text value that doesn't
   // fit starts (after the longest translation of its label), in mm.
   rifleBox: { innerMm: 89, freeStartMm: 16.2, labelSizeMm: 2.6, valueSizeMm: 2.9, gapMm: 1.5 }
@@ -71,10 +71,9 @@ export function freeTextPairs({ values, labels, measure, rifleBox }) {
 // `card`: {
 //   paper, lang, t,
 //   values: { cardTitle, date, rifle, cartridge, bullet, muzzleVelocity,
-//     velocityChange, ballisticCoefficient, zero, sightHeight,
-//     clickVertical, clickHorizontal, altitude, pressure, temperature,
-//     humidity, shotAngle, distanceUnit, correctionUnit,
-//     crosswindSpeed, tableNote, appLink, version },
+//     dragLabel, drag, zero, sightHeight, clickVertical, clickHorizontal,
+//     conditions, correctionUnit, correctionUnitIsSymbol,
+//     appLink, version },
 //   table: { rows, spin, slope, temperature, labels },
 //   reticle: { heading, content, viewBox } | null,
 //   photo: { heading, photo, targets } | null,
@@ -85,33 +84,30 @@ export async function buildCardPdf(card) {
   const { t, lang, values } = card;
   const measure = await textMeasurer();
   const labels = Object.fromEntries(FREE_TEXT_ROWS.map(([, key]) => [key, t(key)]));
-  const notesHeading = card.notesHeading.toLocaleUpperCase(lang || undefined);
+  const upper = (text) => text.toLocaleUpperCase(lang || undefined);
+  const notesHeading = upper(card.notesHeading);
 
   const valuePairs = [
     ...freeTextPairs({ values, labels, measure, rifleBox: format.rifleBox }),
     ['[card title]', values.cardTitle],
     ['[date]', values.date],
     ['[muzzle velocity]', values.muzzleVelocity],
-    ['[velocity change]', values.velocityChange],
-    ['[ballistic coefficient]', values.ballisticCoefficient],
+    ['[drag label]', values.dragLabel],
+    ['[drag]', values.drag],
     ['[zero]', values.zero],
     ['[sight height]', values.sightHeight],
     ['[click vertical]', values.clickVertical],
     ['[click horizontal]', values.clickHorizontal],
-    ['[altitude]', values.altitude],
-    ['[pressure]', values.pressure],
-    ['[temperature]', values.temperature],
-    ['[humidity]', values.humidity],
-    ['[shot angle]', values.shotAngle],
-    ['[distance unit]', values.distanceUnit],
-    ['[correction unit]', values.correctionUnit],
-    ['[crosswind speed]', values.crosswindSpeed],
-    ['[table note]', values.tableNote],
+    ['[conditions heading]', t('printableCard.pdf.headingWithValues', { heading: upper(t('printableCard.pdf.referenceConditions')), values: values.conditions })],
+    ['[corrections heading]', t('printableCard.pdf.headingWithUnit', {
+      heading: upper(t('printableCard.pdf.corrections')),
+      unit: values.correctionUnitIsSymbol ? values.correctionUnit : upper(values.correctionUnit)
+    })],
     ['[corrections table]', ''],
     ['[reticle]', ''],
     ['[target photo]', ''],
-    ['[reticle heading]', card.reticle ? card.reticle.heading.toLocaleUpperCase(lang || undefined) : notesHeading],
-    ['[targets heading]', card.photo ? card.photo.heading.toLocaleUpperCase(lang || undefined) : notesHeading],
+    ['[reticle heading]', card.reticle ? upper(card.reticle.heading) : notesHeading],
+    ['[targets heading]', card.photo ? upper(card.photo.heading) : notesHeading],
     ['[app link]', values.appLink],
     ['[version]', values.version]
   ];

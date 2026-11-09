@@ -2,70 +2,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="215.9mm" height="279.4mm" viewBox="0 0 21590 27940">
   <title>Printable card (Letter)</title>
   <defs>
-    <clipPath id="clip-rifle"><rect x="1620" y="2740" width="7530" height="400"/></clipPath>
-    <clipPath id="clip-cartridge"><rect x="1620" y="3125" width="7530" height="400"/></clipPath>
-    <clipPath id="clip-bullet"><rect x="1620" y="3510" width="7530" height="400"/></clipPath>
+    <clipPath id="clip-rifle"><rect x="1620" y="2440" width="7530" height="400"/></clipPath>
+    <clipPath id="clip-cartridge"><rect x="11220" y="2440" width="7530" height="400"/></clipPath>
+    <clipPath id="clip-bullet"><rect x="11220" y="2825" width="7530" height="400"/></clipPath>
     <clipPath id="clip-reticle-heading"><rect x="0" y="17455" width="7245" height="600"/></clipPath>
     <clipPath id="clip-targets-heading"><rect x="7645" y="17455" width="11355" height="600"/></clipPath>
   </defs>
   <rect width="21590" height="27940" fill="#ffffff"/>
   <g id="card" transform="translate(1295 1020)" font-family="Overpass" fill="#111111">
-    <g id="logo" transform="scale(14)" fill="none" stroke="#e8a33d" stroke-width="5"><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="18"/><path d="M24,74 L40,57 L50,63 L61,53 L76,74 Z" fill="#e8a33d" stroke="none"/><circle cx="50" cy="50" r="4" fill="#e8a33d" stroke="none"/><line x1="50" y1="6" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="94"/><line x1="6" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="94" y2="50"/></g>
-    <text x="1750" y="620" font-size="540" font-weight="700">{app.title}</text>
-    <text x="1750" y="1140" font-size="300" fill="#4d4d4d">{app.tagline}</text>
-    <text x="19000" y="620" font-size="540" font-weight="700" text-anchor="end">[card title]</text>
-    <text x="19000" y="1140" font-size="300" fill="#4d4d4d" text-anchor="end">{printableCard.pdf.rangeCard} · [date]</text>
-    <rect x="0" y="1460" width="19000" height="100" fill="#e8a33d"/>
+    <g id="logo" transform="scale(11)" fill="none" stroke="#e8a33d" stroke-width="5"><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="18"/><path d="M24,74 L40,57 L50,63 L61,53 L76,74 Z" fill="#e8a33d" stroke="none"/><circle cx="50" cy="50" r="4" fill="#e8a33d" stroke="none"/><line x1="50" y1="6" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="94"/><line x1="6" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="94" y2="50"/></g>
+    <text x="1400" y="740" font-size="540" font-weight="700">{app.title}</text>
+    <text x="19000" y="740" font-size="540" font-weight="700" text-anchor="end">[card title]</text>
+    <rect x="0" y="1200" width="19000" height="100" fill="#e8a33d"/>
     <g id="rifle">
-    <rect x="0" y="1900" width="9400" height="4115" rx="120" fill="none" stroke="#111111" stroke-width="30"/>
-    <rect x="250" y="2160" width="110" height="300" fill="#e8a33d"/><text x="490" y="2420" font-size="280" font-weight="700">{printableCard.pdf.rifleAndCartridge|upper}</text>
-    <line x1="250" y1="2620" x2="9150" y2="2620" stroke="#8c8c8c" stroke-width="20"/>
-    <text x="250" y="3040" font-size="260" fill="#4d4d4d">{printableCard.pdf.rifle}</text>
-    <text x="9150" y="3040" font-size="290" font-weight="700" text-anchor="end">[rifle]</text>
-    <g clip-path="url(#clip-rifle)"><text x="1620" y="3040" font-size="290" font-weight="700">[rifle (long)]</text></g>
-    <text x="250" y="3425" font-size="260" fill="#4d4d4d">{printableCard.pdf.cartridge}</text>
-    <text x="9150" y="3425" font-size="290" font-weight="700" text-anchor="end">[cartridge]</text>
-    <g clip-path="url(#clip-cartridge)"><text x="1620" y="3425" font-size="290" font-weight="700">[cartridge (long)]</text></g>
-    <text x="250" y="3810" font-size="260" fill="#4d4d4d">{printableCard.pdf.bullet}</text>
-    <text x="9150" y="3810" font-size="290" font-weight="700" text-anchor="end">[bullet]</text>
-    <g clip-path="url(#clip-bullet)"><text x="1620" y="3810" font-size="290" font-weight="700">[bullet (long)]</text></g>
-    <text x="250" y="4195" font-size="260" fill="#4d4d4d">{printableCard.pdf.muzzleVelocity}</text>
-    <text x="9150" y="4195" font-size="290" font-weight="700" text-anchor="end">[muzzle velocity]</text>
-    <text x="250" y="4580" font-size="260" fill="#4d4d4d">{printableCard.pdf.velocityChange}</text>
-    <text x="9150" y="4580" font-size="290" font-weight="700" text-anchor="end">[velocity change]</text>
-    <text x="250" y="4965" font-size="260" fill="#4d4d4d">{printableCard.pdf.ballisticCoefficient}</text>
-    <text x="9150" y="4965" font-size="290" font-weight="700" text-anchor="end">[ballistic coefficient]</text>
-    <text x="250" y="5350" font-size="260" fill="#4d4d4d">{printableCard.pdf.zeroSightHeight}</text>
-    <text x="9150" y="5350" font-size="290" font-weight="700" text-anchor="end">[zero] · [sight height]</text>
-    <text x="250" y="5735" font-size="260" fill="#4d4d4d">{printableCard.pdf.scopeClick}</text>
-    <text x="9150" y="5735" font-size="290" font-weight="700" text-anchor="end">[click vertical] · [click horizontal]</text>
+    <rect x="0" y="1600" width="9400" height="2575" rx="120" fill="none" stroke="#111111" stroke-width="30"/>
+    <rect x="250" y="1860" width="110" height="300" fill="#e8a33d"/><text x="490" y="2120" font-size="280" font-weight="700">{printableCard.pdf.rifle|upper}</text>
+    <line x1="250" y1="2320" x2="9150" y2="2320" stroke="#8c8c8c" stroke-width="20"/>
+    <text x="250" y="2740" font-size="260" fill="#4d4d4d">{printableCard.pdf.rifle}</text>
+    <text x="9150" y="2740" font-size="290" font-weight="700" text-anchor="end">[rifle]</text>
+    <g clip-path="url(#clip-rifle)"><text x="1620" y="2740" font-size="290" font-weight="700">[rifle (long)]</text></g>
+    <text x="250" y="3125" font-size="260" fill="#4d4d4d">{printableCard.pdf.zeroRange}</text>
+    <text x="9150" y="3125" font-size="290" font-weight="700" text-anchor="end">[zero]</text>
+    <text x="250" y="3510" font-size="260" fill="#4d4d4d">{printableCard.pdf.sightHeight}</text>
+    <text x="9150" y="3510" font-size="290" font-weight="700" text-anchor="end">[sight height]</text>
+    <text x="250" y="3895" font-size="260" fill="#4d4d4d">{printableCard.pdf.scopeClick}</text>
+    <text x="9150" y="3895" font-size="290" font-weight="700" text-anchor="end">[click vertical] · [click horizontal]</text>
     </g>
-    <g id="conditions">
-    <rect x="9600" y="1900" width="9400" height="4115" rx="120" fill="none" stroke="#111111" stroke-width="30"/>
-    <rect x="9850" y="2160" width="110" height="300" fill="#e8a33d"/><text x="10090" y="2420" font-size="280" font-weight="700">{printableCard.pdf.referenceConditions|upper}</text>
-    <line x1="9850" y1="2620" x2="18750" y2="2620" stroke="#8c8c8c" stroke-width="20"/>
-    <text x="9850" y="3040" font-size="260" fill="#4d4d4d">{printableCard.pdf.altitude}</text>
-    <text x="18750" y="3040" font-size="290" font-weight="700" text-anchor="end">[altitude]</text>
-    <text x="9850" y="3425" font-size="260" fill="#4d4d4d">{printableCard.pdf.pressure}</text>
-    <text x="18750" y="3425" font-size="290" font-weight="700" text-anchor="end">[pressure]</text>
-    <text x="9850" y="3810" font-size="260" fill="#4d4d4d">{printableCard.pdf.temperature}</text>
-    <text x="18750" y="3810" font-size="290" font-weight="700" text-anchor="end">[temperature]</text>
-    <text x="9850" y="4195" font-size="260" fill="#4d4d4d">{printableCard.pdf.humidity}</text>
-    <text x="18750" y="4195" font-size="290" font-weight="700" text-anchor="end">[humidity]</text>
-    <text x="9850" y="4580" font-size="260" fill="#4d4d4d">{printableCard.pdf.shotAngle}</text>
-    <text x="18750" y="4580" font-size="290" font-weight="700" text-anchor="end">[shot angle]</text>
-    <text x="9850" y="4965" font-size="260" fill="#4d4d4d">{printableCard.pdf.crosswindSpeed}</text>
-    <text x="18750" y="4965" font-size="290" font-weight="700" text-anchor="end">[crosswind speed]</text>
-    <text x="9850" y="5350" font-size="260" fill="#4d4d4d">{printableCard.pdf.distanceUnit}</text>
-    <text x="18750" y="5350" font-size="290" font-weight="700" text-anchor="end">[distance unit]</text>
-    <text x="9850" y="5735" font-size="260" fill="#4d4d4d">{printableCard.pdf.correctionUnit}</text>
-    <text x="18750" y="5735" font-size="290" font-weight="700" text-anchor="end">[correction unit]</text>
+    <g id="cartridge">
+    <rect x="9600" y="1600" width="9400" height="2575" rx="120" fill="none" stroke="#111111" stroke-width="30"/>
+    <rect x="9850" y="1860" width="110" height="300" fill="#e8a33d"/><text x="10090" y="2120" font-size="280" font-weight="700">{printableCard.pdf.cartridge|upper}</text>
+    <line x1="9850" y1="2320" x2="18750" y2="2320" stroke="#8c8c8c" stroke-width="20"/>
+    <text x="9850" y="2740" font-size="260" fill="#4d4d4d">{printableCard.pdf.cartridge}</text>
+    <text x="18750" y="2740" font-size="290" font-weight="700" text-anchor="end">[cartridge]</text>
+    <g clip-path="url(#clip-cartridge)"><text x="11220" y="2740" font-size="290" font-weight="700">[cartridge (long)]</text></g>
+    <text x="9850" y="3125" font-size="260" fill="#4d4d4d">{printableCard.pdf.bullet}</text>
+    <text x="18750" y="3125" font-size="290" font-weight="700" text-anchor="end">[bullet]</text>
+    <g clip-path="url(#clip-bullet)"><text x="11220" y="3125" font-size="290" font-weight="700">[bullet (long)]</text></g>
+    <text x="9850" y="3510" font-size="260" fill="#4d4d4d">{printableCard.pdf.muzzleVelocity}</text>
+    <text x="18750" y="3510" font-size="290" font-weight="700" text-anchor="end">[muzzle velocity]</text>
+    <text x="9850" y="3895" font-size="260" fill="#4d4d4d">[drag label]</text>
+    <text x="18750" y="3895" font-size="290" font-weight="700" text-anchor="end">[drag]</text>
     </g>
-    <rect x="0" y="6415" width="110" height="300" fill="#e8a33d"/><text x="240" y="6675" font-size="280" font-weight="700">{printableCard.pdf.corrections|upper}</text>
-    <text x="19000" y="6675" font-size="260" fill="#4d4d4d" text-anchor="end">[table note]</text>
-    <rect x="0" y="6895" width="19000" height="10440" fill="none" stroke="#8c8c8c" stroke-width="30" stroke-dasharray="150 100"/>
-    <text x="9500" y="12235" font-size="340" fill="#8c8c8c" text-anchor="middle">[corrections table]</text>
-    <rect id="table" x="0" y="6895" width="19000" height="10440" fill="none" stroke="none"/>
+    <rect x="0" y="4475" width="110" height="300" fill="#e8a33d"/><text x="240" y="4735" font-size="280" font-weight="700">[corrections heading]</text>
+    <text x="19000" y="4735" font-size="280" font-weight="700" text-anchor="end">[conditions heading]</text>
+    <rect x="0" y="4955" width="19000" height="12380" fill="none" stroke="#8c8c8c" stroke-width="30" stroke-dasharray="150 100"/>
+    <text x="9500" y="11265" font-size="340" fill="#8c8c8c" text-anchor="middle">[corrections table]</text>
+    <rect id="table" x="0" y="4955" width="19000" height="12380" fill="none" stroke="none"/>
     <g clip-path="url(#clip-reticle-heading)"><rect x="0" y="17635" width="110" height="300" fill="#e8a33d"/><text x="240" y="17895" font-size="280" font-weight="700">[reticle heading]</text></g>
     <text x="3622.5" y="21857.5" font-size="340" fill="#8c8c8c" text-anchor="middle">[reticle]</text>
     <rect id="reticle" x="0" y="18115" width="7245" height="7245" fill="none" stroke="#111111" stroke-width="30"/>
@@ -73,7 +55,6 @@
     <text x="13322.5" y="21857.5" font-size="340" fill="#8c8c8c" text-anchor="middle">[target photo]</text>
     <rect id="photo" x="7645" y="18115" width="11355" height="7245" fill="none" stroke="#111111" stroke-width="30"/>
     <line x1="0" y1="25560" x2="19000" y2="25560" stroke="#8c8c8c" stroke-width="20"/>
-    <text x="0" y="25860" font-size="230" fill="#4d4d4d">[app link] · [version]</text>
-    <text x="19000" y="25860" font-size="230" fill="#4d4d4d" text-anchor="end">{printableCard.pdf.disclaimer}</text>
+    <text x="0" y="25860" font-size="230" fill="#4d4d4d">[app link] · [version] · [date]</text>
   </g>
 </svg>

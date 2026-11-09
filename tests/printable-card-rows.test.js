@@ -65,7 +65,7 @@ test('targets merge in distance order, after a reference row at the same distanc
   assert.equal(lastDistance, 400);
 });
 
-test('at most 31 rows: the rest are counted and the farthest kept is reported', () => {
+test('at most 37 rows: the rest are counted and the farthest kept is reported', () => {
   const references = referenceDistances({ initialStep: 25, maxDistance: 1000 });
   const { rows, omitted, lastDistance } = tableRows({ references, maxDistance: 1000 });
   assert.equal(rows.length, MAX_ROWS);
