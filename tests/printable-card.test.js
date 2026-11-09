@@ -15,7 +15,7 @@ const { dopeText, magnitudeText, signedDegreesText, machDistanceM, angleInOutput
   await import('../src/printable-card/card-data.js');
 const { tableSvg } = await import('../src/printable-card/table-svg.js');
 const { cropBox, placeBadges, photoSvg, notesSvg } = await import('../src/printable-card/photo-svg.js');
-const { TEMPLATE_TEXT, labelPairs, freeTextPairs, PAPER_FORMATS } = await import('../src/printable-card/card-pdf.js');
+const { templateTranslator, freeTextPairs, PAPER_FORMATS } = await import('../src/printable-card/card-pdf.js');
 const {
   loadPrintableCardState, savePrintableCardState, savePrintableCardScopeState, resetPrintableCardStateForTests
 } = await import('../src/printable-card-state.js');
@@ -173,28 +173,37 @@ test('A4 and Letter carry the same card content; only the page and its centring 
   assert.deepEqual(Object.keys(PAPER_FORMATS).sort(), ['a4', 'letter']);
 });
 
-test('every fixed text the card translates occurs in the templates, and every placeholder the card fills', () => {
-  const svg = templateText('printable-card-a4-pdf-template.svg');
-  for (const [english] of TEMPLATE_TEXT) assert.ok(svg.includes(english), english);
-  for (const placeholder of ['[rifle]', '[rifle (long)]', '[cartridge (long)]', '[bullet (long)]', '[card title]', '[date]', '[table note]', '[reticle heading]', '[targets heading]']) {
-    assert.ok(svg.includes(placeholder), placeholder);
+test('the templates\' fixed text is i18n keys only, each translated in every locale; every placeholder the card fills is there', async () => {
+  const { textKeys } = await import('../src/pdf/text-replace.js');
+  const texts = (svg) => [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
+  const keys = new Set();
+  for (const name of ['printable-card-a4-pdf-template.svg', 'printable-card-letter-pdf-template.svg']) {
+    for (const s of texts(templateText(name))) {
+      const rest = s.replace(/\{[^}]*\}/g, '').replace(/\[[^\]]*\]/g, '');
+      assert.ok(!/\p{L}/u.test(rest), `${name}: untranslated text "${s}"`);
+      textKeys(s).forEach((k) => keys.add(k));
+    }
   }
-  for (const id of ['table', 'reticle', 'photo']) assert.ok(svg.includes(`id="${id}"`), id);
-});
-
-test('no translation of the template\'s text contains an English text replaced after it', async () => {
+  assert.ok(keys.size >= 20);
   const { changeLanguage, getLanguage } = await import('../src/i18n.js');
   const before = getLanguage();
   for (const { code } of SUPPORTED_LANGUAGES) {
     await changeLanguage(code);
-    const pairs = labelPairs(t, code);
-    pairs.forEach(([, translated], i) => {
-      for (const [english] of pairs.slice(i + 1)) {
-        assert.ok(!translated.includes(english), `${code}: "${translated}" contains the later "${english}"`);
-      }
-    });
+    const locale = JSON.parse(readFileSync(join(ROOT, 'src/locales', `${code}.json`), 'utf8'));
+    const own = (key) => key.split('.').reduce((o, k) => (o == null ? o : o[k]), locale);
+    const translate = templateTranslator(t);
+    for (const key of keys) {
+      assert.equal(typeof own(key), 'string', `${code}: ${key}`);
+      assert.ok(translate(key), `${code}: ${key}`);
+    }
   }
   await changeLanguage(before);
+  assert.equal(templateTranslator(t)('printableCard.pdf.noSuchKey'), null);
+  const svg = templateText('printable-card-a4-pdf-template.svg');
+  for (const placeholder of ['[rifle]', '[rifle (long)]', '[cartridge (long)]', '[bullet (long)]', '[card title]', '[date]', '[table note]', '[reticle heading]', '[targets heading]']) {
+    assert.ok(svg.includes(placeholder), placeholder);
+  }
+  for (const id of ['table', 'reticle', 'photo']) assert.ok(svg.includes(`id="${id}"`), id);
 });
 
 test('every printable card string exists in every locale', () => {

@@ -11,57 +11,57 @@
   <rect width="21000" height="29700" fill="#ffffff"/>
   <g id="card" transform="translate(1000 1900)" font-family="Overpass" fill="#111111">
     <g id="logo" transform="scale(14)" fill="none" stroke="#e8a33d" stroke-width="5"><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="18"/><path d="M24,74 L40,57 L50,63 L61,53 L76,74 Z" fill="#e8a33d" stroke="none"/><circle cx="50" cy="50" r="4" fill="#e8a33d" stroke="none"/><line x1="50" y1="6" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="94"/><line x1="6" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="94" y2="50"/></g>
-    <text x="1750" y="620" font-size="540" font-weight="700">geladen.ch ballistics</text>
-    <text x="1750" y="1140" font-size="300" fill="#4d4d4d">Peaceful. Precise. Armed.</text>
+    <text x="1750" y="620" font-size="540" font-weight="700">{app.title}</text>
+    <text x="1750" y="1140" font-size="300" fill="#4d4d4d">{app.tagline}</text>
     <text x="19000" y="620" font-size="540" font-weight="700" text-anchor="end">[card title]</text>
-    <text x="19000" y="1140" font-size="300" fill="#4d4d4d" text-anchor="end">Range card · [date]</text>
+    <text x="19000" y="1140" font-size="300" fill="#4d4d4d" text-anchor="end">{printableCard.pdf.rangeCard} · [date]</text>
     <rect x="0" y="1460" width="19000" height="100" fill="#e8a33d"/>
     <g id="rifle">
     <rect x="0" y="1900" width="9400" height="4115" rx="120" fill="none" stroke="#111111" stroke-width="30"/>
-    <rect x="250" y="2160" width="110" height="300" fill="#e8a33d"/><text x="490" y="2420" font-size="280" font-weight="700">RIFLE AND CARTRIDGE</text>
+    <rect x="250" y="2160" width="110" height="300" fill="#e8a33d"/><text x="490" y="2420" font-size="280" font-weight="700">{printableCard.pdf.rifleAndCartridge|upper}</text>
     <line x1="250" y1="2620" x2="9150" y2="2620" stroke="#8c8c8c" stroke-width="20"/>
-    <text x="250" y="3040" font-size="260" fill="#4d4d4d">Rifle</text>
+    <text x="250" y="3040" font-size="260" fill="#4d4d4d">{printableCard.pdf.rifle}</text>
     <text x="9150" y="3040" font-size="290" font-weight="700" text-anchor="end">[rifle]</text>
     <g clip-path="url(#clip-rifle)"><text x="1620" y="3040" font-size="290" font-weight="700">[rifle (long)]</text></g>
-    <text x="250" y="3425" font-size="260" fill="#4d4d4d">Cartridge</text>
+    <text x="250" y="3425" font-size="260" fill="#4d4d4d">{printableCard.pdf.cartridge}</text>
     <text x="9150" y="3425" font-size="290" font-weight="700" text-anchor="end">[cartridge]</text>
     <g clip-path="url(#clip-cartridge)"><text x="1620" y="3425" font-size="290" font-weight="700">[cartridge (long)]</text></g>
-    <text x="250" y="3810" font-size="260" fill="#4d4d4d">Bullet</text>
+    <text x="250" y="3810" font-size="260" fill="#4d4d4d">{printableCard.pdf.bullet}</text>
     <text x="9150" y="3810" font-size="290" font-weight="700" text-anchor="end">[bullet]</text>
     <g clip-path="url(#clip-bullet)"><text x="1620" y="3810" font-size="290" font-weight="700">[bullet (long)]</text></g>
-    <text x="250" y="4195" font-size="260" fill="#4d4d4d">Muzzle velocity</text>
+    <text x="250" y="4195" font-size="260" fill="#4d4d4d">{printableCard.pdf.muzzleVelocity}</text>
     <text x="9150" y="4195" font-size="290" font-weight="700" text-anchor="end">[muzzle velocity]</text>
-    <text x="250" y="4580" font-size="260" fill="#4d4d4d">Velocity change</text>
+    <text x="250" y="4580" font-size="260" fill="#4d4d4d">{printableCard.pdf.velocityChange}</text>
     <text x="9150" y="4580" font-size="290" font-weight="700" text-anchor="end">[velocity change]</text>
-    <text x="250" y="4965" font-size="260" fill="#4d4d4d">Ballistic coefficient</text>
+    <text x="250" y="4965" font-size="260" fill="#4d4d4d">{printableCard.pdf.ballisticCoefficient}</text>
     <text x="9150" y="4965" font-size="290" font-weight="700" text-anchor="end">[ballistic coefficient]</text>
-    <text x="250" y="5350" font-size="260" fill="#4d4d4d">Zero · sight height</text>
+    <text x="250" y="5350" font-size="260" fill="#4d4d4d">{printableCard.pdf.zeroSightHeight}</text>
     <text x="9150" y="5350" font-size="290" font-weight="700" text-anchor="end">[zero] · [sight height]</text>
-    <text x="250" y="5735" font-size="260" fill="#4d4d4d">Scope click (vert. · horiz.)</text>
+    <text x="250" y="5735" font-size="260" fill="#4d4d4d">{printableCard.pdf.scopeClick}</text>
     <text x="9150" y="5735" font-size="290" font-weight="700" text-anchor="end">[click vertical] · [click horizontal]</text>
     </g>
     <g id="conditions">
     <rect x="9600" y="1900" width="9400" height="4115" rx="120" fill="none" stroke="#111111" stroke-width="30"/>
-    <rect x="9850" y="2160" width="110" height="300" fill="#e8a33d"/><text x="10090" y="2420" font-size="280" font-weight="700">REFERENCE CONDITIONS</text>
+    <rect x="9850" y="2160" width="110" height="300" fill="#e8a33d"/><text x="10090" y="2420" font-size="280" font-weight="700">{printableCard.pdf.referenceConditions|upper}</text>
     <line x1="9850" y1="2620" x2="18750" y2="2620" stroke="#8c8c8c" stroke-width="20"/>
-    <text x="9850" y="3040" font-size="260" fill="#4d4d4d">Altitude</text>
+    <text x="9850" y="3040" font-size="260" fill="#4d4d4d">{printableCard.pdf.altitude}</text>
     <text x="18750" y="3040" font-size="290" font-weight="700" text-anchor="end">[altitude]</text>
-    <text x="9850" y="3425" font-size="260" fill="#4d4d4d">Pressure</text>
+    <text x="9850" y="3425" font-size="260" fill="#4d4d4d">{printableCard.pdf.pressure}</text>
     <text x="18750" y="3425" font-size="290" font-weight="700" text-anchor="end">[pressure]</text>
-    <text x="9850" y="3810" font-size="260" fill="#4d4d4d">Temperature</text>
+    <text x="9850" y="3810" font-size="260" fill="#4d4d4d">{printableCard.pdf.temperature}</text>
     <text x="18750" y="3810" font-size="290" font-weight="700" text-anchor="end">[temperature]</text>
-    <text x="9850" y="4195" font-size="260" fill="#4d4d4d">Humidity</text>
+    <text x="9850" y="4195" font-size="260" fill="#4d4d4d">{printableCard.pdf.humidity}</text>
     <text x="18750" y="4195" font-size="290" font-weight="700" text-anchor="end">[humidity]</text>
-    <text x="9850" y="4580" font-size="260" fill="#4d4d4d">Shot angle</text>
+    <text x="9850" y="4580" font-size="260" fill="#4d4d4d">{printableCard.pdf.shotAngle}</text>
     <text x="18750" y="4580" font-size="290" font-weight="700" text-anchor="end">[shot angle]</text>
-    <text x="9850" y="4965" font-size="260" fill="#4d4d4d">Crosswind speed</text>
+    <text x="9850" y="4965" font-size="260" fill="#4d4d4d">{printableCard.pdf.crosswindSpeed}</text>
     <text x="18750" y="4965" font-size="290" font-weight="700" text-anchor="end">[crosswind speed]</text>
-    <text x="9850" y="5350" font-size="260" fill="#4d4d4d">Distance unit</text>
+    <text x="9850" y="5350" font-size="260" fill="#4d4d4d">{printableCard.pdf.distanceUnit}</text>
     <text x="18750" y="5350" font-size="290" font-weight="700" text-anchor="end">[distance unit]</text>
-    <text x="9850" y="5735" font-size="260" fill="#4d4d4d">Correction unit</text>
+    <text x="9850" y="5735" font-size="260" fill="#4d4d4d">{printableCard.pdf.correctionUnit}</text>
     <text x="18750" y="5735" font-size="290" font-weight="700" text-anchor="end">[correction unit]</text>
     </g>
-    <rect x="0" y="6415" width="110" height="300" fill="#e8a33d"/><text x="240" y="6675" font-size="280" font-weight="700">CORRECTIONS</text>
+    <rect x="0" y="6415" width="110" height="300" fill="#e8a33d"/><text x="240" y="6675" font-size="280" font-weight="700">{printableCard.pdf.corrections|upper}</text>
     <text x="19000" y="6675" font-size="260" fill="#4d4d4d" text-anchor="end">[table note]</text>
     <rect x="0" y="6895" width="19000" height="10440" fill="none" stroke="#8c8c8c" stroke-width="30" stroke-dasharray="150 100"/>
     <text x="9500" y="12235" font-size="340" fill="#8c8c8c" text-anchor="middle">[corrections table]</text>
@@ -74,6 +74,6 @@
     <rect id="photo" x="7645" y="18115" width="11355" height="7245" fill="none" stroke="#111111" stroke-width="30"/>
     <line x1="0" y1="25560" x2="19000" y2="25560" stroke="#8c8c8c" stroke-width="20"/>
     <text x="0" y="25860" font-size="230" fill="#4d4d4d">[app link] · [version]</text>
-    <text x="19000" y="25860" font-size="230" fill="#4d4d4d" text-anchor="end">Computed values. Confirm on the range before relying on them.</text>
+    <text x="19000" y="25860" font-size="230" fill="#4d4d4d" text-anchor="end">{printableCard.pdf.disclaimer}</text>
   </g>
 </svg>

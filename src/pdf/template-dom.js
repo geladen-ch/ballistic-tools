@@ -1,7 +1,7 @@
 // DOM work on a parsed SVG template: string substitution, slot filling,
 // and extracting the plain tree font-style.js resolves faces on. Browser
 // only (DOMParser, live SVG elements).
-import { replaceInText } from './text-replace.js';
+import { replaceInText, translateText } from './text-replace.js';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -19,6 +19,20 @@ export function parseSvg(text, label) {
 
 function isTextElement(el) {
   return el && el.namespaceURI === SVG_NS && (el.localName === 'text' || el.localName === 'tspan');
+}
+
+// Translates the `{key}` tokens of every text node of every <text>/<tspan>
+// (see translateText); returns the keys that found no translation.
+export function applyTranslations(svg, translate, lang) {
+  const missing = new Set();
+  const walker = svg.ownerDocument.createTreeWalker(svg, 4 /* NodeFilter.SHOW_TEXT */);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (!isTextElement(node.parentNode)) continue;
+    const r = translateText(node.data, translate, lang);
+    node.data = r.text;
+    for (const key of r.missing) missing.add(key);
+  }
+  return missing;
 }
 
 // Applies the pairs to every text node of every <text>/<tspan>; returns

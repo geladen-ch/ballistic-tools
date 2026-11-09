@@ -1610,6 +1610,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v242": "Novità: le schede di tiro stampabili sono ora completamente tradotte. Correzione: traduzione russa rifinita.",
       "v241": "Novità: schede di tiro stampabili, nuova scheda nello strumento Traiettoria.",
       "v240": "Novità: manuale del progettista di reticoli. Tutti gli altri manuali sono stati rivisti e aggiornati allo stato attuale.",
       "v239": "Modifica: rifiniture all'interfaccia della vista cannocchiale.",

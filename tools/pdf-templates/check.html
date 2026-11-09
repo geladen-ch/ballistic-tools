@@ -40,7 +40,11 @@ const PAGES = [
 const OTHER_SIZE = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="148mm" height="105mm" viewBox="0 0 14800 10500"><text x="500" y="1000" font-family="Overpass" font-size="400">x</text></svg>');
 
+const UNTRANSLATED = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 21000 29700"><text x="500" y="1000" font-family="Overpass" font-size="400">{sample.missing}</text></svg>');
+
 const ERROR_CASES = [
+  ['i18n key with no translation', [{ templateUrl: UNTRANSLATED }], /no translation for "\{sample\.missing\}"/],
   ['string that matches nowhere', [page([['NOT THERE', 'x']], [])], /does not occur/],
   ['character missing from the face', [page([['[RANGE]', '1000 m ☃']], [])], /no glyph for U\+2603/],
   ['unregistered face in generated content',

@@ -1,6 +1,6 @@
 # PDF templates and fonts
 
-The app generates PDF documents in the browser from SVG templates, using jsPDF with svg2pdf.js (vendored under `src/vendor/`) through `buildTemplatePdf()` in `src/pdf/template-pdf.js`. A document is one or more pages. Each page is one template, in which the app replaces given strings with given values and inserts generated SVG into named boxes. Fonts are produced offline and committed as pre-built assets; templates are authored by hand, checked offline, and committed next to the feature that uses them. The app never imports a font or a template at run time.
+The app generates PDF documents in the browser from SVG templates, using jsPDF with svg2pdf.js (vendored under `src/vendor/`) through `buildTemplatePdf()` in `src/pdf/template-pdf.js`. A document is one or more pages. Each page is one template, in which the app translates i18n keys, replaces given strings with given values and inserts generated SVG into named boxes. Fonts are produced offline and committed as pre-built assets; templates are authored by hand, checked offline, and committed next to the feature that uses them. The app never imports a font or a template at run time.
 
 This file states what a template and a font must satisfy to work with that renderer, and how the offline steps are run. Rules marked **[checked]** are verified by the offline checker (`check_templates.py`, see "Offline build" below); rules marked **[app]** are verified by the app each time it builds a PDF, and a violation is an error, not a silent fallback. Nothing rewrites a template: what you author is exactly what the app renders.
 
@@ -101,9 +101,17 @@ How the renderer looks a face up (for reference; the app derives the registratio
 12. Text is single-line: one `text` element (or `tspan` with its own position) per line. Nothing wraps.
 13. Fixed text stays text, and is selectable and searchable in the PDF.
 
+### Translated text
+
+1. A template's fixed text (labels, headings, notes) is written as i18n keys in braces, never as text in one language: `{printableCard.pdf.rifle}`. `{key|upper}` gives the translation in capitals, upper-cased by the rules of the document's language. A key may sit inside other text of the same node, e.g. `{printableCard.pdf.rangeCard} · [date]`.
+2. A key is letters, digits, `_`, `-` and `.`, starting with a letter. Braces that do not form a key are left as they are.
+3. **[app]** The app passes `translate(key)` (and `lang`) to `buildTemplatePdf()`; every key of every page must translate. A key with no translation, or a template with keys and no `translate`, is an error.
+4. Keys are translated before the replaceable strings below are applied, so a substituted value is never read as a key, and a translation can never be hit by a replacement meant for a placeholder.
+5. In a browser or in Inkscape the template shows the keys themselves; the offline checker checks their characters like any other fixed text.
+
 ### Replaceable strings
 
-1. Any string in a template's text content can be replaced at run time with a value. There is no naming convention, and the offline checker neither detects nor checks these strings. The app supplies pairs of string and value; pairs apply in the given order, each to every occurrence.
+1. Any string in a template's text content can be replaced at run time with a value. Use this for values (placeholders such as `[RANGE]`), not for labels, which are translated keys (above). There is no naming convention, and the offline checker neither detects nor checks these strings. The app supplies pairs of string and value; pairs apply in the given order, each to every occurrence.
 2. **[app]** Every string to be replaced occurs in the page's template, entirely inside one text node. Inkscape can split a line into several `tspan`s when it is edited character by character, so check the saved file, e.g. with Edit > XML Editor.
 3. The replacement value is rendered in the face of the text it replaces, so that face must contain all of its characters. This includes translated strings: a template whose labels arrive in all app languages needs a face that covers every script those languages use.
 4. Replacement acts on the text content of `text` and `tspan` only, never on attribute values, titles or descriptions.

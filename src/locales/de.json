@@ -1610,6 +1610,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v242": "Neu: druckbare Schusskarten sind jetzt vollständig übersetzt. Fix: russische Übersetzung überarbeitet.",
       "v241": "Neu: druckbare Schusskarten, neuer Tab im Werkzeug „Flugbahn“.",
       "v240": "Neu: Handbuch zum Absehen-Designer. Alle anderen Handbücher wurden überprüft und auf den aktuellen Stand gebracht.",
       "v239": "Änderung: Feinschliff an der Bedienung der Zielfernrohransicht.",

@@ -1610,6 +1610,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v242": "New: printable range cards are now fully translated. Fix: polished Russian i18n.",
       "v241": "New: printable range cards, new tab in Trajectory tool.",
       "v240": "New: reticle designer manual. All other manuals reviewed and updated to reflect the latest status.",
       "v239": "Change: scope view UI polishing.",

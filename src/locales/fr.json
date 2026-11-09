@@ -1610,6 +1610,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v242": "Nouveau : les fiches de tir imprimables sont désormais entièrement traduites. Correction : traduction russe peaufinée.",
       "v241": "Nouveau : fiches de tir imprimables, nouvel onglet dans l’outil Trajectoire.",
       "v240": "Nouveau : manuel du concepteur de réticule. Tous les autres manuels ont été relus et mis à jour pour refléter l'état actuel.",
       "v239": "Modification : finitions de l'interface de la vue lunette.",

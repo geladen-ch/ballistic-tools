@@ -5,9 +5,13 @@
 //
 //   const bytes = await buildTemplatePdf([{
 //     templateUrl: new URL('./range-card-pdf-template.svg', import.meta.url),
-//     replacements: [['[RANGE]', '1000 m'], ['Distance', t('rangeCard.distance')]],
+//     replacements: [['[RANGE]', '1000 m']],
 //     slots: [{ id: 'chart', content: svgMarkup, mode: 'fit', viewBox: [0, 0, 400, 300] }]
-//   }], { title: 'Range card', lang: 'de' });
+//   }], { title: 'Range card', lang: 'de', translate: (key) => t(key) });
+//
+// A template's fixed text is i18n keys, `{rangeCard.distance}` (or
+// `{key|upper}` for capitals), translated by `translate` before the
+// replacements are applied, so a value is never read as a key.
 //   downloadFile('range-card.pdf', bytes, 'application/pdf');
 //
 // Everything that would make the PDF differ from the template is an error,
@@ -19,7 +23,7 @@ import { styleKey, resolveFaces, missingCharacters, describeCharacters } from '.
 import { findFace, describeFace, loadFaceBinary, ensureDocumentFace } from './font-registry.js';
 import { pageSizeM, sameSize } from './page-size.js';
 import { validatePairs } from './text-replace.js';
-import { parseSvg, applyReplacements, fillSlot, faceTree } from './template-dom.js';
+import { parseSvg, applyTranslations, applyReplacements, fillSlot, faceTree } from './template-dom.js';
 import { mToPoint } from '../quantity.js';
 
 const CREATOR = 'geladen.ch ballistics';
@@ -75,10 +79,13 @@ function templateLabel(url) {
 // Prepares one page: parse, replace, fill slots, read the page size.
 // Returns the SVG root plus the problems found, without throwing for them,
 // so one call reports every problem of every page at once.
-async function preparePage(page, index) {
+async function preparePage(page, index, { translate, lang }) {
   const problems = [];
   const label = `page ${index + 1} (${templateLabel(page.templateUrl)})`;
   const svg = parseSvg(await loadTemplateText(page.templateUrl), label);
+  for (const key of applyTranslations(svg, translate, lang)) {
+    problems.push(`${label}: no translation for "{${key}}"${translate ? '' : ' (no translate function given)'}`);
+  }
   const pairs = page.replacements ?? [];
   validatePairs(pairs);
   const matched = applyReplacements(svg, pairs);
@@ -126,9 +133,11 @@ export async function createTextMeasurer(faces) {
   };
 }
 
-export async function buildTemplatePdf(pages, { title = '', lang = '' } = {}) {
+// `translate(key)`: the text for an i18n key of the templates, or null
+// when there is none; `lang`: the document's language (BCP 47).
+export async function buildTemplatePdf(pages, { title = '', lang = '', translate = null } = {}) {
   if (!Array.isArray(pages) || !pages.length) throw new TemplatePdfError(['no pages given']);
-  const [jsPDF, prepared] = await Promise.all([loadRenderer(), Promise.all(pages.map(preparePage))]);
+  const [jsPDF, prepared] = await Promise.all([loadRenderer(), Promise.all(pages.map((p, i) => preparePage(p, i, { translate, lang })))]);
   const problems = prepared.flatMap((p) => p.problems);
 
   const size = prepared[0].size;
