@@ -1610,6 +1610,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v244": "New: recto-verso smaller format for printable range cards.",
       "v243": "Change: optimized layout of the printable range card.",
       "v242": "New: printable range cards are now fully translated. Fix: polished Russian i18n.",
       "v241": "New: printable range cards, new tab in Trajectory tool.",
@@ -2186,7 +2187,9 @@
     "paper": {
       "label": "Paper",
       "a4": "A4",
-      "letter": "Letter"
+      "letter": "Letter",
+      "a5": "A5",
+      "halfLetter": "Half-letter"
     },
     "title": "Title",
     "titleHint": "Up to {{count}} characters. Left empty, the card is titled “rifle · cartridge”.",

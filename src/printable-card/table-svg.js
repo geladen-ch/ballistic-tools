@@ -22,6 +22,14 @@ const STACKED_MIN_ROW = 6;
 // The row height the stacked layout is drawn for; shorter stacked rows
 // scale it down, so the large elevation stays inside its row.
 const STACKED_DESIGN_ROW = 7.6;
+// The shortest row the one-line layout is drawn for: its fonts stay at
+// the sizes the column widths were laid out for.
+const MIN_ROW = 3.075;
+
+// How many rows a table slot of this height holds.
+export function tableRowCapacity(heightMm) {
+  return Math.floor((heightMm - HEAD) / MIN_ROW + 1e-9);
+}
 
 const n = (mm) => String(Math.round(mm * UNITS_PER_MM * 10) / 10);
 

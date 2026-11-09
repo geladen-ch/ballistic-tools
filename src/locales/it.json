@@ -1610,6 +1610,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v244": "Novità: formato ridotto fronte-retro per le schede di tiro stampabili.",
       "v243": "Modifica: impaginazione ottimizzata della scheda di tiro stampabile.",
       "v242": "Novità: le schede di tiro stampabili sono ora completamente tradotte. Correzione: traduzione russa rifinita.",
       "v241": "Novità: schede di tiro stampabili, nuova scheda nello strumento Traiettoria.",
@@ -2186,7 +2187,9 @@
     "paper": {
       "label": "Carta",
       "a4": "A4",
-      "letter": "Letter"
+      "letter": "Letter",
+      "a5": "A5",
+      "halfLetter": "Mezza lettera (Half-letter)"
     },
     "title": "Titolo",
     "titleHint": "Fino a {{count}} caratteri. Se vuoto, la scheda s’intitola «arma · cartuccia».",

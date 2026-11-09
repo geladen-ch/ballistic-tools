@@ -9,8 +9,8 @@
 // legible on any background and in a grey print. Badges are placed so
 // they don't overlap each other or another target's ring: each takes the
 // first free spot of a fixed list round its target. A legend beside the
-// photo lists each target: ID, distance and angle, name (its tail clipped
-// at the slot's edge when long).
+// photo (or under it, in two columns) lists each target: ID, distance and
+// angle, name (its tail clipped at the legend's edge when long).
 import { escapeXml } from './svg-text.js';
 import { UNITS_PER_MM } from './table-svg.js';
 
@@ -21,6 +21,9 @@ const RULE = '#b3b3b3';
 // photo's (title 2.6 mm): room for the longest title, e.g. "1095 yd · −12°".
 const LEGEND_MM = 29;
 const LEGEND_SCALE = 0.867;
+// Under the photo: two columns, taking at most this share of the slot.
+const LEGEND_COLUMNS = 2;
+const LEGEND_MAX_SHARE = 0.4;
 const BADGE_W = 7.2;
 const BADGE_H = 4.6;
 const RING = 1.3;
@@ -79,30 +82,37 @@ export function placeBadges(points, areaW, areaH) {
 
 // `photo`: { href (data URL), width, height } in pixels; `targets`: [{ id,
 // coords: { x, y } fractions or null, title, subtitle }] in legend order.
-export function photoSvg({ photo, targets, widthMm, heightMm, idPrefix = 'card-photo' }) {
-  const areaW = widthMm - LEGEND_MM;
+// `legend`: 'right' (a column beside the photo) or 'below' (two columns
+// under it, for a narrow slot).
+export function photoSvg({ photo, targets, widthMm, heightMm, idPrefix = 'card-photo', legend: legendAt = 'right' }) {
+  const below = legendAt === 'below';
+  const fullPitch = 7 * LEGEND_SCALE;
+  const legendRows = Math.ceil(targets.length / LEGEND_COLUMNS);
+  const legendH = below && legendRows ? Math.min(heightMm * LEGEND_MAX_SHARE, legendRows * fullPitch + 3) : 0;
+  const areaW = below ? widthMm : widthMm - LEGEND_MM;
+  const areaH = heightMm - legendH;
   const placed = targets.filter((tg) => tg.coords);
   const box = cropBox({
     imageWidth: photo.width, imageHeight: photo.height,
     points: placed.map((tg) => ({ x: tg.coords.x * photo.width, y: tg.coords.y * photo.height })),
-    areaAspect: areaW / heightMm
+    areaAspect: areaW / areaH
   });
-  const s = Math.min(areaW / (box.x1 - box.x0), heightMm / (box.y1 - box.y0));
+  const s = Math.min(areaW / (box.x1 - box.x0), areaH / (box.y1 - box.y0));
   const shownW = (box.x1 - box.x0) * s;
   const shownH = (box.y1 - box.y0) * s;
   const offX = (areaW - shownW) / 2;
-  const offY = (heightMm - shownH) / 2;
+  const offY = (areaH - shownH) / 2;
   const clipId = `${idPrefix}-crop`;
-  const legendClipId = `${idPrefix}-legend`;
   const out = [
     `<rect x="0" y="0" width="${n(widthMm)}" height="${n(heightMm)}" fill="#ffffff"/>`,
     `<clipPath id="${clipId}"><rect x="${n(offX)}" y="${n(offY)}" width="${n(shownW)}" height="${n(shownH)}"/></clipPath>`,
-    `<clipPath id="${legendClipId}"><rect x="${n(areaW)}" y="0" width="${n(LEGEND_MM)}" height="${n(heightMm)}"/></clipPath>`,
     `<g clip-path="url(#${clipId})"><image x="${n(offX - box.x0 * s)}" y="${n(offY - box.y0 * s)}" width="${n(photo.width * s)}" height="${n(photo.height * s)}" preserveAspectRatio="none" href="${photo.href}"/></g>`,
-    `<line x1="${n(areaW)}" y1="0" x2="${n(areaW)}" y2="${n(heightMm)}" stroke="${INK}" stroke-width="${n(0.3)}"/>`
+    below
+      ? (legendH ? `<line x1="0" y1="${n(areaH)}" x2="${n(widthMm)}" y2="${n(areaH)}" stroke="${INK}" stroke-width="${n(0.3)}"/>` : '')
+      : `<line x1="${n(areaW)}" y1="0" x2="${n(areaW)}" y2="${n(heightMm)}" stroke="${INK}" stroke-width="${n(0.3)}"/>`
   ];
   const points = placed.map((tg) => ({ x: offX + (tg.coords.x * photo.width - box.x0) * s, y: offY + (tg.coords.y * photo.height - box.y0) * s }));
-  const badges = placeBadges(points, areaW, heightMm);
+  const badges = placeBadges(points, areaW, areaH);
   placed.forEach((tg, i) => {
     const p = points[i];
     const b = badges[i];
@@ -117,19 +127,31 @@ export function photoSvg({ photo, targets, widthMm, heightMm, idPrefix = 'card-p
     out.push(`<rect x="${n(b.x - BADGE_W / 2)}" y="${n(b.y - BADGE_H / 2 + 0.2)}" width="${n(BADGE_W)}" height="${n(BADGE_H)}" rx="${n(1)}" fill="${INK}" stroke="#ffffff" stroke-width="${n(0.5)}"/>`);
     out.push(text(b.x, b.y + 1.25, tg.id, 3.0, { weight: 700, fill: '#ffffff', anchor: 'middle' }));
   });
-  const legend = [];
-  const lx = areaW + 2.5;
-  const fullPitch = 7 * LEGEND_SCALE;
-  const pitch = Math.min(fullPitch, (heightMm - 4) / Math.max(targets.length, 1));
+  // The legend's columns: [{ x0, width, y0, height, targets }], the
+  // targets down each column in order.
+  const columns = below
+    ? Array.from({ length: LEGEND_COLUMNS }, (_, c) => ({
+      x0: c * widthMm / LEGEND_COLUMNS, width: widthMm / LEGEND_COLUMNS, y0: areaH, height: legendH,
+      targets: targets.slice(c * legendRows, (c + 1) * legendRows)
+    }))
+    : [{ x0: areaW, width: LEGEND_MM, y0: 0, height: heightMm, targets }];
+  const pitch = Math.min(fullPitch, ...columns.map((col) => (col.height - 3) / Math.max(col.targets.length, 1)));
   const scale = LEGEND_SCALE * Math.min(1, pitch / fullPitch);
-  targets.forEach((tg, i) => {
-    const y = 3 + i * pitch;
-    legend.push(`<rect x="${n(lx)}" y="${n(y)}" width="${n(BADGE_W * scale)}" height="${n(BADGE_H * scale)}" rx="${n(scale)}" fill="${INK}"/>`);
-    legend.push(text(lx + BADGE_W * scale / 2, y + 3.45 * scale, tg.id, 3.0 * scale, { weight: 700, fill: '#ffffff', anchor: 'middle' }));
-    legend.push(text(lx + (BADGE_W + 1.6) * scale, y + 3.4 * scale, tg.title, 3.0 * scale, { weight: 700 }));
-    legend.push(text(lx + (BADGE_W + 1.6) * scale, y + 6.3 * scale, tg.subtitle, 2.3 * scale, { fill: DIM }));
+  columns.forEach((col, c) => {
+    const legend = [];
+    const lx = col.x0 + 2.5;
+    col.targets.forEach((tg, i) => {
+      const y = col.y0 + (below ? 1.5 : 3) + i * pitch;
+      legend.push(`<rect x="${n(lx)}" y="${n(y)}" width="${n(BADGE_W * scale)}" height="${n(BADGE_H * scale)}" rx="${n(scale)}" fill="${INK}"/>`);
+      legend.push(text(lx + BADGE_W * scale / 2, y + 3.45 * scale, tg.id, 3.0 * scale, { weight: 700, fill: '#ffffff', anchor: 'middle' }));
+      legend.push(text(lx + (BADGE_W + 1.6) * scale, y + 3.4 * scale, tg.title, 3.0 * scale, { weight: 700 }));
+      legend.push(text(lx + (BADGE_W + 1.6) * scale, y + 6.3 * scale, tg.subtitle, 2.3 * scale, { fill: DIM }));
+    });
+    if (!legend.length) return;
+    const clip = `${idPrefix}-legend-${c}`;
+    out.push(`<clipPath id="${clip}"><rect x="${n(col.x0)}" y="${n(col.y0)}" width="${n(col.width - 0.5)}" height="${n(col.height)}"/></clipPath>`);
+    out.push(`<g clip-path="url(#${clip})">${legend.join('')}</g>`);
   });
-  out.push(`<g clip-path="url(#${legendClipId})">${legend.join('')}</g>`);
   return out.join('');
 }
 

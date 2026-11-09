@@ -1610,6 +1610,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v244": "Neu: kleineres, beidseitig bedrucktes Format für druckbare Schusskarten.",
       "v243": "Änderung: optimiertes Layout der druckbaren Schusskarte.",
       "v242": "Neu: druckbare Schusskarten sind jetzt vollständig übersetzt. Fix: russische Übersetzung überarbeitet.",
       "v241": "Neu: druckbare Schusskarten, neuer Tab im Werkzeug „Flugbahn“.",
@@ -2186,7 +2187,9 @@
     "paper": {
       "label": "Papier",
       "a4": "A4",
-      "letter": "Letter"
+      "letter": "Letter",
+      "a5": "A5",
+      "halfLetter": "Half-Letter"
     },
     "title": "Titel",
     "titleHint": "Bis {{count}} Zeichen. Leer gelassen heisst die Karte «Waffe · Patrone».",

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  referenceDistances, neighbourDistances, tableRows, farthestDistance, MAX_ROWS, STEP_LEVELS
+  referenceDistances, neighbourDistances, tableRows, farthestDistance, STEP_LEVELS
 } from '../src/printable-card/rows.js';
 
 const distances = (rows) => rows.map((r) => r.distance);
@@ -65,12 +65,14 @@ test('targets merge in distance order, after a reference row at the same distanc
   assert.equal(lastDistance, 400);
 });
 
-test('at most 37 rows: the rest are counted and the farthest kept is reported', () => {
+test('at most the paper\'s row count: the rest are counted and the farthest kept is reported', () => {
   const references = referenceDistances({ initialStep: 25, maxDistance: 1000 });
-  const { rows, omitted, lastDistance } = tableRows({ references, maxDistance: 1000 });
-  assert.equal(rows.length, MAX_ROWS);
-  assert.equal(omitted, 40 - MAX_ROWS);
-  assert.equal(lastDistance, 25 * MAX_ROWS);
+  for (const maxRows of [37, 25]) {
+    const { rows, omitted, lastDistance } = tableRows({ references, maxDistance: 1000, maxRows });
+    assert.equal(rows.length, maxRows);
+    assert.equal(omitted, 40 - maxRows);
+    assert.equal(lastDistance, 25 * maxRows);
+  }
 });
 
 test('the farthest distance to solve includes the last row\'s far neighbour', () => {

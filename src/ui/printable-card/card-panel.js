@@ -40,12 +40,12 @@ import {
   loadPrintableCardState, savePrintableCardState, savePrintableCardScopeState,
   PAPER_CHOICES, MAX_MODES, MACH_OF_MODE, TITLE_MAX_LENGTH
 } from '../../printable-card-state.js';
-import { STEP_LEVELS, MAX_ROWS } from '../../printable-card/rows.js';
+import { STEP_LEVELS } from '../../printable-card/rows.js';
 import {
   computeCardData, spinDriftOffered, angleInOutputUnit, outputUnitToRad, signedDegreesText, temperatureColumns
 } from '../../printable-card/card-data.js';
 import { cardValues, cardInfoBoxes, outputUnitLabel } from '../../printable-card/card-values.js';
-import { buildCardPdf } from '../../printable-card/card-pdf.js';
+import { buildCardPdf, paperMaxRows } from '../../printable-card/card-pdf.js';
 
 const APP_LINK = 'bc.geladen.ch';
 const PRINT_RETICLE_INK = '#111111';
@@ -114,7 +114,8 @@ export function printableCardPanel({ getSetup }) {
   // ---- Card: paper, title, date ----
   const paperSelect = el('select', { id: 'printableCardPaper' }, PAPER_CHOICES.map((p) => el('option', { value: p, i18n: `printableCard.paper.${p}` })));
   paperSelect.value = state.paper;
-  paperSelect.addEventListener('change', () => save({ paper: paperSelect.value }));
+  // The paper sets how many rows the table holds.
+  paperSelect.addEventListener('change', () => { save({ paper: paperSelect.value }); schedulePreview(); });
   const titleInput = el('input', { type: 'text', id: 'printableCardTitle', maxlength: String(TITLE_MAX_LENGTH), autocomplete: 'off' });
   titleInput.value = state.title ?? '';
   titleInput.addEventListener('input', () => save({ title: titleInput.value.trim() ? titleInput.value.slice(0, TITLE_MAX_LENGTH) : null }));
@@ -431,7 +432,8 @@ export function printableCardPanel({ getSetup }) {
       spinDrift: full && state.spinDrift && spinOffered(),
       slope: full && state.slope,
       temperaturesC: full && state.temperature ? currentTemperatureColumns() : null,
-      mach: MACH_OF_MODE[state.maxMode]
+      mach: MACH_OF_MODE[state.maxMode],
+      maxRows: paperMaxRows(state.paper)
     };
   }
   function cardInputs(full) {
@@ -469,7 +471,7 @@ export function printableCardPanel({ getSetup }) {
     return `${Math.round(d)} ${unitLabel}`;
   }
   function renderPreview(data) {
-    rowsStatus.textContent = t('printableCard.rowCount', { count: data.rowCount, max: MAX_ROWS });
+    rowsStatus.textContent = t('printableCard.rowCount', { count: data.rowCount, max: paperMaxRows(state.paper) });
     if (data.mach) {
       machHint.style.display = '';
       machHint.textContent = data.mach.reached

@@ -133,8 +133,9 @@ export function machDistanceM(points, mach) {
 
 // `base`: the engine state (Trajectory's setup at the rifle's own zero).
 // `settings`: { maxMode, maxDistanceM, initialStep, refineThresholdRad,
-// spinDrift, slope, temperaturesC, mach } (mach for the Mach modes;
-// temperaturesC: the temperature columns, null or empty for none). `crosswindMs`: the
+// spinDrift, slope, temperaturesC, mach, maxRows } (mach for the Mach
+// modes; temperaturesC: the temperature columns, null or empty for none;
+// maxRows: the paper's table capacity). `crosswindMs`: the
 // reference crosswind. `targets`: [{ id, label, rangeM, losAngleRad }].
 // `output`: { unit, style, clickVerticalRad, clickHorizontalRad,
 // clicksLabel }. `distanceUnit`: the user's. `spinDriftMode`: Settings'
@@ -172,7 +173,7 @@ export async function computeCardData({ pool, base, settings, crosswindMs, targe
   });
 
   const targetRows = targets.map((tg) => ({ ...tg, distance: siToDisplay('range', tg.rangeM, distanceUnit) }));
-  const { rows, omitted, lastDistance } = tableRows({ references, targets: targetRows, maxDistance });
+  const { rows, omitted, lastDistance } = tableRows({ references, targets: targetRows, maxDistance, maxRows: settings.maxRows });
 
   const spin = settings.spinDrift && spinDriftOffered(base, spinDriftMode);
   const spinMode = spinDriftMode;

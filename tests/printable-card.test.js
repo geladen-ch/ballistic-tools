@@ -15,7 +15,7 @@ const { dopeText, magnitudeText, signedDegreesText, machDistanceM, angleInOutput
   await import('../src/printable-card/card-data.js');
 const { tableSvg } = await import('../src/printable-card/table-svg.js');
 const { cropBox, placeBadges, photoSvg, notesSvg } = await import('../src/printable-card/photo-svg.js');
-const { templateTranslator, freeTextPairs, PAPER_FORMATS } = await import('../src/printable-card/card-pdf.js');
+const { templateTranslator, freeTextPairs, PAPER_FORMATS, paperMaxRows } = await import('../src/printable-card/card-pdf.js');
 const {
   loadPrintableCardState, savePrintableCardState, savePrintableCardScopeState, resetPrintableCardStateForTests
 } = await import('../src/printable-card-state.js');
@@ -157,12 +157,33 @@ test('photo and notes content: fonts of 100 units and more, names escaped and cl
   });
   assert.ok(Math.min(...fontSizes(svg)) >= 100);
   assert.ok(svg.includes('S&amp;B &lt;steel&gt;'));
-  assert.ok(svg.includes('clip-path="url(#card-photo-legend)"'));
+  assert.ok(svg.includes('clip-path="url(#card-photo-legend-0)"'));
   assert.ok(notesSvg({ widthMm: 57, heightMm: 57 }).includes('<line'));
   assert.equal(escapeXml('"a" & b'), '&quot;a&quot; &amp; b');
 });
 
 const templateText = (name) => readFileSync(join(ROOT, 'src/printable-card', name), 'utf8');
+
+test('legend under the photo: full-width photo above, two clipped columns below, targets down each column', () => {
+  const targets = ['T1', 'T2', 'T3'].map((id, i) => ({ id, coords: { x: 0.2 + 0.3 * i, y: 0.5 }, title: `${id} title`, subtitle: 'x' }));
+  const svg = photoSvg({ photo: { href: 'data:image/jpeg;base64,AAAA', width: 2000, height: 1356 }, targets, widthMm: 92.35, heightMm: 83.65, legend: 'below' });
+  assert.ok(Math.min(...fontSizes(svg)) >= 100);
+  assert.ok(svg.includes('url(#card-photo-legend-0)') && svg.includes('url(#card-photo-legend-1)'));
+  const legendX = (id) => Number(new RegExp(`>${id} title<`).test(svg) && svg.match(new RegExp(`<text x="([\\d.]+)"[^>]*>${id} title<`))[1]);
+  assert.equal(legendX('T1'), legendX('T2'));
+  assert.ok(legendX('T3') > legendX('T1'));
+  const crop = svg.match(/<clipPath id="card-photo-crop"><rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/).slice(1).map(Number);
+  assert.ok(crop[1] + crop[3] <= 8365 - 2 * 7 * 0.867 * 100, 'the photo stays above the legend');
+  assert.ok(!photoSvg({ photo: { href: 'data:,', width: 10, height: 10 }, targets: [], widthMm: 92.35, heightMm: 83.65, legend: 'below' }).includes('legend'));
+});
+
+test('row capacity by paper: the table slot\'s height over the smallest row', () => {
+  assert.equal(paperMaxRows('a4'), 37);
+  assert.equal(paperMaxRows('letter'), 37);
+  assert.equal(paperMaxRows('a5'), 26);
+  assert.equal(paperMaxRows('halfLetter'), 26);
+  assert.equal(paperMaxRows('nonsense'), 37);
+});
 
 test('A4 and Letter carry the same card content; only the page and its centring differ', () => {
   const card = (svg) => svg.slice(svg.indexOf('<g id="card"')).replace(/transform="translate\([^)]*\)"/, '');
@@ -170,14 +191,45 @@ test('A4 and Letter carry the same card content; only the page and its centring 
   const letter = templateText('printable-card-letter-pdf-template.svg');
   assert.equal(card(a4), card(letter));
   for (const svg of [a4, letter]) assert.ok(Math.min(...fontSizes(svg)) >= 100, 'template fonts of 100 units and more');
-  assert.deepEqual(Object.keys(PAPER_FORMATS).sort(), ['a4', 'letter']);
+  assert.deepEqual(Object.keys(PAPER_FORMATS).sort(), ['a4', 'a5', 'halfLetter', 'letter']);
+});
+
+test('A5 and Half-letter: two landscape pages each, the same content; the header on both, the table on the first, the media on the second', () => {
+  const card = (svg) => svg.slice(svg.indexOf('<g id="card"')).replace(/transform="translate\([^)]*\)"/, '');
+  const size = (svg) => svg.match(/width="([\d.]+)mm" height="([\d.]+)mm"/).slice(1).map(Number);
+  for (const part of ['table', 'media']) {
+    const a5 = templateText(`printable-card-a5-${part}-pdf-template.svg`);
+    const hl = templateText(`printable-card-half-letter-${part}-pdf-template.svg`);
+    assert.equal(card(a5), card(hl));
+    assert.deepEqual(size(a5), [210, 148]);
+    assert.deepEqual(size(hl), [215.9, 139.7]);
+    for (const svg of [a5, hl]) {
+      assert.ok(Math.min(...fontSizes(svg)) >= 100, 'template fonts of 100 units and more');
+      for (const p of ['[card title]', '[rifle]', '[cartridge]', '[bullet]', '[drag]', '[app link]', '[version]', '[date]']) assert.ok(svg.includes(p), `${part}: ${p}`);
+    }
+  }
+  const table = templateText('printable-card-a5-table-pdf-template.svg');
+  const media = templateText('printable-card-a5-media-pdf-template.svg');
+  for (const p of ['[corrections heading]', '[conditions heading]', 'id="table"']) { assert.ok(table.includes(p), p); assert.ok(!media.includes(p), p); }
+  for (const p of ['[reticle heading]', '[targets heading]', 'id="reticle"', 'id="photo"']) { assert.ok(media.includes(p), p); assert.ok(!table.includes(p), p); }
+  assert.ok(/<g id="media" transform="translate\(19000 [\d.]+\) rotate\(90\)">/.test(media), 'the media part is turned a quarter, its top at the right edge');
+  for (const paper of ['a5', 'halfLetter']) {
+    assert.deepEqual(PAPER_FORMATS[paper].pages.map((p) => p.parts), [['header', 'table'], ['header', 'media']]);
+  }
+  const slot = (svg, id) => svg.match(new RegExp(`<rect id="${id}" x="[\\d.]+" y="[\\d.]+" width="([\\d.]+)" height="([\\d.]+)"`)).slice(1).map((v) => Number(v) / 100);
+  const { slots } = PAPER_FORMATS.a5;
+  assert.deepEqual(slot(table, 'table'), [slots.table.widthMm, slots.table.heightMm]);
+  assert.deepEqual(slot(media, 'reticle'), [slots.reticle.widthMm, slots.reticle.heightMm]);
+  assert.deepEqual(slot(media, 'photo'), [slots.photo.widthMm, slots.photo.heightMm]);
+  const big = templateText('printable-card-a4-pdf-template.svg');
+  assert.deepEqual(slot(big, 'table'), [PAPER_FORMATS.a4.slots.table.widthMm, PAPER_FORMATS.a4.slots.table.heightMm]);
 });
 
 test('the templates\' fixed text is i18n keys only, each translated in every locale; every placeholder the card fills is there', async () => {
   const { textKeys } = await import('../src/pdf/text-replace.js');
   const texts = (svg) => [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
   const keys = new Set();
-  for (const name of ['printable-card-a4-pdf-template.svg', 'printable-card-letter-pdf-template.svg']) {
+  for (const name of ['a4', 'letter', 'a5-table', 'a5-media', 'half-letter-table', 'half-letter-media'].map((n) => `printable-card-${n}-pdf-template.svg`)) {
     for (const s of texts(templateText(name))) {
       const rest = s.replace(/\{[^}]*\}/g, '').replace(/\[[^\]]*\]/g, '');
       assert.ok(!/\p{L}/u.test(rest), `${name}: untranslated text "${s}"`);

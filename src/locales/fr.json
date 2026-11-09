@@ -1610,6 +1610,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v244": "Nouveau : format réduit recto-verso pour les fiches de tir imprimables.",
       "v243": "Modification : mise en page optimisée de la fiche de tir imprimable.",
       "v242": "Nouveau : les fiches de tir imprimables sont désormais entièrement traduites. Correction : traduction russe peaufinée.",
       "v241": "Nouveau : fiches de tir imprimables, nouvel onglet dans l’outil Trajectoire.",
@@ -2186,7 +2187,9 @@
     "paper": {
       "label": "Papier",
       "a4": "A4",
-      "letter": "Letter"
+      "letter": "Letter",
+      "a5": "A5",
+      "halfLetter": "Demi-lettre (Half-letter)"
     },
     "title": "Titre",
     "titleHint": "Jusqu’à {{count}} caractères. Laissée vide, la carte s’intitule « arme · cartouche ».",

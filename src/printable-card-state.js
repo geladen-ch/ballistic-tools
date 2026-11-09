@@ -16,7 +16,7 @@ import { STEP_LEVELS, DEFAULT_STEP } from './printable-card/rows.js';
 
 const COOKIE_NAME = 'ballistics_printable_card_v1';
 
-export const PAPER_CHOICES = ['a4', 'letter'];
+export const PAPER_CHOICES = ['a4', 'letter', 'a5', 'halfLetter'];
 export const MAX_MODES = ['distance', 'mach1.1', 'mach1.0'];
 export const MACH_OF_MODE = { 'mach1.1': 1.1, 'mach1.0': 1.0 };
 export const TITLE_MAX_LENGTH = 44;

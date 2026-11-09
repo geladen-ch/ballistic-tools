@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="148mm" viewBox="0 0 21000 14800">
+  <title>Printable card (A5, media)</title>
+  <defs>
+    <clipPath id="clip-rifle"><rect x="1520" y="1030" width="7630" height="370"/></clipPath>
+    <clipPath id="clip-cartridge"><rect x="11120" y="1030" width="7630" height="370"/></clipPath>
+    <clipPath id="clip-bullet"><rect x="11120" y="1365" width="7630" height="370"/></clipPath>
+    <clipPath id="clip-reticle-heading"><rect x="0" y="0" width="9365" height="520"/></clipPath>
+    <clipPath id="clip-targets-heading"><rect x="0" y="10145" width="9365" height="520"/></clipPath>
+  </defs>
+  <rect width="21000" height="14800" fill="#ffffff"/>
+  <g id="card" transform="translate(1000 1415)" font-family="Overpass" fill="#111111">
+    <g id="logo" transform="scale(7)" fill="none" stroke="#e8a33d" stroke-width="5"><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="18"/><path d="M24,74 L40,57 L50,63 L61,53 L76,74 Z" fill="#e8a33d" stroke="none"/><circle cx="50" cy="50" r="4" fill="#e8a33d" stroke="none"/><line x1="50" y1="6" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="94"/><line x1="6" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="94" y2="50"/></g>
+    <text x="920" y="310" font-size="400" font-weight="700">{app.title}</text>
+    <text x="920" y="630" font-size="210" fill="#4d4d4d">[app link] · [version] · [date]</text>
+    <text x="19000" y="500" font-size="440" font-weight="700" text-anchor="end">[card title]</text>
+    <rect x="0" y="770" width="19000" height="70" fill="#e8a33d"/>
+    <g id="rifle">
+    <rect x="0" y="960" width="9400" height="1505" rx="100" fill="none" stroke="#111111" stroke-width="30"/>
+    <text x="250" y="1310" font-size="240" fill="#4d4d4d">{printableCard.pdf.rifle}</text>
+    <text x="9150" y="1310" font-size="270" font-weight="700" text-anchor="end">[rifle]</text>
+    <g clip-path="url(#clip-rifle)"><text x="1520" y="1310" font-size="270" font-weight="700">[rifle (long)]</text></g>
+    <text x="250" y="1645" font-size="240" fill="#4d4d4d">{printableCard.pdf.zeroRange}</text>
+    <text x="9150" y="1645" font-size="270" font-weight="700" text-anchor="end">[zero]</text>
+    <text x="250" y="1980" font-size="240" fill="#4d4d4d">{printableCard.pdf.sightHeight}</text>
+    <text x="9150" y="1980" font-size="270" font-weight="700" text-anchor="end">[sight height]</text>
+    <text x="250" y="2315" font-size="240" fill="#4d4d4d">{printableCard.pdf.scopeClick}</text>
+    <text x="9150" y="2315" font-size="270" font-weight="700" text-anchor="end">[click vertical] · [click horizontal]</text>
+    </g>
+    <g id="cartridge">
+    <rect x="9600" y="960" width="9400" height="1505" rx="100" fill="none" stroke="#111111" stroke-width="30"/>
+    <text x="9850" y="1310" font-size="240" fill="#4d4d4d">{printableCard.pdf.cartridge}</text>
+    <text x="18750" y="1310" font-size="270" font-weight="700" text-anchor="end">[cartridge]</text>
+    <g clip-path="url(#clip-cartridge)"><text x="11120" y="1310" font-size="270" font-weight="700">[cartridge (long)]</text></g>
+    <text x="9850" y="1645" font-size="240" fill="#4d4d4d">{printableCard.pdf.bullet}</text>
+    <text x="18750" y="1645" font-size="270" font-weight="700" text-anchor="end">[bullet]</text>
+    <g clip-path="url(#clip-bullet)"><text x="11120" y="1645" font-size="270" font-weight="700">[bullet (long)]</text></g>
+    <text x="9850" y="1980" font-size="240" fill="#4d4d4d">{printableCard.pdf.muzzleVelocity}</text>
+    <text x="18750" y="1980" font-size="270" font-weight="700" text-anchor="end">[muzzle velocity]</text>
+    <text x="9850" y="2315" font-size="240" fill="#4d4d4d">[drag label]</text>
+    <text x="18750" y="2315" font-size="270" font-weight="700" text-anchor="end">[drag]</text>
+    </g>
+    <g id="media" transform="translate(19000 2605) rotate(90)">
+    <g clip-path="url(#clip-reticle-heading)"><rect x="0" y="160" width="100" height="280" fill="#e8a33d"/><text x="220" y="400" font-size="260" font-weight="700">[reticle heading]</text></g>
+    <text x="4682.5" y="5422.5" font-size="340" fill="#8c8c8c" text-anchor="middle">[reticle]</text>
+    <rect id="reticle" x="0" y="620" width="9365" height="9365" fill="none" stroke="#111111" stroke-width="30"/>
+    <g clip-path="url(#clip-targets-heading)"><rect x="0" y="10305" width="100" height="280" fill="#e8a33d"/><text x="220" y="10545" font-size="260" font-weight="700">[targets heading]</text></g>
+    <text x="4682.5" y="15002.5" font-size="340" fill="#8c8c8c" text-anchor="middle">[target photo]</text>
+    <rect id="photo" x="0" y="10765" width="9365" height="8235" fill="none" stroke="#111111" stroke-width="30"/>
+    </g>
+  </g>
+</svg>

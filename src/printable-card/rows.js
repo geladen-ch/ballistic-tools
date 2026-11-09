@@ -25,9 +25,6 @@ export const NEIGHBOUR_OFFSETS = {
 // The finest grid every reference and neighbouring distance lies on.
 export const DISTANCE_GRID = 5;
 
-// The most rows (reference distances and targets together) the card holds.
-export const MAX_ROWS = 37;
-
 // [{ distance, step }] up to `maxDistance` inclusive. `elevationAt(d)` is
 // the elevation to dial at distance d, in the output unit, or a non-finite
 // value where it can't be had (then no refinement is decided there).
@@ -66,15 +63,15 @@ export function neighbourDistances(row) {
 // The table's rows: reference rows and target rows (each target as given,
 // with a `distance` in the same unit) in distance order, a target after a
 // reference row at the same distance. Targets beyond `maxDistance` are
-// left out. At most MAX_ROWS are kept; `omitted` counts the rest and
-// `lastDistance` is the farthest distance kept.
-export function tableRows({ references, targets = [], maxDistance }) {
+// left out. At most `maxRows` are kept (the paper's capacity); `omitted`
+// counts the rest and `lastDistance` is the farthest distance kept.
+export function tableRows({ references, targets = [], maxDistance, maxRows }) {
   const all = [
     ...references.map((r) => ({ kind: 'reference', ...r })),
     ...targets.filter((tg) => tg.distance <= maxDistance + 1e-9).map((tg) => ({ kind: 'target', ...tg }))
   ];
   all.sort((a, b) => a.distance - b.distance || (a.kind === b.kind ? 0 : a.kind === 'reference' ? -1 : 1));
-  const rows = all.slice(0, MAX_ROWS);
+  const rows = all.slice(0, maxRows);
   return {
     rows,
     omitted: all.length - rows.length,
