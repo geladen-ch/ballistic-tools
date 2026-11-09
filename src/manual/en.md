@@ -20,6 +20,7 @@ This is a short overview — one section per tool, covering what it does and its
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Backup & Sync](#/manual/backup-sync)
 - [Reticle Designer](#/manual/reticle-designer)
+- [Printable range card](#/manual/printable-card)
 
 More detailed manuals for the other tools are planned.
 
@@ -70,6 +71,8 @@ Bullets don't fly in straight lines, no matter how much you'd like them to. Traj
 You can **download the table as a CSV file**, or **copy it to the clipboard** as CSV — both use exactly the columns currently toggled on, and the field/decimal separator you've set in Settings → CSV export (so it opens correctly in whatever spreadsheet locale you use).
 
 **The chart** plots any one column against range, with its own independent zoom/pan (drag the two range sliders under it — 50 m minimum window). It can be **downloaded as an SVG** file (the small icon above the chart), which carries no dependency on this app to view or edit later.
+
+**Printable card**, the tab next to **Data**, makes a range card for the same rifle and load as a PDF to print: elevations by distance with their neighbouring distances, windage for a reference crosswind, optional spin drift, slope and temperature corrections, the active location's targets and photo, and the rifle's reticle with its BDC ranges and wind holds. A4 and Letter print it on one page, A5 and Half-letter on two. See the [detailed manual](#/manual/printable-card) for every setting and how to read the card.
 
 ## Hit Probability
 

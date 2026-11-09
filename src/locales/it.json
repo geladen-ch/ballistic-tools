@@ -1610,6 +1610,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v245": "Novità: manuale delle schede di tiro stampabili.",
       "v244": "Novità: formato ridotto fronte-retro per le schede di tiro stampabili.",
       "v243": "Modifica: impaginazione ottimizzata della scheda di tiro stampabile.",
       "v242": "Novità: le schede di tiro stampabili sono ora completamente tradotte. Correzione: traduzione russa rifinita.",

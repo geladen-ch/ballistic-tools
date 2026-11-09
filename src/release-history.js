@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v245',
+    fullVersion: '4.4.4 (SCORE — Solver for Corrections Over Range & Environment (Shoot, Curse, Observe, Recalculate, Eventually))',
+    date: '2026-11-09',
+    descriptionKey: 'releaseHistory.entries.v245'
+  },
+  {
     cacheVersion: 'v244',
     fullVersion: '4.4.3 (SCORE — Solver for Corrections Over Range & Environment (Shoot, Curse, Observe, Recalculate, Eventually))',
     date: '2026-11-09',

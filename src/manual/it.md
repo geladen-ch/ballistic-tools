@@ -20,6 +20,7 @@ Questo è una panoramica sintetica — una sezione per strumento, che descrive c
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Backup e sincronizzazione](#/manual/backup-sync)
 - [Progettista di reticoli](#/manual/reticle-designer)
+- [Scheda di tiro stampabile](#/manual/printable-card)
 
 Altri manuali dettagliati per gli altri strumenti sono previsti.
 
@@ -70,6 +71,8 @@ Un proiettile non vola mai in linea retta, per quanto tu lo desideri. Traiettori
 Puoi **scaricare la tabella come file CSV**, oppure **copiarla negli appunti** in formato CSV — entrambe le opzioni usano esattamente le colonne attualmente attivate e il separatore di campo/decimale impostato in Impostazioni → Esportazione CSV (in modo che si apra correttamente con le impostazioni internazionali del tuo foglio di calcolo).
 
 **Il grafico** traccia una qualsiasi colonna rispetto alla distanza, con zoom/scorrimento propri e indipendenti (trascina i due cursori di distanza sottostanti — finestra minima di 50 m). Può essere **scaricato come SVG** (la piccola icona sopra il grafico), un formato che non dipende da questa app per essere visualizzato o modificato in seguito.
+
+**Scheda stampabile**, la scheda accanto a **Dati**, crea una scheda di tiro per la stessa arma e la stessa cartuccia, in PDF da stampare: le elevazioni per distanza con le distanze vicine, la correzione per un vento laterale di riferimento, a scelta la deriva giroscopica e le correzioni di pendenza e di temperatura, i bersagli e la foto della postazione attiva, e il reticolo dell'arma con le sue distanze BDC e le correzioni per il vento. A4 e Letter la stampano su una pagina, A5 e Mezza lettera su due. Vedi il [manuale dettagliato](#/manual/printable-card) per ogni impostazione e per come leggere la scheda.
 
 ## Probabilità di colpire
 

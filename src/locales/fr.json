@@ -1610,6 +1610,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v245": "Nouveau : manuel des fiches de tir imprimables.",
       "v244": "Nouveau : format réduit recto-verso pour les fiches de tir imprimables.",
       "v243": "Modification : mise en page optimisée de la fiche de tir imprimable.",
       "v242": "Nouveau : les fiches de tir imprimables sont désormais entièrement traduites. Correction : traduction russe peaufinée.",

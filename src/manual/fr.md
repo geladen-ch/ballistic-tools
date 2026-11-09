@@ -20,6 +20,7 @@ Ceci est un aperçu succinct — une section par outil, décrivant ce qu'il fait
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Sauvegarde et synchronisation](#/manual/backup-sync)
 - [Concepteur de réticule](#/manual/reticle-designer)
+- [Fiche de tir imprimable](#/manual/printable-card)
 
 D'autres manuels détaillés pour les autres outils sont prévus.
 
@@ -70,6 +71,8 @@ Une balle ne vole jamais en ligne droite, même si vous le voudriez. Trajectoire
 Vous pouvez **télécharger le tableau en fichier CSV**, ou **le copier dans le presse-papiers** au format CSV — les deux utilisent exactement les colonnes actuellement activées, et le séparateur de champs/décimal défini dans Paramètres → Export CSV (pour une ouverture correcte quelle que soit la langue de votre tableur).
 
 **Le graphique** trace n'importe quelle colonne en fonction de la distance, avec son propre zoom/déplacement indépendant (faites glisser les deux curseurs de distance en dessous — fenêtre minimale de 50 m). Il peut être **téléchargé en SVG** (la petite icône au-dessus du graphique), un format qui ne dépend pas de cette application pour être consulté ou modifié plus tard.
+
+**Carte imprimable**, l'onglet à côté de **Données**, produit une fiche de tir pour la même arme et la même cartouche, en PDF à imprimer : les hausses par distance avec les distances voisines, la dérive pour un vent latéral de référence, au choix la dérive gyroscopique et les corrections de pente et de température, les cibles et la photo de l'emplacement actif, et le réticule de l'arme avec ses distances BDC et ses corrections de vent. A4 et Letter l'impriment sur une page, A5 et Demi-lettre sur deux. Voir le [manuel détaillé](#/manual/printable-card) pour chaque réglage et la façon de lire la fiche.
 
 ## Probabilité de toucher
 

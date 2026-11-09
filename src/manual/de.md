@@ -20,6 +20,7 @@ Dies ist ein kurzer Überblick — ein Abschnitt pro Werkzeug, der beschreibt, w
 - [Labrabaco NG](#/manual/bc-labradar)
 - [Sicherung & Synchronisierung](#/manual/backup-sync)
 - [Absehen-Designer](#/manual/reticle-designer)
+- [Druckbare Schusskarte](#/manual/printable-card)
 
 Weitere ausführliche Handbücher für die anderen Werkzeuge sind geplant.
 
@@ -70,6 +71,8 @@ Geschosse fliegen nicht geradeaus, so sehr Sie sich das auch wünschen mögen. F
 Sie können **die Tabelle als CSV-Datei herunterladen** oder **als CSV in die Zwischenablage kopieren** — beides verwendet genau die aktuell aktivierten Spalten sowie das unter Einstellungen → CSV-Export festgelegte Feld-/Dezimaltrennzeichen (damit die Datei in der Tabellenkalkulations-Locale Ihrer Wahl korrekt geöffnet wird).
 
 **Das Diagramm** stellt eine beliebige Spalte über der Distanz dar, mit eigenem unabhängigem Zoom/Verschieben (die beiden Distanz-Schieberegler darunter ziehen — minimales Fenster 50 m). Es kann als **SVG heruntergeladen** werden (das kleine Symbol über dem Diagramm) — ein Format, das für die spätere Ansicht oder Bearbeitung nicht von dieser App abhängt.
+
+**Druckbare Karte**, der Reiter neben **Daten**, erstellt eine Schusskarte für dieselbe Waffe und dieselbe Patrone als PDF zum Drucken: Höhenkorrekturen nach Distanz mit den Nachbardistanzen, Seitenkorrekturen für einen Referenz-Seitenwind, wahlweise Drallabweichung sowie Hang- und Temperaturkorrekturen, die Ziele und das Foto des aktiven Standorts und das Absehen der Waffe mit seinen BDC-Distanzen und Windhaltepunkten. A4 und Letter drucken sie auf eine Seite, A5 und Half-Letter auf zwei. Siehe das [ausführliche Handbuch](#/manual/printable-card) für jede Einstellung und wie man die Karte liest.
 
 ## Trefferwahrscheinlichkeit
 

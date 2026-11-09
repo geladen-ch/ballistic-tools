@@ -48,6 +48,7 @@ import * as arsenalManualView from './views/arsenal-manual-view.js';
 import * as bcLabradarManualView from './views/bc-labradar-manual-view.js';
 import * as backupSyncManualView from './views/backup-sync-manual-view.js';
 import * as reticleDesignerManualView from './views/reticle-designer-manual-view.js';
+import * as printableCardManualView from './views/printable-card-manual-view.js';
 import * as thanksView from './views/thanks-view.js';
 import * as releaseHistoryView from './views/release-history-view.js';
 import * as featuresView from './views/features-view.js';
@@ -150,6 +151,7 @@ const views = {
   '/manual/bc-labradar': bcLabradarManualView,
   '/manual/backup-sync': backupSyncManualView,
   '/manual/reticle-designer': reticleDesignerManualView,
+  '/manual/printable-card': printableCardManualView,
   '/thanks': thanksView,
   '/release-history': releaseHistoryView,
   '/features': featuresView

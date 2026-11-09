@@ -1610,6 +1610,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v245": "Neu: Handbuch für druckbare Schusskarten.",
       "v244": "Neu: kleineres, beidseitig bedrucktes Format für druckbare Schusskarten.",
       "v243": "Änderung: optimiertes Layout der druckbaren Schusskarte.",
       "v242": "Neu: druckbare Schusskarten sind jetzt vollständig übersetzt. Fix: russische Übersetzung überarbeitet.",
