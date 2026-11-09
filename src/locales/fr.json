@@ -2210,7 +2210,6 @@
     "temperature": "Corrections de température",
     "temperatureHint": "Chaque colonne : la variation de hausse par rapport à la température de référence, l’air et la poudre étant à cette température.",
     "temperatureScale": "Colonnes : {{list}} {{unit}}.",
-    "temperatureSkipped": "La température de référence ({{reference}}) tombe sur un pas et est sautée : sa colonne ne contiendrait que des zéros.",
     "temperatureReset": "Valeurs par défaut",
     "locationHeading": "Lieu",
     "locationName": "Lieu actif : {{name}}",

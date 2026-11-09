@@ -2210,7 +2210,6 @@
     "temperature": "Correzioni di temperatura",
     "temperatureHint": "Ogni colonna: la variazione di elevazione rispetto alla temperatura di riferimento, con aria e polvere a quella temperatura.",
     "temperatureScale": "Colonne: {{list}} {{unit}}.",
-    "temperatureSkipped": "La temperatura di riferimento ({{reference}}) cade su un passo e viene saltata: la sua colonna conterrebbe solo zeri.",
     "temperatureReset": "Valori predefiniti",
     "locationHeading": "Luogo",
     "locationName": "Luogo attivo: {{name}}",

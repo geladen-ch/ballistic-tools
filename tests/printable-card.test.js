@@ -122,16 +122,10 @@ test('values too long for their room shrink the whole table\'s fonts, keeping ev
   assert.deepEqual(edges(fitted), edges(plain));
 });
 
-test('temperature columns: five steps up from the first, the reference skipped only when a step lands on it', () => {
-  assert.deepEqual(temperatureColumns({ startC: 5, stepC: 5, referenceC: 15 }), { temperaturesC: [5, 10, 20, 25, 30], skipped: true });
-  assert.deepEqual(temperatureColumns({ startC: 4, stepC: 5, referenceC: 15 }), { temperaturesC: [4, 9, 14, 19, 24], skipped: false });
-  // 10 °F steps from 39 °F with a 59 °F (15 °C) reference: the third step is the reference, up to rounding.
-  const fahrenheitStep = 50 / 9;
-  const { temperaturesC, skipped } = temperatureColumns({ startC: 15 - 2 * fahrenheitStep, stepC: fahrenheitStep, referenceC: 15 });
-  assert.equal(skipped, true);
-  assert.equal(temperaturesC.length, 5);
-  assert.ok(temperaturesC.every((tc) => Math.abs(tc - 15) > 1));
-  assert.deepEqual(temperatureColumns({ startC: 5, stepC: 0, referenceC: 15 }).temperaturesC, []);
+test('temperature columns: five steps up from the first, the reference kept when a step lands on it', () => {
+  assert.deepEqual(temperatureColumns({ startC: 5, stepC: 5 }), [5, 10, 15, 20, 25]);
+  assert.deepEqual(temperatureColumns({ startC: 4, stepC: 5 }), [4, 9, 14, 19, 24]);
+  assert.deepEqual(temperatureColumns({ startC: 5, stepC: 0 }), []);
 });
 
 test('crop: a box round the targets in the area\'s proportions, inside the image; none placed shows the whole image', () => {

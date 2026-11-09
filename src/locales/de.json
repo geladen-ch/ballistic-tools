@@ -2210,7 +2210,6 @@
     "temperature": "Temperaturkorrekturen",
     "temperatureHint": "Jede Spalte: die Änderung der Höhenkorrektur gegenüber der Referenztemperatur, mit Luft und Pulver bei dieser Temperatur.",
     "temperatureScale": "Spalten: {{list}} {{unit}}.",
-    "temperatureSkipped": "Die Referenztemperatur ({{reference}}) fällt auf einen Schritt und wird übersprungen: Ihre Spalte enthielte nur Nullen.",
     "temperatureReset": "Standardwerte",
     "locationHeading": "Standort",
     "locationName": "Aktiver Standort: {{name}}",

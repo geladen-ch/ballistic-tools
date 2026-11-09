@@ -2210,7 +2210,6 @@
     "temperature": "Temperature corrections",
     "temperatureHint": "Each column: the change in elevation from the reference temperature, with the air and the powder at that temperature.",
     "temperatureScale": "Columns: {{list}} {{unit}}.",
-    "temperatureSkipped": "The reference temperature ({{reference}}) falls on a step and is skipped: its column would show only zeros.",
     "temperatureReset": "Use defaults",
     "locationHeading": "Location",
     "locationName": "Active location: {{name}}",

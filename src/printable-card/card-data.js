@@ -51,20 +51,12 @@ export function spinDriftOffered(base, settingsMode) {
   return !!settingsMode && settingsMode !== 'off' && canComputeStability(base);
 }
 
-// The card's temperature columns (°C): from `startC` up in steps of
-// `stepC`, the reference temperature itself left out when a step lands
-// exactly on it (its column would be all zeros) and one more step added
-// instead. `skipped`: whether that happened.
-export function temperatureColumns({ startC, stepC, referenceC, count = TEMPERATURE_COLUMNS }) {
-  const temperaturesC = [];
-  let skipped = false;
-  if (!(Number.isFinite(startC) && Number.isFinite(stepC) && stepC > 0)) return { temperaturesC, skipped };
-  for (let i = 0; temperaturesC.length < count; i++) {
-    const tc = startC + i * stepC;
-    if (Number.isFinite(referenceC) && Math.abs(tc - referenceC) < SAME_TEMPERATURE_C) { skipped = true; continue; }
-    temperaturesC.push(tc);
-  }
-  return { temperaturesC, skipped };
+// The card's temperature columns (°C): `count` steps of `stepC` up from
+// `startC`. A step on the reference temperature is kept: its column, all
+// zeros, marks where the reference falls in the scale.
+export function temperatureColumns({ startC, stepC, count = TEMPERATURE_COLUMNS }) {
+  if (!(Number.isFinite(startC) && Number.isFinite(stepC) && stepC > 0)) return [];
+  return Array.from({ length: count }, (_, i) => startC + i * stepC);
 }
 
 // The rifle's zero air: its own when it was zeroed in other air, otherwise
@@ -199,12 +191,16 @@ export async function computeCardData({ pool, base, settings, crosswindMs, targe
 
   let temperatureGrids = null;
   if (settings.temperaturesC && settings.temperaturesC.length) {
+    // A column at the reference temperature is the card's own trajectory:
+    // no run of its own, and exact zeros rather than rounding noise.
     const zeroAtmosphere = zeroAir(base);
-    const payloads = settings.temperaturesC.map((tempC) => ({
+    const isReference = (tempC) => Number.isFinite(base.tempC) && Math.abs(tempC - base.tempC) < SAME_TEMPERATURE_C;
+    const runTemps = settings.temperaturesC.filter((tempC) => !isReference(tempC));
+    const results = await pool.runAll('trajectory', runTemps.map((tempC) => ({
       ...levelState(base, 0), tempC, zeroAtmosphere, maxRange: runMaxM, rangeStep
-    }));
-    const results = await pool.runAll('trajectory', payloads);
-    temperatureGrids = results.map((r) => gridLookup(r.points, rangeStep));
+    })));
+    let next = 0;
+    temperatureGrids = settings.temperaturesC.map((tempC) => (isReference(tempC) ? grid : gridLookup(results[next++].points, rangeStep)));
   }
 
   const distanceText = (d) => String(Math.round(d));

@@ -300,7 +300,7 @@ export function printableCardPanel({ getSetup }) {
     return state.temperatureStartC ?? referenceTempC() - 2 * temperatureStepC();
   }
   function currentTemperatureColumns() {
-    return temperatureColumns({ startC: temperatureStartC(), stepC: temperatureStepC(), referenceC: referenceTempC() });
+    return temperatureColumns({ startC: temperatureStartC(), stepC: temperatureStepC() });
   }
   // A temperature as the card writes it: the user's unit, at most one
   // decimal, a true minus sign.
@@ -314,11 +314,8 @@ export function printableCardPanel({ getSetup }) {
     if (!keep(temperatureStartField)) temperatureStartField.setEngineValue(temperatureStartC());
     if (!keep(temperatureStepField)) temperatureStepField.setEngineValue(temperatureStepC());
     temperatureReset.style.display = state.temperatureStartC !== null || state.temperatureStepC !== null ? '' : 'none';
-    const { temperaturesC, skipped } = currentTemperatureColumns();
-    const tempLabel = displayChoice('temperature').label;
-    const list = temperaturesC.map(temperatureNumber).join(', ');
-    temperatureHint.textContent = t('printableCard.temperatureScale', { list, unit: tempLabel })
-      + (skipped ? ` ${t('printableCard.temperatureSkipped', { reference: `${temperatureNumber(referenceTempC())} ${tempLabel}` })}` : '');
+    const list = currentTemperatureColumns().map(temperatureNumber).join(', ');
+    temperatureHint.textContent = t('printableCard.temperatureScale', { list, unit: displayChoice('temperature').label });
   }
 
   function spinOffered() {
@@ -433,7 +430,7 @@ export function printableCardPanel({ getSetup }) {
       refineThresholdRad: state.refineThresholdRad,
       spinDrift: full && state.spinDrift && spinOffered(),
       slope: full && state.slope,
-      temperaturesC: full && state.temperature ? currentTemperatureColumns().temperaturesC : null,
+      temperaturesC: full && state.temperature ? currentTemperatureColumns() : null,
       mach: MACH_OF_MODE[state.maxMode]
     };
   }
