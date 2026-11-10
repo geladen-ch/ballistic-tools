@@ -488,6 +488,14 @@
     "navRangeCard": "Fiche de tir",
     "navAtmosphere": "Atmosphère",
     "exitSolver": "Quitter le calculateur",
+    "gunPicker": {
+      "title": "Choisir une carabine",
+      "manageArsenal": "Gérer l'Arsenal",
+      "cancel": "Annuler",
+      "loadCount_one": "{{count}} cartouche",
+      "loadCount_other": "{{count}} cartouches",
+      "emptyHint": "Votre Arsenal ne contient encore aucune carabine avec une cartouche — ajoutez-en une via « Gérer l'Arsenal »."
+    },
     "elevationLabel": "Élévation",
     "windageLabel": "Dérive",
     "tofLabel": "Temps de vol",
@@ -800,7 +808,7 @@
     "rangeSolverScopeRingLabel": "Bague de grossissement de la vue lunette",
     "rangeSolverScopeRingAuto": "Automatique (en dessous sur téléphone en portrait)",
     "rangeSolverScopeRingBeside": "À côté du réticule",
-    "rangeSolverScopeRingBelow": "Sous le réticule (en portrait)",
+    "rangeSolverScopeRingBelow": "Sous le réticule",
     "reticleOverlayColorLabel": "Couleur de la superposition au réticule",
     "reticleOverlayColorAuto": "Automatique",
     "reticleOverlayColorVermillion": "Vermillon",
@@ -1612,6 +1620,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v247": "Nouveau : sélection de l'arme simplifiée en mode Calculateur de terrain (merci à Stéphane E pour l'idée). Petites corrections de l'interface.",
       "v246": "Nouveau : conseils aux utilisateurs d'iOS d'Apple pour éviter de perdre leurs données (Apple, comme d'habitude, fait comme s'il savait mieux que ses utilisateurs de quelles données ils ont besoin).",
       "v245": "Nouveau : manuel des fiches de tir imprimables.",
       "v244": "Nouveau : format réduit recto-verso pour les fiches de tir imprimables.",

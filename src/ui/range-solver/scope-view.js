@@ -164,10 +164,10 @@ function isMobileChrome(narrow) {
 }
 
 // Whether the ring lies below the reticle, for a scope ring position.
+// Below always applies; Automatic only on the mobile chrome in portrait.
 function ringBelow(position, narrow, portrait) {
-  if (!portrait?.matches) return false;
   if (position === 'below') return true;
-  if (position === 'auto') return isMobileChrome(narrow);
+  if (position === 'auto') return !!portrait?.matches && isMobileChrome(narrow);
   return false;
 }
 

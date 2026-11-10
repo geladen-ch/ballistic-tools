@@ -200,10 +200,10 @@ test('the scope ring lies below the reticle per the setting, the orientation and
   assert.equal(layoutOf(view).below, true);
   view.dispose();
 
-  // Below never applies in landscape; Beside never moves.
+  // Below applies in landscape too; Beside never moves.
   fakeMedia({ [NARROW]: true, [PORTRAIT]: false });
   view = scopeView();
-  assert.equal(layoutOf(view).below, false);
+  assert.deepEqual(layoutOf(view), { below: true, orientation: 'horizontal' });
   view.dispose();
   prefs.setScopeRingPosition('beside');
   fakeMedia({ [NARROW]: true, [PORTRAIT]: true });

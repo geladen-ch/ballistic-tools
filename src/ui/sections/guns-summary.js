@@ -22,12 +22,16 @@ import { goToGuns } from '../../guns-nav.js';
 // bar, elevation/windage, footer) are already label-free, so the boxed
 // heading read as one card too many stacked above them; Trajectory drops
 // it the same way once the gun pane moved to the top of Inputs.
-export function gunsSummary({ bare = false } = {}) {
+//
+// `onChange` replaces the Change button's default trip to Guns — Range
+// Solver passes its own rifle/cartridge picker modal (see range-solver/
+// gun-picker.js) so the button matches its Guns nav item.
+export function gunsSummary({ bare = false, onChange = goToGuns } = {}) {
   const rifleLine = el('div', { class: 'rifle-line' });
   const bulletLine = el('div', { class: 'bullet-line' });
   const changeButton = el('button', { class: 'secondary', i18n: 'guns.changeButton' });
 
-  changeButton.addEventListener('click', goToGuns);
+  changeButton.addEventListener('click', () => onChange());
 
   const summary = el('div', { class: 'guns-summary' }, [
     el('div', { class: 'lines' }, [rifleLine, bulletLine]),

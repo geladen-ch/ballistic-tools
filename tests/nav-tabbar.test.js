@@ -189,13 +189,11 @@ test('while in Range Solver mode, the bar shows Target/Range Card/Atmosphere/Gun
   setRangeSolverMode(true);
 
   assert.equal(container.className, 'app-tabbar range-solver-mode');
-  const links = findByTag(container, 'A');
-  assert.equal(links.length, 1, 'only Gun is a real link');
-  assert.equal(links[0].getAttribute('href'), '#/guns/custom');
-  assert.ok(links[0].textContent.includes(t('nav.guns')));
+  assert.equal(findByTag(container, 'A').length, 0, 'Guns opens the picker modal, not a link');
 
   const buttons = findByTag(container, 'BUTTON');
-  assert.equal(buttons.length, 4, 'Target, Range Card, Atmosphere, Exit solver');
+  assert.equal(buttons.length, 5, 'Target, Range Card, Atmosphere, Guns, Exit solver');
+  assert.ok(buttons.some((b) => b.textContent.includes(t('nav.guns'))));
   assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navTarget'))));
   assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navRangeCard'))));
   assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navAtmosphere'))));

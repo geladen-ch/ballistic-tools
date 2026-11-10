@@ -17,6 +17,7 @@ import { losAngleIcon, scopeViewIcon } from '../ui/nav-icons.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
+import { openRangeSolverGunPicker } from '../ui/range-solver/gun-picker.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
@@ -97,7 +98,7 @@ export function mount(container) {
   // visible stand-in and guns-view.js for where it's actually edited) ----
   const rifle = rifleSection({ onInput: () => recompute(), onLibraryCartridgeChange: (c) => cartridge.setLibraryCartridge(c) });
   const cartridge = cartridgeSection({ onInput: () => recompute() });
-  const guns = gunsSummary({ bare: true });
+  const guns = gunsSummary({ bare: true, onChange: openRangeSolverGunPicker });
 
   // ---- Target tab ----
   const targetSaved = loadRangeSolverTargetState() || {};

@@ -311,7 +311,7 @@ test('while in Range Solver mode, the rail shows Target/Range Card/Atmosphere/Gu
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navTarget'))));
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navRangeCard'))));
   assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navAtmosphere'))));
-  assert.ok(tabs.some((n) => n.textContent.includes(t('nav.guns')) && n.getAttribute('href') === '#/guns/custom'));
+  assert.ok(tabs.some((n) => n.textContent.includes(t('nav.guns')) && n.tagName === 'BUTTON'), 'Guns opens the picker modal, not a link');
   assert.ok(findByClass(container, 'done-btn')[0].textContent.includes(t('rangeSolver.exitSolver')));
 });
 

@@ -22,6 +22,7 @@ import { el, clear } from '../dom.js';
 import { t, onLanguageChange } from '../i18n.js';
 import { GROUPS, PINNED, toolsInGroup } from '../nav-tools.js';
 import { isRailCollapsed, setRailCollapsed, isGroupOpen, setGroupOpen } from '../nav-prefs.js';
+import { openRangeSolverGunPicker } from './range-solver/gun-picker.js';
 import { isInGunsMode, onGunsModeChange, requestGunsDone, resolveGunsDestination, goToGuns } from '../guns-nav.js';
 import {
   isInRangeSolverMode, onRangeSolverModeChange,
@@ -124,10 +125,10 @@ export function mountNavRail(container) {
   // Replaces the whole rail while Range Solver is open (see range-solver-
   // nav.js) — Target/Atmosphere are in-place input-pane tabs (not
   // routes), so they call setRangeSolverTab() rather than changing
-  // location.hash; Gun reuses the exact same source-aware routing as the
-  // pinned Guns link above; Exit solver always returns to Home (no return-
-  // path tracking — unlike Guns' Done, Range Solver doesn't remember where
-  // it was opened from).
+  // location.hash; Guns opens the solver's own rifle/cartridge picker
+  // modal (see range-solver/gun-picker.js) rather than leaving; Exit
+  // solver always returns to Home (no return-path tracking — unlike
+  // Guns' Done, Range Solver doesn't remember where it was opened from).
   function buildRangeSolverMode() {
     const active = getRangeSolverTab();
     const tabButton = (tab, iconFn, labelKey) => {
@@ -138,11 +139,8 @@ export function mountNavRail(container) {
       btn.addEventListener('click', () => setRangeSolverTab(tab));
       return btn;
     };
-    const gunLink = el('a', { href: '#' + resolveGunsDestination(), class: 'guns-tab' }, [gunsIcon(13), el('span', { i18n: 'nav.guns' })]);
-    gunLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      goToGuns();
-    });
+    const gunLink = el('button', { type: 'button', class: 'guns-tab' }, [gunsIcon(13), el('span', { i18n: 'nav.guns' })]);
+    gunLink.addEventListener('click', openRangeSolverGunPicker);
     const exitBtn = el('button', { type: 'button', class: 'done-btn' }, [exitIcon(13), el('span', { i18n: 'rangeSolver.exitSolver' })]);
     exitBtn.addEventListener('click', () => {
       location.hash = '#/';

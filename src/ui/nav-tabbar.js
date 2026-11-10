@@ -28,6 +28,7 @@
 import { el, clear } from '../dom.js';
 import { t, getLanguage, onLanguageChange } from '../i18n.js';
 import { GROUPS } from '../nav-tools.js';
+import { openRangeSolverGunPicker } from './range-solver/gun-picker.js';
 import { isInGunsMode, onGunsModeChange, requestGunsDone, resolveGunsDestination, goToGuns } from '../guns-nav.js';
 import {
   isInRangeSolverMode, onRangeSolverModeChange,
@@ -159,8 +160,8 @@ export function mountNavTabbar(container) {
   // Replaces the whole tab bar while Range Solver is open — see
   // nav-rail.js's own buildRangeSolverMode() for the desktop equivalent.
   // Target/Atmosphere are in-place input-pane tabs (setRangeSolverTab),
-  // not routes; Gun reuses the same source-aware routing as every other
-  // "go to Guns" entry point; Exit solver always returns to Home.
+  // not routes; Guns opens the solver's own rifle/cartridge picker modal
+  // (see range-solver/gun-picker.js); Exit solver always returns to Home.
   function buildRangeSolverModeItems() {
     const active = getRangeSolverTab();
     const tabItem = (tab, iconFn, nameKey) => {
@@ -170,11 +171,8 @@ export function mountNavTabbar(container) {
       btn.addEventListener('click', () => setRangeSolverTab(tab));
       return btn;
     };
-    const gunLink = el('a', { href: '#' + resolveGunsDestination(), class: 'tab-item' }, [gunsIcon(19), labelSpan(t('nav.guns'))]);
-    gunLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      goToGuns();
-    });
+    const gunLink = el('button', { type: 'button', class: 'tab-item' }, [gunsIcon(19), labelSpan(t('nav.guns'))]);
+    gunLink.addEventListener('click', openRangeSolverGunPicker);
     const exitBtn = el('button', { type: 'button', class: 'tab-item' }, [exitIcon(19), labelSpan(t('rangeSolver.exitSolver'))]);
     exitBtn.addEventListener('click', () => {
       location.hash = '#/';

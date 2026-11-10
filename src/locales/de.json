@@ -488,6 +488,14 @@
     "navRangeCard": "Schusskarte",
     "navAtmosphere": "Atmosphäre",
     "exitSolver": "Feldrechner verlassen",
+    "gunPicker": {
+      "title": "Gewehr wählen",
+      "manageArsenal": "Arsenal verwalten",
+      "cancel": "Abbrechen",
+      "loadCount_one": "{{count}} Patrone",
+      "loadCount_other": "{{count}} Patronen",
+      "emptyHint": "Ihr Arsenal enthält noch kein Gewehr mit Patrone — legen Sie über „Arsenal verwalten“ eines an."
+    },
     "elevationLabel": "Höhe",
     "windageLabel": "Wind",
     "tofLabel": "Flugzeit",
@@ -800,7 +808,7 @@
     "rangeSolverScopeRingLabel": "Vergrösserungsring der Zielfernrohransicht",
     "rangeSolverScopeRingAuto": "Automatisch (unten auf Smartphones im Hochformat)",
     "rangeSolverScopeRingBeside": "Neben dem Absehen",
-    "rangeSolverScopeRingBelow": "Unter dem Absehen (im Hochformat)",
+    "rangeSolverScopeRingBelow": "Unter dem Absehen",
     "reticleOverlayColorLabel": "Farbe der Absehen-Einblendung",
     "reticleOverlayColorAuto": "Automatisch",
     "reticleOverlayColorVermillion": "Zinnober",
@@ -1612,6 +1620,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v247": "Neu: einfachere Waffenauswahl im Feldrechner-Modus (danke an Stéphane E für die Idee). Kleine Korrekturen an der Oberfläche.",
       "v246": "Neu: Hinweise für Apple-iOS-Nutzer, wie sie Datenverlust vermeiden (Apple tut wie üblich so, als wüsste es besser, welche Daten seine Nutzer brauchen).",
       "v245": "Neu: Handbuch für druckbare Schusskarten.",
       "v244": "Neu: kleineres, beidseitig bedrucktes Format für druckbare Schusskarten.",

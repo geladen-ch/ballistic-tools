@@ -488,6 +488,14 @@
     "navRangeCard": "Range Card",
     "navAtmosphere": "Atmosphere",
     "exitSolver": "Exit solver",
+    "gunPicker": {
+      "title": "Choose a rifle",
+      "manageArsenal": "Manage Arsenal",
+      "cancel": "Cancel",
+      "loadCount_one": "{{count}} cartridge",
+      "loadCount_other": "{{count}} cartridges",
+      "emptyHint": "Your Arsenal has no rifle with a cartridge yet — use Manage Arsenal to add one."
+    },
     "elevationLabel": "Elevation",
     "windageLabel": "Windage",
     "tofLabel": "Time of flight",
@@ -800,7 +808,7 @@
     "rangeSolverScopeRingLabel": "Scope view magnification ring",
     "rangeSolverScopeRingAuto": "Automatic (below on phones in portrait)",
     "rangeSolverScopeRingBeside": "Beside the reticle",
-    "rangeSolverScopeRingBelow": "Below the reticle (in portrait)",
+    "rangeSolverScopeRingBelow": "Below the reticle",
     "reticleOverlayColorLabel": "Reticle overlay color",
     "reticleOverlayColorAuto": "Auto",
     "reticleOverlayColorVermillion": "Vermillion",
@@ -1612,6 +1620,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v247": "New: simpler gun selection when in range solver mode (thanks Stéphane E for the idea). Small UI fixes.",
       "v246": "New: hints to Apple iOS users on how to avoid losing data (Apple, as usual, behaves like it knows better which data its users need).",
       "v245": "New: user manual for printable range cards.",
       "v244": "New: recto-verso smaller format for printable range cards.",

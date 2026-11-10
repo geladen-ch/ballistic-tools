@@ -274,6 +274,7 @@ const APP_SHELL_URLS = [
   './src/ui/range-solver/bdc-trajectories.js',
   './src/ui/range-solver/bdc-callouts.js',
   './src/ui/range-solver/scope-view.js',
+  './src/ui/range-solver/gun-picker.js',
   './src/ui/rifle-precision/project-form.js',
   './src/ui/rifle-precision/photo-add-flow.js',
   './src/ui/rifle-precision/group-selector.js',

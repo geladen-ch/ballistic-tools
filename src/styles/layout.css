@@ -2052,12 +2052,27 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
    the top, the reticle and its ring filling the rest on the left, and
    the readout (elevation over windage), the SFP note and the footer in a
    narrow column on the right. .scope-view's own box drops out (display:
-   contents) so its ring row and note can take separate grid cells. */
+   contents) so its ring row and note can take separate grid cells. With
+   the ring below (scope ring position setting), the sight stretches
+   across the column — centred, a size container would shrink to nothing
+   — and the square sits centred on top of the ring. The forced mobile
+   chrome takes this grid only in short landscape too, like the automatic
+   one: a taller landscape screen stacks as in portrait. */
 @media (max-width: 780px) and (orientation: portrait) {
   html.range-solver-mode:not(.force-desktop) .range-solver-layout.scope-view-on .range-solver-input-pane { flex: none; }
 }
 @media (orientation: portrait) {
   html.range-solver-mode.force-mobile .range-solver-layout.scope-view-on .range-solver-input-pane { flex: none; }
+}
+/* Taller landscape in the mobile chrome (a tablet, or a desktop window
+   forced to the mobile chrome) keeps the plain side-by-side panes; the
+   view is pinned to the screen's height there, so the layout may grow
+   past it and scroll rather than squeeze the reticle under its ring. */
+@media (max-width: 780px) and (orientation: landscape) and (min-height: 501px) {
+  html.range-solver-mode:not(.force-desktop):not(.range-solver-card-active) .range-solver-layout.scope-view-on { flex: 1 0 auto; }
+}
+@media (orientation: landscape) and (min-height: 501px) {
+  html.range-solver-mode.force-mobile:not(.range-solver-card-active) .range-solver-layout.scope-view-on { flex: 1 0 auto; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   html.range-solver-mode:not(.force-desktop) .range-solver-layout.scope-view-on .range-solver-output-pane {
@@ -2071,13 +2086,16 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
   html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-frame { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); margin-left: auto; }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-canvas { height: 100%; }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .zoom-ring-vertical { min-height: 0; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main.ring-below .scope-view-sight { align-self: stretch; width: auto; display: flex; flex-direction: column; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main.ring-below .scope-view-frame { margin: auto auto 0; }
+  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main.ring-below .scope-view-ring { width: 100%; }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact { grid-column: 2; grid-row: 3; align-self: end; flex-direction: column; gap: 6px; }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact .range-solver-click-value { font-size: clamp(26px, 30cqw, 46px); }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact .range-solver-click-label { font-size: 10px; margin-top: 0; }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-bar { grid-column: 2; grid-row: 4; text-align: center; }
   html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-footer { grid-column: 2; grid-row: 5; flex-direction: column; align-items: center; gap: 2px; }
 }
-@media (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 500px) {
   html.range-solver-mode.force-mobile .range-solver-layout.scope-view-on .range-solver-output-pane {
     display: grid; grid-template-columns: minmax(0, 1fr) clamp(104px, 30%, 180px);
     grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 6px 10px; min-height: 0;
@@ -2089,6 +2107,9 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
   html.range-solver-mode.force-mobile .scope-view-on .scope-view-frame { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); margin-left: auto; }
   html.range-solver-mode.force-mobile .scope-view-on .scope-view-canvas { height: 100%; }
   html.range-solver-mode.force-mobile .scope-view-on .zoom-ring-vertical { min-height: 0; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main.ring-below .scope-view-sight { align-self: stretch; width: auto; display: flex; flex-direction: column; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main.ring-below .scope-view-frame { margin: auto auto 0; }
+  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main.ring-below .scope-view-ring { width: 100%; }
   html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact { grid-column: 2; grid-row: 3; align-self: end; flex-direction: column; gap: 6px; }
   html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact .range-solver-click-value { font-size: clamp(26px, 30cqw, 46px); }
   html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact .range-solver-click-label { font-size: 10px; margin-top: 0; }
@@ -2700,3 +2721,39 @@ html.angle-meter-open, html.angle-meter-open body { overflow: hidden; }
 .angle-meter-actions { display: flex; gap: 12px; max-width: 520px; margin: 0 auto; }
 .angle-meter-actions button { flex: 1 1 0; min-height: 52px; font-size: 17px; }
 .angle-meter-actions button:disabled { opacity: 0.45; }
+
+/* Range Solver's Guns modal (src/ui/range-solver/gun-picker.js) — a
+   compact list of Arsenal rifles inside the app dialog, each a full-width
+   row button; a multi-cartridge rifle expands its cartridges as indented
+   rows beneath it. Rows are tall enough to hit with a gloved thumb. The
+   current rifle/cartridge is marked in the accent colour with a check. */
+.gun-picker-title { margin: 0 0 10px; font-size: 15px; }
+.gun-picker-entry { border-bottom: 1px solid var(--line); }
+.gun-picker-entry:last-child { border-bottom: none; }
+.gun-picker-rifle,
+.gun-picker-load {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--radius);
+  font-weight: 400;
+  text-align: left;
+}
+.gun-picker-rifle:hover,
+.gun-picker-load:hover { background: var(--panel-raised); filter: none; }
+.gun-picker-rifle .gun-picker-name { font-weight: 600; }
+.gun-picker-name { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.gun-picker-detail { flex: 1 1 auto; min-width: 0; color: var(--dim); font-size: 12px; text-align: right; }
+.gun-picker-rifle .chev { display: inline-flex; transition: transform 0.15s ease; }
+.gun-picker-rifle .chev.open { transform: rotate(180deg); }
+.gun-picker-rifle.current .gun-picker-name,
+.gun-picker-load.current .gun-picker-name { color: var(--accent); }
+.gun-picker-rifle.current svg,
+.gun-picker-load.current svg { color: var(--accent); flex-shrink: 0; }
+.gun-picker-loads { padding: 0 0 6px 18px; }
+.gun-picker-load { min-height: 40px; }
