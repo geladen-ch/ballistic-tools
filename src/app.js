@@ -12,6 +12,7 @@ import { onPlacementModeChange } from './location-placement-nav.js';
 import { onMarkingModeChange } from './rifle-precision-nav.js';
 import { getTheme, onThemeChange } from './range-solver-prefs.js';
 import { getUiScale, onUiScaleChange } from './ui-scale-prefs.js';
+import { suppressIOSFocusZoom } from './platform.js';
 import { mountNavRail } from './ui/nav-rail.js';
 import { mountNavTabbar } from './ui/nav-tabbar.js';
 import { mountTopbarScroll } from './ui/topbar-scroll.js';
@@ -131,6 +132,9 @@ function applyUiScale(nextScale) {
 }
 applyUiScale(getUiScale());
 onUiScaleChange(applyUiScale);
+
+// See platform.js: stops iOS zooming in on focus of a compact form field.
+suppressIOSFocusZoom();
 
 const views = {
   '/': homeView,

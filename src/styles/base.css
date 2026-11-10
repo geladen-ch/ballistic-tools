@@ -145,6 +145,13 @@
 
 * { box-sizing: border-box; }
 
+/* Turns off double-tap-to-zoom (iOS Safari would otherwise zoom on a
+   quick second tap, e.g. on a stepper button) while keeping panning and
+   pinch-zoom. The effective touch-action is intersected with every
+   ancestor's, so this covers the whole page, and elements that set
+   touch-action: none for their own drag gestures keep it. */
+html { touch-action: manipulation; }
+
 html, body {
   margin: 0;
   height: 100%;
