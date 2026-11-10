@@ -71,3 +71,9 @@ export function showDialog({ message, bodyNode, buttons, wide = false }) {
 export function hideDialog() {
   hide();
 }
+
+// Whether a dialog is on screen — so a launch-time notice can stand aside
+// for one already showing (the update dialog) instead of replacing it.
+export function isDialogOpen() {
+  return !!overlay && overlay.style.display !== 'none';
+}

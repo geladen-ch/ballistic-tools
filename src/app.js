@@ -15,8 +15,9 @@ import { getUiScale, onUiScaleChange } from './ui-scale-prefs.js';
 import { mountNavRail } from './ui/nav-rail.js';
 import { mountNavTabbar } from './ui/nav-tabbar.js';
 import { mountTopbarScroll } from './ui/topbar-scroll.js';
-import { mountDialogRoot } from './ui/app-dialog.js';
+import { mountDialogRoot, isDialogOpen } from './ui/app-dialog.js';
 import { checkBootVersionChange, watchForLiveUpdate } from './update-notifications.js';
+import { maybeShowStorageNotice } from './storage-notices.js';
 import { initLocationLibrary } from './location-library.js';
 import { initSyncTriggers } from './sync/auto-sync.js';
 import { initChangeHistory } from './sync/change-history.js';
@@ -274,6 +275,19 @@ try {
     // there). Fire-and-forget: browsers that don't support it, or that just
     // decline, leave nothing for the app to react to either way.
     navigator.storage?.persist?.();
+
+    // iOS only: the "add to Home Screen" notice or the backup reminder —
+    // see storage-notices.js. Stands aside for the update dialog, which
+    // checkBootVersionChange() above may have just shown; the notice is
+    // still due on the next launch.
+    try {
+      if (!isDialogOpen()) {
+        const shown = maybeShowStorageNotice();
+        if (shown) logDiagnostic('log', `[boot] storage notice shown: ${shown}`);
+      }
+    } catch (err) {
+      logDiagnostic('error', '[boot] storage notice failed:', err);
+    }
 
     if ('serviceWorker' in navigator) {
       const registerServiceWorker = () => {

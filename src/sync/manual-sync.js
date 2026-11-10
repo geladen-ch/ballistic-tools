@@ -36,20 +36,18 @@ import { resolveBundlePhotoRefs } from './photo-assets.js';
 import { downloadFile } from '../download.js';
 import { getDeviceId } from './device-id.js';
 import { selectLatestPerDevice } from './duplicate-bundles.js';
+import { isIOS } from '../platform.js';
+import { recordBackupSaved } from '../backup-reminder-state.js';
 
 const BACKUP_FILE_PATTERN = /^backup-.+\.json$/;
 
 // iOS/iPadOS has neither the File System Access API nor working
 // `<input type="file" webkitdirectory>` folder selection in practice, so
 // it gets the share-sheet tier (8b) instead of the directory-picker tier
-// (8a) — confirmed at implementation time, not merely assumed.
-// iPadOS 13+ reports as a Mac in its own User-Agent string, so touch
-// support is the actual tell — a real Mac reports 0 touch points.
-export function isIOS() {
-  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
-  if (/iPad|iPhone|iPod/.test(ua)) return true;
-  return /Macintosh/.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1;
-}
+// (8a) — confirmed at implementation time, not merely assumed. The
+// detection itself lives in platform.js; re-exported here for this
+// module's existing callers.
+export { isIOS };
 
 export function isShareSupported() {
   return typeof navigator !== 'undefined'
@@ -71,6 +69,7 @@ function totalsShape() {
 export function downloadOwnBundle() {
   const bundle = buildBackupBundle();
   downloadFile(backupFileName(bundle.device.id), serializeBackupBundle(bundle), 'application/json');
+  recordBackupSaved();
   return bundle;
 }
 
@@ -105,6 +104,7 @@ export async function shareOrDownloadOwnBundle() {
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file] });
         logSyncEvent('debug', 'manual sync: exported via the share sheet');
+        recordBackupSaved();
         return bundle;
       }
     } catch (err) {
@@ -122,6 +122,7 @@ export async function shareOrDownloadOwnBundle() {
   }
   downloadFile(filename, text, 'application/json');
   logSyncEvent('debug', 'manual sync: exported via plain download');
+  recordBackupSaved();
   return bundle;
 }
 

@@ -772,6 +772,8 @@
     "spinDriftMccoy4dof": "Avanzato (McCoy 4-DOF)",
     "zeroForSpinDriftLabel": "Compensa la deriva giroscopica nell'azzeramento",
     "updateNotificationsLabel": "Notificami gli aggiornamenti dell'app",
+    "backupRemindersLabel": "Ricordami di fare il backup dei miei dati",
+    "backupRemindersHint": "iOS può cancellare i dati di questa app quando resta inutilizzata per un po'. Il promemoria compare quando i tuoi dati sono cambiati e l'ultimo backup ha almeno una settimana.",
     "showTroubleshootingLabel": "Mostra il pannello Risoluzione dei problemi nella Home",
     "windDialAppearanceLabel": "Aspetto della manopola di direzione del vento",
     "windDialAppearanceClock": "Orologio",
@@ -1610,6 +1612,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v246": "Novità: suggerimenti per gli utenti iOS di Apple su come evitare di perdere i dati (Apple, come al solito, si comporta come se sapesse meglio dei suoi utenti quali dati servono loro).",
       "v245": "Novità: manuale delle schede di tiro stampabili.",
       "v244": "Novità: formato ridotto fronte-retro per le schede di tiro stampabili.",
       "v243": "Modifica: impaginazione ottimizzata della scheda di tiro stampabile.",
@@ -2269,5 +2272,20 @@
       "targets": "Bersagli",
       "notes": "Note"
     }
+  },
+  "storageNotice": {
+    "installIntro": "In una scheda del browser, iOS può cancellare tutto ciò che questa app ha salvato — il tuo Arsenale, le postazioni, i progetti del Calcolatore di precisione di tiro e le impostazioni — quando l'app resta inutilizzata per circa una settimana.",
+    "installHow": "Aggiungi l'app alla schermata Home: tocca «Condividi», poi «Aggiungi alla schermata Home», e da quel momento aprila dalla nuova icona. Lì conserva i suoi dati.",
+    "installCarryOver": "L'app della schermata Home parte vuota: non vede ciò che è salvato in questa scheda. Salva prima un backup e ripristinalo nell'app della schermata Home.",
+    "reminderIntro": "Su iOS il browser può cancellare i dati salvati di questa app quando resta inutilizzata per un po'. Un file di backup conservato in File o iCloud Drive è la copia che sopravvive.",
+    "reminderNever": "I tuoi dati non sono ancora mai stati salvati in un backup.",
+    "reminderSince": "I tuoi dati sono cambiati dall'ultimo backup del {{date}}.",
+    "saveToFilesHint": "Nel foglio di condivisione scegli «Salva su File».",
+    "restorePath": "Per ripristinare: {{settings}} → {{section}} → «{{enable}}», poi «{{sync}}» e scegli il file di backup.",
+    "saveBackup": "Salva backup",
+    "later": "Più tardi",
+    "notNow": "Non ora",
+    "dontShowAgain": "Non mostrare più",
+    "neverShowAgain": "Non mostrare più"
   }
 }

@@ -7,6 +7,7 @@ installFakeDom();
 installFakeIndexedDb();
 
 const { initI18n, t } = await import('../src/i18n.js');
+const { removeCookie } = await import('../src/cookies.js');
 await initI18n();
 await warmCatalogs();
 
@@ -444,7 +445,7 @@ test('wind holds on the aiming mark\'s level: round its hold with no crosswind, 
 });
 
 test('wind holds: until first set, they follow the BDC overlay, which drew them before', () => {
-  document.cookie = 'ballistics_range_solver_scope_wind_holds_v1=; path=/; max-age=0';
+  removeCookie('ballistics_range_solver_scope_wind_holds_v1');
   prefs.setScopeBdcOverlayOn(true);
   assert.equal(prefs.isScopeWindHoldsOn(), true);
   prefs.setScopeBdcOverlayOn(false);

@@ -772,6 +772,8 @@
     "spinDriftMccoy4dof": "Erweitert (McCoy 4-DOF)",
     "zeroForSpinDriftLabel": "Beim Einschießen Drallabweichung berücksichtigen",
     "updateNotificationsLabel": "Über App-Updates benachrichtigen",
+    "backupRemindersLabel": "An Backups meiner Daten erinnern",
+    "backupRemindersHint": "iOS kann die Daten dieser App löschen, wenn sie eine Weile nicht benutzt wird. Die Erinnerung erscheint, wenn sich deine Daten geändert haben und das letzte Backup mindestens eine Woche alt ist.",
     "showTroubleshootingLabel": "Bereich „Fehlerbehebung“ auf der Startseite anzeigen",
     "windDialAppearanceLabel": "Darstellung des Windrichtungsreglers",
     "windDialAppearanceClock": "Uhr",
@@ -1610,6 +1612,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v246": "Neu: Hinweise für Apple-iOS-Nutzer, wie sie Datenverlust vermeiden (Apple tut wie üblich so, als wüsste es besser, welche Daten seine Nutzer brauchen).",
       "v245": "Neu: Handbuch für druckbare Schusskarten.",
       "v244": "Neu: kleineres, beidseitig bedrucktes Format für druckbare Schusskarten.",
       "v243": "Änderung: optimiertes Layout der druckbaren Schusskarte.",
@@ -2269,5 +2272,20 @@
       "targets": "Ziele",
       "notes": "Notizen"
     }
+  },
+  "storageNotice": {
+    "installIntro": "In einem Browser-Tab kann iOS alles löschen, was diese App gespeichert hat – dein Arsenal, Standorte, Projekte des Gewehr-Präzisionsrechners und Einstellungen –, sobald die App etwa eine Woche lang nicht benutzt wurde.",
+    "installHow": "Füge die App zum Home-Bildschirm hinzu: Tippe auf „Teilen“, dann auf „Zum Home-Bildschirm“, und öffne sie ab dann über das neue Symbol. Dort bleiben ihre Daten erhalten.",
+    "installCarryOver": "Die App auf dem Home-Bildschirm startet leer: Sie sieht nicht, was in diesem Tab gespeichert ist. Sichere zuerst ein Backup und stelle es in der App auf dem Home-Bildschirm wieder her.",
+    "reminderIntro": "Unter iOS kann der Browser die gespeicherten Daten dieser App löschen, wenn sie eine Weile nicht benutzt wird. Eine Backup-Datei in „Dateien“ oder iCloud Drive ist die Kopie, die das übersteht.",
+    "reminderNever": "Deine Daten wurden noch nie gesichert.",
+    "reminderSince": "Deine Daten haben sich seit dem letzten Backup am {{date}} geändert.",
+    "saveToFilesHint": "Wähle im Teilen-Menü „In Dateien sichern“.",
+    "restorePath": "Wiederherstellen: {{settings}} → {{section}} → „{{enable}}“, dann „{{sync}}“ und die Backup-Datei auswählen.",
+    "saveBackup": "Backup sichern",
+    "later": "Später",
+    "notNow": "Nicht jetzt",
+    "dontShowAgain": "Nicht mehr anzeigen",
+    "neverShowAgain": "Nicht mehr anzeigen"
   }
 }

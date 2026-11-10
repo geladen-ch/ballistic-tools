@@ -18,6 +18,7 @@ const { resetLocationLibraryForTests } = await import('../src/location-library.j
 const { resetRiflePrecisionLibraryForTests } = await import('../src/rifle-precision-library.js');
 const { setVerboseSyncLoggingEnabled } = await import('../src/sync/sync-log.js');
 const { getDiagnosticLog } = await import('../src/debug-log.js');
+const { getLastBackupAt } = await import('../src/backup-reminder-state.js');
 
 test.beforeEach(async () => {
   localStorage.clear();
@@ -186,6 +187,7 @@ test('shareOrDownloadOwnBundle shares the bundle as a File named backup-<deviceI
     assert.equal(files.length, 1);
     assert.equal(files[0].name, 'backup-my-device.json');
     assert.deepEqual(JSON.parse(await files[0].text()), bundle);
+    assert.notEqual(getLastBackupAt(), null, 'a completed share counts as a backup for the iOS reminder');
   } finally {
     control.cleanup();
   }
@@ -212,6 +214,7 @@ test('shareOrDownloadOwnBundle treats a cancelled share sheet as done, without f
     const { filename } = await captureDownload(() => shareOrDownloadOwnBundle());
     await new Promise((r) => setTimeout(r, 0));
     assert.equal(filename, null, 'a cancelled share sheet must not trigger a fallback download');
+    assert.equal(getLastBackupAt(), null, 'a cancelled share sheet is not a backup');
   } finally {
     control.cleanup();
   }

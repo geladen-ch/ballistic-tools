@@ -772,6 +772,8 @@
     "spinDriftMccoy4dof": "Advanced (McCoy 4-DOF)",
     "zeroForSpinDriftLabel": "Account for spin drift when zeroing",
     "updateNotificationsLabel": "Notify me about application updates",
+    "backupRemindersLabel": "Remind me to back up my data",
+    "backupRemindersHint": "iOS may delete this app's data when it goes unused for a while. The reminder appears when your data has changed and the last backup is a week old or more.",
     "showTroubleshootingLabel": "Show Troubleshooting pane on Home page",
     "windDialAppearanceLabel": "Wind direction dial appearance",
     "windDialAppearanceClock": "Clock",
@@ -1610,6 +1612,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v246": "New: hints to Apple iOS users on how to avoid losing data (Apple, as usual, behaves like it knows better which data its users need).",
       "v245": "New: user manual for printable range cards.",
       "v244": "New: recto-verso smaller format for printable range cards.",
       "v243": "Change: optimized layout of the printable range card.",
@@ -2269,5 +2272,20 @@
       "targets": "Targets",
       "notes": "Notes"
     }
+  },
+  "storageNotice": {
+    "installIntro": "In a browser tab, iOS may delete everything this app has saved — your Arsenal, locations, Rifle Precision projects and settings — once the app has gone unused for about a week.",
+    "installHow": "Add the app to your Home Screen: tap Share, then “Add to Home Screen”, and from then on open it from the new icon. There it keeps its data.",
+    "installCarryOver": "The Home Screen app starts empty: it cannot see what is saved in this tab. Save a backup first and restore it in the Home Screen app.",
+    "reminderIntro": "On iOS, the browser may delete this app's saved data when the app goes unused for a while. A backup file kept in Files or iCloud Drive is the copy that survives.",
+    "reminderNever": "Your data has not been backed up yet.",
+    "reminderSince": "Your data has changed since the last backup on {{date}}.",
+    "saveToFilesHint": "In the share sheet, choose “Save to Files”.",
+    "restorePath": "To restore: {{settings}} → {{section}} → “{{enable}}”, then “{{sync}}” and pick the backup file.",
+    "saveBackup": "Save backup",
+    "later": "Later",
+    "notNow": "Not now",
+    "dontShowAgain": "Don't show again",
+    "neverShowAgain": "Never show again"
   }
 }

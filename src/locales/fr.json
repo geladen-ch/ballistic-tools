@@ -772,6 +772,8 @@
     "spinDriftMccoy4dof": "Avancée (McCoy 4-DOF)",
     "zeroForSpinDriftLabel": "Compenser la dérive gyroscopique lors du réglage du zéro",
     "updateNotificationsLabel": "Me notifier des mises à jour de l'application",
+    "backupRemindersLabel": "Me rappeler de sauvegarder mes données",
+    "backupRemindersHint": "iOS peut effacer les données de cette application lorsqu'elle reste inutilisée un certain temps. Le rappel apparaît lorsque vos données ont changé et que la dernière sauvegarde date d'au moins une semaine.",
     "showTroubleshootingLabel": "Afficher le panneau Dépannage sur la page d'accueil",
     "windDialAppearanceLabel": "Apparence du cadran de direction du vent",
     "windDialAppearanceClock": "Horloge",
@@ -1610,6 +1612,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v246": "Nouveau : conseils aux utilisateurs d'iOS d'Apple pour éviter de perdre leurs données (Apple, comme d'habitude, fait comme s'il savait mieux que ses utilisateurs de quelles données ils ont besoin).",
       "v245": "Nouveau : manuel des fiches de tir imprimables.",
       "v244": "Nouveau : format réduit recto-verso pour les fiches de tir imprimables.",
       "v243": "Modification : mise en page optimisée de la fiche de tir imprimable.",
@@ -2269,5 +2272,20 @@
       "targets": "Cibles",
       "notes": "Notes"
     }
+  },
+  "storageNotice": {
+    "installIntro": "Dans un onglet du navigateur, iOS peut effacer tout ce que cette application a enregistré — votre Arsenal, vos emplacements, vos projets de la Calculette de précision de tir et vos réglages — dès qu'elle reste inutilisée environ une semaine.",
+    "installHow": "Ajoutez l'application à l'écran d'accueil : touchez « Partager », puis « Sur l'écran d'accueil », et ouvrez-la désormais depuis la nouvelle icône. Elle y conserve ses données.",
+    "installCarryOver": "L'application de l'écran d'accueil démarre vide : elle ne voit pas ce qui est enregistré dans cet onglet. Enregistrez d'abord une sauvegarde, puis restaurez-la dans l'application de l'écran d'accueil.",
+    "reminderIntro": "Sur iOS, le navigateur peut effacer les données enregistrées de cette application lorsqu'elle reste inutilisée un certain temps. Un fichier de sauvegarde conservé dans Fichiers ou iCloud Drive est la copie qui y survit.",
+    "reminderNever": "Vos données n'ont encore jamais été sauvegardées.",
+    "reminderSince": "Vos données ont changé depuis la dernière sauvegarde du {{date}}.",
+    "saveToFilesHint": "Dans la feuille de partage, choisissez « Enregistrer dans Fichiers ».",
+    "restorePath": "Pour restaurer : {{settings}} → {{section}} → « {{enable}} », puis « {{sync}} » et choisissez le fichier de sauvegarde.",
+    "saveBackup": "Enregistrer une sauvegarde",
+    "later": "Plus tard",
+    "notNow": "Pas maintenant",
+    "dontShowAgain": "Ne plus afficher",
+    "neverShowAgain": "Ne plus afficher"
   }
 }

@@ -9,6 +9,7 @@ installFakeDom();
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const { initI18n, t, SUPPORTED_LANGUAGES } = await import('../src/i18n.js');
+const { removeCookie } = await import('../src/cookies.js');
 await initI18n();
 const { mradToRad, degToRad } = await import('../src/quantity.js');
 const { dopeText, magnitudeText, signedDegreesText, machDistanceM, angleInOutputUnit, outputUnitToRad, spinDriftOffered, temperatureColumns } =
@@ -281,7 +282,7 @@ test('a free-text value takes the clipped placeholder only when it doesn\'t fit 
 
 test('settings persist; damaged values fall back to their defaults', () => {
   resetPrintableCardStateForTests();
-  document.cookie = 'ballistics_printable_card_v1=; max-age=0';
+  removeCookie('ballistics_printable_card_v1');
   const fresh = loadPrintableCardState();
   assert.equal(fresh.paper, 'a4');
   assert.equal(fresh.initialStep, 100);

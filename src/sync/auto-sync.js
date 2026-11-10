@@ -26,6 +26,7 @@ import {
 import { isBackupSyncEnabled } from '../backup-sync-prefs.js';
 import { applyReferencedPhotoStorage, resolveBundlePhotoRefs } from './photo-assets.js';
 import { isIphoneSyncSupportEnabled } from './photo-storage-prefs.js';
+import { recordBackupSaved } from '../backup-reminder-state.js';
 
 // "Has anything changed since the bundle we last published?" — see "Write
 // only when something changed": a rewrite with nothing to say gets
@@ -442,6 +443,7 @@ export async function runSyncCycle({ allowPrompt = false, trigger = 'manual' } =
       await writeOwnBackupFile(handle, deviceId, serializeBackupBundle(ownBundle));
       publishedSeq = seqAtSnapshot;
       recordOwnPublished(ownBundle.exportedAt);
+      recordBackupSaved();
       logSyncEvent('debug', 'sync: published own bundle');
     } catch (err) {
       logSyncEvent('warn', 'sync failed: could not write own bundle —', err && err.message);

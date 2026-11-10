@@ -8,6 +8,8 @@ import { SPIN_DRIFT_MODE_CHOICES, getSpinDriftMode, setSpinDriftMode } from '../
 import { isZeroForSpinDriftEnabled, setZeroForSpinDriftEnabled } from '../zero-spin-drift-prefs.js';
 import { isUpdateNotificationsEnabled, setUpdateNotificationsEnabled } from '../update-notification-prefs.js';
 import { isTroubleshootingPaneEnabled, setTroubleshootingPaneEnabled } from '../troubleshooting-prefs.js';
+import { isBackupReminderEnabled, setBackupReminderEnabled } from '../backup-reminder-state.js';
+import { isIOS } from '../platform.js';
 import {
   FIELD_SEPARATOR_CHOICES, DECIMAL_SEPARATOR_CHOICES,
   getFieldSeparator, setFieldSeparator, getDecimalSeparator, setDecimalSeparator
@@ -139,6 +141,21 @@ export function mount(container) {
     i18nSpan('settings.updateNotificationsLabel')
   ]);
 
+  // On by default (see backup-reminder-state.js); the reminder's own "Never
+  // show again" unchecks it. Only on iOS, the one platform that shows the
+  // reminder — elsewhere the row would switch nothing.
+  const backupRemindersCheckbox = el('input', { type: 'checkbox', id: 'settings-backup-reminders-enabled' });
+  backupRemindersCheckbox.checked = isBackupReminderEnabled();
+  backupRemindersCheckbox.addEventListener('change', () => {
+    setBackupReminderEnabled(backupRemindersCheckbox.checked);
+  });
+  const backupRemindersField = isIOS()
+    ? el('div', { class: 'field' }, [
+      el('label', { class: 'checkbox-field' }, [backupRemindersCheckbox, i18nSpan('settings.backupRemindersLabel')]),
+      el('p', { class: 'hint', i18n: 'settings.backupRemindersHint' })
+    ])
+    : null;
+
   // Off by default (see troubleshooting-prefs.js) — gates whether Home's
   // About section shows the Troubleshooting card at all (see
   // home-view.js), not something this row itself needs to react to live.
@@ -261,6 +278,7 @@ export function mount(container) {
     ]),
     zeroForSpinDriftField,
     el('div', { class: 'field' }, [updateNotificationsRow]),
+    backupRemindersField,
     el('div', { class: 'field' }, [troubleshootingPaneRow]),
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.windDialAppearanceLabel' }),
