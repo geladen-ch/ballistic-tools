@@ -496,6 +496,15 @@
       "loadCount_other": "{{count}} cartouches",
       "emptyHint": "Votre Arsenal ne contient encore aucune carabine avec une cartouche — ajoutez-en une via « Gérer l'Arsenal »."
     },
+    "locationPicker": {
+      "buttonLabel": "Choisir un emplacement",
+      "title": "Choisir un emplacement",
+      "manageLocations": "Gérer les emplacements",
+      "cancel": "Annuler",
+      "targetCount_one": "{{count}} cible",
+      "targetCount_other": "{{count}} cibles",
+      "emptyHint": "Vous n'avez encore aucun emplacement avec une cible — ajoutez-en un via « Gérer les emplacements »."
+    },
     "elevationLabel": "Élévation",
     "windageLabel": "Dérive",
     "tofLabel": "Temps de vol",
@@ -588,7 +597,6 @@
     "importFileErrorInvalidJson": "Ce fichier n'est pas un JSON valide.",
     "importFileErrorInvalidFormat": "Ce fichier n'est pas un export reconnu de la bibliothèque d'emplacements.",
     "importFileErrorNewerVersion": "Ce fichier a été enregistré par une version plus récente de l'application. Mettez l'application à jour, puis réessayez.",
-    "manageButtonLabel": "Gérer les emplacements",
     "manualEntryOption": "Saisie manuelle",
     "photoPickerButtonLabel": "Choisir la cible sur la photo",
     "zoomInButton": "Zoom avant",
@@ -1620,6 +1628,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v248": "Nouveau : sélection de l'emplacement simplifiée en mode Calculateur de terrain (merci à Stéphane E pour l'idée).",
       "v247": "Nouveau : sélection de l'arme simplifiée en mode Calculateur de terrain (merci à Stéphane E pour l'idée). Petites corrections de l'interface.",
       "v246": "Nouveau : conseils aux utilisateurs d'iOS d'Apple pour éviter de perdre leurs données (Apple, comme d'habitude, fait comme s'il savait mieux que ses utilisateurs de quelles données ils ont besoin).",
       "v245": "Nouveau : manuel des fiches de tir imprimables.",

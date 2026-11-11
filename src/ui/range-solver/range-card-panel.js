@@ -235,7 +235,7 @@ function formatAdjustment(value, positiveGlyph, negativeGlyph, decimals) {
   return `${glyph}${Math.abs(rounded).toFixed(decimals)}`;
 }
 
-export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocations }) {
+export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onPickLocation }) {
   let rowCountPref = getRangeCardRowCount();
   let latestRows = [];
   let latestActiveId = null;
@@ -296,7 +296,7 @@ export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocati
     applyRowBudget();
   });
 
-  // A separate line above the table — the manage-locations icon and the
+  // A separate line above the table — the location-picker icon and the
   // active location's own name (same pieces the Target tab's own
   // .range-solver-location-row uses, see range-solver-view.js), plus the
   // row-count control. Row count used to live inline in the table header
@@ -307,8 +307,8 @@ export function rangeCardPanel({ onSelectTarget, indicatorGlyphs, onManageLocati
   // didn't actually line up with the values underneath. Moving it out
   // entirely is what fixes that, not any change to the columns themselves.
   const manageButton = locationPickerButton({
-    label: t('rangeSolverLocations.manageButtonLabel'),
-    onClick: onManageLocations
+    label: t('rangeSolver.locationPicker.buttonLabel'),
+    onClick: onPickLocation
   });
   const locationNameEl = el('span', { class: 'range-card-location-name' });
   const locationBar = el('div', { class: 'range-card-location-bar' }, [manageButton, locationNameEl, rowCount.node]);

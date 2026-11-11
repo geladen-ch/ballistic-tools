@@ -18,6 +18,7 @@ import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { openRangeSolverGunPicker } from '../ui/range-solver/gun-picker.js';
+import { openRangeSolverLocationPicker } from '../ui/range-solver/location-picker.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
@@ -41,7 +42,6 @@ import {
 } from '../range-solver-state.js';
 import { loadUserLocations } from '../location-library.js';
 import { locationPickerButton } from '../ui/locations/location-picker-button.js';
-import { goToLocations } from '../locations-nav.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
@@ -159,9 +159,11 @@ export function mount(container) {
 
   const locationNameEl = el('span', { class: 'range-solver-location-name' });
   const targetSelect = el('select', { id: 'rangeSolverTargetSelect', class: 'range-solver-target-select' });
+  // Opens the Location modal (ui/range-solver/location-picker.js), which
+  // itself offers the way on to the Locations manager.
   const openLocationsButton = locationPickerButton({
-    label: t('rangeSolverLocations.manageButtonLabel'),
-    onClick: goToLocations
+    label: t('rangeSolver.locationPicker.buttonLabel'),
+    onClick: openRangeSolverLocationPicker
   });
   const openPhotoOverlayButton = photoPickerButton({
     label: t('rangeSolverLocations.photoPickerButtonLabel'),
@@ -302,7 +304,7 @@ export function mount(container) {
   const rangeCard = rangeCardPanel({
     onSelectTarget: (targetId) => selectTarget(targetId),
     indicatorGlyphs,
-    onManageLocations: goToLocations
+    onPickLocation: openRangeSolverLocationPicker
   });
   const rangeCardTab = el('div', { class: 'range-solver-tab-panel range-card-tab-panel' }, [rangeCard.node]);
   // wind.node's other possible parent — see applyActiveTab()'s reparenting

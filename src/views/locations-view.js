@@ -11,11 +11,8 @@ import { locationExportDialog } from '../ui/locations/location-export-dialog.js'
 import { locationImportDialog } from '../ui/locations/location-import-dialog.js';
 import { buildExportPayload, serializeExport, parseImportPayload, resolveImportItem } from '../location-export.js';
 import { downloadFile } from '../download.js';
-import {
-  loadRangeSolverLocationState, saveRangeSolverLocationState,
-  saveRangeSolverTargetState, saveRangeSolverAtmosphereState, wasAtmosphereTouchedThisSession
-} from '../range-solver-state.js';
-import { standardAtmosphereAt } from '../engine/atmosphere.js';
+import { loadRangeSolverLocationState, saveRangeSolverLocationState } from '../range-solver-state.js';
+import { activateRangeSolverLocation } from '../location-activation.js';
 import { formatTargetSummary } from '../ui/locations/target-summary.js';
 import { setLocationsMode } from '../locations-nav.js';
 import { shouldClearTargetCoords } from '../location-photo.js';
@@ -114,20 +111,6 @@ export function mount(container) {
     refreshLibraryView();
   }
 
-  // Writes the standard-atmosphere/50%-humidity default straight into
-  // Range Solver's own cookie-backed atmosphere slice, bypassing
-  // atmosphereSection's preset select entirely (it lands on "Custom" like
-  // any other hand-set value once that tab next mounts) — only when the
-  // location actually has an altitude, and only if the user hasn't
-  // already taken over the Atmosphere tab themselves this session.
-  function applyLocationAltitudeDefault(location) {
-    if (location.altitudeM == null || wasAtmosphereTouchedThisSession()) return;
-    const { tempC, pressurePa } = standardAtmosphereAt(location.altitudeM);
-    saveRangeSolverAtmosphereState({
-      tempC, pressurePa, altitudeM: location.altitudeM, humidity: 0.5, atmospherePreset: 'custom'
-    });
-  }
-
   // `activeLocation` (not `location`) deliberately — this module already
   // uses the bare global `location` (window.location) for navigation
   // below, and shadowing it here would silently break that. Unlike the
@@ -135,20 +118,7 @@ export function mount(container) {
   // location in "Known locations" activates it in place and scrolls the
   // Current-location pane into view.
   function activateLocation(activeLocation) {
-    if (!activeLocation) {
-      saveRangeSolverLocationState({ locationId: null, targetId: null });
-    } else {
-      const targetId = activeLocation.targets[0]?.id ?? null;
-      saveRangeSolverLocationState({ locationId: activeLocation.id, targetId });
-      // Seeds the Target tab's own range/LoS cookie slice with this
-      // target's values, exactly as if the user had picked it from that
-      // tab's own selector — without this, Range Solver would show
-      // whatever was left over from before and immediately flag a false
-      // "diverged from the target" state that was never really an edit.
-      const target = activeLocation.targets.find((tg) => tg.id === targetId);
-      if (target) saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: target.losAngleRad });
-      applyLocationAltitudeDefault(activeLocation);
-    }
+    activateRangeSolverLocation(activeLocation);
     // The previous current location's own edit/target-edit state doesn't
     // carry over once it's back in the list, where Edit isn't offered.
     locationFormState = null;

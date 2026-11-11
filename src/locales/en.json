@@ -496,6 +496,15 @@
       "loadCount_other": "{{count}} cartridges",
       "emptyHint": "Your Arsenal has no rifle with a cartridge yet — use Manage Arsenal to add one."
     },
+    "locationPicker": {
+      "buttonLabel": "Choose location",
+      "title": "Choose a location",
+      "manageLocations": "Manage locations",
+      "cancel": "Cancel",
+      "targetCount_one": "{{count}} target",
+      "targetCount_other": "{{count}} targets",
+      "emptyHint": "You have no location with a target yet — use Manage locations to add one."
+    },
     "elevationLabel": "Elevation",
     "windageLabel": "Windage",
     "tofLabel": "Time of flight",
@@ -588,7 +597,6 @@
     "importFileErrorInvalidJson": "That file isn't valid JSON.",
     "importFileErrorInvalidFormat": "That file isn't a recognized Locations library export.",
     "importFileErrorNewerVersion": "That file was saved by a newer version of this app. Update the app, then try again.",
-    "manageButtonLabel": "Manage locations",
     "manualEntryOption": "Manual entry",
     "photoPickerButtonLabel": "Pick target from photo",
     "zoomInButton": "Zoom in",
@@ -1620,6 +1628,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v248": "New: simpler location selection when in range solver mode (thanks Stéphane E for the idea).",
       "v247": "New: simpler gun selection when in range solver mode (thanks Stéphane E for the idea). Small UI fixes.",
       "v246": "New: hints to Apple iOS users on how to avoid losing data (Apple, as usual, behaves like it knows better which data its users need).",
       "v245": "New: user manual for printable range cards.",

@@ -2726,12 +2726,15 @@ html.angle-meter-open, html.angle-meter-open body { overflow: hidden; }
    compact list of Arsenal rifles inside the app dialog, each a full-width
    row button; a multi-cartridge rifle expands its cartridges as indented
    rows beneath it. Rows are tall enough to hit with a gloved thumb. The
-   current rifle/cartridge is marked in the accent colour with a check. */
+   current rifle/cartridge is marked in the accent colour with a check.
+   Its Location modal (location-picker.js) reuses the same list, with
+   .location-picker-row styled as a rifle row. */
 .gun-picker-title { margin: 0 0 10px; font-size: 15px; }
 .gun-picker-entry { border-bottom: 1px solid var(--line); }
 .gun-picker-entry:last-child { border-bottom: none; }
 .gun-picker-rifle,
-.gun-picker-load {
+.gun-picker-load,
+.location-picker-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2745,15 +2748,19 @@ html.angle-meter-open, html.angle-meter-open body { overflow: hidden; }
   text-align: left;
 }
 .gun-picker-rifle:hover,
-.gun-picker-load:hover { background: var(--panel-raised); filter: none; }
-.gun-picker-rifle .gun-picker-name { font-weight: 600; }
+.gun-picker-load:hover,
+.location-picker-row:hover { background: var(--panel-raised); filter: none; }
+.gun-picker-rifle .gun-picker-name,
+.location-picker-row .gun-picker-name { font-weight: 600; }
 .gun-picker-name { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .gun-picker-detail { flex: 1 1 auto; min-width: 0; color: var(--dim); font-size: 12px; text-align: right; }
 .gun-picker-rifle .chev { display: inline-flex; transition: transform 0.15s ease; }
 .gun-picker-rifle .chev.open { transform: rotate(180deg); }
 .gun-picker-rifle.current .gun-picker-name,
-.gun-picker-load.current .gun-picker-name { color: var(--accent); }
+.gun-picker-load.current .gun-picker-name,
+.location-picker-row.current .gun-picker-name { color: var(--accent); }
 .gun-picker-rifle.current svg,
-.gun-picker-load.current svg { color: var(--accent); flex-shrink: 0; }
+.gun-picker-load.current svg,
+.location-picker-row.current svg { color: var(--accent); flex-shrink: 0; }
 .gun-picker-loads { padding: 0 0 6px 18px; }
 .gun-picker-load { min-height: 40px; }

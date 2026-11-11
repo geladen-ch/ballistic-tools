@@ -496,6 +496,15 @@
       "loadCount_other": "{{count}} Patronen",
       "emptyHint": "Ihr Arsenal enthält noch kein Gewehr mit Patrone — legen Sie über „Arsenal verwalten“ eines an."
     },
+    "locationPicker": {
+      "buttonLabel": "Standort wählen",
+      "title": "Standort wählen",
+      "manageLocations": "Standorte verwalten",
+      "cancel": "Abbrechen",
+      "targetCount_one": "{{count}} Ziel",
+      "targetCount_other": "{{count}} Ziele",
+      "emptyHint": "Sie haben noch keinen Standort mit einem Ziel — legen Sie über „Standorte verwalten“ einen an."
+    },
     "elevationLabel": "Höhe",
     "windageLabel": "Wind",
     "tofLabel": "Flugzeit",
@@ -588,7 +597,6 @@
     "importFileErrorInvalidJson": "Diese Datei ist kein gültiges JSON.",
     "importFileErrorInvalidFormat": "Diese Datei ist kein erkannter Export der Standorte-Bibliothek.",
     "importFileErrorNewerVersion": "Diese Datei wurde mit einer neueren Version der App gespeichert. Aktualisieren Sie die App und versuchen Sie es dann erneut.",
-    "manageButtonLabel": "Standorte verwalten",
     "manualEntryOption": "Manuelle Eingabe",
     "photoPickerButtonLabel": "Ziel per Foto auswählen",
     "zoomInButton": "Vergrößern",
@@ -1620,6 +1628,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v248": "Neu: einfachere Standortauswahl im Feldrechner-Modus (danke an Stéphane E für die Idee).",
       "v247": "Neu: einfachere Waffenauswahl im Feldrechner-Modus (danke an Stéphane E für die Idee). Kleine Korrekturen an der Oberfläche.",
       "v246": "Neu: Hinweise für Apple-iOS-Nutzer, wie sie Datenverlust vermeiden (Apple tut wie üblich so, als wüsste es besser, welche Daten seine Nutzer brauchen).",
       "v245": "Neu: Handbuch für druckbare Schusskarten.",

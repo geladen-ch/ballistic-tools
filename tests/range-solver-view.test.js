@@ -465,7 +465,7 @@ test('with no active location, only the manage-locations icon shows — no name,
 
   assert.ok(isHidden(findByClass(container, 'range-solver-location-name')[0]));
   assert.ok(isHidden(findById(container, 'rangeSolverTargetSelect')));
-  assert.ok(!isHidden(findByTitle(container, t('rangeSolverLocations.manageButtonLabel'))));
+  assert.ok(!isHidden(findByTitle(container, t('rangeSolver.locationPicker.buttonLabel'))));
 
   cleanup();
 });

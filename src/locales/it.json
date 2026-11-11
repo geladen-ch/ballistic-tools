@@ -496,6 +496,15 @@
       "loadCount_other": "{{count}} cartucce",
       "emptyHint": "Il tuo Arsenale non contiene ancora un fucile con una cartuccia — aggiungine uno con «Gestisci Arsenale»."
     },
+    "locationPicker": {
+      "buttonLabel": "Scegli postazione",
+      "title": "Scegli una postazione",
+      "manageLocations": "Gestisci postazioni",
+      "cancel": "Annulla",
+      "targetCount_one": "{{count}} bersaglio",
+      "targetCount_other": "{{count}} bersagli",
+      "emptyHint": "Non hai ancora una postazione con un bersaglio — aggiungine una con «Gestisci postazioni»."
+    },
     "elevationLabel": "Elevazione",
     "windageLabel": "Vento",
     "tofLabel": "Tempo di volo",
@@ -588,7 +597,6 @@
     "importFileErrorInvalidJson": "Questo file non è JSON valido.",
     "importFileErrorInvalidFormat": "Questo file non è un export riconosciuto della libreria delle postazioni.",
     "importFileErrorNewerVersion": "Questo file è stato salvato da una versione più recente dell'app. Aggiorna l'app, poi riprova.",
-    "manageButtonLabel": "Gestisci postazioni",
     "manualEntryOption": "Inserimento manuale",
     "photoPickerButtonLabel": "Scegli bersaglio dalla foto",
     "zoomInButton": "Ingrandisci",
@@ -1620,6 +1628,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v248": "Novità: selezione della postazione più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea).",
       "v247": "Novità: selezione dell'arma più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea). Piccole correzioni all'interfaccia.",
       "v246": "Novità: suggerimenti per gli utenti iOS di Apple su come evitare di perdere i dati (Apple, come al solito, si comporta come se sapesse meglio dei suoi utenti quali dati servono loro).",
       "v245": "Novità: manuale delle schede di tiro stampabili.",
