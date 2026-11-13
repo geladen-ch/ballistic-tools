@@ -173,7 +173,7 @@ function fakeMedia(state) {
   return { flip: (next) => { Object.assign(state, next); for (const fn of listeners) fn(); }, listeners };
 }
 
-test('the scope ring lies below the reticle per the setting, the orientation and the mobile chrome', (t) => {
+test('the scope ring lies below the reticle per its position, the orientation and the mobile chrome', (t) => {
   t.after(() => { delete globalThis.matchMedia; });
   const NARROW = '(max-width: 780px)';
   const PORTRAIT = '(orientation: portrait)';
@@ -197,21 +197,68 @@ test('the scope ring lies below the reticle per the setting, the orientation and
   view = scopeView();
   assert.equal(layoutOf(view).below, false);
   view.dispose();
-  prefs.setScopeRingPosition('below');
-  view = scopeView();
+  view = scopeView({ ringPosition: 'below' });
   assert.equal(layoutOf(view).below, true);
   view.dispose();
 
   // Below applies in landscape too; Beside never moves.
   fakeMedia({ [NARROW]: true, [PORTRAIT]: false });
+  view = scopeView({ ringPosition: 'below' });
+  assert.deepEqual(layoutOf(view), { below: true, orientation: 'horizontal' });
+  view.dispose();
+  fakeMedia({ [NARROW]: true, [PORTRAIT]: true });
+  view = scopeView({ ringPosition: 'beside' });
+  assert.deepEqual(layoutOf(view), { below: false, orientation: 'vertical' });
+  view.dispose();
+
+  // The Range Solver's setting reaches only a view it is passed to: the
+  // Printable card's (no ringPosition) stays Automatic.
+  prefs.setScopeRingPosition('beside');
   view = scopeView();
   assert.deepEqual(layoutOf(view), { below: true, orientation: 'horizontal' });
   view.dispose();
-  prefs.setScopeRingPosition('beside');
-  fakeMedia({ [NARROW]: true, [PORTRAIT]: true });
-  view = scopeView();
-  assert.deepEqual(layoutOf(view), { below: false, orientation: 'vertical' });
+});
+
+test('ring hidden: no ring, the magnification over the reticle\'s top-left quadrant, pinch and wheel still zoom', async () => {
+  prefs.setScopeRingPosition('hidden');
+  assert.equal(prefs.getScopeRingPosition(), 'hidden');
+  const view = scopeView({ ringPosition: 'hidden' });
+  const ringBox = byClass(view.node, 'scope-view-ring')[0];
+  const label = byClass(view.node, 'scope-view-zoom-label')[0];
+  assert.equal(ringBox.style.display, 'none', 'hidden from the start');
+  assert.equal(label.style.display, 'none', 'no label without an optic');
+
+  view.setOptic({ scope: fixedScope({ id: 'ffp-hidden', type: 'ffp', magnificationMin: 2, fovMinRad: 0.06 }), reticle: smallReticle });
+  await settle();
+  assert.equal(ringBox.style.display, 'none', 'a variable scope keeps the ring hidden');
+  assert.equal(label.style.display, '');
+  assert.equal(label.textContent, `${view.getZoom()}×`);
+  const x = Number(label.getAttribute('x'));
+  const y = Number(label.getAttribute('y'));
+  assert.ok(x < 500 && y < 500, `top-left quadrant: ${x}, ${y}`);
+  assert.ok(Math.hypot(x - 500, y - 500) < 490, 'inside the field');
+
+  const frame = byClass(view.node, 'scope-view-frame')[0];
+  const before = view.getZoom();
+  fireEvent(frame, 'wheel', { deltaY: 100, deltaMode: 0 });
+  await settle();
+  assert.ok(view.getZoom() < before, 'the wheel zooms out from the top of the range');
+  assert.equal(label.textContent, `${view.getZoom()}×`, 'the label follows');
+
+  view.setOptic({ scope: fixedScope({ id: 'fixed-hidden' }), reticle: smallReticle });
+  await settle();
+  assert.equal(label.style.display, 'none', 'a fixed scope has no magnification to show');
   view.dispose();
+});
+
+test('ring hidden: the Settings choice is offered, labelled in every locale', async () => {
+  const hidden = prefs.SCOPE_RING_POSITION_CHOICES.find((c) => c.value === 'hidden');
+  assert.ok(hidden);
+  for (const loc of ['en', 'de', 'fr', 'it', 'ru']) {
+    const { readFileSync } = await import('node:fs');
+    const json = JSON.parse(readFileSync(new URL(`../src/locales/${loc}.json`, import.meta.url), 'utf8'));
+    assert.ok(json.settings.rangeSolverScopeRingHidden, `${loc} has the label`);
+  }
 });
 
 test('zoom ring: keys step, leave an SFP calibration snap, and stop at the ends', () => {

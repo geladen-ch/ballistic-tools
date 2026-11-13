@@ -39,7 +39,7 @@ import { computeImpact } from '../engine/trajectory.js';
 import { clicksForOffset, convertAngularValue, siToDisplay, displayToSI, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
-import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
+import { getIndicatorStyle, getOutputUnit, getScopeRingPosition } from '../range-solver-prefs.js';
 import { getFireConfig, onFireConfigChange } from '../range-solver-fire-config.js';
 import { scopeView as createScopeView } from '../ui/range-solver/scope-view.js';
 import { bdcTrajectories } from '../ui/range-solver/bdc-trajectories.js';
@@ -304,7 +304,7 @@ export function mount(container) {
   // ---- Scope view — the rifle's reticle with the shot's aiming point.
   // Shown when the configuration asks for it and the active rifle has a
   // scope with a reticle (rifle-optic.js); sized from its cell.
-  const scopeView = createScopeView({ onBdcChange: updateBdc, fitBox: true });
+  const scopeView = createScopeView({ onBdcChange: updateBdc, fitBox: true, ringPosition: getScopeRingPosition() });
   // The trajectory the BDC range labels and the wind holds read: flown for
   // the dialed target's conditions (its line-of-sight angle and the wind's
   // head- or tailwind part included) whenever either needs it and they

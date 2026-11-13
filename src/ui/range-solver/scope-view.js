@@ -16,13 +16,17 @@
 // holds on the aiming mark's level.
 //
 // The zoom ring stands beside the reticle, or lies below it so the
-// reticle gets the full width — range-solver-prefs.js's scope ring
-// position. With `fitBox` (the Range Solver's Fire! pane) the view fills
-// its own box: "Automatic" puts the ring wherever the reticle comes out
-// larger in that box, and the reticle is sized to fit it, re-decided
-// whenever the box changes. Without it (the Printable card), "Automatic"
-// means below on the mobile chrome in portrait, re-decided when the
-// orientation or the viewport width crosses that chrome's breakpoint.
+// reticle gets the full width, or is hidden — the caller's `ringPosition`:
+// the Range Solver's is its scope ring position setting
+// (range-solver-prefs.js), any other view's Automatic. With `fitBox` (the
+// Range Solver's Fire! pane) the view fills its own box: "Automatic" puts
+// the ring wherever the reticle comes out larger in that box, and the
+// reticle is sized to fit it, re-decided whenever the box changes.
+// Without it (the Printable card), "Automatic" means below on the mobile
+// chrome in portrait, re-decided when the orientation or the viewport
+// width crosses that chrome's breakpoint. Hidden leaves pinch and wheel to
+// zoom a variable scope, the magnification written over the reticle in
+// the top-left quadrant, in the reticle overlay colour.
 //
 // Zoom to reticle (fixed scopes only, reticle/reticle-zoom.js): a toggle
 // in the bottom-right corner magnifies the whole field — glass, reticle,
@@ -79,7 +83,7 @@ import {
   AIM_MODES, aimAngle, sightPicture, ringRange, settleZoom, initialZoom, zoomLabel, subtensionFactor, toReticleSubtension
 } from '../../reticle/sight-picture.js';
 import {
-  getScopeAimMode, setScopeAimMode, getScopeRingPosition, isScopeBdcOverlayOn, setScopeBdcOverlayOn,
+  getScopeAimMode, setScopeAimMode, isScopeBdcOverlayOn, setScopeBdcOverlayOn,
   isScopeHoldoverOn, setScopeHoldoverOn, isScopeWindHoldsOn, setScopeWindHoldsOn, getReticleOverlayColor, reticleOverlayHex, getReticleOverlayShape, getBdcRangeDisplay
 } from '../../range-solver-prefs.js';
 import { calloutLayout, CAP_HEIGHT, LEADER_STROKE } from './bdc-callouts.js';
@@ -158,6 +162,12 @@ const BDC_CONTROL_ZONES_PX = {
 const FALLBACK_SQUARE_PX = 560;
 // The Upwind display: the gap between a mark's hold and its range.
 const BDC_UPWIND_GAP = 6;
+// The magnification written over the reticle with the ring hidden: centred
+// on the top-left quadrant's centroid (4/(3π) of the field radius out
+// along each axis), its size and outline in drawing units.
+const ZOOM_LABEL_OFFSET = (4 / (3 * Math.PI)) * FIT_RADIUS;
+const ZOOM_LABEL_SIZE = 48;
+const ZOOM_LABEL_OUTLINE = 8;
 
 // The mobile chrome's width breakpoint (layout.css's max-width: 780px,
 // overridden either way by display-mode-prefs.js's force-mobile /
@@ -246,7 +256,7 @@ function printStyle(node, scale, inks) {
     child.removeAttribute('aria-label');
     const local = scale * transformScale(child.getAttribute('transform'));
     const haloOpacity = classes.map((c) => PRINT_HALO_OPACITY[c]).find((v) => v !== undefined) ?? PRINT_DEFAULT_HALO_OPACITY;
-    if (has('reticle-outside')) { child.remove(); continue; }
+    if (has('reticle-outside') || has('scope-view-zoom-label')) { child.remove(); continue; }
     if (has('reticle-glass')) setAttrs(child, { fill: '#ffffff', stroke: 'none' });
     else if (has('reticle-rim')) setAttrs(child, { fill: 'none', stroke: reticleInk, 'stroke-width': PRINT_RIM / local });
     else if (has('reticle-shape')) {
@@ -289,9 +299,12 @@ function printLabel(text, ink, fontFamily) {
 // `settings`: see rangeSolverScopeSettings. `aimMode`: a fixed aiming
 // mode ('hold' or 'dialElevation') with its switch left out, or null for
 // the switch. `holdover`: whether the holdover mark is offered at all.
-// `fitBox`: size the reticle and place the ring from the view's own box
-// (see the module comment).
-export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeSettings, aimMode = null, holdover = true, fitBox = false } = {}) {
+// `fitBox`: size the reticle and place the ring from the view's own box.
+// `ringPosition`: 'auto', 'beside', 'below' or 'hidden' (see the module
+// comment).
+export function scopeView({
+  onBdcChange = () => {}, settings = rangeSolverScopeSettings, aimMode = null, holdover = true, fitBox = false, ringPosition = 'auto'
+} = {}) {
   clipCounter += 1;
   const clipId = `scope-view-clip-${clipCounter}`;
   const markClipId = `scope-view-mark-clip-${clipCounter}`;
@@ -331,6 +344,13 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
   // The Callout display's numbers and leaders, free to use the square
   // outside the field.
   const calloutLayer = svgEl('g', { class: 'scope-view-bdc-callouts' });
+  // The magnification with the ring hidden; under the overlays.
+  const ringHidden = ringPosition === 'hidden';
+  const zoomLabelText = svgEl('text', {
+    class: 'scope-view-zoom-label', x: fmt(HALF - ZOOM_LABEL_OFFSET), y: fmt(HALF - ZOOM_LABEL_OFFSET + (CAP_HEIGHT * ZOOM_LABEL_SIZE) / 2),
+    'font-size': fmt(ZOOM_LABEL_SIZE), 'stroke-width': fmt(ZOOM_LABEL_OUTLINE), 'text-anchor': 'middle'
+  });
+  zoomLabelText.style.display = 'none';
   const svg = svgEl('svg', {
     viewBox: `0 0 ${SIZE} ${SIZE}`, class: 'scope-view-canvas', role: 'img', 'aria-label': t('rangeSolver.scopeView.canvasLabel')
   }, [
@@ -340,6 +360,7 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     ]),
     svgEl('circle', { class: 'reticle-outside', cx: fmt(HALF), cy: fmt(HALF), r: fmt(HALF) }),
     fieldGroup,
+    zoomLabelText,
     svgEl('g', { 'clip-path': `url(#${markClipId})` }, [bdcLayer, markLayer]),
     calloutLayer,
     arrowLayer
@@ -432,6 +453,7 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     onInput: setZoom
   });
   const ringBox = el('div', { class: 'scope-view-ring' }, [ring.node, zoomValue]);
+  if (ringHidden) ringBox.style.display = 'none';
 
   // Pinch and wheel (see the module comment). What they zoom: its value,
   // its limits, how a candidate settles, how it is applied — or null.
@@ -491,7 +513,6 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
   const main = el('div', { class: 'scope-view-main' }, [sight, ringBox]);
   const node = el('div', { class: 'scope-view' }, [main, bar]);
 
-  const ringPosition = getScopeRingPosition();
   const narrowQuery = fitBox ? null : mediaQuery(NARROW_QUERY);
   const portraitQuery = fitBox ? null : mediaQuery(PORTRAIT_QUERY);
   function setRingBelow(below) {
@@ -521,8 +542,10 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     if (!width || !height) return;
     const barH = bar.getBoundingClientRect().height;
     const h = height - barH - (barH ? 10 : 0);
-    const beside = Math.min(width - CORNER_PX - RING_BESIDE_PX, h - CORNER_PX);
-    const belowSide = Math.min(width - CORNER_PX, h - CORNER_PX - RING_BELOW_PX);
+    const ringBesidePx = ringHidden ? 0 : RING_BESIDE_PX;
+    const ringBelowPx = ringHidden ? 0 : RING_BELOW_PX;
+    const beside = Math.min(width - CORNER_PX - ringBesidePx, h - CORNER_PX);
+    const belowSide = Math.min(width - CORNER_PX, h - CORNER_PX - ringBelowPx);
     const below = ringPosition === 'below' || (ringPosition === 'auto' && belowSide > beside);
     const side = Math.max(80, Math.floor(Math.min(MAX_SIDE_PX, below ? belowSide : beside)));
     setRingBelow(below);
@@ -861,9 +884,11 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     renderOverlayToggles();
     svg.setAttribute('aria-label', t('rangeSolver.scopeView.canvasLabel'));
     const magnification = renderReticleZoom();
+    zoomLabelText.style.display = ringHidden && optic?.range ? '' : 'none';
     if (!optic) {
       zoomGroup.setAttribute('transform', '');
       zoomValue.textContent = '';
+      zoomLabelText.textContent = '';
       sfpNote.textContent = '';
       return;
     }
@@ -872,6 +897,7 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     zoomGroup.setAttribute('transform', scaleTransform(k * optic.buildRadius / FIT_RADIUS));
 
     zoomValue.textContent = zoomLabel(zoom);
+    zoomLabelText.textContent = zoomLabel(zoom);
     const factor = subtensionFactor(optics, zoom);
     sfpNote.textContent = Math.abs(factor - 1) > 1e-6
       ? t('rangeSolver.scopeView.sfpScale', { factor: String(Number(factor.toFixed(2))) })
@@ -937,7 +963,7 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     zoom = settleZoom(optics, Number.isFinite(remembered) ? remembered : initialZoom(optics));
     buildReticle();
     ring.setRing(optics, range, (z) => settleZoom(optics, z), zoom);
-    ringBox.style.display = range ? '' : 'none';
+    ringBox.style.display = range && !ringHidden ? '' : 'none';
     render();
   }
 
