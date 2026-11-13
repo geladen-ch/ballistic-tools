@@ -1662,6 +1662,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v249": "Novità: profonda revisione e semplificazione dell’interfaccia del Calcolatore per il poligono, personalizzabile per mostrare solo ciò che serve, con selezione rapida di fucili e postazioni.",
       "v248": "Novità: selezione della postazione più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea).",
       "v247": "Novità: selezione dell'arma più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea). Piccole correzioni all'interfaccia.",
       "v246": "Novità: suggerimenti per gli utenti iOS di Apple su come evitare di perdere i dati (Apple, come al solito, si comporta come se sapesse meglio dei suoi utenti quali dati servono loro).",

@@ -1662,6 +1662,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v249": "Neu: grosse Überarbeitung und Straffung der Oberfläche des Feldrechners, anpassbar, damit nur das Nötige angezeigt wird, und mit schneller Auswahl von Gewehren und Standorten.",
       "v248": "Neu: einfachere Standortauswahl im Feldrechner-Modus (danke an Stéphane E für die Idee).",
       "v247": "Neu: einfachere Waffenauswahl im Feldrechner-Modus (danke an Stéphane E für die Idee). Kleine Korrekturen an der Oberfläche.",
       "v246": "Neu: Hinweise für Apple-iOS-Nutzer, wie sie Datenverlust vermeiden (Apple tut wie üblich so, als wüsste es besser, welche Daten seine Nutzer brauchen).",

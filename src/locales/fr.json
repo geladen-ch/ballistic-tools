@@ -1662,6 +1662,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v249": "Nouveau : refonte majeure et simplification de l’interface du Calculateur de terrain, personnalisable pour n’afficher que l’essentiel, avec sélection rapide des carabines et des emplacements.",
       "v248": "Nouveau : sélection de l'emplacement simplifiée en mode Calculateur de terrain (merci à Stéphane E pour l'idée).",
       "v247": "Nouveau : sélection de l'arme simplifiée en mode Calculateur de terrain (merci à Stéphane E pour l'idée). Petites corrections de l'interface.",
       "v246": "Nouveau : conseils aux utilisateurs d'iOS d'Apple pour éviter de perdre leurs données (Apple, comme d'habitude, fait comme s'il savait mieux que ses utilisateurs de quelles données ils ont besoin).",
