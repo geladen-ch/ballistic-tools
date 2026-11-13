@@ -800,7 +800,9 @@ html.range-solver-mode.range-solver-fire-active #view {
 .scope-view { --scope-mark: #D55E00; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .scope-view-main { display: flex; justify-content: center; gap: 10px; min-height: 0; }
 .scope-view-sight { width: min(calc(100% - 76px), 520px); min-width: 0; min-height: 0; }
-.scope-view-frame { position: relative; }
+/* touch-action: none over the corner controls too, so a pinch with a
+   finger on one still reaches the view's own pinch zoom. */
+.scope-view-frame { position: relative; touch-action: none; }
 .scope-view-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; touch-action: none; }
 /* Clear of the field circle down to a square about 160 px across. */
 .scope-view-corner { position: absolute; top: -6px; right: -6px; }

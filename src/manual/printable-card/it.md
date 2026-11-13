@@ -82,7 +82,7 @@ Scegli un vento facile da riproporzionare a mente. La sezione 6.3 mostra come.
 
 **Reticolo.** Se l'arma ha nell'Arsenale un'ottica con reticolo, **Reticolo e BDC** stampa quel reticolo sulla scheda, con le sue tacche BDC (dall'inglese «Bullet Drop Compensation», cioè «compensazione della caduta del proiettile»; in parole povere, segni di correzione a reticolo) se ne ha. Sotto la casella compare una vista cannocchiale. Funziona come quella del Calcolatore per il poligono, e ciò che mostra è ciò che la scheda stampa:
 
-- L'**anello degli ingrandimenti** imposta l'ingrandimento, e **Zoom sul reticolo** ingrandisce la vista di un cannocchiale a ingrandimento fisso.
+- L'**anello degli ingrandimenti** imposta l'ingrandimento, e **Zoom sul reticolo** ingrandisce la vista di un cannocchiale a ingrandimento fisso; un pizzico a due dita o la rotellina del mouse sopra il reticolo agiscono su entrambi.
 - Le **Distanze BDC** indicano su ogni tacca BDC la distanza a cui corrisponde, nelle condizioni di riferimento della scheda, senza vento e in piano.
 - Le **Correzioni per il vento** segnano una correzione a reticolo per ogni quarto del vento laterale della scheda, fino a una volta e mezza, da entrambi i lati. Il vento laterale pieno ha il segno più grande.
 

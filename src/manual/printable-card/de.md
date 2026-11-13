@@ -82,7 +82,7 @@ Wählen Sie einen Wind, den Sie im Kopf leicht umrechnen. Wie, zeigt Abschnitt 6
 
 **Absehen.** Hat die Waffe im Arsenal ein Zielfernrohr mit Absehen, druckt **Absehen und BDC** dieses Absehen auf die Karte, mit seinen BDC-Marken (aus dem Englischen «Bullet Drop Compensation», also «Ausgleich des Geschossabfalls»; einfach gesagt Haltemarken), falls es welche hat. Unter dem Kontrollkästchen erscheint eine Zielfernrohransicht. Sie funktioniert wie die des Feldrechners, und was sie zeigt, druckt die Karte:
 
-- Der **Vergrößerungsring** stellt die Vergrößerung ein, und **Auf Absehen zoomen** vergrößert die Ansicht eines Zielfernrohrs mit fester Vergrößerung.
+- Der **Vergrößerungsring** stellt die Vergrößerung ein, und **Auf Absehen zoomen** vergrößert die Ansicht eines Zielfernrohrs mit fester Vergrößerung; zwei Finger oder das Mausrad über dem Absehen wirken auf beides.
 - Die **BDC-Distanzen** beschriften jede BDC-Marke mit der Distanz, für die sie gilt, unter den Referenzbedingungen der Karte, bei Windstille und waagrecht.
 - Die **Windhaltepunkte** markieren einen Haltepunkt für jedes Viertel des Seitenwinds der Karte, bis zum Anderthalbfachen, nach beiden Seiten. Der volle Seitenwind hat die größere Marke.
 

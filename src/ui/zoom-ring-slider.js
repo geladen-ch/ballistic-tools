@@ -10,7 +10,8 @@ import { zoomTicks, zoomLabel } from '../reticle/sight-picture.js';
 // right; setOrientation() switches between them in place.
 //
 // `settle(zoom)` clamps and snaps a candidate zoom (sightPicture's
-// settleZoom for the scope); `onInput(zoom)` gets every settled change.
+// settleZoom for the scope); `onInput(zoom)` gets every settled change
+// made on the ring, setValue() shows one made elsewhere.
 // Nothing here is rebuilt during a drag — only the thumb and aria values
 // move.
 const KEY_STEP = 0.1;
@@ -170,6 +171,14 @@ export function zoomRingSlider({ orientation = 'horizontal', label = '', onInput
     renderValue();
   }
 
+  // Shows `zoom` (settled) set elsewhere — a pinch or the wheel over the
+  // view — without calling onInput.
+  function setValue(zoom) {
+    if (!range || !Number.isFinite(zoom)) return;
+    value = settle(zoom);
+    renderValue();
+  }
+
   function setOrientation(next) {
     if (next !== 'horizontal' && next !== 'vertical') return;
     if (next === orientation) return;
@@ -184,6 +193,7 @@ export function zoomRingSlider({ orientation = 'horizontal', label = '', onInput
   return {
     node,
     setRing,
+    setValue,
     setOrientation,
     getOrientation: () => orientation,
     getValue: () => value,

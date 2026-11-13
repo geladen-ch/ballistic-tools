@@ -194,6 +194,7 @@ const APP_SHELL_URLS = [
   './src/ui/column-toggles.js',
   './src/ui/zoom-range-slider.js',
   './src/ui/zoom-ring-slider.js',
+  './src/ui/zoom-gestures.js',
   './src/ui/wind-direction-dial.js',
   './src/ui/inline-number-field.js',
   './src/ui/wind-control.js',

@@ -82,7 +82,7 @@ Choisissez un vent facile à recalculer de tête. La section 6.3 montre comment.
 
 **Réticule.** Si l'arme a une lunette avec réticule dans l'Arsenal, **Réticule et BDC** imprime ce réticule sur la fiche, avec ses repères BDC (de l'anglais « Bullet Drop Compensation », c'est-à-dire « compensation de la chute de la balle » ; en clair, des repères de contre-visée) s'il en a. Une vue lunette apparaît sous la case à cocher. Elle fonctionne comme celle du Calculateur de terrain, et ce qu'elle montre est ce que la fiche imprime :
 
-- La **bague de grossissement** règle le grossissement, et **Zoomer sur le réticule** agrandit la vue d'une lunette à grossissement fixe.
+- La **bague de grossissement** règle le grossissement, et **Zoomer sur le réticule** agrandit la vue d'une lunette à grossissement fixe ; un pincement à deux doigts ou la molette de la souris au-dessus du réticule agit sur l'un comme sur l'autre.
 - Les **Distances BDC** inscrivent sur chaque repère BDC la distance à laquelle il correspond, dans les conditions de référence de la fiche, sans vent et à plat.
 - Les **Corrections de vent** marquent une contre-visée pour chaque quart du vent latéral de la fiche, jusqu'à une fois et demie celui-ci, des deux côtés. Le vent latéral complet a le plus gros repère.
 

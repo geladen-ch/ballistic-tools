@@ -31,6 +31,12 @@
 // may grow past the square. The aiming mark and the off-field arrow keep
 // their size.
 //
+// Pinch and wheel over the square (zoom-gestures.js) zoom as the controls
+// do and within their limits, always about the centre: a variable scope's
+// ring, or a fixed scope's zoom to reticle while it is on; otherwise they
+// are left to the page. A pinch scales the zoom; the wheel adds a tenth a
+// notch at every zoom, stopping on any whole zoom it would jump over.
+//
 // Overlays, three toggles in a row in the bottom-left corner, each
 // remembered (range-solver-prefs.js):
 // - Holdover mark: the aiming mark, and the off-field arrow standing in
@@ -82,6 +88,7 @@ import { displayChoice, toDisplayUnit } from '../../display-units.js';
 import { ILLUMINATION_COLOURS } from '../../reticle/model.js';
 import { reticleElementLayer, illuminationClass } from '../reticle-scene.js';
 import { zoomRingSlider } from '../zoom-ring-slider.js';
+import { zoomGestures, wheelStepZoom } from '../zoom-gestures.js';
 import {
   reticleZoomExtent, reticleZoomFit, stepReticleZoom, RETICLE_ZOOM_MIN, RETICLE_ZOOM_MAX
 } from '../../reticle/reticle-zoom.js';
@@ -413,16 +420,52 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
   const sight = el('div', { class: 'scope-view-sight' }, [square]);
 
   const zoomValue = el('span', { class: 'scope-view-zoom-value' });
+  function setZoom(z) {
+    zoom = z;
+    ring.setValue(z);
+    if (optic) settings.setZoomFor(optic.scope.id, z);
+    scheduleRender();
+  }
   const ring = zoomRingSlider({
     orientation: 'vertical',
     label: t('rangeSolver.scopeView.zoomLabel'),
-    onInput: (z) => {
-      zoom = z;
-      if (optic) settings.setZoomFor(optic.scope.id, z);
-      scheduleRender();
-    }
+    onInput: setZoom
   });
   const ringBox = el('div', { class: 'scope-view-ring' }, [ring.node, zoomValue]);
+
+  // Pinch and wheel (see the module comment). What they zoom: its value,
+  // its limits, how a candidate settles, how it is applied — or null.
+  function gestureTarget() {
+    if (!optic) return null;
+    if (optic.range) return { value: zoom, range: optic.range, settle: (z) => settleZoom(optic.optics, z), apply: setZoom };
+    if (!optic.reticleZoomFit || !reticleZoomOn) return null;
+    return {
+      value: reticleZoom, range: [RETICLE_ZOOM_MIN, RETICLE_ZOOM_MAX], settle: (z) => z,
+      apply: (z) => { reticleZoom = z; rememberReticleZoom(); }
+    };
+  }
+  // A pinch's steps multiply up an unsettled zoom, so the ring's SFP
+  // calibration snap holds a slow pinch only within its band, never for
+  // good. It restarts from the shown zoom whenever that was set some other
+  // way. The wheel steps linearly from the shown zoom (wheelStepZoom).
+  let gestureZoom = NaN;
+  zoomGestures(square, {
+    canZoom: () => !!gestureTarget(),
+    onZoom: (factor) => {
+      const target = gestureTarget();
+      if (!target) return;
+      if (target.settle(gestureZoom) !== target.value) gestureZoom = target.value;
+      gestureZoom = Math.min(target.range[1], Math.max(target.range[0], gestureZoom * factor));
+      const next = target.settle(gestureZoom);
+      if (next !== target.value) target.apply(next);
+    },
+    onStep: (delta) => {
+      const target = gestureTarget();
+      if (!target) return;
+      const next = wheelStepZoom(target.value, delta, target);
+      if (next !== target.value) target.apply(next);
+    }
+  });
 
   const sfpNote = el('span', { class: 'scope-view-sfp-note' });
   // Icon-only, the mode's name as the tooltip and accessible name.

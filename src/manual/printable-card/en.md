@@ -82,7 +82,7 @@ Choose a wind that is easy to scale in your head. Section 6.3 shows how.
 
 **Reticle.** If the rifle has a scope with a reticle in the Arsenal, **Reticle and BDC** prints that reticle on the card, with its BDC (Bullet Drop Compensation) marks if it has any. A scope view appears under the checkbox. It works like the one in Range Solver, and what it shows is what the card prints:
 
-- The **zoom ring** sets the magnification, and **zoom to reticle** enlarges a fixed scope's view.
+- The **zoom ring** sets the magnification, and **zoom to reticle** enlarges a fixed scope's view; a two-finger pinch or the mouse wheel over the reticle works for either.
 - **BDC range labels** label each BDC mark with the range it holds for, under the card's reference conditions, in still air and on the level.
 - **Wind holds** mark a hold for every quarter of the card's crosswind, up to one and a half times it, from either side. The full crosswind is the larger mark.
 

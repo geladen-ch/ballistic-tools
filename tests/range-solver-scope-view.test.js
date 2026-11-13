@@ -23,7 +23,8 @@ const { fieldOfViewAngle, mradToRad } = await import('../src/quantity.js');
 const { resetUnits } = await import('../src/prefs.js');
 const { resolveRifleOptic, rifleOpticKey } = await import('../src/rifle-optic.js');
 const { zoomRingSlider } = await import('../src/ui/zoom-ring-slider.js');
-const { scopeView } = await import('../src/ui/range-solver/scope-view.js');
+const { scopeView, rangeSolverScopeSettings } = await import('../src/ui/range-solver/scope-view.js');
+const { wheelZoomDelta, pinchWheelFactor, wheelStepZoom } = await import('../src/ui/zoom-gestures.js');
 const { settleZoom } = await import('../src/reticle/sight-picture.js');
 const rangeSolverView = await import('../src/views/range-solver-view.js');
 const { setFireConfig, resetFireConfigForTests } = await import('../src/range-solver-fire-config.js');
@@ -540,6 +541,121 @@ test('zoom to reticle: any fixed scope, not variable ones; a full reticle opens 
   assert.equal(view.getReticleZoom(), 1, 'another scope starts off');
   view.setOptic({ scope: fixedScope({ id: 'fixed-3' }), reticle: bars });
   assert.equal(view.getReticleZoom(), 5, 'and the first is remembered');
+  view.dispose();
+});
+
+// A wheel event over the square: whether its default (the page's scroll)
+// was prevented.
+function wheel(node, deltaY, extra = {}) {
+  let prevented = false;
+  fireEvent(node, 'wheel', { deltaY, deltaMode: 0, preventDefault: () => { prevented = true; }, ...extra });
+  return prevented;
+}
+function pinch(node, from, to) {
+  fireEvent(node, 'pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 100, clientY: 100 });
+  fireEvent(node, 'pointerdown', { pointerId: 2, pointerType: 'touch', clientX: 100 + from, clientY: 100 });
+  fireEvent(node, 'pointermove', { pointerId: 2, pointerType: 'touch', clientX: 100 + to, clientY: 100 });
+  fireEvent(node, 'pointerup', { pointerId: 2 });
+  fireEvent(node, 'pointerup', { pointerId: 1 });
+}
+
+test('wheel: a tenth a notch, away zooming in; lines and pages count as px; a flick is capped; a trackpad pinch scales', () => {
+  const near = (a, b) => Math.abs(a - b) < 1e-12;
+  assert.ok(near(wheelZoomDelta({ deltaY: -100 }), 0.1));
+  assert.ok(near(wheelZoomDelta({ deltaY: 100 }), -0.1));
+  assert.ok(near(wheelZoomDelta({ deltaY: -25 }), 0.025), 'a smaller delta in proportion');
+  assert.ok(near(wheelZoomDelta({ deltaY: 3, deltaMode: 1 }), -0.1), 'three lines: a notch');
+  assert.ok(near(wheelZoomDelta({ deltaY: 1, deltaMode: 2 }), -0.2), 'a page: capped');
+  assert.ok(near(wheelZoomDelta({ deltaY: -5000 }), 0.2), 'a flick: capped');
+  assert.equal(wheelZoomDelta({ deltaY: 0 }), 0);
+  assert.ok(pinchWheelFactor({ deltaY: -10, ctrlKey: true }) > 1.1 && pinchWheelFactor({ deltaY: 10, ctrlKey: true }) < 1);
+});
+
+test('wheel steps: linear, stopping on a whole zoom they would jump over, at the ends, and off a snap', () => {
+  const range = [3.995, 16];
+  const near = (a, b) => Math.abs(a - b) < 1e-9;
+  assert.ok(near(wheelStepZoom(4.2, 0.1, { range }), 4.3));
+  assert.ok(near(wheelStepZoom(9.2, 0.1, { range }), 9.3), 'the same step at any zoom');
+  assert.equal(wheelStepZoom(9.97, 0.1, { range }), 10, 'a whole zoom jumped over is where it stops');
+  assert.equal(wheelStepZoom(10.03, -0.1, { range }), 10);
+  assert.ok(near(wheelStepZoom(10, 0.1, { range }), 10.1), 'and it leaves it again');
+  assert.equal(wheelStepZoom(9, 0.1, { range }) > 9, true);
+  let z = 4;
+  for (let i = 0; i < 10; i++) z = wheelStepZoom(z, 0.1, { range });
+  assert.equal(z, 5, 'ten notches from a whole zoom land on the next, no float drift');
+  assert.equal(wheelStepZoom(15.95, 0.1, { range }), 16);
+  assert.equal(wheelStepZoom(4.05, -0.1, { range }), 4, 'a whole zoom first');
+  assert.equal(wheelStepZoom(4, -0.1, { range }), 3.995, 'then the range\'s end');
+  const optics = { type: 'sfp', zoomMin: 3.995, zoomMax: 16, calibrationZoom: 10 };
+  const settle = (v) => settleZoom(optics, v);
+  assert.ok(near(wheelStepZoom(10, 0.1, { range, settle }), 10.6), 'a notch leaves the calibration snap');
+  assert.equal(wheelStepZoom(10.6, -0.1, { range, settle }), 10, 'and one back falls into it');
+  assert.equal(wheelStepZoom(8, 0.5, { range: null }), 8, 'nothing to step');
+});
+
+test('pinch and wheel zoom a variable scope\'s ring, within its range, past an SFP calibration snap, the ring following', () => {
+  const view = scopeView();
+  const square = byClass(view.node, 'scope-view-frame')[0];
+  const ringNode = byClass(view.node, 'zoom-ring')[0];
+  assert.equal(wheel(square, -100), false, 'without an optic the page scrolls');
+  const sfp = fixedScope({
+    id: 'sfp-1', type: 'sfp', magnificationMin: 4, magnificationMax: 16, fovMinRad: 0.03, calibrationZoom: 10
+  });
+  view.setOptic({ scope: sfp, reticle: smallReticle });
+  assert.equal(view.getZoom(), 10);
+
+  assert.equal(wheel(square, -100), true);
+  assert.ok(Math.abs(view.getZoom() - 10.6) < 1e-9, `a notch leaves the snap: ${view.getZoom()}`);
+  wheel(square, -100);
+  assert.ok(Math.abs(view.getZoom() - 10.7) < 1e-9, 'then a tenth a notch');
+  assert.equal(ringNode.getAttribute('aria-valuenow'), '10.70', 'the ring follows');
+  assert.equal(rangeSolverScopeSettings.zoomFor('sfp-1'), view.getZoom(), 'and it is remembered');
+  for (let i = 0; i < 3; i++) wheel(square, -100);
+  assert.equal(view.getZoom(), 11, 'stopping on a whole zoom');
+
+  const [lo, hi] = ['aria-valuemin', 'aria-valuemax'].map((name) => Number(ringNode.getAttribute(name)));
+  for (let i = 0; i < 100; i++) wheel(square, -100);
+  assert.equal(view.getZoom().toFixed(2), hi.toFixed(2), 'the ring\'s top');
+  wheel(square, 100);
+  assert.ok(Math.abs(view.getZoom() - (hi - 0.1)) < 1e-9, 'and straight back down, a notch at a time');
+  for (let i = 0; i < 200; i++) wheel(square, 100);
+  assert.equal(view.getZoom().toFixed(2), lo.toFixed(2), 'the ring\'s bottom');
+  const bottom = view.getZoom();
+
+  pinch(square, 100, 200);
+  assert.ok(Math.abs(view.getZoom() - 2 * bottom) < 1e-9, 'spreading two fingers twice as far doubles it');
+  pinch(square, 100, 25);
+  assert.equal(view.getZoom(), bottom);
+  pinch(square, 100, 1000);
+  assert.equal(view.getZoom().toFixed(2), hi.toFixed(2));
+  view.dispose();
+});
+
+test('pinch and wheel zoom a fixed scope only in zoom to reticle, within its range', async () => {
+  const view = scopeView();
+  const square = byClass(view.node, 'scope-view-frame')[0];
+  const button = byClass(view.node, 'scope-view-reticle-zoom-toggle')[0];
+  view.setOptic({ scope: fixedScope({ id: 'fixed-gesture' }), reticle: smallReticle });
+  assert.equal(wheel(square, -100), false, 'zoom to reticle off: the page scrolls');
+  pinch(square, 100, 200);
+  assert.equal(view.getZoom(), 4);
+  assert.equal(view.getReticleZoom(), 1);
+
+  fireEvent(button, 'click');
+  assert.equal(view.getReticleZoom(), 4.5);
+  pinch(square, 100, 200);
+  assert.ok(Math.abs(view.getReticleZoom() - 9) < 1e-9);
+  assert.equal(view.getZoom(), 4, 'the scope\'s own power stays');
+  assert.equal(wheel(square, -100), true);
+  assert.ok(Math.abs(view.getReticleZoom() - 9.1) < 1e-9, 'a tenth a notch');
+  for (let i = 0; i < 10; i++) wheel(square, -100);
+  assert.equal(view.getReticleZoom(), 10);
+  for (let i = 0; i < 100; i++) wheel(square, 100);
+  assert.equal(view.getReticleZoom(), 1);
+  await settle();
+  const field = byClass(view.node, 'scope-view-field')[0];
+  assert.equal(field.getAttribute('transform') || '', '');
+  assert.deepEqual(rangeSolverScopeSettings.reticleZoomFor('fixed-gesture'), { on: true, zoom: 1 });
   view.dispose();
 });
 
