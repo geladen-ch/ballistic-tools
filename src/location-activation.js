@@ -3,9 +3,9 @@
 // location modal (ui/range-solver/location-picker.js), so neither can drift
 // from the other in what "active" means.
 //
-// Activation lands on the location's first target and seeds the Target
-// tab's range/LoS slice with that target's values, exactly as if it had
-// been picked from the Target tab's own selector — otherwise the solver
+// Activation lands on the location's first target and seeds the solver's
+// range/LoS slice with that target's values, exactly as if it had been
+// selected in the Fire! pane's targets list — otherwise the solver
 // would show whatever was left over from before and immediately flag a
 // false "diverged from the target" state that was never really an edit.
 // A location with an altitude also defaults the atmosphere (below).

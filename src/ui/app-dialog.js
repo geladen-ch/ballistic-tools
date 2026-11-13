@@ -46,8 +46,12 @@ function hide() {
 // `message` (a plain string, wrapped in a <p>) and `bodyNode` (a fully
 // caller-built DOM node, e.g. a scrollable list of rows) are mutually
 // exclusive — pass exactly one. `wide: true` widens/heightens the card for
-// list content; plain message dialogs never need it.
-export function showDialog({ message, bodyNode, buttons, wide = false }) {
+// list content; plain message dialogs never need it. `size: 'fill'` lets
+// the card use the whole screen (up to 980 px wide) and makes it a grid
+// its body's children take part in directly (the body is display:
+// contents) — the Range Solver's Layout dialog, which places a preview
+// beside its controls in landscape.
+export function showDialog({ message, bodyNode, buttons, wide = false, size = null }) {
   clear(bodyEl);
   bodyEl.appendChild(bodyNode || el('p', { class: 'app-dialog-message', text: message }));
   clear(actionsEl);
@@ -61,6 +65,8 @@ export function showDialog({ message, bodyNode, buttons, wide = false }) {
     actionsEl.appendChild(button);
   });
   card.classList.toggle('app-dialog-card-wide', wide);
+  card.classList.toggle('app-dialog-card-fill', size === 'fill');
+  overlay.classList.toggle('app-dialog-overlay-fill', size === 'fill');
   overlay.style.display = '';
 }
 

@@ -484,9 +484,10 @@
     }
   },
   "rangeSolver": {
-    "navTarget": "Cible",
-    "navRangeCard": "Fiche de tir",
     "navAtmosphere": "Atmosphère",
+    "navFire": "Feu !",
+    "navLocation": "Emplacement",
+    "navConfiguration": "Affichage",
     "exitSolver": "Quitter le calculateur",
     "gunPicker": {
       "title": "Choisir une carabine",
@@ -497,7 +498,6 @@
       "emptyHint": "Votre Arsenal ne contient encore aucune carabine avec une cartouche — ajoutez-en une via « Gérer l'Arsenal »."
     },
     "locationPicker": {
-      "buttonLabel": "Choisir un emplacement",
       "title": "Choisir un emplacement",
       "manageLocations": "Gérer les emplacements",
       "cancel": "Annuler",
@@ -511,13 +511,8 @@
     "velocityLabel": "Vitesse",
     "energyLabel": "Énergie",
     "secondsUnit": "s",
-    "rangeCardNoLocationHint": "Appuyez sur l'icône d'emplacement ci-dessus pour choisir un emplacement et voir sa fiche de tir.",
-    "rangeCardNoTargetsHint": "Ce lieu n'a pas encore de cibles — ajoutez-en depuis le gestionnaire de lieux.",
-    "rangeCardNoPhotoHint": "Ajoutez une photo à ce lieu pour choisir les cibles visuellement ici.",
     "rangeCardRangeHeader": "Distance",
-    "rangeCardRowCountLabel": "Lignes",
     "scopeView": {
-      "toggle": "Vue lunette",
       "canvasLabel": "Réticule avec le point de visée",
       "zoomLabel": "Grossissement",
       "modeLabel": "Point de visée",
@@ -536,6 +531,45 @@
       "bdcOverlay": "Distances BDC",
       "windHolds": "Corrections de vent",
       "bdcReferenceWind": "Vent de travers de référence : {{value}}"
+    },
+    "fireConfig": {
+      "title": "Affichage",
+      "intro": "Ce que le volet Feu ! montre sur cet écran.",
+      "elements": {
+        "gun": "Arme",
+        "context": "Emplacement · météo",
+        "scope": "Vue lunette",
+        "readout": "Corrections",
+        "flight": "Données de vol",
+        "manual": "Distance · site",
+        "manualWithPicture": "Distance · site · icône photo",
+        "list": "Liste des cibles",
+        "wind": "Vent",
+        "picker": "Cibles sur photo"
+      },
+      "optional": "Facultatif",
+      "notShown": "Non affiché",
+      "off": "Désactivé",
+      "screenBottom": "Bas de l’écran",
+      "hints": {
+        "noOptic": "L’arme active n’a pas de lunette avec réticule.",
+        "noLocation": "Aucun emplacement avec des cibles n’est actif.",
+        "noPhoto": "L’emplacement actif n’a pas de photo.",
+        "readoutOff": "Désactivé : seules les lignes choisies dans la liste affichent les corrections ; une cible saisie à la main n’en affiche aucune."
+      },
+      "rowsHeading": "Lignes de la liste des cibles",
+      "fewerRows": "Moins de lignes",
+      "moreRows": "Plus de lignes",
+      "optimalFit": "Ajustement optimal",
+      "optimalFitHint": "Autant de lignes que l’écran en contient.",
+      "fixedRowsHint": "Nombre de lignes fixe.",
+      "listOffHint": "La liste des cibles est désactivée.",
+      "losHeading": "Angle de site",
+      "ignoreLos": "Ignorer les angles de site",
+      "ignoreLosHint": "Masque le champ de l’angle de site et calcule chaque tir à l’horizontale.",
+      "losBlockedHint": "Une cible de cet emplacement a un angle de site de 5° ou plus.",
+      "ok": "OK",
+      "cancel": "Annuler"
     }
   },
   "rangeSolverLocations": {
@@ -597,7 +631,6 @@
     "importFileErrorInvalidJson": "Ce fichier n'est pas un JSON valide.",
     "importFileErrorInvalidFormat": "Ce fichier n'est pas un export reconnu de la bibliothèque d'emplacements.",
     "importFileErrorNewerVersion": "Ce fichier a été enregistré par une version plus récente de l'application. Mettez l'application à jour, puis réessayez.",
-    "manualEntryOption": "Saisie manuelle",
     "photoPickerButtonLabel": "Choisir la cible sur la photo",
     "zoomInButton": "Zoom avant",
     "zoomOutButton": "Zoom arrière",

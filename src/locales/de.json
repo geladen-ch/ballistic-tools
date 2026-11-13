@@ -484,10 +484,11 @@
     }
   },
   "rangeSolver": {
-    "navTarget": "Ziel",
-    "navRangeCard": "Schusskarte",
     "navAtmosphere": "Atmosphäre",
-    "exitSolver": "Feldrechner verlassen",
+    "navFire": "Feuer!",
+    "navLocation": "Standort",
+    "navConfiguration": "Anzeige",
+    "exitSolver": "Beenden",
     "gunPicker": {
       "title": "Gewehr wählen",
       "manageArsenal": "Arsenal verwalten",
@@ -497,7 +498,6 @@
       "emptyHint": "Ihr Arsenal enthält noch kein Gewehr mit Patrone — legen Sie über „Arsenal verwalten“ eines an."
     },
     "locationPicker": {
-      "buttonLabel": "Standort wählen",
       "title": "Standort wählen",
       "manageLocations": "Standorte verwalten",
       "cancel": "Abbrechen",
@@ -511,13 +511,8 @@
     "velocityLabel": "Geschwindigkeit",
     "energyLabel": "Energie",
     "secondsUnit": "s",
-    "rangeCardNoLocationHint": "Tippen Sie oben auf das Standort-Symbol, um einen Standort auszuwählen und dessen Schusskarte zu sehen.",
-    "rangeCardNoTargetsHint": "Für diesen Standort sind noch keine Ziele vorhanden — fügen Sie welche in der Standortverwaltung hinzu.",
-    "rangeCardNoPhotoHint": "Fügen Sie diesem Standort ein Foto hinzu, um Ziele hier visuell auszuwählen.",
     "rangeCardRangeHeader": "Entfernung",
-    "rangeCardRowCountLabel": "Zeilen",
     "scopeView": {
-      "toggle": "Zielfernrohransicht",
       "canvasLabel": "Absehen mit Haltepunkt",
       "zoomLabel": "Vergrösserung",
       "modeLabel": "Haltepunkt",
@@ -536,6 +531,45 @@
       "bdcOverlay": "BDC-Distanzen",
       "windHolds": "Windhaltepunkte",
       "bdcReferenceWind": "Referenz-Seitenwind: {{value}}"
+    },
+    "fireConfig": {
+      "title": "Anzeige",
+      "intro": "Was der Feuer!-Bereich auf diesem Bildschirm zeigt.",
+      "elements": {
+        "gun": "Waffe",
+        "context": "Standort · Wetter",
+        "scope": "Zielfernrohransicht",
+        "readout": "Korrekturen",
+        "flight": "Flugdaten",
+        "manual": "Distanz · Winkel",
+        "manualWithPicture": "Distanz · Winkel · Fotosymbol",
+        "list": "Zielliste",
+        "wind": "Wind",
+        "picker": "Fotoziele"
+      },
+      "optional": "Optional",
+      "notShown": "Nicht angezeigt",
+      "off": "Aus",
+      "screenBottom": "Bildschirmende",
+      "hints": {
+        "noOptic": "Die aktive Waffe hat kein Zielfernrohr mit Absehen.",
+        "noLocation": "Kein Standort mit Zielen ist aktiv.",
+        "noPhoto": "Der aktive Standort hat kein Foto.",
+        "readoutOff": "Aus: Korrekturen zeigt nur eine gewählte Zeile der Zielliste; ein von Hand eingegebenes Ziel zeigt keine."
+      },
+      "rowsHeading": "Zeilen in der Zielliste",
+      "fewerRows": "Weniger Zeilen",
+      "moreRows": "Mehr Zeilen",
+      "optimalFit": "Optimal anpassen",
+      "optimalFitHint": "So viele Zeilen, wie auf den Bildschirm passen.",
+      "fixedRowsHint": "Feste Anzahl Zeilen.",
+      "listOffHint": "Die Zielliste ist aus.",
+      "losHeading": "Schusswinkel",
+      "ignoreLos": "Schusswinkel ignorieren",
+      "ignoreLosHint": "Blendet das Feld für den Schusswinkel aus und rechnet jeden Schuss waagrecht.",
+      "losBlockedHint": "Ein Ziel an diesem Standort hat einen Schusswinkel von 5° oder mehr.",
+      "ok": "OK",
+      "cancel": "Abbrechen"
     }
   },
   "rangeSolverLocations": {
@@ -597,7 +631,6 @@
     "importFileErrorInvalidJson": "Diese Datei ist kein gültiges JSON.",
     "importFileErrorInvalidFormat": "Diese Datei ist kein erkannter Export der Standorte-Bibliothek.",
     "importFileErrorNewerVersion": "Diese Datei wurde mit einer neueren Version der App gespeichert. Aktualisieren Sie die App und versuchen Sie es dann erneut.",
-    "manualEntryOption": "Manuelle Eingabe",
     "photoPickerButtonLabel": "Ziel per Foto auswählen",
     "zoomInButton": "Vergrößern",
     "zoomOutButton": "Verkleinern",

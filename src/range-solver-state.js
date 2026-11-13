@@ -1,4 +1,4 @@
-// Persisted Target/Wind/Atmosphere/Location inputs for Range Solver —
+// Persisted target/wind/atmosphere/location inputs for Range Solver —
 // cookie-backed (survives navigation *and* an app restart), deliberately
 // separate from shot-state.js's own atmosphereState, which is shared with
 // Trajectory/Hit Probability (and persisted on its own). The
@@ -60,7 +60,7 @@ export function saveRangeSolverAtmosphereState(partial) {
   persist();
 }
 
-// The active location/target picked in Range Solver's Target tab — a
+// The active location/target selected in Range Solver's Fire! pane — a
 // pointer ({ locationId, targetId }), not a snapshot, so an edit to the
 // location/target afterward (in the Locations manager) is always
 // reflected; resolved fresh against location-library.js on every mount

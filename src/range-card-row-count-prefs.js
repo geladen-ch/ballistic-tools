@@ -1,10 +1,8 @@
-// Cookie-backed preference for how many rows Range Solver's Range Card
-// tab's table shows (src/ui/range-solver/range-card-panel.js) — same
-// shape as wind-dial-prefs.js. This is only ever the user's own
-// upper-bound choice: the panel still clamps the rendered count live
-// against whatever actually fits the current viewport, so an oversized
-// saved preference degrades gracefully on a smaller screen or after
-// rotating rather than causing the tab to scroll.
+// Cookie-backed preference for how many rows the Range Solver's targets
+// list shows when its Optimal fit is off (src/ui/range-solver/target-
+// list.js; read and written through range-solver-fire-config.js) — same
+// shape as wind-dial-prefs.js. Only ever an upper bound: the list still
+// caps the count at what fits its cell.
 import { getCookie, setCookie } from './cookies.js';
 
 const COOKIE_NAME = 'ballistics_range_card_row_count_v1';

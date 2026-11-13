@@ -126,7 +126,7 @@ export function targetIcon(size = 18) {
 
 // A sight line rising from the shooter to the target, with a small arc
 // marking the angle off the horizontal and a dot at the eye — inline
-// adornment for the Target tab's LoS-angle field (range-solver-view.js),
+// adornment for the Range Solver's LoS-angle field (range-solver-view.js),
 // standing in for that field's removed text label. Redrawn from the
 // original LoS-angle icon (an Inkscape export: hardcoded
 // black, odd mm-based viewBox) into this module's own line-icon
@@ -145,17 +145,25 @@ export function losAngleIcon(size = 18) {
   ]);
 }
 
-// A bordered grid — Range Solver's "Range Card" tab (every target at the
-// active location, one row each). Distinct from arsenalIcon's two stacked
-// rects (no shared column divider) and manualIcon's plain horizontal
-// rules (no border/column at all), so it reads as "table," not "list" or
-// "document."
-export function rangeCardIcon(size = 18) {
+// A map pin — "place/location": Range Solver's Location nav item, and
+// the location picker buttons elsewhere (locations/location-picker-
+// button.js); also the dim decoration before the Fire! pane's location
+// name.
+export function locationIcon(size = 18) {
+  return icon(size, '0 0 20 20', [
+    svgEl('path', { d: 'M10 18s6-6.2 6-10.5A6 6 0 0 0 4 7.5C4 11.8 10 18 10 18Z' }),
+    svgEl('circle', { cx: '10', cy: '7.5', r: '2' })
+  ]);
+}
+
+// A frame split into panes — the Range Solver's Layout nav item (which
+// elements the Fire! pane shows). Deliberately not a gear, which is the
+// app's Settings.
+export function layoutIcon(size = 18) {
   return icon(size, '0 0 20 20', [
     svgEl('rect', { x: '3', y: '3', width: '14', height: '14', rx: '1.5' }),
-    svgEl('line', { x1: '3', y1: '8', x2: '17', y2: '8' }),
-    svgEl('line', { x1: '3', y1: '12.5', x2: '17', y2: '12.5' }),
-    svgEl('line', { x1: '9', y1: '3', x2: '9', y2: '17' })
+    svgEl('line', { x1: '8.5', y1: '3', x2: '8.5', y2: '17' }),
+    svgEl('line', { x1: '8.5', y1: '10', x2: '17', y2: '10' })
   ]);
 }
 

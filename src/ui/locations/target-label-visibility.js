@@ -1,6 +1,6 @@
 // Implements settings.rangeSolverLabelVisibilityLabel's three modes for
 // the "pick target on image" pins both location-placement-view.js's
-// select mode and range-card-panel.js render (a `.target-photo-overlay-
+// select mode and target-image-picker.js render (a `.target-photo-overlay-
 // pin` <button> per placed target, each holding a `.target-photo-overlay-
 // pin-label` span) — never the top-left unplaced-target chip stack, which
 // has no separate label to hide (the chip's whole visible content *is*
@@ -9,7 +9,7 @@
 //
 // One instance is meant to live as long as its caller's own view/panel
 // does (created once, not per render pass) — "tap" mode's revealed state
-// needs to survive range-card-panel.js's own frequent renderPins()
+// needs to survive target-image-picker.js's own frequent renderPins()
 // rebuilds (every refresh(), e.g. from a wind-knob drag), which is why
 // bindPin()/beginRender() below are designed to be called again on every
 // rebuild while revealedId itself lives outside any of it.

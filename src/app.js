@@ -6,7 +6,7 @@ import { attemptAutoRecovery } from './diagnostics.js';
 import { mountLanguageSwitcher } from './ui/language-switcher.js';
 import { mountDisplayModeSwitch } from './ui/display-mode-switch.js';
 import { getDisplayMode, onDisplayModeChange } from './display-mode-prefs.js';
-import { onRangeSolverModeChange, onRangeSolverTabChange } from './range-solver-nav.js';
+import { onRangeSolverModeChange, onRangeSolverTabChange, isInRangeSolverMode, getRangeSolverTab } from './range-solver-nav.js';
 import { onGunsModeChange } from './guns-nav.js';
 import { onPlacementModeChange } from './location-placement-nav.js';
 import { onMarkingModeChange } from './rifle-precision-nav.js';
@@ -77,15 +77,15 @@ onRangeSolverModeChange((on) => {
   document.documentElement.classList.toggle('range-solver-mode', on);
 });
 
-// `range-solver-card-active` gates the Range Card tab's own full-screen,
-// no-scroll layout (layout.css) — unlike range-solver-mode's mobile-only
-// height chain above, this one applies on the nav-rail ("desktop") chrome
-// too: the tablet widths this tab targets are exactly where the rail
-// shows. Reset to Target on every mode entry (range-solver-nav.js) means
-// this never needs its own separate reset here.
-onRangeSolverTabChange((tab) => {
-  document.documentElement.classList.toggle('range-solver-card-active', tab === 'rangeCard');
-});
+// `range-solver-fire-active` gates the Fire! pane's full-height layout
+// (layout.css) — on every chrome, rail or tab bar, since the pane fills
+// whatever room it gets. Set from both listeners: entering the mode resets
+// the tab to Fire! without notifying tab listeners (range-solver-nav.js).
+function applyFireActiveClass() {
+  document.documentElement.classList.toggle('range-solver-fire-active', isInRangeSolverMode() && getRangeSolverTab() === 'fire');
+}
+onRangeSolverModeChange(applyFireActiveClass);
+onRangeSolverTabChange(applyFireActiveClass);
 
 // `guns-mode` gates layout.css's desktop-only rail pinning (see
 // #app-rail's own sticky rule) — Custom/Arsenal's content can run long

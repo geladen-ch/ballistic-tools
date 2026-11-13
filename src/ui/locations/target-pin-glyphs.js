@@ -2,7 +2,7 @@
 // placed-but-not-active target uses, and the crosshair reserved for
 // whichever target is currently active/selected. Factored out of
 // location-placement-view.js (placement mode's own draggable marker) so
-// range-card-panel.js's inline select-mode picker can reuse the exact
+// target-image-picker.js's inline select-mode picker can reuse the exact
 // same marks instead of redrawing them a second time.
 import { el } from '../../dom.js';
 import { svgEl } from '../../svg.js';

@@ -824,8 +824,8 @@ button.icon-button:hover { color: var(--text); background: var(--panel-raised); 
 /* Baseline for every <select> in the app, not just the ones inside a
    .field (that rule further down still sets width:100% for those) —
    a select placed straight in a row of controls with no wrapper of its
-   own (.arsenal-active-cartridge's cartridge picker, the Range Solver's
-   #rangeSolverTargetSelect target picker) previously had no app color/
+   own (.arsenal-active-cartridge's cartridge picker, for one) previously
+   had no app color/
    background at all and fell back entirely to the browser's own native
    dropdown styling, the same bug the .field text-input fix above
    addresses — see that comment for why that's low-contrast on some
@@ -1430,6 +1430,123 @@ canvas { display: block; width: 100%; }
 .app-dialog-message { margin: 0 0 16px; }
 .app-dialog-body { margin: 0 0 16px; }
 .app-dialog-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+/* size: 'fill' (the Range Solver's Layout dialog, src/ui/range-solver/
+   fire-config-dialog.js): up to 980 px wide and the full screen height,
+   and a grid its body's children (head, preview, controls) take part in
+   directly — the body is display: contents. Preview on top in portrait;
+   preview left, controls and buttons right in landscape. The buttons stay
+   in view at the bottom while the card scrolls. */
+.app-dialog-overlay-fill { padding: 12px; }
+.app-dialog-card-fill {
+  width: min(100%, 980px); max-width: none; max-height: 100%; overflow: auto;
+  padding: 16px; display: grid; gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "preview" "controls" "actions";
+}
+.app-dialog-card-fill .app-dialog-body, .app-dialog-card-fill .fire-config { display: contents; }
+.app-dialog-card-fill .app-dialog-actions {
+  grid-area: actions; align-self: end;
+  position: sticky; bottom: -16px; margin: 0 0 -16px; padding: 10px 0 16px;
+  background: var(--panel);
+}
+.app-dialog-card-fill .app-dialog-actions button { min-height: 40px; padding: 0 18px; }
+@media (orientation: landscape) {
+  .app-dialog-overlay-fill { padding: 8px; }
+  .app-dialog-card-fill {
+    padding: 12px 14px; gap: 10px 18px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(250px, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "preview head" "preview controls" "preview actions";
+  }
+  .app-dialog-card-fill .app-dialog-actions { bottom: -12px; margin-bottom: -12px; padding: 8px 0 12px; }
+}
+@media (orientation: landscape) and (min-height: 600px) {
+  .app-dialog-card-fill { padding: 20px; gap: 14px 24px; }
+}
+
+/* The Layout dialog's own parts. Preview boxes are drawn in the pane's
+   true px (the preview is scaled down as a whole), so their sizes here
+   read large. */
+.fire-config-head { grid-area: head; display: grid; gap: 2px; }
+.fire-config-head h1 { font-size: 18px; font-weight: 600; margin: 0; }
+.fire-config-head p { font-size: 12px; color: var(--dim); margin: 0; }
+.fire-config-preview { grid-area: preview; display: grid; gap: 8px; align-content: start; justify-items: center; min-width: 0; }
+.fire-config-canvas { position: relative; overflow: hidden; border-radius: 4px; background: var(--bg); outline: 1px solid var(--line); }
+.fire-config-schem { position: absolute; left: 0; top: 0; transform-origin: 0 0; container-type: size; container-name: fire-pane; }
+.fire-config-fold { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--accent); }
+.fire-config-fold span {
+  position: absolute; right: 4px; top: 2px; padding: 0 3px; border-radius: 3px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--accent); background: var(--bg);
+}
+.fire-config-box {
+  all: unset; box-sizing: border-box; position: relative; min-width: 0; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 10px; text-align: center; line-height: 1.15;
+  border: 2px solid var(--line); border-radius: 10px; background: var(--panel-raised);
+  color: var(--dim); font-size: 26px; font-weight: 600;
+}
+.fire-config-box.fixed { min-height: 44px; overflow: visible; }
+.fire-config-box.optional {
+  border: 3px dashed var(--accent); cursor: pointer; color: var(--text);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
+.fire-config-box.optional em { font-style: normal; font-size: 19px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.fire-config-box.optional > .fire-config-switch { position: absolute; top: 10px; right: 10px; width: 64px; height: 36px; border-radius: 18px; }
+.fire-config-box.optional > .fire-config-switch::after { top: 4px; left: 4px; width: 24px; height: 24px; }
+.fire-config-box.optional > .fire-config-switch.on::after { left: 32px; }
+.fire-config-box.optional.short { flex-direction: row; gap: 12px; padding: 2px 10px; }
+.fire-config-box.optional.short > .fire-config-switch { position: static; width: 46px; height: 26px; flex: none; }
+.fire-config-box.optional.short > .fire-config-switch::after { top: 3px; left: 3px; width: 16px; height: 16px; }
+.fire-config-box.optional.short > .fire-config-switch.on::after { left: 23px; }
+.fire-config-box.optional.short em { display: none; }
+.fire-config-box.optional:focus-visible, .fire-config-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The switch glyph — the box or chip around it is the control. */
+.fire-config-switch {
+  display: inline-block; position: relative; flex: none;
+  width: 34px; height: 20px; border-radius: 10px;
+  background: var(--panel-raised); border: 2px solid var(--line);
+}
+.fire-config-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--dim); transition: left 0.15s;
+}
+.fire-config-switch.on { background: var(--accent); border-color: var(--accent); }
+.fire-config-switch.on::after { left: 16px; background: var(--accent-text); }
+@media (prefers-reduced-motion: reduce) { .fire-config-switch::after { transition: none; } }
+
+.fire-config-tray { width: 100%; display: grid; gap: 6px; }
+.fire-config-tray:empty { display: none; }
+.fire-config-tray-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+.fire-config-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fire-config-chip {
+  all: unset; box-sizing: border-box; cursor: pointer; max-width: 100%; min-height: 40px;
+  display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; padding: 6px 10px;
+  border: 1px dashed var(--accent-dim); border-radius: var(--radius); background: var(--panel-raised); color: var(--text);
+}
+.fire-config-chip b { font-size: 13px; font-weight: 600; }
+.fire-config-chip small { grid-column: 2; font-size: 11.5px; color: var(--dim); line-height: 1.3; }
+
+.fire-config-controls { grid-area: controls; display: grid; gap: 14px; align-content: start; }
+.fire-config-group { display: grid; gap: 6px; }
+.fire-config-group h2 { margin: 0; }
+.fire-config-group.off { opacity: 0.55; }
+.fire-config-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fire-config-stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel-raised); }
+.fire-config-stepper button.fire-config-step {
+  background: none; color: var(--text); width: 40px; height: 40px; padding: 0;
+  font-size: 20px; font-weight: 700; border-radius: var(--radius);
+}
+.fire-config-stepper button.fire-config-step:disabled { opacity: 0.35; }
+.fire-config-rows { min-width: 36px; text-align: center; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fire-config-stepper.disabled .fire-config-rows { opacity: 0.45; }
+.fire-config-check { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; font-size: 14px; }
+.fire-config-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+.fire-config-check.disabled { cursor: default; opacity: 0.55; }
+.fire-config-hint { font-size: 12px; color: var(--dim); margin: 0; line-height: 1.35; }
+.fire-config-hint.warn { color: var(--accent); }
+
 /* A row of buttons inside a dialog's own body (bodyNode) — as opposed to
    .app-dialog-actions above, which is the dialog shell's bottom bar of
    primary/secondary choices. Used by the Backup & Sync settings section's

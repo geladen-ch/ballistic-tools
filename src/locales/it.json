@@ -484,9 +484,10 @@
     }
   },
   "rangeSolver": {
-    "navTarget": "Bersaglio",
-    "navRangeCard": "Scheda di tiro",
     "navAtmosphere": "Atmosfera",
+    "navFire": "Fuoco!",
+    "navLocation": "Postazione",
+    "navConfiguration": "Schermata",
     "exitSolver": "Esci dal calcolatore",
     "gunPicker": {
       "title": "Scegli un fucile",
@@ -497,7 +498,6 @@
       "emptyHint": "Il tuo Arsenale non contiene ancora un fucile con una cartuccia — aggiungine uno con «Gestisci Arsenale»."
     },
     "locationPicker": {
-      "buttonLabel": "Scegli postazione",
       "title": "Scegli una postazione",
       "manageLocations": "Gestisci postazioni",
       "cancel": "Annulla",
@@ -511,13 +511,8 @@
     "velocityLabel": "Velocità",
     "energyLabel": "Energia",
     "secondsUnit": "s",
-    "rangeCardNoLocationHint": "Tocca l'icona della postazione qui sopra per scegliere una postazione e vederne la scheda di tiro.",
-    "rangeCardNoTargetsHint": "Questa posizione non ha ancora bersagli — aggiungine dalla gestione posizioni.",
-    "rangeCardNoPhotoHint": "Aggiungi una foto a questa posizione per scegliere i bersagli visivamente qui.",
     "rangeCardRangeHeader": "Distanza",
-    "rangeCardRowCountLabel": "Righe",
     "scopeView": {
-      "toggle": "Vista cannocchiale",
       "canvasLabel": "Reticolo con il punto di mira",
       "zoomLabel": "Ingrandimento",
       "modeLabel": "Punto di mira",
@@ -536,6 +531,45 @@
       "bdcOverlay": "Distanze BDC",
       "windHolds": "Correzioni per il vento",
       "bdcReferenceWind": "Vento laterale di riferimento: {{value}}"
+    },
+    "fireConfig": {
+      "title": "Schermata",
+      "intro": "Cosa mostra il pannello Fuoco! su questo schermo.",
+      "elements": {
+        "gun": "Arma",
+        "context": "Postazione · meteo",
+        "scope": "Vista cannocchiale",
+        "readout": "Correzioni",
+        "flight": "Dati di volo",
+        "manual": "Distanza · sito",
+        "manualWithPicture": "Distanza · sito · icona foto",
+        "list": "Elenco bersagli",
+        "wind": "Vento",
+        "picker": "Bersagli su foto"
+      },
+      "optional": "Facoltativo",
+      "notShown": "Non mostrati",
+      "off": "Spento",
+      "screenBottom": "Fondo dello schermo",
+      "hints": {
+        "noOptic": "L’arma attiva non ha un cannocchiale con reticolo.",
+        "noLocation": "Nessuna postazione con bersagli è attiva.",
+        "noPhoto": "La postazione attiva non ha una foto.",
+        "readoutOff": "Spento: solo la riga scelta nell’elenco mostra le correzioni; un bersaglio inserito a mano non ne mostra."
+      },
+      "rowsHeading": "Righe dell’elenco bersagli",
+      "fewerRows": "Meno righe",
+      "moreRows": "Più righe",
+      "optimalFit": "Adattamento ottimale",
+      "optimalFitHint": "Tante righe quante ne entrano nello schermo.",
+      "fixedRowsHint": "Numero di righe fisso.",
+      "listOffHint": "L’elenco bersagli è spento.",
+      "losHeading": "Angolo di sito",
+      "ignoreLos": "Ignora gli angoli di sito",
+      "ignoreLosHint": "Nasconde il campo dell’angolo di sito e calcola ogni tiro in piano.",
+      "losBlockedHint": "Un bersaglio di questa postazione ha un angolo di sito di 5° o più.",
+      "ok": "OK",
+      "cancel": "Annulla"
     }
   },
   "rangeSolverLocations": {
@@ -597,7 +631,6 @@
     "importFileErrorInvalidJson": "Questo file non è JSON valido.",
     "importFileErrorInvalidFormat": "Questo file non è un export riconosciuto della libreria delle postazioni.",
     "importFileErrorNewerVersion": "Questo file è stato salvato da una versione più recente dell'app. Aggiorna l'app, poi riprova.",
-    "manualEntryOption": "Inserimento manuale",
     "photoPickerButtonLabel": "Scegli bersaglio dalla foto",
     "zoomInButton": "Ingrandisci",
     "zoomOutButton": "Riduci",

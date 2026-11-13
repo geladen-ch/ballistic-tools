@@ -484,10 +484,11 @@
     }
   },
   "rangeSolver": {
-    "navTarget": "Цель",
-    "navRangeCard": "Карточка дистанций",
     "navAtmosphere": "Атмосфера",
-    "exitSolver": "Выйти из калькулятора",
+    "navFire": "Огонь!",
+    "navLocation": "Место",
+    "navConfiguration": "Вид",
+    "exitSolver": "Выход",
     "gunPicker": {
       "title": "Выбор винтовки",
       "manageArsenal": "Управление Арсеналом",
@@ -499,7 +500,6 @@
       "emptyHint": "В Арсенале пока нет винтовки с патроном — добавьте её через «Управление Арсеналом»."
     },
     "locationPicker": {
-      "buttonLabel": "Выбрать место",
       "title": "Выбор места",
       "manageLocations": "Управление местами",
       "cancel": "Отмена",
@@ -515,13 +515,8 @@
     "velocityLabel": "Скорость",
     "energyLabel": "Энергия",
     "secondsUnit": "с",
-    "rangeCardNoLocationHint": "Нажмите на значок места выше, чтобы выбрать место и увидеть его карточку дистанций.",
-    "rangeCardNoTargetsHint": "Для этого места пока нет целей — добавьте их в менеджере мест.",
-    "rangeCardNoPhotoHint": "Добавьте фото этого места, чтобы выбирать цели визуально здесь.",
     "rangeCardRangeHeader": "Дистанция",
-    "rangeCardRowCountLabel": "Строки",
     "scopeView": {
-      "toggle": "Вид в прицел",
       "canvasLabel": "Сетка с точкой прицеливания",
       "zoomLabel": "Кратность",
       "modeLabel": "Точка прицеливания",
@@ -540,6 +535,45 @@
       "bdcOverlay": "Дистанции BDC",
       "windHolds": "Выносы на ветер",
       "bdcReferenceWind": "Расчётный боковой ветер: {{value}}"
+    },
+    "fireConfig": {
+      "title": "Вид",
+      "intro": "Что панель «Огонь!» показывает на этом экране.",
+      "elements": {
+        "gun": "Оружие",
+        "context": "Место · погода",
+        "scope": "Вид в прицел",
+        "readout": "Поправки",
+        "flight": "Данные полёта",
+        "manual": "Дальность · угол",
+        "manualWithPicture": "Дальность · угол · значок фото",
+        "list": "Список целей",
+        "wind": "Ветер",
+        "picker": "Цели на фото"
+      },
+      "optional": "Необязательно",
+      "notShown": "Не показано",
+      "off": "Выкл.",
+      "screenBottom": "Край экрана",
+      "hints": {
+        "noOptic": "У активного оружия нет прицела с сеткой.",
+        "noLocation": "Не выбрано место с целями.",
+        "noPhoto": "У активного места нет фото.",
+        "readoutOff": "Выкл.: поправки видны только в выбранной строке списка; для цели, введённой вручную, их нет."
+      },
+      "rowsHeading": "Строк в списке целей",
+      "fewerRows": "Меньше строк",
+      "moreRows": "Больше строк",
+      "optimalFit": "По размеру экрана",
+      "optimalFitHint": "Столько строк, сколько помещается на экране.",
+      "fixedRowsHint": "Фиксированное число строк.",
+      "listOffHint": "Список целей выключен.",
+      "losHeading": "Угол места",
+      "ignoreLos": "Не учитывать угол места",
+      "ignoreLosHint": "Скрывает поле угла места и считает каждый выстрел горизонтальным.",
+      "losBlockedHint": "У цели в этом месте угол места 5° или больше.",
+      "ok": "OK",
+      "cancel": "Отмена"
     }
   },
   "rangeSolverLocations": {
@@ -601,7 +635,6 @@
     "importFileErrorInvalidJson": "Этот файл не является корректным JSON.",
     "importFileErrorInvalidFormat": "Этот файл не распознан как экспорт библиотеки мест.",
     "importFileErrorNewerVersion": "Этот файл сохранён более новой версией приложения. Обновите приложение и попробуйте снова.",
-    "manualEntryOption": "Ручной ввод",
     "photoPickerButtonLabel": "Выбрать цель по фото",
     "zoomInButton": "Увеличить",
     "zoomOutButton": "Уменьшить",

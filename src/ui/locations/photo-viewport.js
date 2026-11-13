@@ -137,8 +137,8 @@ export function photoViewport({ photo, onMarkerMove, initialViewport } = {}) {
   // Re-centers the viewport on a relative `{x,y}` point (same 0..1
   // fraction-of-photo convention every marker here already uses) at
   // whatever scale is currently set — a caller-driven pan, not a gesture.
-  // Used by range-card-panel.js to bring the newly active target to the
-  // middle of the frame when it's picked from the table (or elsewhere)
+  // Used by target-image-picker.js to bring the newly active target to the
+  // middle of the frame when it's picked from the list (or elsewhere)
   // rather than tapped directly on the photo, where it's presumably
   // already near-visible. Clamped through the exact same clampPan() every
   // pan/zoom already goes through, so this can never scroll past the

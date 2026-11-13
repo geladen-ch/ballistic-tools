@@ -26,6 +26,7 @@ const { zoomRingSlider } = await import('../src/ui/zoom-ring-slider.js');
 const { scopeView } = await import('../src/ui/range-solver/scope-view.js');
 const { settleZoom } = await import('../src/reticle/sight-picture.js');
 const rangeSolverView = await import('../src/views/range-solver-view.js');
+const { setFireConfig, resetFireConfigForTests } = await import('../src/range-solver-fire-config.js');
 
 test.beforeEach(async () => {
   localStorage.clear();
@@ -244,49 +245,39 @@ async function mountSolver() {
   return { container, cleanup };
 }
 
-test('no toggle for a rifle without a scope', async () => {
+test('no scope view for a rifle without a scope, even switched on, and no toggle anywhere', async () => {
+  prefs.setScopeViewOn(true);
   userRifle();
   saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
   const { container, cleanup } = await mountSolver();
-  const toggle = byClass(container, 'range-solver-scope-toggle')[0];
-  assert.ok(toggle);
-  assert.equal(toggle.style.display, 'none');
-  assert.ok(isHidden(byClass(container, 'scope-view')[0]));
+  assert.equal(byClass(container, 'scope-view').length, 0, 'the scope cell is not in the pane');
+  assert.equal(byClass(container, 'range-solver-scope-toggle').length, 0, 'the toggle moved into the Layout dialog');
+  assert.ok(!byClass(container, 'range-solver-readout')[0].className.includes('compact'));
   cleanup();
 });
 
-test('a rifle with a scope offers the toggle; on, the scope view shows above a compact readout with the aiming mark', async () => {
+test('a rifle with a scope: switched on in the configuration, the scope view shows above a compact readout with the aiming mark', async () => {
   userRifle({ scopeId: 'sb-pm2-3-20x50', reticleId: 'sb-p4fl' });
   saveRifleState({ library: { rifleId: 'user-rifle-1', cartridgeId: 'c1' } });
   const { container, cleanup } = await mountSolver();
-  const toggle = byClass(container, 'range-solver-scope-toggle')[0];
-  assert.equal(toggle.style.display, '');
-  assert.equal(toggle.getAttribute('aria-pressed'), 'false');
-  assert.equal(toggle.getAttribute('aria-label'), t('rangeSolver.scopeView.toggle'));
-  const view = byClass(container, 'scope-view')[0];
-  assert.ok(isHidden(view));
+  assert.equal(byClass(container, 'scope-view').length, 0, 'off by default');
 
-  fireEvent(toggle, 'click');
+  setFireConfig({ scope: true });
   await settle();
   assert.equal(prefs.isScopeViewOn(), true);
-  assert.equal(toggle.getAttribute('aria-pressed'), 'true');
-  assert.ok(!isHidden(view));
-  assert.equal(toggle.parentNode.className, 'scope-view-corner', 'the toggle moves into the reticle\'s corner');
-  assert.equal(byClass(container, 'range-solver-scope-toggle').length, 1);
+  const view = byClass(container, 'scope-view')[0];
+  assert.ok(view && !isHidden(view));
+  assert.ok(byClass(container, 'fire-pane')[0].className.includes('fire-has-scope'));
   assert.ok(byClass(container, 'range-solver-readout')[0].className.includes('compact'));
-  assert.ok(byClass(container, 'range-solver-layout')[0].className.includes('scope-view-on'));
   // The default 500 m shot is well inside a 3-20x's field at its highest zoom.
   assert.equal(byClass(view, 'scope-view-mark-ring').length, 1);
   assert.equal(byClass(view, 'scope-view-arrow-head').length, 0);
   assert.ok(byClass(view, 'reticle-shape').length > 0, 'the reticle is drawn');
 
-  fireEvent(toggle, 'click');
+  setFireConfig({ scope: false });
   await settle();
-  assert.equal(prefs.isScopeViewOn(), false);
-  assert.ok(isHidden(view));
+  assert.equal(byClass(container, 'scope-view').length, 0);
   assert.ok(!byClass(container, 'range-solver-readout')[0].className.includes('compact'));
-  assert.equal(toggle.parentNode.className, 'range-solver-conditions-row', 'and back to the conditions row');
-  assert.equal(byClass(container, 'range-solver-scope-toggle').length, 1);
   cleanup();
 });
 

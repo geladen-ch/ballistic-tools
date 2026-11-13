@@ -155,8 +155,8 @@ export function mount(container) {
       ]);
       // Re-placing an already-placed target — open already centered on
       // its current pin (as close as the viewport's own current zoom
-      // allows), same reasoning/mechanism as range-card-panel.js's own
-      // centerOn() call when a target is picked from its table: onReady()
+      // allows), same reasoning/mechanism as target-image-picker.js's own
+      // centerOn() call when a target is picked from the list: onReady()
       // defers this past the photo's own decode, since centerOn() is a
       // no-op before that (see photo-viewport.js's own comment on it).
       if (placingTarget.coords) viewport.onReady(() => viewport.centerOn(placingTarget.coords));

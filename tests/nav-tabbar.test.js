@@ -7,6 +7,7 @@ installFakeDom();
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const { mountNavTabbar } = await import('../src/ui/nav-tabbar.js');
+const { mountDialogRoot, isDialogOpen, hideDialog } = await import('../src/ui/app-dialog.js');
 const { setGunsMode, setGunsReturnPath, resetGunsNavForTests, takeGunsReturnPath } = await import('../src/guns-nav.js');
 const {
   setRangeSolverMode, getRangeSolverTab, resetRangeSolverNavForTests
@@ -183,34 +184,42 @@ test('Done navigates to the recorded Guns return path, falling back to Trajector
 // ---- Range Solver mode (see range-solver-nav.js) — the same idea a
 // second time, mirroring nav-rail.js's own Range Solver mode chrome. ----
 
-test('while in Range Solver mode, the bar shows Target/Range Card/Atmosphere/Gun/Exit solver instead of its normal seven tabs', () => {
+test('while in Range Solver mode, the bar shows Fire!, Atmosphere, Guns, Location, Layout and Exit solver, in that order', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);
   setRangeSolverMode(true);
 
   assert.equal(container.className, 'app-tabbar range-solver-mode');
-  assert.equal(findByTag(container, 'A').length, 0, 'Guns opens the picker modal, not a link');
-
+  assert.equal(findByTag(container, 'A').length, 0, 'every item is a button');
   const buttons = findByTag(container, 'BUTTON');
-  assert.equal(buttons.length, 5, 'Target, Range Card, Atmosphere, Guns, Exit solver');
-  assert.ok(buttons.some((b) => b.textContent.includes(t('nav.guns'))));
-  assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navTarget'))));
-  assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navRangeCard'))));
-  assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.navAtmosphere'))));
-  assert.ok(buttons.some((b) => b.textContent.includes(t('rangeSolver.exitSolver'))));
+  assert.deepEqual(buttons.map((b) => b.textContent), [
+    t('rangeSolver.navFire'), t('rangeSolver.navAtmosphere'), t('nav.guns'),
+    t('rangeSolver.navLocation'), t('rangeSolver.navConfiguration'), t('rangeSolver.exitSolver')
+  ]);
 });
 
-test('Target is active by default; clicking Atmosphere switches the active tab via range-solver-nav.js', () => {
+test('Fire! is active by default; clicking Atmosphere switches the active pane; Location and Layout open their dialogs', () => {
+  const dialogContainer = makeElement('div');
+  mountDialogRoot(dialogContainer);
   const container = makeElement('nav');
   mountNavTabbar(container);
   setRangeSolverMode(true);
 
   const btnByLabel = (key) => findByTag(container, 'BUTTON').find((b) => b.textContent.includes(t(key)));
-  assert.ok(btnByLabel('rangeSolver.navTarget').className.includes('active'));
-
+  assert.ok(btnByLabel('rangeSolver.navFire').className.includes('active'));
   fireEvent(btnByLabel('rangeSolver.navAtmosphere'), 'click');
   assert.equal(getRangeSolverTab(), 'atmosphere');
   assert.ok(btnByLabel('rangeSolver.navAtmosphere').className.includes('active'));
+
+  fireEvent(btnByLabel('rangeSolver.navLocation'), 'click');
+  assert.equal(isDialogOpen(), true);
+  assert.ok(dialogContainer.textContent.includes(t('rangeSolver.locationPicker.title')));
+  hideDialog();
+  fireEvent(btnByLabel('rangeSolver.navConfiguration'), 'click');
+  assert.equal(isDialogOpen(), true);
+  assert.ok(dialogContainer.textContent.includes(t('rangeSolver.fireConfig.intro')));
+  hideDialog();
+  assert.ok(!btnByLabel('rangeSolver.navConfiguration').className.includes('active'));
 });
 
 test('Exit solver always goes to Home', () => {

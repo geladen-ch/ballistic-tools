@@ -9,8 +9,8 @@ import { isInRangeSolverMode, getRangeSolverTab, setNextRangeSolverTab } from '.
 let inLocationsMode = false;
 const listeners = new Set();
 let returnPath = null;
-// The Range Solver's own in-page tab (Target/Range Card/Atmosphere) when
-// Locations was opened from it, so Done lands back on that tab, not just
+// The Range Solver's own pane (Fire!/Atmosphere) when
+// Locations was opened from it, so Done lands back on that pane, not just
 // on the section.
 let returnRangeSolverTab = null;
 

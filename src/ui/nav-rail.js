@@ -16,13 +16,15 @@
 // (see buildGunsMode() below and guns-nav.js) — mirrored exactly on the
 // mobile tab bar. Range Solver (see buildRangeSolverMode() below and
 // range-solver-nav.js) is the same "focused mode" idea a second time, with
-// its own Target/Atmosphere/Gun/Exit-solver control instead (Wind lives
-// on the Target tab itself now, not a separate tab of its own).
+// its own Fire!/Atmosphere/Guns/Location/Layout/Exit-solver control
+// instead.
 import { el, clear } from '../dom.js';
 import { t, onLanguageChange } from '../i18n.js';
 import { GROUPS, PINNED, toolsInGroup } from '../nav-tools.js';
 import { isRailCollapsed, setRailCollapsed, isGroupOpen, setGroupOpen } from '../nav-prefs.js';
 import { openRangeSolverGunPicker } from './range-solver/gun-picker.js';
+import { openRangeSolverLocationPicker } from './range-solver/location-picker.js';
+import { openFireConfigDialog } from './range-solver/fire-config-dialog.js';
 import { isInGunsMode, onGunsModeChange, requestGunsDone, resolveGunsDestination, goToGuns } from '../guns-nav.js';
 import {
   isInRangeSolverMode, onRangeSolverModeChange,
@@ -39,7 +41,7 @@ import {
 import { statusChip } from './status-chip.js';
 import {
   homeIcon, measurementIcon, analysisIcon, utilitiesIcon, arsenalIcon, gunsIcon, editIcon, checkIcon,
-  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, rangeCardIcon, atmosphereIcon, exitIcon,
+  settingsIcon, manualIcon, chevronIcon, collapseIcon, targetIcon, atmosphereIcon, exitIcon, locationIcon, layoutIcon,
   zoomInIcon, zoomOutIcon
 } from './nav-icons.js';
 
@@ -123,11 +125,11 @@ export function mountNavRail(container) {
   }
 
   // Replaces the whole rail while Range Solver is open (see range-solver-
-  // nav.js) — Target/Atmosphere are in-place input-pane tabs (not
-  // routes), so they call setRangeSolverTab() rather than changing
-  // location.hash; Guns opens the solver's own rifle/cartridge picker
-  // modal (see range-solver/gun-picker.js) rather than leaving; Exit
-  // solver always returns to Home (no return-path tracking — unlike
+  // nav.js). Fire!/Atmosphere are in-place panes (not routes), so they
+  // call setRangeSolverTab() rather than changing location.hash; Guns,
+  // Location and Layout open modals (range-solver/gun-picker.js,
+  // location-picker.js, fire-config-dialog.js) and carry no active state;
+  // Exit solver always returns to Home (no return-path tracking — unlike
   // Guns' Done, Range Solver doesn't remember where it was opened from).
   function buildRangeSolverMode() {
     const active = getRangeSolverTab();
@@ -139,17 +141,21 @@ export function mountNavRail(container) {
       btn.addEventListener('click', () => setRangeSolverTab(tab));
       return btn;
     };
-    const gunLink = el('button', { type: 'button', class: 'guns-tab' }, [gunsIcon(13), el('span', { i18n: 'nav.guns' })]);
-    gunLink.addEventListener('click', openRangeSolverGunPicker);
+    const modalButton = (iconFn, labelKey, open) => {
+      const btn = el('button', { type: 'button', class: 'guns-tab' }, [iconFn(13), el('span', { i18n: labelKey })]);
+      btn.addEventListener('click', () => open());
+      return btn;
+    };
     const exitBtn = el('button', { type: 'button', class: 'done-btn' }, [exitIcon(13), el('span', { i18n: 'rangeSolver.exitSolver' })]);
     exitBtn.addEventListener('click', () => {
       location.hash = '#/';
     });
     return el('nav', { class: 'rail-inner rail-range-solver-mode' }, [
-      tabButton('target', targetIcon, 'rangeSolver.navTarget'),
-      tabButton('rangeCard', rangeCardIcon, 'rangeSolver.navRangeCard'),
+      tabButton('fire', targetIcon, 'rangeSolver.navFire'),
       tabButton('atmosphere', atmosphereIcon, 'rangeSolver.navAtmosphere'),
-      gunLink,
+      modalButton(gunsIcon, 'nav.guns', openRangeSolverGunPicker),
+      modalButton(locationIcon, 'rangeSolver.navLocation', openRangeSolverLocationPicker),
+      modalButton(layoutIcon, 'rangeSolver.navConfiguration', openFireConfigDialog),
       exitBtn
     ]);
   }

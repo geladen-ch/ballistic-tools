@@ -7,6 +7,7 @@ installFakeDom();
 const { initI18n, t } = await import('../src/i18n.js');
 await initI18n();
 const { mountNavRail } = await import('../src/ui/nav-rail.js');
+const { mountDialogRoot, isDialogOpen, hideDialog } = await import('../src/ui/app-dialog.js');
 const { resetNavPrefsForTests, isGroupOpen, isRailCollapsed } = await import('../src/nav-prefs.js');
 const { setGunsMode, setGunsReturnPath, resetGunsNavForTests, takeGunsReturnPath } = await import('../src/guns-nav.js');
 const {
@@ -296,10 +297,10 @@ test('Done navigates to the recorded Guns return path, falling back to Trajector
 });
 
 // ---- Range Solver mode (see range-solver-nav.js) — the same "focused
-// mode" idea as Guns, with its own Target/Wind/Atmosphere/Gun/Exit-solver
-// control instead. Reuses .guns-tab/.done-btn as-is (see layout.css). ----
+// mode" idea as Guns, with its own Fire!/Atmosphere/Guns/Location/Layout/
+// Exit solver control instead. Reuses .guns-tab/.done-btn as-is. ----
 
-test('while in Range Solver mode, the rail shows Target/Range Card/Atmosphere/Gun/Exit solver instead of its normal content', () => {
+test('while in Range Solver mode, the rail shows Fire!, Atmosphere, Guns, Location, Layout and Exit solver, in that order', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   setRangeSolverMode(true);
@@ -307,26 +308,46 @@ test('while in Range Solver mode, the rail shows Target/Range Card/Atmosphere/Gu
   assert.equal(container.className, 'app-rail range-solver-mode');
   assert.equal(findByClass(container, 'rail-item').length, 0, 'the normal Home/group/pinned links should be gone');
   const tabs = findByClass(container, 'guns-tab');
-  assert.equal(tabs.length, 4, 'Target, Range Card, Atmosphere, Gun');
-  assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navTarget'))));
-  assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navRangeCard'))));
-  assert.ok(tabs.some((n) => n.textContent.includes(t('rangeSolver.navAtmosphere'))));
-  assert.ok(tabs.some((n) => n.textContent.includes(t('nav.guns')) && n.tagName === 'BUTTON'), 'Guns opens the picker modal, not a link');
+  assert.deepEqual(tabs.map((n) => n.textContent), [
+    t('rangeSolver.navFire'), t('rangeSolver.navAtmosphere'), t('nav.guns'), t('rangeSolver.navLocation'), t('rangeSolver.navConfiguration')
+  ]);
+  assert.ok(tabs.every((n) => n.tagName === 'BUTTON'));
   assert.ok(findByClass(container, 'done-btn')[0].textContent.includes(t('rangeSolver.exitSolver')));
 });
 
-test('Target is active by default; clicking Atmosphere switches the active tab via range-solver-nav.js', () => {
+test('Fire! is active by default; clicking Atmosphere switches the active pane; Guns, Location and Layout never take the active state', () => {
   const container = makeElement('nav');
   mountNavRail(container);
   setRangeSolverMode(true);
 
   const tabByLabel = (key) => findByClass(container, 'guns-tab').find((n) => n.textContent.includes(t(key)));
-  assert.ok(tabByLabel('rangeSolver.navTarget').className.includes('active'));
-
+  assert.ok(tabByLabel('rangeSolver.navFire').className.includes('active'));
   fireEvent(tabByLabel('rangeSolver.navAtmosphere'), 'click');
   assert.equal(getRangeSolverTab(), 'atmosphere');
   assert.ok(tabByLabel('rangeSolver.navAtmosphere').className.includes('active'));
-  assert.ok(!tabByLabel('rangeSolver.navTarget').className.includes('active'));
+  assert.ok(!tabByLabel('rangeSolver.navFire').className.includes('active'));
+  for (const key of ['nav.guns', 'rangeSolver.navLocation', 'rangeSolver.navConfiguration']) {
+    assert.ok(!tabByLabel(key).className.includes('active'), key);
+  }
+});
+
+test('Location opens the location picker and Layout the Layout dialog', () => {
+  const dialogContainer = makeElement('div');
+  mountDialogRoot(dialogContainer);
+  const container = makeElement('nav');
+  mountNavRail(container);
+  setRangeSolverMode(true);
+  const tabByLabel = (key) => findByClass(container, 'guns-tab').find((n) => n.textContent.includes(t(key)));
+
+  fireEvent(tabByLabel('rangeSolver.navLocation'), 'click');
+  assert.equal(isDialogOpen(), true);
+  assert.ok(dialogContainer.textContent.includes(t('rangeSolver.locationPicker.title')));
+  hideDialog();
+
+  fireEvent(tabByLabel('rangeSolver.navConfiguration'), 'click');
+  assert.equal(isDialogOpen(), true);
+  assert.ok(dialogContainer.textContent.includes(t('rangeSolver.fireConfig.intro')));
+  hideDialog();
 });
 
 test('Exit solver always goes to Home, regardless of where Range Solver was opened from', () => {

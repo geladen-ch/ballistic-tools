@@ -119,10 +119,10 @@ test('the active location is marked current', () => {
   assert.equal(current[0].getAttribute('aria-current'), 'true');
 });
 
-test('picking from the opened modal activates the location and remounts the solver on the same tab', () => {
+test('picking from the opened modal activates the location and remounts the solver on the same pane', () => {
   seedLocations();
   setRangeSolverMode(true);
-  setRangeSolverTab('rangeCard');
+  setRangeSolverTab('atmosphere');
   openRangeSolverLocationPicker();
   assert.equal(isDialogOpen(), true);
 
@@ -138,7 +138,7 @@ test('picking from the opened modal activates the location and remounts the solv
   assert.equal(loadRangeSolverTargetState().losAngleRad, -0.1);
   assert.equal(loadRangeSolverAtmosphereState().altitudeM, 1500, 'altitude seeds the atmosphere default');
   assert.equal(mounts, 1, 'the solver view remounts on the new location');
-  assert.equal(getRangeSolverTab(), 'rangeCard');
+  assert.equal(getRangeSolverTab(), 'atmosphere');
 });
 
 test('Cancel closes without changing anything', () => {

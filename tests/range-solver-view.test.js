@@ -28,6 +28,8 @@ const { saveUserLocation, loadUserLocations, resetLocationLibraryForTests } = aw
 const { generateUserId } = await import('../src/user-library.js');
 const { takePendingPlacement } = await import('../src/location-placement-nav.js');
 const rangeSolverView = await import('../src/views/range-solver-view.js');
+const { setFireConfig, resetFireConfigForTests } = await import('../src/range-solver-fire-config.js');
+const { removeCookie } = await import('../src/cookies.js');
 
 test.beforeEach(async () => {
   resetShotStateForTests();
@@ -38,6 +40,8 @@ test.beforeEach(async () => {
   resetUnits(); // ditto — several tests below change distance/wind-speed unit prefs
   setSpinDriftMode('off'); // ditto — the spin-drift tests below change this cookie
   await resetLocationLibraryForTests();
+  resetFireConfigForTests();
+  for (const name of ['ballistics_range_solver_fire_config_v1', 'ballistics_range_solver_scope_view_v1', 'ballistics_range_card_row_count_v1']) removeCookie(name);
 });
 
 function findByTag(node, tag, out = []) {
@@ -140,43 +144,56 @@ test('shows the Guns rifle/bullet summary at the top of the output pane', async 
   cleanup();
 });
 
-test('defaults to the Target tab (Wind embedded in it); Atmosphere starts hidden', async () => {
+test('opens on the Fire! pane (range field and wind dial visible); the Atmosphere pane starts hidden', async () => {
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  assert.equal(getRangeSolverTab(), 'target');
+  assert.equal(getRangeSolverTab(), 'fire');
   const rangeField = findById(container, 'targetRange');
   const windAngleField = findById(container, 'windAngle');
   const tempField = findById(container, 'tempC');
-  assert.ok(rangeField, 'expected the Target range field');
-  assert.ok(windAngleField, 'expected the Wind angle field');
-  assert.ok(tempField, 'expected the Atmosphere temperature field');
-  assert.ok(!isHidden(rangeField), 'Target tab should be visible by default');
-  assert.ok(!isHidden(windAngleField), 'Wind lives on the Target tab now, so it\'s visible right alongside it');
-  assert.ok(isHidden(tempField), 'Atmosphere tab should start hidden');
-
+  assert.ok(rangeField && windAngleField && tempField);
+  assert.ok(!isHidden(rangeField));
+  assert.ok(!isHidden(windAngleField));
+  assert.ok(isHidden(tempField), 'Atmosphere starts hidden');
   cleanup();
 });
 
-test('switching the nav tab (setRangeSolverTab) swaps which input pane is visible', async () => {
+test('switching the pane (setRangeSolverTab) swaps Fire! and Atmosphere', async () => {
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
   setRangeSolverTab('atmosphere');
-  const rangeField = findById(container, 'targetRange');
-  const windAngleField = findById(container, 'windAngle');
-  const tempField = findById(container, 'tempC');
-  assert.ok(isHidden(rangeField), 'Target tab (and its embedded Wind widget) should hide once Atmosphere is active');
-  assert.ok(isHidden(windAngleField));
-  assert.ok(!isHidden(tempField));
+  assert.ok(isHidden(findById(container, 'targetRange')));
+  assert.ok(isHidden(findById(container, 'windAngle')));
+  assert.ok(!isHidden(findById(container, 'tempC')));
 
-  setRangeSolverTab('target');
-  assert.ok(!isHidden(rangeField));
-  assert.ok(!isHidden(windAngleField));
-  assert.ok(isHidden(tempField));
+  setRangeSolverTab('fire');
+  assert.ok(!isHidden(findById(container, 'targetRange')));
+  assert.ok(!isHidden(findById(container, 'windAngle')));
+  assert.ok(isHidden(findById(container, 'tempC')));
+  cleanup();
+});
 
+test('the Fire! pane holds one cell per shown element; the readout can be switched off', async () => {
+  const container = makeElement('main');
+  let cleanup = rangeSolverView.mount(container);
+  await settle();
+  const pane = findByClass(container, 'fire-pane')[0];
+  for (const id of ['gun', 'context', 'readout', 'flight', 'manual', 'wind']) {
+    assert.equal(findByClass(pane, `fire-cell-${id}`).length, 1, id);
+    assert.ok(pane.className.includes(`fire-has-${id}`), id);
+  }
+  for (const id of ['scope', 'list', 'picker']) assert.equal(findByClass(pane, `fire-cell-${id}`).length, 0, `${id}: nothing to show`);
+  cleanup();
+
+  setFireConfig({ readout: false });
+  cleanup = rangeSolverView.mount(container);
+  await settle();
+  assert.equal(findByClass(container, 'fire-cell-readout').length, 0);
+  assert.equal(findByClass(container, 'fire-cell-flight').length, 1, 'the flight data stays');
   cleanup();
 });
 
@@ -442,7 +459,7 @@ test('Target/Wind/Atmosphere inputs persist across unmount/remount via range-sol
   cleanup();
 });
 
-test('always reopens on the Target tab, even if Atmosphere was active when it was last closed', async () => {
+test('always reopens on the Fire! pane, even if Atmosphere was active when it was last closed', async () => {
   const container = makeElement('main');
   let cleanup = rangeSolverView.mount(container);
   await settle();
@@ -452,27 +469,32 @@ test('always reopens on the Target tab, even if Atmosphere was active when it wa
   const container2 = makeElement('main');
   cleanup = rangeSolverView.mount(container2);
   await settle();
-  assert.equal(getRangeSolverTab(), 'target');
+  assert.equal(getRangeSolverTab(), 'fire');
   cleanup();
 });
 
 // ---- Locations & Targets library integration ----
 
-test('with no active location, only the manage-locations icon shows — no name, no target select', async () => {
+const rowsOf = (container) => findByClass(container, 'range-card-row');
+const activeRows = (container) => findByClass(container, 'range-card-row--active');
+const rowByName = (container, name) => rowsOf(container).find((r) => r.textContent.includes(name));
+
+test('with no active location: no location name, no targets list, no photo picker, no picture icon', async () => {
   const container = makeElement('main');
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  assert.ok(isHidden(findByClass(container, 'range-solver-location-name')[0]));
-  assert.ok(isHidden(findById(container, 'rangeSolverTargetSelect')));
-  assert.ok(!isHidden(findByTitle(container, t('rangeSolver.locationPicker.buttonLabel'))));
-
+  assert.ok(isHidden(findByClass(container, 'fire-context-location')[0]));
+  assert.equal(findByClass(container, 'fire-cell-list').length, 0);
+  assert.equal(findByClass(container, 'fire-cell-picker').length, 0);
+  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'))));
+  assert.equal(findById(container, 'rangeSolverTargetSelect'), null, 'the target dropdown is gone');
   cleanup();
 });
 
-test('an active location shows its name and a target select populated from its own targets', async () => {
-  const t1 = makeTestTarget({ name: 'Steel plate' });
-  const t2 = makeTestTarget({ name: null }); // exercises the default-numbered label
+test('an active location shows its name and a targets list sorted by range, the selected target enlarged', async () => {
+  const t1 = makeTestTarget({ name: 'Steel plate', rangeM: 650 });
+  const t2 = makeTestTarget({ name: null, rangeM: 300 }); // exercises the default-numbered label
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
   saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
@@ -481,25 +503,21 @@ test('an active location shows its name and a target select populated from its o
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  const nameEl = findByClass(container, 'range-solver-location-name')[0];
-  assert.ok(!isHidden(nameEl));
-  assert.equal(nameEl.textContent, 'Home Range');
-
-  const select = findById(container, 'rangeSolverTargetSelect');
-  assert.ok(!isHidden(select));
-  const optionLabels = [...select.childNodes].map((o) => o.textContent);
-  assert.deepEqual(optionLabels, [
-    t('rangeSolverLocations.manualEntryOption'), 'Steel plate', t('rangeSolverLocations.defaultTargetName', { n: 2 })
-  ]);
-  assert.equal(select.value, t1.id);
+  const name = findByClass(container, 'fire-context-name')[0];
+  assert.ok(!isHidden(name));
+  assert.equal(name.textContent, 'Home Range');
+  const rows = rowsOf(container);
+  assert.equal(rows.length, 2);
+  assert.ok(rows[0].textContent.includes(t('rangeSolverLocations.defaultTargetName', { n: 2 })), 'nearest first');
+  assert.ok(rows[1].textContent.includes('Steel plate'));
+  assert.deepEqual(activeRows(container), [rows[1]]);
   assert.equal(findById(container, 'targetRange').value, '650');
-
   cleanup();
 });
 
-test('picking a different target in the select copies its range/LoS into the fields', async () => {
-  const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 12 });
-  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: -5 });
+test('tapping a row copies its range/LoS into the fields and enlarges it', async () => {
+  const t1 = makeTestTarget({ name: 'Far', rangeM: 650, losAngleDeg: 12 });
+  const t2 = makeTestTarget({ name: 'Near', rangeM: 300, losAngleDeg: -5 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
   saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
@@ -508,55 +526,20 @@ test('picking a different target in the select copies its range/LoS into the fie
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  const select = findById(container, 'rangeSolverTargetSelect');
-  select.value = t2.id;
-  fireEvent(select, 'change');
-
+  fireEvent(rowByName(container, 'Near'), 'click');
   assert.equal(findById(container, 'targetRange').value, '300');
   assert.equal(findById(container, 'losAngle').value, '-5');
-  assert.equal(select.value, t2.id, 'freshly loaded, nothing hand-edited yet — still tracking the picked target');
-
-  cleanup();
-});
-
-test('picking a target with a fractional LOS angle stays selected — detachIfHandEdited() must not mistake the field\'s own display rounding for a hand edit', async () => {
-  // Regression: losAngleField rounds to its display precision (whole
-  // degrees then, tenths now) on every setEngineValue() — a target whose
-  // own stored losAngleDeg has more digits than that (5.57° here) used to
-  // fail detachIfHandEdited()'s raw
-  // `losAngleField.getEngineValue() !== target.losAngleDeg` comparison the
-  // instant selectTarget() copied it in (5.6 !== 5.57), silently deselecting
-  // the target that was just picked — every existing target fixture up to
-  // this test happened to use whole-number angles, which is why this went
-  // uncaught. Range Card's table/photo-picker selection (range-card-
-  // panel.js) goes through this exact same selectTarget()/recompute()
-  // path, so a target like this one was simply un-selectable from any
-  // entry point, not just this <select>.
-  const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
-  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 5.57 });
-  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
-  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
-  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
-
-  const container = makeElement('main');
-  const cleanup = rangeSolverView.mount(container);
-  await settle();
-
-  const select = findById(container, 'rangeSolverTargetSelect');
-  select.value = t2.id;
-  fireEvent(select, 'change');
-
-  assert.equal(findById(container, 'targetRange').value, '300');
-  assert.equal(findById(container, 'losAngle').value, '5.6', 'displayed rounded to the field\'s own tenth-of-a-degree precision');
-  assert.equal(select.value, t2.id, 'still tracking the picked target — not silently detached to Manual entry');
   assert.equal(loadRangeSolverLocationState().targetId, t2.id);
-
+  assert.ok(activeRows(container)[0].textContent.includes('Near'));
   cleanup();
 });
 
-test('hand-editing range after a target loads detaches it — the select falls back to "Manual entry", with no write-back to the library', async () => {
-  const t1 = makeTestTarget({ rangeM: 650, losAngleDeg: 0 });
-  const t2 = makeTestTarget({ rangeM: 300, losAngleDeg: 0 });
+test('a target with a fractional LoS angle stays selected — the field\'s own display rounding is not a hand edit', async () => {
+  // Regression: the LoS field rounds to tenths of a degree on every
+  // setEngineValue(); a target stored as 5.57° used to read as hand-edited
+  // (5.6 !== 5.57) the instant it was selected, deselecting it at once.
+  const t1 = makeTestTarget({ name: 'Flat', rangeM: 650, losAngleDeg: 0 });
+  const t2 = makeTestTarget({ name: 'Uphill', rangeM: 300, losAngleDeg: 5.57 });
   const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
   saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
@@ -565,47 +548,35 @@ test('hand-editing range after a target loads detaches it — the select falls b
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  const select = findById(container, 'rangeSolverTargetSelect');
-  assert.equal(select.value, t1.id);
+  fireEvent(rowByName(container, 'Uphill'), 'click');
+  assert.equal(findById(container, 'losAngle').value, '5.6');
+  assert.equal(loadRangeSolverLocationState().targetId, t2.id, 'still selected');
+  assert.ok(activeRows(container)[0].textContent.includes('Uphill'));
+  cleanup();
+});
+
+test('hand-editing the range deselects: every row the same size, nothing written back; a row tap selects again', async () => {
+  const t1 = makeTestTarget({ name: 'Far', rangeM: 650, losAngleDeg: 0 });
+  const t2 = makeTestTarget({ name: 'Near', rangeM: 300, losAngleDeg: 0 });
+  const location = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: t1.rangeM, losAngleRad: degToRad(t1.losAngleDeg) });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+  assert.equal(activeRows(container).length, 1);
 
   const rangeInput = findById(container, 'targetRange');
   rangeInput.value = '700';
   fireEvent(rangeInput, 'input');
-  assert.equal(select.value, '', 'hand-edited away from the loaded target — falls back to Manual entry');
+  assert.equal(activeRows(container).length, 0, 'no enlarged row for a hand-typed range');
   assert.equal(loadRangeSolverLocationState().targetId, null);
+  assert.equal(loadUserLocations().find((l) => l.id === location.id).targets[0].rangeM, 650, 'never written back');
 
-  // Never written back to the library — this feature no longer exists.
-  const stored = loadUserLocations().find((l) => l.id === location.id);
-  assert.equal(stored.targets[0].rangeM, 650);
-
-  // Picking a target again (from the now-detached state) still works, and
-  // still discards the unsynced edit with no confirmation.
-  select.value = t2.id;
-  fireEvent(select, 'change');
+  fireEvent(rowByName(container, 'Near'), 'click');
   assert.equal(rangeInput.value, '300');
-  assert.equal(select.value, t2.id);
-
-  cleanup();
-});
-
-test('picking "Manual entry" explicitly detaches from the active target without touching the current field values', async () => {
-  const target = makeTestTarget({ rangeM: 650, losAngleDeg: 12 });
-  const location = saveUserLocation(makeTestLocation({ targets: [target] }));
-  saveRangeSolverLocationState({ locationId: location.id, targetId: target.id });
-  saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: degToRad(target.losAngleDeg) });
-
-  const container = makeElement('main');
-  const cleanup = rangeSolverView.mount(container);
-  await settle();
-
-  const select = findById(container, 'rangeSolverTargetSelect');
-  select.value = '';
-  fireEvent(select, 'change');
-
-  assert.equal(findById(container, 'targetRange').value, '650');
-  assert.equal(findById(container, 'losAngle').value, '12');
-  assert.equal(loadRangeSolverLocationState().targetId, null);
-
+  assert.equal(activeRows(container).length, 1);
   cleanup();
 });
 
@@ -616,13 +587,12 @@ test('a locationId that no longer resolves (deleted) falls back to "no location"
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  assert.ok(isHidden(findByClass(container, 'range-solver-location-name')[0]));
+  assert.ok(isHidden(findByClass(container, 'fire-context-location')[0]));
   assert.equal(loadRangeSolverLocationState().locationId, null);
-
   cleanup();
 });
 
-test('a location with zero targets shows its name but no target select, behaving like manual entry', async () => {
+test('a location with no targets counts as no location: no name, no list', async () => {
   const location = saveUserLocation(makeTestLocation({ targets: [] }));
   saveRangeSolverLocationState({ locationId: location.id, targetId: null });
 
@@ -630,9 +600,8 @@ test('a location with zero targets shows its name but no target select, behaving
   const cleanup = rangeSolverView.mount(container);
   await settle();
 
-  assert.ok(!isHidden(findByClass(container, 'range-solver-location-name')[0]));
-  assert.ok(isHidden(findById(container, 'rangeSolverTargetSelect')));
-
+  assert.ok(isHidden(findByClass(container, 'fire-context-location')[0]));
+  assert.equal(findByClass(container, 'fire-cell-list').length, 0);
   cleanup();
 });
 
@@ -652,24 +621,31 @@ test('hand-editing the Atmosphere tab flips wasAtmosphereTouchedThisSession(), t
   cleanup();
 });
 
-test('the photo picker icon is hidden unless the active location has a photo', async () => {
-  const withoutPhoto = saveUserLocation(makeTestLocation({ photo: null, targets: [] }));
-  saveRangeSolverLocationState({ locationId: withoutPhoto.id, targetId: null });
+test('a photo location shows the inline photo picker, not the picture icon, while list or picker is on', async () => {
+  const placed = makeTestTarget({ rangeM: 650, losAngleDeg: 0, coords: { x: 0.3, y: 0.4 } });
+  const savedLocation = saveUserLocation(makeTestLocation({ photo: TEST_PHOTO, targets: [placed] }));
+  saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: placed.id });
 
   const container = makeElement('main');
-  const cleanup = rangeSolverView.mount(container);
+  let cleanup = rangeSolverView.mount(container);
   await settle();
-
+  assert.equal(findByClass(container, 'fire-cell-picker').length, 1);
   assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'))));
+  cleanup();
 
+  setFireConfig({ picker: false });
+  cleanup = rangeSolverView.mount(container);
+  await settle();
+  assert.equal(findByClass(container, 'fire-cell-picker').length, 0);
+  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'))), 'the list still offers the targets');
   cleanup();
 });
 
-test('an active location with a photo shows the photo picker icon; clicking it hands off to the full-screen picker route in select mode, without touching the current selection', async () => {
+test('with list and picker off, a photo location gets the prominent picture icon, which hands off to the full-screen picker', async () => {
+  setFireConfig({ list: false, picker: false });
   const placed = makeTestTarget({ rangeM: 650, losAngleDeg: 0, coords: { x: 0.3, y: 0.4 } });
-  // Named `savedLocation`, not `location` — this test asserts against the
-  // real global `location.hash` below, which a same-named local would
-  // otherwise shadow (see range-solver-view.js's own matching comment).
+  // Named `savedLocation`, not `location` — the test asserts against the
+  // real global `location.hash` below.
   const savedLocation = saveUserLocation(makeTestLocation({ photo: TEST_PHOTO, targets: [placed] }));
   saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: placed.id });
   saveRangeSolverTargetState({ rangeM: placed.rangeM, losAngleRad: degToRad(placed.losAngleDeg) });
@@ -680,15 +656,82 @@ test('an active location with a photo shows the photo picker icon; clicking it h
 
   const photoButton = findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'));
   assert.ok(!isHidden(photoButton));
-
+  assert.ok(photoButton.className.includes('prominent'));
   fireEvent(photoButton, 'click');
-
   assert.equal(location.hash, '#/locations/place');
   assert.deepEqual(takePendingPlacement(), { locationId: savedLocation.id, targetId: null, returnPath: '/range-solver', selectMode: true });
-  // The button's own handoff never touches the current selection itself —
-  // picking a different target (if any) only happens inside the picker
-  // route, tested in location-placement-view.test.js.
   assert.deepEqual(loadRangeSolverLocationState(), { locationId: savedLocation.id, targetId: placed.id });
+  cleanup();
+});
 
+test('with list and picker off and no photo, there is no picture icon', async () => {
+  setFireConfig({ list: false, picker: false });
+  const savedLocation = saveUserLocation(makeTestLocation({ photo: null, targets: [makeTestTarget()] }));
+  saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: null });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+  assert.ok(isHidden(findByTitle(container, t('rangeSolverLocations.photoPickerButtonLabel'))));
+  cleanup();
+});
+
+// ---- Ignore line-of-sight angles ----
+
+const elevationText = (container) => findByClass(container, 'range-solver-click-value')[0].textContent;
+
+test('ignoring LoS angles hides the LoS field and angle meter and solves every shot level', async () => {
+  saveRangeSolverTargetState({ rangeM: 600, losAngleRad: degToRad(0) });
+  const container = makeElement('main');
+  let cleanup = rangeSolverView.mount(container);
+  await settle();
+  const level = elevationText(container);
+  cleanup();
+
+  saveRangeSolverTargetState({ rangeM: 600, losAngleRad: degToRad(30) });
+  cleanup = rangeSolverView.mount(container);
+  await settle();
+  const steep = elevationText(container);
+  assert.notEqual(steep, level, 'a 30° shot needs less elevation');
+  cleanup();
+
+  setFireConfig({ ignoreLos: true });
+  cleanup = rangeSolverView.mount(container);
+  await settle();
+  assert.equal(elevationText(container), level, 'solved as level');
+  assert.ok(isHidden(findById(container, 'losAngle')));
+  assert.equal(findById(container, 'losAngle').value, '30', 'the stored angle is untouched');
+  cleanup();
+});
+
+test('ignoring LoS is blocked by a target at 5° or more: the LoS field stays and is used', async () => {
+  setFireConfig({ ignoreLos: true });
+  const steep = makeTestTarget({ name: 'Steep', rangeM: 600, losAngleDeg: -5 });
+  const savedLocation = saveUserLocation(makeTestLocation({ targets: [steep] }));
+  saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: steep.id });
+  saveRangeSolverTargetState({ rangeM: 600, losAngleRad: degToRad(-5) });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+  assert.ok(!isHidden(findById(container, 'losAngle')));
+  assert.equal(findById(container, 'losAngle').value, '-5');
+  cleanup();
+});
+
+test('while LoS angles are ignored, a row tap still copies the target\'s LoS, and only the range decides a hand edit', async () => {
+  setFireConfig({ ignoreLos: true });
+  const t1 = makeTestTarget({ name: 'Near', rangeM: 300, losAngleDeg: 2 });
+  const t2 = makeTestTarget({ name: 'Far', rangeM: 650, losAngleDeg: -3 });
+  const savedLocation = saveUserLocation(makeTestLocation({ targets: [t1, t2] }));
+  saveRangeSolverLocationState({ locationId: savedLocation.id, targetId: t1.id });
+  saveRangeSolverTargetState({ rangeM: 300, losAngleRad: degToRad(2) });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+  fireEvent(rowByName(container, 'Far'), 'click');
+  assert.equal(findById(container, 'losAngle').value, '-3');
+  assert.equal(loadRangeSolverLocationState().targetId, t2.id);
   cleanup();
 });

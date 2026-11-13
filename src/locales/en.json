@@ -484,9 +484,10 @@
     }
   },
   "rangeSolver": {
-    "navTarget": "Target",
-    "navRangeCard": "Range Card",
     "navAtmosphere": "Atmosphere",
+    "navFire": "Fire!",
+    "navLocation": "Location",
+    "navConfiguration": "Layout",
     "exitSolver": "Exit solver",
     "gunPicker": {
       "title": "Choose a rifle",
@@ -497,7 +498,6 @@
       "emptyHint": "Your Arsenal has no rifle with a cartridge yet — use Manage Arsenal to add one."
     },
     "locationPicker": {
-      "buttonLabel": "Choose location",
       "title": "Choose a location",
       "manageLocations": "Manage locations",
       "cancel": "Cancel",
@@ -511,13 +511,8 @@
     "velocityLabel": "Velocity",
     "energyLabel": "Energy",
     "secondsUnit": "s",
-    "rangeCardNoLocationHint": "Tap the location icon above to pick a location and see its range card.",
-    "rangeCardNoTargetsHint": "This location has no targets yet — add some from the Locations manager.",
-    "rangeCardNoPhotoHint": "Add a photo to this location to pick targets visually here.",
     "rangeCardRangeHeader": "Range",
-    "rangeCardRowCountLabel": "Rows",
     "scopeView": {
-      "toggle": "Scope view",
       "canvasLabel": "Reticle with the aiming point",
       "zoomLabel": "Magnification",
       "modeLabel": "Aiming point",
@@ -536,6 +531,45 @@
       "bdcOverlay": "BDC range labels",
       "windHolds": "Wind holds",
       "bdcReferenceWind": "Reference crosswind: {{value}}"
+    },
+    "fireConfig": {
+      "title": "Layout",
+      "intro": "What the Fire! pane shows on this screen.",
+      "elements": {
+        "gun": "Gun",
+        "context": "Location · weather",
+        "scope": "Scope view",
+        "readout": "Corrections",
+        "flight": "Flight data",
+        "manual": "Range · LoS",
+        "manualWithPicture": "Range · LoS · photo icon",
+        "list": "Targets list",
+        "wind": "Wind",
+        "picker": "Photo targets"
+      },
+      "optional": "Optional",
+      "notShown": "Not shown",
+      "off": "Off",
+      "screenBottom": "Screen bottom",
+      "hints": {
+        "noOptic": "The active gun has no scope with a reticle.",
+        "noLocation": "No location with targets is active.",
+        "noPhoto": "The active location has no photo.",
+        "readoutOff": "Off: only a selected list row shows corrections; a manually entered target shows none."
+      },
+      "rowsHeading": "Rows in the targets list",
+      "fewerRows": "Fewer rows",
+      "moreRows": "More rows",
+      "optimalFit": "Optimal fit",
+      "optimalFitHint": "As many rows as fit the screen.",
+      "fixedRowsHint": "Fixed number of rows.",
+      "listOffHint": "The targets list is off.",
+      "losHeading": "Line of sight",
+      "ignoreLos": "Ignore line-of-sight angles",
+      "ignoreLosHint": "Hides the LoS field and solves every shot as level.",
+      "losBlockedHint": "A target at this location has a line-of-sight angle of 5° or more.",
+      "ok": "OK",
+      "cancel": "Cancel"
     }
   },
   "rangeSolverLocations": {
@@ -597,7 +631,6 @@
     "importFileErrorInvalidJson": "That file isn't valid JSON.",
     "importFileErrorInvalidFormat": "That file isn't a recognized Locations library export.",
     "importFileErrorNewerVersion": "That file was saved by a newer version of this app. Update the app, then try again.",
-    "manualEntryOption": "Manual entry",
     "photoPickerButtonLabel": "Pick target from photo",
     "zoomInButton": "Zoom in",
     "zoomOutButton": "Zoom out",

@@ -3,7 +3,7 @@
 // input (this app's established "big number, no stepper, red underline on
 // violation" look), pulled out as its own reusable piece so it can sit in
 // a plain row instead of only inside that control's dial. Range Solver's
-// Target tab pairs two of these on one line (distance, LoS angle) — see
+// Fire! pane pairs two of these (distance, LoS angle) — see
 // range-solver-view.js and layout.css's own .target-params-row.
 //
 // Unlike unit-field.js/large-stepper-field.js, this never shows a visible

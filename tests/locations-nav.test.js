@@ -61,8 +61,8 @@ test('requestLocationsDone goes to the Range Solver when Locations was opened di
   assert.equal(location.hash, '#/range-solver');
 });
 
-for (const tab of ['target', 'rangeCard', 'atmosphere']) {
-  test(`Done returns to the Range Solver's ${tab} tab when Locations was opened from it`, () => {
+for (const tab of ['fire', 'atmosphere']) {
+  test(`Done returns to the Range Solver's ${tab} pane when Locations was opened from it`, () => {
     location.hash = '#/range-solver';
     setRangeSolverMode(true);
     setRangeSolverTab(tab);
@@ -81,5 +81,5 @@ test('opening Locations from outside the Range Solver does not carry a tab back'
   goToLocations();
   requestLocationsDone();
   setRangeSolverMode(true);
-  assert.equal(getRangeSolverTab(), 'target');
+  assert.equal(getRangeSolverTab(), 'fire');
 });

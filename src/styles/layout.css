@@ -202,7 +202,7 @@
 /* ---- Guns mode (see guns-nav.js) — replaces the whole rail's own
    content while the Guns section is open. Range Solver (see range-solver-
    nav.js) is the same "focused mode" idea a second time — its own
-   Target/Wind/Atmosphere/Gun/Exit-solver items reuse .guns-tab/.done-btn
+   Fire!/Atmosphere/Guns/Location/Layout/Exit-solver items reuse .guns-tab/.done-btn
    below as-is (same visual treatment, same reasoning nav-tabbar.js's own
    Guns-mode items already reuse the plain .tab-item class rather than a
    dedicated one). ---- */
@@ -249,7 +249,7 @@ html.guns-mode #app-rail {
   font-weight: 600;
   color: var(--dim);
   text-decoration: none;
-  /* Range Solver's own Target/Wind/Atmosphere tabs (unlike Guns' Custom/
+  /* Range Solver's own Fire!/Atmosphere/Location/Layout items (unlike Guns' Custom/
      Arsenal above) are real <button> elements, not <a> — without this,
      the generic `button` rule's solid var(--accent) fill (base.css) wins
      by default since nothing here contests `background` outside :hover/
@@ -582,22 +582,6 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 
 /* ===== Range Solver ===== */
 
-/* Output above input in portrait (the default); side by side, output on
-   the left, in landscape — orientation-driven, not width-driven, unlike
-   .tool-layout above, since this split is about screen shape, not
-   available room. */
-.range-solver-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-@media (orientation: landscape) {
-  .range-solver-layout { flex-direction: row; align-items: stretch; }
-  .range-solver-output-pane, .range-solver-input-pane { flex: 1 1 50%; min-width: 0; }
-}
-
-.range-solver-output-pane { display: flex; flex-direction: column; gap: 16px; }
-
 /* The current shot conditions — no labels, just each value's own unit
    symbol. Even quieter than .range-solver-footer below (smaller, no
    brighter value color): this is context for the dialed numbers, not a
@@ -616,12 +600,11 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
    .range-solver-footer-value uses below for ToF/velocity/energy. */
 .range-solver-conditions-num { color: var(--text); }
 
-/* The dominant element of the whole screen — see rangeSolver-view.js's
-   own renderAdjustment(). Elevation and windage are the same size, scaled to
-   their own stat panel's actual width (container query units, not the
-   viewport) rather than a fixed px value — a landscape phone splits the
-   output pane in half again for its own input pane, so "available space"
-   here means each .range-solver-stat's own box, not the screen. */
+/* The large elevation/windage correction (range-solver-view.js's
+   renderAdjustment(); the Truing Session's next-shot readout reuses it).
+   Elevation and windage are the same size, scaled to their own stat's
+   width (container units, not the viewport). The Fire! pane also bounds
+   it by its cell's height (.fire-cell-readout below). */
 .range-solver-readout {
   display: flex;
   gap: 16px;
@@ -664,26 +647,156 @@ html.rifle-precision-marking-mode .rifle-precision-marking-page { flex: 1; min-h
 .range-solver-footer-stat { display: flex; gap: 5px; }
 .range-solver-footer-value { color: var(--text); font-variant-numeric: tabular-nums; }
 
-.range-solver-input-pane { display: flex; flex-direction: column; gap: 16px; }
+/* ===== Range Solver: Fire! pane =====
+   The pane fills the screen below/beside the nav chrome, whichever chrome
+   shows; its layout (fire-layout.js) is nested grids whose flexible tracks
+   are minmax(<floor>, <weight>fr), so elements grow into spare room and
+   the pane scrolls exactly when their floors no longer fit. The pane is a
+   size container: wrapping landscape columns are one pane tall each. */
+html.range-solver-fire-active #app-shell { height: 100dvh; }
+html.range-solver-mode.range-solver-fire-active #view {
+  display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+  max-width: none; padding: 12px;
+}
+.fire-pane {
+  flex: 1; min-height: 0;
+  overflow-x: hidden; overflow-y: auto;
+  container-type: size; container-name: fire-pane;
+}
+.fire-grid { display: grid; gap: 8px; min-width: 0; min-height: 0; }
+.fire-grid-col { grid-template-columns: minmax(0, 1fr); }
+.fire-grid-row { grid-template-rows: minmax(0, 1fr); }
+.fire-grid-pair { grid-auto-rows: minmax(0, 1fr); }
+.fire-grid-root.fire-grid-col, .fire-grid-root.fire-grid-row, .fire-grid-root.fire-grid-pair { height: 100%; }
+.fire-grid-wrap { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; }
+.fire-grid-wrap > * { height: 100cqh; min-height: min-content; }
 
-/* The conditions bar, with the scope view toggle at its right end while
-   the view is off; while it is on, the toggle sits in the corner of the
-   reticle's square (.scope-view-corner) and the row is just its text. */
-.range-solver-conditions-row { display: flex; align-items: center; gap: 8px; }
-.range-solver-conditions-row .range-solver-conditions { flex: 1; min-width: 0; }
-button.icon-button.range-solver-scope-toggle { width: 34px; height: 34px; color: var(--accent); }
-button.icon-button.range-solver-scope-toggle.active { width: 30px; height: 30px; background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+/* Cells. The fixed-height ones (gun, context, flight, manual) keep their
+   automatic minimum size — a clipped or zero-minimum cell would let its
+   auto track collapse when the pane runs out of room — so they clip with
+   overflow: clip (not a scroll container). The flexible ones are boxes
+   their content sizes itself from. */
+.fire-cell { position: relative; min-width: 0; }
+.fire-cell-scope, .fire-cell-readout, .fire-cell-list, .fire-cell-wind, .fire-cell-picker { min-height: 0; overflow: hidden; }
+.fire-cell-gun .guns-summary { margin: 0; }
 
-/* The readout while the scope view takes the room above it. */
-.range-solver-readout.compact .range-solver-click-value { font-size: clamp(32px, 20cqw, 72px); }
-.range-solver-readout.compact .range-solver-click-label { margin-top: 2px; font-size: 11px; }
+/* Location name and atmosphere on one line, each after a dim, inactive
+   icon; the name truncates first. */
+.fire-cell-context {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  min-height: 18px; white-space: nowrap; overflow: clip;
+  font-size: 11px; color: var(--dim);
+}
+.fire-context-location { display: flex; align-items: center; gap: 4px; min-width: 0; flex: 0 1 auto; overflow: clip; }
+.fire-context-name { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.fire-context-atmosphere { display: flex; align-items: center; gap: 4px; flex: none; }
+.fire-context-icon { display: inline-flex; color: var(--dim); }
+.fire-cell-context .range-solver-conditions { flex-wrap: nowrap; justify-content: flex-start; }
+
+/* The scope view fills its cell; scope-view.js (fitBox) sizes the
+   reticle and places the ring from the cell's box. */
+.fire-cell-scope > .scope-view { width: 100%; height: 100%; justify-content: center; }
+.scope-view-fit .scope-view-main { flex: none; justify-content: center; }
+.scope-view-fit .scope-view-main.ring-below { align-items: center; }
+.scope-view-fit .zoom-ring-vertical { min-height: 0; }
+/* Touch-sized corner controls (40 px) in the solver; the Printable card
+   keeps its own smaller ones. */
+.scope-view-fit button.icon-button.scope-view-overlay-toggle,
+.scope-view-fit button.icon-button.scope-view-reticle-zoom-toggle { width: 40px; height: 40px; }
+.scope-view-fit .scope-view-segmented button.scope-view-segment { min-width: 40px; min-height: 40px; }
+
+/* The readout fills its cell: the font is the smaller of its stat's width
+   limit (39 % of it) and the cell's height less the label. Elevation and
+   windage stand side by side unless the cell is too narrow for the pair at
+   the floor font (fire-layout.js's readout floor: 2 × 139 + 16 px, or
+   2 × 83 + 16 px for the compact readout shown with the scope); only then
+   do they stack. */
+.fire-cell-readout { container-type: size; container-name: fire-readout; display: flex; align-items: center; justify-content: center; }
+.fire-cell-readout .range-solver-readout { width: 100%; align-items: center; }
+.fire-cell-readout .range-solver-click-value { font-size: clamp(54px, min(39cqw, 100cqh - 24px), 210px); }
+.fire-cell-readout .range-solver-readout.compact .range-solver-click-value { font-size: clamp(32px, min(39cqw, 100cqh - 16px), 210px); }
+.fire-cell-readout .range-solver-readout.compact .range-solver-click-label { margin-top: 2px; font-size: 11px; }
+/* One line: a wrapped label would push the pair past the cell's height. */
+.fire-cell-readout .range-solver-click-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; }
+/* Stacked: stretched, not centred, because each stat is an inline-size
+   container and a shrink-to-fit width would collapse to nothing. */
+@container fire-readout (width < 294px) {
+  .fire-cell-readout .range-solver-readout:not(.compact) { flex-direction: column; align-items: stretch; justify-content: center; gap: 8px; }
+  .fire-cell-readout .range-solver-readout:not(.compact) .range-solver-stat { flex: 0 0 auto; }
+  .fire-cell-readout .range-solver-readout:not(.compact) .range-solver-click-value { font-size: clamp(54px, min(39cqw, 50cqh - 30px), 210px); }
+}
+@container fire-readout (width < 182px) {
+  .fire-cell-readout .range-solver-readout.compact { flex-direction: column; align-items: stretch; justify-content: center; gap: 8px; }
+  .fire-cell-readout .range-solver-readout.compact .range-solver-stat { flex: 0 0 auto; }
+  .fire-cell-readout .range-solver-readout.compact .range-solver-click-value { font-size: clamp(32px, min(39cqw, 50cqh - 22px), 210px); }
+}
+
+.fire-cell-flight { display: flex; align-items: center; justify-content: center; }
+
+/* Range and LoS: one row (picture icon, range, LoS, angle meter) when the
+   cell is wide enough, otherwise stacked: range over LoS with the angle
+   meter beside LoS, or, with the picture icon, picture + range over
+   LoS + meter (both fields as wide as without it). The widths are
+   fire-layout.js's manualRowWidth(). Children: 1 picture icon, 2 range,
+   3 LoS, 4 angle meter. */
+.fire-cell-manual { container-type: inline-size; container-name: fire-manual; }
+.fire-cell-manual .target-params-row { margin-bottom: 0; align-items: center; }
+@container fire-manual (max-width: 283px) {
+  .target-params-row:not(.ignore-los):not(.with-picture) { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .target-params-row:not(.ignore-los):not(.with-picture) > :nth-child(2) { grid-area: 1 / 1; }
+  .target-params-row:not(.ignore-los):not(.with-picture) > :nth-child(3) { grid-area: 2 / 1; }
+  .target-params-row:not(.ignore-los):not(.with-picture) > :nth-child(4) { grid-area: 2 / 2; }
+}
+@container fire-manual (max-width: 331px) {
+  .target-params-row.with-picture:not(.ignore-los) { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 8px; }
+  .target-params-row.with-picture:not(.ignore-los) > :nth-child(1) { grid-area: 1 / 1; }
+  .target-params-row.with-picture:not(.ignore-los) > :nth-child(2) { grid-area: 1 / 2 / 2 / 4; }
+  .target-params-row.with-picture:not(.ignore-los) > :nth-child(3) { grid-area: 2 / 1 / 3 / 3; }
+  .target-params-row.with-picture:not(.ignore-los) > :nth-child(4) { grid-area: 2 / 3; }
+}
+/* Beside the wind dial on a phone (fire-layout.js's narrow column,
+   MANUAL_NARROW_W): the picture icon on its own line, range across the
+   column, then LoS and the angle meter, centred against the dial. The
+   LoS field drops its angle glyph: the meter beside it shows the same. */
+.fire-cell-manual.fire-cell-narrow { align-self: center; }
+.fire-cell-manual.fire-cell-narrow .target-params-row { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: 8px; }
+.fire-cell-manual.fire-cell-narrow .target-params-row > :nth-child(1) { grid-area: 1 / 1; }
+.fire-cell-manual.fire-cell-narrow .target-params-row > :nth-child(2) { grid-area: 1 / 1 / 2 / 3; }
+.fire-cell-manual.fire-cell-narrow .target-params-row > :nth-child(3) { grid-area: 2 / 1; }
+.fire-cell-manual.fire-cell-narrow .target-params-row > :nth-child(4) { grid-area: 2 / 2; }
+.fire-cell-manual.fire-cell-narrow .target-params-row.with-picture > :nth-child(2) { grid-area: 2 / 1 / 3 / 3; }
+.fire-cell-manual.fire-cell-narrow .target-params-row.with-picture > :nth-child(3) { grid-area: 3 / 1; }
+.fire-cell-manual.fire-cell-narrow .target-params-row.with-picture > :nth-child(4) { grid-area: 3 / 2; }
+.fire-cell-narrow .target-params-row > :nth-child(3) .inline-number-adornment { display: none; }
+.fire-cell-narrow .inline-number-row { padding-inline: 10px; }
+.target-params-row button.angle-meter-button { width: 40px; height: 40px; }
+/* The prominent picture icon: accent, full touch size. */
+.target-params-row button.photo-picker-button.prominent {
+  width: 40px; height: 40px; align-self: center; flex: none;
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+.target-params-row button.photo-picker-button.prominent:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
+
+/* The list fills its cell; target-list.js budgets its rows from it. */
+.fire-cell-list .fire-target-list { height: 100%; }
+
+/* The wind dial fills its cell: range-solver-view.js measures the cell
+   into --fire-dial-d / --fire-btn (px), overriding the control's own
+   viewport-scaled sizing used by Trajectory and Arsenal. */
+.fire-cell-wind { display: flex; align-items: center; justify-content: center; }
+.fire-cell-wind .wind-control { margin-bottom: 0; }
+.fire-cell-wind .wind-control-combo { --dial-d: var(--fire-dial-d, 130px); --btn: var(--fire-btn, 44px); min-width: 0; }
+
+.fire-cell-picker .range-card-picker-host { height: 100%; }
+
+/* The Atmosphere pane: the plain form, normal page flow. */
+.range-solver-atmosphere-pane { max-width: 760px; }
 
 /* ---- Scope view (src/ui/range-solver/scope-view.js) ----
-   The sight is a square with the zoom ring beside it: as wide as the pane
-   allows (less the ring) up to a cap, the inputs below it scrolling into
-   view on a phone in portrait. Short landscape gives the pane a real
-   height instead, and the sight fills what the pane has left (see the
-   mobile chrome rules further down). */
+   The sight is a square with the zoom ring beside it or below it. In the
+   Fire! pane the view fills its cell (.scope-view-fit above); elsewhere
+   (the Printable card) the sight is as wide as its container allows,
+   less the ring, up to a cap. */
 .scope-view { --scope-mark: #D55E00; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .scope-view-main { display: flex; justify-content: center; gap: 10px; min-height: 0; }
 .scope-view-sight { width: min(calc(100% - 76px), 520px); min-width: 0; min-height: 0; }
@@ -798,37 +911,9 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .zoom-ring-vertical .zoom-ring-thumb { left: 13.5px; }
 .zoom-ring.dragging .zoom-ring-thumb { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent); }
 
-/* Locations & Targets library — the active location's name, the "manage
-   locations" icon, its target picker select (a hand-edit that diverges
-   the fields from the selected target falls this back to its own
-   "Manual entry" option — see deselectTarget()/detachIfHandEdited() in
-   range-solver-view.js; there's no write-back-to-library path), and the
-   photo target picker icon, all in one row above the Target tab's own
-   range/LoS fields. Wraps rather than shrinking the select down to
-   unreadable, and every control here keeps a real touch target (the
-   select's own comfortable height, .icon-button's usual 26px tap
-   targets) — same "field, glove-friendly" posture as the rest of Range
-   Solver's own input pane. */
-.range-solver-location-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-.range-solver-location-name { font-weight: 600; font-size: 14px; }
-.range-solver-target-select { flex: 1 1 auto; min-width: 140px; }
-/* .icon-button's own default is deliberately dim/quiet everywhere else it's
-   used (download/copy buttons) — these two are the only way to reach the
-   picker/manage actions from the Target tab, so they get the app's own
-   accent color instead to read as clearly present. */
-.range-solver-location-row .icon-button { color: var(--accent); }
-
 /* Truing Session's own location header (src/ui/truing-session/entry-gate.js's
-   locationIntakePanel) — same name+picker-button shape as
-   .range-solver-location-row just above, reused rather than duplicated in
-   spirit (this one has no target <select> of its own, so it's a smaller,
-   separate rule rather than sharing the class). */
+   locationIntakePanel) — the location's name and its picker button, the
+   button in the accent colour so it reads as the way to change it. */
 .truing-session-location-header {
   display: flex;
   align-items: center;
@@ -838,130 +923,21 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .truing-session-location-name { font-weight: 600; font-size: 14px; }
 .truing-session-location-header .icon-button { color: var(--accent); }
 
-/* ---- Range Card tab (src/ui/range-solver/range-card-panel.js) ----
-   Three zones — table, photo picker, wind strip — arranged with CSS Grid
-   named areas so the same three DOM children just get reassigned areas
-   between orientations, no JS-side restructuring. Table always comes
-   first/top — it's the view's own primary content (every target's dope
-   at a glance), sized to its own content (row-count budget, see
-   .range-card-table-body's own max-height) rather than stretched to fill
-   a flexible track, so it reads as "the important thing up top," not one
-   equal-weight panel among three. Stacked table/picker/wind in portrait.
-   In landscape, table and wind share a left column (table on top, wind
-   filling whatever's left below it — see the media query's own comment
-   for how its size follows that); picker takes the whole right column,
-   full height, rather than sharing a row with wind — it's the control
-   that most benefits from real screen space (zoom/pan a photo), unlike
-   wind's own compact dial. html.range-solver-card-active further down is
-   what makes this whole panel actually get the room to do that — the
-   fixed-height, output-pane-hidden, full-width treatment. */
-.range-card-panel {
-  display: grid;
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  grid-template-areas: "locationBar" "table" "picker" "wind";
-}
-@media (orientation: landscape) {
-  .range-card-panel {
-    /* 1:2 — the picker is the control that most benefits from real
-       screen space (zoom/pan a photo); table+wind's own column just
-       needs to stay legible, not match it. */
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
-    grid-template-areas:
-      "locationBar locationBar"
-      "table  picker"
-      "wind   picker";
-  }
-}
-
-/* The line above the table — manage-locations icon, active location
-   name, row-count control. Same pieces/roles as the Target tab's own
-   .range-solver-location-row, just without that row's target <select>/
-   photo-picker button (this tab already has its own tap-to-select photo
-   picker below, and a target list isn't this row's job). */
-.range-card-location-bar {
-  grid-area: locationBar;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.range-card-location-bar .icon-button { color: var(--accent); }
-.range-card-location-name {
-  font-weight: 600;
-  font-size: 14px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* align-self:start (not the grid's own default stretch) keeps this cell
-   from being pulled to match .range-card-picker-host's full row height in
-   landscape (they share row 2) — without it, centering a ~180px dial
-   inside a cell as tall as the picker reads as huge top/bottom margins
-   around the dial, when it's really just unclaimed grid-cell space.
-   align-items:flex-start (not center) does the same job on the strip's
-   own cross axis in portrait, where the "wind" row is already auto-sized
-   to content and would otherwise still center-pad a fully-decoded dial
-   against its own SVG canvas margin (see .wind-control-combo's own
-   comment in wind-control.js for why that canvas is bigger than the
-   drawn face) — starting flush trims that too. */
-.range-card-wind-strip {
-  grid-area: wind;
-  align-self: start;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 0;
-}
-/* windControl()'s own combo is designed down to a 250px floor (see
-   .wind-control-combo) — cap its footprint here so it reads as a strip,
-   not a second full-size dial competing with the table for room. margin-
-   bottom:0 cancels .field's own global 14px trailing margin, which would
-   otherwise still pad the bottom now that centering no longer does. */
-.range-card-wind-strip .wind-control-combo { --dial-d: clamp(130px, 22cqw, 190px); min-width: 0; }
-.range-card-wind-strip .wind-control { margin-bottom: 0; }
-
-/* Landscape only: wind now shares a column with the table instead of a
-   row with the picker (see .range-card-panel's own landscape grid-
-   template-areas above) — its own grid row is whatever the table's auto
-   height doesn't claim underneath it. align-self:stretch (overriding the
-   portrait rule's own start, immediately above) lets this cell actually
-   take that full row height instead of sizing to its own compact
-   content. --rc-wind-dial-d is kept in sync with that resolved height by
-   range-card-panel.js's own ResizeObserver (a plain cqh container-query
-   calc collapsed the dial to 0×0 instead — mixing it with windControl()'s
-   own nested cqw container for button sizing didn't resolve the way the
-   spec suggests it should, across engines tested), so the dial scales up
-   to roughly match the table's own height (up to a sane cap) rather than
-   staying fixed at the portrait strip's small footprint. */
-@media (orientation: landscape) {
-  .range-card-wind-strip {
-    align-self: stretch;
-    align-items: center;
-  }
-  .range-card-wind-strip .wind-control-combo {
-    --dial-d: var(--rc-wind-dial-d, 190px);
-  }
-}
+/* ---- Fire! pane: targets list and photo picker internals
+   (src/ui/range-solver/target-list.js, target-image-picker.js). The
+   range-card-* class names are historical: both grew out of the Range
+   Card tab. ---- */
 .range-card-picker-host {
-  grid-area: picker;
   position: relative; /* anchors .range-card-zoom-controls' own overlay */
   display: flex;
   flex-direction: column;
-  min-height: 120px;
+  height: 100%;
+  min-height: 0;
 }
-.range-card-picker-hint { margin: auto; text-align: center; max-width: 32ch; }
 
 /* Desktop/mouse zoom controls — photoViewport()'s own gesture handling is
-   pinch-first (touch); floating bottom-right over the photo itself
-   (rather than a toolbar row) keeps the whole picker area free for the
-   photo, same "controls float over the content" posture location-
-   placement-view.js's full-screen version uses for its own Zoom In/Out,
-   just inline here instead of in the section nav bar. */
+   pinch-first (touch); floating bottom-right over the photo itself keeps
+   the whole picker free for the photo, inside the picker's own box. */
 .range-card-zoom-controls {
   position: absolute;
   right: 10px;
@@ -976,10 +952,10 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
    (0,1,1) there outranks a bare .range-card-zoom-btn (0,1,0) regardless
    of source order, silently reverting these to that base look (26px,
    transparent, --dim). One extra qualifying class fixes it the same way
-   this file's other card-active/specificity notes do. */
+   this file's other specificity notes do. */
 .range-card-zoom-controls .range-card-zoom-btn {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1004,7 +980,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 /* The active pin swaps its plain dot for a crosshair (target-pin-
    glyphs.js) — sized and colored like every other pin/chip on this photo,
    just visually distinct so it reads as "this one's dialed" at a glance,
-   matching the Range Card table's own enlarged active row. */
+   matching the targets list's enlarged selected row. */
 .range-card-pin--active { color: var(--accent); z-index: 1; }
 .target-photo-overlay-pin.range-card-pin--active .target-photo-overlay-pin-label,
 .target-photo-overlay-chip.range-card-pin--active {
@@ -1029,9 +1005,8 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   display: flex;
 }
 
+.fire-target-list { height: 100%; min-height: 0; display: flex; flex-direction: column; }
 .range-card-table {
-  grid-area: table;
-  align-self: start; /* content-sized (row-count budget), never stretched to fill a taller row track */
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1063,18 +1038,13 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
    right padding, which reserves just enough room for it). */
 .range-card-table-body-wrap { position: relative; min-height: 0; }
 
-/* Row count (the drag control in the table header) is now a *visible-
-   height budget*, not a hard cap on how many targets can be listed —
-   --rc-row-budget (set from range-card-panel.js's applyRowBudget()) caps
-   this element's own height; once actual content exceeds it, this
-   scrolls (wireDragToScroll() below, plus native wheel/touch scroll —
-   touch-action:none only hands single-finger vertical drag over to that
-   manual handler, pinch/multi-touch is never attempted here so nothing
-   else needs suppressing) instead of every row being squeezed to fit, as
-   an earlier flex-grow-ratio version of this table did. The native
-   scrollbar is hidden (scrollbar-width/::-webkit-scrollbar) in favor of
-   the fatter custom one in the reserved right-padding strip — a real
-   touch-tablet target, not a sliver a fingertip can't find. */
+/* The row count is a visible-height budget, not a cap on how many targets
+   are listed — --rc-row-budget (target-list.js's applyRowBudget()) caps
+   this element's height; past it, this scrolls (drag-to-scroll, plus
+   native wheel/touch scroll — touch-action:none hands single-finger
+   vertical drag to that handler) instead of squeezing rows. The native
+   scrollbar is hidden in favour of the fatter custom one in the reserved
+   right-padding strip — a real touch target, not a hairline. */
 .range-card-table-body {
   max-height: calc(var(--rc-row-budget, 400) * 1px);
   min-height: 0;
@@ -1087,14 +1057,13 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   scrollbar-width: none;
   /* A long-press mid-drag otherwise fires the browser's own text-
      selection/context-menu handling on top of the gesture — same fix
-     .photo-viewport already needed (see that rule's own comment); its own
-     contextmenu listener in range-card-panel.js's wireDragToScroll() is
-     the other half of this. */
+     .photo-viewport already needed (see that rule's own comment); the
+     contextmenu listener in target-list.js's wireDragToScroll() is the
+     other half of this. */
   user-select: none;
   -webkit-touch-callout: none;
 }
 .range-card-table-body::-webkit-scrollbar { display: none; }
-.range-card-table-empty { margin: auto; text-align: center; }
 .range-card-row {
   display: flex;
   align-items: center;
@@ -1102,7 +1071,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   padding: 2px 10px;
   border-bottom: 1px solid var(--line);
   flex: 0 0 auto;
-  min-height: 34px; /* just enough for one line of 13-14px text plus a little breathing room — range-card-panel.js's own applyRowBudget() measures this rendered height rather than assuming it, so it never has to be kept in sync by hand */
+  min-height: 34px; /* one line of 13-14px text plus a little breathing room — target-list.js measures the rendered height rather than assuming it */
 }
 .range-card-row:last-child { border-bottom: none; }
 .range-card-row-name {
@@ -1117,6 +1086,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
 .range-card-row-range, .range-card-row-elev, .range-card-row-wind {
   flex: 1 1 0;
   text-align: right;
+  white-space: nowrap; /* "150 m" must never break onto two lines and grow the row */
   font-variant-numeric: tabular-nums;
   font-size: 14px;
 }
@@ -1126,14 +1096,14 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
    viewport, same reasoning .range-solver-stat uses for the single-target
    readout elsewhere in this file. */
 .range-card-row--active {
-  min-height: 64px; /* tall enough for its own larger fonts below — see .range-card-row's own comment on how the table's visible-height budget stays in sync with whatever this actually renders at */
+  min-height: 64px; /* tall enough for its larger fonts below; measured, not assumed, by target-list.js */
   background: var(--panel-raised);
   border-left: 3px solid var(--accent);
   padding-left: 7px;
   container-type: inline-size;
 }
 
-/* The custom scrollbar (range-card-panel.js's own tableScrollbar()) —
+/* The custom scrollbar (target-list.js's tableScrollbar()) —
    fat and always in the same spot, unlike a native scrollbar's platform-
    dependent (and often hairline-thin) styling. Hidden entirely via
    .range-card-scrollbar--hidden whenever the table body doesn't actually
@@ -1148,8 +1118,8 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   background: var(--panel-raised);
   touch-action: none;
   cursor: pointer;
-  /* Same long-press-context-menu fix as .range-card-rowcount-track below
-     — see that rule's own comment. */
+  /* A long-press mid-drag otherwise fires the browser's own text-
+     selection/context-menu handling on top of the gesture. */
   user-select: none;
   -webkit-touch-callout: none;
 }
@@ -1176,68 +1146,6 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   font-weight: 700;
   color: var(--accent);
 }
-
-/* Row-count drag control — sits inline in the location bar above the
-   table, deliberately its own tiny widget rather than a native
-   <input type=range> (cross-browser track/thumb styling can't be
-   trusted to stay this small — see range-card-panel.js's own
-   rowCountControl()). */
-.range-card-rowcount {
-  margin-left: auto;
-  padding-left: 14px;
-  border-left: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  text-transform: none;
-  letter-spacing: normal;
-  font-weight: 500;
-  cursor: pointer;
-}
-.range-card-rowcount-caption { white-space: nowrap; }
-.range-card-rowcount-track {
-  position: relative;
-  width: 64px;
-  height: 16px;
-  touch-action: none;
-  /* A long-press mid-drag otherwise fires the browser's own text-
-     selection/context-menu handling on top of the gesture — same fix
-     .photo-viewport already needed (see that rule's own comment); this
-     control's own contextmenu listener in range-card-panel.js's
-     rowCountControl() is the other half of this. */
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-.range-card-rowcount-track::before {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; top: 50%;
-  height: 3px;
-  transform: translateY(-50%);
-  background: var(--line);
-  border-radius: 2px;
-}
-.range-card-rowcount-fill {
-  position: absolute;
-  left: 0; top: 50%;
-  height: 3px;
-  transform: translateY(-50%);
-  background: var(--accent);
-  border-radius: 2px;
-}
-.range-card-rowcount-thumb {
-  position: absolute;
-  top: 50%;
-  width: 14px;
-  height: 14px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: var(--accent);
-  border: 2px solid var(--panel);
-  box-shadow: 0 0 0 1px var(--line);
-}
-.range-card-rowcount:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.range-card-rowcount-value { min-width: 1.4ch; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Locations management's Current-location/Known-locations split
    (src/views/locations-view.js) — each is just a heading over a stack of
@@ -1933,7 +1841,7 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Range Solver's Target tab (src/ui/inline-number-field.js) —
+/* ---- Range Solver's range/LoS fields (src/ui/inline-number-field.js) —
    distance and LoS angle on one line, no steppers, no visible text
    labels; each field's only visual identifier is its trailing adornment
    (distance: unit text; LoS angle: losAngleIcon() from nav-icons.js).
@@ -1963,11 +1871,15 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
   border-radius: var(--radius);
   padding: 10px 14px;
 }
-.inline-number-input {
+/* `input.` and the row's class: base.css's generic `.field input:not(...)`
+   rule (specificity 0,2,1) would otherwise win and silently replace this
+   whole look with a 13 px boxed text input inside the box. vmin, not vw:
+   on a landscape phone vw reaches the cap and wastes scarce height. */
+.inline-number-row input.inline-number-input {
   all: unset;
   flex: 1;
   min-width: 0;
-  font-size: clamp(24px, 7vw, 34px);
+  font-size: clamp(24px, 7vmin, 34px);
   font-weight: 700;
   color: var(--text);
   font-family: var(--font);
@@ -1993,133 +1905,9 @@ button.icon-button.scope-view-reticle-zoom-toggle.active { background: var(--acc
    centers and sizes itself already (see .wind-control-* above), the same
    everywhere it appears. */
 
-/* ---- Range Card tab: full-screen, no-scroll takeover ----
-   html.range-solver-card-active is toggled from app.js's own
-   onRangeSolverTabChange subscription (not gated to mobile chrome, unlike
-   the block below it) — the tablet widths this tab targets are exactly
-   where the nav-rail ("desktop" chrome) shows, and this tab needs the
-   same fixed-height, no-scroll treatment there too. Hides the single-
-   target output pane (its own enlarged active table row already covers
-   that ground) and lets the input pane claim the full width instead of
-   its usual 50/50 or fixed-sidebar share.
-   Selectors here intentionally carry one extra qualifying class each
-   (repeating .range-solver-card-active, or adding .range-solver-layout as
-   a third) so they're never accidentally out-specificed by the mobile-
-   chrome block immediately below, which reaches the same #view/
-   .range-solver-input-pane through 2-3 classes of its own in some
-   variants — see this file's own specificity notes wherever that
-   matters; source order (this block first) is the deciding factor
-   whenever specificity does end up tied. */
-html.range-solver-card-active #app-shell { height: 100dvh; }
-html.range-solver-mode.range-solver-card-active #view {
-  display: flex; flex-direction: column; min-height: 0; overflow: hidden;
-  max-width: none; padding: 12px;
-}
-html.range-solver-card-active .range-solver-layout { flex: 1; min-height: 0; }
-html.range-solver-card-active .range-solver-output-pane { display: none; }
-html.range-solver-card-active .range-solver-layout .range-solver-input-pane { flex: 1 1 100%; min-height: 0; }
-.range-card-tab-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-
-/* ---- Range Solver mobile chrome: establishes a real (not just min-)
-   height down through #app-shell/#view/.range-solver-layout so flex:1
-   further down this pane's chain actually has something to divide up —
-   originally added so the old Wind tab's own dial could fill leftover
-   vertical space (a rule that lived right here on .range-solver-wind-tab
-   itself, removed once Wind moved onto the Target tab instead — see
-   range-solver-view.js — since wind-control.js's own combo never grew to
-   fill it anyway: it's designed down to a fixed 250px floor, not a
-   fill-the-viewport one). Stays regardless, because
-   .range-solver-input-pane's own flex:1 rule further below (the short-
-   landscape "Target tab's large steppers got crushed" real-device fix)
-   depends on this same height chain too. Both selector variants are the
-   exact same "is mobile chrome actually showing" condition the rail-vs-
-   tabbar rules elsewhere in this file use (automatic max-width/short-
-   landscape detection, or the .force-mobile override). */
-@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
-  html.range-solver-mode:not(.force-desktop) #app-shell { height: 100dvh; }
-  html.range-solver-mode:not(.force-desktop) #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-layout { flex: 1; min-height: 0; }
-}
-html.range-solver-mode.force-mobile #app-shell { height: 100dvh; }
-html.range-solver-mode.force-mobile #view { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
-html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 0; }
-
-/* ---- Scope view in the mobile chrome (src/ui/range-solver/scope-view.js).
-   Portrait: the reticle comes first — the input pane gives up its
-   fill-the-rest flex and flows below at its own height, scrolling into
-   view. Short landscape, where height is what runs out and width is
-   spare: the output pane becomes a grid — gun card and conditions across
-   the top, the reticle and its ring filling the rest on the left, and
-   the readout (elevation over windage), the SFP note and the footer in a
-   narrow column on the right. .scope-view's own box drops out (display:
-   contents) so its ring row and note can take separate grid cells. With
-   the ring below (scope ring position setting), the sight stretches
-   across the column — centred, a size container would shrink to nothing
-   — and the square sits centred on top of the ring. The forced mobile
-   chrome takes this grid only in short landscape too, like the automatic
-   one: a taller landscape screen stacks as in portrait. */
-@media (max-width: 780px) and (orientation: portrait) {
-  html.range-solver-mode:not(.force-desktop) .range-solver-layout.scope-view-on .range-solver-input-pane { flex: none; }
-}
-@media (orientation: portrait) {
-  html.range-solver-mode.force-mobile .range-solver-layout.scope-view-on .range-solver-input-pane { flex: none; }
-}
-/* Taller landscape in the mobile chrome (a tablet, or a desktop window
-   forced to the mobile chrome) keeps the plain side-by-side panes; the
-   view is pinned to the screen's height there, so the layout may grow
-   past it and scroll rather than squeeze the reticle under its ring. */
-@media (max-width: 780px) and (orientation: landscape) and (min-height: 501px) {
-  html.range-solver-mode:not(.force-desktop):not(.range-solver-card-active) .range-solver-layout.scope-view-on { flex: 1 0 auto; }
-}
-@media (orientation: landscape) and (min-height: 501px) {
-  html.range-solver-mode.force-mobile:not(.range-solver-card-active) .range-solver-layout.scope-view-on { flex: 1 0 auto; }
-}
-@media (orientation: landscape) and (max-height: 500px) {
-  html.range-solver-mode:not(.force-desktop) .range-solver-layout.scope-view-on .range-solver-output-pane {
-    display: grid; grid-template-columns: minmax(0, 1fr) clamp(104px, 30%, 180px);
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 6px 10px; min-height: 0;
-  }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-output-pane > .guns-summary, html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-conditions-row { grid-column: 1 / -1; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view { display: contents; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main { grid-column: 1; grid-row: 3 / 6; min-height: 0; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-sight { flex: 1; width: auto; container-type: size; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-frame { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); margin-left: auto; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-canvas { height: 100%; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .zoom-ring-vertical { min-height: 0; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main.ring-below .scope-view-sight { align-self: stretch; width: auto; display: flex; flex-direction: column; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main.ring-below .scope-view-frame { margin: auto auto 0; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-main.ring-below .scope-view-ring { width: 100%; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact { grid-column: 2; grid-row: 3; align-self: end; flex-direction: column; gap: 6px; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact .range-solver-click-value { font-size: clamp(26px, 30cqw, 46px); }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-readout.compact .range-solver-click-label { font-size: 10px; margin-top: 0; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .scope-view-bar { grid-column: 2; grid-row: 4; text-align: center; }
-  html.range-solver-mode:not(.force-desktop) .scope-view-on .range-solver-footer { grid-column: 2; grid-row: 5; flex-direction: column; align-items: center; gap: 2px; }
-}
-@media (orientation: landscape) and (max-height: 500px) {
-  html.range-solver-mode.force-mobile .range-solver-layout.scope-view-on .range-solver-output-pane {
-    display: grid; grid-template-columns: minmax(0, 1fr) clamp(104px, 30%, 180px);
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 6px 10px; min-height: 0;
-  }
-  html.range-solver-mode.force-mobile .scope-view-on .range-solver-output-pane > .guns-summary, html.range-solver-mode.force-mobile .scope-view-on .range-solver-conditions-row { grid-column: 1 / -1; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view { display: contents; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main { grid-column: 1; grid-row: 3 / 6; min-height: 0; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-sight { flex: 1; width: auto; container-type: size; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-frame { width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); margin-left: auto; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-canvas { height: 100%; }
-  html.range-solver-mode.force-mobile .scope-view-on .zoom-ring-vertical { min-height: 0; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main.ring-below .scope-view-sight { align-self: stretch; width: auto; display: flex; flex-direction: column; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main.ring-below .scope-view-frame { margin: auto auto 0; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-main.ring-below .scope-view-ring { width: 100%; }
-  html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact { grid-column: 2; grid-row: 3; align-self: end; flex-direction: column; gap: 6px; }
-  html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact .range-solver-click-value { font-size: clamp(26px, 30cqw, 46px); }
-  html.range-solver-mode.force-mobile .scope-view-on .range-solver-readout.compact .range-solver-click-label { font-size: 10px; margin-top: 0; }
-  html.range-solver-mode.force-mobile .scope-view-on .scope-view-bar { grid-column: 2; grid-row: 4; text-align: center; }
-  html.range-solver-mode.force-mobile .scope-view-on .range-solver-footer { grid-column: 2; grid-row: 5; flex-direction: column; align-items: center; gap: 2px; }
-}
-
 /* ---- Combined wind direction+speed control (src/ui/wind-control.js) —
-   embedded in Range Solver's Target tab (below the range/LoS row, see
-   range-solver-view.js), and Trajectory's and Arsenal's rifle
+   in Range Solver's Fire! pane (its own cell, see range-solver-view.js),
+   and Trajectory's and Arsenal's rifle
    comparison's atmosphere sections (that file's own `combinedWind:
    true`); see wind-control.js for why the other atmosphereSection()
    callers (Hit Probability, BC Estimator, Cd-Mach Curve, Range Solver's
@@ -2272,66 +2060,6 @@ html.range-solver-mode.force-mobile .range-solver-layout { flex: 1; min-height: 
    horizontally centered combo, so it reads oddly hugging the left edge
    at .hint's own plain default. */
 .wind-control > .hint { text-align: center; margin-top: 10px; }
-
-/* .range-solver-input-pane's own "flex:1; min-height:0" (let it grow to
-   fill the remaining vertical space below the output pane) used to live
-   unconditionally in the two blocks above — but that block's own trigger
-   condition ORs together "narrow viewport" with "short landscape", and in
-   landscape .range-solver-layout switches to flex-direction:row (see
-   above), where the very same flex:1 (flex-basis:0%) instead collapsed
-   the input pane's WIDTH share against the output pane's untouched
-   flex:1 1 50%, crushing the Target tab's large range/wind-speed steppers
-   (regression: a real-device bug report). Scoped to portrait here (the
-   only orientation .range-solver-layout is ever a column in) so it only
-   ever affects the vertical-fill it was meant for. */
-@media (max-width: 780px) and (orientation: portrait) {
-  html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 1; min-height: 0; }
-}
-@media (orientation: portrait) {
-  html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 1; min-height: 0; }
-}
-
-/* Short landscape (phones, not tablets/desktop — see the shared "mobile
-   chrome" condition above) rebalances the row split itself, rather than
-   the plain 50/50 .range-solver-output-pane/.range-solver-input-pane
-   rule further up. Design principle: the output pane's big elevation/
-   windage numbers are the whole point of this screen and should get as
-   much room as possible; the input pane should get just enough to fit
-   its own controls with a little margin, no more.
-   A straight percentage split (an earlier attempt used 58/42) fights
-   that goal on both ends — it's more than the input pane actually needs
-   on a wide phone, and still not enough on a narrow one. Anchoring the
-   input pane to a fixed content-sized basis instead, with flex-grow:0
-   (so it never claims more than that) and the output pane on flex:1 1
-   auto (so it always absorbs 100% of whatever's left), gets both right
-   at any width. 300px was originally set by the Wind tab's old dial,
-   which had a 270px hard floor of its own; the wind-control.js combo
-   that replaced it is designed down to a 250px floor instead (see
-   .wind-control-combo's min-width above), comfortably under this same
-   300px — so it, and the Target tab's own .target-params-row (two plain
-   flex fields, no fixed-width buttons to budget for), both still fit
-   under it without needing this number raised. flex-shrink:1 (the default) still
-   lets it give up that margin on a narrower-than-usual phone rather than
-   overflow. */
-@media (orientation: landscape) and (max-height: 500px) {
-  html.range-solver-mode:not(.force-desktop) .range-solver-output-pane { flex: 1 1 auto; }
-  html.range-solver-mode:not(.force-desktop) .range-solver-input-pane { flex: 0 1 300px; }
-  html.range-solver-mode.force-mobile .range-solver-output-pane { flex: 1 1 auto; }
-  html.range-solver-mode.force-mobile .range-solver-input-pane { flex: 0 1 300px; }
-  /* Range Card claims the whole screen even on a short-landscape phone —
-     the 300px cap above exists to leave room for the Target/Atmosphere
-     tabs' own big single-target readout (.range-solver-output-pane), but
-     Range Card hides that pane entirely (html.range-solver-card-active's
-     own display:none on it, further up this file) and needs its table/
-     wind/picker columns to actually have the screen's real width, not a
-     300px sliver with the same 1:2 split squeezed pointlessly inside it.
-     One extra qualifying class (.range-solver-card-active, beyond the
-     two rules above's own three) outweighs them regardless of source
-     order — see this file's own recurring specificity notes wherever a
-     card-active override has to win against an earlier, narrower-purpose
-     rule reaching the same element. */
-  html.range-solver-mode.range-solver-card-active .range-solver-layout .range-solver-input-pane { flex: 1 1 100%; }
-}
 
 /* ---- Reticle Designer (reticle-designer-view.js) ----
    Three columns on wide screens — options above the palette, the reticle

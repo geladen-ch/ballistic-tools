@@ -1,9 +1,9 @@
-// A small, unobtrusive icon-only button that opens the full-screen photo
-// target picker (location-placement-view.js, select mode) — same quiet
-// `.icon-button` treatment as location-picker-button.js/target-sync-
-// button.js, shown next to Range Solver's Target tab fields only when the
-// active location has a photo. A photo-frame glyph, distinct from
-// location-picker-button.js's own map pin.
+// An icon-only button that opens the full-screen photo target picker
+// (location-placement-view.js, select mode). A photo-frame glyph, distinct
+// from the location map pin. `prominent`: the Range Solver's Fire! pane
+// shows it beside the range field, in the accent colour and at full touch
+// size, when the pane shows neither the targets list nor the inline photo
+// picker but the active location has a photo.
 import { el } from '../dom.js';
 import { svgEl } from '../svg.js';
 
@@ -17,8 +17,10 @@ function photoIcon(size = 16) {
   ]);
 }
 
-export function photoPickerButton({ label, onClick }) {
-  const button = el('button', { type: 'button', class: 'icon-button', title: label, 'aria-label': label }, [photoIcon()]);
+export function photoPickerButton({ label, onClick, prominent = false }) {
+  const button = el('button', {
+    type: 'button', class: 'icon-button photo-picker-button' + (prominent ? ' prominent' : ''), title: label, 'aria-label': label
+  }, [photoIcon(prominent ? 22 : 16)]);
   button.addEventListener('click', onClick);
   return button;
 }

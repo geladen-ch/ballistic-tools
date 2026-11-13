@@ -17,8 +17,12 @@
 //
 // The zoom ring stands beside the reticle, or lies below it so the
 // reticle gets the full width — range-solver-prefs.js's scope ring
-// position, re-decided whenever the orientation or the viewport width
-// crosses the mobile chrome's breakpoint.
+// position. With `fitBox` (the Range Solver's Fire! pane) the view fills
+// its own box: "Automatic" puts the ring wherever the reticle comes out
+// larger in that box, and the reticle is sized to fit it, re-decided
+// whenever the box changes. Without it (the Printable card), "Automatic"
+// means below on the mobile chrome in portrait, re-decided when the
+// orientation or the viewport width crosses that chrome's breakpoint.
 //
 // Zoom to reticle (fixed scopes only, reticle/reticle-zoom.js): a toggle
 // in the bottom-right corner magnifies the whole field — glass, reticle,
@@ -278,7 +282,9 @@ function printLabel(text, ink, fontFamily) {
 // `settings`: see rangeSolverScopeSettings. `aimMode`: a fixed aiming
 // mode ('hold' or 'dialElevation') with its switch left out, or null for
 // the switch. `holdover`: whether the holdover mark is offered at all.
-export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeSettings, aimMode = null, holdover = true } = {}) {
+// `fitBox`: size the reticle and place the ring from the view's own box
+// (see the module comment).
+export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeSettings, aimMode = null, holdover = true, fitBox = false } = {}) {
   clipCounter += 1;
   const clipId = `scope-view-clip-${clipCounter}`;
   const markClipId = `scope-view-mark-clip-${clipCounter}`;
@@ -443,16 +449,52 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
   const node = el('div', { class: 'scope-view' }, [main, bar]);
 
   const ringPosition = getScopeRingPosition();
-  const narrowQuery = mediaQuery(NARROW_QUERY);
-  const portraitQuery = mediaQuery(PORTRAIT_QUERY);
-  function applyRingLayout() {
-    const below = ringBelow(ringPosition, narrowQuery, portraitQuery);
+  const narrowQuery = fitBox ? null : mediaQuery(NARROW_QUERY);
+  const portraitQuery = fitBox ? null : mediaQuery(PORTRAIT_QUERY);
+  function setRingBelow(below) {
     main.classList.toggle('ring-below', below);
     ring.setOrientation(below ? 'horizontal' : 'vertical');
   }
+  function applyRingLayout() {
+    setRingBelow(ringBelow(ringPosition, narrowQuery, portraitQuery));
+  }
   const mediaQueries = [narrowQuery, portraitQuery].filter((q) => q && typeof q.addEventListener === 'function');
   for (const q of mediaQueries) q.addEventListener('change', applyRingLayout);
-  applyRingLayout();
+  if (!fitBox) applyRingLayout();
+
+  // fitBox: the reticle's side from the view's own box. The ring beside
+  // takes RING_BESIDE_PX of width, below RING_BELOW_PX of height; the
+  // corner controls overhang the square by CORNER_PX in all; the bar
+  // (SFP note) takes its own height. Measured into px rather than left to
+  // container units, which misbehave across the nested containers inside.
+  const RING_BESIDE_PX = 68;
+  const RING_BELOW_PX = 56;
+  const CORNER_PX = 12;
+  const MAX_SIDE_PX = 640;
+  let boxObserver = null;
+  function fitToBox() {
+    if (typeof node.getBoundingClientRect !== 'function') return;
+    const { width, height } = node.getBoundingClientRect();
+    if (!width || !height) return;
+    const barH = bar.getBoundingClientRect().height;
+    const h = height - barH - (barH ? 10 : 0);
+    const beside = Math.min(width - CORNER_PX - RING_BESIDE_PX, h - CORNER_PX);
+    const belowSide = Math.min(width - CORNER_PX, h - CORNER_PX - RING_BELOW_PX);
+    const below = ringPosition === 'below' || (ringPosition === 'auto' && belowSide > beside);
+    const side = Math.max(80, Math.floor(Math.min(MAX_SIDE_PX, below ? belowSide : beside)));
+    setRingBelow(below);
+    sight.style.width = `${side}px`;
+    ringBox.style.width = below ? `${side}px` : '';
+    ringBox.style.height = below ? '' : `${side}px`;
+  }
+  if (fitBox) {
+    node.classList.add('scope-view-fit');
+    setRingBelow(ringPosition === 'below');
+    if (typeof ResizeObserver !== 'undefined') {
+      boxObserver = new ResizeObserver(() => fitToBox());
+      boxObserver.observe(node);
+    }
+  }
 
   function renderModeButtons() {
     for (const button of modeButtons) {
@@ -913,6 +955,7 @@ export function scopeView({ onBdcChange = () => {}, settings = rangeSolverScopeS
     exportPrintSvg,
     dispose: () => {
       for (const q of mediaQueries) q.removeEventListener('change', applyRingLayout);
+      boxObserver?.disconnect();
       ring.dispose();
       if (frame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame);
     }

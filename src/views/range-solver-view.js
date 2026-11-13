@@ -1,33 +1,53 @@
 // Range Solver — a field/mobile-first tool: given the active rifle+bullet
 // (shared with Trajectory/Hit Probability via shot-state.js, changed only
 // through Guns), a target range/angle, wind, and atmosphere, solves the
-// elevation/windage click correction for that one shot. No table, no
-// uncertainty analysis — just the dial numbers, big enough to read in
+// elevation/windage correction for that one shot, big enough to read in
 // direct sunlight. Deliberately no <h1>/intro header here (unlike every
-// other tool view): every pixel of a small, outdoor screen counts, and
-// the section's own nav bar (see range-solver-nav.js/nav-rail.js/
-// nav-tabbar.js) already signals context.
+// other tool view): every pixel of a small, outdoor screen counts, and the
+// section's own nav bar (range-solver-nav.js, nav-rail.js, nav-tabbar.js)
+// already signals context.
+//
+// Two panes, switched from that nav bar: Fire! and Atmosphere (the
+// atmosphere form, full width). The Fire! pane holds, each in its own
+// cell (.fire-cell-<id>):
+//   gun      the active gun (guns-summary.js)
+//   context  the active location's name and the current atmosphere
+//   scope    the scope view (optional; needs a scope with a reticle)
+//   readout  the large elevation/windage correction (optional)
+//   flight   time of flight, residual velocity and energy
+//   manual   picture icon, range and line-of-sight fields, angle meter
+//   list     every target at the active location, solved (optional)
+//   wind     the wind dial
+//   picker   the active location's photo with its targets (optional)
+// Which optional elements show is the Layout dialog's configuration
+// (range-solver-fire-config.js, resolved by fire-elements.js); where the
+// cells sit is fire-layout.js's fixed layout for the screen's orientation.
 //
 // Auto-recomputes on every input change, same posture as Trajectory/Hit
 // Probability — there's no Calculate button.
 import { el, clear } from '../dom.js';
 import { inlineNumberField } from '../ui/inline-number-field.js';
 import { windControl } from '../ui/wind-control.js';
-import { losAngleIcon, scopeViewIcon } from '../ui/nav-icons.js';
+import { losAngleIcon, locationIcon, atmosphereIcon } from '../ui/nav-icons.js';
 import { rifleSection } from '../ui/sections/rifle-section.js';
 import { cartridgeSection } from '../ui/sections/cartridge-section.js';
 import { gunsSummary } from '../ui/sections/guns-summary.js';
 import { openRangeSolverGunPicker } from '../ui/range-solver/gun-picker.js';
-import { openRangeSolverLocationPicker } from '../ui/range-solver/location-picker.js';
 import { atmosphereSection } from '../ui/sections/atmosphere-section.js';
 import { t, i18nSpan } from '../i18n.js';
 import { computeImpact } from '../engine/trajectory.js';
 import { clicksForOffset, convertAngularValue, siToDisplay, displayToSI, unitChoice, UNIT_GROUPS, FIELD_BOUNDS } from '../units.js';
 import { getUnit } from '../prefs.js';
 import { setRangeSolverMode, getRangeSolverTab, onRangeSolverTabChange } from '../range-solver-nav.js';
-import { getIndicatorStyle, getOutputUnit, isScopeViewOn, setScopeViewOn } from '../range-solver-prefs.js';
+import { getIndicatorStyle, getOutputUnit } from '../range-solver-prefs.js';
+import { getFireConfig, onFireConfigChange } from '../range-solver-fire-config.js';
 import { scopeView as createScopeView } from '../ui/range-solver/scope-view.js';
 import { bdcTrajectories } from '../ui/range-solver/bdc-trajectories.js';
+import { resolveFireElements, effectiveElementIds } from '../ui/range-solver/fire-elements.js';
+import { fireLayoutFor, buildFireLayout } from '../ui/range-solver/fire-layout.js';
+import { targetList } from '../ui/range-solver/target-list.js';
+import { targetImagePicker } from '../ui/range-solver/target-image-picker.js';
+import { setFirePaneContext } from '../ui/range-solver/fire-config-dialog.js';
 import { referenceWindSpeed } from '../reticle/bdc-overlay.js';
 import { resolveRifleOptic, rifleOpticKey } from '../rifle-optic.js';
 import { INDICATOR_GLYPHS } from '../ui/dope-format.js';
@@ -41,10 +61,8 @@ import {
   markAtmosphereTouched
 } from '../range-solver-state.js';
 import { loadUserLocations } from '../location-library.js';
-import { locationPickerButton } from '../ui/locations/location-picker-button.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
-import { rangeCardPanel } from '../ui/range-solver/range-card-panel.js';
 import { displayChoice, toDisplayUnit, fromDisplayUnit } from '../display-units.js';
 import { fractionToPercent, linearToAngleAtRange } from '../quantity.js';
 import { requestWakeLock } from '../wake-lock.js';
@@ -53,18 +71,18 @@ import { angleMeterButton } from '../ui/angle-meter/angle-meter-button.js';
 const DEFAULT_LOS_ANGLE_RAD = 0;
 const DEFAULT_WIND_ANGLE_RAD = Math.PI / 2; // full crosswind from the right
 const DEFAULT_WIND_SPEED_MS = 0;
-// <select>'s own sentinel for "not tracking any library target" — real
-// target ids (location-library.js) are never empty strings, so this can
-// never collide with one.
-const MANUAL_ENTRY_VALUE = '';
 
 // One independently-chosen round number per unit — not a conversion of a
 // single metric default into the others — so the table is keyed straight
 // off the unit symbol.
 const TARGET_RANGE_DEFAULTS = { m: 500, yd: 500 };
-// Wind speed's own unit-aware step/decimals are wind-control.js's own
-// concern now (its WIND_SPEED_STEPS table there) — every windControl()
-// caller gets the same stepping, not just this one.
+
+// The wind dial's diameter in its cell: as large as the cell allows (the
+// control is WIND_W_PER_D times as wide as the dial, for its ± buttons),
+// between the floor the control is designed down to and a cap.
+const WIND_DIAL_MIN_PX = 130;
+const WIND_DIAL_MAX_PX = 320;
+const WIND_W_PER_D = 1.44;
 
 // Same stale/unknown-preference fallback largeStepperField() itself
 // applies internally — needed here too since these tables are looked up
@@ -82,16 +100,18 @@ function currentUnit(group) {
 const OUTPUT_ANGULAR_UNIT = { mrad: 'mrad', moa: 'arcmin' };
 const OUTPUT_UNIT_LABEL = { mrad: 'mrad', moa: 'MOA' };
 
+const mediaQuery = (query) => (typeof matchMedia === 'function' ? matchMedia(query) : null);
+
 export function mount(container) {
   clear(container);
   let disposed = false;
   setRangeSolverMode(true);
   // Read once at mount (same "cookie read at mount time" convention every
-  // other view-scoped preference in this app uses — e.g. wind-direction-
-  // dial.js's own skin) — Settings lives on a different route, so this
-  // can't change out from under an already-mounted Range Solver.
+  // other view-scoped preference in this app uses) — Settings lives on a
+  // different route, so these can't change out from under a mounted view.
   const indicatorGlyphs = INDICATOR_GLYPHS[getIndicatorStyle()];
   const outputUnit = getOutputUnit();
+  let fireConfig = getFireConfig();
 
   // ---- Rifle & Bullet (shared active gun configuration — never rendered
   // here, just read for their engine values; see guns-summary.js for the
@@ -100,7 +120,7 @@ export function mount(container) {
   const cartridge = cartridgeSection({ onInput: () => recompute() });
   const guns = gunsSummary({ bare: true, onChange: openRangeSolverGunPicker });
 
-  // ---- Target tab ----
+  // ---- Manual target: range and line-of-sight angle ----
   const targetSaved = loadRangeSolverTargetState() || {};
   function saveTarget() {
     saveRangeSolverTargetState({ rangeM: targetRangeField.getEngineValue(), losAngleRad: losAngleField.getEngineValue() });
@@ -125,19 +145,15 @@ export function mount(container) {
     onMeasure: (losAngleRad) => { losAngleField.setEngineValue(losAngleRad); saveTarget(); recompute(); }
   });
 
-  // ---- Locations & Targets library — active location/target picker ----
-  // The range/LoS fields above stay the single source of truth for what's
-  // actually dialed (still cookie-backed via saveTarget(), exactly as
-  // before) — picking a target here just copies its values in as a free
-  // edit (see the target select's own listener below); it never becomes a
-  // live two-way link, and there's no path back up to the library either
-  // — so this widget's whole job is (a) offering that one-time copy and
-  // (b) detaching back to "Manual entry" the moment a hand-edit makes the
-  // fields diverge from what's saved (detachIfHandEdited() below), rather
-  // than leaving a stale target selected next to values it no longer
-  // describes.
+  // ---- Locations & Targets library: the active location and target ----
+  // The range/LoS fields stay the single source of truth for what's
+  // dialed (cookie-backed via saveTarget()) — selecting a target in the
+  // list or on the photo just copies its values in, once; it never
+  // becomes a live link, and nothing flows back to the library. Hand-
+  // editing the fields away from the selected target deselects it
+  // (detachIfHandEdited() below).
   const locationSaved = loadRangeSolverLocationState() || {};
-  let activeLocation = locationSaved.locationId
+  const activeLocation = locationSaved.locationId
     ? loadUserLocations().find((l) => l.id === locationSaved.locationId) || null
     : null;
   // A locationId that no longer resolves (deleted in the Locations
@@ -157,55 +173,14 @@ export function mount(container) {
     return activeLocation.targets.find((tg) => tg.id === activeTargetId) || null;
   }
 
-  const locationNameEl = el('span', { class: 'range-solver-location-name' });
-  const targetSelect = el('select', { id: 'rangeSolverTargetSelect', class: 'range-solver-target-select' });
-  // Opens the Location modal (ui/range-solver/location-picker.js), which
-  // itself offers the way on to the Locations manager.
-  const openLocationsButton = locationPickerButton({
-    label: t('rangeSolver.locationPicker.buttonLabel'),
-    onClick: openRangeSolverLocationPicker
-  });
-  const openPhotoOverlayButton = photoPickerButton({
-    label: t('rangeSolverLocations.photoPickerButtonLabel'),
-    onClick: () => {
-      if (!activeLocation || !activeLocation.photo) return;
-      setPendingPlacement({ locationId: activeLocation.id, targetId: null, returnPath: '/range-solver', selectMode: true });
-      location.hash = '#/locations/place';
-    }
-  });
-  const locationRow = el('div', { class: 'range-solver-location-row' }, [
-    locationNameEl, openLocationsButton, targetSelect, openPhotoOverlayButton
-  ]);
-
-  function refreshLocationWidget() {
-    const hasLocation = !!activeLocation;
-    locationNameEl.style.display = hasLocation ? '' : 'none';
-    locationNameEl.textContent = hasLocation ? activeLocation.name : '';
-    const hasTargets = hasLocation && activeLocation.targets.length > 0;
-    clear(targetSelect);
-    targetSelect.style.display = hasTargets ? '' : 'none';
-    if (hasTargets) {
-      // Always first — the one option not backed by a library target, so
-      // it reads as "nothing tracked" rather than one choice among equals.
-      targetSelect.appendChild(el('option', { value: MANUAL_ENTRY_VALUE, text: t('rangeSolverLocations.manualEntryOption') }));
-      activeLocation.targets.forEach((tg, i) => {
-        targetSelect.appendChild(el('option', {
-          value: tg.id, text: tg.name || t('rangeSolverLocations.defaultTargetName', { n: i + 1 })
-        }));
-      });
-      targetSelect.value = activeTargetId ?? MANUAL_ENTRY_VALUE;
-    }
-    openPhotoOverlayButton.style.display = hasLocation && activeLocation.photo ? '' : 'none';
-  }
-
-  // Shared by the <select> below and the photo overlay's tap-to-select —
-  // both drive the exact same selection path, including discarding any
-  // hand-edited fields with no confirmation; switching targets is always
-  // a fresh copy-in, never a merge.
+  // Shared by the targets list and the photo picker — both drive the same
+  // selection path, discarding any hand-edited fields with no
+  // confirmation; selecting is always a fresh copy-in. The target's LoS is
+  // copied in even while LoS angles are ignored, so turning that option
+  // off later shows the target's own values.
   function selectTarget(targetId) {
     activeTargetId = targetId;
     saveRangeSolverLocationState({ targetId: activeTargetId });
-    targetSelect.value = targetId; // keep the dropdown in sync when picked via the photo instead
     const target = resolvedActiveTarget();
     if (target) {
       targetRangeField.setEngineValue(target.rangeM);
@@ -214,63 +189,45 @@ export function mount(container) {
     }
     recompute();
   }
-  // Detaches from whichever target is active, keeping the range/LoS
-  // fields exactly as they currently read — the reverse of selectTarget()
-  // above, which copies a target's values in. Never fires recompute()
-  // itself: the auto-detach path below is already mid-recompute() when it
-  // calls this, and the <select>'s own change listener triggers its own
-  // recompute() right after.
+  // Detaches from the selected target, keeping the fields as they read.
+  // Never recomputes itself: its one caller is already mid-recompute().
   function deselectTarget() {
     activeTargetId = null;
     saveRangeSolverLocationState({ targetId: null });
-    targetSelect.value = MANUAL_ENTRY_VALUE;
   }
-  targetSelect.addEventListener('change', () => {
-    if (targetSelect.value === MANUAL_ENTRY_VALUE) { deselectTarget(); recompute(); }
-    else selectTarget(targetSelect.value);
-  });
 
-  refreshLocationWidget();
-
-  // There's no live "push these edits back up to the library" path
-  // anymore — hand-editing a loaded target's range/LoS just detaches from
-  // it (dropdown falls back to "Manual entry", see deselectTarget()
-  // above), the fields' own values untouched. Checked on every recompute()
-  // regardless of what actually changed (wind/atmosphere edits included)
-  // — cheap, and correct either way: once activeTargetId is null there's
-  // no target left to diverge from, so this becomes a no-op.
-  //
-  // Each field's own peekRoundTrip() (inline-number-field.js) — not a
-  // hand-rolled copy of its rounding — is what a saved target's raw
-  // rangeM/losAngleRad has to go through before comparing: otherwise a
-  // target whose stored value has more precision than the field actually
-  // displays (e.g. a LOS angle of 5.55° against losAngleField's tenth-
-  // of-a-degree `decimals: 1`) reads as "hand-edited" the instant it's loaded,
-  // from the field's own display rounding alone — immediately deselecting
-  // the very target selectTarget() just finished copying in, never having
-  // been touched by hand at all. (This is exactly what a stale, duplicated
-  // round-trip helper here used to get wrong for both fields — silently,
-  // for any target whose LOS angle had more digits than the field shows.)
+  // Checked on every recompute() regardless of what changed — cheap, and a
+  // no-op once nothing is selected. Each field's own peekRoundTrip()
+  // (inline-number-field.js) is what a target's stored value has to go
+  // through before comparing: a stored value with more precision than the
+  // field shows (a LoS angle of 5.55° against the field's tenths) would
+  // otherwise read as hand-edited the instant it is loaded. While LoS
+  // angles are ignored only the range counts — the LoS field is hidden and
+  // can't be edited.
   function detachIfHandEdited() {
     const target = resolvedActiveTarget();
     if (!target) return;
     const diverged = (
       targetRangeField.getEngineValue() !== targetRangeField.peekRoundTrip(target.rangeM) ||
-      losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(target.losAngleRad)
+      (!ignoringLos() && losAngleField.getEngineValue() !== losAngleField.peekRoundTrip(target.losAngleRad))
     );
     if (diverged) deselectTarget();
   }
 
-  // ---- Wind — a single combined dial (src/ui/wind-control.js), the dial
-  // + large-stepper pairing's replacement here and in Trajectory's
-  // atmosphere section (atmosphere-section.js's own `combinedWind`); Hit
-  // Probability/BC Estimator/Arsenal keep the plain pairing. Wind speed's
-  // step/decimals are unit-aware by default now (that component's own
-  // WIND_SPEED_STEPS table) — no longer computed here. Lives on the
-  // Target tab itself (below the range/LoS row) rather than its own tab;
-  // no label — the dial's own hub (speed digits, degree readout) already
-  // reads as "wind" at a glance, same reasoning as the Target tab's own
-  // label-free range/LoS row just above it.
+  // The prominent picture icon: opens the full-screen photo picker when
+  // the pane shows neither the list nor the inline picker (fire-elements.js).
+  const pictureButton = photoPickerButton({
+    label: t('rangeSolverLocations.photoPickerButtonLabel'),
+    prominent: true,
+    onClick: () => {
+      if (!activeLocation || !activeLocation.photo) return;
+      setPendingPlacement({ locationId: activeLocation.id, targetId: null, returnPath: '/range-solver', selectMode: true });
+      location.hash = '#/locations/place';
+    }
+  });
+
+  // ---- Wind — the combined dial (wind-control.js), label-free: its hub
+  // (speed digits, degree readout) already reads as "wind" at a glance.
   const windSaved = loadRangeSolverWindState() || {};
   function saveWind() {
     saveRangeSolverWindState({ speed: wind.getEngineSpeed(), angleRad: wind.getAngleRad() });
@@ -282,95 +239,24 @@ export function mount(container) {
     onInput: () => { saveWind(); recompute(); }
   });
 
-  const targetParamsRow = el('div', { class: 'target-params-row' }, [
-    targetRangeField.node,
-    losAngleField.node,
-    measureLosAngleButton
-  ]);
-  const targetTab = el('div', { class: 'input-section range-solver-tab-panel' }, [
-    locationRow,
-    targetParamsRow,
-    wind.node
-  ]);
-
-  // ---- Range Card tab — every target at the active location solved at
-  // once (src/ui/range-solver/range-card-panel.js). No unit/ballistics
-  // knowledge of its own; buildRangeCardRows()/solveClicks() below feed it
-  // fully-formed rows on every recompute(). Shares the exact same
-  // windControl() instance as the Target tab above (re-parented between
-  // the two tabs' own slots in applyActiveTab(), see windSlotTarget/
-  // rangeCard.windSlot below) rather than a second dial reflecting the
-  // same cookie-backed value — one instance, one place it can go stale. ----
-  const rangeCard = rangeCardPanel({
-    onSelectTarget: (targetId) => selectTarget(targetId),
-    indicatorGlyphs,
-    onPickLocation: openRangeSolverLocationPicker
-  });
-  const rangeCardTab = el('div', { class: 'range-solver-tab-panel range-card-tab-panel' }, [rangeCard.node]);
-  // wind.node's other possible parent — see applyActiveTab()'s reparenting
-  // step; kept as its own named slot (rather than targetTab directly)
-  // purely so both call sites read the same way.
-  const windSlotTarget = targetTab;
-
-  // ---- Atmosphere tab — own cookie-backed state (range-solver-state.js),
+  // ---- Atmosphere pane — own cookie-backed state (range-solver-state.js),
   // deliberately not shot-state.js's shared session-only one (see
   // atmosphere-section.js's own load/save override). ----
   const atmosphere = atmosphereSection({
     includeWind: false, onInput: () => { markAtmosphereTouched(); recompute(); },
     load: loadRangeSolverAtmosphereState, save: saveRangeSolverAtmosphereState
   });
-  const atmosphereTab = el('div', { class: 'range-solver-tab-panel' }, [atmosphere.node]);
 
-  // Which of the three shows is driven by the section nav bar (see
-  // range-solver-nav.js), not local tab buttons — nav-rail.js/nav-
-  // tabbar.js's own Target/Range Card/Atmosphere items call
-  // setRangeSolverTab(). app.js's own onRangeSolverTabChange subscription
-  // toggles html.range-solver-card-active (layout.css keys off it to give
-  // this tab the whole screen, output pane hidden) — kept there rather
-  // than here to match every other cross-cutting mode class in this app.
-  const tabPanels = { target: targetTab, rangeCard: rangeCardTab, atmosphere: atmosphereTab };
-  function applyActiveTab() {
-    const active = getRangeSolverTab();
-    for (const key of Object.keys(tabPanels)) tabPanels[key].style.display = key === active ? '' : 'none';
-    // appendChild() on an already-attached node moves it — no explicit
-    // remove-then-insert dance needed either direction.
-    (active === 'rangeCard' ? rangeCard.windSlot : windSlotTarget).appendChild(wind.node);
-    // Row heights measured while this tab's own display:none (every
-    // recompute() runs regardless of which tab is active — see
-    // refreshRangeCard() below) all come back zero, baking in an empty-
-    // looking table until re-measured for real — see rangeCard's own
-    // remeasure() for why this can't just be skipped while hidden instead.
-    if (active === 'rangeCard') rangeCard.remeasure();
-  }
-  applyActiveTab();
-  const unsubscribeTab = onRangeSolverTabChange(applyActiveTab);
-
-  const inputPane = el('div', { class: 'range-solver-input-pane' }, [targetTab, rangeCardTab, atmosphereTab]);
-
-  // ---- Output pane ----
-  // A quiet, label-free readout of the current atmospheric conditions —
-  // station pressure, temperature and humidity — each value carrying its
-  // own unit symbol as its only identification. Same "small and
-  // non-intrusive" visual weight as the ToF/velocity/energy footer below,
-  // but even quieter (no labels), since this is context for the dialed
-  // numbers, not a result in its own right. Target range/LoS angle and
-  // wind speed/direction used to show here too — dropped as redundant
-  // once both are visible right above, on the Target tab itself (range/
-  // LoS row plus the embedded wind widget — see targetTab above).
+  // ---- Readout ----
   const conditionsBar = el('div', { class: 'range-solver-conditions' });
   const elevationValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   const windageValue = el('div', { class: 'range-solver-click-value' }, ['—']);
   // The unit suffix goes on the small label rather than the huge readout
-  // number itself, since the reading's own font size (up to 210px, see
-  // layout.css) would make an inline " mrad"/" MOA"/" clicks" suffix
-  // dominate the screen. 'clicks' gets the literal word "clicks", not the
-  // rifle's own click angular unit (mrad/MOA) — a click's *size* is
-  // arbitrary (0.1 mrad by default, but any value, and possibly different
-  // between elevation and windage — see scope-clicks-field.js), so
-  // labeling a "12 clicks" reading as "12 mrad" would misstate it by
-  // whatever factor the click value differs from 1 (10x too large at the
-  // 0.1 mrad default). "clicks" is the only label that's actually always
-  // true regardless of the rifle's click size/unit.
+  // number itself, which would make an inline " mrad"/" MOA"/" clicks"
+  // suffix dominate the screen. 'clicks' gets the literal word "clicks",
+  // not the rifle's click angular unit: a click's size is arbitrary (0.1
+  // mrad by default, possibly different between elevation and windage),
+  // so "12 mrad" for 12 clicks would misstate it by that factor.
   const outputUnitSuffix = OUTPUT_UNIT_LABEL[outputUnit]
     ? ` (${OUTPUT_UNIT_LABEL[outputUnit]})`
     : outputUnit === 'clicks' ? ` (${t('settings.rangeSolverOutputClicks')})` : '';
@@ -385,28 +271,13 @@ export function mount(container) {
     ])
   ]);
 
-  // Elevation and windage are meant to read as a matched pair, so if a
-  // narrow container and/or a long value (see .range-solver-click-value's
-  // cqw-scaled font size in layout.css, floored at 54px) forces one of
-  // them to wrap its sign onto its own line while the other still fits on
-  // one, syncReadoutWrap() below force-breaks the other the same way
-  // rather than leaving the pair visually lopsided. A ResizeObserver
-  // re-runs that check on any width change to either stat panel, not just
-  // when recompute() itself re-runs on an input edit — resizing the
-  // window alone can flip which side wraps. Feature-detected since this
-  // app's test harness's fake DOM has no ResizeObserver (see multi-bc-
-  // segments.js's own use of the same guard).
-  //
-  // The re-sync itself is deferred to the next animation frame rather
-  // than run straight from the observer callback: .range-solver-readout
-  // has no explicit align-items, so its default `stretch` means forcing
-  // one stat to two lines grows *both* stats' own observed height (the
-  // shorter one gets stretched to match) — mutating synchronously inside
-  // the very callback that's observing that mutation is exactly what
-  // trips the browser's (harmless but noisy) "ResizeObserver loop
-  // completed with undelivered notifications" warning. One rAF tick
-  // breaks that same-frame feedback loop; the coalescing guard collapses
-  // a burst of resize notifications into a single re-sync.
+  // Elevation and windage read as a matched pair: if a narrow stat and/or
+  // a long value forces one to wrap its sign onto its own line while the
+  // other still fits, syncReadoutWrap() below breaks the other the same
+  // way. A ResizeObserver re-runs that on any size change of either stat;
+  // the re-sync is deferred one frame so forcing a break (which grows both
+  // stretched stats) never happens inside the callback observing it.
+  // Feature-detected: the test harness's fake DOM has no ResizeObserver.
   let wrapResizeObserver = null;
   let wrapSyncFrame = null;
   if (typeof ResizeObserver !== 'undefined') {
@@ -430,13 +301,10 @@ export function mount(container) {
     el('div', { class: 'range-solver-footer-stat' }, [i18nSpan('rangeSolver.energyLabel'), energyValue])
   ]);
 
-  // ---- Scope view — the rifle's reticle with the shot's aiming point,
-  // above a compact readout. Only offered when the active rifle has a
-  // scope with a reticle (rifle-optic.js). The toggle sits at the end of
-  // the conditions row while the view is off, and in the corner of the
-  // reticle's square while it is on, so the row needs only its text's
-  // height then.
-  const scopeView = createScopeView({ onBdcChange: updateBdc });
+  // ---- Scope view — the rifle's reticle with the shot's aiming point.
+  // Shown when the configuration asks for it and the active rifle has a
+  // scope with a reticle (rifle-optic.js); sized from its cell.
+  const scopeView = createScopeView({ onBdcChange: updateBdc, fitBox: true });
   // The trajectory the BDC range labels and the wind holds read: flown for
   // the dialed target's conditions (its line-of-sight angle and the wind's
   // head- or tailwind part included) whenever either needs it and they
@@ -448,17 +316,6 @@ export function mount(container) {
     const reference = fromDisplayUnit('windSpeed', referenceWindSpeed(displayChoice('windSpeed').unit));
     bdc.update(bdcState, reference);
   }
-  scopeView.node.style.display = 'none';
-  const scopeViewButton = el('button', {
-    type: 'button', class: 'icon-button range-solver-scope-toggle', 'aria-pressed': 'false',
-    title: t('rangeSolver.scopeView.toggle'), 'aria-label': t('rangeSolver.scopeView.toggle')
-  }, [scopeViewIcon(22)]);
-  scopeViewButton.style.display = 'none';
-  scopeViewButton.addEventListener('click', () => {
-    setScopeViewOn(!isScopeViewOn());
-    applyScopeView();
-  });
-  const conditionsRow = el('div', { class: 'range-solver-conditions-row' }, [conditionsBar, scopeViewButton]);
 
   let rifleOptic = null;
   let rifleOpticKeyValue = null;
@@ -470,56 +327,142 @@ export function mount(container) {
     rifleOpticKeyValue = key;
     const request = ++rifleOpticRequest;
     rifleOptic = null;
-    applyScopeView();
+    applyFireConfig();
     if (!key) return;
     resolveRifleOptic(selected).then((optic) => {
       if (disposed || request !== rifleOpticRequest) return;
       rifleOptic = optic;
-      applyScopeView();
+      applyFireConfig();
     });
   }
 
-  function applyScopeView() {
-    const available = !!rifleOptic;
-    const active = available && isScopeViewOn();
-    scopeViewButton.style.display = available ? '' : 'none';
-    scopeViewButton.setAttribute('aria-pressed', active ? 'true' : 'false');
-    scopeViewButton.classList.toggle('active', active);
-    const home = active ? scopeView.corner : conditionsRow;
-    if (scopeViewButton.parentNode !== home) {
-      if (scopeViewButton.parentNode) scopeViewButton.parentNode.removeChild(scopeViewButton);
-      home.appendChild(scopeViewButton);
+  // ---- Targets list and photo picker ----
+  const list = targetList({ onSelectTarget: (targetId) => selectTarget(targetId), indicatorGlyphs });
+  const picker = targetImagePicker({ onSelectTarget: (targetId) => selectTarget(targetId) });
+
+  // ---- The Fire! pane's cells ----
+  const dimIcon = (iconNode) => el('span', { class: 'fire-context-icon', 'aria-hidden': 'true' }, [iconNode]);
+  const locationPart = el('span', { class: 'fire-context-location' }, [
+    dimIcon(locationIcon(14)), el('strong', { class: 'fire-context-name', text: activeLocation ? activeLocation.name : '' })
+  ]);
+  const atmospherePart = el('span', { class: 'fire-context-atmosphere' }, [dimIcon(atmosphereIcon(14)), conditionsBar]);
+  // The picture icon, when shown, comes first (layout.css relies on this
+  // order: picture icon, range, LoS, angle meter).
+  const manualRow = el('div', { class: 'target-params-row' }, [
+    pictureButton, targetRangeField.node, losAngleField.node, measureLosAngleButton
+  ]);
+  const cells = {
+    gun: el('div', { class: 'fire-cell fire-cell-gun' }, [guns.node]),
+    context: el('div', { class: 'fire-cell fire-cell-context' }, [locationPart, atmospherePart]),
+    scope: el('div', { class: 'fire-cell fire-cell-scope' }, [scopeView.node]),
+    readout: el('div', { class: 'fire-cell fire-cell-readout' }, [readout]),
+    flight: el('div', { class: 'fire-cell fire-cell-flight' }, [footer]),
+    manual: el('div', { class: 'fire-cell fire-cell-manual' }, [manualRow]),
+    list: el('div', { class: 'fire-cell fire-cell-list' }, [list.node]),
+    wind: el('div', { class: 'fire-cell fire-cell-wind' }, [wind.node]),
+    picker: el('div', { class: 'fire-cell fire-cell-picker' }, [picker.node])
+  };
+  const firePane = el('div', { class: 'fire-pane' });
+  const atmospherePane = el('div', { class: 'range-solver-atmosphere-pane' }, [atmosphere.node]);
+  container.appendChild(firePane);
+  container.appendChild(atmospherePane);
+
+  // The wind dial fills its cell, measured into px (the control's own
+  // container-unit sizing misbehaves when its cell, not the viewport,
+  // decides its size).
+  let windObserver = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    windObserver = new ResizeObserver((entries) => {
+      const box = entries[0]?.contentRect;
+      if (!box || !box.width || !box.height) return;
+      const d = Math.round(Math.max(WIND_DIAL_MIN_PX, Math.min(WIND_DIAL_MAX_PX, box.height, box.width / WIND_W_PER_D)));
+      wind.node.style.setProperty('--fire-dial-d', `${d}px`);
+      wind.node.style.setProperty('--fire-btn', `${Math.round(Math.max(40, Math.min(64, d * 0.3056)))}px`);
+    });
+    windObserver.observe(cells.wind);
+  }
+
+  // ---- Configuration → what shows, and the layout ----
+  let resolved = null;
+  const ignoringLos = () => !!resolved && resolved.ignoreLos.effective;
+  // Every solve's line-of-sight angle: 0 while LoS angles are ignored, so
+  // what is shown is what is computed (the dialed target, every list row,
+  // the BDC trajectories, the scope view).
+  const effectiveLosRad = (losAngleRad) => (ignoringLos() ? 0 : losAngleRad);
+
+  const landscapeQuery = mediaQuery('(orientation: landscape)');
+  const viewportBox = () => ({
+    width: typeof innerWidth === 'number' ? innerWidth : 390,
+    height: typeof innerHeight === 'number' ? innerHeight : 844
+  });
+  function paneBox() {
+    if (typeof firePane.getBoundingClientRect === 'function') {
+      const r = firePane.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) return { width: r.width, height: r.height };
     }
-    scopeView.node.style.display = active ? '' : 'none';
-    readout.classList.toggle('compact', active);
-    layout.classList.toggle('scope-view-on', active);
-    scopeView.setOptic(active ? rifleOptic : null);
+    const v = viewportBox();
+    return { width: Math.max(1, v.width - 24), height: Math.max(1, v.height - 24) };
+  }
+
+  let layoutKey = null;
+  function applyLayout(force = false) {
+    if (!resolved) return;
+    const pane = paneBox();
+    const v = viewportBox();
+    const orientation = landscapeQuery && landscapeQuery.matches ? 'landscape' : 'portrait';
+    const ids = effectiveElementIds(resolved);
+    const ctx = {
+      paneWidth: pane.width, paneHeight: pane.height, vmin: Math.min(v.width, v.height),
+      pictureIcon: resolved.pictureIcon, ignoreLos: resolved.ignoreLos.effective
+    };
+    const layout = fireLayoutFor(orientation, ids, ctx);
+    const key = JSON.stringify([orientation, ids, Math.round(pane.width), Math.round(pane.height), ctx.vmin, ctx.pictureIcon, ctx.ignoreLos]);
+    if (!force && key === layoutKey) return;
+    layoutKey = key;
+    const root = buildFireLayout(layout.tree, cells, layout.floorCtx);
+    clear(firePane);
+    firePane.appendChild(root);
+    firePane.classList.toggle('fire-landscape', orientation === 'landscape');
+    firePane.classList.toggle('fire-scrolls', layout.minHeight > pane.height);
+    for (const id of Object.keys(cells)) firePane.classList.toggle(`fire-has-${id}`, ids.includes(id));
+    list.remeasure();
+  }
+
+  function applyFireConfig() {
+    resolved = resolveFireElements({ config: fireConfig, location: activeLocation, hasOptic: !!rifleOptic });
+    setFirePaneContext({ hasOptic: !!rifleOptic, paneNode: firePane });
+    locationPart.style.display = resolved.showLocationName ? '' : 'none';
+    pictureButton.style.display = resolved.pictureIcon ? '' : 'none';
+    losAngleField.node.style.display = resolved.ignoreLos.effective ? 'none' : '';
+    measureLosAngleButton.style.display = resolved.ignoreLos.effective ? 'none' : '';
+    manualRow.classList.toggle('ignore-los', resolved.ignoreLos.effective);
+    manualRow.classList.toggle('with-picture', resolved.pictureIcon);
+    readout.classList.toggle('compact', resolved.scope.effective);
+    scopeView.setOptic(resolved.scope.effective ? rifleOptic : null);
+    list.setRowBudget({ optimal: fireConfig.listRowsOptimal, count: fireConfig.listRows });
+    applyLayout(true);
     updateBdc();
   }
 
-  const outputPane = el('div', { class: 'range-solver-output-pane' }, [guns.node, conditionsRow, scopeView.node, readout, footer]);
-
-  const layout = el('div', { class: 'range-solver-layout' }, [outputPane, inputPane]);
-  container.appendChild(layout);
+  function applyActiveTab() {
+    const fire = getRangeSolverTab() === 'fire';
+    firePane.style.display = fire ? '' : 'none';
+    atmospherePane.style.display = fire ? 'none' : '';
+    // A pane measured while hidden measures zero: lay out again now.
+    if (fire) applyLayout(true);
+  }
 
   // The dialed correction, sign shown as a direction glyph (leading, not
   // trailing — read the direction first) rather than +/- — a value that
   // rounds to zero at the display precision shows plain, no glyph.
   // Elevation matches trajectory-columns.js's own elevClicks/elevMrad/
   // elevMOA sign (dropped below the sight line reads as a positive "dial
-  // up" correction). Windage keeps trajectory-columns.js's own windClicks/
-  // windMrad/windMOA sign as-is (not inverted) — there's no established
-  // real-world left/right mapping for it anywhere else in the app to defer
-  // to, so positive is defined here as "dial right," negative as "dial
-  // left," consistent with itself and with the Trajectory table's own raw
-  // sign for the same shot. Which glyphs (arrows vs +/-) is a Settings
-  // preference — see indicatorGlyphs above. `decimals` is 0 for clicks
-  // (whole clicks, as always), 1 for mrad/MOA (outputUnit above).
-  //
-  // `forceBreak` inserts an explicit <br> between the glyph and the
-  // number (or, for a zero value with no glyph at all, before the lone
-  // number) to match a sibling stat that wrapped on its own — see
-  // isWrapped()/syncReadoutWrap() below.
+  // up" correction). Windage keeps trajectory-columns.js's own sign as-is:
+  // positive is "dial right," negative "dial left," consistent with the
+  // Trajectory table's raw sign for the same shot. Which glyphs (arrows vs
+  // +/-) is a Settings preference. `decimals` is 0 for clicks, 1 for
+  // mrad/MOA. `forceBreak` inserts a <br> between glyph and number (or
+  // before a lone zero) to match a sibling stat that wrapped on its own.
   function renderAdjustment(node, value, positiveGlyph, negativeGlyph, decimals, forceBreak) {
     clear(node);
     const rounded = Number(value.toFixed(decimals));
@@ -534,46 +477,28 @@ export function mount(container) {
     node.appendChild(document.createTextNode(Math.abs(rounded).toFixed(decimals)));
   }
 
-  // True once the glyph and the number have actually landed on two
-  // different lines — compared by the value box's own rendered height
-  // against its single-line height (line-height:1, so exactly one
-  // font-size — see .range-solver-click-value in layout.css), rather than
-  // by comparing the glyph's and number's own top positions. Those two
-  // spans sit at different baseline-aligned heights even on a single
-  // line — `.range-solver-click-glyph`'s display:inline-block gives it
-  // its own baseline-aligned box, a few px off from the plain inline
-  // number span's — so comparing tops directly false-flagged every
-  // single-line reading as "wrapped". The 1.5x threshold cleanly falls
-  // between one line's height (~1x) and two lines' (~2x) regardless of
-  // the cqw-scaled font size actually in effect. Feature-detected — this
-  // app's test harness's fake DOM has no getBoundingClientRect at all
-  // (real layout never runs there), so it always reports "not wrapped".
+  // True once the glyph and the number sit on two lines — the value box's
+  // rendered height against one line's (line-height 1, so one font-size).
+  // The 1.5x threshold falls cleanly between one line (~1x) and two
+  // (~2x). The fake DOM has no layout, so it always reports "not wrapped".
   function isWrapped(node) {
     if (typeof node.getBoundingClientRect !== 'function') return false;
     const fontSizePx = parseFloat(getComputedStyle(node).fontSize);
     return node.getBoundingClientRect().height > fontSizePx * 1.5;
   }
 
-  // The last successfully computed reading, kept around so
-  // syncReadoutWrap() can re-render on a pure resize (no recompute()) —
-  // null while showPlaceholder() is showing "—", so a resize during a
-  // mid-edit input never tries to re-render stale numbers over it.
+  // The last computed reading, so syncReadoutWrap() can re-render on a
+  // pure resize — null while showPlaceholder() shows "—".
   let lastElevValue = null;
   let lastWindValue = null;
   let lastDecimals = 0;
 
-  // Elevation and windage read as a matched pair — if a narrow container
-  // and/or a long value forces one to wrap its sign onto its own line
-  // while the other still fits on one, force the other to break the same
-  // way rather than leaving the pair visually lopsided. Always starts
-  // from an unforced render of both (not an incremental patch) so a
-  // widening resize un-forces a break exactly as readily as a narrowing
-  // one imposes it.
+  // Always starts from an unforced render of both, so a widening resize
+  // un-forces a break as readily as a narrowing one imposes it.
   function syncReadoutWrap() {
     if (lastElevValue === null || lastWindValue === null) return;
     renderAdjustment(elevationValue, lastElevValue, indicatorGlyphs.elevationPositive, indicatorGlyphs.elevationNegative, lastDecimals, false);
     renderAdjustment(windageValue, lastWindValue, indicatorGlyphs.windagePositive, indicatorGlyphs.windageNegative, lastDecimals, false);
-
     const elevWrapped = isWrapped(elevationValue);
     const windWrapped = isWrapped(windageValue);
     if (elevWrapped && !windWrapped) {
@@ -591,8 +516,8 @@ export function mount(container) {
   }
 
   // Shown whenever an input is mid-edit (e.g. the range field momentarily
-  // empty while retyping it) or otherwise produces a non-finite result —
-  // "—" everywhere rather than a stray "NaN" reaching the screen.
+  // empty) or otherwise produces a non-finite result — "—" everywhere
+  // rather than a stray "NaN" reaching the screen.
   function showPlaceholder() {
     scopeView.setShot(null);
     lastElevValue = null;
@@ -606,9 +531,7 @@ export function mount(container) {
     energyValue.textContent = '—';
   }
 
-  // The number itself is the reading; the unit is just how to read it — so
-  // it gets its own brighter span, same "value stands out, its context
-  // doesn't" split the footer below already uses for ToF/velocity/energy.
+  // The number itself is the reading; the unit is just how to read it.
   function numberWithUnit(numberStr, unitText) {
     return [el('span', { class: 'range-solver-conditions-num' }, [numberStr]), document.createTextNode(unitText)];
   }
@@ -620,15 +543,15 @@ export function mount(container) {
     return numberWithUnit(toDisplayUnit(groupName, value).toFixed(choice.decimals), ` ${choice.label}`);
   }
 
+  // Station pressure, temperature and humidity, each identified only by
+  // its unit symbol — context for the dialed numbers, not a result.
   function updateConditions() {
     clear(conditionsBar);
     const { pressurePa, tempC, humidity } = atmosphere.getValues();
-
     const parts = [];
     if (Number.isFinite(pressurePa)) parts.push(formatWithUnit('pressure', pressurePa));
     if (Number.isFinite(tempC)) parts.push(formatWithUnit('temperature', tempC));
     if (Number.isFinite(humidity)) parts.push(numberWithUnit(String(Math.round(fractionToPercent(humidity))), '%'));
-
     parts.forEach((part, i) => {
       if (i > 0) conditionsBar.appendChild(el('span', { class: 'range-solver-conditions-sep' }, ['·']));
       conditionsBar.appendChild(Array.isArray(part) ? el('span', {}, part) : part);
@@ -636,9 +559,8 @@ export function mount(container) {
   }
 
   // Everything computeImpact() needs except losAngleRad/targetRangeM —
-  // those two vary per target (the dialed one below, and every other
-  // target's own stored values for the Range Card tab, see
-  // buildRangeCardRows()), everything else is shared "current conditions."
+  // those vary per target (the dialed one, and every list row's own),
+  // everything else is shared "current conditions."
   function buildNominalStateBase() {
     return {
       ...cartridge.getValues(),
@@ -662,12 +584,10 @@ export function mount(container) {
     };
   }
 
-  // The one shot solve, factored out so both the Target tab's own single
-  // readout and the Range Card tab's per-target rows (each with their own
-  // rangeM/losAngleRad, same shared conditions otherwise) go through the
-  // exact same math — returns null on anything unsolvable (same cases
-  // showPlaceholder() used to catch inline) rather than throwing, so a
-  // Range Card loop over several targets can skip just the bad one.
+  // The one shot solve, shared by the dialed target and every list row
+  // (each with its own range/LoS, the same conditions otherwise). Returns
+  // null on anything unsolvable rather than throwing, so the list can
+  // skip just the bad row.
   function solveClicks(nominalStateBase, targetRangeM, losAngleRad) {
     const nominalState = { ...nominalStateBase, losAngleRad };
     let result;
@@ -693,8 +613,7 @@ export function mount(container) {
       decimals = 0;
     } else {
       // Click value of 1 in the fixed angular unit — same trick
-      // trajectory-columns.js's own elevMrad/elevMOA columns use, sidestepping
-      // the rifle's own scope click value entirely.
+      // trajectory-columns.js's own elevMrad/elevMOA columns use.
       const angularUnit = OUTPUT_ANGULAR_UNIT[outputUnit];
       elevValue = convertAngularValue(elevationRad, 'rad', angularUnit);
       windValue = convertAngularValue(windageRad, 'rad', angularUnit);
@@ -704,22 +623,18 @@ export function mount(container) {
     return { elevValue, windValue, decimals, elevationRad, windageRad, result };
   }
 
-  // range/LoS display string for one target's row — same targetRange
-  // field/unit convention every other distance value in this app uses,
-  // but always rounded to a whole number: the row-count budget/font sizes
-  // in the Range Card table are tuned for a compact value column, and
-  // this table is a glance-at overview rather than a precision field.
+  // A target's range for its list row — always a whole number: the list is
+  // a glance-at overview with a compact value column, not a precision field.
   function formatRangeDisplay(rangeM) {
-    const distanceUnit = currentUnit('distance');
-    const choice = unitChoice('targetRange', distanceUnit) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
+    const choice = unitChoice('targetRange', currentUnit('distance')) || UNIT_GROUPS.distance.choices.find((c) => c.unit === UNIT_GROUPS.distance.defaultUnit);
     return `${Math.round(siToDisplay('targetRange', rangeM, choice.unit))} ${choice.label}`;
   }
 
-  function buildRangeCardRows(nominalStateBase) {
-    if (!activeLocation) return [];
+  function buildTargetListRows(nominalStateBase) {
+    if (!activeLocation || !resolved || !resolved.list.effective) return [];
     return activeLocation.targets
       .map((target, index) => {
-        const solved = solveClicks(nominalStateBase, target.rangeM, target.losAngleRad);
+        const solved = solveClicks(nominalStateBase, target.rangeM, effectiveLosRad(target.losAngleRad));
         return {
           id: target.id,
           name: target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 }),
@@ -734,8 +649,13 @@ export function mount(container) {
       .sort((a, b) => a.rangeM - b.rangeM);
   }
 
-  function refreshRangeCard(nominalStateBase) {
-    rangeCard.refresh({ location: activeLocation, rows: buildRangeCardRows(nominalStateBase), activeTargetId });
+  function refreshTargets(nominalStateBase) {
+    list.refresh({ rows: buildTargetListRows(nominalStateBase), activeTargetId });
+    picker.refresh({
+      location: resolved && resolved.picker.effective ? activeLocation : null,
+      activeTargetId,
+      omitAngle: ignoringLos()
+    });
   }
 
   function recompute() {
@@ -743,13 +663,14 @@ export function mount(container) {
     updateConditions();
     detachIfHandEdited();
     const nominalStateBase = buildNominalStateBase();
-    bdcState = { ...nominalStateBase, losAngleRad: losAngleField.getEngineValue() };
+    const losAngleRad = effectiveLosRad(losAngleField.getEngineValue());
+    bdcState = { ...nominalStateBase, losAngleRad };
     updateBdc();
     const targetRangeM = targetRangeField.getEngineValue();
-    const solved = solveClicks(nominalStateBase, targetRangeM, losAngleField.getEngineValue());
+    const solved = solveClicks(nominalStateBase, targetRangeM, losAngleRad);
     if (!solved) {
       showPlaceholder();
-      refreshRangeCard(nominalStateBase);
+      refreshTargets(nominalStateBase);
       return;
     }
 
@@ -765,7 +686,7 @@ export function mount(container) {
 
     if (![displayVelocity, displayEnergy].every(Number.isFinite)) {
       showPlaceholder();
-      refreshRangeCard(nominalStateBase);
+      refreshTargets(nominalStateBase);
       return;
     }
 
@@ -781,10 +702,35 @@ export function mount(container) {
     tofValue.textContent = `${solved.result.tof.toFixed(2)} ${t('rangeSolver.secondsUnit')}`;
     velocityValue.textContent = `${displayVelocity.toFixed(0)} ${velocityChoice.label}`;
     energyValue.textContent = `${displayEnergy.toFixed(0)} ${energyChoice.label}`;
-    refreshRangeCard(nominalStateBase);
+    refreshTargets(nominalStateBase);
   }
 
+  applyFireConfig();
+  applyActiveTab();
   recompute();
+
+  const unsubscribeTab = onRangeSolverTabChange(applyActiveTab);
+  const unsubscribeConfig = onFireConfigChange((next) => {
+    fireConfig = next;
+    applyFireConfig();
+    recompute();
+  });
+  // Orientation decides the layout; a pane resize can change which floors
+  // fit (and with them whether the pane scrolls).
+  const onOrientation = () => applyLayout(true);
+  landscapeQuery?.addEventListener?.('change', onOrientation);
+  let paneObserver = null;
+  let paneFrame = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    paneObserver = new ResizeObserver(() => {
+      if (paneFrame !== null) return;
+      paneFrame = requestAnimationFrame(() => {
+        paneFrame = null;
+        if (!disposed && firePane.style.display !== 'none') applyLayout();
+      });
+    });
+    paneObserver.observe(firePane);
+  }
 
   let wakeLockSentinel = null;
   requestWakeLock().then((sentinel) => {
@@ -804,13 +750,20 @@ export function mount(container) {
   return () => {
     disposed = true;
     unsubscribeTab();
+    unsubscribeConfig();
+    landscapeQuery?.removeEventListener?.('change', onOrientation);
+    paneObserver?.disconnect();
+    if (paneFrame !== null) cancelAnimationFrame(paneFrame);
+    windObserver?.disconnect();
+    setFirePaneContext({ paneNode: null });
     setRangeSolverMode(false);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     wakeLockSentinel?.release();
     wakeLockSentinel = null;
     wrapResizeObserver?.disconnect();
     if (wrapSyncFrame !== null) cancelAnimationFrame(wrapSyncFrame);
-    rangeCard.dispose();
+    list.dispose();
+    picker.dispose();
     bdc.dispose();
     scopeView.dispose();
   };

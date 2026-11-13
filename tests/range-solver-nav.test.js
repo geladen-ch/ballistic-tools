@@ -4,14 +4,15 @@ import assert from 'node:assert/strict';
 const {
   isInRangeSolverMode, setRangeSolverMode, onRangeSolverModeChange,
   getRangeSolverTab, setRangeSolverTab, onRangeSolverTabChange, setNextRangeSolverTab,
-  resetRangeSolverNavForTests
+  resetRangeSolverNavForTests, RANGE_SOLVER_TABS
 } = await import('../src/range-solver-nav.js');
 
 test.beforeEach(() => resetRangeSolverNavForTests());
 
-test('starts out of Range Solver mode, on the Target tab', () => {
+test('starts out of Range Solver mode, on the Fire! pane; the two panes are Fire! and Atmosphere', () => {
   assert.equal(isInRangeSolverMode(), false);
-  assert.equal(getRangeSolverTab(), 'target');
+  assert.equal(getRangeSolverTab(), 'fire');
+  assert.deepEqual([...RANGE_SOLVER_TABS], ['fire', 'atmosphere']);
 });
 
 test('setRangeSolverMode toggles isInRangeSolverMode', () => {
@@ -24,13 +25,10 @@ test('setRangeSolverMode toggles isInRangeSolverMode', () => {
 test('onRangeSolverModeChange listeners fire with the new value, only on an actual change', () => {
   const calls = [];
   onRangeSolverModeChange((on) => calls.push(on));
-
   setRangeSolverMode(true);
   assert.deepEqual(calls, [true]);
-
   setRangeSolverMode(true); // no-op — already true
   assert.deepEqual(calls, [true]);
-
   setRangeSolverMode(false);
   assert.deepEqual(calls, [true, false]);
 });
@@ -45,54 +43,65 @@ test('onRangeSolverModeChange returns an unsubscribe function', () => {
   assert.equal(calls, 1, 'should not fire after unsubscribing');
 });
 
-test('entering Range Solver mode always resets the active tab back to Target', () => {
+test('entering Range Solver mode always resets the active pane back to Fire!, before mode listeners run', () => {
   setRangeSolverMode(true);
-  setRangeSolverTab('wind');
-  assert.equal(getRangeSolverTab(), 'wind');
-
+  setRangeSolverTab('atmosphere');
+  assert.equal(getRangeSolverTab(), 'atmosphere');
   setRangeSolverMode(false);
+  let seen = null;
+  const off = onRangeSolverModeChange(() => { seen = getRangeSolverTab(); });
   setRangeSolverMode(true);
-  assert.equal(getRangeSolverTab(), 'target', 'the section never remembers which tab was last open');
+  off();
+  assert.equal(getRangeSolverTab(), 'fire', 'the section never remembers which pane was last open');
+  assert.equal(seen, 'fire');
 });
 
 test('setRangeSolverTab notifies listeners, only on an actual change', () => {
   const calls = [];
   onRangeSolverTabChange((tab) => calls.push(tab));
-
-  setRangeSolverTab('wind');
-  assert.deepEqual(calls, ['wind']);
-
-  setRangeSolverTab('wind'); // no-op — already active
-  assert.deepEqual(calls, ['wind']);
-
   setRangeSolverTab('atmosphere');
-  assert.deepEqual(calls, ['wind', 'atmosphere']);
+  assert.deepEqual(calls, ['atmosphere']);
+  setRangeSolverTab('atmosphere'); // no-op — already active
+  assert.deepEqual(calls, ['atmosphere']);
+  setRangeSolverTab('fire');
+  assert.deepEqual(calls, ['atmosphere', 'fire']);
+});
+
+test('unknown tabs, including the old Target and Range Card ones, mean the Fire! pane', () => {
+  setRangeSolverTab('atmosphere');
+  setRangeSolverTab('rangeCard');
+  assert.equal(getRangeSolverTab(), 'fire');
+  setRangeSolverTab('atmosphere');
+  setRangeSolverTab('target');
+  assert.equal(getRangeSolverTab(), 'fire');
+  setNextRangeSolverTab('rangeCard');
+  setRangeSolverMode(true);
+  assert.equal(getRangeSolverTab(), 'fire');
 });
 
 test('onRangeSolverTabChange returns an unsubscribe function', () => {
   let calls = 0;
   const unsubscribe = onRangeSolverTabChange(() => { calls++; });
-  setRangeSolverTab('wind');
+  setRangeSolverTab('atmosphere');
   assert.equal(calls, 1);
   unsubscribe();
-  setRangeSolverTab('atmosphere');
+  setRangeSolverTab('fire');
   assert.equal(calls, 1, 'should not fire after unsubscribing');
 });
 
-test('resetRangeSolverNavForTests() clears both the mode and the active tab', () => {
+test('resetRangeSolverNavForTests() clears both the mode and the active pane', () => {
   setRangeSolverMode(true);
   setRangeSolverTab('atmosphere');
   resetRangeSolverNavForTests();
   assert.equal(isInRangeSolverMode(), false);
-  assert.equal(getRangeSolverTab(), 'target');
+  assert.equal(getRangeSolverTab(), 'fire');
 });
 
-test('setNextRangeSolverTab picks the tab for the next entry only', () => {
-  setNextRangeSolverTab('rangeCard');
+test('setNextRangeSolverTab picks the pane for the next entry only', () => {
+  setNextRangeSolverTab('atmosphere');
   setRangeSolverMode(true);
-  assert.equal(getRangeSolverTab(), 'rangeCard');
-
+  assert.equal(getRangeSolverTab(), 'atmosphere');
   setRangeSolverMode(false);
   setRangeSolverMode(true);
-  assert.equal(getRangeSolverTab(), 'target', 'one-shot: the entry after that resets to Target again');
+  assert.equal(getRangeSolverTab(), 'fire', 'one-shot: the entry after that resets to Fire! again');
 });

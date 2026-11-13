@@ -8,10 +8,10 @@ import { degToRad } from '../../quantity.js';
 const DEFAULT_VALUES = { name: '', notes: '', rangeM: 400, losAngleRad: 0 };
 
 // Add/Edit form for one target within a location — name and notes are
-// both optional free text, range/LoS angle are the same two fields Range
-// Solver's own Target tab already offers, just in plain unitField form
-// here (this is a management-section form, not the arm's-length outdoor
-// Target tab, so no need for largeStepperField's big touch buttons).
+// both optional free text, range/LoS angle are the same two fields the
+// Range Solver's Fire! pane offers, just in plain unitField form here
+// (this is a management-section form, not the arm's-length outdoor
+// solver, so no need for big touch fields).
 // `locationId`/`locationPhoto` are the parent location's id and photo (or
 // null) — only when there's a photo AND this is an already-saved target
 // (`initialValues.id` set — a brand-new one has nowhere to attach a pin
