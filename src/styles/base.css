@@ -243,6 +243,11 @@ a { color: var(--accent); }
    replaces this max-height with the measured height of exactly ten rows;
    this is only the stand-in for before that has run. */
 .history-scroll { overflow-y: auto; max-height: 26rem; }
+/* One entry of those lists (and of the per-record History dialog): the
+   description takes the free width, so its buttons sit together at the right
+   edge. */
+.history-row > :first-child { flex: 1 1 auto; min-width: 0; }
+.history-row button { flex: none; }
 /* Live per-field validation (src/ui/field-validity.js) — toggled
    directly on whichever control (input/select/textarea) it's checking,
    so one rule covers every field in the app regardless of which other
@@ -1309,8 +1314,14 @@ canvas { display: block; width: 100%; }
    visible at a time), the preset-dropdown-plus-editable-value fields, and
    the results column (zone bars, target illustration, contribution
    table). */
-.section-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+/* The one tab-bar layout, shared by every tabbed view: a wrapping flex row
+   whose tabs grow to fill it, so a short last row has no gap on the right.
+   Each tab's basis is a quarter of the row (a hair less, for the gaps) but
+   never narrower than 6.5rem, which keeps the row at 2 to 4 tabs: 4 across
+   on a wide container, 3 on a phone, 2 only on a very narrow one. */
+.section-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tab-btn {
+  flex: 1 1 max(23%, 6.5rem);
   font-family: var(--font); font-size: 12px; font-weight: 600; text-align: center;
   padding: 9px 6px; border-radius: var(--radius); border: 1px solid var(--line);
   background: var(--panel); color: var(--dim); cursor: pointer;
@@ -1602,3 +1613,14 @@ canvas { display: block; width: 100%; }
 .release-entry-date { color: var(--dim); font-size: 12px; }
 .release-entry-fullversion { color: var(--dim); font-size: 12px; margin-top: 2px; }
 .release-entry-description { margin: 8px 0 0; }
+
+/* Settings: each tab is a set of blocks (.input-section cards) that sit side
+   by side where the width allows and stack on a narrow screen. */
+.settings-tab-intro { margin: 0 0 14px; color: var(--dim); font-size: 13px; }
+.settings-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.settings-blocks .input-section { margin-bottom: 0; background: var(--panel); }

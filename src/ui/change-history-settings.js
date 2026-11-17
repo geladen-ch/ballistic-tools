@@ -116,7 +116,7 @@ function openHistoryDialog(recordType, recordId, recordName, onChanged) {
   const rows = listHistoryFor(recordType, recordId).map((entry) => {
     const restoreButton = el('button', { class: 'secondary', i18n: 'settings.changeHistory.restoreVersionButton' });
     restoreButton.addEventListener('click', () => restoreFrom(restoreButton, entry.id, onChanged));
-    return el('div', { class: 'checkbox-field' }, [
+    return el('div', { class: 'checkbox-field history-row' }, [
       el('span', { text: `${entry.name} — ${summaryFor(entry)}` }),
       restoreButton
     ]);
@@ -169,7 +169,7 @@ export function changeHistorySection() {
         // local to put back.
         row.push(el('span', { class: 'hint', i18n: 'settings.changeHistory.noRecoverableSnapshotHint' }));
       }
-      deletedList.appendChild(el('div', { class: 'checkbox-field' }, row));
+      deletedList.appendChild(el('div', { class: 'checkbox-field history-row' }, row));
     }
   }
 
@@ -193,7 +193,7 @@ export function changeHistorySection() {
           renderDeleted();
         });
       });
-      recentList.appendChild(el('div', { class: 'checkbox-field' }, [
+      recentList.appendChild(el('div', { class: 'checkbox-field history-row' }, [
         el('span', { text: `${entry.name} — ${summaryFor(entry)}` }),
         historyButton,
         revertButton

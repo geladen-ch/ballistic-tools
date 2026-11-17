@@ -115,6 +115,16 @@ test('Home, Guns and Settings are pinned links, and Home is current at the root 
   assert.ok(home.className.includes('current'));
 });
 
+test('the Settings rail entry is current on every Settings sub-route', () => {
+  for (const hash of ['#/settings', '#/settings/data']) {
+    location.hash = hash;
+    const container = makeElement('nav');
+    mountNavRail(container);
+    const settings = findByClass(container, 'rail-item').find((n) => n.getAttribute('href') === '#/settings');
+    assert.ok(settings.className.includes('current'), hash);
+  }
+});
+
 test('clicking Guns (no active rifle) opens Custom and records the return path', () => {
   location.hash = '#/trajectory';
   const container = makeElement('nav');

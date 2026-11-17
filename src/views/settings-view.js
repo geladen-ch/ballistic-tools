@@ -32,9 +32,52 @@ import { reticleOverlayColorPicker } from '../ui/reticle-overlay-color-picker.js
 import { backupSyncSection } from '../ui/backup-sync-settings.js';
 import { changeHistorySection } from '../ui/change-history-settings.js';
 import { onlineWeatherSection } from '../ui/weather/online-weather-settings.js';
+import { tabSwitcher } from '../ui/section-tabs.js';
+import { getLastSettingsTab, setLastSettingsTab } from '../settings-tab-prefs.js';
 
-export function mount(container) {
+// One tab per logical group of settings. `key` is the last segment of the tab's
+// route (`/settings/<key>`), so it is part of the app's URLs and stays stable.
+export const SETTINGS_TABS = [
+  { key: 'interface', labelKey: 'settings.tabs.interface', introKey: 'settings.tabIntro.interface' },
+  { key: 'units', labelKey: 'settings.tabs.units', introKey: 'settings.tabIntro.units' },
+  { key: 'ballistics', labelKey: 'settings.tabs.ballistics', introKey: 'settings.tabIntro.ballistics' },
+  { key: 'libraries', labelKey: 'settings.tabs.libraries', introKey: 'settings.tabIntro.libraries' },
+  { key: 'range-solver', labelKey: 'settings.tabs.rangeSolver', introKey: 'settings.tabIntro.rangeSolver' },
+  { key: 'weather', labelKey: 'settings.tabs.weather', introKey: 'settings.tabIntro.weather' },
+  { key: 'data', labelKey: 'settings.tabs.data', introKey: 'settings.tabIntro.data' }
+];
+
+function isTabKey(key) {
+  return SETTINGS_TABS.some((tab) => tab.key === key);
+}
+
+export function settingsTabPath(key) {
+  return '/settings/' + key;
+}
+
+// A tab named by the route wins; a plain `/settings` visit opens the tab the
+// user left last, and a stale or unknown remembered key falls back to the first.
+function resolveInitialTab(tabKey) {
+  if (isTabKey(tabKey)) return tabKey;
+  const remembered = getLastSettingsTab();
+  return isTabKey(remembered) ? remembered : SETTINGS_TABS[0].key;
+}
+
+// Keeps the address bar on the visible tab so the URL is always linkable,
+// without a hashchange (which would re-mount the page under the user's finger).
+function showTabInUrl(key) {
+  try {
+    history.replaceState(null, '', '#' + settingsTabPath(key));
+  } catch {
+    // no history API (or a locked-down frame) — the tab still works, just unlinkable
+  }
+}
+
+export function mount(container, tabKey = null) {
   clear(container);
+  let activeTab = resolveInitialTab(tabKey);
+  setLastSettingsTab(activeTab);
+  showTabInUrl(activeTab);
 
   const languageSelect = el(
     'select',
@@ -70,7 +113,7 @@ export function mount(container) {
   const resetButton = el('button', { class: 'secondary section-button', i18n: 'settings.resetButton' });
   resetButton.addEventListener('click', () => {
     resetUnits();
-    mount(container); // re-render so the selects reflect the reset values
+    mount(container, activeTab); // re-render so the selects reflect the reset values
   });
 
   // This checkbox is also duplicated inline in rifle-section.js/
@@ -268,23 +311,7 @@ export function mount(container) {
   }
   refreshDragModelCheckboxes();
 
-  const generalSection = sectionGroup('settings.generalHeading', [
-    el('div', { class: 'field' }, [
-      el('label', { i18n: 'settings.languageLabel' }),
-      languageSelect
-    ]),
-    el('div', { class: 'field' }, [
-      el('label', { i18n: 'settings.spinDriftLabel' }),
-      spinDriftModeSelect
-    ]),
-    zeroForSpinDriftField,
-    el('div', { class: 'field' }, [updateNotificationsRow]),
-    backupRemindersField,
-    el('div', { class: 'field' }, [troubleshootingPaneRow]),
-    el('div', { class: 'field' }, [
-      el('label', { i18n: 'settings.windDialAppearanceLabel' }),
-      windDialAppearanceSelect
-    ]),
+  const interfaceAppearanceSection = sectionGroup('settings.appearanceHeading', [
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.themeLabel' }),
       themePicker()
@@ -298,6 +325,30 @@ export function mount(container) {
       impactColorPicker()
     ]),
     el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.windDialAppearanceLabel' }),
+      windDialAppearanceSelect
+    ])
+  ]);
+
+  const interfaceApplicationSection = sectionGroup('settings.applicationHeading', [
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.languageLabel' }),
+      languageSelect
+    ]),
+    el('div', { class: 'field' }, [updateNotificationsRow]),
+    el('div', { class: 'field' }, [troubleshootingPaneRow])
+  ]);
+
+  const spinDriftSection = sectionGroup('settings.spinDriftHeading', [
+    el('div', { class: 'field' }, [
+      el('label', { i18n: 'settings.spinDriftLabel' }),
+      spinDriftModeSelect
+    ]),
+    zeroForSpinDriftField
+  ]);
+
+  const rangeSolverOutputSection = sectionGroup('settings.rangeSolverOutputHeading', [
+    el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.rangeSolverOutputLabel' }),
       outputUnitSelect
     ]),
@@ -309,7 +360,10 @@ export function mount(container) {
       el('label', { i18n: 'settings.rangeSolverLabelVisibilityLabel' }),
       labelVisibilitySelect,
       el('p', { class: 'hint', i18n: 'settings.rangeSolverLabelVisibilityHint' })
-    ]),
+    ])
+  ]);
+
+  const rangeSolverScopeSection = sectionGroup('settings.rangeSolverScopeHeading', [
     el('div', { class: 'field' }, [
       el('label', { i18n: 'settings.rangeSolverScopeRingLabel' }),
       scopeRingSelect
@@ -386,19 +440,39 @@ export function mount(container) {
   // page, rather than only after Settings is next reopened.
   const { node: changeHistoryNode, refresh: refreshChangeHistory } = changeHistorySection();
 
+  // The backup reminder is iOS-only, so on other platforms its block is absent.
+  const backupReminderSection = backupRemindersField
+    ? sectionGroup('settings.backupRemindersHeading', [backupRemindersField])
+    : null;
+
+  // Each tab is a set of blocks laid out side by side where there is room.
+  const tabBlocks = {
+    'interface': [interfaceAppearanceSection, interfaceApplicationSection],
+    'units': [unitsSection, csvSection],
+    'ballistics': [spinDriftSection],
+    'libraries': [rifleLibrarySection, bulletLibrariesSection, dragModelsSection],
+    'range-solver': [rangeSolverOutputSection, rangeSolverScopeSection],
+    'weather': [onlineWeatherSection().node],
+    'data': [backupSyncSection(refreshChangeHistory), changeHistoryNode, backupReminderSection]
+  };
+
+  const panels = {};
+  for (const tab of SETTINGS_TABS) {
+    panels[tab.key] = el('div', { class: 'settings-panel', id: 'settings-panel-' + tab.key }, [
+      el('p', { class: 'settings-tab-intro', i18n: tab.introKey }),
+      el('div', { class: 'settings-blocks' }, tabBlocks[tab.key].filter(Boolean))
+    ]);
+  }
+
+  const tabBar = tabSwitcher(SETTINGS_TABS, panels, (key) => {
+    activeTab = key;
+    setLastSettingsTab(key);
+    showTabInUrl(key);
+  }, activeTab);
+
   container.appendChild(el('div', {}, [
     el('h1', { i18n: 'settings.title' }),
-    el('p', { i18n: 'settings.intro' }),
-    el('div', { class: 'card', style: 'max-width:420px;' }, [
-      generalSection,
-      unitsSection,
-      onlineWeatherSection().node,
-      rifleLibrarySection,
-      bulletLibrariesSection,
-      dragModelsSection,
-      csvSection,
-      changeHistoryNode,
-      backupSyncSection(refreshChangeHistory)
-    ])
+    tabBar.node,
+    ...SETTINGS_TABS.map((tab) => panels[tab.key])
   ]));
 }

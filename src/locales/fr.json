@@ -815,10 +815,32 @@
   },
   "settings": {
     "title": "Paramètres",
-    "intro": "Choisissez une unité préférée pour chaque type de mesure — mélangez librement le métrique et l'impérial. Ces choix s'appliquent partout où la mesure apparaît dans les outils et sont mémorisés sur cet appareil.",
+    "tabs": {
+      "interface": "Interface",
+      "units": "Unités et export",
+      "ballistics": "Balistique",
+      "libraries": "Bibliothèques",
+      "rangeSolver": "Calculateur de terrain",
+      "weather": "Météo",
+      "data": "Données et sauvegarde"
+    },
+    "tabIntro": {
+      "interface": "Langue, apparence et comportement de l'application.",
+      "units": "L'unité de chaque type de mesure — mélangez librement le métrique et l'impérial — et le format de l'export CSV. Ces choix s'appliquent partout où la mesure apparaît dans les outils et sont mémorisés sur cet appareil.",
+      "ballistics": "Comment les calculs balistiques tiennent compte de la dérive gyroscopique, qui décale toutes les corrections latérales affichées.",
+      "libraries": "Choisissez quelles carabines, balles et modèles de traînée standard intégrés sont proposés dans les listes de sélection.",
+      "rangeSolver": "Comment le Calculateur de terrain présente ses résultats, ses cibles et sa vue lunette.",
+      "weather": "Renseigne l'atmosphère à partir de stations météo officielles proches.",
+      "data": "Sauvegardez et synchronisez vos données entre appareils, et annulez les modifications récentes."
+    },
+    "appearanceHeading": "Apparence",
+    "applicationHeading": "Application",
+    "spinDriftHeading": "Dérive gyroscopique",
+    "rangeSolverOutputHeading": "Résultats et cibles",
+    "rangeSolverScopeHeading": "Vue lunette",
+    "backupRemindersHeading": "Rappel de sauvegarde",
     "resetButton": "Réinitialiser en unités métriques",
     "languageLabel": "Langue",
-    "generalHeading": "Général",
     "unitsHeading": "Unités",
     "rifleLibraryHeading": "Bibliothèque de carabines",
     "rifleLibraryHint": "Armes légères militaires courantes",
@@ -1929,6 +1951,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v251": "Modification : paramètres répartis en plusieurs sections, affichage des onglets optimisé.",
       "v250": "Nouveau : intégration de services météo en ligne (et un nouveau nom de code tout brillant).",
       "v249": "Nouveau : refonte majeure et simplification de l’interface du Calculateur de terrain, personnalisable pour n’afficher que l’essentiel, avec sélection rapide des carabines et des emplacements.",
       "v248": "Nouveau : sélection de l'emplacement simplifiée en mode Calculateur de terrain (merci à Stéphane E pour l'idée).",

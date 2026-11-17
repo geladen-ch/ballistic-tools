@@ -815,10 +815,32 @@
   },
   "settings": {
     "title": "Impostazioni",
-    "intro": "Scegli un'unità preferita per ogni tipo di misura — puoi mescolare liberamente metrico e imperiale. Si applicano ovunque quella misura compaia negli strumenti e vengono memorizzate su questo dispositivo.",
+    "tabs": {
+      "interface": "Interfaccia",
+      "units": "Unità ed export",
+      "ballistics": "Balistica",
+      "libraries": "Librerie",
+      "rangeSolver": "Calcolatore per il poligono",
+      "weather": "Meteo",
+      "data": "Dati e backup"
+    },
+    "tabIntro": {
+      "interface": "Lingua, aspetto e comportamento dell'app.",
+      "units": "L'unità per ogni tipo di misura — puoi mescolare liberamente metrico e imperiale — e il formato dell'esportazione CSV. Si applicano ovunque quella misura compaia negli strumenti e vengono memorizzate su questo dispositivo.",
+      "ballistics": "Come i calcoli balistici trattano la deriva giroscopica, che sposta tutti i valori di correzione laterale mostrati.",
+      "libraries": "Scegli quali fucili, proiettili e modelli di resistenza standard integrati vengono proposti negli elenchi di selezione.",
+      "rangeSolver": "Come il Calcolatore per il poligono mostra i risultati, i bersagli e la vista cannocchiale.",
+      "weather": "Compila l'atmosfera dai dati di stazioni meteo ufficiali vicine.",
+      "data": "Esegui il backup e sincronizza i dati tra dispositivi, e annulla le modifiche recenti."
+    },
+    "appearanceHeading": "Aspetto",
+    "applicationHeading": "Applicazione",
+    "spinDriftHeading": "Deriva giroscopica",
+    "rangeSolverOutputHeading": "Risultati e bersagli",
+    "rangeSolverScopeHeading": "Vista cannocchiale",
+    "backupRemindersHeading": "Promemoria di backup",
     "resetButton": "Ripristina valori metrici predefiniti",
     "languageLabel": "Lingua",
-    "generalHeading": "Generale",
     "unitsHeading": "Unità",
     "rifleLibraryHeading": "Libreria fucili",
     "rifleLibraryHint": "Armi leggere militari comuni",
@@ -1929,6 +1951,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v251": "Modifica: impostazioni suddivise in più sezioni, visualizzazione delle schede ottimizzata.",
       "v250": "Novità: integrazione dei servizi meteo online (e un nuovo nome in codice scintillante).",
       "v249": "Novità: profonda revisione e semplificazione dell’interfaccia del Calcolatore per il poligono, personalizzabile per mostrare solo ciò che serve, con selezione rapida di fucili e postazioni.",
       "v248": "Novità: selezione della postazione più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea).",

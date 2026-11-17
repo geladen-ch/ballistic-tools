@@ -815,10 +815,32 @@
   },
   "settings": {
     "title": "Einstellungen",
-    "intro": "Wählen Sie eine bevorzugte Einheit für jede Messgröße — metrisch und imperial frei mischbar. Diese gelten überall dort, wo die Messgröße in den Werkzeugen vorkommt, und werden auf diesem Gerät gespeichert.",
+    "tabs": {
+      "interface": "Oberfläche",
+      "units": "Einheiten & Export",
+      "ballistics": "Ballistik",
+      "libraries": "Bibliotheken",
+      "rangeSolver": "Feldrechner",
+      "weather": "Wetter",
+      "data": "Daten & Sicherung"
+    },
+    "tabIntro": {
+      "interface": "Sprache, Darstellung und Verhalten der App.",
+      "units": "Die Einheit für jede Messgröße — metrisch und imperial frei mischbar — und das CSV-Exportformat. Diese Einstellungen gelten überall, wo die Messgröße in den Werkzeugen vorkommt, und werden auf diesem Gerät gespeichert.",
+      "ballistics": "Wie die ballistischen Berechnungen die Drallabweichung berücksichtigen, die alle angezeigten Seitenkorrekturen verschiebt.",
+      "libraries": "Wählen Sie, welche eingebauten Gewehre, Geschosse und Standard-Luftwiderstandsmodelle in den Auswahllisten angeboten werden.",
+      "rangeSolver": "Wie der Feldrechner seine Ergebnisse, seine Ziele und seine Zielfernrohransicht darstellt.",
+      "weather": "Atmosphärendaten aus nahen amtlichen Wetterstationen übernehmen.",
+      "data": "Daten sichern und zwischen Geräten synchronisieren sowie kürzliche Änderungen rückgängig machen."
+    },
+    "appearanceHeading": "Darstellung",
+    "applicationHeading": "Anwendung",
+    "spinDriftHeading": "Drallabweichung",
+    "rangeSolverOutputHeading": "Ergebnisse und Ziele",
+    "rangeSolverScopeHeading": "Zielfernrohransicht",
+    "backupRemindersHeading": "Backup-Erinnerung",
     "resetButton": "Auf metrische Standardwerte zurücksetzen",
     "languageLabel": "Sprache",
-    "generalHeading": "Allgemein",
     "unitsHeading": "Einheiten",
     "rifleLibraryHeading": "Gewehrbibliothek",
     "rifleLibraryHint": "Gängige militärische Handfeuerwaffen",
@@ -1929,6 +1951,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v251": "Änderung: Einstellungen in mehrere Bereiche aufgeteilt, optimierte Darstellung der Reiter.",
       "v250": "Neu: Anbindung von Online-Wetterdiensten (und ein glänzender neuer Codename).",
       "v249": "Neu: grosse Überarbeitung und Straffung der Oberfläche des Feldrechners, anpassbar, damit nur das Nötige angezeigt wird, und mit schneller Auswahl von Gewehren und Standorten.",
       "v248": "Neu: einfachere Standortauswahl im Feldrechner-Modus (danke an Stéphane E für die Idee).",

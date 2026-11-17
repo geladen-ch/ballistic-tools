@@ -19,12 +19,19 @@ const ALL_IDS = DRAG_MODELS.map((m) => m.id);
 const DEFAULT_VISIBLE_IDS = ['G1', 'G7'];
 const DEFAULT_HIDDEN_IDS = ALL_IDS.filter((id) => !DEFAULT_VISIBLE_IDS.includes(id));
 
+const SETTINGS_TAB_COOKIE_NAME = 'ballistics_settings_tab_v1';
+const { resetSettingsTabPrefsForTests, getLastSettingsTab, setLastSettingsTab } = await import('../src/settings-tab-prefs.js');
+const { isSettingsPath } = await import('../src/nav-tools.js');
+
 const SPIN_DRIFT_MODE_COOKIE_NAME = 'ballistics_spin_drift_mode_v1';
 const ZERO_FOR_SPIN_DRIFT_COOKIE_NAME = 'ballistics_zero_for_spin_drift_enabled_v1';
 
 test.beforeEach(() => {
   resetDragModelPrefsForTests();
   removeCookie(DRAG_MODEL_COOKIE_NAME);
+  removeCookie(SETTINGS_TAB_COOKIE_NAME);
+  resetSettingsTabPrefsForTests();
+  delete globalThis.history;
   removeCookie(SPIN_DRIFT_MODE_COOKIE_NAME);
   removeCookie(ZERO_FOR_SPIN_DRIFT_COOKIE_NAME);
 });
@@ -175,7 +182,7 @@ test('changing the spin-drift-mode select persists the choice (cookie round trip
 
 test('the "account for spin drift when zeroing" row is hidden while the method is off, and shown for either real method', () => {
   const container = makeElement('main');
-  settingsView.mount(container);
+  settingsView.mount(container, 'ballistics');
   const select = findById(container, 'settings-spin-drift-mode');
   const zeroForSpinDriftCheckbox = findById(container, 'settings-zero-for-spin-drift-enabled');
 
@@ -195,7 +202,7 @@ test('the "account for spin drift when zeroing" row is hidden while the method i
 test('a previously saved litz choice (mounted fresh) already shows the "zero for spin drift" row, not just after a live change', () => {
   setSpinDriftMode('litz');
   const container = makeElement('main');
-  settingsView.mount(container);
+  settingsView.mount(container, 'ballistics');
   assert.ok(!isHidden(findById(container, 'settings-zero-for-spin-drift-enabled')));
 });
 
@@ -246,4 +253,109 @@ test('BDC range display: Callout / Below / Upwind, Callout by default, remembere
   prefs.setBdcRangeDisplay('nonsense');
   assert.equal(prefs.getBdcRangeDisplay(), 'upwind');
   prefs.setBdcRangeDisplay('callout');
+});
+
+// ---- tabs ----
+
+function visiblePanelKeys(container) {
+  return settingsView.SETTINGS_TABS.filter((tab) => !isHidden(findById(container, 'settings-panel-' + tab.key))).map((tab) => tab.key);
+}
+
+function tabButtons(container) {
+  const out = [];
+  (function walk(n) {
+    if (n.tagName === 'BUTTON' && String(n.className).includes('tab-btn')) out.push(n);
+    for (const c of n.childNodes || []) walk(c);
+  })(container);
+  return out;
+}
+
+test('there is one tab per group, with unique keys', () => {
+  const keys = settingsView.SETTINGS_TABS.map((tab) => tab.key);
+  assert.deepEqual(keys, ['interface', 'units', 'ballistics', 'libraries', 'range-solver', 'weather', 'data']);
+  assert.equal(new Set(keys).size, keys.length);
+});
+
+test('every tab is a button in the tab bar, and exactly one panel is visible', () => {
+  const container = makeElement('main');
+  settingsView.mount(container, 'libraries');
+  assert.equal(tabButtons(container).length, settingsView.SETTINGS_TABS.length);
+  assert.deepEqual(visiblePanelKeys(container), ['libraries']);
+});
+
+test('each setting lives in its own tab', () => {
+  const container = makeElement('main');
+  settingsView.mount(container);
+  const placement = {
+    'settings-language': 'interface',
+    'settings-update-notifications-enabled': 'interface',
+    'unit-velocity': 'units',
+    'settings-csv-field-separator': 'units',
+    'settings-spin-drift-mode': 'ballistics',
+    'settings-rifle-library-enabled': 'libraries',
+    'settings-drag-model-G7': 'libraries',
+    'settings-range-solver-output-unit': 'range-solver',
+    'settings-bdc-range-display': 'range-solver',
+    'settings-online-weather-enabled': 'weather'
+  };
+  for (const [id, tab] of Object.entries(placement)) {
+    const panel = findById(container, 'settings-panel-' + tab);
+    assert.ok(findById(panel, id), `expected #${id} in the ${tab} tab`);
+  }
+});
+
+test('a tab named by the route is the one shown, and becomes the remembered tab', () => {
+  const container = makeElement('main');
+  settingsView.mount(container, 'weather');
+  assert.deepEqual(visiblePanelKeys(container), ['weather']);
+  assert.equal(getLastSettingsTab(), 'weather');
+});
+
+test('a plain visit opens the remembered tab, the first tab if nothing is remembered', () => {
+  let container = makeElement('main');
+  settingsView.mount(container);
+  assert.deepEqual(visiblePanelKeys(container), ['interface']);
+
+  settingsView.mount(makeElement('main'), 'data');
+  container = makeElement('main');
+  settingsView.mount(container);
+  assert.deepEqual(visiblePanelKeys(container), ['data']);
+});
+
+test('an unknown tab key falls back to the remembered tab, and a stale remembered key to the first tab', () => {
+  settingsView.mount(makeElement('main'), 'units');
+  let container = makeElement('main');
+  settingsView.mount(container, 'no-such-tab');
+  assert.deepEqual(visiblePanelKeys(container), ['units']);
+
+  // a remembered key that is no longer a tab (as after a future removal)
+  resetSettingsTabPrefsForTests();
+  setLastSettingsTab('retired-tab');
+  container = makeElement('main');
+  settingsView.mount(container);
+  assert.deepEqual(visiblePanelKeys(container), ['interface']);
+});
+
+test('clicking a tab shows it, remembers it, and puts it in the address bar', () => {
+  const replaced = [];
+  globalThis.history = { replaceState: (state, title, url) => replaced.push(url) };
+  const container = makeElement('main');
+  settingsView.mount(container, 'interface');
+  assert.equal(replaced.at(-1), '#/settings/interface');
+
+  const buttons = tabButtons(container);
+  const index = settingsView.SETTINGS_TABS.findIndex((tab) => tab.key === 'range-solver');
+  fireEvent(buttons[index], 'click');
+
+  assert.deepEqual(visiblePanelKeys(container), ['range-solver']);
+  assert.equal(getLastSettingsTab(), 'range-solver');
+  assert.equal(replaced.at(-1), '#/settings/range-solver');
+});
+
+test('the settings route paths, and the nav treating every one as the Settings entry', () => {
+  assert.equal(settingsView.settingsTabPath('weather'), '/settings/weather');
+  assert.ok(isSettingsPath('/settings'));
+  assert.ok(isSettingsPath('/settings/weather'));
+  assert.ok(!isSettingsPath('/manual'));
+  assert.ok(!isSettingsPath('/settingsfoo'));
 });

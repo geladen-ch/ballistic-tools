@@ -43,6 +43,7 @@ import * as riflePrecisionView from './views/rifle-precision-view.js';
 import * as riflePrecisionMarkingView from './views/rifle-precision-marking-view.js';
 import * as riflePrecisionAnalysisView from './views/rifle-precision-analysis-view.js';
 import * as settingsView from './views/settings-view.js';
+import { SETTINGS_TABS, settingsTabPath } from './views/settings-view.js';
 import * as manualView from './views/manual-view.js';
 import * as riflePrecisionManualView from './views/rifle-precision-manual-view.js';
 import * as truingSessionManualView from './views/truing-session-manual-view.js';
@@ -229,6 +230,9 @@ try {
   // parameterized — see guns-view.js.
   registerRoute('/guns/custom', () => gunsView.mount(view, 'custom'));
   registerRoute('/guns/arsenal', () => gunsView.mount(view, 'arsenal'));
+  // Settings' tabs each have their own route (linkable); plain '/settings'
+  // (in the table above) opens the tab the user left last.
+  for (const tab of SETTINGS_TABS) registerRoute(settingsTabPath(tab.key), () => settingsView.mount(view, tab.key));
   registerRoute('/locations/place', () => locationPlacementView.mount(view));
   registerRoute('/rifle-precision/target', () => riflePrecisionMarkingView.mount(view));
   registerRoute('/rifle-precision/analysis', () => riflePrecisionAnalysisView.mount(view));

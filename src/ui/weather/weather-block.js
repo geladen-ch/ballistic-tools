@@ -222,7 +222,7 @@ export function weatherBlock({ applyValues, locationSource = null, service = nul
     statusLine.appendChild(document.createTextNode(text));
     if (settingsLink) {
       statusLine.appendChild(document.createTextNode(' '));
-      statusLine.appendChild(el('a', { href: '#/settings', text: t('onlineWeather.tool.settingsLink') }));
+      statusLine.appendChild(el('a', { href: '#/settings/weather', text: t('onlineWeather.tool.settingsLink') }));
     }
   }
 

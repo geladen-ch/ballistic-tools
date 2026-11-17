@@ -50,6 +50,7 @@ const APP_SHELL_URLS = [
   './src/record-codec.js',
   './src/versioned-cookie.js',
   './src/prefs.js',
+  './src/settings-tab-prefs.js',
   './src/cookies.js',
   './src/table-columns.js',
   './src/trajectory-columns.js',

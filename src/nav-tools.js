@@ -111,3 +111,10 @@ export const PINNED = [
   { id: 'settings', path: '/settings', nameKey: 'nav.settings', icon: 'settings' },
   { id: 'manual', path: '/manual', nameKey: 'nav.manual', icon: 'manual' }
 ];
+
+// Settings is one nav entry but several routes (`/settings` and one
+// `/settings/<tab>` per tab), so "is the Settings entry current" is a prefix
+// match, not the exact-path comparison every other entry uses.
+export function isSettingsPath(path) {
+  return path === '/settings' || path.startsWith('/settings/');
+}

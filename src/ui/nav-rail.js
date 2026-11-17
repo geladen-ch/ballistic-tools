@@ -20,7 +20,7 @@
 // instead.
 import { el, clear } from '../dom.js';
 import { t, onLanguageChange } from '../i18n.js';
-import { GROUPS, PINNED, toolsInGroup } from '../nav-tools.js';
+import { GROUPS, PINNED, toolsInGroup, isSettingsPath } from '../nav-tools.js';
 import { isRailCollapsed, setRailCollapsed, isGroupOpen, setGroupOpen } from '../nav-prefs.js';
 import { openRangeSolverGunPicker } from './range-solver/gun-picker.js';
 import { openRangeSolverLocationPicker } from './range-solver/location-picker.js';
@@ -202,7 +202,7 @@ export function mountNavRail(container) {
   function pinnedLink(path, nameKey, iconFn, currentP) {
     return el('a', {
       href: '#' + path,
-      class: 'rail-item' + (currentP === path ? ' current' : '')
+      class: 'rail-item' + (currentP === path || (path === '/settings' && isSettingsPath(currentP)) ? ' current' : '')
     }, [iconFn(16), el('span', { text: t(nameKey) })]);
   }
 
@@ -317,7 +317,7 @@ export function mountNavRail(container) {
   function collapsedIconLink(path, nameKey, iconFn, currentP) {
     return el('a', {
       href: '#' + path,
-      class: 'rail-c-item' + (currentP === path ? ' current' : ''),
+      class: 'rail-c-item' + (currentP === path || (path === '/settings' && isSettingsPath(currentP)) ? ' current' : ''),
       title: t(nameKey)
     }, [iconFn(18)]);
   }

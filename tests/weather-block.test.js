@@ -316,7 +316,7 @@ test('failures leave the values alone; an unreachable service points to Settings
   const status = byClass(node, 'weather-status');
   assert.match(status.textContent, /^Could not get weather data\. Values unchanged\. Check in Settings/);
   const link = all(status, (n) => n.tagName === 'A')[0];
-  assert.equal(link.getAttribute('href'), '#/settings');
+  assert.equal(link.getAttribute('href'), '#/settings/weather');
   fireEvent(button(), 'click'); await flush();
   assert.match(status.textContent, /^No station with a current report/);
   assert.equal(all(status, (n) => n.tagName === 'A').length, 0);

@@ -815,10 +815,32 @@
   },
   "settings": {
     "title": "Settings",
-    "intro": "Choose a preferred unit for each kind of measurement — mix metric and imperial freely. These apply everywhere that measurement appears across the tools and are remembered on this device.",
+    "tabs": {
+      "interface": "Interface",
+      "units": "Units & export",
+      "ballistics": "Ballistics",
+      "libraries": "Libraries",
+      "rangeSolver": "Range Solver",
+      "weather": "Weather",
+      "data": "Data & backup"
+    },
+    "tabIntro": {
+      "interface": "Language, appearance and how the app behaves.",
+      "units": "The unit used for each kind of measurement — mix metric and imperial freely — and the CSV export format. These apply everywhere the measurement appears in the tools and are remembered on this device.",
+      "ballistics": "How the ballistic calculations treat spin drift, which shifts every windage value the tools show.",
+      "libraries": "Choose which built-in rifles, bullets and standard drag models are offered in the pickers.",
+      "rangeSolver": "How the Range Solver shows its results, its targets and its scope view.",
+      "weather": "Fill in the atmosphere from nearby official weather stations.",
+      "data": "Back up and synchronize your data between devices, and undo recent changes."
+    },
+    "appearanceHeading": "Appearance",
+    "applicationHeading": "Application",
+    "spinDriftHeading": "Spin drift",
+    "rangeSolverOutputHeading": "Results and targets",
+    "rangeSolverScopeHeading": "Scope view",
+    "backupRemindersHeading": "Backup reminder",
     "resetButton": "Reset to metric defaults",
     "languageLabel": "Language",
-    "generalHeading": "General",
     "unitsHeading": "Units",
     "rifleLibraryHeading": "Rifle library",
     "rifleLibraryHint": "Common military small arms",
@@ -1929,6 +1951,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v251": "Change: split settings into multiple sections, optimized tabs display.",
       "v250": "New: integration of online weather providers (and a shiny new codename).",
       "v249": "New: major overhaul and streamlining of the Range Solver interface, with customization to display only what’s needed, and quick selection of rifles and locations.",
       "v248": "New: simpler location selection when in range solver mode (thanks Stéphane E for the idea).",

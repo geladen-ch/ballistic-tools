@@ -82,6 +82,17 @@ test('the tab matching the current route is active', () => {
   assert.equal(active[0].getAttribute('href'), '#/analysis');
 });
 
+test('the Settings tab stays active on every Settings sub-route', () => {
+  for (const hash of ['#/settings', '#/settings/weather']) {
+    location.hash = hash;
+    const container = makeElement('nav');
+    mountNavTabbar(container);
+    const active = findByTag(container, 'A').filter((a) => a.className.includes('active'));
+    assert.equal(active.length, 1, hash);
+    assert.equal(active[0].getAttribute('href'), '#/settings', hash);
+  }
+});
+
 test('Measurement, Analysis and Utilities tabs carry their own category class (the first two for the hue, Utilities for the container-query hiding in layout.css)', () => {
   const container = makeElement('nav');
   mountNavTabbar(container);

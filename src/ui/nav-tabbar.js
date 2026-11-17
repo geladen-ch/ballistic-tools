@@ -26,7 +26,7 @@
 // link to it above.
 import { el, clear } from '../dom.js';
 import { t, getLanguage, onLanguageChange } from '../i18n.js';
-import { GROUPS } from '../nav-tools.js';
+import { GROUPS, isSettingsPath } from '../nav-tools.js';
 import { openRangeSolverGunPicker } from './range-solver/gun-picker.js';
 import { openRangeSolverLocationPicker } from './range-solver/location-picker.js';
 import { openFireConfigDialog } from './range-solver/fire-config-dialog.js';
@@ -111,7 +111,7 @@ export function mountNavTabbar(container) {
     const path = currentPath();
     for (const tab of TABS) {
       const isGuns = tab.id === 'guns';
-      const active = isGuns ? path.startsWith('/guns/') : path === tab.path;
+      const active = isGuns ? path.startsWith('/guns/') : tab.id === 'settings' ? isSettingsPath(path) : path === tab.path;
       const href = '#' + (isGuns ? resolveGunsDestination() : tab.path);
       let link;
       if (tab.compact) {
