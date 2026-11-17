@@ -1,6 +1,6 @@
 # geladen.ch ballistics
 
-> A free, client-side external ballistics suite for small-arms shooters: trajectory tables (3DOF/4DOF), hit-probability analysis, ballistic-coefficient tools, a Cd-Mach curve builder, a rifle-precision analyzer, and a field range solver. Everything runs in the browser — no accounts, no server, no data ever collected or transmitted. Installs offline as a PWA on desktop and mobile. Open source under AGPL-3.0-or-later. Available in English, French, Russian, German, and Italian.
+> A free, client-side external ballistics suite for small-arms shooters: trajectory tables (3DOF/4DOF), hit-probability analysis, ballistic-coefficient tools, a Cd-Mach curve builder, a rifle-precision analyzer, and a field range solver. Everything runs in the browser — no accounts, no server of ours, no data ever collected by us. An optional online-weather feature (off by default) contacts public weather services directly from the device when the user switches it on. Installs offline as a PWA on desktop and mobile. Open source under AGPL-3.0-or-later. Available in English, French, Russian, German, and Italian.
 
 ## Docs
 
@@ -11,4 +11,4 @@
 ## Notes
 
 - The app is a single-page client-side application (hash-based routing, no build step). A crawler that does not execute JavaScript will only see the About pages linked above, not the app's internal views.
-- No user accounts, no telemetry, no server-side component of any kind — all computation happens in the visitor's own browser.
+- No user accounts, no telemetry, no server-side component of any kind — all computation happens in the visitor's own browser. The optional online-weather feature (off by default) makes the visitor's browser contact public weather services (Iowa Environmental Mesonet, MeteoSwiss, GeoSphere Austria, Bright Sky, DMI, Environment Canada) directly; nothing goes through geladen.ch.

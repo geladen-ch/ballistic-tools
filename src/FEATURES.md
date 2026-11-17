@@ -6,7 +6,7 @@ geladen.ch ballistics is a client-side external ballistics suite — trajectory 
 ## Whole-app traits
 
 - ★ Free as in freedom (AGPL-3.0, open source) — and free as in beer: no subscription, no account/registration, no paywalled "premium" tier. Every feature above is just... in the app. There is no upsell to a "deluxe pro elite" edition; this is that edition
-- ★ 100% client-side — no server, no telemetry, no data collection ever
+- ★ 100% client-side — no server, no telemetry, no data collection ever. The one optional exception is Online weather (off by default, see below), which contacts public weather services directly from your device when you switch it on
 - Works fully offline once loaded; installable as a PWA on desktop and mobile
 - All personal data (rifles, bullets, locations, precision projects) lives only in local browser storage, with explicit JSON backup/restore for every library, plus an optional device-to-device Backup & Sync (see below)
 - Mixed metric/imperial units, per measurement kind
@@ -57,6 +57,20 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 - ★ Saved shooting locations with a range card (every target at a location, solved at once)
 - ★ Targets picked visually off a photo taken from the firing point — tap a pin on the photo instead of dialing range/angle by hand
 - Installable as its own home-screen icon, separate from the main app
+
+## Online weather (optional, off by default)
+
+Trajectory and Range Solver can fill in temperature, pressure and humidity from nearby official weather stations instead of you typing them in. Nothing is requested unless you press the button; with the feature off, no weather service is contacted.
+
+- ★ Stations from several free, key-less public services, used automatically where they cover your area: airport reports (METAR) and synoptic stations worldwide through the Iowa Environmental Mesonet, US road-weather and RAWS/SNOTEL stations, MeteoSwiss, GeoSphere Austria, the German weather service (DWD, through Bright Sky), DMI (Denmark, Greenland, Faroe Islands) and Environment Canada. One Auto/Off choice per service
+- ★ Values at your own altitude from several stations at once: each station's pressure and temperature moved to your height, then combined with weights by distance and height difference; a station that disagrees strongly with its neighbours is left out; the same site reported by two feeds counts once
+- ★ Temperature brought forward to the present moment with a sun-angle model (humidity follows at constant vapour pressure), so a report from half an hour ago still gives a sensible value; switchable
+- Position by typing, pasting "47.37, 8.54", or GPS (position and altitude averaged, GPS height corrected to sea level with a built-in geoid model); remembered on the device
+- Refresh respects each station's reporting schedule: before the next report is due it only recalculates the time correction; "Next report expected" says when; late reports are retried at 2, 4 and 8 minutes
+- Locations can hold a latitude and longitude. In Range Solver, an active location with coordinates is used by a tick box, and measured coordinates that differ from the location's by more than 100 m or 50 m can be saved into it
+- Station details: the stations behind each value with distance, height difference, age, weight and the reason for any left out; raw reports and notes; one row per service (off / used / unused, and why); provider credits; works offline from the last result
+- Short hints about known data problems in specific countries and for the countries whose national service the app cannot use
+- Settings: search radius, maximum report age, availability checks per service (cached 30 minutes), clearing the downloaded station lists
 
 ## Truing Session
 

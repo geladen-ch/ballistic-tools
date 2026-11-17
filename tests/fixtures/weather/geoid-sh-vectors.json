@@ -1,0 +1,95 @@
+{
+ "L": 72,
+ "source": "EGM2008 2.5' grid (PROJ CDN us_nga_egm08_25.tif), 15' subsample, SH analysis to degree 72, fitted 2026-11-13",
+ "stats": {
+  "rms_m": 1.154,
+  "p99_m": 4.402,
+  "max_m": 20.127
+ },
+ "points": [
+  {
+   "name": "Zurich",
+   "lat": 47.37,
+   "lon": 8.54,
+   "series_m": 49.518561,
+   "egm2008_m": 47.719
+  },
+  {
+   "name": "Zermatt",
+   "lat": 46.02,
+   "lon": 7.75,
+   "series_m": 50.010642,
+   "egm2008_m": 54.684
+  },
+  {
+   "name": "Berlin",
+   "lat": 52.52,
+   "lon": 13.4,
+   "series_m": 39.987104,
+   "egm2008_m": 39.491
+  },
+  {
+   "name": "KansasCity",
+   "lat": 39.1,
+   "lon": -94.58,
+   "series_m": -32.744868,
+   "egm2008_m": -32.952
+  },
+  {
+   "name": "Tokyo",
+   "lat": 35.68,
+   "lon": 139.69,
+   "series_m": 36.991108,
+   "egm2008_m": 36.661
+  },
+  {
+   "name": "LaPaz",
+   "lat": -16.5,
+   "lon": -68.15,
+   "series_m": 43.53126,
+   "egm2008_m": 45.738
+  },
+  {
+   "name": "Lhasa",
+   "lat": 29.65,
+   "lon": 91.1,
+   "series_m": -31.36469,
+   "egm2008_m": -34.684
+  },
+  {
+   "name": "Denver",
+   "lat": 39.74,
+   "lon": -104.99,
+   "series_m": -15.716001,
+   "egm2008_m": -17.277
+  },
+  {
+   "name": "NorthPole",
+   "lat": 89.9,
+   "lon": 0.0,
+   "series_m": 14.209207,
+   "egm2008_m": 15.055
+  },
+  {
+   "name": "SouthPole",
+   "lat": -89.9,
+   "lon": 123.0,
+   "series_m": -30.25286,
+   "egm2008_m": -30.176
+  },
+  {
+   "name": "Antimeridian",
+   "lat": 0.0,
+   "lon": 180.0,
+   "series_m": 20.523664,
+   "egm2008_m": 21.281
+  },
+  {
+   "name": "DeadSea",
+   "lat": 31.5,
+   "lon": 35.5,
+   "series_m": 19.013166,
+   "egm2008_m": 17.915
+  }
+ ]
+}

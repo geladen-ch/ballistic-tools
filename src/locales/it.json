@@ -144,7 +144,12 @@
     "cardMaxDistance": "Distanza massima",
     "cardCrosswind": "Vento laterale di riferimento",
     "cardTemperature": "Prima temperatura",
-    "cardTemperatureStep": "Passo di temperatura"
+    "cardTemperatureStep": "Passo di temperatura",
+    "weatherSearchRadius": "Raggio di ricerca",
+    "weatherMaxAge": "Età massima di un rilevamento (min)",
+    "latitudeRad": "Latitudine (°)",
+    "longitudeRad": "Longitudine (°)",
+    "deviceAltitudeM": "Altitudine sul livello del mare"
   },
   "windDial": {
     "headwind": "Vento frontale · deriva minima",
@@ -167,7 +172,7 @@
     "featuresLink": "Funzionalità attuali",
     "sourceCodeLink": "Ottieni il codice sorgente",
     "privacyHeading": "Privacy",
-    "privacyPolicy": "Non raccogliamo *alcun* dato. Nulla viene *mai* trasmesso al server.",
+    "privacyPolicy": "Non raccogliamo *alcun* dato. Nulla viene *mai* trasmesso al nostro server. L'unica eccezione facoltativa, il meteo online (disattivato per default), contatta servizi meteo pubblici direttamente dal tuo dispositivo — vedi il Manuale utente.",
     "licenseHeading": "Licenza",
     "copyrightNotice": "{{app}} — Copyright © {{year}} {{name}}",
     "licenseNoWarranty": "Questo programma viene fornito SENZA ALCUNA GARANZIA. È software libero, concesso in licenza secondo i termini della GNU Affero General Public License v3.0 o successiva, e sei libero di ridistribuirlo secondo tali termini.",
@@ -634,7 +639,11 @@
     "photoPickerButtonLabel": "Scegli bersaglio dalla foto",
     "zoomInButton": "Ingrandisci",
     "zoomOutButton": "Riduci",
-    "photoOverlayHint": "Tocca un bersaglio per selezionarlo."
+    "photoOverlayHint": "Tocca un bersaglio per selezionarlo.",
+    "coordinatesHint": "Facoltativo. Serve a recuperare il meteo online. Gradi decimali, ad es. 47.37 e 8.54; incollando «47.37, 8.54» in una delle due caselle si riempiono entrambe.",
+    "errorCoordinatesPair": "Inserisci sia la latitudine sia la longitudine, oppure lascia vuote entrambe.",
+    "errorCoordinatesZero": "0, 0 non è un luogo reale. Controlla le coordinate.",
+    "coordinatesNeedAltitude": "Aggiungi anche un'altitudine per usare le coordinate di questo luogo per il meteo."
   },
   "riflePrecision": {
     "title": "Calcolatore di precisione di tiro",
@@ -885,7 +894,8 @@
       "temperature": "Temperatura",
       "pressure": "Pressione",
       "angleDispersion": "Dispersione angolare",
-      "energy": "Energia cinetica"
+      "energy": "Energia cinetica",
+      "weatherRadius": "Raggio di ricerca delle stazioni meteo"
     },
     "changeHistory": {
       "heading": "Cronologia modifiche",
@@ -1035,6 +1045,263 @@
         "confirmDelete": "Elimina",
         "confirmCancel": "Annulla"
       }
+    }
+  },
+  "onlineWeather": {
+    "heading": "Servizi meteo online",
+    "enabledLabel": "Usa i servizi meteo online",
+    "privacyHint": "Compila temperatura, pressione e umidità con i dati di stazioni meteo ufficiali vicine. Se attivo, l'app contatta direttamente dal tuo dispositivo i servizi elencati qui sotto: scarica elenchi di stazioni e chiede i rilevamenti attuali delle stazioni vicine, e non si aggiorna mai da sola. Se disattivo (predefinito), l'app non ne contatta nessuno.",
+    "combineLabel": "Combina le stazioni vicine",
+    "combineHint": "Disattivo: solo la stazione più vicina",
+    "timeCorrectLabel": "Porta la temperatura all'ora attuale",
+    "timeCorrectHint": "Modello dell'angolo solare",
+    "servicesHeading": "Servizi",
+    "servicesHint": "Auto: usato dove il servizio copre la tua zona e ha stazioni vicine (sospeso per 3 ore dopo ripetuti errori). Off: mai usato. Off vale subito, Auto al prossimo recupero.",
+    "modeAuto": "Auto",
+    "modeOff": "Off",
+    "notValidated": "Non ancora validato: disattivo per impostazione predefinita.",
+    "checkButton": "Verifica disponibilità",
+    "availability": {
+      "checking": "Verifica in corso…",
+      "available": "Raggiungibile (verificato alle {{time}}).",
+      "unreachable": "Non raggiungibile (verificato alle {{time}}).",
+      "busy": "Occupato, riprova più tardi (verificato alle {{time}})."
+    },
+    "unusable": "I servizi meteo online al momento non sono utilizzabili: nessun servizio impostato su Auto è raggiungibile. Controlla la connessione o imposta un servizio su Auto.",
+    "unusableOffline": "I servizi meteo online al momento non sono utilizzabili: sei offline.",
+    "clearCacheButton": "Svuota la cache meteo",
+    "clearCacheHint": "Gli elenchi delle stazioni vengono scaricati una volta e conservati fino a 90 giorni. Svuotarli libera spazio; vengono scaricati di nuovo quando servono.",
+    "cacheCleared": "Cache meteo svuotata.",
+    "sources": {
+      "iem": "IEM: rapporti aeroportuali nel mondo (METAR)",
+      "iem-synop": "IEM: stazioni meteo nel mondo (SYNOP)",
+      "iem-us": "IEM: stazioni meteo stradali e RAWS/SNOTEL (USA)",
+      "meteoswiss": "MeteoSvizzera (Svizzera)",
+      "geosphere": "GeoSphere Austria (Austria)",
+      "brightsky": "Servizio meteo tedesco (DWD) tramite Bright Sky",
+      "dmi": "DMI (Danimarca, Groenlandia, Isole Fær Øer)",
+      "eccc": "ECCC e partner (Canada)"
+    },
+    "tool": {
+      "getButton": "Ottieni il meteo",
+      "refreshButton": "Aggiorna",
+      "needPosition": "Inserisci latitudine, longitudine e altitudine per ottenere il meteo.",
+      "useGps": "Usa il GPS",
+      "stopGps": "Ferma",
+      "gps": {
+        "waiting": "In attesa della posizione…",
+        "progress": "Posizione ±{{accuracy}}, altitudine {{altitude}} ({{count}} misure)…",
+        "done": "Da GPS: posizione ±{{accuracy}}, altitudine {{altitude}} ±{{sigma}}, misurata alle {{time}}.",
+        "noAltitude": "Il dispositivo ha fornito una posizione ma non l'altitudine. Inserisci l'altitudine a mano.",
+        "error": {
+          "denied": "L'accesso alla posizione è stato negato. Consentilo per questo sito o inserisci la posizione a mano.",
+          "unavailable": "La posizione non è disponibile al momento.",
+          "timeout": "Nessuna posizione ottenuta in tempo.",
+          "notSupported": "Questo browser non può fornire una posizione.",
+          "other": "Non è stato possibile determinare la posizione."
+        }
+      },
+      "progress": {
+        "searching": "Ricerca delle stazioni…",
+        "stations": "Caricamento degli elenchi di stazioni…",
+        "synopList": "Download dell'elenco delle stazioni SYNOP (4,5 MB, una volta ogni 3 mesi)…",
+        "reports": "Caricamento dei rapporti attuali…",
+        "schedule": "Ricerca del calendario dei rapporti di {{id}}…"
+      },
+      "status": {
+        "updated": "Aggiornato alle {{time}} · stazioni usate: {{count}}.",
+        "recalculated": "Ricalcolato alle {{time}} dai rapporti salvati; non è ancora atteso un nuovo rapporto. Stazioni usate: {{count}}.",
+        "partial": "Nessun valore per: {{what}} (invariato).",
+        "listLoading": "Un elenco di stazioni è ancora in download e verrà usato dal prossimo recupero."
+      },
+      "quantity": {
+        "temperature": "temperatura",
+        "pressure": "pressione",
+        "humidity": "umidità"
+      },
+      "error": {
+        "unreachable": "Impossibile ottenere i dati meteo. Valori invariati. Controlla nelle impostazioni se i servizi meteo online sono raggiungibili.",
+        "noStation": "Nessuna stazione con un rapporto attuale è stata trovata vicino a questa posizione. Valori invariati.",
+        "noFresh": "Sono state trovate stazioni, ma nessuna ha un rapporto abbastanza recente (vedi l'età massima dei rapporti nelle impostazioni). Valori invariati.",
+        "noValues": "Le stazioni non hanno fornito né temperatura, né pressione, né umidità. Valori invariati.",
+        "listLoading": "Un elenco di stazioni è ancora in download (il primo utilizzo richiede tempo con una connessione lenta). Valori invariati. Riprova tra un minuto."
+      },
+      "settingsLink": "Apri le impostazioni",
+      "nextReport": "Prossimo rapporto atteso alle {{time}} (ogni {{minutes}} min)",
+      "altitudeChanged": "La tua altitudine è cambiata di oltre {{distance}} dall'ultimo recupero. Aggiorna per scegliere le stazioni per la nuova altitudine.",
+      "useLocation": "Usa le coordinate di {{name}}: {{coordinates}}, {{altitude}}",
+      "saveOffer": "Salva queste come coordinate di {{name}}",
+      "saveOfferReplaces": "Sostituisce le coordinate e l'altitudine salvate per questo luogo.",
+      "saved": "Coordinate salvate per {{name}}."
+    },
+    "details": {
+      "link": "Dettagli delle stazioni",
+      "title": "Dettagli delle stazioni",
+      "close": "Chiudi",
+      "unknown": "sconosciuta",
+      "atYourPosition": "Nella tua posizione",
+      "observedAgo": "Osservato alle {{time}}, {{minutes}} min fa.",
+      "explainMulti": "A {{height}}, combinato dalle stazioni entro {{radius}} (la più vicina a {{nearest}}).{{correction}} La pressione è riportata alla tua quota con la temperatura di ciascuna stazione; l'umidità non è corretta per la quota.",
+      "explainNearest": "A {{height}}, dalla stazione più vicina: a {{distance}}, {{elevation}}.{{correction}} La pressione è riportata alla tua quota con la temperatura della stazione; l'umidità non è corretta per la quota.",
+      "timeCorrection": " La temperatura è portata alle {{time}} con un modello dell'angolo solare, l'umidità con essa.",
+      "fetchedAt": "Rapporti recuperati il {{when}}.",
+      "bannerOffline": "Sei offline: questo è il risultato salvato.",
+      "bannerRejected": "Stazioni escluse perché si discostavano molto dalle altre: {{count}} (vedi Stazioni utilizzate).",
+      "bannerAltitude": "La tua quota è cambiata di oltre {{distance}} da questo recupero. Aggiorna per scegliere le stazioni più vicine a questa quota.",
+      "tablesHeading": "Stazioni utilizzate",
+      "quantity": {
+        "temperature": "Temperatura ({{unit}})",
+        "pressure": "Pressione ({{unit}})",
+        "humidity": "Umidità ({{unit}})"
+      },
+      "noneReport": "Nessuna stazione fornisce questo valore.",
+      "col": {
+        "station": "Stazione",
+        "distance": "Distanza ({{unit}})",
+        "dh": "Δh ({{unit}})",
+        "effective": "Distanza eff. ({{unit}})",
+        "age": "Età",
+        "reported": "Misurato",
+        "timeDelta": "ΔT tempo",
+        "atYou": "Da te",
+        "now": "Ora",
+        "weight": "Peso",
+        "source": "Servizio",
+        "mode": "Modo",
+        "status": "Stato",
+        "stations": "Stazioni",
+        "nextReport": "Prossimo rapporto"
+      },
+      "leftOut": "esclusa",
+      "leftOutReason": "{{station}} esclusa: {{deviation}} dalla mediana delle {{count}} più vicine (limite {{limit}}).",
+      "method": "Δh = quota della stazione − la tua quota. La distanza effettiva conta {{height}} di dislivello come {{distance}}. Peso ∝ 1 / (distanza effettiva)^{{power}}. Una stazione viene esclusa se differisce dalla mediana delle vicine per più del maggiore tra {{tempFloor}} (temperatura) o {{pressureFloor}} (pressione) e {{madK}} × la dispersione tipica.",
+      "kind": {
+        "station": "stz.",
+        "qnh": "QNH",
+        "mslp": "MSLP"
+      },
+      "kindLong": {
+        "station": "Pressione di stazione",
+        "qnh": "QNH",
+        "mslp": "Pressione a livello del mare"
+      },
+      "reportsHeading": "Rapporti delle stazioni",
+      "elevation": "{{height}} s.l.m.",
+      "elevationUnknown": "quota sconosciuta",
+      "observed": "osservato {{time}}",
+      "notUsedFor": "Non usato per {{quantity}}: {{reason}}",
+      "fetched": "Recuperato alle {{time}}.",
+      "fetchedCached": "Recuperato alle {{time}} (dalla cache: il servizio viene interrogato al massimo ogni 10 min).",
+      "sourcesHeading": "Servizi",
+      "mode": {
+        "off": "disattivato",
+        "used": "usato",
+        "unused": "non usato"
+      },
+      "reportsNoneNearest": "Rapporti ricevuti, nessuno tra i più vicini.",
+      "sourcesNote": "Stazioni: interrogate per i valori attuali / entro il raggio di ricerca. Prossimo rapporto: primo momento in cui ci si può aspettare un rapporto più recente del servizio (intervallo più ritardo tipico); aggiornare prima restituisce gli stessi dati.",
+      "reason": {
+        "off": "Disattivato",
+        "notValidated": "Non ancora validato: disattivato per impostazione predefinita",
+        "outside": "Fuori dall'area del servizio",
+        "noStationsInArea": "Nessuna stazione nella tua zona",
+        "paused": "In pausa dopo ripetuti errori",
+        "noNearby": "Nessuna stazione nel raggio di ricerca",
+        "notSelected": "Non tra le stazioni più vicine",
+        "error": "Errore",
+        "noFresh": "Nessun rapporto abbastanza recente",
+        "listLoading": "Elenco delle stazioni ancora in download; usato dal prossimo recupero"
+      },
+      "errorKind": {
+        "network": "Errore di rete",
+        "timeout": "Tempo scaduto",
+        "throttled": "Il servizio limita le richieste",
+        "http": "Errore HTTP {{status}}",
+        "parse": "Risposta illeggibile"
+      },
+      "creditsHeading": "Fonti dei dati",
+      "usedStations_one": "{{count}} stazione usata",
+      "usedStations_other": "{{count}} stazioni usate",
+      "stationsFor_one": "{{count}} stazione · per le {{time}}",
+      "stationsFor_other": "{{count}} stazioni · per le {{time}}",
+      "moreStations_one": "Un'altra stazione ({{count}}) nel raggio, ma non tra le {{considered}} più vicine per distanza effettiva.",
+      "moreStations_other": "Altre {{count}} stazioni nel raggio, ma non tra le {{considered}} più vicine per distanza effettiva."
+    },
+    "note": {
+      "dewpointAboveTemperature": "Il punto di rugiada {{dewpoint}} supera la temperatura; umidità non usata.",
+      "heightFromList": "Quota presa dall'elenco delle stazioni di {{source}} (l'elenco IEM riportava {{iemHeight}}).",
+      "humidityDerived": "Umidità calcolata da temperatura e punto di rugiada.",
+      "humidityFromIem": "Umidità presa dal valore proprio del servizio IEM.",
+      "humidityMeasured": "Umidità misurata.",
+      "humidityOutOfRange": "Umidità {{humidity}} fuori intervallo; non usata.",
+      "noFreshNearestOlder": "Nessun rapporto recente entro {{radius}}; viene mostrato il più vicino meno recente.",
+      "noPressureReported": "Nessuna pressione (questa stazione non la fornisce).",
+      "noPressureTHOnly": "Nessuna pressione: questa stazione fornisce solo temperatura e umidità.",
+      "partnerPressureNotUsed": "Stazione partner: pressione non usata (la sua quota non può essere verificata).",
+      "pressureInconsistent": "Pressione non usata: la pressione di stazione e quella a livello del mare implicano un barometro a {{implied}}, ma la quota indicata è {{listed}}.",
+      "pressureOutOfRange": "{{kind}} {{pressure}} fuori intervallo; non usata.",
+      "pressureQnhNoBaro": "Pressione: QNH (quota del barometro non indicata).",
+      "pressureQnhOnly": "Pressione: solo QNH.",
+      "pressureSeaLevelOnly": "Pressione: solo il valore a livello del mare (approssimativo).",
+      "qnhFromIemAlti": "QNH dal valore altimetrico del servizio.",
+      "qnhQGroupRounded": "QNH dal gruppo Q: hPa interi, arrotondati per difetto per regola; aggiunti {{adjust}} (errore medio di arrotondamento).",
+      "rawNotChecked": "Osservazione grezza, senza controllo di qualità.",
+      "rawUnchecked": "Valore TAWES di 10 minuti, grezzo e non controllato.",
+      "roadWeatherStation": "Stazione meteo stradale (stato USA) tramite IEM.",
+      "hadsPlatform": "Piattaforma HADS (RAWS, SNOTEL, …) tramite IEM.",
+      "seaPressureOutOfRange": "Pressione a livello del mare {{pressure}} fuori intervallo; non usata.",
+      "stationPressureAssumedBaro": "Pressione di stazione (quota del barometro assunta pari a quella della stazione).",
+      "stationPressureAtStation": "Pressione di stazione, alla stazione.",
+      "stationPressureAtStationHeight": "Pressione di stazione alla quota della stazione.",
+      "stationPressureBaro": "Pressione di stazione (barometro a {{height}}).",
+      "stationPressureOutOfRange": "Pressione di stazione {{pressure}} fuori intervallo; non usata.",
+      "synopDecoded": "SYNOP (WMO BUFR), decodificato da IEM.",
+      "temperatureFromIemTmpf": "Temperatura dal valore in °F del servizio (nessuna temperatura METAR utilizzabile).",
+      "temperatureOutOfRange": "Temperatura {{temperature}} fuori intervallo; non usata.",
+      "temperatureTGroup": "Temperatura dal gruppo T del METAR (0,1 °C).",
+      "temperatureWholeF": "Temperatura comunicata in °F interi.",
+      "sameSitePressure": "{{station}} riporta lo stesso sito con una pressione migliore ({{kind}}).",
+      "sameSiteNewer": "{{station}} riporta lo stesso sito in modo più recente.",
+      "sameSiteInconsistentBarometer": "{{station}} mostra che la quota del barometro ({{height}}) è dubbia per questo sito."
+    },
+    "flag": {
+      "mslpNotUsed": "Solo pressione a livello del mare: non usata (riportarla alla tua quota aggiunge più errore di quanto ne tolga).",
+      "baroHeightAssumed": "Quota del barometro non indicata; è stata usata la quota della stazione.",
+      "tempNotAdjusted": "Quota della stazione sconosciuta: temperatura come misurata, non corretta.",
+      "noPressure": "Nessuna pressione utilizzabile da questa stazione.",
+      "noTemperature": "Questa stazione non fornisce la temperatura.",
+      "noPressureHeight": "Quota della stazione sconosciuta: la pressione non può essere riportata alla tua quota.",
+      "pressureIsa": "Temperatura o quota della stazione mancante: pressione riportata alla tua quota con l'atmosfera standard."
+    },
+    "hint": {
+      "E-BR-1": "Brasile: molte stazioni sinottiche inviano una pressione incoerente; la loro pressione non viene usata.",
+      "E-LV-1": "Lettonia: le stazioni sinottiche non inviano una pressione di stazione utilizzabile; la pressione proviene solo dagli aeroporti.",
+      "E-IS-1": "Islanda: le stazioni meteo qui non riportano la pressione; la pressione proviene solo dagli aeroporti.",
+      "E-CH-1": "Alcune quote di stazioni nella fonte sono obsolete; la pressione di quelle stazioni non viene usata.",
+      "E-CA-ES-TH-1": "Alcune stazioni inviano qui una pressione incoerente; la loro pressione non viene usata.",
+      "E-DELAY-1": "I rapporti di questo paese arrivano circa 20 minuti dopo l'ora piena, quindi possono avere più di un'ora.",
+      "E-US-1": "USA: la pressione proviene solo dalle stazioni aeroportuali. Dove riportano poche altre stazioni, soprattutto in montagna, le condizioni del tuo sito possono differire.",
+      "E-NOSYN-1": "Qui sono disponibili solo stazioni aeroportuali; lontano da esse le condizioni del tuo sito possono differire.",
+      "E-LATE-1": "I rapporti aeroportuali qui sono spesso in ritardo o mancanti; i dati possono essere meno recenti o provenire da più lontano.",
+      "E-G-1": "Le stazioni vicine divergono molto (effetti costieri o dell'entroterra?). Controlla quali stazioni hanno la tua stessa esposizione.",
+      "E-G-2": "La tua quota differisce molto da quella delle stazioni usate; aspettati un'incertezza maggiore.",
+      "E-G-3": "Una stazione si discostava dalle vicine ed è stata esclusa.",
+      "E-NS-IT": "Italia: vengono usate solo stazioni aeroportuali e sinottiche. L'Italia non ha un servizio nazionale con sole stazioni ufficiali utilizzabile da questa app; le reti regionali sono incomplete.",
+      "E-NS-RU": "Russia: vengono usate solo stazioni aeroportuali e alcune sinottiche; gli altri rapporti arrivano solo ogni 3 ore.",
+      "E-NS-NL": "Paesi Bassi: i dati del servizio meteorologico nazionale non possono essere usati direttamente da questa app; vengono usate stazioni aeroportuali e sinottiche.",
+      "E-NS-NO": "Norvegia: i dati del servizio meteorologico nazionale non possono essere usati direttamente da questa app; vengono usate stazioni aeroportuali e sinottiche.",
+      "E-NS-JP": "Giappone: il servizio meteorologico nazionale non offre un'interfaccia dati documentata; vengono usate solo stazioni aeroportuali.",
+      "E-NS-NOCORS": "I dati del servizio meteorologico nazionale non possono essere usati direttamente da questa app; vengono usate stazioni aeroportuali e sinottiche.",
+      "E-NS-META": "I dati del servizio meteorologico nazionale non contengono i dettagli delle stazioni che questa app richiede; vengono usate stazioni aeroportuali e sinottiche.",
+      "E-NS-SI": "Slovenia: i dati nazionali non possono essere usati in modo affidabile; vengono usate stazioni aeroportuali e sinottiche.",
+      "E-NS-HK": "Hong Kong: i dati pubblici non indicano la posizione delle stazioni; viene usato solo l'aeroporto.",
+      "E-NS-DE": "Germania: dati meteo del Deutscher Wetterdienst (DWD), ottenuti tramite Bright Sky, un servizio open source indipendente, perché il server del DWD non consente l'uso diretto da parte di app web.",
+      "E-NS-UK": "Regno Unito: il servizio di osservazioni del Met Office non può essere usato da questa app; vengono usate solo stazioni aeroportuali.",
+      "E-NS-ES": "Spagna: il servizio meteorologico nazionale (AEMET) richiede chiavi di accesso che scadono ogni 3 mesi, quindi non viene usato; vengono usate stazioni aeroportuali e sinottiche."
+    },
+    "hints": {
+      "heading": "Note per questa zona",
+      "dismiss": "Nascondi questa nota"
     }
   },
   "sync": {
@@ -1662,6 +1929,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v250": "Novità: integrazione dei servizi meteo online (e un nuovo nome in codice scintillante).",
       "v249": "Novità: profonda revisione e semplificazione dell’interfaccia del Calcolatore per il poligono, personalizzabile per mostrare solo ciò che serve, con selezione rapida di fucili e postazioni.",
       "v248": "Novità: selezione della postazione più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea).",
       "v247": "Novità: selezione dell'arma più semplice in modalità Calcolatore per il poligono (grazie a Stéphane E per l'idea). Piccole correzioni all'interfaccia.",

@@ -5,7 +5,8 @@ import {
   QUANTITY_KINDS, converter, convert, kindOfUnit, internalUnit, toInternal, fromInternal,
   degToRad, radToDeg, mradToRad, radToMrad, moaToRad, radToMoa, percentToFraction, fractionToPercent,
   hpaToPa, paToHpa, mmToM, mToMm, cmToM, mToCm, inToM, mToIn, pointToM, mToPoint, kgToGrain, grainToKg, kgToG, gToKg,
-  celsiusToKelvin, kelvinToCelsius, angleToLinearAtRange, linearToAngleAtRange
+  celsiusToKelvin, kelvinToCelsius, angleToLinearAtRange, linearToAngleAtRange,
+  kmToM, mToKm, miToM, mToMi, msToS, sToMs, minToS, sToMin, hToS, sToH, inhgToPa, paToInhg, fahrenheitToCelsius
 } from '../src/quantity.js';
 import { UNIT_GROUPS } from '../src/units.js';
 import { LBIN2_TO_KGM2 } from '../src/engine/constants.js';
@@ -28,7 +29,7 @@ test('every display unit in UNIT_GROUPS belongs to exactly the kind its group im
   const expectedKind = {
     velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
     altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy',
-    ratio: 'ratio', angleDegrees: 'angle'
+    ratio: 'ratio', angleDegrees: 'angle', weatherRadius: 'length', weatherAge: 'time', geoCoordinate: 'angle'
   };
   for (const [group, { choices }] of Object.entries(UNIT_GROUPS)) {
     for (const { unit } of choices) {
@@ -151,4 +152,21 @@ test('degrees convert through the exact pi/180, not js-quantities\' truncated de
   assert.equal(degToRad(180), Math.PI);
   assert.equal(radToDeg(Math.PI), 180);
   assert.equal(convert(1, 'deg', 'arcmin'), 60);
+});
+
+test('weather routines: length, time, pressure, temperature', () => {
+  assert.equal(kmToM(150), 150000);
+  assert.equal(mToKm(1500), 1.5);
+  assert.equal(miToM(1), 1609.344);
+  assert.ok(relClose(mToMi(1609.344), 1));
+  assert.equal(msToS(1500), 1.5);
+  assert.equal(sToMs(1.5), 1500);
+  assert.equal(minToS(90), 5400);
+  assert.equal(sToMin(5400), 90);
+  assert.equal(hToS(3), 10800);
+  assert.equal(sToH(10800), 3);
+  assert.ok(relClose(inhgToPa(29.92), 101320.4, 1e-4));
+  assert.ok(relClose(paToInhg(inhgToPa(29.92)), 29.92));
+  assert.ok(Math.abs(fahrenheitToCelsius(32)) < 1e-12);
+  assert.ok(Math.abs(fahrenheitToCelsius(212) - 100) < 1e-9);
 });

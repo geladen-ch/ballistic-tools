@@ -4,8 +4,11 @@
 A client-side external ballistics suite. Everything — trajectory
 integration, hit-probability analysis, your saved rifles and bullets —
 runs in your browser. **No data is ever collected or transmitted to a
-server.** It works offline once loaded, and installs as an app on desktop
-and mobile (PWA).
+server of ours.** The one optional exception is online weather (off by
+default): switched on, the app contacts public weather services directly from
+your device to fill in temperature, pressure and humidity from nearby
+stations. The app itself works offline once loaded, and installs as an app on
+desktop and mobile (PWA).
 
 A reasonably stable (but not necessarily the latest) "official" version is hosted at https://bc.geladen.ch
 

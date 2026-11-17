@@ -82,6 +82,18 @@ software:
 - [Ron Kok](https://github.com/ronkok) and contributors —
   [Temml](https://temml.org/)
 
+## Weather data
+
+The optional online weather feature uses open data.
+
+- METAR, SYNOP and US road-weather and HADS (RAWS, SNOTEL) reports: [Iowa Environmental Mesonet](https://mesonet.agron.iastate.edu/), Iowa State University. Deep thanks to daryl herzmann of Iowa State University, who runs the Iowa Environmental Mesonet and gives away decades of weather observations for free. In his words, he is the one "bus" away from the whole thing going dark, so please wish him a long, bus-free life.
+- Source: [MeteoSwiss](https://opendatadocs.meteoswiss.ch/general/terms-of-use) (Swiss stations; Federal Office of Meteorology and Climatology, open data, CC BY 4.0).
+- Datenquelle: [GeoSphere Austria](https://data.hub.geosphere.at/dataset/tawes-v1-10min) - https://data.hub.geosphere.at (Austrian stations; CC BY 4.0; raw 10-minute values).
+- German stations: [Deutscher Wetterdienst (DWD)](https://www.dwd.de/EN/ourservices/opendata/opendata.html), licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), retrieved via [Bright Sky](https://brightsky.dev/) (by Jakob de Maeyer, open source, MIT licence). Values are converted to your altitude and combined with other stations. Data basis: Deutscher Wetterdienst, averaged over individual values (Datenbasis: Deutscher Wetterdienst, Einzelwerte gemittelt).
+- Stations in Denmark, Greenland and the Faroe Islands: [Danish Meteorological Institute (DMI)](https://www.dmi.dk/friedata/dokumentation/terms-of-use), licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); raw observations, converted to your altitude and combined with other stations.
+- Canadian stations: Data Source: Environment and Climate Change Canada, NAV CANADA and partner networks (provincial and other agencies, named in each station report). Contains information licenced under the [Data Server End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) of Environment and Climate Change Canada.
+- Heights above sea level from GPS are corrected with a compact spherical-harmonic fit of the EGM2008 geoid (US National Geospatial-Intelligence Agency), whose published grid is distributed through the PROJ project.
+
 ## Fonts
 
 The Reticle Designer's numbers are drawn from the digits of these fonts,

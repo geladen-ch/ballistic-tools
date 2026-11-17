@@ -27,6 +27,8 @@ export function mountDialogRoot(container) {
   container.appendChild(overlay);
 }
 
+let appliedCardClass = null;
+
 function hide() {
   overlay.style.display = 'none';
 }
@@ -51,7 +53,7 @@ function hide() {
 // its body's children take part in directly (the body is display:
 // contents) — the Range Solver's Layout dialog, which places a preview
 // beside its controls in landscape.
-export function showDialog({ message, bodyNode, buttons, wide = false, size = null }) {
+export function showDialog({ message, bodyNode, buttons, wide = false, size = null, cardClass = null }) {
   clear(bodyEl);
   bodyEl.appendChild(bodyNode || el('p', { class: 'app-dialog-message', text: message }));
   clear(actionsEl);
@@ -64,6 +66,11 @@ export function showDialog({ message, bodyNode, buttons, wide = false, size = nu
     });
     actionsEl.appendChild(button);
   });
+  // `cardClass`: one extra modifier for a dialog that needs more room than `wide` gives (station details); the
+  // previous dialog's modifier is dropped first.
+  if (appliedCardClass) card.classList.remove(`app-dialog-card-${appliedCardClass}`);
+  appliedCardClass = cardClass;
+  if (cardClass) card.classList.add(`app-dialog-card-${cardClass}`);
   card.classList.toggle('app-dialog-card-wide', wide);
   card.classList.toggle('app-dialog-card-fill', size === 'fill');
   overlay.classList.toggle('app-dialog-overlay-fill', size === 'fill');

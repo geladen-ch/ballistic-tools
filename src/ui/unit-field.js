@@ -161,6 +161,8 @@ export function unitField({ id, min, max, step, value, slider = false, optional 
 
   return {
     node,
+    // The number input itself, for a caller that needs its own events (e.g. a paste handler).
+    input: number,
     getEngineValue: () => {
       const raw = (slider ? range : number).value;
       if (optional && raw.trim() === '') return null;

@@ -2500,3 +2500,38 @@ html.angle-meter-open, html.angle-meter-open body { overflow: hidden; }
 .location-picker-row.current svg { color: var(--accent); flex-shrink: 0; }
 .gun-picker-loads { padding: 0 0 6px 18px; }
 .gun-picker-load { min-height: 40px; }
+
+/* Online weather block (Trajectory and Range Solver atmosphere sections): latitude and longitude side by side. */
+.weather-block { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.weather-position-coords { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.weather-position .field-action-row { margin-top: 4px; }
+.weather-block .hint { margin: 0; }
+.weather-block .weather-get { align-self: flex-start; }
+.weather-save-offer { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.weather-block [hidden], .weather-block[hidden] { display: none !important; }
+
+/* Station details: a small text link under the weather block, and the dialog's tables. */
+.link-button { background: none; border: 0; padding: 0; margin: 0; width: auto; min-height: 0; font: inherit; font-size: 12px; color: var(--accent); text-decoration: underline; cursor: pointer; align-self: flex-start; }
+.app-dialog-card-details { max-width: 860px; width: 100%; }
+.app-dialog-card-details .app-dialog-body { max-height: 70vh; overflow-y: auto; }
+.weather-details h2 { font-size: 16px; margin: 0 0 6px; }
+.weather-details h3 { font-size: 14px; margin: 14px 0 4px; }
+.weather-details h4 { text-transform: none; font-size: 12px; margin: 10px 0 4px; color: var(--dim); font-weight: 600; }
+.weather-details .hint { margin: 3px 0; }
+.weather-table-wrap { overflow-x: auto; max-width: 100%; }
+.weather-table { border-collapse: collapse; font-size: 12px; width: 100%; }
+.weather-table th, .weather-table td { padding: 3px 8px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--chart-grid); }
+.weather-table th:first-child, .weather-table td:first-child { text-align: left; }
+.weather-table th { color: var(--dim); font-weight: 600; }
+.weather-rejected td { text-decoration: line-through; opacity: 0.6; }
+.weather-type-mark { font-size: 10px; color: var(--dim); }
+.weather-report { margin: 8px 0; }
+.weather-report-head { margin: 0 0 3px; font-size: 12px; font-weight: 600; }
+.weather-raw { margin: 2px 0; padding: 4px 6px; font-size: 11px; white-space: pre-wrap; word-break: break-all; background: rgba(128,128,128,0.12); border-radius: 4px; }
+.weather-notes { margin: 2px 0 0; padding-left: 18px; font-size: 11px; color: var(--dim); }
+.weather-hint-dismiss { margin-left: 4px; font-size: 14px; text-decoration: none; }
+.weather-use-location .checkbox-field, .weather-check-field .checkbox-field { justify-content: flex-start; gap: 8px; }
+/* Settings → online weather services: every Auto/Off selector the same size, at the right edge of its row. */
+.weather-service-row > label { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.weather-service-row > label > span { flex: 1 1 auto; min-width: 0; }
+.weather-mode-select { flex: 0 0 7.5rem; width: 7.5rem; height: 2.25rem; margin-left: auto; }

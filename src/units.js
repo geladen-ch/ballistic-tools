@@ -128,6 +128,31 @@ export const UNIT_GROUPS = {
       { unit: '%', label: '%', decimals: 2 }
     ]
   },
+  // The online weather services' search radius: stations are looked for out
+  // to hundreds of kilometres, so its own group rather than the range one.
+  weatherRadius: {
+    defaultUnit: 'km',
+    choices: [
+      { unit: 'km', label: 'km', decimals: 0 },
+      { unit: 'mi', label: 'mi', decimals: 0 }
+    ]
+  },
+  // A position on the Earth (a location's latitude and longitude): always degrees, in decimal form to about a metre.
+  geoCoordinate: {
+    defaultUnit: 'deg',
+    fixed: true,
+    choices: [
+      { unit: 'deg', label: '°', decimals: 5 }
+    ]
+  },
+  // How old a station report may be: always minutes, `fixed` like `ratio`.
+  weatherAge: {
+    defaultUnit: 'min',
+    fixed: true,
+    choices: [
+      { unit: 'min', label: 'min', decimals: 0 }
+    ]
+  },
   energy: {
     defaultUnit: 'J',
     choices: [
@@ -146,7 +171,7 @@ export const UNIT_GROUPS = {
 export const GROUP_KINDS = {
   velocity: 'velocity', windSpeed: 'velocity', distance: 'length', smallLength: 'length', riflingTwist: 'length',
   altitude: 'length', temperature: 'temperature', pressure: 'pressure', angleDispersion: 'angle', energy: 'energy',
-  ratio: 'ratio', angleDegrees: 'angle'
+  ratio: 'ratio', angleDegrees: 'angle', weatherRadius: 'length', weatherAge: 'time', geoCoordinate: 'angle'
 };
 
 // Maps each field id to the display group it is shown in and the quantity
@@ -205,6 +230,12 @@ export const FIELD_UNITS = {
   targetHeight: { group: 'smallLength', kind: 'length' },
 
   altitudeM: { group: 'altitude', kind: 'length' },
+  // The device's own altitude in the online-weather position inputs (a separate id: the atmosphere section already
+  // owns an `altitudeM` input on the same page).
+  deviceAltitudeM: { group: 'altitude', kind: 'length' },
+  // A location's position, optional; held in radians, shown in decimal degrees.
+  latitudeRad: { group: 'geoCoordinate', kind: 'angle' },
+  longitudeRad: { group: 'geoCoordinate', kind: 'angle' },
   tempC: { group: 'temperature', kind: 'temperature' },
   referenceTempC: { group: 'temperature', kind: 'temperature' },
   // A span (an interval of uncertainty), not an absolute reading: 5 °C of
@@ -213,6 +244,9 @@ export const FIELD_UNITS = {
   pressure: { group: 'pressure', kind: 'pressure' },
   pressureMedianError: { group: 'pressure', kind: 'pressure' },
   humidity: { group: 'ratio', kind: 'ratio' },
+  // Online weather services (Settings): how far to look for stations, and how old a report may be.
+  weatherSearchRadius: { group: 'weatherRadius', kind: 'length' },
+  weatherMaxAge: { group: 'weatherAge', kind: 'time' },
   losAngle: { group: 'angleDegrees', kind: 'angle' },
   windAngle: { group: 'angleDegrees', kind: 'angle' },
   benchPrecision: { group: 'angleDispersion', kind: 'angle' },
@@ -349,6 +383,9 @@ export const FIELD_BOUNDS = {
   tempC: { min: -90, max: 60 }, // °C
   velocityTempSensitivity: { min: -5, max: 5 }, // m/s per °C, engine unit always — see velocityPerTempFactor() above
   altitudeM: { min: -500, max: 6000 }, // m
+  deviceAltitudeM: { min: -500, max: 6000 }, // m, same bound as altitudeM
+  latitudeRad: { min: -Math.PI / 2, max: Math.PI / 2 }, // rad
+  longitudeRad: { min: -Math.PI, max: Math.PI }, // rad
   targetRange: { min: 10, max: 5000 }, // m
   losAngle: { min: degToRad(-90), max: degToRad(90) }, // rad
   windSpeed: { min: 0, max: 35 }, // m/s
@@ -384,6 +421,8 @@ export const FIELD_BOUNDS = {
   rectPlateWidth: { min: 0.01, max: 3 }, // m
   rectPlateHeight: { min: 0.01, max: 3 }, // m
   bcGainFactor: { min: 0.8, max: 1.2 }, // unitless multiplier, no FIELD_UNITS entry — see makeStepper() in engine/trajectory.js
+  weatherSearchRadius: { min: 10000, max: 500000 }, // m
+  weatherMaxAge: { min: 900, max: 21600 }, // s
   truingBackdropHeight: { min: 1, max: 40 } // m, total height -- see engine/truing-session.js's own "each way" margin, which this is divided by 2 to produce
 };
 

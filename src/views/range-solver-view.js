@@ -60,7 +60,7 @@ import {
   loadRangeSolverLocationState, saveRangeSolverLocationState,
   markAtmosphereTouched
 } from '../range-solver-state.js';
-import { loadUserLocations } from '../location-library.js';
+import { loadUserLocations, saveUserLocation } from '../location-library.js';
 import { photoPickerButton } from '../ui/photo-picker-button.js';
 import { setPendingPlacement } from '../location-placement-nav.js';
 import { displayChoice, toDisplayUnit, fromDisplayUnit } from '../display-units.js';
@@ -242,8 +242,14 @@ export function mount(container) {
   // ---- Atmosphere pane — own cookie-backed state (range-solver-state.js),
   // deliberately not shot-state.js's shared session-only one (see
   // atmosphere-section.js's own load/save override). ----
+  // The online weather block reads the active location afresh each time (its coordinates may have been saved from
+  // here, after this view resolved activeLocation) and stores measured coordinates into it on request.
+  const weatherLocation = {
+    getLocation: () => (activeLocation ? loadUserLocations().find((l) => l.id === activeLocation.id) || null : null),
+    saveCoordinates: (loc, p) => saveUserLocation({ ...loc, latitudeRad: p.latRad, longitudeRad: p.lonRad, altitudeM: p.altitudeM })
+  };
   const atmosphere = atmosphereSection({
-    includeWind: false, onInput: () => { markAtmosphereTouched(); recompute(); },
+    includeWind: false, onlineWeather: { locationSource: weatherLocation }, onInput: () => { markAtmosphereTouched(); recompute(); },
     load: loadRangeSolverAtmosphereState, save: saveRangeSolverAtmosphereState
   });
 

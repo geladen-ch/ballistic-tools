@@ -20,6 +20,7 @@ import { setPendingPlacement } from '../location-placement-nav.js';
 import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
 import { formatQuantity } from '../display-units.js';
+import { formatCoordinates, hasCoordinates } from '../ui/locations/coordinates-text.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -233,11 +234,15 @@ export function mount(container) {
     const altitudeLabel = location.altitudeM != null
       ? el('span', { class: 'hint', text: ` — ${formatQuantity('altitude', location.altitudeM)}` })
       : null;
+    const coordinatesLabel = hasCoordinates(location)
+      ? el('span', { class: 'hint', text: ` — ${formatCoordinates(location.latitudeRad, location.longitudeRad)}` })
+      : null;
     const modifiedLabel = lastModifiedLabel(location);
     return [
       el('strong', { text: (labels && labels.get(location.id)) || location.name }),
       unsavedBadge(location),
       altitudeLabel,
+      coordinatesLabel,
       el('span', { class: 'hint', text: t('rangeSolverLocations.targetCount', { count: location.targets.length }) }),
       modifiedLabel ? el('div', { class: 'hint' }, [modifiedLabel]) : null
     ];

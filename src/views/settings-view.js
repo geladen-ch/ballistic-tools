@@ -31,6 +31,7 @@ import { impactColorPicker } from '../ui/impact-color-picker.js';
 import { reticleOverlayColorPicker } from '../ui/reticle-overlay-color-picker.js';
 import { backupSyncSection } from '../ui/backup-sync-settings.js';
 import { changeHistorySection } from '../ui/change-history-settings.js';
+import { onlineWeatherSection } from '../ui/weather/online-weather-settings.js';
 
 export function mount(container) {
   clear(container);
@@ -391,6 +392,7 @@ export function mount(container) {
     el('div', { class: 'card', style: 'max-width:420px;' }, [
       generalSection,
       unitsSection,
+      onlineWeatherSection().node,
       rifleLibrarySection,
       bulletLibrariesSection,
       dragModelsSection,

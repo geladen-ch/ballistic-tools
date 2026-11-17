@@ -263,7 +263,7 @@ export function mount(container) {
   const cartridge = cartridgeSection({ onInput: handleShotInputChange });
   const rifle = rifleSection({ onInput: handleShotInputChange, onLibraryCartridgeChange: cartridge.setLibraryCartridge });
   const guns = gunsSummary({ bare: true });
-  const atmosphere = atmosphereSection({ combinedWind: true, onInput: handleShotInputChange });
+  const atmosphere = atmosphereSection({ combinedWind: true, onlineWeather: {}, onInput: handleShotInputChange });
 
   // Optional "for this tool only" stand-in for the rifle's own configured
   // zero range (see rifle-section.js's zeroRangeField) — blank (the

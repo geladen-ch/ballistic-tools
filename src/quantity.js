@@ -183,6 +183,23 @@ export const mToIn = converter('m', 'in');
 export const pointToM = converter('point', 'm');
 export const mToPoint = converter('m', 'point');
 
+export const kmToM = converter('km', 'm');
+export const mToKm = converter('m', 'km');
+export const miToM = converter('mi', 'm');
+export const mToMi = converter('m', 'mi');
+
+export const msToS = converter('ms', 's');
+export const sToMs = converter('s', 'ms');
+export const minToS = converter('min', 's');
+export const sToMin = converter('s', 'min');
+export const dayToS = converter('day', 's');
+export const hToS = converter('h', 's');
+export const sToH = converter('s', 'h');
+
+export const inhgToPa = converter('inHg', 'Pa');
+export const paToInhg = converter('Pa', 'inHg');
+export const fahrenheitToCelsius = converter('tempF', 'tempC');
+
 export const kgToGrain = converter('kg', 'grain');
 export const grainToKg = converter('grain', 'kg');
 export const kgToG = converter('kg', 'g');

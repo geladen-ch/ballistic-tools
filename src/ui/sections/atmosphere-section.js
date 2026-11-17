@@ -6,6 +6,7 @@ import { windControl } from '../wind-control.js';
 import { sectionGroup } from '../section.js';
 import { loadAtmosphereState, saveAtmosphereState } from '../../shot-state.js';
 import { standardAtmosphereAt, altitudeFromPressurePa } from '../../engine/atmosphere.js';
+import { weatherBlock } from '../weather/weather-block.js';
 
 const DEFAULTS = {
   windSpeed: 0, windAngleRad: Math.PI / 2, tempC: 15, pressurePa: 101325, altitudeM: 0, humidity: 0.5,
@@ -53,8 +54,13 @@ const ATMOSPHERE_PRESETS = {
 // their own labels. Every other caller of this section passes
 // `includeWind: false`, so the plain pair below currently has no live
 // caller left either way.
+//
+// `onlineWeather` (Trajectory and Range Solver only; every other caller leaves it off): inserts the "Get weather"
+// block above temperature/pressure/humidity (src/ui/weather/weather-block.js). Its result is written into those
+// three fields like a preset would be, and the section lands on "Real conditions". `{ locationSource }` is Range
+// Solver's active-location hook for the coordinates checkbox and the save offer.
 export function atmosphereSection({
-  slider = false, includeWind = true, presets = true, combinedWind = false, onInput,
+  slider = false, includeWind = true, presets = true, combinedWind = false, onlineWeather = null, onInput,
   load = loadAtmosphereState, save = saveAtmosphereState
 } = {}) {
   const initial = { ...DEFAULTS, ...load() };
@@ -140,6 +146,7 @@ export function atmosphereSection({
     tempField.setEngineValue(tempC);
     pressureField.setEngineValue(pressurePa);
     humidityField.setEngineValue(0);
+    weather?.noteValuesEdited();
     handleChange();
   }
 
@@ -152,11 +159,26 @@ export function atmosphereSection({
       presetSelectEl.value = 'custom';
       updateAltitudeVisibility();
     }
+    weather?.noteValuesEdited();
     handleChange();
   }
 
+  // Values from the online weather lookup land exactly as a preset's would: written into the three fields, the
+  // preset select on "Real conditions", then saved and announced.
+  function applyWeather({ tempC, pressurePa, humidity }) {
+    if (tempC != null) tempField.setEngineValue(tempC);
+    if (pressurePa != null) pressureField.setEngineValue(pressurePa);
+    if (humidity != null) humidityField.setEngineValue(humidity);
+    currentPreset = 'custom';
+    if (presetSelectEl) presetSelectEl.value = 'custom';
+    updateAltitudeVisibility();
+    handleChange();
+  }
+  const weather = onlineWeather ? weatherBlock({ applyValues: applyWeather, locationSource: onlineWeather.locationSource ?? null }) : null;
+
   if (presetSelectEl) {
     presetSelectEl.addEventListener('change', () => {
+      weather?.noteValuesEdited();
       currentPreset = presetSelectEl.value;
       if (currentPreset === 'standard') {
         applyStandardFromAltitude(); // also persists via handleChange()
@@ -181,6 +203,7 @@ export function atmosphereSection({
   const children = [
     ...(combinedWind ? [windCombined.node] : includeWind ? [windSpeedField.node, windAngleDial.node] : []),
     ...(presets ? [el('div', { class: 'field' }, [el('label', { i18n: 'fields.atmospherePreset' }), presetSelectEl]), altitudeField.node] : []),
+    ...(weather ? [weather.node] : []),
     tempField.node,
     pressureField.node,
     humidityField.node
