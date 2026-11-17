@@ -14,7 +14,7 @@ const { reloadOnlineWeatherPrefsForTests } = await import('../src/online-weather
 const { setWeatherRuntimeForTests } = await import('../src/weather/runtime.js');
 const { createAvailability } = await import('../src/weather/availability.js');
 const { createMemoryCache } = await import('../src/weather/cache.js');
-const { resetDevicePositionForTests, getDevicePosition } = await import('../src/device-position-state.js');
+const { resetDevicePositionForTests, getDevicePosition, DEFAULT_DEVICE_POSITION } = await import('../src/device-position-state.js');
 const { weatherBlock, wantsSaveOffer, locationHasFullPosition, SAVE_OFFER_HORIZONTAL_M, SAVE_OFFER_VERTICAL_M } = await import('../src/ui/weather/weather-block.js');
 const { atmosphereSection } = await import('../src/ui/sections/atmosphere-section.js');
 const { ellipsoidalToOrthometric } = await import('../src/weather/geoid.js');
@@ -73,13 +73,13 @@ const goodResult = (over = {}) => ({
   ok: true, fetched: true, values: { tempC: 6.5, pressurePa: hpaToPa(955), humidity: 0.62 }, missing: [], stationCount: 3,
   at: Date.UTC(2026, 10, 16, 14, 32), plan: { nextExpectedAt: Date.UTC(2026, 10, 16, 15, 20), intervalS: minToS(30) }, ...over,
 });
-function mount({ location = null, service = fakeService(), apply = () => {} } = {}) {
+function mount({ location = null, service = fakeService(), apply = () => {}, defaultPosition = null } = {}) {
   const loc = { current: location };
   const source = location !== undefined && location !== false ? {
     getLocation: () => loc.current,
     saveCoordinates: (l, p) => { loc.current = { ...l, latitudeRad: p.latRad, longitudeRad: p.lonRad, altitudeM: p.altitudeM }; (source.saved ||= []).push(p); },
   } : null;
-  const block = weatherBlock({ applyValues: apply, locationSource: source, service });
+  const block = weatherBlock({ applyValues: apply, locationSource: source, service, defaultPosition });
   return { block, loc, source, node: block.node, button: () => byClass(block.node, 'weather-get'), service };
 }
 const fillPosition = (node, { lat = 47.37, lon = 8.54, alt = 430 } = {}) => {
@@ -146,6 +146,28 @@ test('pasting "lat, lon" into either coordinate box fills both', () => {
   assert.equal(prevented, true);
   assert.equal(byId(node, 'latitudeRad').value, '47.37');
   assert.equal(lon.value, '8.54');
+});
+
+test('the inputs start with the built-in default position, which is never stored and gives way to anything entered', () => {
+  const first = mount({ location: null, defaultPosition: DEFAULT_DEVICE_POSITION });
+  assert.equal(byId(first.node, 'latitudeRad').value, '47.10724');
+  assert.equal(byId(first.node, 'longitudeRad').value, '8.64244');
+  assert.equal(byId(first.node, 'deviceAltitudeM').value, '730');
+  assert.equal(shown(first.button()), true, 'a complete position: Get weather is offered');
+  assert.equal(getDevicePosition().latRad, null, 'nothing was stored');
+  // typed values are remembered and win over the default next time
+  type(first.node, 'latitudeRad', 46.5);
+  const second = mount({ location: null, defaultPosition: DEFAULT_DEVICE_POSITION });
+  assert.equal(byId(second.node, 'latitudeRad').value, '46.5');
+  assert.equal(byId(second.node, 'longitudeRad').value, '8.64244', 'the part not entered still starts at the default');
+  // the active location's own values come before the default
+  const withLoc = mount({ location: { ...fullLocation, altitudeM: null }, defaultPosition: DEFAULT_DEVICE_POSITION });
+  assert.equal(byId(withLoc.node, 'deviceAltitudeM').value, '730');
+  resetDevicePositionForTests();
+  const own = mount({ location: fullLocation, defaultPosition: DEFAULT_DEVICE_POSITION });
+  assert.equal(byId(own.node, 'latitudeRad').value, '47.37', "the location's value, not the default");
+  const exact = DEFAULT_DEVICE_POSITION;
+  assert.ok(Math.abs(exact.latRad * 180 / Math.PI - 47.10723988713254) < 1e-12);
 });
 
 // ---------- Range Solver: location coordinates and the save offer ----------

@@ -6,8 +6,17 @@
 import { getCookie, setCookie } from './cookies.js';
 import { FIELD_BOUNDS } from './units.js';
 import { isValidPosition } from './weather/coordinates.js';
+import { degToRad } from './quantity.js';
 
 const COOKIE_NAME = 'ballistics_device_position_v1';
+
+/**
+ * What the weather block's position inputs start with while nothing has been typed or measured on this device yet
+ * (a convenience prefill only: it is never stored, and anything the user enters replaces it).
+ */
+export const DEFAULT_DEVICE_POSITION = Object.freeze({
+  latRad: degToRad(47.10723988713254), lonRad: degToRad(8.642444182086091), altitudeM: 730,
+});
 
 const EMPTY = Object.freeze({ latRad: null, lonRad: null, altitudeM: null, altitudeSource: 'manual', gps: null });
 

@@ -16,7 +16,7 @@ import { isOnlineWeatherUsable } from '../../weather/runtime.js';
 import { createWeatherService, ALTITUDE_CHANGE_M } from '../../weather/service.js';
 import { locateGps, geoErrorCode, parseLatLon, isValidPosition } from '../../weather/location.js';
 import { haversineM } from '../../weather/geo.js';
-import { getDevicePosition, setDevicePosition, isValidAltitude } from '../../device-position-state.js';
+import { getDevicePosition, setDevicePosition, isValidAltitude, DEFAULT_DEVICE_POSITION } from '../../device-position-state.js';
 import { formatCoordinates, hasCoordinates } from '../locations/coordinates-text.js';
 import { showStationDetails } from './station-details.js';
 import { hintsFor as countryHintsFor, renderBlockHints } from './weather-hints.js';
@@ -58,12 +58,13 @@ const PROGRESS_KEY = {
  * @param {{
  *   applyValues: (v:{tempC?:number, pressurePa?:number, humidity?:number}) => void,
  *   locationSource?: {getLocation: () => object|null, saveCoordinates: (loc:object, p:{latRad:number, lonRad:number, altitudeM:number}) => void}|null,
- *   service?: object
+ *   service?: object,
+ *   defaultPosition?: {latRad:number, lonRad:number, altitudeM:number}|null
  * }} o
  *   locationSource: Range Solver only — the active location (re-read on every call) and how to store coordinates in it
  * @returns {{node: HTMLElement, noteValuesEdited: () => void, usable: boolean}}
  */
-export function weatherBlock({ applyValues, locationSource = null, service = null }) {
+export function weatherBlock({ applyValues, locationSource = null, service = null, defaultPosition = DEFAULT_DEVICE_POSITION }) {
   const node = el('div', { class: 'weather-block' });
   if (!isOnlineWeatherUsable()) {
     node.hidden = true;
@@ -74,18 +75,19 @@ export function weatherBlock({ applyValues, locationSource = null, service = nul
   // ---- position inputs ----
   const saved = getDevicePosition();
   const startLoc = locationSource?.getLocation() ?? null;
-  const prefill = (own, fromLocation) => own ?? (Number.isFinite(fromLocation) ? fromLocation : null);
+  // A remembered value first, then the active location's own, then the built-in default (none where `defaultPosition` is null).
+  const prefill = (own, fromLocation, fallback) => own ?? (Number.isFinite(fromLocation) ? fromLocation : (fallback ?? null));
   const latField = unitField({
     id: 'latitudeRad', ...FIELD_BOUNDS.latitudeRad, step: degToRad(0.0001), optional: true,
-    value: prefill(saved.latRad, startLoc?.latitudeRad), onInput: () => positionEdited(),
+    value: prefill(saved.latRad, startLoc?.latitudeRad, defaultPosition?.latRad), onInput: () => positionEdited(),
   });
   const lonField = unitField({
     id: 'longitudeRad', ...FIELD_BOUNDS.longitudeRad, step: degToRad(0.0001), optional: true,
-    value: prefill(saved.lonRad, startLoc?.longitudeRad), onInput: () => positionEdited(),
+    value: prefill(saved.lonRad, startLoc?.longitudeRad, defaultPosition?.lonRad), onInput: () => positionEdited(),
   });
   const altField = unitField({
     id: 'deviceAltitudeM', ...FIELD_BOUNDS.deviceAltitudeM, step: 10, optional: true,
-    value: prefill(saved.altitudeM, startLoc?.altitudeM), onInput: () => { positionEdited({ altitudeSource: 'manual' }); },
+    value: prefill(saved.altitudeM, startLoc?.altitudeM, defaultPosition?.altitudeM), onInput: () => { positionEdited({ altitudeSource: 'manual' }); },
   });
   // Pasting "47.37, 8.54" into either coordinate box fills both.
   for (const field of [latField, lonField]) {
