@@ -1951,6 +1951,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v252": "Novità: bersaglio «El Intendente» nello strumento Probabilità di colpire. Ogni riferimento a… ehm… persone realmente esistenti, [purtroppo ancora] vive o [si spera presto] morte, è puramente casuale. È venuto fuori così. Inoltre, qualche piccola rifinitura dell’interfaccia di Probabilità di colpire.",
       "v251": "Modifica: impostazioni suddivise in più sezioni, visualizzazione delle schede ottimizzata.",
       "v250": "Novità: integrazione dei servizi meteo online (e un nuovo nome in codice scintillante).",
       "v249": "Novità: profonda revisione e semplificazione dell’interfaccia del Calcolatore per il poligono, personalizzabile per mostrare solo ciò che serve, con selezione rapida di fucili e postazioni.",
@@ -2188,6 +2189,10 @@
     },
     "killerTubby": {
       "name": "Killer Tubby",
+      "zoneHit": "Colpito"
+    },
+    "elIntendente": {
+      "name": "El Intendente",
       "zoneHit": "Colpito"
     },
     "ipscPopper": {

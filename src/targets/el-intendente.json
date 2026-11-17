@@ -1,0 +1,14 @@
+{
+  "id": "el-intendente",
+  "nameKey": "targets.elIntendente.name",
+  "widthM": 0.45,
+  "heightM": 1.65,
+  "aspectRatio": 3.6666666666666665,
+  "zones": [
+    { "id": "hit", "nameKey": "targets.elIntendente.zoneHit", "score": 1 }
+  ],
+  "resultSvg": {
+    "pointOfAim": { "x": 751.99, "y": 1938.6 },
+    "pxPerMeter": 2349.12
+  }
+}

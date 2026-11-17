@@ -3,7 +3,7 @@
 // i18n.js), and used to name the service worker's cache (see
 // service-worker.js). All four constants are bumped by hand on release;
 // nothing here is derived automatically from anything else.
-export const CACHE_VERSION = 'v251';
-export const RELEASE_ID = '4.6.1';
+export const CACHE_VERSION = 'v252';
+export const RELEASE_ID = '4.6.2';
 export const CODENAME_SHORT = 'CORNHOLIO';
 export const CODENAME_LONG = 'Converged Operator Readiness Network for Holdover, Optics, Load data, Inventory & Onboarding';

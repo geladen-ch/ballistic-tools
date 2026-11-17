@@ -1951,6 +1951,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v252": "Neu: Scheibe «El Intendente» im Werkzeug Trefferwahrscheinlichkeit. Ähnlichkeiten mit realen… ähem… Personen, [bedauerlicherweise noch] lebenden oder [hoffentlich bald] toten, sind rein zufällig. Es hat sich einfach so ergeben. Ausserdem kleinere Feinschliffe an der Oberfläche der Trefferwahrscheinlichkeit.",
       "v251": "Änderung: Einstellungen in mehrere Bereiche aufgeteilt, optimierte Darstellung der Reiter.",
       "v250": "Neu: Anbindung von Online-Wetterdiensten (und ein glänzender neuer Codename).",
       "v249": "Neu: grosse Überarbeitung und Straffung der Oberfläche des Feldrechners, anpassbar, damit nur das Nötige angezeigt wird, und mit schneller Auswahl von Gewehren und Standorten.",
@@ -2188,6 +2189,10 @@
     },
     "killerTubby": {
       "name": "Killer Tubby",
+      "zoneHit": "Treffer"
+    },
+    "elIntendente": {
+      "name": "El Intendente",
       "zoneHit": "Treffer"
     },
     "ipscPopper": {

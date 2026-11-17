@@ -22,6 +22,7 @@ export const TARGET_IDS = [
   'ch-nttc-score',
   'square-2m',
   'killer-tubby',
+  'el-intendente',
   'ipsc-popper',
   'ipsc-popper-mini',
   'ipsc-target',

@@ -1951,6 +1951,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v252": "New: ‘El Intendente’ target in hit probability tool. Any resemblance to actual… ahem… persons, [regrettably still] living or [hopefully soon] dead, is purely coincidental. It just came out that way. Also, done some minor polishing of the hit probability interface.",
       "v251": "Change: split settings into multiple sections, optimized tabs display.",
       "v250": "New: integration of online weather providers (and a shiny new codename).",
       "v249": "New: major overhaul and streamlining of the Range Solver interface, with customization to display only what’s needed, and quick selection of rifles and locations.",
@@ -2188,6 +2189,10 @@
     },
     "killerTubby": {
       "name": "Killer Tubby",
+      "zoneHit": "Hit"
+    },
+    "elIntendente": {
+      "name": "El Intendente",
       "zoneHit": "Hit"
     },
     "ipscPopper": {

@@ -265,7 +265,7 @@ test('the target picker offers a thumbnail button per catalog target, and rememb
   fireEvent(tabButtons[1], 'click'); // Simulation
 
   const pickerButtons = findByTag(container, 'BUTTON').filter((b) => b.className && b.className.includes('target-picker-item'));
-  assert.equal(pickerButtons.length, 20, 'one button per catalog target');
+  assert.equal(pickerButtons.length, 21, 'one button per catalog target');
   const thumbSrcs = pickerButtons.map((b) => findByTag(b, 'IMG')[0].src);
   assert.ok(thumbSrcs[0].endsWith('/targets/circle-gong-thumb.svg'));
   assert.ok(thumbSrcs[1].endsWith('/targets/rect-plate-thumb.svg'));
@@ -283,10 +283,11 @@ test('the target picker offers a thumbnail button per catalog target, and rememb
   assert.ok(thumbSrcs[13].endsWith('/targets/ch-nttc-score-thumb.svg'));
   assert.ok(thumbSrcs[14].endsWith('/targets/square-2m-thumb.svg'));
   assert.ok(thumbSrcs[15].endsWith('/targets/killer-tubby-thumb.svg'));
-  assert.ok(thumbSrcs[16].endsWith('/targets/ipsc-popper-thumb.svg'));
-  assert.ok(thumbSrcs[17].endsWith('/targets/ipsc-popper-mini-thumb.svg'));
-  assert.ok(thumbSrcs[18].endsWith('/targets/ipsc-target-thumb.svg'));
-  assert.ok(thumbSrcs[19].endsWith('/targets/ipsc-target-mini-thumb.svg'));
+  assert.ok(thumbSrcs[16].endsWith('/targets/el-intendente-thumb.svg'));
+  assert.ok(thumbSrcs[17].endsWith('/targets/ipsc-popper-thumb.svg'));
+  assert.ok(thumbSrcs[18].endsWith('/targets/ipsc-popper-mini-thumb.svg'));
+  assert.ok(thumbSrcs[19].endsWith('/targets/ipsc-target-thumb.svg'));
+  assert.ok(thumbSrcs[20].endsWith('/targets/ipsc-target-mini-thumb.svg'));
   assert.equal(pickerButtons[0].className, 'target-picker-item active', 'default selection should be the first catalog entry');
   assert.equal(pickerButtons[1].className, 'target-picker-item');
 

@@ -1951,6 +1951,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v252": "Nouveau : cible « El Intendente » dans l’outil Probabilité de toucher. Toute ressemblance avec des… hum… personnes réelles, [malheureusement encore] vivantes ou [espérons-le bientôt] mortes, serait purement fortuite. C’est juste venu comme ça. Également, quelques petites retouches de l’interface de Probabilité de toucher.",
       "v251": "Modification : paramètres répartis en plusieurs sections, affichage des onglets optimisé.",
       "v250": "Nouveau : intégration de services météo en ligne (et un nouveau nom de code tout brillant).",
       "v249": "Nouveau : refonte majeure et simplification de l’interface du Calculateur de terrain, personnalisable pour n’afficher que l’essentiel, avec sélection rapide des carabines et des emplacements.",
@@ -2188,6 +2189,10 @@
     },
     "killerTubby": {
       "name": "Killer Tubby",
+      "zoneHit": "Touché"
+    },
+    "elIntendente": {
+      "name": "El Intendente",
       "zoneHit": "Touché"
     },
     "ipscPopper": {

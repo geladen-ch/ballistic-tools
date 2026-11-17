@@ -21,7 +21,7 @@ test('loadTargetCatalog resolves a plain list of target ids', () => {
   assert.deepEqual(catalog, [
     'circle-gong', 'rect-plate', 'issf-300m', 'ch-300m-b4', 'ch-300m-b10', 'ussr-4', 'ussr-5', 'ussr-8',
     'ch-campagne-e', 'ch-campagne-f', 'ch-campagne-g', 'ch-campagne-h', 'ch-campagne-k',
-    'ch-nttc-score', 'square-2m', 'killer-tubby', 'ipsc-popper', 'ipsc-popper-mini',
+    'ch-nttc-score', 'square-2m', 'killer-tubby', 'el-intendente', 'ipsc-popper', 'ipsc-popper-mini',
     'ipsc-target', 'ipsc-target-mini'
   ]);
   for (const entry of catalog) assert.equal(typeof entry, 'string');
@@ -274,6 +274,23 @@ test('loadTarget resolves the killer-tubby target\'s dimensions, and its hitProb
   for (const [sdX, sdY, offsetX, offsetY] of [[15, 15, 0, 0], [8, 12, 3, -5], [40, 40, 0, 0]]) {
     assert.deepEqual(tubby(sdX, sdY, offsetX, offsetY), campagneF(sdX, sdY, offsetX, offsetY));
   }
+});
+
+test('loadTarget resolves the el-intendente target (ch-campagne-e\'s geometry, figure artwork at 2349.12 px/m), and its hitProbability is ch-campagne-e\'s', async () => {
+  const target = await loadTarget('el-intendente');
+  const campagneETarget = await loadTarget('ch-campagne-e');
+  assert.equal(target.id, 'el-intendente');
+  assert.equal(target.widthM, campagneETarget.widthM);
+  assert.equal(target.heightM, campagneETarget.heightM);
+  assert.equal(target.aspectRatio, campagneETarget.aspectRatio);
+  assert.equal(target.resultSvg.pxPerMeter, 2349.12);
+  // point of aim at the centre of the 1503.98x3877.19 figure artwork
+  assert.equal(target.resultSvg.pointOfAim.x, 751.99);
+  assert.equal(target.resultSvg.pointOfAim.y, 1938.6);
+
+  const intendente = await loadTargetFunctionM('el-intendente');
+  const campagneE = await loadTargetFunctionM('ch-campagne-e');
+  assert.equal(intendente, campagneE);
 });
 
 test('loadTarget resolves the ipsc-popper target\'s dimensions, zones, and SVG placement', async () => {

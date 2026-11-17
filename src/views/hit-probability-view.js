@@ -105,6 +105,29 @@ const IMPACT_DOT_WHITE_RING_RATIO = IMPACT_EDGE_WHITE_RATIO;
 const IMPACT_DOT_DARK_RING_RATIO = IMPACT_EDGE_DARK_RATIO;
 const IMPACT_DOT_WHITE_RING_COLOR = IMPACT_EDGE_WHITE_COLOR;
 const IMPACT_DOT_DARK_RING_COLOR = IMPACT_EDGE_DARK_COLOR;
+// Point-of-aim cross and mean-POI ring: the mark's own stroke width and
+// the width of each of its two border bands (white, then dark — see
+// appendHaloed()), in SVG units (mm at the target's own scale).
+const MARKER_STROKE_WIDTH = 4;
+const MARKER_EDGE_WIDTH = 2.5;
+// Point-of-aim cross half-length and mean-POI ring radius, same SVG units.
+// The ring is wide enough that, with its bands, it clears the cross's own
+// banded arms and so stays readable when the two marks coincide: its inner
+// band edge (radius minus half the banded width) sits outside the cross's
+// banded half-width.
+const POA_CROSS_HALF_LENGTH = 30;
+const MEAN_POI_RING_RADIUS = 16;
+// The two marks' own core colors — fixed rather than theme tokens, since
+// they sit on the target itself inside fixed white/dark bands: a light
+// theme --text or --analysis would vanish into the white band. Point of
+// aim is plain black and white — a dark core inside the white and dark
+// bands — so it never competes with a target's own colors (several have
+// green centers) or the user's impact color; on a light target it reads
+// as a dark cross, on a black aiming mark as a white-outlined one. The
+// ring keeps the --analysis blue family it has always been drawn in.
+// Mirrored by base.css's .legend-swatch-poa/.legend-swatch-poi.
+const POA_MARK_COLOR = IMPACT_EDGE_DARK_COLOR;
+const MEAN_POI_MARK_COLOR = '#1f78c8';
 // Fraction of the target's own native extent added as breathing room at
 // 1x zoom, so its edge doesn't sit flush against the viewBox boundary.
 const FIT_MARGIN_RATIO = 0.04;
@@ -807,7 +830,7 @@ export function mount(container) {
 
   // Draws one 95% ellipse (sdX/sdY at offsetX/offsetY from point of aim)
   // in the given color; returns the ellipse's own center in SVG units plus
-  // the <ellipse> element itself, for drawImpactsAndMarker() to reuse and
+  // the <ellipse> element itself, for drawImpacts() and the mean-POI ring to reuse and
   // applyImpactColor() to restroke in place.
   function drawEllipse(pointOfAim, pxPerMeter, sdX, sdY, offsetX, offsetY, color) {
     const cx = pointOfAim.x + offsetX * pxPerMeter;
@@ -821,12 +844,12 @@ export function mount(container) {
     return { cx, cy, el: ellipseEl };
   }
 
-  // The sample-dot scatter plus the mean-POI marker, both always drawn at
-  // the same true sampleImpactColor regardless of scenario. Each dot is a
+  // The sample-dot scatter, always drawn at the same true
+  // sampleImpactColor regardless of scenario. Each dot is a
   // dark/white/fill trio (outer to inner) rather than a single circle, so
   // its edge holds up against any target background — see IMPACT_DOT_*_
   // RING_RATIO above.
-  function drawImpactsAndMarker(pxPerMeter, sdX, sdY, cx, cy, sampleImpactColor, analysisColor) {
+  function drawImpacts(pxPerMeter, sdX, sdY, cx, cy, sampleImpactColor) {
     for (let i = 0; i < SAMPLE_IMPACT_COUNT; i++) {
       const x = cx + sampleGaussian() * sdX * pxPerMeter;
       const y = cy + sampleGaussian() * sdY * pxPerMeter;
@@ -838,7 +861,25 @@ export function mount(container) {
       overlayGroup.appendChild(fill);
       sampleCircles.push({ dark, white, fill });
     }
-    overlayGroup.appendChild(svgEl('circle', { cx: cx.toFixed(1), cy: cy.toFixed(1), r: '4', fill: 'none', stroke: analysisColor, 'stroke-width': '2' }));
+  }
+
+  // Appends one marker shape (the point-of-aim cross, the mean-POI ring)
+  // three times over: a wide dark stroke, a narrower white one on top, then
+  // the mark's own color — so it reads as the mark ringed by a white and
+  // then a dark border, the same dual edge the sample impacts carry (see
+  // IMPACT_DOT_*_RING_COLOR above). Keeps both marks prominent against any
+  // target background and on top of a dense sample scatter. Square caps let
+  // each layer wrap around the next one's line ends too, not just its
+  // sides.
+  function appendHaloed(tag, attrs, color) {
+    const layers = [
+      [IMPACT_DOT_DARK_RING_COLOR, MARKER_STROKE_WIDTH + 4 * MARKER_EDGE_WIDTH],
+      [IMPACT_DOT_WHITE_RING_COLOR, MARKER_STROKE_WIDTH + 2 * MARKER_EDGE_WIDTH],
+      [color, MARKER_STROKE_WIDTH]
+    ];
+    for (const [stroke, width] of layers) {
+      overlayGroup.appendChild(svgEl(tag, { ...attrs, stroke, 'stroke-width': String(width), 'stroke-linecap': 'square' }));
+    }
   }
 
   function renderIllustration(scenarioResult) {
@@ -849,8 +890,6 @@ export function mount(container) {
 
     // Read fresh every render rather than once at module load — see
     // cssVar()'s own comment above.
-    const textColor = cssVar('--text');
-    const analysisColor = cssVar('--analysis');
     // The user's own pick (Settings, hit-probability-prefs.js), not a
     // theme token — see IMPACT_DOT_*_RING_COLOR above for why every choice
     // still reads fine regardless of target or theme.
@@ -858,6 +897,7 @@ export function mount(container) {
     const conditionsErrorColor = cssVar('--conditions-error');
     const ownPrecisionErrorColor = cssVar('--own-precision-error');
 
+    let meanPoi;
     if (currentScenario === 'spotterCorrected') {
       const { sighting, corrected } = scenarioResult;
       // Conditions-error and own-precision-error ellipses isolate the two
@@ -871,17 +911,24 @@ export function mount(container) {
       // presentation as Single Shot's.
       const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerMeter, corrected.sdX, corrected.sdY, corrected.offsetX, corrected.offsetY, sampleImpactColor);
       sampleEllipseEl = ellipseEl;
-      drawImpactsAndMarker(pxPerMeter, corrected.sdX, corrected.sdY, cx, cy, sampleImpactColor, analysisColor);
+      drawImpacts(pxPerMeter, corrected.sdX, corrected.sdY, cx, cy, sampleImpactColor);
+      meanPoi = { cx, cy };
     } else {
       const { cx, cy, el: ellipseEl } = drawEllipse(pointOfAim, pxPerMeter, scenarioResult.sdX, scenarioResult.sdY, scenarioResult.offsetX, scenarioResult.offsetY, sampleImpactColor);
       sampleEllipseEl = ellipseEl;
-      drawImpactsAndMarker(pxPerMeter, scenarioResult.sdX, scenarioResult.sdY, cx, cy, sampleImpactColor, analysisColor);
+      drawImpacts(pxPerMeter, scenarioResult.sdX, scenarioResult.sdY, cx, cy, sampleImpactColor);
+      meanPoi = { cx, cy };
     }
 
-    // Drawn last (appended after the ellipse and sample-impact dots) so it
-    // stays on top of a dense scatter instead of getting buried under it.
-    overlayGroup.appendChild(svgEl('line', { x1: pointOfAim.x - 14, y1: pointOfAim.y, x2: pointOfAim.x + 14, y2: pointOfAim.y, stroke: textColor, 'stroke-width': '2' }));
-    overlayGroup.appendChild(svgEl('line', { x1: pointOfAim.x, y1: pointOfAim.y - 14, x2: pointOfAim.x, y2: pointOfAim.y + 14, stroke: textColor, 'stroke-width': '2' }));
+    // Both marks drawn last (after the ellipses and sample-impact dots) so
+    // they stay on top of a dense scatter instead of getting buried under
+    // it. The cross is one path for both arms, so each band layer outlines
+    // the cross as a whole instead of one arm's band painting over the
+    // other arm's core. The mean-POI ring goes on top of the cross: it's
+    // the result being shown, and usually sits right around point of aim.
+    const ax = pointOfAim.x, ay = pointOfAim.y, h = POA_CROSS_HALF_LENGTH;
+    appendHaloed('path', { d: `M ${ax - h} ${ay} H ${ax + h} M ${ax} ${ay - h} V ${ay + h}`, fill: 'none' }, POA_MARK_COLOR);
+    appendHaloed('circle', { cx: meanPoi.cx.toFixed(1), cy: meanPoi.cy.toFixed(1), r: String(MEAN_POI_RING_RADIUS), fill: 'none' }, MEAN_POI_MARK_COLOR);
 
     applyZoom();
   }
