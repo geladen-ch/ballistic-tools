@@ -155,14 +155,16 @@ test('cloud table: every station that gave a cover is listed, with what else it 
   resetUnits();
   // The airport (cover 75 %, older) and a national station (newer) are one site: the airport keeps no quantity.
   const here = ll(47.38, 8.55);
-  const a = fakeAdapter('a', [
+  const c = fakeAdapter('c', [
     { id: 'LSZH', name: 'Airport', ...here, elevM: 430, ids: { icao: 'LSZH' }, report: { ...rep(8), cloudFraction: 0.75, time: new Date(T0 - min(40)) } },
+  ]);
+  const a = fakeAdapter('a', [
     { id: 'LSXX', name: 'Other airport', ...ll(47.45, 8.45), elevM: 480, ids: {}, report: { ...rep(8.2), cloudFraction: 0.25 } },
     { id: 'CCCC', name: 'Gamma', ...ll(47.30, 8.50), elevM: 500, ids: {}, report: rep(8.1) },
   ]);
   const b = fakeAdapter('b', [{ id: 'KLO', name: 'Kloten', ...ll(47.3801, 8.5501), elevM: 428, ids: {}, report: { ...rep(8.1), time: new Date(T0 - min(10)) } }], { reportType: 'SYNOP' });
   const svc = createWeatherService({
-    runtime: { net: { getJSON: async () => { throw new Error('no network'); }, getText: async () => '' }, cache: createMemoryCache(() => T0), sources: [a, b] },
+    runtime: { net: { getJSON: async () => { throw new Error('no network'); }, getText: async () => '' }, cache: createMemoryCache(() => T0), sources: [a, b, c] },
     now: () => T0, getSettings: () => ({ searchRadiusM: kmToM(150), maxAgeS: minToS(90), combine: true, timeCorrect: true }), getModes: () => ({}),
   });
   assert.equal((await svc.get({ point: HERE, altitudeM: 470 })).ok, true);
@@ -178,6 +180,12 @@ test('cloud table: every station that gave a cover is listed, with what else it 
   assert.equal(rows[0][4], t('onlineWeather.details.cloudOnly'), 'the airport contributes nothing else');
   assert.ok(rows[1][4].includes('temperature'), `the other airport also gives temperature: ${rows[1][4]}`);
   assert.ok(Math.abs(rows.reduce((s, r) => s + parseInt(r[3], 10), 0) - 100) <= 1);
+  // the services table says the airport service gave cloud cover only; the other one contributes as usual
+  const services = rowsOf(tables.at(-1)).map((r) => r.cells);
+  const rowC = services.find((r) => r[0] === 'Service c'), rowB = services.find((r) => r[0] === 'Service b');
+  assert.equal(rowC[1], t('onlineWeather.details.mode.used'));
+  assert.equal(rowC[2], '1 station used for cloud cover only', 'no longer "none among the nearest"');
+  assert.equal(rowB[2], '1 station used');
   // its report block is listed with the note
   assert.match(text(body), new RegExp(t('onlineWeather.details.cloudOnlyNote').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   // and the table is absent with the time correction off

@@ -228,12 +228,16 @@ function sourcesSection(est, last) {
     for (const u of q.used) used.set(keyOf(u.row.obs), u.row.obs.sourceId);
   }
   const count = (id) => [...used.values()].filter((v) => v === id).length;
+  // Reports that only gave the cloud cover count as use of the service too, and are said so.
+  const cloudOnly = est.timeCorrect ? cloudOnlyReports(est) : [];
+  const cloudOnlyCount = (id) => cloudOnly.filter((c) => c.obs.sourceId === id).length;
   const rows = last.status.map((s) => {
-    const n = count(s.id);
-    const mode = s.mode === 'off' ? 'off' : n ? 'used' : 'unused';
+    const n = count(s.id), c = cloudOnlyCount(s.id);
+    const mode = s.mode === 'off' ? 'off' : n || c ? 'used' : 'unused';
     const why = s.mode === 'off' ? ''
-      : n ? t('onlineWeather.details.usedStations', { count: n })
-        : s.state === 'used' ? t('onlineWeather.details.reportsNoneNearest') : reasonText(s.reason, s.error);
+      : n ? `${t('onlineWeather.details.usedStations', { count: n })}${c ? `, ${t('onlineWeather.details.cloudOnlyMore', { number: c })}` : ''}`
+        : c ? t('onlineWeather.details.usedCloudOnly', { count: c })
+          : s.state === 'used' ? t('onlineWeather.details.reportsNoneNearest') : reasonText(s.reason, s.error);
     return [s.name, t(`onlineWeather.details.mode.${mode}`), why, s.stations ? `${s.selected}/${s.stations}` : '–', s.nextExpected ? `≈ ${timeText(s.nextExpected)}` : '–'];
   });
   box.appendChild(table([
