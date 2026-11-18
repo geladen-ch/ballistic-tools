@@ -130,8 +130,8 @@ test('data-check events: a flagged candidate of a counted country triggers its e
   assert.ok(ids.includes('E-BR-1'));
   assert.ok(ids.includes('E-CH-1'), 'the any-country entry fires on the same event');
   assert.ok(ids.includes('E-NS-META') && ids.includes('E-DELAY-1'), 'country-only entries of Brazil');
-  // the event in a country that is not counted does not count
-  const other = [obs('iem', 'LSZH', { network: 'CH__ASOS', distKm: 10 }), { ...obs('iem-synop', '0-76-0-83743', { distKm: 90, qc: ['pressureInconsistent'] }) }];
+  // the event in a country that is not counted does not count (a far station behind a near one gets under 10 % weight)
+  const other = [obs('iem', 'LSZH', { network: 'CH__ASOS', distKm: 10 }), { ...obs('iem-synop', '0-76-0-83743', { distKm: 250, qc: ['pressureInconsistent'] }) }];
   assert.ok(!run(other).ids.includes('E-BR-1'));
   // Latvia: issuer 643 inside Latvia, out-of-range placeholder pressure
   const lv = [

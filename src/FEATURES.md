@@ -62,7 +62,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 
 Trajectory and Range Solver can fill in temperature, pressure and humidity from nearby official weather stations instead of you typing them in. Free public services, no account or key; nothing is requested unless you press the button, and with the feature off no weather service is contacted.
 
-- ★ Real conditions at your own altitude: several nearby stations combined (a station that disagrees with its neighbours is left out), moved to your height and brought forward to the present moment, with the temperature correction scaled by the reported cloud cover
+- ★ Real conditions at your own altitude: several nearby stations combined with weights that account for distance, height difference and how the stations are spread around you (a station that disagrees with its neighbours is left out), moved to your height and brought forward to the present moment, with the temperature correction scaled by the reported cloud cover
 - ★ Station details show exactly where the values come from: each station's weight and report, the cloud cover used, and why any station was left out; works offline from the last result
 
 ## Truing Session

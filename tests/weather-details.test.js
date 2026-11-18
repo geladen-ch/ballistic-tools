@@ -92,6 +92,38 @@ test('summary, one table per quantity, a left-out station stays struck out with 
   assert.ok(byTag(body, 'h4').map(text).includes('Temperature (°C)'));
 });
 
+test('method sentence names kriging with its range and the distance limit; weights by kriging are shown as percentages', async () => {
+  resetUnits();
+  const { stored } = await scenario({ modes: { b: 'off' } });
+  const body = stationDetailsBody(stored, { online: true });
+  assert.match(text(body), /Weights by kriging: nearer stations count more, stations close together share their weight, and a station behind a nearer one in the same direction counts less \(correlation length 200\.0 km\)\./);
+  assert.match(text(body), /If the nearest station is more than 100\.0 km away \(effective distance\), weight ∝ 1 \/ \(effective distance\)\^1\.5 instead\./);
+  assert.equal(stored.result.temperature.method, 'kriging');
+  assert.ok(!text(body).includes(t('onlineWeather.details.zeroWeightLegend')), 'no 0 % row, no legend');
+  assert.ok(!text(body).includes('Weights by distance only'));
+});
+
+test('a station covered by nearer ones shows 0 % with its legend; a quantity that fell back to distance weights says so', async () => {
+  resetUnits();
+  const { stored } = await scenario({ modes: { b: 'off' } });
+  const edit = (patch) => ({ ...stored, result: { ...stored.result, ...patch(stored.result) } });
+  // 0 %: the last contributor's weight is clipped to nothing, the first one takes it
+  const zero = edit((r) => {
+    const used = r.temperature.used.map((u, i, a) => ({ ...u, weight: i === 0 ? u.weight + a.at(-1).weight : i === a.length - 1 ? 0 : u.weight }));
+    return { temperature: { ...r.temperature, used } };
+  });
+  const bz = stationDetailsBody(zero, { online: true });
+  const rows = rowsOf(byTag(bz, 'table')[0]);
+  assert.ok(rows.some((r) => r.cells.at(-1) === '0 %'), 'a 0 % row stays in the table');
+  assert.ok(text(bz).includes(t('onlineWeather.details.zeroWeightLegend')));
+  // fallback: far, and the other reasons
+  const far = stationDetailsBody(edit((r) => ({ temperature: { ...r.temperature, method: 'idw', fallback: 'far' } })), { online: true });
+  assert.match(text(far), /Weights by distance only: the nearest station is more than 100\.0 km away\./);
+  const other = stationDetailsBody(edit((r) => ({ pressure: { ...r.pressure, method: 'idw', fallback: 'noPosition' } })), { online: true });
+  assert.match(text(other), /Weights by distance only for this value\./);
+  assert.ok(!text(other).includes('the nearest station is more than 100.0 km away.'), 'the reason is only given for the distance limit');
+});
+
 test('cloud column: own cover as a percentage, "≈" and the legend for an area cover, "–" without or with the correction off', async () => {
   resetUnits();
   const cloudy = await scenario({ cloudAlpha: 0.75 });

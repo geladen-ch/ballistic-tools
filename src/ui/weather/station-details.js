@@ -148,6 +148,13 @@ function quantitySection(est) {
     box.appendChild(el('h4', { text: spec.title }));
     if (!spec.res.used.length) { box.appendChild(sentence('onlineWeather.details.noneReport')); continue; }
     box.appendChild(contributorTable(est, spec));
+    // A station kriging gave no weight to (covered by nearer ones) stays in the table at 0 %.
+    if (spec.res.used.some((c) => Math.round(c.weight * 100) === 0)) box.appendChild(sentence('onlineWeather.details.zeroWeightLegend'));
+    if (spec.res.fallback === 'far') {
+      box.appendChild(sentence('onlineWeather.details.weightsByDistance', { distance: distanceText(COMBINE_DEFAULTS.krigeMaxNearestM) }));
+    } else if (spec.res.fallback) {
+      box.appendChild(sentence('onlineWeather.details.weightsByDistanceOther'));
+    }
     if (spec.unit === 'tempC' && [...spec.res.used, ...spec.res.rejected].some((c) => c.row.dT != null && c.row.cloud?.from === 'area')) {
       box.appendChild(sentence('onlineWeather.details.cloudAreaLegend'));
     }
@@ -167,6 +174,7 @@ function quantitySection(est) {
     const o = COMBINE_DEFAULTS;
     box.appendChild(sentence('onlineWeather.details.method', {
       height: heightText(100), distance: distanceText(100 * o.lambda), power: o.power, madK: o.madK,
+      range: distanceText(o.krigeRangeM), fallback: distanceText(o.krigeMaxNearestM),
       tempFloor: temperatureSpanText(o.tauMin.t), pressureFloor: pressureText(o.tauMin.p),
     }));
   }

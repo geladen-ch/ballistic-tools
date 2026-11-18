@@ -129,7 +129,7 @@ Optional, and off by default. **Get weather** fills in temperature, pressure and
 
 **What leaves your device.** The app contacts the weather services directly from your device, never through geladen.ch, and only when you press the button; the very first fetch downloads a few megabytes of station lists. The services see which stations are asked for; Bright Sky (German data) also gets your position to within about 50 km. With the feature off, nothing is contacted.
 
-**Getting the weather.** In Trajectory and on Range Solver's Atmosphere tab, enter **Latitude**, **Longitude** and **Altitude above sea level**, or press **Use GPS**, then press **Get weather**. It fills in the three values, switches the preset to **Real conditions**, and the button becomes **Refresh**. The values are an estimate at your altitude, combined from several stations, with the temperature brought forward to now (sun-angle model, scaled by the cloud cover reported nearby).
+**Getting the weather.** In Trajectory and on Range Solver's Atmosphere tab, enter **Latitude**, **Longitude** and **Altitude above sea level**, or press **Use GPS**, then press **Get weather**. It fills in the three values, switches the preset to **Real conditions**, and the button becomes **Refresh**. The values are an estimate at your altitude, combined from several stations, with less weight for stations that cluster together or sit behind a nearer one, with the temperature brought forward to now (sun-angle model, scaled by the cloud cover reported nearby).
 
 **Refresh** only contacts the services when a new report can exist; before that it just updates the temperature to the present moment. "Next report expected 14:20 (every 10 min)" says when.
 

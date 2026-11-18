@@ -1199,7 +1199,10 @@
       },
       "leftOut": "left out",
       "leftOutReason": "{{station}} left out: {{deviation}} from the median of the nearest {{count}} (limit {{limit}}).",
-      "method": "Δh = station height − your height. Effective distance counts {{height}} of height difference like {{distance}}. Weight ∝ 1 / (effective distance)^{{power}}. A station is left out when it differs from the median of its neighbours by more than the larger of {{tempFloor}} (temperature) or {{pressureFloor}} (pressure), and {{madK}} × the typical spread.",
+      "method": "Δh = station height − your height. Effective distance counts {{height}} of height difference like {{distance}}. Weights by kriging: nearer stations count more, stations close together share their weight, and a station behind a nearer one in the same direction counts less (correlation length {{range}}). If the nearest station is more than {{fallback}} away (effective distance), weight ∝ 1 / (effective distance)^{{power}} instead. A station is left out when it differs from the median of its neighbours by more than the larger of {{tempFloor}} (temperature) or {{pressureFloor}} (pressure), and {{madK}} × the typical spread.",
+      "weightsByDistance": "Weights by distance only: the nearest station is more than {{distance}} away.",
+      "weightsByDistanceOther": "Weights by distance only for this value.",
+      "zeroWeightLegend": "0 %: covered by nearer stations in the same direction.",
       "kind": {
         "station": "stn",
         "qnh": "QNH",

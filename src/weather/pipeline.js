@@ -259,7 +259,7 @@ export function estimate(observations, deviceHeightM, { now = new Date(), maxAge
   const haveH = Number.isFinite(deviceHeightM);
   const fresh = observations.filter((o) => !o.stale && ageS(o, now) <= maxAgeS);
   const base = { now, deviceHeightM: haveH ? deviceHeightM : null, timeCorrect, fresh: fresh.length };
-  const empty = { value: null, used: [], rejected: [], check: null, considered: 0, candidates: 0 };
+  const empty = { value: null, used: [], rejected: [], check: null, considered: 0, candidates: 0, method: 'idw', fallback: null };
   if (!observations.length) return { ...base, mode: 'none', reason: null, stations: [], regionalCloudFraction: null, cloudReports: [], pressure: empty, temperature: empty, humidity: empty };
 
   if (!multi || !haveH || !fresh.length) {
@@ -292,12 +292,12 @@ export function estimate(observations, deviceHeightM, { now = new Date(), maxAge
   // Without station elevation a station is excluded from T and p (Δh unknown); it may give RH with Δh = 0.
   const pressure = combine(rows
     .filter((row) => use(row, 'p') && has(row.reduced.pressurePa) && has(elev(row) ?? row.obs.station.barometerM))
-    .map((row) => ({ row, distanceM: row.distanceM, hM: elev(row) ?? row.obs.station.barometerM, value: row.reduced.pressurePa })), deviceHeightM, 'p', params);
+    .map((row) => ({ row, distanceM: row.distanceM, latRad: row.obs.station.latRad, lonRad: row.obs.station.lonRad, hM: elev(row) ?? row.obs.station.barometerM, value: row.reduced.pressurePa })), deviceHeightM, 'p', params);
   const temperature = combine(rows
     .filter((row) => use(row, 't') && has(elev(row)) && has(row.reduced.temperatureC) && row.reduced.temperatureRefM != null)
-    .map((row) => ({ row, distanceM: row.distanceM, hM: elev(row), value: row.reduced.temperatureC })), deviceHeightM, 't', params);
+    .map((row) => ({ row, distanceM: row.distanceM, latRad: row.obs.station.latRad, lonRad: row.obs.station.lonRad, hM: elev(row), value: row.reduced.temperatureC })), deviceHeightM, 't', params);
   const humidity = combine(rows
     .filter((row) => use(row, 'rh') && has(row.reduced.humidity))
-    .map((row) => ({ row, distanceM: row.distanceM, hM: has(elev(row)) ? elev(row) : deviceHeightM, value: row.reduced.humidity })), deviceHeightM, 'rh', params);
+    .map((row) => ({ row, distanceM: row.distanceM, latRad: row.obs.station.latRad, lonRad: row.obs.station.lonRad, hM: has(elev(row)) ? elev(row) : deviceHeightM, value: row.reduced.humidity })), deviceHeightM, 'rh', params);
   return { ...base, mode: 'multi', reason: null, stations: rows, regionalCloudFraction: regionalCloud, cloudReports: clouds, pressure, temperature, humidity };
 }

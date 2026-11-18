@@ -1199,7 +1199,10 @@
       },
       "leftOut": "écartée",
       "leftOutReason": "{{station}} écartée : {{deviation}} par rapport à la médiane des {{count}} plus proches (limite {{limit}}).",
-      "method": "Δh = altitude de la station − votre altitude. La distance effective compte {{height}} de dénivelé comme {{distance}}. Poids ∝ 1 / (distance effective)^{{power}}. Une station est écartée si elle diffère de la médiane de ses voisines de plus que la plus grande des valeurs {{tempFloor}} (température) ou {{pressureFloor}} (pression) et {{madK}} × la dispersion habituelle.",
+      "method": "Δh = altitude de la station − votre altitude. La distance effective compte {{height}} de dénivelé comme {{distance}}. Poids par krigeage : les stations plus proches comptent davantage, les stations voisines les unes des autres se partagent leur poids, et une station située derrière une plus proche dans la même direction compte moins (longueur de corrélation {{range}}). Si la station la plus proche est à plus de {{fallback}} (distance effective), le poids est alors ∝ 1 / (distance effective)^{{power}}. Une station est écartée si elle diffère de la médiane de ses voisines de plus que la plus grande des valeurs {{tempFloor}} (température) ou {{pressureFloor}} (pression) et {{madK}} × la dispersion habituelle.",
+      "weightsByDistance": "Poids selon la seule distance : la station la plus proche est à plus de {{distance}}.",
+      "weightsByDistanceOther": "Poids selon la seule distance pour cette valeur.",
+      "zeroWeightLegend": "0 % : masquée par des stations plus proches dans la même direction.",
       "kind": {
         "station": "stn",
         "qnh": "QNH",

@@ -1199,7 +1199,10 @@
       },
       "leftOut": "esclusa",
       "leftOutReason": "{{station}} esclusa: {{deviation}} dalla mediana delle {{count}} più vicine (limite {{limit}}).",
-      "method": "Δh = quota della stazione − la tua quota. La distanza effettiva conta {{height}} di dislivello come {{distance}}. Peso ∝ 1 / (distanza effettiva)^{{power}}. Una stazione viene esclusa se differisce dalla mediana delle vicine per più del maggiore tra {{tempFloor}} (temperatura) o {{pressureFloor}} (pressione) e {{madK}} × la dispersione tipica.",
+      "method": "Δh = quota della stazione − la tua quota. La distanza effettiva conta {{height}} di dislivello come {{distance}}. Pesi per kriging: le stazioni più vicine contano di più, le stazioni ravvicinate si dividono il peso e una stazione dietro una più vicina nella stessa direzione conta meno (lunghezza di correlazione {{range}}). Se la stazione più vicina dista più di {{fallback}} (distanza effettiva), vale invece peso ∝ 1 / (distanza effettiva)^{{power}}. Una stazione viene esclusa se differisce dalla mediana delle vicine per più del maggiore tra {{tempFloor}} (temperatura) o {{pressureFloor}} (pressione) e {{madK}} × la dispersione tipica.",
+      "weightsByDistance": "Pesi solo in base alla distanza: la stazione più vicina dista più di {{distance}}.",
+      "weightsByDistanceOther": "Pesi solo in base alla distanza per questo valore.",
+      "zeroWeightLegend": "0 %: coperta da stazioni più vicine nella stessa direzione.",
       "kind": {
         "station": "stz.",
         "qnh": "QNH",

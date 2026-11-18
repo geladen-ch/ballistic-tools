@@ -1199,7 +1199,10 @@
       },
       "leftOut": "ausgeschlossen",
       "leftOutReason": "{{station}} ausgeschlossen: {{deviation}} vom Median der nächsten {{count}} (Grenze {{limit}}).",
-      "method": "Δh = Stationshöhe − Ihre Höhe. Bei der effektiven Entfernung zählen {{height}} Höhenunterschied wie {{distance}}. Gewicht ∝ 1 / (effektive Entfernung)^{{power}}. Eine Station wird ausgeschlossen, wenn sie vom Median ihrer Nachbarn um mehr als den grösseren Wert von {{tempFloor}} (Temperatur) bzw. {{pressureFloor}} (Druck) und dem {{madK}}-Fachen der üblichen Streuung abweicht.",
+      "method": "Δh = Stationshöhe − Ihre Höhe. Bei der effektiven Entfernung zählen {{height}} Höhenunterschied wie {{distance}}. Gewichte nach Kriging: Nähere Stationen zählen mehr, nahe beieinander liegende Stationen teilen sich ihr Gewicht, und eine Station hinter einer näheren in derselben Richtung zählt weniger (Korrelationslänge {{range}}). Ist die nächste Station mehr als {{fallback}} entfernt (effektive Entfernung), gilt stattdessen Gewicht ∝ 1 / (effektive Entfernung)^{{power}}. Eine Station wird ausgeschlossen, wenn sie vom Median ihrer Nachbarn um mehr als den grösseren Wert von {{tempFloor}} (Temperatur) bzw. {{pressureFloor}} (Druck) und dem {{madK}}-Fachen der üblichen Streuung abweicht.",
+      "weightsByDistance": "Gewichte nur nach Entfernung: Die nächste Station ist mehr als {{distance}} entfernt.",
+      "weightsByDistanceOther": "Für diesen Wert Gewichte nur nach Entfernung.",
+      "zeroWeightLegend": "0 %: von näheren Stationen in derselben Richtung verdeckt.",
       "kind": {
         "station": "Stat.",
         "qnh": "QNH",
