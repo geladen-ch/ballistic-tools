@@ -1051,9 +1051,13 @@ test('the manufacturer and model are undo steps, and follow an undo in their fie
 test('the reticle manufacturer suggests optics makers; picking one sets it as an undo step', async () => {
   const container = makeElement('main');
   view.mount(container);
-  await new Promise((resolve) => setTimeout(resolve, 60));
   const input = byId(container, 'reticle-manufacturer');
-  fireEvent(input, 'focus');
+  // The built-in reticle library loads asynchronously: poll until its makers are offered.
+  for (const start = Date.now(); Date.now() - start < 5000;) {
+    fireEvent(input, 'focus');
+    if (byClass(container, 'field-suggest-list')[0]?.childNodes.some((r) => r.textContent === 'Schmidt & Bender')) break;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
   const list = byClass(container, 'field-suggest-list')[0];
   const row = list.childNodes.find((r) => r.textContent === 'Schmidt & Bender');
   assert.ok(row);

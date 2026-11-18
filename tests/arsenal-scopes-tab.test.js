@@ -30,6 +30,13 @@ test.beforeEach(async () => {
 });
 
 const settle = (ms = 30) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Poll until the predicate holds (it may throw while the view is still building); the assertions after it report a timeout. */
+async function waitFor(predicate, timeoutMs = 5000) {
+  for (const start = Date.now(); Date.now() - start < timeoutMs;) {
+    try { if (predicate()) return; } catch { /* not ready yet */ }
+    await settle(10);
+  }
+}
 function findAll(node, predicate, out = []) {
   if (predicate(node)) out.push(node);
   for (const child of node.childNodes || []) findAll(child, predicate, out);
@@ -200,7 +207,7 @@ test('the reticle picker offers the user\'s reticles and, once loaded, the built
   saveReticle({ model: 'Fixed one', referenceScope: { type: 'fixed', zoomMin: 4, zoomMax: 4, calibrationZoom: 4 } });
   const container = mountOnScopes();
   fireEvent(byId(container, 'arsenal-add-scope'), 'click');
-  await settle(60);
+  await waitFor(() => byId(container, 'arsenalScopeReticle-trijicon-rco-m4-chevron'));      // the built-in library has loaded
   for (const id of ['sb-p4fl', 'sb-tr2id', 'trijicon-rco-m4-chevron']) assert.ok(byId(container, `arsenalScopeReticle-${id}`), id);
   const thumbs = findAll(byId(container, 'arsenal-tab-scopes'), (n) => classesOf(n).includes('reticle-thumbnail'));
   assert.ok(thumbs.length >= 4);
@@ -284,7 +291,7 @@ test('the scope manufacturer suggests optics makers — built-in and the user\'s
   saveUserScope(pm2({ manufacturer: 'Glassmaker' }));
   const container = mountOnScopes();
   fireEvent(byId(container, 'arsenal-add-scope'), 'click');
-  await settle(60);
+  await waitFor(() => byId(container, 'arsenalScopeReticle-trijicon-rco-m4-chevron'));      // the built-in library has loaded
   const input = byId(container, 'arsenalScopeManufacturer');
   fireEvent(input, 'focus');
   const list = findAll(container, (n) => classesOf(n).includes('field-suggest-list'))[0];
