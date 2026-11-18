@@ -1965,6 +1965,7 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
+      "v253": "New: conditions fetch from online weather sources now uses kriging interpolation, and takes into account reported cloud coverage.",
       "v252": "New: ‘El Intendente’ target in hit probability tool. Any resemblance to actual… ahem… persons, [regrettably still] living or [hopefully soon] dead, is purely coincidental. It just came out that way. Also, done some minor polishing of the hit probability interface.",
       "v251": "Change: split settings into multiple sections, optimized tabs display.",
       "v250": "New: integration of online weather providers (and a shiny new codename).",

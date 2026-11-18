@@ -1965,6 +1965,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
+      "v253": "Nouveau : la récupération des conditions auprès des sources météo en ligne utilise désormais l’interpolation par krigeage et tient compte de la nébulosité signalée.",
       "v252": "Nouveau : cible « El Intendente » dans l’outil Probabilité de toucher. Toute ressemblance avec des… hum… personnes réelles, [malheureusement encore] vivantes ou [espérons-le bientôt] mortes, serait purement fortuite. C’est juste venu comme ça. Également, quelques petites retouches de l’interface de Probabilité de toucher.",
       "v251": "Modification : paramètres répartis en plusieurs sections, affichage des onglets optimisé.",
       "v250": "Nouveau : intégration de services météo en ligne (et un nouveau nom de code tout brillant).",
