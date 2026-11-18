@@ -1076,7 +1076,7 @@
     "combineLabel": "Combine nearby stations",
     "combineHint": "Off: nearest station only",
     "timeCorrectLabel": "Bring temperature forward to now",
-    "timeCorrectHint": "Sun-angle model",
+    "timeCorrectHint": "Sun-angle model, scaled by cloud cover",
     "servicesHeading": "Services",
     "servicesHint": "Auto: used where the service covers your area and has stations near you (paused for 3 hours after repeated failures). Off: never used. Off applies at once, Auto at the next fetch.",
     "modeAuto": "Auto",
@@ -1165,7 +1165,7 @@
       "observedAgo": "Observed {{time}}, {{minutes}} min ago.",
       "explainMulti": "At {{height}}, combined from the stations within {{radius}} (nearest {{nearest}}).{{correction}} Pressure moved with each station's temperature; humidity not adjusted for height.",
       "explainNearest": "At {{height}}, from the nearest station: {{distance}} away, {{elevation}}.{{correction}} Pressure moved with the station's temperature; humidity not adjusted for height.",
-      "timeCorrection": " Temperature brought forward to {{time}} with a sun-angle model, humidity with it.",
+      "timeCorrection": " Temperature brought forward to {{time}} with a sun-angle model scaled by the cloud cover, humidity with it.",
       "fetchedAt": "Reports fetched {{when}}.",
       "bannerOffline": "You are offline: this is the saved result.",
       "bannerRejected": "Stations left out because they disagreed strongly with the others: {{count}} (see Contributing stations).",
@@ -1174,7 +1174,8 @@
       "quantity": {
         "temperature": "Temperature ({{unit}})",
         "pressure": "Pressure ({{unit}})",
-        "humidity": "Humidity ({{unit}})"
+        "humidity": "Humidity ({{unit}})",
+        "cloud": "Cloud cover ({{unit}})"
       },
       "noneReport": "No station reports this.",
       "col": {
@@ -1184,6 +1185,8 @@
         "effective": "Eff. distance ({{unit}})",
         "age": "Age",
         "reported": "Reported",
+        "cloud": "Cloud",
+        "usedFor": "Also used for",
         "timeDelta": "Time ΔT",
         "atYou": "At you",
         "now": "Now",
@@ -1211,6 +1214,11 @@
       "elevation": "{{height}} a.s.l.",
       "elevationUnknown": "elevation unknown",
       "observed": "observed {{time}}",
+      "cloudAreaLegend": "≈ cloud cover from nearby reports (this station reports none).",
+      "cloudCover": "Cloud cover {{cover}}",
+      "cloudOnly": "cloud cover only",
+      "cloudOnlyNote": "Used for cloud cover only: not used for temperature, pressure or humidity.",
+      "noCloudCover": "No cloud cover was reported nearby, so the time correction was made without a cloud correction.",
       "notUsedFor": "Not used for {{quantity}}: {{reason}}",
       "fetched": "Fetched {{time}}.",
       "fetchedCached": "Fetched {{time}} (from the cache: the service is asked at most every 10 min).",

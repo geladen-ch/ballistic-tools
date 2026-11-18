@@ -142,6 +142,7 @@ function normalise(st, cur, distanceM) {
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: st.barometerM ?? null,
       distanceM, network: st.network, ids: st.ids ?? icaoIds(st.id) },
     time, temperatureC: t, dewpointC: td, humidity: rh, pressure,
+    cloudFraction: m.cloudFraction,
     precision: { tC: m.tempPrecision === '0.1' ? 0.1 : 1 },
     raw: cur.raw ?? null, notes,
   };

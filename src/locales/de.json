@@ -1076,7 +1076,7 @@
     "combineLabel": "Nahe Stationen kombinieren",
     "combineHint": "Aus: nur die nächste Station",
     "timeCorrectLabel": "Temperatur auf jetzt fortschreiben",
-    "timeCorrectHint": "Sonnenstandsmodell",
+    "timeCorrectHint": "Sonnenstandsmodell, nach Bewölkung skaliert",
     "servicesHeading": "Dienste",
     "servicesHint": "Auto: wird verwendet, wo der Dienst Ihr Gebiet abdeckt und Stationen in der Nähe hat (nach wiederholten Fehlern 3 Stunden pausiert). Aus: nie verwendet. Aus gilt sofort, Auto beim nächsten Abruf.",
     "modeAuto": "Auto",
@@ -1165,7 +1165,7 @@
       "observedAgo": "Beobachtet um {{time}}, vor {{minutes}} Min.",
       "explainMulti": "Auf {{height}}, kombiniert aus den Stationen im Umkreis von {{radius}} (nächste {{nearest}}).{{correction}} Der Druck wurde mit der Temperatur jeder Station umgerechnet; die Luftfeuchtigkeit wird nicht an die Höhe angepasst.",
       "explainNearest": "Auf {{height}}, von der nächsten Station: {{distance}} entfernt, {{elevation}}.{{correction}} Der Druck wurde mit der Temperatur der Station umgerechnet; die Luftfeuchtigkeit wird nicht an die Höhe angepasst.",
-      "timeCorrection": " Die Temperatur wurde mit einem Sonnenstandsmodell auf {{time}} fortgeschrieben, die Luftfeuchtigkeit mit.",
+      "timeCorrection": " Die Temperatur wurde mit einem nach der Bewölkung skalierten Sonnenstandsmodell auf {{time}} fortgeschrieben, die Luftfeuchtigkeit mit.",
       "fetchedAt": "Meldungen abgerufen am {{when}}.",
       "bannerOffline": "Sie sind offline: Dies ist das gespeicherte Ergebnis.",
       "bannerRejected": "Wegen starker Abweichung von den anderen ausgeschlossene Stationen: {{count}} (siehe Beteiligte Stationen).",
@@ -1174,7 +1174,8 @@
       "quantity": {
         "temperature": "Temperatur ({{unit}})",
         "pressure": "Luftdruck ({{unit}})",
-        "humidity": "Luftfeuchtigkeit ({{unit}})"
+        "humidity": "Luftfeuchtigkeit ({{unit}})",
+        "cloud": "Bewölkung ({{unit}})"
       },
       "noneReport": "Keine Station meldet dies.",
       "col": {
@@ -1184,6 +1185,8 @@
         "effective": "Eff. Entfernung ({{unit}})",
         "age": "Alter",
         "reported": "Gemeldet",
+        "cloud": "Bewölkung",
+        "usedFor": "Auch verwendet für",
         "timeDelta": "Zeit-ΔT",
         "atYou": "Bei Ihnen",
         "now": "Jetzt",
@@ -1211,6 +1214,11 @@
       "elevation": "{{height}} ü. M.",
       "elevationUnknown": "Höhe unbekannt",
       "observed": "beobachtet {{time}}",
+      "cloudAreaLegend": "≈ Bewölkung aus Meldungen in der Nähe (diese Station meldet keine).",
+      "cloudCover": "Bewölkung {{cover}}",
+      "cloudOnly": "nur Bewölkung",
+      "cloudOnlyNote": "Nur für die Bewölkung verwendet: nicht für Temperatur, Luftdruck oder Luftfeuchtigkeit.",
+      "noCloudCover": "In der Nähe wurde keine Bewölkung gemeldet, daher wurde die Zeitkorrektur ohne Bewölkungskorrektur berechnet.",
       "notUsedFor": "Nicht verwendet für {{quantity}}: {{reason}}",
       "fetched": "Abgerufen um {{time}}.",
       "fetchedCached": "Abgerufen um {{time}} (aus dem Zwischenspeicher: der Dienst wird höchstens alle 10 Min. abgefragt).",

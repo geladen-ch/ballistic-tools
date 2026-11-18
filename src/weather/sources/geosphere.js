@@ -138,6 +138,7 @@ function normalise(st, row, distanceM) {
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: st.barometerM ?? null, distanceM,
       network: 'TAWES', ids: st.ids },
     time: new Date(row.time), temperatureC: row.T, dewpointC: row.Td, humidity: row.RH, pressure,
+    cloudFraction: null,
     precision: { tC: 0.1 },
     raw: null, notes, qc: p.qc,
   };

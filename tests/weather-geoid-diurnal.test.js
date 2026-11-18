@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { fixture, near } from './helpers/weather-fixtures.js';
 import { degToRad } from '../src/quantity.js';
 import { evaluateSeries, geoidN, ellipsoidalToOrthometric } from '../src/weather/geoid.js';
-import { diurnalCorrection, diurnalA0 } from '../src/weather/diurnal.js';
+import { diurnalCorrection, diurnalA0, cloudFactor } from '../src/weather/diurnal.js';
 
 const rad = degToRad;
 
@@ -79,3 +79,23 @@ test('diurnal: morning warms, evening cools, night changes least (LSZH, June, 1 
   const morning = d('07:00', '08:00'), evening = d('18:00', '19:00'), night = d('00:00', '01:00');
   assert.ok(morning > 1); assert.ok(evening < -1); assert.ok(night < 0 && night > -0.5);
 });
+
+test('cloudFactor: 1 without a cover and at the mean cover; 1.48 clear, 0.37 overcast', () => {
+  near(cloudFactor(null), 1, 1e-12); near(cloudFactor(undefined), 1, 1e-12); near(cloudFactor(NaN), 1, 1e-12);
+  near(cloudFactor(0), 1.4809, 1e-4); near(cloudFactor(0.25), 1.2033, 1e-4); near(cloudFactor(0.5), 0.9256, 1e-4);
+  near(cloudFactor(0.875), 0.5091, 1e-4); near(cloudFactor(1), 0.3702, 1e-4); near(cloudFactor(0.433), 1, 1e-9);
+});
+
+// Corrected ΔT = curve × factor, for the cloud covers of 0, 4, 7 and 8 oktas.
+const CLOUDY = [
+  ['LSZH summer morning', 47.4784, 8.5302, '2026-06-21T05:50Z', '2026-06-21T06:20Z', [0.830, 1.229, 0.768, 0.422, 0.307]],
+  ['LSZH summer evening', 47.4784, 8.5302, '2026-06-21T17:50Z', '2026-06-21T18:40Z', [-1.080, -1.599, -0.999, -0.550, -0.400]],
+  ['KMCI morning', 39.2976, -94.7139, '2026-04-10T13:53Z', '2026-04-10T14:40Z', [1.545, 2.288, 1.430, 0.787, 0.572]],
+];
+for (const [name, lat, lon, r, n, [now, ...want]] of CLOUDY) {
+  test(`cloud-scaled time correction: ${name}`, () => {
+    const dT = diurnalCorrection(rad(lat), rad(lon), new Date(r), new Date(n)).dT;
+    near(dT, now, 0.002, 'uncorrected');
+    [0, 0.5, 0.875, 1].forEach((f, i) => near(dT * cloudFactor(f), want[i], 0.003, `cover ${f}`));
+  });
+}

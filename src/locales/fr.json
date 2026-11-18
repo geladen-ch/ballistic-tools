@@ -1076,7 +1076,7 @@
     "combineLabel": "Combiner les stations proches",
     "combineHint": "Désactivé : station la plus proche seulement",
     "timeCorrectLabel": "Ramener la température à maintenant",
-    "timeCorrectHint": "Modèle d'angle solaire",
+    "timeCorrectHint": "Modèle d'angle solaire, pondéré par la nébulosité",
     "servicesHeading": "Services",
     "servicesHint": "Auto : utilisé là où le service couvre votre zone et dispose de stations proches (suspendu 3 heures après des échecs répétés). Désactivé : jamais utilisé. « Désactivé » s'applique tout de suite, « Auto » à la prochaine récupération.",
     "modeAuto": "Auto",
@@ -1165,7 +1165,7 @@
       "observedAgo": "Observé à {{time}}, il y a {{minutes}} min.",
       "explainMulti": "À {{height}}, combiné à partir des stations dans un rayon de {{radius}} (la plus proche à {{nearest}}).{{correction}} La pression est ramenée à votre altitude avec la température de chaque station ; l'humidité n'est pas corrigée en altitude.",
       "explainNearest": "À {{height}}, d'après la station la plus proche : à {{distance}}, {{elevation}}.{{correction}} La pression est ramenée à votre altitude avec la température de la station ; l'humidité n'est pas corrigée en altitude.",
-      "timeCorrection": " La température est ramenée à {{time}} avec un modèle d'angle solaire, l'humidité avec elle.",
+      "timeCorrection": " La température est ramenée à {{time}} avec un modèle d'angle solaire pondéré par la nébulosité, l'humidité avec elle.",
       "fetchedAt": "Relevés récupérés le {{when}}.",
       "bannerOffline": "Vous êtes hors ligne : voici le résultat enregistré.",
       "bannerRejected": "Stations écartées car elles s'écartaient fortement des autres : {{count}} (voir Stations contributrices).",
@@ -1174,7 +1174,8 @@
       "quantity": {
         "temperature": "Température ({{unit}})",
         "pressure": "Pression ({{unit}})",
-        "humidity": "Humidité ({{unit}})"
+        "humidity": "Humidité ({{unit}})",
+        "cloud": "Nébulosité ({{unit}})"
       },
       "noneReport": "Aucune station ne fournit cette valeur.",
       "col": {
@@ -1184,6 +1185,8 @@
         "effective": "Distance eff. ({{unit}})",
         "age": "Âge",
         "reported": "Relevé",
+        "cloud": "Nuages",
+        "usedFor": "Aussi utilisée pour",
         "timeDelta": "ΔT temps",
         "atYou": "Chez vous",
         "now": "Maintenant",
@@ -1211,6 +1214,11 @@
       "elevation": "{{height}} d'altitude",
       "elevationUnknown": "altitude inconnue",
       "observed": "observé {{time}}",
+      "cloudAreaLegend": "≈ nébulosité tirée de relevés voisins (cette station n'en signale pas).",
+      "cloudCover": "Nébulosité {{cover}}",
+      "cloudOnly": "nébulosité seulement",
+      "cloudOnlyNote": "Utilisée pour la nébulosité seulement : pas pour la température, la pression ni l'humidité.",
+      "noCloudCover": "Aucune nébulosité n'a été signalée à proximité : la correction de temps a été faite sans correction de nébulosité.",
       "notUsedFor": "Non utilisé pour {{quantity}} : {{reason}}",
       "fetched": "Récupéré à {{time}}.",
       "fetchedCached": "Récupéré à {{time}} (depuis le cache : le service n'est interrogé qu'une fois toutes les 10 min au plus).",

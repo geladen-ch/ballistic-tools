@@ -64,6 +64,7 @@ test('IEM nearest: LSZH coordinates → LSZH, values from the raw METAR', async 
   const [o] = await iem.nearest(pt(47.4784, 8.5302), {}, ctx);
   assert.equal(o.station.id, 'LSZH');
   assert.equal(o.raw, 'LSZH 132220Z 01005KT 320V030 CAVOK M00/M01 Q1018 NOSIG');
+  assert.equal(o.cloudFraction, 0, 'CAVOK');
   assert.deepEqual(o.pressure, { kind: 'qnh', pa: P(1018.5), reportedPa: P(1018), adjustPa: 50 });   // Q group rounded down → +0.5 hPa
   assert.equal(o.temperatureC, 0); assert.equal(o.dewpointC, -1);
   near(o.humidity, 0.929, 0.001);
@@ -86,6 +87,15 @@ test('IEM normalise: A-group altimeter (0.01 inHg, rounded to nearest) is not co
   assert.equal(o.pressure.kind, 'qnh'); near(o.pressure.pa, inhgToPa(30.02), 0.01);
   assert.equal(o.pressure.adjustPa, undefined);
   assert.equal(o.temperatureC, 12.2);
+  assert.equal(o.cloudFraction, 0, 'CLR');
+});
+
+test('IEM normalise: the cloud cover comes from the raw METAR layers; none reported gives null', () => {
+  const st = { id: 'LSMA', name: 'Alpnach', ...pt(46.94, 8.29), elevM: 451, network: 'CH__ASOS' };
+  const n = (raw) => iem.internals.normalise(st, { utc_valid: '2026-11-13T22:20:00Z', raw }, 10).cloudFraction;
+  assert.equal(n('LSMA 132220Z AUTO 19004KT 9999NDV BKN036 01/01 Q1018 RMK'), 0.875);
+  assert.equal(n('LSMA 132220Z AUTO 19004KT 9999NDV FEW031 SCT050 01/01 Q1018'), 0.5);
+  assert.equal(n('LSMA 132220Z AUTO 19004KT 9999NDV ////// 01/01 Q1018'), null);
 });
 
 test('IEM nearest: stale data → nearest older report flagged', async () => {
@@ -147,6 +157,7 @@ test('SYNOP adapter: Zürich → fresh Swiss SYNOP stations with station pressur
   const { ctx, requested } = fakeSynopCtx();
   const obs = await iemSynop.nearest(pt(47.37, 8.54), { radiusM: km(150), maxAgeS: minToS(90) }, ctx);
   assert.ok(obs.length >= 10, `only ${obs.length}`);
+  assert.ok(obs.every((o) => o.cloudFraction === null), 'SYNOP currents carry no cloud field');
   const flu = obs[0];
   assert.equal(flu.station.id, '0-756-0-660'); assert.equal(flu.station.name, 'ZUERICH / FLUNTERN');
   assert.equal(flu.reportType, 'SYNOP'); assert.equal(flu.station.elevM, 556);

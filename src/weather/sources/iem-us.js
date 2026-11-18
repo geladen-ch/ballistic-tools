@@ -154,6 +154,7 @@ function normalise(st, cur, distanceM) {
     sourceId: 'iem-us', reportType: dcp ? 'DCP' : 'RWIS', attribution: ATTRIBUTION,
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: null, distanceM, network: st.network, ids: st.ids ?? {} },
     time: new Date(cur.utc_valid), temperatureC: t, dewpointC: td, humidity: rh, pressure: null,
+    cloudFraction: null,
     precision: { tC: wholeF ? round2(WHOLE_F_STEP_C) : 0.1 },
     raw: null, notes,
   };

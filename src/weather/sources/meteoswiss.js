@@ -155,6 +155,7 @@ function normalise(st, row, distanceM) {
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: baro, distanceM,
       network: 'SwissMetNet', ids: st.ids },
     time: new Date(row.time), temperatureC: row.T, dewpointC: row.Td, humidity: rh, pressure,
+    cloudFraction: null,
     precision: { tC: 0.1 },
     raw: null, notes, qc: p.qc,
   };

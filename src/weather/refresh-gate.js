@@ -7,7 +7,8 @@
 // time correction from the cached reports. After the gate, a request that returns the same observation time is retried
 // after 2, then 4, then 8 min (capped at Δ/2, never below the source's own minimum). A station that stopped reporting
 // (older than three intervals) no longer holds the gate. With several stations the earliest due one decides, among
-// those that weigh at least 10 % in the result.
+// those that weigh at least 10 % in the result. An interval learned from the app's own fetches is capped at twice the
+// source's nominal one (intervalOf).
 import { minToS, sToMs, msToS } from '../quantity.js';
 
 export const GATE = Object.freeze({
@@ -22,6 +23,7 @@ export const GATE = Object.freeze({
   deviationRuns: 3,
   historyLength: 8,
   weightMin: 0.1,
+  localCapFactor: 2,
 });
 
 const median = (xs) => {
@@ -54,10 +56,20 @@ export function emptyHistory(key) {
   return { key, times: [], intervalS: null, intervalSource: 'default', deviations: 0 };
 }
 
-/** The interval to use for a station: its learned one, else the source's nominal one. */
+/**
+ * The interval to use for a station: its learned one, else the source's nominal one. An interval learned from the
+ * app's own fetches (`local`) is capped at GATE.localCapFactor times the nominal one: the gaps between observation
+ * times seen by occasional fetches are the fetch spacing, not the station's schedule (a 10-minute station fetched every
+ * three hours would otherwise be learned as "every 180 min" and hold the gate that long). An interval the source itself
+ * gave (a list of recent observation times) is used as it is.
+ */
 export function intervalOf(history, adapter) {
-  if (history?.intervalS) return { intervalS: history.intervalS, source: history.intervalSource };
-  return { intervalS: adapter?.nominalIntervalS ?? minToS(60), source: 'default' };
+  const nominalS = adapter?.nominalIntervalS ?? minToS(60);
+  if (history?.intervalS) {
+    const capped = history.intervalSource === 'local' ? Math.min(history.intervalS, GATE.localCapFactor * nominalS) : history.intervalS;
+    return { intervalS: capped, source: history.intervalSource };
+  }
+  return { intervalS: nominalS, source: 'default' };
 }
 
 /**

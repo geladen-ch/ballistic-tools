@@ -182,6 +182,7 @@ function normalise(st, row, distanceM) {
     sourceId: 'eccc', reportType: 'SWOB', attribution: credit,
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: null, distanceM, network: st.network, ids: st.ids },
     time: new Date(row.time), temperatureC: row.T, dewpointC: null, humidity: row.RH, pressure,
+    cloudFraction: null,
     precision: { tC: 0.1 },
     raw: null, notes, qc,
   };

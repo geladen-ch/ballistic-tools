@@ -28,6 +28,8 @@ export const temperatureText = (c, o) => valueText('tempC', c, o);
 export const temperatureSpanText = (c, o) => valueText('tempMedianError', c, o);
 export const pressureText = (pa, o) => valueText('pressure', pa, o);
 export const humidityText = (fraction, o) => valueText('humidity', fraction, { decimals: 0, ...o });
+/** A cloud cover (fraction of the sky) in the same ratio display as humidity. */
+export const cloudText = (fraction, o) => valueText('humidity', fraction, { decimals: 0, ...o });
 export const heightText = (m, o = {}) => valueText('altitudeM', m, { decimals: 0, ...o });
 export const distanceText = (m, o = {}) => valueText('weatherSearchRadius', m, { decimals: 1, ...o });
 

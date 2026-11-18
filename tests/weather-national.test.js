@@ -64,6 +64,7 @@ const closed = (ring) => assert.deepEqual(ring[0], ring[ring.length - 1]);
   test('IEM US current values: one per-station request; T and RH, no pressure; lists and currents cached', async () => {
     const { ctx, requested } = fakeCtx();
     const obs = await iemUs.nearest(ASPEN, { radiusM: km(60) }, ctx);
+    assert.ok(obs.length && obs.every((o) => o.cloudFraction === null), 'no cloud field');
     assert.ok(obs.length >= 15, `${obs.length}`);                              // 30 asked, the fresh ones (≤ 90 min) kept
     const rw = obs.find((o) => o.station.id === 'CO100');                       // road weather, 1.5 km
     assert.deepEqual([rw.reportType, rw.time.toISOString(), rw.temperatureC, rw.pressure, rw.precision.tC], ['RWIS', '2026-11-15T21:38:00.000Z', 10.1, null, 0.1]);
@@ -139,6 +140,7 @@ const closed = (ring) => assert.deepEqual(ring[0], ring[ring.length - 1]);
     near(s.qfe, P(942.6), 1e-6); near(s.qff, P(1013.6), 1e-6); near(s.qnh, P(1013.1), 1e-6);
     const { ctx, requested } = fakeCtx();
     const obs = await meteoswiss.nearest(pt(47.37, 8.54), { radiusM: km(30) }, ctx);
+    assert.ok(obs.every((o) => o.cloudFraction === null), 'no cloud field');
     assert.ok(obs.length >= 5, `only ${obs.length}`);
     const sma = obs.find((o) => o.station.id === 'SMA');
     assert.deepEqual(sma.pressure, { kind: 'station', pa: P(942.6) });
@@ -219,6 +221,7 @@ const closed = (ring) => assert.deepEqual(ring[0], ring[ring.length - 1]);
   test('GeoSphere current values: one request for the selected stations, latest value per station, station pressure', async () => {
     const { ctx, requested } = fakeCtx();
     const obs = await geosphere.nearest(pt(48.21, 16.37), { radiusM: km(30) }, ctx);           // Vienna
+    assert.ok(obs.every((o) => o.cloudFraction === null), 'no cloud field');
     assert.ok(obs.length >= 5, `${obs.length}`);
     const hw = obs.find((o) => o.station.id === '11035');
     assert.equal(hw.time.toISOString(), '2026-11-15T12:20:00.000Z');
@@ -287,6 +290,8 @@ const closed = (ring) => assert.deepEqual(ring[0], ring[ring.length - 1]);
     const { ctx, requested } = fakeCtx();
     const obs = await brightsky.nearest(pt(47.99, 7.85), { radiusM: km(15) }, ctx);
     const fr = obs.find((o) => o.station.id === '01443'), bu = obs.find((o) => o.station.id === '00757');
+    // the records carry cloud_cover (100 %), which is deliberately not used: stations borrow the airports' cover
+    assert.equal(fr.cloudFraction, null); assert.equal(bu.cloudFraction, null);
     assert.deepEqual([fr.time.toISOString(), fr.temperatureC, fr.dewpointC], ['2026-11-15T13:30:00.000Z', 13.4, 8.41]);
     near(fr.humidity, 0.72, 1e-12);
     assert.deepEqual(fr.pressure, { kind: 'mslp', pa: P(1010.7) });
@@ -349,6 +354,7 @@ const closed = (ring) => assert.deepEqual(ring[0], ring[ring.length - 1]);
   test('DMI current values: four requests (one per parameter) for the box of the selected stations, cached 10 min', async () => {
     const { ctx, requested } = fakeCtx();
     const obs = await dmi.nearest(pt(55.68, 12.57), { radiusM: km(40) }, ctx);                // Copenhagen
+    assert.ok(obs.every((o) => o.cloudFraction === null), 'no cloud field');
     assert.deepEqual(obs.map((o) => o.station.id), ['06186', '06180', '06181', '06183', '06188', '06170']);
     const k = obs.find((o) => o.station.id === '06180');
     assert.deepEqual([k.time.toISOString(), k.temperatureC, k.pressure, k.station.barometerM], ['2026-11-15T15:40:00.000Z', 6, { kind: 'station', pa: P(1002.1) }, 5]);
@@ -428,6 +434,7 @@ const closed = (ring) => assert.deepEqual(ring[0], ring[ring.length - 1]);
   test('ECCC current values: one request for the selected box, only the needed fields, newest record per station', async () => {
     const { ctx, requested } = fakeCtx();
     const obs = await eccc.nearest(pt(45.50, -73.57), { radiusM: km(40) }, ctx);
+    assert.ok(obs.every((o) => o.cloudFraction === null), 'no cloud field');
     const mc = obs.find((o) => o.station.id === '7024745');                         // McTavish, minutely
     assert.deepEqual([mc.time.toISOString(), mc.temperatureC, mc.pressure], ['2026-11-15T20:19:00.000Z', 6.5, { kind: 'station', pa: P(1010.3) }]);
     near(mc.humidity, 0.61, 1e-12);

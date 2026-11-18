@@ -56,6 +56,7 @@
  * @property {number|null} humidity                 fraction 0..1; measured if the source gives it, else derived from T/Td
  * @property {{kind:'qnh'|'station'|'mslp', pa:number, reportedPa?:number, adjustPa?:number}|null} pressure
  *   pa is the value used; reportedPa/adjustPa are set when the source value was corrected (Q-group QNH +50 Pa)
+ * @property {number|null} cloudFraction          total cloud cover of the report, fraction 0..1; null when the report has none
  * @property {string|null} raw                      e.g. raw METAR
  * @property {Note[]} notes
  * @property {string[]} [qc]   machine-readable data-check outcomes, e.g. 'pressureInconsistent', 'pressureOutOfRange'

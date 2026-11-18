@@ -1,6 +1,7 @@
 // Minimal METAR parser: what the app needs for pressure, temperature and humidity.
 // Handles: report type/station/time, AUTO/COR/NIL, TT/TdTd with M prefix, Qxxxx (hPa), Axxxx (inHg),
-// and in remarks the T-group (0.1 °C) and SLPxxx (mean-sea-level pressure, North America).
+// and in remarks the T-group (0.1 °C) and SLPxxx (mean-sea-level pressure, North America). Also the total cloud cover
+// of the body (layer groups FEW/SCT/BKN/OVC, vertical visibility VV, and the clear-sky words), as a fraction 0..1.
 import { hpaToPa, inhgToPa } from '../quantity.js';
 
 // "M00" is −0 °C in METAR; + 0 turns −0 into 0 for display.
@@ -9,18 +10,27 @@ const tempVal = (s) => (s == null || s === '' || s.includes('/')) ? null : (s[0]
 // °C, SLP tenths of hPa): the scale below is the group's own definition, not a unit conversion.
 const TENTHS = 10, HUNDREDTHS = 100;
 const DAY_MS = 86400000;
+// Cloud cover is coded in eighths of the sky (oktas). The layer values are the coding the cloud-damping factor was
+// validated with (FEW 2, SCT 4, BKN 7, OVC 8 oktas, not the middle of each range); the total is the largest layer.
+const OKTAS_PER_SKY = 8;
+const LAYER_OKTAS = Object.freeze({ FEW: 2, SCT: 4, BKN: 7, OVC: 8 });
+const CLEAR_WORDS = new Set(['CLR', 'SKC', 'NSC', 'NCD', 'CAVOK']);
 
 /**
  * @param {string} raw     METAR/SPECI text (with or without the METAR/SPECI keyword)
  * @param {Date} [ref]     reference time used to resolve the DDHHMMZ group's month and year (default: now)
  * @returns {{type:string, station:string|null, time:Date|null, auto:boolean, cor:boolean, nil:boolean,
  *            temperatureC:number|null, dewpointC:number|null, tempPrecision:'1'|'0.1'|null,
- *            qnhPa:number|null, qnhGroup:'Q'|'A'|null, slpPa:number|null}}
+ *            qnhPa:number|null, qnhGroup:'Q'|'A'|null, slpPa:number|null,
+ *            cloudFraction:number|null, cloudGroups:string[]}}
+ *   cloudFraction: total cloud cover, the largest layer (FEW 2/8, SCT 4/8, BKN 7/8, OVC and vertical visibility 8/8;
+ *   CLR, SKC, NSC, NCD, CAVOK 0); null when the report has no cloud group. cloudGroups: the recognised tokens.
  */
 export function parseMetar(raw, ref = new Date()) {
   const r = {
     type: 'METAR', station: null, time: null, auto: false, cor: false, nil: false,
     temperatureC: null, dewpointC: null, tempPrecision: null, qnhPa: null, qnhGroup: null, slpPa: null,
+    cloudFraction: null, cloudGroups: [],
   };
   if (!raw) return r;
   const tokens = raw.trim().replace(/=$/, '').split(/\s+/);
@@ -31,6 +41,7 @@ export function parseMetar(raw, ref = new Date()) {
   if (tm) { r.time = resolveTime(+tm[1], +tm[2], +tm[3], ref); tokens.shift(); }
 
   // Body: up to remarks or a trend section.
+  let layerOktas = null, clearSky = false;
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
     if (t === 'RMK' || t === 'TEMPO' || t === 'BECMG' || t === 'NOSIG') break;
@@ -42,7 +53,16 @@ export function parseMetar(raw, ref = new Date()) {
       r.temperatureC = tempVal(a); r.dewpointC = tempVal(b); r.tempPrecision = '1';
     } else if (r.qnhPa == null && /^Q\d{4}$/.test(t)) { r.qnhPa = hpaToPa(+t.slice(1)); r.qnhGroup = 'Q'; }
     else if (r.qnhPa == null && /^A\d{4}$/.test(t)) { r.qnhPa = inhgToPa(+t.slice(1) / HUNDREDTHS); r.qnhGroup = 'A'; }
+    else if (CLEAR_WORDS.has(t)) { clearSky = true; r.cloudGroups.push(t); }
+    else if (/^VV(\d{3}|\/{3})$/.test(t)) { layerOktas = Math.max(layerOktas ?? 0, OKTAS_PER_SKY); r.cloudGroups.push(t); }
+    else {
+      const layer = /^(FEW|SCT|BKN|OVC)(?:\d{3}|\/{3})(?:CB|TCU|\/{3})?$/.exec(t);
+      if (layer) { layerOktas = Math.max(layerOktas ?? 0, LAYER_OKTAS[layer[1]]); r.cloudGroups.push(t); }
+    }
   }
+  // Layers win over a clear-sky word; a report with neither has no cover.
+  if (layerOktas != null) r.cloudFraction = layerOktas / OKTAS_PER_SKY;
+  else if (clearSky) r.cloudFraction = 0;
   // Remarks: T-group and SLP.
   const rmk = tokens.indexOf('RMK');
   if (rmk >= 0) for (const t of tokens.slice(rmk + 1)) {

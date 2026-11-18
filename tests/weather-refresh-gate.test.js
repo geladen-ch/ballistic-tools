@@ -41,6 +41,23 @@ test('history: keeps the last eight times, learns a local interval, a source int
   assert.deepEqual([after.intervalS, after.intervalSource], [minToS(30), 'source']);
 });
 
+test('intervalOf: an interval learned from sparse own fetches is capped at twice the nominal one; a source interval is not', () => {
+  // a 10-minute station fetched every ~3 h: the observation times are 3 h apart, learned as 180 min
+  let h = emptyHistory('k');
+  for (const m of [0, 190, 400]) h = recordObservation(h, T0 + min(m));
+  assert.deepEqual([h.intervalS, h.intervalSource], [minToS(180), 'local']);
+  assert.deepEqual(intervalOf(h, { nominalIntervalS: minToS(10) }), { intervalS: minToS(20), source: 'local' });
+  // a genuinely slower station than nominal still gets up to twice the nominal
+  assert.equal(intervalOf({ ...h, intervalS: minToS(30) }, { nominalIntervalS: minToS(10) }).intervalS, minToS(20));
+  assert.equal(intervalOf({ ...h, intervalS: minToS(15) }, { nominalIntervalS: minToS(10) }).intervalS, minToS(15));
+  // the source's own schedule is authoritative, however long
+  const s = recordSourceTimes(emptyHistory('k'), [T0, T0 + min(180), T0 + min(360)]);
+  assert.deepEqual(intervalOf(s, { nominalIntervalS: minToS(30) }), { intervalS: minToS(180), source: 'source' });
+  // the gate then opens when a 10-minute station's report is 20 min old, not 3 h
+  const p = planRefresh({ now: T0, fetchedAt: T0 - min(15), retryCount: 0, stations: [{ tObs: T0 - min(25), intervalS: intervalOf(h, { nominalIntervalS: minToS(10) }).intervalS, minRefreshS: minToS(10) }] });
+  assert.equal(p.allowed, true);
+});
+
 test('history: three deviating gaps in a row re-estimate even a source interval; a normal gap resets the count', () => {
   let h = recordSourceTimes(emptyHistory('k'), [T0, T0 + min(60), T0 + min(120)]);      // hourly
   assert.equal(h.intervalS, minToS(60));

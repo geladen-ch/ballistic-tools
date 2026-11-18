@@ -38,6 +38,36 @@ test('METAR: AUTO, missing dew point, trend groups ignored, NIL, COR, SPECI', ()
   assert.equal(parseMetar('KDEN 132253Z 1/2SM FG 02/02 A3001', REF).temperatureC, 2);
 });
 
+test('METAR cloud cover: the largest layer, clear-sky words 0, vertical visibility 1, no group null', () => {
+  const c = (body) => parseMetar(`XXXX 132253Z 00000KT 9999 ${body} 05/02 Q1015`, REF).cloudFraction;
+  // the Swiss fixture lines and the cases already above
+  assert.equal(parseMetar('LSMA 132220Z AUTO 19004KT 9999NDV BKN036 01/01 Q1018 RMK', REF).cloudFraction, 0.875);
+  assert.equal(parseMetar('LSZB 132220Z AUTO VRB02KT 9999 NCD M01/M01 Q1016', REF).cloudFraction, 0);
+  assert.equal(parseMetar('LSMM 132220Z AUTO 09013KT 9999NDV FEW031 04/M00 Q1016 RMK', REF).cloudFraction, 0.25);
+  assert.equal(parseMetar('LSZS 132220Z AUTO 00000KT CAVOK M07/M07 Q1015', REF).cloudFraction, 0);
+  assert.equal(parseMetar('LSZH 132220Z 01005KT 320V030 CAVOK M00/M01 Q1018 NOSIG', REF).cloudFraction, 0);
+  assert.equal(parseMetar('METAR KMCI 132253Z 18011KT 10SM CLR 12/M04 A2992 RMK AO2 SLP135 T01221039', REF).cloudFraction, 0);
+  assert.equal(parseMetar('LFSB 132200Z AUTO 25002KT 8000 NSC M01/// Q1019 TEMPO 4000 BCFG', REF).cloudFraction, 0);
+  assert.equal(c('SCT020 BKN040 OVC080'), 1);
+  assert.equal(c('FEW020CB SCT100'), 0.5);
+  assert.equal(c('FEW025TCU'), 0.25);
+  assert.equal(c('VV002'), 1);
+  assert.equal(c('VV///'), 1);
+  assert.equal(c('FEW///'), 0.25);
+  assert.equal(c('SKC'), 0);
+  assert.equal(c('CLR'), 0);
+  assert.equal(c('SCT020 CLR'), 0.5, 'a layer wins over a clear-sky word');
+  assert.equal(c('//////'), null, 'automatic station without a cloud reading');
+  assert.equal(c(''), null);
+  assert.deepEqual(parseMetar('XXXX 132253Z 00000KT 9999 FEW020CB SCT100 05/02 Q1015', REF).cloudGroups, ['FEW020CB', 'SCT100']);
+});
+
+test('METAR cloud cover: trend sections and remarks are ignored', () => {
+  assert.equal(parseMetar('EGLL 132250Z 24015KT 9999 BKN030 11/09 Q0998 TEMPO OVC010', REF).cloudFraction, 0.875);
+  assert.equal(parseMetar('KXXX 132253Z 00000KT 10SM 12/04 A2992 RMK AO2 OVC010 SLP135', REF).cloudFraction, null);
+  assert.equal(parseMetar('EGLL 132250Z 24015KT 9999 11/09 Q0998 BECMG OVC010', REF).cloudFraction, null);
+});
+
 test('METAR: day of month resolves across month boundary', () => {
   assert.equal(parseMetar('LSZH 302350Z 00000KT M01/M02 Q1020', new Date('2026-12-01T00:10:00Z')).time.toISOString(), '2026-11-30T23:50:00.000Z');
   assert.equal(parseMetar('LSZH 010010Z 00000KT M01/M02 Q1020', new Date('2026-11-30T23:58:00Z')).time.toISOString(), '2026-12-01T00:10:00.000Z');

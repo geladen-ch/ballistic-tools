@@ -1076,7 +1076,7 @@
     "combineLabel": "Combina le stazioni vicine",
     "combineHint": "Disattivo: solo la stazione più vicina",
     "timeCorrectLabel": "Porta la temperatura all'ora attuale",
-    "timeCorrectHint": "Modello dell'angolo solare",
+    "timeCorrectHint": "Modello dell'angolo solare, scalato con la nuvolosità",
     "servicesHeading": "Servizi",
     "servicesHint": "Auto: usato dove il servizio copre la tua zona e ha stazioni vicine (sospeso per 3 ore dopo ripetuti errori). Off: mai usato. Off vale subito, Auto al prossimo recupero.",
     "modeAuto": "Auto",
@@ -1165,7 +1165,7 @@
       "observedAgo": "Osservato alle {{time}}, {{minutes}} min fa.",
       "explainMulti": "A {{height}}, combinato dalle stazioni entro {{radius}} (la più vicina a {{nearest}}).{{correction}} La pressione è riportata alla tua quota con la temperatura di ciascuna stazione; l'umidità non è corretta per la quota.",
       "explainNearest": "A {{height}}, dalla stazione più vicina: a {{distance}}, {{elevation}}.{{correction}} La pressione è riportata alla tua quota con la temperatura della stazione; l'umidità non è corretta per la quota.",
-      "timeCorrection": " La temperatura è portata alle {{time}} con un modello dell'angolo solare, l'umidità con essa.",
+      "timeCorrection": " La temperatura è portata alle {{time}} con un modello dell'angolo solare scalato con la nuvolosità, l'umidità con essa.",
       "fetchedAt": "Rapporti recuperati il {{when}}.",
       "bannerOffline": "Sei offline: questo è il risultato salvato.",
       "bannerRejected": "Stazioni escluse perché si discostavano molto dalle altre: {{count}} (vedi Stazioni utilizzate).",
@@ -1174,7 +1174,8 @@
       "quantity": {
         "temperature": "Temperatura ({{unit}})",
         "pressure": "Pressione ({{unit}})",
-        "humidity": "Umidità ({{unit}})"
+        "humidity": "Umidità ({{unit}})",
+        "cloud": "Nuvolosità ({{unit}})"
       },
       "noneReport": "Nessuna stazione fornisce questo valore.",
       "col": {
@@ -1184,6 +1185,8 @@
         "effective": "Distanza eff. ({{unit}})",
         "age": "Età",
         "reported": "Misurato",
+        "cloud": "Nuvole",
+        "usedFor": "Usata anche per",
         "timeDelta": "ΔT tempo",
         "atYou": "Da te",
         "now": "Ora",
@@ -1211,6 +1214,11 @@
       "elevation": "{{height}} s.l.m.",
       "elevationUnknown": "quota sconosciuta",
       "observed": "osservato {{time}}",
+      "cloudAreaLegend": "≈ nuvolosità da rilevamenti vicini (questa stazione non la riporta).",
+      "cloudCover": "Nuvolosità {{cover}}",
+      "cloudOnly": "solo nuvolosità",
+      "cloudOnlyNote": "Usata solo per la nuvolosità: non per temperatura, pressione o umidità.",
+      "noCloudCover": "Nelle vicinanze non è stata riportata alcuna nuvolosità: la correzione temporale è stata fatta senza correzione per la nuvolosità.",
       "notUsedFor": "Non usato per {{quantity}}: {{reason}}",
       "fetched": "Recuperato alle {{time}}.",
       "fetchedCached": "Recuperato alle {{time}} (dalla cache: il servizio viene interrogato al massimo ogni 10 min).",

@@ -165,6 +165,7 @@ function normalise(st, cur, distanceM) {
     sourceId: 'iem-synop', reportType: 'SYNOP', attribution: ATTRIBUTION,
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: baro, distanceM, network: SYNOP_NETWORK, ids: st.ids },
     time: new Date(cur.utc_valid), temperatureC: t, dewpointC: td, humidity: rh, pressure: p.pressure,
+    cloudFraction: null,
     precision: { tC: 0.1 },
     raw: null, notes, qc: p.qc,
   };

@@ -1,5 +1,5 @@
 // Sun-angle temperature time correction: moves a station's temperature from its report time to "now" along a
-// Parton–Logan diurnal curve. Pure; needs no data. Not atmosphere physics, so it is kept apart from atmosphere.js.
+// Parton–Logan diurnal curve (scaled by the cloud cover with cloudFactor()). Pure; needs no data. Not atmosphere physics, so it is kept apart from atmosphere.js.
 // Latitudes are radians; hours inside the model are the model's own clock time (hours of the solar day).
 import { degToRad, radToDeg } from '../quantity.js';
 
@@ -25,6 +25,20 @@ export function diurnalA0(absLatRad) {
     if (absLatRad <= t[i][0]) return t[i - 1][1] + (t[i][1] - t[i - 1][1]) * (absLatRad - t[i - 1][0]) / (t[i][0] - t[i - 1][0]);
   }
   return t[t.length - 1][1];
+}
+
+/**
+ * Clouds damp the daily temperature cycle (less warming by day, less cooling by night). The amplitude table above is
+ * an average over all skies, so the damping factor is normalised to 1 at the mean cloud cover of the airport reports
+ * it was validated on: clear sky stretches the correction, overcast shrinks it. Slope and mean are fractions of the sky.
+ */
+export const CLOUD_DAMPING = 0.75;
+export const CLOUD_MEAN_FRACTION = 0.433;
+
+/** Factor on the time correction for a total cloud cover (fraction 0..1); 1 when the cover is unknown. */
+export function cloudFactor(cloudFraction) {
+  if (!Number.isFinite(cloudFraction)) return 1;
+  return (1 - CLOUD_DAMPING * cloudFraction) / (1 - CLOUD_DAMPING * CLOUD_MEAN_FRACTION);
 }
 
 /**

@@ -8,7 +8,8 @@ import { choosePressure, sanitise } from '../src/weather/qc.js';
 import { idsMatch, wmoFromWigos, applyMetadataOverride, groupSites, selectStations, pickFresh } from '../src/weather/select.js';
 import { coverageIntersects, planSources, breakerState, recordOutcome, sourceMode, BREAKER } from '../src/weather/activation.js';
 import { createMemoryCache } from '../src/weather/cache.js';
-import { fetchObservations, markDuplicates, estimate } from '../src/weather/pipeline.js';
+import { fetchObservations, markDuplicates, estimate, regionalCloudFraction, cloudReports } from '../src/weather/pipeline.js';
+import { cloudFactor, diurnalCorrection } from '../src/weather/diurnal.js';
 import { iemSynop } from '../src/weather/sources/iem-synop.js';
 
 const rad = degToRad, P = hpaToPa, km = kmToM;
@@ -304,4 +305,95 @@ test('fetchObservations: a station list still loading after the patience limit i
   assert.equal(r2.status.find((s) => s.id === 'bad').reason, 'listLoading');
   fail();
   await new Promise((resolve) => setTimeout(resolve, 5));
+});
+
+// ---------- cloud cover in the time correction ----------
+test('regionalCloudFraction: distance-weighted (1 / d^1.5, floor 1 km), 100 km radius, nulls ignored', () => {
+  const c = (dKm, cloudFraction) => ({ cloudFraction, station: { distanceM: km(dKm) } });
+  const near4 = (x, y) => assert.ok(Math.abs(x - y) < 1e-4, `${x} vs ${y}`);
+  near4(regionalCloudFraction([c(10, 1), c(40, 0.25)]), 0.9167);
+  near4(cloudFactor(regionalCloudFraction([c(10, 1), c(40, 0.25)])), 0.4628);
+  near4(regionalCloudFraction([c(0.5, 0.5), c(30, 1)]), 0.5030);                         // 0.5 km is floored to 1 km
+  near4(cloudFactor(regionalCloudFraction([c(0.5, 0.5), c(30, 1)])), 0.9222);
+  assert.equal(regionalCloudFraction([c(120, 1), c(10, 0)]), 0, 'a report at 120 km is ignored');
+  assert.equal(regionalCloudFraction([c(120, 1)]), null);
+  assert.equal(regionalCloudFraction([c(10, null), c(20, undefined)]), null);
+  assert.equal(regionalCloudFraction([]), null);
+});
+
+const CNOW = new Date('2026-06-21T06:20:00Z');
+const cobs = (id, dKm, cloudFraction, { latDeg = 47.4, lonDeg = 8.5, sourceId = 'test', reportType, T = 12, ageMin = 30, ids } = {}) => ({
+  sourceId, reportType, attribution: '', cloudFraction,
+  station: { id, name: id, latRad: rad(latDeg), lonRad: rad(lonDeg), elevM: 450, distanceM: km(dKm), ...(ids ? { ids } : {}) },
+  time: new Date(+CNOW - sToMs(minToS(ageMin))), temperatureC: T, dewpointC: null, humidity: 0.7,
+  pressure: { kind: 'qnh', pa: P(1015) }, notes: [], precision: { tC: 1 },
+});
+const curve = (o) => diurnalCorrection(o.station.latRad, o.station.lonRad, o.time, CNOW).dT;
+const rowOf = (e, id) => e.stations.find((r) => r.obs.station.id === id);
+
+test('estimate: a station uses its own cover, one without borrows the regional one, none anywhere leaves the curve', () => {
+  const a = cobs('A', 10, 1), b = cobs('B', 15, null, { lonDeg: 8.6, sourceId: 'other' });
+  const e = estimate([a, b], 450, { now: CNOW });
+  const ra = rowOf(e, 'A'), rb = rowOf(e, 'B');
+  assert.deepEqual([ra.cloud.from, rb.cloud.from], ['report', 'area']);
+  assert.equal(e.regionalCloudFraction, 1);                                               // only A reports a cover
+  assert.ok(Math.abs(ra.cloud.factor - cloudFactor(1)) < 1e-12 && Math.abs(rb.cloud.factor - cloudFactor(1)) < 1e-12);
+  assert.ok(Math.abs(ra.dT - curve(a) * cloudFactor(1)) < 1e-12);
+  assert.ok(Math.abs(ra.diurnal.dT - curve(a)) < 1e-12, 'the curve before the factor stays available');
+  assert.ok(Math.abs(rb.dT - curve(b) * cloudFactor(1)) < 1e-12);
+  const none = estimate([cobs('A', 10, null), cobs('B', 15, null, { lonDeg: 8.6 })], 450, { now: CNOW });
+  assert.equal(none.regionalCloudFraction, null);
+  for (const r of none.stations) { assert.deepEqual([r.cloud.from, r.cloud.factor, r.cloud.fraction], [null, 1, null]); assert.ok(Math.abs(r.dT - curve(r.obs)) < 1e-12); }
+});
+
+test('estimate: a clear sky stretches the correction, an overcast one shrinks it; humidity follows; pressure is unaffected', () => {
+  const run = (cover) => estimate([cobs('A', 10, cover), cobs('B', 20, cover, { lonDeg: 8.6 })], 450, { now: CNOW });
+  const clear = run(0), over = run(1), unknown = run(null);
+  const dT = (e) => rowOf(e, 'A').dT;
+  assert.ok(dT(clear) > dT(unknown) && dT(unknown) > dT(over) && dT(over) > 0, 'June morning warms');
+  assert.ok(clear.temperature.value > unknown.temperature.value && unknown.temperature.value > over.temperature.value);
+  assert.ok(clear.humidity.value < over.humidity.value, 'more warming → lower RH at constant vapour pressure');
+  assert.equal(clear.pressure.value, over.pressure.value); assert.equal(clear.pressure.value, unknown.pressure.value);
+});
+
+test('estimate: time correction off gives no ΔT; single-station mode applies the factor too', () => {
+  const o = [cobs('A', 10, 0.5), cobs('B', 15, null, { lonDeg: 8.6 })];
+  const off = estimate(o, 450, { now: CNOW, timeCorrect: false });
+  assert.ok(off.stations.every((r) => r.dT == null));
+  assert.equal(off.temperature.value, estimate(o, 450, { now: CNOW, timeCorrect: false }).temperature.value);
+  const one = estimate(o, 450, { now: CNOW, combine: false });
+  assert.equal(one.mode, 'nearest');
+  assert.deepEqual([one.stations[0].cloud.from, one.regionalCloudFraction], ['report', 0.5]);
+  assert.ok(Math.abs(one.stations[0].dT - curve(o[0]) * cloudFactor(0.5)) < 1e-12);
+  const borrower = estimate([cobs('B', 5, null), cobs('A', 10, 0.5)], 450, { now: CNOW, combine: false });
+  assert.deepEqual([borrower.stations[0].obs.station.id, borrower.stations[0].cloud.from], ['B', 'area']);
+});
+
+test('estimate: a report left out of every quantity by de-duplication still gives its cloud cover, and is listed', () => {
+  // The METAR (overcast, older) and the national report (newer, no cover) are one site: the national one carries the
+  // temperature, but the airport's cover is exactly what the national station lacks.
+  const metar = cobs('LSZH', 8, 1, { reportType: 'METAR', sourceId: 'metar', latDeg: 47.4784, lonDeg: 8.5302, ageMin: 40, ids: { icao: 'LSZH' } });
+  const nat = cobs('KLO', 8, null, { reportType: 'SMN', sourceId: 'nat', latDeg: 47.4785, lonDeg: 8.5303, ageMin: 10 });
+  const e = estimate([metar, nat], 450, { now: CNOW });
+  assert.ok(rowOf(e, 'LSZH').obs.skip?.t, 'the METAR is the older report of the site');
+  assert.equal(e.regionalCloudFraction, 1);
+  assert.deepEqual(rowOf(e, 'KLO').cloud, { fraction: 1, from: 'area', factor: cloudFactor(1) });
+  assert.deepEqual(e.cloudReports.map((c) => [c.obs.station.id, c.fraction, c.weight]), [['LSZH', 1, 1]]);
+});
+
+test('cloudReports: weights add up to 1 and match the regional cover; stations beyond the radius are not listed', () => {
+  const c = (id, dKm, cloudFraction) => ({ cloudFraction, station: { id, distanceM: km(dKm) } });
+  const list = cloudReports([c('A', 10, 1), c('B', 40, 0.25), c('C', 120, 0), c('D', 5, null)]);
+  assert.deepEqual(list.map((r) => r.obs.station.id), ['A', 'B']);
+  assert.ok(Math.abs(list.reduce((s, r) => s + r.weight, 0) - 1) < 1e-12);
+  assert.ok(Math.abs(list.reduce((s, r) => s + r.weight * r.fraction, 0) - regionalCloudFraction([c('A', 10, 1), c('B', 40, 0.25)])) < 1e-12);
+  assert.deepEqual(cloudReports([]), []);
+});
+
+test('estimate: a Bright Sky station next to airports borrows their cover (its own cloud_cover is not used)', () => {
+  const metar = cobs('EDDM', 20, 0.25, { reportType: 'METAR', sourceId: 'iem', latDeg: 47.9, lonDeg: 7.9 });
+  const dwd = cobs('01443', 5, null, { reportType: 'DWD', sourceId: 'brightsky', latDeg: 47.99, lonDeg: 7.85, T: 13 });
+  const e = estimate([dwd, metar], 450, { now: CNOW });
+  assert.equal(rowOf(e, '01443').cloud.from, 'area');
+  assert.equal(rowOf(e, '01443').cloud.fraction, 0.25);
 });

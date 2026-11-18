@@ -1,18 +1,18 @@
 // Pipeline: activate sources for the point → station lists of all active sources → metadata override → select the
 // stations worth asking → current values → QC → freshness; then, in estimate(): same-site de-duplication →
-// temperature time correction (diurnal.js) → each station to device height (reduce.js / atmosphere.js) → combine per
+// temperature time correction (diurnal.js, scaled by cloud cover) → each station to device height (reduce.js / atmosphere.js) → combine per
 // quantity (combine.js). Fetching is separate from estimation: a new altitude or setting re-runs estimate() without
 // any request. Lengths are metres, pressures Pa, humidity a fraction, ages and durations seconds.
 import { sources as registry } from './sources/index.js';
 import { reduceToDevice } from './reduce.js';
 import { rhAtConstantVapour } from './atmosphere.js';
-import { diurnalCorrection } from './diurnal.js';
+import { diurnalCorrection, cloudFactor } from './diurnal.js';
 import { combine } from './combine.js';
 import { haversineM } from './geo.js';
 import { planSources, breakerState, recordOutcome } from './activation.js';
 import { applyMetadataOverride, selectStations, pickFresh, sameSite, SAME_SITE } from './select.js';
 import { sanitise } from './qc.js';
-import { msToS, sToMs } from '../quantity.js';
+import { msToS, sToMs, kmToM } from '../quantity.js';
 
 export { SAME_SITE };
 
@@ -190,17 +190,58 @@ export function markDuplicates(observations, { maxM = SAME_SITE.maxM, maxDzM = S
   return out;
 }
 
+/** Reports within this distance of the device give the regional cloud cover that stations without a cover borrow. */
+export const REGIONAL_CLOUD_RADIUS_M = kmToM(100);
+/** Distance floor in the regional weights, so a report next to the device does not dominate without limit. */
+export const REGIONAL_CLOUD_MIN_DISTANCE_M = kmToM(1);
+const REGIONAL_CLOUD_POWER = 1.5;
+
 /**
- * One station prepared for combination: temperature brought forward to now and RH with it at constant vapour
- * pressure, then values at device height. Pressure uses the reported temperature for its layer.
+ * The reports that give the regional cloud cover: every report with a cover within the radius, whether or not it also
+ * contributes a temperature, pressure or humidity (an airport whose temperature was superseded by a newer report of
+ * the same site still tells the sky). Weights 1 / max(d, floor)^1.5 by the distance from the device, normalised to 1.
+ * @param {object[]} observations  each with `cloudFraction` and `station.distanceM`
+ * @returns {{obs:object, distanceM:number, fraction:number, weight:number}[]}  nearest first as given
  */
-function prepare(o, deviceHeightM, now, timeCorrect) {
+export function cloudReports(observations) {
+  const list = [];
+  for (const obs of observations) {
+    const d = obs.station?.distanceM;
+    if (!Number.isFinite(obs.cloudFraction) || !Number.isFinite(d) || d > REGIONAL_CLOUD_RADIUS_M) continue;
+    list.push({ obs, distanceM: d, fraction: obs.cloudFraction, weight: 1 / Math.max(d, REGIONAL_CLOUD_MIN_DISTANCE_M) ** REGIONAL_CLOUD_POWER });
+  }
+  const total = list.reduce((s, r) => s + r.weight, 0);
+  for (const r of list) r.weight /= total;
+  return list;
+}
+
+/**
+ * Regional cloud cover: the weighted mean of the covers of `cloudReports()`. Stations that report no cloud (SYNOP and
+ * national networks) borrow it.
+ * @returns {number|null}  fraction 0..1, or null when no report within the radius has a cover
+ */
+export function regionalCloudFraction(observations) {
+  const reports = cloudReports(observations);
+  return reports.length ? reports.reduce((s, r) => s + r.weight * r.fraction, 0) : null;
+}
+
+/**
+ * One station prepared for combination: temperature brought forward to now (sun-angle curve scaled by the cloud
+ * cover: the station's own, else the regional one) and RH with it at constant vapour pressure, then values at
+ * device height. Pressure uses the reported temperature for its layer. `diurnal` is the curve result before the
+ * cloud factor; `cloud` says which cover was used.
+ */
+function prepare(o, deviceHeightM, now, timeCorrect, regionalCloud = null) {
   const canShift = timeCorrect && Number.isFinite(o.temperatureC) && Number.isFinite(o.station.latRad) && Number.isFinite(o.station.lonRad);
   const diurnal = canShift ? diurnalCorrection(o.station.latRad, o.station.lonRad, o.time, now) : null;
-  const dT = diurnal ? diurnal.dT : null;
+  const own = Number.isFinite(o.cloudFraction);
+  const fraction = own ? o.cloudFraction : regionalCloud;
+  const cloud = { fraction: Number.isFinite(fraction) ? fraction : null, from: own ? 'report' : Number.isFinite(regionalCloud) ? 'area' : null,
+    factor: cloudFactor(fraction) };
+  const dT = diurnal ? diurnal.dT * cloud.factor : null;
   const shifted = dT ? { ...o, temperatureC: o.temperatureC + dT,
     humidity: Number.isFinite(o.humidity) ? rhAtConstantVapour(o.humidity, o.temperatureC, o.temperatureC + dT) : o.humidity } : o;
-  return { obs: o, dT, diurnal, reduced: reduceToDevice(shifted, deviceHeightM, { layerTempC: o.temperatureC }), ageS: ageS(o, now), distanceM: o.station.distanceM };
+  return { obs: o, dT, diurnal, cloud, reduced: reduceToDevice(shifted, deviceHeightM, { layerTempC: o.temperatureC }), ageS: ageS(o, now), distanceM: o.station.distanceM };
 }
 
 /**
@@ -211,7 +252,7 @@ function prepare(o, deviceHeightM, now, timeCorrect) {
  *   combine: several stations or the nearest one only; timeCorrect: sun-angle correction; params: overrides of
  *   COMBINE_DEFAULTS
  * @returns {{mode:'multi'|'nearest'|'none', reason:string|null, now:Date, deviceHeightM:number|null, timeCorrect:boolean,
- *   fresh:number, stations:object[],
+ *   fresh:number, stations:object[], regionalCloudFraction:number|null, cloudReports:object[],
  *   pressure:Q, temperature:Q, humidity:Q}}  with Q = combine() output whose entries carry `row` (prepared station)
  */
 export function estimate(observations, deviceHeightM, { now = new Date(), maxAgeS = 5400, combine: multi = true, timeCorrect = true, params = {} } = {}) {
@@ -219,13 +260,15 @@ export function estimate(observations, deviceHeightM, { now = new Date(), maxAge
   const fresh = observations.filter((o) => !o.stale && ageS(o, now) <= maxAgeS);
   const base = { now, deviceHeightM: haveH ? deviceHeightM : null, timeCorrect, fresh: fresh.length };
   const empty = { value: null, used: [], rejected: [], check: null, considered: 0, candidates: 0 };
-  if (!observations.length) return { ...base, mode: 'none', reason: null, stations: [], pressure: empty, temperature: empty, humidity: empty };
+  if (!observations.length) return { ...base, mode: 'none', reason: null, stations: [], regionalCloudFraction: null, cloudReports: [], pressure: empty, temperature: empty, humidity: empty };
 
   if (!multi || !haveH || !fresh.length) {
     const reason = !fresh.length ? 'stale' : !haveH ? 'noAltitude' : 'setting';
     const pool = fresh.length ? fresh : observations;
     const o = pool.find((x) => Number.isFinite(x.temperatureC) && x.pressure) ?? pool[0];
-    const row = prepare(o, haveH ? deviceHeightM : null, now, timeCorrect && fresh.length > 0);
+    const clouds = cloudReports(fresh);
+    const regionalCloud = regionalCloudFraction(fresh);
+    const row = prepare(o, haveH ? deviceHeightM : null, now, timeCorrect && fresh.length > 0, regionalCloud);
     const st = o.station;
     const one = (value, hM) => (Number.isFinite(value)
       ? { ...empty, value, used: [{ row, distanceM: row.distanceM, hM, value, deffM: null, weight: 1 }], considered: 1, candidates: 1 }
@@ -234,12 +277,15 @@ export function estimate(observations, deviceHeightM, { now = new Date(), maxAge
     // Without altitude: station temperature (time-corrected if enabled), not moved in height; no pressure value.
     const T = haveH ? r.temperatureC : (Number.isFinite(o.temperatureC) ? o.temperatureC + (row.dT ?? 0) : null);
     return {
-      ...base, mode: 'nearest', reason, stations: [row],
+      ...base, mode: 'nearest', reason, stations: [row], regionalCloudFraction: regionalCloud, cloudReports: clouds,
       pressure: one(r.pressurePa, st.elevM), temperature: one(T, st.elevM), humidity: one(r.humidity, st.elevM),
     };
   }
 
-  const rows = markDuplicates(fresh).map((o) => prepare(o, deviceHeightM, now, timeCorrect));
+  const marked = markDuplicates(fresh);
+  const clouds = cloudReports(marked);
+  const regionalCloud = regionalCloudFraction(marked);
+  const rows = marked.map((o) => prepare(o, deviceHeightM, now, timeCorrect, regionalCloud));
   const use = (row, q) => !row.obs.skip?.[q];
   const elev = (row) => row.obs.station.elevM;
   const has = Number.isFinite;
@@ -253,5 +299,5 @@ export function estimate(observations, deviceHeightM, { now = new Date(), maxAge
   const humidity = combine(rows
     .filter((row) => use(row, 'rh') && has(row.reduced.humidity))
     .map((row) => ({ row, distanceM: row.distanceM, hM: has(elev(row)) ? elev(row) : deviceHeightM, value: row.reduced.humidity })), deviceHeightM, 'rh', params);
-  return { ...base, mode: 'multi', reason: null, stations: rows, pressure, temperature, humidity };
+  return { ...base, mode: 'multi', reason: null, stations: rows, regionalCloudFraction: regionalCloud, cloudReports: clouds, pressure, temperature, humidity };
 }

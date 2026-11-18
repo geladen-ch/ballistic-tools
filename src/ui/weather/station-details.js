@@ -14,7 +14,7 @@ import { sToMin } from '../../quantity.js';
 import { creditNode } from './online-weather-settings.js';
 import { hintsFor, hintsSection } from './weather-hints.js';
 import {
-  temperatureText, temperatureSpanText, pressureText, humidityText, heightText, distanceText, unitLabel,
+  temperatureText, temperatureSpanText, pressureText, humidityText, cloudText, heightText, distanceText, unitLabel,
   timeText, dateTimeText, noteText, flagText, reasonText,
 } from './weather-text.js';
 
@@ -72,6 +72,40 @@ function contributorTable(est, spec) {
   return wrap;
 }
 
+/** The cloud cover a station's time correction used: "≈" in front when it is the area's; "–" when none was used. */
+function cloudCell(row) {
+  const cloud = row.cloud;
+  if (row.dT == null || !cloud || !Number.isFinite(cloud.fraction)) return '–';
+  return `${cloud.from === 'area' ? '≈ ' : ''}${cloudText(cloud.fraction)}`;
+}
+
+const QUANTITY_KEYS = { t: 'temperature', p: 'pressure', rh: 'humidity' };
+
+/** The quantities (temperature, pressure, humidity) a report is a contributor of, as the keys of QUANTITY_KEYS. */
+function contributesTo(est, obs) {
+  const key = keyOf(obs);
+  return Object.entries({ t: est.temperature, p: est.pressure, rh: est.humidity })
+    .filter(([, q]) => [...q.used, ...q.rejected].some((c) => keyOf(c.row.obs) === key)).map(([q]) => q);
+}
+
+/** Reports whose only job is the cloud cover: they contribute no temperature, pressure or humidity. */
+function cloudOnlyReports(est) {
+  return (est.cloudReports ?? []).filter((c) => !contributesTo(est, c.obs).length);
+}
+
+/** The stations the regional cloud cover was made from, nearest first, and what else each one is used for. */
+function cloudTable(est) {
+  const rows = est.cloudReports.map((c) => {
+    const also = contributesTo(est, c.obs).map((q) => t(`onlineWeather.tool.quantity.${QUANTITY_KEYS[q]}`));
+    return [stationLabel(c.obs), distanceText(c.distanceM, { label: false }), cloudText(c.fraction, { label: false }), percent(c.weight),
+      also.length ? also.join(', ') : t('onlineWeather.details.cloudOnly')];
+  });
+  return table([
+    t('onlineWeather.details.col.station'), t('onlineWeather.details.col.distance', { unit: unitLabel('weatherSearchRadius') }),
+    t('onlineWeather.details.col.cloud'), t('onlineWeather.details.col.weight'), t('onlineWeather.details.col.usedFor'),
+  ], rows);
+}
+
 function quantitySection(est) {
   const kindShort = (o) => t(`onlineWeather.details.kind.${o.pressure.kind}`);
   const reportedPressure = (c) => {
@@ -86,6 +120,7 @@ function quantitySection(est) {
       columns: [
         [t('onlineWeather.details.col.age'), (c) => `${Math.round(sToMin(c.row.ageS))} min`],
         [t('onlineWeather.details.col.reported'), (c) => temperatureText(c.row.obs.temperatureC, { label: false })],
+        [t('onlineWeather.details.col.cloud'), (c) => cloudCell(c.row)],
         [t('onlineWeather.details.col.timeDelta'), (c) => (c.row.dT == null ? '–' : temperatureSpanText(c.row.dT, { decimals: 2, sign: true, label: false }))],
         [t('onlineWeather.details.col.atYou'), (c) => temperatureText(c.value, { label: false })],
       ],
@@ -113,6 +148,9 @@ function quantitySection(est) {
     box.appendChild(el('h4', { text: spec.title }));
     if (!spec.res.used.length) { box.appendChild(sentence('onlineWeather.details.noneReport')); continue; }
     box.appendChild(contributorTable(est, spec));
+    if (spec.unit === 'tempC' && [...spec.res.used, ...spec.res.rejected].some((c) => c.row.dT != null && c.row.cloud?.from === 'area')) {
+      box.appendChild(sentence('onlineWeather.details.cloudAreaLegend'));
+    }
     for (const c of spec.res.rejected) {
       box.appendChild(sentence('onlineWeather.details.leftOutReason', {
         station: stationLabel(c.row.obs), deviation: spec.spread(c.deviation, { sign: true }), count: spec.res.considered, limit: spec.spread(c.threshold),
@@ -120,6 +158,10 @@ function quantitySection(est) {
     }
     const more = spec.res.candidates - spec.res.considered;
     if (est.mode === 'multi' && more > 0) box.appendChild(sentence('onlineWeather.details.moreStations', { count: more, considered: spec.res.considered }));
+  }
+  if (est.timeCorrect && est.cloudReports?.length) {
+    box.appendChild(el('h4', { text: t('onlineWeather.details.quantity.cloud', { unit: unitLabel('humidity') }) }));
+    box.appendChild(cloudTable(est));
   }
   if (est.mode === 'multi') {
     const o = COMBINE_DEFAULTS;
@@ -135,6 +177,10 @@ function reportsSection(est, last) {
   const rejectedRows = new Set([est.pressure, est.temperature, est.humidity].flatMap((x) => x.rejected.map((r) => r.row)));
   const usedRows = new Set([est.pressure, est.temperature, est.humidity].flatMap((x) => x.used.map((u) => u.row)));
   const rows = est.stations.filter((r) => usedRows.has(r) || rejectedRows.has(r));
+  // Reports that only gave the cloud cover come after the contributors (a row exists for them in the multi-station mode).
+  const cloudOnly = est.timeCorrect ? cloudOnlyReports(est).map((c) => est.stations.find((r) => r.obs === c.obs) ?? { obs: c.obs, reduced: null }) : [];
+  const cloudOnlyObs = new Set(cloudOnly.map((r) => r.obs));
+  rows.push(...cloudOnly);
   const box = el('div', { class: 'weather-details-section' }, [el('h3', { text: t('onlineWeather.details.reportsHeading') })]);
   const quantityName = { t: 'temperature', p: 'pressure', rh: 'humidity' };
   for (const r of rows) {
@@ -146,13 +192,15 @@ function reportsSection(est, last) {
       distanceText(st.distanceM),
       Number.isFinite(st.elevM) ? t('onlineWeather.details.elevation', { height: heightText(st.elevM) }) : t('onlineWeather.details.elevationUnknown'),
       t('onlineWeather.details.observed', { time: dateTimeText(+o.time) }),
+      Number.isFinite(o.cloudFraction) ? t('onlineWeather.details.cloudCover', { cover: cloudText(o.cloudFraction) }) : null,
     ];
     div.appendChild(el('p', { class: 'weather-report-head', text: parts.filter(Boolean).join(' · ') }));
     if (o.raw) div.appendChild(el('pre', { class: 'weather-raw', text: o.raw }));
     const notes = [
-      ...r.reduced.flags.filter((f) => f !== 'noDeviceAltitude').map(flagText),
+      ...(r.reduced?.flags ?? []).filter((f) => f !== 'noDeviceAltitude').map(flagText),
       ...(o.notes ?? []).map(noteText),
     ];
+    if (cloudOnlyObs.has(o)) notes.unshift(t('onlineWeather.details.cloudOnlyNote'));
     for (const [q, why] of Object.entries(o.skip ?? {})) {
       notes.push(t('onlineWeather.details.notUsedFor', { quantity: t(`onlineWeather.tool.quantity.${quantityName[q]}`), reason: noteText(why) }));
     }
@@ -224,6 +272,11 @@ function summarySection(est, last, { currentAltitudeM, online }) {
       elevation: Number.isFinite(near.station.elevM) ? t('onlineWeather.details.elevation', { height: heightText(near.station.elevM) }) : t('onlineWeather.details.elevationUnknown'),
       correction,
     }));
+  }
+  // Say so when the time correction ran without any cloud cover to scale it, so the missing cloud column is explained.
+  const usedRows = est.temperature.used.map((u) => u.row);
+  if (est.timeCorrect && usedRows.length && !usedRows.some((r) => Number.isFinite(r.cloud?.fraction))) {
+    box.appendChild(sentence('onlineWeather.details.noCloudCover'));
   }
   box.appendChild(sentence('onlineWeather.details.fetchedAt', { when: dateTimeText(last.fetchedAt) }));
 

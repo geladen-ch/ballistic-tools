@@ -137,10 +137,13 @@ function normalise(st, rec, distanceM) {
   if (rh != null) notes.push({ code: 'humidityMeasured' });
   const pressure = Number.isFinite(rec.pressure_msl) ? { kind: 'mslp', pa: hpaToPa(rec.pressure_msl) } : null;
   if (!pressure) notes.push({ code: 'noPressureReported' });
+  // The record's cloud_cover is not used (cloudFraction stays null, so the station borrows the cover of the airports
+  // around): it is the total cover including high cloud, a different quantity from the airport-report cover the
+  // cloud-damping factor is calibrated on, and using it measured worse than the area cover.
   return {
     sourceId: 'brightsky', reportType: 'DWD', attribution: ATTRIBUTION,
     station: { id: st.id, name: st.name, latRad: st.latRad, lonRad: st.lonRad, elevM: st.elevM, barometerM: null, distanceM, network: 'DWD', ids: st.ids },
     time: new Date(rec.timestamp), temperatureC: rec.temperature, dewpointC: Number.isFinite(rec.dew_point) ? rec.dew_point : null,
-    humidity: rh, pressure, precision: { tC: 0.1 }, raw: null, notes, qc: [],
+    humidity: rh, pressure, cloudFraction: null, precision: { tC: 0.1 }, raw: null, notes, qc: [],
   };
 }

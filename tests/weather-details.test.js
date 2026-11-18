@@ -45,9 +45,9 @@ function fakeAdapter(id, stations, over = {}) {
 }
 const rep = (temperatureC, qnhHpa = 1015) => ({ temperatureC, humidity: 0.6, pressure: { kind: 'qnh', pa: hpaToPa(qnhHpa) } });
 
-async function scenario({ modes = {} } = {}) {
+async function scenario({ modes = {}, cloudAlpha } = {}) {
   const near = [
-    { id: 'AAAA', name: 'Alpha', ...ll(47.38, 8.55), elevM: 460, ids: {}, report: rep(8) },
+    { id: 'AAAA', name: 'Alpha', ...ll(47.38, 8.55), elevM: 460, ids: {}, report: { ...rep(8), ...(cloudAlpha === undefined ? {} : { cloudFraction: cloudAlpha }) } },
     { id: 'BBBB', name: 'Beta', ...ll(47.33, 8.60), elevM: 520, ids: {}, report: rep(8.4) },
     { id: 'CCCC', name: 'Gamma', ...ll(47.45, 8.45), elevM: 480, ids: {}, report: rep(7.7) },
     { id: 'DDDD', name: 'Delta', ...ll(47.30, 8.50), elevM: 500, ids: {}, report: rep(8.1) },
@@ -90,6 +90,68 @@ test('summary, one table per quantity, a left-out station stays struck out with 
   assert.match(text(body), /Δh = station height − your height\. Effective distance counts 100 m of height difference like 20\.0 km\./);
   assert.ok(text(tables[0]).includes('Temperature') === false, 'the title is a heading, not a cell');
   assert.ok(byTag(body, 'h4').map(text).includes('Temperature (°C)'));
+});
+
+test('cloud column: own cover as a percentage, "≈" and the legend for an area cover, "–" without or with the correction off', async () => {
+  resetUnits();
+  const cloudy = await scenario({ cloudAlpha: 0.75 });
+  const body = stationDetailsBody(cloudy.stored, { online: true });
+  const temp = rowsOf(byTag(body, 'table')[0]);
+  const head = byTag(byTag(body, 'table')[0], 'th').map(text);
+  const i = head.indexOf(t('onlineWeather.details.col.cloud'));
+  assert.equal(i, head.indexOf(t('onlineWeather.details.col.reported')) + 1);
+  assert.equal(head[i + 1], t('onlineWeather.details.col.timeDelta'));
+  const cell = (id) => temp.find((r) => r.cells[0].startsWith(id)).cells[i];
+  assert.equal(cell('AAAA'), '75 %');
+  assert.equal(cell('BBBB'), '≈ 75 %', 'the others borrow the one cover there is');
+  assert.ok(text(body).includes(t('onlineWeather.details.cloudAreaLegend')));
+  assert.ok(text(body).includes('Cloud cover 75 %'), 'the report itself shows its cover');
+  assert.ok(text(body).includes('scaled by the cloud cover'));
+  // no cover anywhere: no value, no legend
+  const plain = stationDetailsBody((await scenario()).stored, { online: true });
+  assert.ok(rowsOf(byTag(plain, 'table')[0]).every((r) => r.cells[i] === '–'));
+  assert.ok(!text(plain).includes(t('onlineWeather.details.cloudAreaLegend')));
+  assert.ok(!text(plain).includes('Cloud cover'));
+  assert.ok(text(plain).includes(t('onlineWeather.details.noCloudCover')), 'the summary says no cloud cover was available');
+  assert.ok(!text(body).includes(t('onlineWeather.details.noCloudCover')), 'and says nothing when one was used');
+  // an older stored result whose rows carry no cloud entry renders too
+  const old = { ...cloudy.stored, result: { ...cloudy.stored.result, stations: cloudy.stored.result.stations.map(({ cloud, ...row }) => row) } };
+  assert.doesNotThrow(() => stationDetailsBody(old, { online: true }));
+});
+
+test('cloud table: every station that gave a cover is listed, with what else it is used for; one that gave only the cover says so', async () => {
+  resetUnits();
+  // The airport (cover 75 %, older) and a national station (newer) are one site: the airport keeps no quantity.
+  const here = ll(47.38, 8.55);
+  const a = fakeAdapter('a', [
+    { id: 'LSZH', name: 'Airport', ...here, elevM: 430, ids: { icao: 'LSZH' }, report: { ...rep(8), cloudFraction: 0.75, time: new Date(T0 - min(40)) } },
+    { id: 'LSXX', name: 'Other airport', ...ll(47.45, 8.45), elevM: 480, ids: {}, report: { ...rep(8.2), cloudFraction: 0.25 } },
+    { id: 'CCCC', name: 'Gamma', ...ll(47.30, 8.50), elevM: 500, ids: {}, report: rep(8.1) },
+  ]);
+  const b = fakeAdapter('b', [{ id: 'KLO', name: 'Kloten', ...ll(47.3801, 8.5501), elevM: 428, ids: {}, report: { ...rep(8.1), time: new Date(T0 - min(10)) } }], { reportType: 'SYNOP' });
+  const svc = createWeatherService({
+    runtime: { net: { getJSON: async () => { throw new Error('no network'); }, getText: async () => '' }, cache: createMemoryCache(() => T0), sources: [a, b] },
+    now: () => T0, getSettings: () => ({ searchRadiusM: kmToM(150), maxAgeS: minToS(90), combine: true, timeCorrect: true }), getModes: () => ({}),
+  });
+  assert.equal((await svc.get({ point: HERE, altitudeM: 470 })).ok, true);
+  const body = stationDetailsBody(await svc.lastEstimate(), { online: true });
+  const heads = byTag(body, 'h4').map(text);
+  const title = heads.find((h) => h.startsWith('Cloud cover'));
+  assert.ok(title, `a cloud cover table: ${heads}`);
+  const tables = byTag(body, 'table');
+  const cloud = tables.find((tb) => text(byTag(tb, 'th').at(-1)) === t('onlineWeather.details.col.usedFor'));
+  const rows = rowsOf(cloud).map((r) => r.cells);
+  assert.deepEqual(rows.map((r) => r[0]), ['LSZH', 'LSXX']);
+  assert.equal(rows[0][2], '75'); assert.equal(rows[1][2], '25');
+  assert.equal(rows[0][4], t('onlineWeather.details.cloudOnly'), 'the airport contributes nothing else');
+  assert.ok(rows[1][4].includes('temperature'), `the other airport also gives temperature: ${rows[1][4]}`);
+  assert.ok(Math.abs(rows.reduce((s, r) => s + parseInt(r[3], 10), 0) - 100) <= 1);
+  // its report block is listed with the note
+  assert.match(text(body), new RegExp(t('onlineWeather.details.cloudOnlyNote').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  // and the table is absent with the time correction off
+  const off = { ...(await svc.lastEstimate()) };
+  off.result = { ...off.result, timeCorrect: false };
+  assert.ok(!byTag(stationDetailsBody(off, { online: true }), 'h4').map(text).some((h) => h.startsWith('Cloud cover')));
 });
 
 test('station reports: raw report, notes, fetch time and the credit are shown', async () => {
