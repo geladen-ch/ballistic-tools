@@ -102,6 +102,9 @@ const OUTPUT_UNIT_LABEL = { mrad: 'mrad', moa: 'MOA' };
 
 const mediaQuery = (query) => (typeof matchMedia === 'function' ? matchMedia(query) : null);
 
+// <input> types that never bring up the on-screen keyboard.
+const NON_TEXT_INPUT_TYPES = new Set(['button', 'checkbox', 'color', 'file', 'hidden', 'image', 'radio', 'range', 'reset', 'submit']);
+
 export function mount(container) {
   clear(container);
   let disposed = false;
@@ -723,7 +726,41 @@ export function mount(container) {
   });
   // Orientation decides the layout; a pane resize can change which floors
   // fit (and with them whether the pane scrolls).
-  const onOrientation = () => applyLayout(true);
+  //
+  // Except while a text field in the pane is being edited. Browsers that
+  // shrink the layout viewport for the on-screen keyboard (Opera and
+  // Firefox on Android, among others) make the pane shorter the moment a
+  // field gains focus — short enough that a portrait screen matches
+  // (orientation: landscape). Rebuilding the layout then detaches the
+  // focused input, which blurs it, which closes the keyboard, which
+  // restores the viewport: the keyboard flashes up and vanishes and the
+  // field can't be typed into. So a resize or orientation change during an
+  // edit is held back and applied once focus leaves the pane's fields.
+  const editingInPane = () => {
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    if (!active || typeof firePane.contains !== 'function' || !firePane.contains(active)) return false;
+    if (active.isContentEditable || active.tagName === 'TEXTAREA') return true;
+    return active.tagName === 'INPUT' && !NON_TEXT_INPUT_TYPES.has(String(active.type || 'text').toLowerCase());
+  };
+  let layoutDeferred = false;
+  const relayout = (force) => {
+    if (editingInPane()) { layoutDeferred = true; return; }
+    applyLayout(force);
+  };
+  let focusFrame = null;
+  const onPaneFocusOut = () => {
+    if (!layoutDeferred || focusFrame !== null) return;
+    // Next frame: by then focus has landed wherever it went — possibly
+    // another field in the pane, in which case the edit carries on.
+    focusFrame = requestAnimationFrame(() => {
+      focusFrame = null;
+      if (disposed || !layoutDeferred || editingInPane()) return;
+      layoutDeferred = false;
+      if (firePane.style.display !== 'none') applyLayout(true);
+    });
+  };
+  firePane.addEventListener('focusout', onPaneFocusOut);
+  const onOrientation = () => relayout(true);
   landscapeQuery?.addEventListener?.('change', onOrientation);
   let paneObserver = null;
   let paneFrame = null;
@@ -732,7 +769,7 @@ export function mount(container) {
       if (paneFrame !== null) return;
       paneFrame = requestAnimationFrame(() => {
         paneFrame = null;
-        if (!disposed && firePane.style.display !== 'none') applyLayout();
+        if (!disposed && firePane.style.display !== 'none') relayout(false);
       });
     });
     paneObserver.observe(firePane);
@@ -760,6 +797,7 @@ export function mount(container) {
     landscapeQuery?.removeEventListener?.('change', onOrientation);
     paneObserver?.disconnect();
     if (paneFrame !== null) cancelAnimationFrame(paneFrame);
+    if (focusFrame !== null) cancelAnimationFrame(focusFrame);
     windObserver?.disconnect();
     setFirePaneContext({ paneNode: null });
     setRangeSolverMode(false);

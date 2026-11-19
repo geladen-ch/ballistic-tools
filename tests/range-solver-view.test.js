@@ -735,3 +735,48 @@ test('while LoS angles are ignored, a row tap still copies the target\'s LoS, an
   assert.equal(loadRangeSolverLocationState().targetId, t2.id);
   cleanup();
 });
+
+// Browsers that shrink the layout viewport for the on-screen keyboard (Opera
+// on Android) turn a portrait screen "landscape" the moment a field gains
+// focus. Rebuilding the Fire! layout then would detach — and so blur — the
+// field, closing the keyboard again. The fake DOM has no focus model, so
+// document.activeElement and Node.contains are stubbed here.
+test('an orientation change while a Fire! field is being edited waits until focus leaves the pane', async (t) => {
+  const state = { '(orientation: landscape)': false };
+  const listeners = new Set();
+  globalThis.matchMedia = (query) => ({
+    get matches() { return !!state[query]; },
+    addEventListener: (type, fn) => listeners.add(fn),
+    removeEventListener: (type, fn) => listeners.delete(fn)
+  });
+  t.after(() => { delete globalThis.matchMedia; delete document.activeElement; });
+  const flip = (landscape) => { state['(orientation: landscape)'] = landscape; for (const fn of listeners) fn(); };
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+  const firePane = findByClass(container, 'fire-pane')[0];
+  firePane.contains = (node) => { for (let n = node; n; n = n.parentNode) if (n === firePane) return true; return false; };
+  const rangeInput = findById(container, 'targetRange');
+  assert.equal(rangeInput.tagName, 'INPUT');
+  const layoutRoot = firePane.firstChild;
+
+  document.activeElement = rangeInput;
+  flip(true);
+  assert.equal(firePane.firstChild, layoutRoot, 'no rebuild while the range field has focus');
+  assert.ok(!firePane.className.includes('fire-landscape'));
+
+  // Focus moving to a button (wind +/-) ends the edit: the held-back layout lands.
+  document.activeElement = null;
+  fireEvent(firePane, 'focusout');
+  await settle();
+  assert.notEqual(firePane.firstChild, layoutRoot, 'rebuilt once the edit ended');
+  assert.ok(firePane.className.includes('fire-landscape'));
+
+  // With nothing focused, an orientation change applies at once.
+  const landscapeRoot = firePane.firstChild;
+  flip(false);
+  assert.notEqual(firePane.firstChild, landscapeRoot);
+  assert.ok(!firePane.className.includes('fire-landscape'));
+  cleanup();
+});
