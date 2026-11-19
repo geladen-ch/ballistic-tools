@@ -1965,6 +1965,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v254": "Correzione: in “Tiro” la tastiera su schermo non si chiude più subito dopo aver toccato un campo su alcuni browser Android (ad es. Opera), quindi distanza e velocità del vento si possono di nuovo digitare.",
       "v253": "Novità: il recupero delle condizioni dalle fonti meteo online ora usa l’interpolazione kriging e tiene conto della nuvolosità riportata.",
       "v252": "Novità: bersaglio «El Intendente» nello strumento Probabilità di colpire. Ogni riferimento a… ehm… persone realmente esistenti, [purtroppo ancora] vive o [si spera presto] morte, è puramente casuale. È venuto fuori così. Inoltre, qualche piccola rifinitura dell’interfaccia di Probabilità di colpire.",
       "v251": "Modifica: impostazioni suddivise in più sezioni, visualizzazione delle schede ottimizzata.",
