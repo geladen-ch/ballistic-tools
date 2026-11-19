@@ -1109,6 +1109,7 @@
       "refreshButton": "Refresh",
       "needPosition": "Enter latitude, longitude and altitude to get weather.",
       "useGps": "Use GPS",
+      "changeSign": "Change sign (north/south, east/west)",
       "stopGps": "Stop",
       "gps": {
         "waiting": "Waiting for a position fix…",

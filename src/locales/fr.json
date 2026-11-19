@@ -1109,6 +1109,7 @@
       "refreshButton": "Actualiser",
       "needPosition": "Saisissez la latitude, la longitude et l'altitude pour obtenir la météo.",
       "useGps": "Utiliser le GPS",
+      "changeSign": "Changer de signe (nord/sud, est/ouest)",
       "stopGps": "Arrêter",
       "gps": {
         "waiting": "En attente d'une position GPS…",

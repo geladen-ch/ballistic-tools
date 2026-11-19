@@ -1109,6 +1109,7 @@
       "refreshButton": "Aktualisieren",
       "needPosition": "Geben Sie Breitengrad, Längengrad und Höhe ein, um das Wetter abzurufen.",
       "useGps": "GPS verwenden",
+      "changeSign": "Vorzeichen wechseln (Nord/Süd, Ost/West)",
       "stopGps": "Stopp",
       "gps": {
         "waiting": "Warte auf eine Positionsbestimmung …",

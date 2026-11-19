@@ -432,10 +432,30 @@ test('country hints show under the block with the result, can be dismissed, and 
   resetDismissedHints();
 });
 
+// ---------- sign buttons ----------
+// Android number pads have no minus key, so each coordinate box has a ± button beside it.
+test('the ± button beside a coordinate flips its sign, counts as an edit, and leaves a blank box alone', () => {
+  const { node } = mount({ location: null });
+  const signOf = (id) => all(byId(node, id).parentNode, (n) => n.tagName === 'BUTTON' && n.textContent === '±')[0];
+  fireEvent(signOf('latitudeRad'), 'click');
+  assert.equal(byId(node, 'latitudeRad').value, '', 'nothing to flip yet');
+  type(node, 'latitudeRad', 33.8688); type(node, 'longitudeRad', 151.2093); type(node, 'deviceAltitudeM', 20);
+  fireEvent(signOf('latitudeRad'), 'click');
+  assert.equal(byId(node, 'latitudeRad').value, '-33.8688');
+  assert.ok(Math.abs(getDevicePosition().latRad - degToRad(-33.8688)) < 1e-9, 'the flipped value is remembered');
+  fireEvent(signOf('longitudeRad'), 'click');
+  assert.equal(byId(node, 'longitudeRad').value, '-151.2093');
+  fireEvent(signOf('longitudeRad'), 'click');
+  assert.equal(byId(node, 'longitudeRad').value, '151.2093');
+  assert.equal(shown(byClass(node, 'weather-get')), true);
+});
+
 // ---------- GPS ----------
 function setNavigator(geolocation) {
   Object.defineProperty(globalThis, 'navigator', { value: { ...globalThis.navigator, geolocation }, configurable: true, writable: true });
 }
+const gpsButton = (node) => all(byClass(node, 'weather-position'), (n) => n.tagName === 'BUTTON' && n.textContent === 'Use GPS')[0];
+
 test('Use GPS fills latitude, longitude and the geoid-corrected altitude, remembers them, and Stop ends the run', async () => {
   let watcher = null, cleared = false;
   const fix = { coords: { latitude: 47.3769, longitude: 8.5417, accuracy: 6, altitude: 480, altitudeAccuracy: 4 } };
@@ -444,7 +464,7 @@ test('Use GPS fills latitude, longitude and the geoid-corrected altitude, rememb
     clearWatch() { cleared = true; },
   });
   const { node } = mount({ location: null });
-  const gps = byClass(node, 'weather-position').childNodes.flatMap((c) => all(c, (n) => n.tagName === 'BUTTON'))[0];
+  const gps = gpsButton(node);
   fireEvent(gps, 'click');
   assert.equal(gps.textContent, 'Stop');
   await flush();
@@ -469,7 +489,7 @@ test('Use GPS reports a denial in the status line and changes nothing else', asy
     watchPosition(ok, err) { setTimeout(() => err({ code: 1 }), 0); return 1; }, clearWatch() {},
   });
   const { node } = mount({ location: null });
-  const gps = byClass(node, 'weather-position').childNodes.flatMap((c) => all(c, (n) => n.tagName === 'BUTTON'))[0];
+  const gps = gpsButton(node);
   fireEvent(gps, 'click');
   await flush();
   assert.match(byClass(node, 'weather-gps-status').textContent, /^Location access was denied/);

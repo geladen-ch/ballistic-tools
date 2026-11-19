@@ -2504,7 +2504,9 @@ html.angle-meter-open, html.angle-meter-open body { overflow: hidden; }
 /* Online weather block (Trajectory and Range Solver atmosphere sections): latitude and longitude side by side. */
 .weather-block { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .weather-position-coords { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.weather-position .field-action-row { margin-top: 4px; }
+.weather-position > .field-action-row { margin-top: 4px; }
+.weather-position-coords .preset-row { grid-template-columns: auto minmax(0, 1fr); }
+.weather-sign-toggle { min-width: 2.25em; padding-inline: 0.5em; }
 .weather-block .hint { margin: 0; }
 .weather-block .weather-get { align-self: flex-start; }
 .weather-save-offer { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }

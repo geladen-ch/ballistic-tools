@@ -77,14 +77,18 @@ export function weatherBlock({ applyValues, locationSource = null, service = nul
   const startLoc = locationSource?.getLocation() ?? null;
   // A remembered value first, then the active location's own, then the built-in default (none where `defaultPosition` is null).
   const prefill = (own, fromLocation, fallback) => own ?? (Number.isFinite(fromLocation) ? fromLocation : (fallback ?? null));
+  const latSign = signToggleButton();
+  const lonSign = signToggleButton();
   const latField = unitField({
-    id: 'latitudeRad', ...FIELD_BOUNDS.latitudeRad, step: degToRad(0.0001), optional: true,
+    id: 'latitudeRad', ...FIELD_BOUNDS.latitudeRad, step: degToRad(0.0001), optional: true, before: latSign,
     value: prefill(saved.latRad, startLoc?.latitudeRad, defaultPosition?.latRad), onInput: () => positionEdited(),
   });
   const lonField = unitField({
-    id: 'longitudeRad', ...FIELD_BOUNDS.longitudeRad, step: degToRad(0.0001), optional: true,
+    id: 'longitudeRad', ...FIELD_BOUNDS.longitudeRad, step: degToRad(0.0001), optional: true, before: lonSign,
     value: prefill(saved.lonRad, startLoc?.longitudeRad, defaultPosition?.lonRad), onInput: () => positionEdited(),
   });
+  wireSignToggle(latSign, latField.input);
+  wireSignToggle(lonSign, lonField.input);
   const altField = unitField({
     id: 'deviceAltitudeM', ...FIELD_BOUNDS.deviceAltitudeM, step: 10, optional: true,
     value: prefill(saved.altitudeM, startLoc?.altitudeM, defaultPosition?.altitudeM), onInput: () => { positionEdited({ altitudeSource: 'manual' }); },
@@ -323,4 +327,22 @@ export function weatherBlock({ applyValues, locationSource = null, service = nul
       Promise.resolve(svc.noteEdited?.()).catch(() => {});
     },
   };
+}
+
+// A ± button beside a coordinate box. Android keyboards (Gboard, Samsung) open a number pad without a minus key for a
+// number input, so a southern latitude or western longitude could not be typed there at all.
+function signToggleButton() {
+  const label = t('onlineWeather.tool.changeSign');
+  return el('button', { type: 'button', class: 'secondary weather-sign-toggle', title: label, 'aria-label': label }, ['±']);
+}
+
+// Flips the sign of the number in `input` and reports it as an edit, so validation and the field's onInput run.
+// A blank or unparseable box has no sign to flip and is left alone.
+function wireSignToggle(button, input) {
+  button.addEventListener('click', () => {
+    const raw = input.value.trim();
+    if (raw === '' || Number.isNaN(parseFloat(raw))) return;
+    input.value = raw.startsWith('-') ? raw.slice(1) : `-${raw}`;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
 }

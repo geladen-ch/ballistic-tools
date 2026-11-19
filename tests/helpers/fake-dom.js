@@ -93,6 +93,11 @@ function makeElement(tag) {
     addEventListener(type, handler) {
       (this._listeners[type] ||= []).push(handler);
     },
+    // A synthetic event code raises itself (e.g. weather-block.js's ± button reporting its edit as 'input').
+    dispatchEvent(event) {
+      for (const handler of this._listeners[event.type] || []) handler(event);
+      return true;
+    },
     querySelectorAll() { return []; },
     querySelector() { return null; },
     // A detached download-triggering <a> (see arsenal-view.js's
