@@ -1966,7 +1966,8 @@
     "title": "Release history",
     "intro": "What's changed in each release of this app.",
     "entries": {
-      "v254": "Fix: in Shooting, the on-screen keyboard no longer closes right after tapping a field on some Android browsers (e.g. Opera), so range and wind speed can be typed in again.",
+      "v255": "Fix: '+/-' buttons added to lat and lon inputs, to work around some Android on-screen keyboards bug (props to JerkyFreak again).",
+      "v254": "Fix: in Shooting, the on-screen keyboard no longer closes right after tapping a field on some Android browsers (e.g. Opera), so range and wind speed can be typed in again (thanks to JerkyFreak for reporting the bug).",
       "v253": "New: conditions fetch from online weather sources now uses kriging interpolation, and takes into account reported cloud coverage.",
       "v252": "New: ‘El Intendente’ target in hit probability tool. Any resemblance to actual… ahem… persons, [regrettably still] living or [hopefully soon] dead, is purely coincidental. It just came out that way. Also, done some minor polishing of the hit probability interface.",
       "v251": "Change: split settings into multiple sections, optimized tabs display.",

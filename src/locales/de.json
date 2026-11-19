@@ -1966,7 +1966,8 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
-      "v254": "Fix: Unter „Schießen“ schließt sich die Bildschirmtastatur in einigen Android-Browsern (z. B. Opera) nicht mehr sofort nach dem Antippen eines Feldes, sodass Distanz und Windgeschwindigkeit wieder eingetippt werden können.",
+      "v255": "Fix: „+/-“-Tasten bei den Eingabefeldern für Breite und Länge hinzugefügt, als Umgehung eines Fehlers einiger Android-Bildschirmtastaturen (Dank wieder an JerkyFreak).",
+      "v254": "Fix: Unter „Schießen“ schließt sich die Bildschirmtastatur in einigen Android-Browsern (z. B. Opera) nicht mehr sofort nach dem Antippen eines Feldes, sodass Distanz und Windgeschwindigkeit wieder eingetippt werden können (danke an JerkyFreak für die Fehlermeldung).",
       "v253": "Neu: Der Abruf der Bedingungen aus Online-Wetterquellen verwendet jetzt Kriging-Interpolation und berücksichtigt die gemeldete Bewölkung.",
       "v252": "Neu: Scheibe «El Intendente» im Werkzeug Trefferwahrscheinlichkeit. Ähnlichkeiten mit realen… ähem… Personen, [bedauerlicherweise noch] lebenden oder [hoffentlich bald] toten, sind rein zufällig. Es hat sich einfach so ergeben. Ausserdem kleinere Feinschliffe an der Oberfläche der Trefferwahrscheinlichkeit.",
       "v251": "Änderung: Einstellungen in mehrere Bereiche aufgeteilt, optimierte Darstellung der Reiter.",
