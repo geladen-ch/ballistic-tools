@@ -21,6 +21,9 @@ import { disambiguateByName } from '../sync/disambiguate-by-name.js';
 import { isoDateTime } from '../ui/iso-date.js';
 import { formatQuantity } from '../display-units.js';
 import { formatCoordinates, hasCoordinates } from '../ui/locations/coordinates-text.js';
+import { targetOrderOf, moveTarget } from '../location-target-order.js';
+import { sortableRows } from '../ui/sortable-rows.js';
+import { svgEl } from '../svg.js';
 
 function downloadJsonFile(filename, text) {
   downloadFile(filename, text, 'application/json');
@@ -29,6 +32,14 @@ function downloadJsonFile(filename, text) {
 // Same cosmetic-only sanitizing as arsenal-view.js's own sanitizeFilename.
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'location';
+}
+
+// A six-dot grip — drawn, not a font glyph (⠿ is missing from some
+// platform fonts).
+function gripGlyph() {
+  const dots = [];
+  for (const cx of [5, 11]) for (const cy of [3, 9, 15]) dots.push(svgEl('circle', { cx: String(cx), cy: String(cy), r: '1.6' }));
+  return svgEl('svg', { viewBox: '0 0 16 18', width: 16, height: 18, fill: 'currentColor', 'aria-hidden': 'true' }, dots);
 }
 
 
@@ -73,6 +84,13 @@ export function mount(container) {
   // open gets this node positioned right under its row (or, for Add,
   // after the target list) by renderTargets().
   const targetFormArea = el('div');
+  // Persistent (outside everything renderLocations() rebuilds), so a
+  // screen reader still hears the announcement after a reorder re-renders
+  // the list.
+  const moveAnnouncer = el('p', { class: 'visually-hidden', 'aria-live': 'polite' });
+  // The drag handles of the target list as last rendered, in stored order
+  // — lets a keyboard move put focus back on the moved target's handle.
+  let targetHandles = [];
   const exportDialogArea = el('div');
   const importArea = el('div');
   const importErrorArea = el('p', { class: 'hint warning' });
@@ -142,7 +160,7 @@ export function mount(container) {
   // navigates via the bare global `location.hash`, and shadowing it here
   // would silently break that (same reasoning as setActiveLocation's own
   // activeLocation parameter).
-  function renderTargetRow(loc, target, index, photoContextActive, photoWouldChange) {
+  function renderTargetRow(loc, target, index, photoContextActive, photoWouldChange, handle) {
     const displayName = target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 });
     const editButton = el('button', { class: 'secondary', i18n: 'rangeSolverLocations.editButton' });
     editButton.addEventListener('click', () => {
@@ -169,7 +187,8 @@ export function mount(container) {
     }
     actions.push(deleteButton);
 
-    const rowEl = el('div', { class: 'arsenal-row' }, [
+    const rowEl = el('div', { class: 'arsenal-row target-row' }, [
+      handle,
       el('div', { class: 'arsenal-row-info' }, [
         el('strong', { text: displayName }),
         photoContextActive && (photoWouldChange || !target.coords) ? notPlacedBadge() : null,
@@ -202,9 +221,32 @@ export function mount(container) {
     const photoWouldChange = isEditingThisLocation && shouldClearTargetCoords(loc.photo, locationPhotoPreview);
     const photoContextActive = isEditingThisLocation ? (!!locationPhotoPreview || !!loc.photo) : !!loc.photo;
 
+    // Reordering, like the order switch, waits while any form is open: a
+    // form saves the location as it was when the form opened, which would
+    // quietly undo a reorder made in the meantime.
+    const formOpen = !!(locationFormState || targetFormState);
+    const reorderable = loc.targets.length >= 2 && !formOpen;
+    const sortable = [];
+    targetHandles = [];
     loc.targets.forEach((target, index) => {
-      targetsListEl.appendChild(renderTargetRow(loc, target, index, photoContextActive, photoWouldChange));
+      const displayName = target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 });
+      const handle = reorderable
+        ? el('button', {
+          type: 'button', class: 'sortable-handle',
+          'aria-label': t('rangeSolverLocations.moveTargetHandle', { name: displayName }),
+          title: t('rangeSolverLocations.moveTargetHandle', { name: displayName })
+        }, [gripGlyph()])
+        : null;
+      const rowNode = renderTargetRow(loc, target, index, photoContextActive, photoWouldChange, handle);
+      targetsListEl.appendChild(rowNode);
+      if (handle) {
+        sortable.push({ node: rowNode, handle });
+        targetHandles.push(handle);
+      }
     });
+    if (reorderable) {
+      sortableRows({ rows: sortable, onMove: (from, to) => moveTargetInLocation(loc.id, from, to) });
+    }
     if (loc.targets.length === 0) {
       targetsListEl.appendChild(el('p', { class: 'hint', i18n: 'rangeSolverLocations.noTargets' }));
     }
@@ -222,8 +264,61 @@ export function mount(container) {
 
     return el('div', { class: 'input-section nested' }, [
       el('h4', { i18n: 'rangeSolverLocations.targetsHeading' }),
+      loc.targets.length >= 2 ? renderTargetOrderSwitch(loc, formOpen) : null,
       targetsListEl
     ]);
+  }
+
+  // Saved on the spot, like a reorder. `targetOrder` is written only here,
+  // so a location the user never switched keeps no such field at all (see
+  // location-target-order.js).
+  function renderTargetOrderSwitch(loc, disabled) {
+    const current = targetOrderOf(loc);
+    const options = [
+      { value: 'distance', i18n: 'rangeSolverLocations.targetOrderDistance' },
+      { value: 'custom', i18n: 'rangeSolverLocations.targetOrderCustom' }
+    ];
+    const buttons = options.map(({ value, i18n }) => {
+      const on = value === current;
+      const button = el('button', {
+        type: 'button', class: 'target-order-segment' + (on ? ' active' : ''),
+        'aria-pressed': on ? 'true' : 'false', 'data-order': value, i18n
+      });
+      button.disabled = disabled;
+      button.addEventListener('click', () => {
+        if (value === targetOrderOf(loc)) return;
+        const fresh = loadUserLocations().find((l) => l.id === loc.id);
+        if (!fresh) return;
+        saveUserLocation({ ...fresh, targetOrder: value });
+        refreshLibraryView();
+      });
+      return button;
+    });
+    return el('div', { class: 'target-order' }, [
+      el('div', { class: 'target-order-row' }, [
+        el('span', { class: 'target-order-label', i18n: 'rangeSolverLocations.targetOrderLabel' }),
+        el('div', { class: 'target-order-segmented', role: 'group', 'aria-label': t('rangeSolverLocations.targetOrderLabel') }, buttons)
+      ]),
+      el('p', { class: 'hint', i18n: current === 'custom' ? 'rangeSolverLocations.targetOrderHintCustom' : 'rangeSolverLocations.targetOrderHintDistance' })
+    ]);
+  }
+
+  // One save per completed move — a drop or one arrow-key step — never
+  // one per pointer move. Unnamed targets renumber on the re-render, their
+  // "Target N" being their place in the stored order.
+  function moveTargetInLocation(locationId, from, to) {
+    const fresh = loadUserLocations().find((l) => l.id === locationId);
+    if (!fresh) return;
+    const targets = moveTarget(fresh.targets, from, to);
+    if (targets === fresh.targets) return;
+    saveUserLocation({ ...fresh, targets });
+    refreshLibraryView();
+    const moved = targets[to];
+    moveAnnouncer.textContent = t('rangeSolverLocations.targetMovedAnnouncement', {
+      name: moved.name || t('rangeSolverLocations.defaultTargetName', { n: to + 1 }), n: to + 1, count: targets.length
+    });
+    const handle = targetHandles[to];
+    if (handle && typeof handle.focus === 'function') handle.focus();
   }
 
   function scrollTargetFormIntoView() {
@@ -594,7 +689,8 @@ export function mount(container) {
     el('div', { class: 'card' }, [
       el('h2', { i18n: 'rangeSolverLocations.locationsHeading' }),
       locationsListEl
-    ])
+    ]),
+    moveAnnouncer
   ]));
 
   refreshLibraryView();

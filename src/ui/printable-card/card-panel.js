@@ -22,6 +22,7 @@ import { FIELD_BOUNDS, siToDisplay, displayToSI } from '../../units.js';
 import { displayChoice, fromDisplayUnit } from '../../display-units.js';
 import { getUnit } from '../../prefs.js';
 import { getPool } from '../../pool.js';
+import { orderedTargets } from '../../location-target-order.js';
 import { downloadFile } from '../../download.js';
 import { getIndicatorStyle, getOutputUnit } from '../../range-solver-prefs.js';
 import { getSpinDriftMode } from '../../spin-drift-prefs.js';
@@ -78,11 +79,11 @@ export function cardFileName(kind, title, iso) {
   return `${stem || 'card'}.pdf`;
 }
 
-// The active location's targets, nearest first, labelled T1, T2…
+// The active location's targets in its target order (nearest first unless
+// the location is set to its own order), labelled T1, T2…
 export function cardTargets(location, defaultName) {
   if (!location) return [];
-  return [...location.targets]
-    .sort((a, b) => a.rangeM - b.rangeM)
+  return orderedTargets(location)
     .map((target, i) => ({
       label: `T${i + 1}`,
       name: target.name || defaultName(location.targets.indexOf(target) + 1),

@@ -55,6 +55,7 @@ Shared numerical core behind Trajectory, Range Solver, Guns' comparison chart, H
 - Single-range field tool: elevation/windage/TOF/velocity/energy, live recompute, no Calculate button
 - Distraction-free UI built for arm's-length/sunlight reading, keeps the screen awake while open
 - ★ Saved shooting locations with a range card (every target at a location, solved at once)
+- Targets listed nearest first or in your own drag-and-drop order, chosen per location
 - ★ Targets picked visually off a photo taken from the firing point — tap a pin on the photo instead of dialing range/angle by hand
 - Installable as its own home-screen icon, separate from the main app
 

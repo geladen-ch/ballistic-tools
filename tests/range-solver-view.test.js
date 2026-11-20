@@ -515,6 +515,27 @@ test('an active location shows its name and a targets list sorted by range, the 
   cleanup();
 });
 
+test('a location set to its own target order lists the targets as stored, not by range; "Target N" stays the stored place', async () => {
+  const far = makeTestTarget({ name: 'Far', rangeM: 650 });
+  const unnamed = makeTestTarget({ name: null, rangeM: 900 });
+  const near = makeTestTarget({ name: 'Near', rangeM: 300 });
+  const location = saveUserLocation(makeTestLocation({ targets: [far, unnamed, near], targetOrder: 'custom' }));
+  saveRangeSolverLocationState({ locationId: location.id, targetId: near.id });
+  saveRangeSolverTargetState({ rangeM: near.rangeM, losAngleRad: degToRad(near.losAngleDeg) });
+
+  const container = makeElement('main');
+  const cleanup = rangeSolverView.mount(container);
+  await settle();
+
+  const rows = rowsOf(container);
+  assert.equal(rows.length, 3);
+  assert.ok(rows[0].textContent.includes('Far'));
+  assert.ok(rows[1].textContent.includes(t('rangeSolverLocations.defaultTargetName', { n: 2 })));
+  assert.ok(rows[2].textContent.includes('Near'));
+  assert.deepEqual(activeRows(container), [rows[2]]);
+  cleanup();
+});
+
 test('tapping a row copies its range/LoS into the fields and enlarges it', async () => {
   const t1 = makeTestTarget({ name: 'Far', rangeM: 650, losAngleDeg: 12 });
   const t2 = makeTestTarget({ name: 'Near', rangeM: 300, losAngleDeg: -5 });

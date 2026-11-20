@@ -523,3 +523,120 @@ test('exporting a Known-locations row clears its unsaved badge', async () => {
 
   assert.equal(loadUserLocations()[0].unsaved, false);
 });
+
+// ---- target order ----
+
+function orderButton(container, value) {
+  return findByClass(container, 'target-order-segment').find((b) => b.getAttribute('data-order') === value);
+}
+
+function storedLocation(id) {
+  return loadUserLocations().find((l) => l.id === id);
+}
+
+test('the target order switch only shows once the current location has two or more targets', async () => {
+  const one = saveUserLocation(makeTestLocation({ targets: [makeTestTarget()] }));
+  makeCurrent(one);
+  let container = makeElement('main');
+  locationsView.mount(container);
+  assert.equal(findByClass(container, 'target-order').length, 0);
+  assert.equal(findByClass(container, 'sortable-handle').length, 0);
+
+  const two = saveUserLocation(makeTestLocation({ name: 'Two', targets: [makeTestTarget(), makeTestTarget({ rangeM: 300 })] }));
+  makeCurrent(two);
+  container = makeElement('main');
+  locationsView.mount(container);
+  assert.equal(findByClass(container, 'target-order').length, 1);
+  assert.equal(orderButton(container, 'distance').getAttribute('aria-pressed'), 'true');
+  assert.equal(findByClass(container, 'sortable-handle').length, 2);
+});
+
+test('choosing "As listed here" saves targetOrder on the spot, and "By distance" switches it back', async () => {
+  const location = saveUserLocation(makeTestLocation({ targets: [makeTestTarget(), makeTestTarget({ rangeM: 300 })] }));
+  makeCurrent(location);
+  const container = makeElement('main');
+  locationsView.mount(container);
+
+  fireEvent(orderButton(container, 'custom'), 'click');
+  assert.equal(storedLocation(location.id).targetOrder, 'custom');
+  assert.equal(orderButton(container, 'custom').getAttribute('aria-pressed'), 'true');
+  assert.ok(byI18nKey(container, 'rangeSolverLocations.targetOrderHintCustom'));
+
+  fireEvent(orderButton(container, 'distance'), 'click');
+  assert.equal(storedLocation(location.id).targetOrder, 'distance');
+});
+
+test('mounting, activating and editing other things never adds targetOrder to a location the user never switched', async () => {
+  const location = saveUserLocation(makeTestLocation({ targets: [makeTestTarget(), makeTestTarget({ rangeM: 300 })] }));
+  makeCurrent(location);
+  const container = makeElement('main');
+  locationsView.mount(container);
+  fireEvent(orderButton(container, 'distance'), 'click'); // already the mode: no write
+  assert.ok(!('targetOrder' in storedLocation(location.id)));
+});
+
+test('ArrowDown on a target\'s handle moves it one place down in the stored order, with one save', async () => {
+  const a = makeTestTarget({ name: 'Alpha', rangeM: 800 });
+  const b = makeTestTarget({ name: 'Bravo', rangeM: 300 });
+  const c = makeTestTarget({ name: 'Charlie', rangeM: 500 });
+  const location = saveUserLocation(makeTestLocation({ targets: [a, b, c] }));
+  makeCurrent(location);
+  const before = storedLocation(location.id).revision;
+  const container = makeElement('main');
+  locationsView.mount(container);
+
+  fireEvent(findByClass(container, 'sortable-handle')[0], 'keydown', { key: 'ArrowDown' });
+
+  const stored = storedLocation(location.id);
+  assert.deepEqual(stored.targets.map((tg) => tg.name), ['Bravo', 'Alpha', 'Charlie']);
+  assert.notEqual(stored.revision, before);
+  // The list re-renders in the new stored order.
+  const names = findByClass(currentSection(container), 'target-row').map((r) => findByTag(r, 'STRONG')[0].textContent);
+  assert.deepEqual(names, ['Bravo', 'Alpha', 'Charlie']);
+});
+
+test('an unnamed target\'s "Target N" renumbers when it is moved', async () => {
+  const unnamed = makeTestTarget({ rangeM: 800 });
+  const named = makeTestTarget({ name: 'Gong', rangeM: 300 });
+  const location = saveUserLocation(makeTestLocation({ targets: [unnamed, named] }));
+  makeCurrent(location);
+  const container = makeElement('main');
+  locationsView.mount(container);
+  assert.ok(rowByText(container, t('rangeSolverLocations.defaultTargetName', { n: 1 })));
+
+  fireEvent(findByClass(container, 'sortable-handle')[0], 'keydown', { key: 'ArrowDown' });
+
+  assert.ok(rowByText(container, t('rangeSolverLocations.defaultTargetName', { n: 2 })));
+  assert.ok(!rowByText(container, t('rangeSolverLocations.defaultTargetName', { n: 1 })));
+});
+
+test('while a target or location form is open, the handles are hidden and the order switch is disabled', async () => {
+  const location = saveUserLocation(makeTestLocation({ targets: [makeTestTarget({ name: 'Alpha' }), makeTestTarget({ name: 'Bravo', rangeM: 300 })] }));
+  makeCurrent(location);
+  const container = makeElement('main');
+  locationsView.mount(container);
+
+  fireEvent(buttonByKey(rowByText(container, 'Alpha'), 'rangeSolverLocations.editButton'), 'click');
+  assert.equal(findByClass(container, 'sortable-handle').length, 0);
+  assert.equal(orderButton(container, 'custom').disabled, true);
+
+  fireEvent(buttonByKey(container, 'rangeSolverLocations.cancelButton'), 'click');
+  assert.equal(findByClass(container, 'sortable-handle').length, 2);
+  assert.equal(orderButton(container, 'custom').disabled, false);
+});
+
+test('saving the location form keeps its target order setting and its targets\' order', async () => {
+  const a = makeTestTarget({ name: 'Alpha', rangeM: 800 });
+  const b = makeTestTarget({ name: 'Bravo', rangeM: 300 });
+  const location = saveUserLocation(makeTestLocation({ targets: [a, b], targetOrder: 'custom' }));
+  makeCurrent(location);
+  const container = makeElement('main');
+  locationsView.mount(container);
+
+  fireEvent(buttonByKey(currentSection(container), 'rangeSolverLocations.editButton'), 'click');
+  fireEvent(buttonByKey(container, 'rangeSolverLocations.saveLocationButton'), 'click');
+
+  const stored = storedLocation(location.id);
+  assert.equal(stored.targetOrder, 'custom');
+  assert.deepEqual(stored.targets.map((tg) => tg.name), ['Alpha', 'Bravo']);
+});

@@ -131,7 +131,7 @@ Exemple, avec un pas de 100 m : la cible est à 640 m. Trouvez la ligne 600 m et
 
 ### 5.5 Lignes des cibles
 
-Chaque cible de l'emplacement actif est une ligne grise, rangée par distance parmi les distances de référence. Une pastille noire porte son repère (T1, T2 … depuis la plus proche), et son angle de ligne de mire est imprimé à côté, + en montée. La hausse tient déjà compte de cet angle : réglez-la telle quelle et n'ajoutez pas de correction de pente. Vent et dérive gyroscopique sont comme pour les autres lignes. Une ligne de cible n'a pas de cases plus près et plus loin. Une cible au-delà de la distance maximale est laissée de côté. La photo de l'emplacement, si vous l'avez incluse, montre où se trouve chaque repère.
+Chaque cible de l'emplacement actif est une ligne grise, rangée par distance parmi les distances de référence. Une pastille noire porte son repère (T1, T2 … dans l'ordre des cibles de l'emplacement : depuis la plus proche, sauf si l'emplacement a son propre ordre), et son angle de ligne de mire est imprimé à côté, + en montée. La hausse tient déjà compte de cet angle : réglez-la telle quelle et n'ajoutez pas de correction de pente. Vent et dérive gyroscopique sont comme pour les autres lignes. Une ligne de cible n'a pas de cases plus près et plus loin. Une cible au-delà de la distance maximale est laissée de côté. La photo de l'emplacement, si vous l'avez incluse, montre où se trouve chaque repère.
 
 ### 5.6 Corrections de pente
 

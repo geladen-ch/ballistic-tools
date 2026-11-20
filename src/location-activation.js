@@ -3,7 +3,8 @@
 // location modal (ui/range-solver/location-picker.js), so neither can drift
 // from the other in what "active" means.
 //
-// Activation lands on the location's first target and seeds the solver's
+// Activation lands on the location's first target — first in its target
+// order (location-target-order.js), the top row of the Fire! list — and seeds the solver's
 // range/LoS slice with that target's values, exactly as if it had been
 // selected in the Fire! pane's targets list — otherwise the solver
 // would show whatever was left over from before and immediately flag a
@@ -14,6 +15,7 @@ import {
   saveRangeSolverAtmosphereState, wasAtmosphereTouchedThisSession
 } from './range-solver-state.js';
 import { standardAtmosphereAt } from './engine/atmosphere.js';
+import { orderedTargets } from './location-target-order.js';
 
 // Writes the standard-atmosphere/50%-humidity default straight into the
 // Range Solver's cookie-backed atmosphere slice, bypassing the atmosphere
@@ -35,7 +37,7 @@ export function activateRangeSolverLocation(loc) {
     saveRangeSolverLocationState({ locationId: null, targetId: null });
     return;
   }
-  const target = loc.targets[0] || null;
+  const target = orderedTargets(loc)[0] || null;
   saveRangeSolverLocationState({ locationId: loc.id, targetId: target ? target.id : null });
   if (target) saveRangeSolverTargetState({ rangeM: target.rangeM, losAngleRad: target.losAngleRad });
   applyLocationAltitudeDefault(loc);

@@ -131,7 +131,7 @@ Example, at a 100 m step: the target is at 640 m. Find the 600 m row and read th
 
 ### 5.5 Target rows
 
-Each target of the active location is a grey row, sorted in with the reference distances by distance. A black badge gives its label (T1, T2 … from the nearest), and its line-of-sight angle is printed next to it, + uphill. The elevation already includes that angle: dial it as it is and do not add a slope correction. Wind and spin drift are as for the other rows. A target row has no shorter and longer cells. A target beyond the max distance is left out. The location photo, if you included it, shows where each label is.
+Each target of the active location is a grey row, sorted in with the reference distances by distance. A black badge gives its label (T1, T2 … in the location's target order: from the nearest, unless the location is set to its own order), and its line-of-sight angle is printed next to it, + uphill. The elevation already includes that angle: dial it as it is and do not add a slope correction. Wind and spin drift are as for the other rows. A target row has no shorter and longer cells. A target beyond the max distance is left out. The location photo, if you included it, shows where each label is.
 
 ### 5.6 Slope corrections
 

@@ -312,11 +312,13 @@ test('settings persist; damaged values fall back to their defaults', () => {
   assert.equal(badStep.temperatureStartC, null);
 });
 
-test('file name, default title and target labels', () => {
+test('file name, default title and target labels (in the location\'s target order)', () => {
   assert.equal(cardFileName('Range card', 'Tikka 24" · .308/GP11', '2026-11-08'), 'Range card - Tikka 24_ - .308_GP11 - 2026-11-08.pdf');
   assert.equal(cardFileName('Range card', '', '2026-11-08'), 'Range card - 2026-11-08.pdf');
   assert.equal(defaultCardTitle({ rifleName: 'R'.repeat(40), loadName: 'Load' }).length, 44);
   const targets = cardTargets({ targets: [{ rangeM: 500, name: '' }, { rangeM: 300, name: 'Gong', losAngleRad: 0.1 }] }, (n) => `Target ${n}`);
   assert.deepEqual(targets.map((tg) => [tg.label, tg.name, tg.rangeM]), [['T1', 'Gong', 300], ['T2', 'Target 1', 500]]);
+  const custom = cardTargets({ targetOrder: 'custom', targets: [{ rangeM: 500, name: '' }, { rangeM: 300, name: 'Gong' }] }, (n) => `Target ${n}`);
+  assert.deepEqual(custom.map((tg) => [tg.label, tg.name, tg.rangeM]), [['T1', 'Target 1', 500], ['T2', 'Gong', 300]]);
   assert.match(todayIso(new Date(2026, 0, 5)), /^2026-01-05$/);
 });

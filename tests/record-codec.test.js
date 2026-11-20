@@ -123,3 +123,11 @@ test('click sizes keep every digit a turret is engraved with, in the SI field an
     assert.equal(decodeRifle(stored).defaultClickHorizontalRad, decodeRifle({ defaultClickUnit: unit, defaultClickHorizontal: value }).defaultClickHorizontalRad);
   }
 });
+
+test('a location\'s targetOrder passes through the codec, and one without it never gains it', () => {
+  const plain = { id: 'p', name: 'P', targets: [{ id: 't', rangeM: 300, losAngleRad: 0 }] };
+  assert.ok(!('targetOrder' in encodeLocation(plain)));
+  assert.ok(!('targetOrder' in decodeLocation(encodeLocation(plain))));
+  const custom = { ...plain, targetOrder: 'custom' };
+  assert.equal(decodeLocation(encodeLocation(custom)).targetOrder, 'custom');
+});

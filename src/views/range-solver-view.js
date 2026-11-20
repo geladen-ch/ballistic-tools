@@ -46,6 +46,7 @@ import { bdcTrajectories } from '../ui/range-solver/bdc-trajectories.js';
 import { resolveFireElements, effectiveElementIds } from '../ui/range-solver/fire-elements.js';
 import { fireLayoutFor, buildFireLayout } from '../ui/range-solver/fire-layout.js';
 import { targetList } from '../ui/range-solver/target-list.js';
+import { orderedTargets, defaultTargetNumber } from '../location-target-order.js';
 import { targetImagePicker } from '../ui/range-solver/target-image-picker.js';
 import { setFirePaneContext } from '../ui/range-solver/fire-config-dialog.js';
 import { referenceWindSpeed } from '../reticle/bdc-overlay.js';
@@ -641,12 +642,12 @@ export function mount(container) {
 
   function buildTargetListRows(nominalStateBase) {
     if (!activeLocation || !resolved || !resolved.list.effective) return [];
-    return activeLocation.targets
-      .map((target, index) => {
+    return orderedTargets(activeLocation)
+      .map((target) => {
         const solved = solveClicks(nominalStateBase, target.rangeM, effectiveLosRad(target.losAngleRad));
         return {
           id: target.id,
-          name: target.name || t('rangeSolverLocations.defaultTargetName', { n: index + 1 }),
+          name: target.name || t('rangeSolverLocations.defaultTargetName', { n: defaultTargetNumber(activeLocation, target.id) }),
           rangeM: target.rangeM,
           rangeDisplay: formatRangeDisplay(target.rangeM),
           elevValue: solved ? solved.elevValue : 0,
@@ -654,8 +655,7 @@ export function mount(container) {
           decimals: solved ? solved.decimals : 0,
           valid: !!solved
         };
-      })
-      .sort((a, b) => a.rangeM - b.rangeM);
+      });
   }
 
   function refreshTargets(nominalStateBase) {

@@ -1,7 +1,8 @@
 // The Fire! pane's targets list: every target at the active location,
-// solved at once and sorted by range, with the selected one enlarged. Tap
-// a row to select its target. With no selection (a hand-typed range),
-// every row is the same small size.
+// solved at once and listed in the location's target order (nearest first
+// unless it is set to its own — see location-target-order.js), with the
+// selected one enlarged. Tap a row to select its target. With no
+// selection (a hand-typed range), every row is the same small size.
 //
 // Renders and dispatches only — the caller (range-solver-view.js) computes
 // each row's display strings and correction values and hands them in via

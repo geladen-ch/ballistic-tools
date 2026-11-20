@@ -131,7 +131,7 @@ Esempio, con passo di 100 m: il bersaglio è a 640 m. Trova la riga 600 m e legg
 
 ### 5.5 Righe dei bersagli
 
-Ogni bersaglio della postazione attiva è una riga grigia, inserita per distanza tra le distanze di riferimento. Un'etichetta nera porta la sua sigla (T1, T2 … dal più vicino), e accanto è stampato il suo angolo della linea di mira, + in salita. L'elevazione tiene già conto di quell'angolo: regolala così com'è e non aggiungere una correzione di pendenza. Vento e deriva giroscopica come nelle altre righe. Una riga di bersaglio non ha celle più vicino e più lontano. Un bersaglio oltre la distanza massima resta fuori. La foto della postazione, se l'hai inclusa, mostra dove si trova ogni sigla.
+Ogni bersaglio della postazione attiva è una riga grigia, inserita per distanza tra le distanze di riferimento. Un'etichetta nera porta la sua sigla (T1, T2 … nell'ordine dei bersagli della postazione: dal più vicino, a meno che la postazione non abbia un ordine proprio), e accanto è stampato il suo angolo della linea di mira, + in salita. L'elevazione tiene già conto di quell'angolo: regolala così com'è e non aggiungere una correzione di pendenza. Vento e deriva giroscopica come nelle altre righe. Una riga di bersaglio non ha celle più vicino e più lontano. Un bersaglio oltre la distanza massima resta fuori. La foto della postazione, se l'hai inclusa, mostra dove si trova ogni sigla.
 
 ### 5.6 Correzioni di pendenza
 

@@ -131,7 +131,7 @@ Beispiel, bei 100 m Schritt: Das Ziel steht auf 640 m. Suchen Sie die Zeile 600 
 
 ### 5.5 Zeilen für die Ziele
 
-Jedes Ziel des aktiven Standorts ist eine graue Zeile, nach Distanz zwischen die Referenzdistanzen einsortiert. Ein schwarzes Schild trägt seine Bezeichnung (T1, T2 … vom nächsten an), und daneben steht sein Ziellinienwinkel, + bergauf. Die Höhenkorrektur enthält diesen Winkel bereits: Stellen Sie sie so ein, wie sie ist, und rechnen Sie keine Hangkorrektur dazu. Wind und Drallabweichung wie in den anderen Zeilen. Eine Zielzeile hat keine Zellen für kürzer und weiter. Ein Ziel jenseits der maximalen Distanz wird weggelassen. Das Standortfoto, falls Sie es aufgenommen haben, zeigt, wo welche Bezeichnung steht.
+Jedes Ziel des aktiven Standorts ist eine graue Zeile, nach Distanz zwischen die Referenzdistanzen einsortiert. Ein schwarzes Schild trägt seine Bezeichnung (T1, T2 … in der Zielreihenfolge des Standorts: vom nächsten an, sofern der Standort nicht auf eine eigene Reihenfolge gestellt ist), und daneben steht sein Ziellinienwinkel, + bergauf. Die Höhenkorrektur enthält diesen Winkel bereits: Stellen Sie sie so ein, wie sie ist, und rechnen Sie keine Hangkorrektur dazu. Wind und Drallabweichung wie in den anderen Zeilen. Eine Zielzeile hat keine Zellen für kürzer und weiter. Ein Ziel jenseits der maximalen Distanz wird weggelassen. Das Standortfoto, falls Sie es aufgenommen haben, zeigt, wo welche Bezeichnung steht.
 
 ### 5.6 Hangkorrekturen
 
