@@ -1973,6 +1973,7 @@
     "title": "Cronologia delle versioni",
     "intro": "Cosa è cambiato in ogni versione di questa app.",
     "entries": {
+      "v256": "Novità: ogni postazione può elencare i suoi bersagli nel Calcolatore per il poligono per distanza (come prima) oppure in un ordine tuo, stabilito trascinando i bersagli in Postazioni e bersagli; lo stesso ordine stabilisce anche le sigle dei bersagli sulla scheda stampabile.",
       "v255": "Correzione: aggiunti i pulsanti “+/-” ai campi di latitudine e longitudine, per aggirare un bug di alcune tastiere su schermo Android (grazie ancora a JerkyFreak).",
       "v254": "Correzione: in “Tiro” la tastiera su schermo non si chiude più subito dopo aver toccato un campo su alcuni browser Android (ad es. Opera), quindi distanza e velocità del vento si possono di nuovo digitare (grazie a JerkyFreak per aver segnalato il bug).",
       "v253": "Novità: il recupero delle condizioni dalle fonti meteo online ora usa l’interpolazione kriging e tiene conto della nuvolosità riportata.",

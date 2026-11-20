@@ -1973,6 +1973,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v256": "Neu: Jeder Standort kann seine Ziele im Feldrechner entweder nach Distanz (wie bisher) oder in Ihrer eigenen Reihenfolge auflisten, die Sie unter Standorte & Ziele durch Ziehen der Ziele festlegen; diese Reihenfolge bestimmt auch die Zielbezeichnungen auf der druckbaren Karte.",
       "v255": "Fix: „+/-“-Tasten bei den Eingabefeldern für Breite und Länge hinzugefügt, als Umgehung eines Fehlers einiger Android-Bildschirmtastaturen (Dank wieder an JerkyFreak).",
       "v254": "Fix: Unter „Schießen“ schließt sich die Bildschirmtastatur in einigen Android-Browsern (z. B. Opera) nicht mehr sofort nach dem Antippen eines Feldes, sodass Distanz und Windgeschwindigkeit wieder eingetippt werden können (danke an JerkyFreak für die Fehlermeldung).",
       "v253": "Neu: Der Abruf der Bedingungen aus Online-Wetterquellen verwendet jetzt Kriging-Interpolation und berücksichtigt die gemeldete Bewölkung.",
