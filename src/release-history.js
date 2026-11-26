@@ -10,6 +10,12 @@
 // versionCard() already uses.
 export const RELEASE_HISTORY = [
   {
+    cacheVersion: 'v257',
+    fullVersion: '4.6.7 (CORNHOLIO — Converged Operator Readiness Network for Holdover, Optics, Load data, Inventory & Onboarding)',
+    date: '2026-11-26',
+    descriptionKey: 'releaseHistory.entries.v257'
+  },
+  {
     cacheVersion: 'v256',
     fullVersion: '4.6.6 (CORNHOLIO — Converged Operator Readiness Network for Holdover, Optics, Load data, Inventory & Onboarding)',
     date: '2026-11-20',

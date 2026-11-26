@@ -1982,6 +1982,7 @@
     "title": "Versionsverlauf",
     "intro": "Was sich in jeder Version dieser App geändert hat.",
     "entries": {
+      "v257": "Neu: Im Arsenal kopiert Klonen beim aktiven Gewehr dieses mit allen Patronen, und Klonen bei der aktiven Patrone kopiert diese Patrone am selben Gewehr; ein Dialog schlägt einen Namen wie „… (Klon 1)“ vor, den Sie übernehmen oder ändern können.",
       "v256": "Neu: Jeder Standort kann seine Ziele im Feldrechner entweder nach Distanz (wie bisher) oder in Ihrer eigenen Reihenfolge auflisten, die Sie unter Standorte & Ziele durch Ziehen der Ziele festlegen; diese Reihenfolge bestimmt auch die Zielbezeichnungen auf der druckbaren Karte.",
       "v255": "Fix: „+/-“-Tasten bei den Eingabefeldern für Breite und Länge hinzugefügt, als Umgehung eines Fehlers einiger Android-Bildschirmtastaturen (Dank wieder an JerkyFreak).",
       "v254": "Fix: Unter „Schießen“ schließt sich die Bildschirmtastatur in einigen Android-Browsern (z. B. Opera) nicht mehr sofort nach dem Antippen eines Feldes, sodass Distanz und Windgeschwindigkeit wieder eingetippt werden können (danke an JerkyFreak für die Fehlermeldung).",
