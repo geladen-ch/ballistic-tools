@@ -24,6 +24,11 @@ const { resetComparisonForTests, getComparisonSelection } = await import('../src
 const { requestGunsDone, resetGunsNavForTests } = await import('../src/guns-nav.js');
 const { setUnit, resetUnits } = await import('../src/prefs.js');
 const { isoDateTime } = await import('../src/ui/iso-date.js');
+const { mountDialogRoot, isDialogOpen } = await import('../src/ui/app-dialog.js');
+// The Clone modal (ui/arsenal/clone-dialog.js) renders into the app's one
+// dialog overlay, mounted here once, outside the view's own container.
+const dialogRoot = makeElement('div');
+mountDialogRoot(dialogRoot);
 
 test.beforeEach(() => {
   localStorage.clear();
@@ -2536,7 +2541,7 @@ test('deleting a cartridge that is marked for comparison removes it from the com
   const cartridgesHeading = findAnyById(container, 'i18n-arsenal-cartridgesHeading');
   const cartridgesSection = cartridgesHeading.parentNode;
   const cartridgeRow = findByClass(cartridgesSection, 'arsenal-row').find((row) => row.textContent.includes('Load 1'));
-  const [, cartridgeDeleteButton] = findByClass(cartridgeRow, 'arsenal-row-actions')[0].childNodes;
+  const cartridgeDeleteButton = findByTag(cartridgeRow, 'BUTTON').find((b) => b.getAttribute && b.getAttribute('data-i18n') === 'arsenal.deleteButton');
   fireEvent(cartridgeDeleteButton, 'click');
 
   assert.deepEqual(getComparisonSelection(), [{ rifleId: 'rifle-2', cartridgeId: 'c3' }]);
@@ -2963,4 +2968,153 @@ test('Save is blocked while the zero atmosphere has an out-of-range value', asyn
   fireEvent(temp, 'input');
   fireEvent(outerCartridgeFormActions(container).saveButton, 'click');
   assert.equal(loadUserRifles()[0].cartridges.find((c) => c.id === 'c3').zeroAtmosphere.tempC, 4, 'nothing saved');
+});
+
+// ---- Clone rifle / Clone cartridge (arsenal-clone.js, ui/arsenal/clone-dialog.js) ----
+
+function findAllById(node, id, out = []) {
+  if (node.id === id) out.push(node);
+  for (const child of node.childNodes || []) findAllById(child, id, out);
+  return out;
+}
+
+function dialogButton(label) {
+  return findByTag(dialogRoot, 'BUTTON').find((b) => b.textContent === label);
+}
+
+// Two rifles; "Rifle A" is active with "Load A" (the zero donor of "Load B")
+// as its active cartridge.
+function seedCloneArsenal() {
+  saveUserBullet({ id: 'b1', name: 'Bullet', manufacturer: 'Acme', caliberM: 0.0078232, massKg: 0.01, profile: { type: 'bc', bc: 0.4, model: 'G1' } });
+  saveUserRifle({
+    id: 'ra', name: 'Rifle A', defaultSightHeightM: 0.05, defaultZeroRangeM: 100, scopeId: null, reticleId: null,
+    cartridges: [
+      { id: 'ca', name: 'Load A', bulletId: 'b1', muzzleVelocity: 800, zeroedWithCartridgeId: null },
+      { id: 'cb', name: 'Load B', bulletId: 'b1', muzzleVelocity: 820, zeroedWithCartridgeId: 'ca' }
+    ]
+  });
+  saveUserRifle({
+    id: 'rb', name: 'Rifle B', defaultSightHeightM: 0.05, defaultZeroRangeM: 100,
+    cartridges: [{ id: 'cc', name: 'Load C', bulletId: 'b1', muzzleVelocity: 790 }]
+  });
+  saveRifleState({ library: { rifleId: 'ra', cartridgeId: 'ca' } });
+  const container = makeElement('main');
+  arsenalView.mount(container);
+  return container;
+}
+
+test('Clone is offered on the active rifle and the active cartridge only', () => {
+  const container = seedCloneArsenal();
+  const rifleClones = findAllById(container, 'arsenal-clone-rifle');
+  assert.equal(rifleClones.length, 1, 'one Clone rifle button, not one per rifle');
+  const activeRow = findByClass(container, 'arsenal-row').find((r) => findByTag(r, 'BUTTON').includes(rifleClones[0]));
+  assert.ok(activeRow.textContent.includes('Rifle A'));
+
+  const cartridgeClones = findAllById(container, 'arsenal-clone-cartridge');
+  assert.equal(cartridgeClones.length, 1, 'one Clone cartridge button, not one per cartridge');
+  assert.ok(findByTag(cartridgeRow(container, 'Load A'), 'BUTTON').includes(cartridgeClones[0]));
+
+  // Making another cartridge active moves the button to its row.
+  fireEvent(cartridgeRow(container, 'Load B'), 'click');
+  assert.ok(findByTag(cartridgeRow(container, 'Load B'), 'BUTTON').some((b) => b.id === 'arsenal-clone-cartridge'));
+  assert.ok(!findByTag(cartridgeRow(container, 'Load A'), 'BUTTON').some((b) => b.id === 'arsenal-clone-cartridge'));
+});
+
+test('Clone rifle proposes "<name> (Clone 1)" and copies the rifle with all its cartridges, making the copy active', () => {
+  const container = seedCloneArsenal();
+  fireEvent(findAnyById(container, 'arsenal-clone-rifle'), 'click');
+  assert.ok(isDialogOpen());
+  const nameInput = byId(dialogRoot, 'arsenalCloneName');
+  assert.equal(nameInput.value, 'Rifle A (Clone 1)');
+
+  fireEvent(dialogButton(t('arsenal.cloneConfirmButton')), 'click');
+  assert.ok(!isDialogOpen());
+
+  const rifles = loadUserRifles();
+  assert.equal(rifles.length, 3);
+  const original = rifles.find((r) => r.id === 'ra');
+  const clone = rifles.find((r) => r.name === 'Rifle A (Clone 1)');
+  assert.notEqual(clone.id, 'ra');
+  assert.equal(clone.defaultSightHeightM, 0.05);
+  assert.deepEqual(clone.cartridges.map((c) => c.name), ['Load A', 'Load B']);
+  assert.ok(clone.cartridges.every((c) => !['ca', 'cb'].includes(c.id)), 'fresh cartridge ids');
+  assert.equal(clone.cartridges[1].zeroedWithCartridgeId, clone.cartridges[0].id, 'zero donor re-pointed inside the clone');
+  assert.deepEqual(original.cartridges.map((c) => c.id), ['ca', 'cb'], 'the original is untouched');
+
+  // The clone is now the active rifle, its active cartridge the copy of "Load A".
+  const activeRow = findByClass(container, 'arsenal-row').find((r) => findByTag(r, 'BUTTON').some((b) => b.id === 'arsenal-clone-rifle'));
+  assert.ok(activeRow.textContent.includes('Rifle A (Clone 1)'));
+  assert.ok(findByTag(cartridgeRow(container, 'Load A'), 'BUTTON').some((b) => b.id === 'arsenal-clone-cartridge'));
+
+  // Cloning again counts on.
+  fireEvent(findAnyById(container, 'arsenal-clone-rifle'), 'click');
+  assert.equal(byId(dialogRoot, 'arsenalCloneName').value, 'Rifle A (Clone 2)');
+  fireEvent(dialogButton(t('arsenal.cancelButton')), 'click');
+});
+
+test('Cancel in the Clone dialog creates nothing', () => {
+  const container = seedCloneArsenal();
+  fireEvent(findAnyById(container, 'arsenal-clone-rifle'), 'click');
+  fireEvent(dialogButton(t('arsenal.cancelButton')), 'click');
+  assert.ok(!isDialogOpen());
+  assert.equal(loadUserRifles().length, 2);
+
+  fireEvent(findAnyById(container, 'arsenal-clone-cartridge'), 'click');
+  fireEvent(dialogButton(t('arsenal.cancelButton')), 'click');
+  assert.equal(loadUserRifles().find((r) => r.id === 'ra').cartridges.length, 2);
+});
+
+test('Clone is refused while the name is blank or already used, keeping the dialog open', () => {
+  const container = seedCloneArsenal();
+  fireEvent(findAnyById(container, 'arsenal-clone-rifle'), 'click');
+  const nameInput = byId(dialogRoot, 'arsenalCloneName');
+
+  nameInput.value = ' rifle b ';
+  fireEvent(nameInput, 'input');
+  fireEvent(dialogButton(t('arsenal.cloneConfirmButton')), 'click');
+  assert.ok(isDialogOpen());
+  assert.ok(dialogRoot.textContent.includes(t('arsenal.cloneNameTaken')));
+
+  nameInput.value = '  ';
+  fireEvent(nameInput, 'input');
+  fireEvent(dialogButton(t('arsenal.cloneConfirmButton')), 'click');
+  assert.ok(isDialogOpen());
+  assert.ok(dialogRoot.textContent.includes(t('arsenal.errorNameRequired')));
+  assert.equal(loadUserRifles().length, 2);
+
+  nameInput.value = 'Rifle A short barrel';
+  fireEvent(nameInput, 'input');
+  fireEvent(dialogButton(t('arsenal.cloneConfirmButton')), 'click');
+  assert.ok(!isDialogOpen());
+  assert.ok(loadUserRifles().some((r) => r.name === 'Rifle A short barrel'));
+});
+
+test('Clone cartridge adds a copy to the same rifle under the picked name and makes it the active cartridge', () => {
+  const container = seedCloneArsenal();
+  fireEvent(cartridgeRow(container, 'Load B'), 'click');
+  fireEvent(findAnyById(container, 'arsenal-clone-cartridge'), 'click');
+  assert.equal(byId(dialogRoot, 'arsenalCloneName').value, 'Load B (Clone 1)');
+  fireEvent(dialogButton(t('arsenal.cloneConfirmButton')), 'click');
+
+  const rifle = loadUserRifles().find((r) => r.id === 'ra');
+  assert.equal(rifle.cartridges.length, 3);
+  const clone = rifle.cartridges[2];
+  assert.equal(clone.name, 'Load B (Clone 1)');
+  assert.ok(!['ca', 'cb'].includes(clone.id));
+  assert.equal(clone.muzzleVelocity, 820);
+  assert.equal(clone.zeroedWithCartridgeId, 'ca', 'still zeroed with the same sibling');
+  assert.equal(loadUserRifles().find((r) => r.id === 'rb').cartridges.length, 1, 'other rifles untouched');
+
+  const cloneRow = cartridgeRow(container, 'Load B (Clone 1)');
+  assert.ok(cloneRow.textContent.includes(t('arsenal.activeCartridgeBadge')));
+  assert.ok(findByTag(cloneRow, 'BUTTON').some((b) => b.id === 'arsenal-clone-cartridge'));
+
+  // A cartridge name only has to be unique on its own rifle.
+  fireEvent(findAnyById(container, 'arsenal-clone-cartridge'), 'click');
+  const nameInput = byId(dialogRoot, 'arsenalCloneName');
+  nameInput.value = 'Load C';
+  fireEvent(nameInput, 'input');
+  fireEvent(dialogButton(t('arsenal.cloneConfirmButton')), 'click');
+  assert.ok(!isDialogOpen());
+  assert.ok(loadUserRifles().find((r) => r.id === 'ra').cartridges.some((c) => c.name === 'Load C'));
 });

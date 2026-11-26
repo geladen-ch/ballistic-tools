@@ -235,13 +235,15 @@ Exactement une combinaison carabine+cartouche est « active » dans toute l'appl
 
 **Cliquer sur une ligne sous « Autres carabines » l'active** — la déplace vers la carte Carabine active — plutôt que de l'ouvrir directement en modification ; **Modifier** n'est proposé que sur la carabine actuellement active. C'est délibéré : choisir une carabine et modifier une carabine sont des intentions différentes, et la plus fréquente des deux (je veux tirer avec celle-ci) obtient le simple clic.
 
+**Cloner**, également proposé uniquement sur la carabine active, en crée une copie complète, toutes ses cartouches comprises — pour essayer une variante sans toucher à l'original. Une fenêtre propose un nom tel que *« Tikka T3x (clone 1) »* ; modifiez-le si vous le souhaitez, puis appuyez sur **Cloner**, ou **Annuler**. Le nom doit différer de celui de toutes les autres carabines. La copie devient la carabine active, et les choix **Réglée avec** de ses cartouches pointent vers leurs propres copies ; les balles et la lunette sont partagées avec l'original, pas dupliquées.
+
 L'activation sur la page Arsenal est provisoire. **Rien n'est appliqué à la configuration partagée de l'application avant que vous n'appuyiez sur Terminé.** Vous pouvez parcourir librement les carabines, en modifier plusieurs d'affilée, et seule celle affichée dans la carte Carabine active au moment où vous partez prend effet. Si cette carabine n'a actuellement aucune cartouche, Terminé laisse intacte la configuration précédemment en cours, plutôt que de la remettre à rien.
 
 Le sélecteur de cartouche de la carabine active se souvient de la cartouche que vous aviez choisie pour elle en dernier, et la rétablit à votre prochaine visite.
 
 ### 6.3 Cartouches sous la carabine active
 
-Chaque cartouche de la carabine active est sa propre ligne : nom, une pastille **Active** sur celle actuellement choisie, sa vitesse initiale, et la pastille de stabilité en direct du §5.5. Cliquer sur une ligne en fait la cartouche active. **+ Ajouter une cartouche** se trouve sous la liste.
+Chaque cartouche de la carabine active est sa propre ligne : nom, une pastille **Active** sur celle actuellement choisie, sa vitesse initiale, et la pastille de stabilité en direct du §5.5. Cliquer sur une ligne en fait la cartouche active. **+ Ajouter une cartouche** se trouve sous la liste. La ligne de la cartouche active propose aussi **Cloner** : une copie de cette cartouche sur la même carabine, nommée de la même façon (*« … (clone 1) »*) et rendue active.
 
 Une carabine sans cartouche affiche un avertissement à la place de la liste : *« Aucune cartouche n'est définie pour cette carabine. Cette configuration est inutilisable et ne sera pas activée. »*
 

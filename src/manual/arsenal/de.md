@@ -235,13 +235,15 @@ Genau eine Gewehr-Patrone-Kombination ist zu jedem Zeitpunkt in der gesamten App
 
 **Das Anklicken einer Zeile unter „Weitere Gewehre" aktiviert sie** — verschiebt sie in die Karte Aktives Gewehr — statt sie direkt zur Bearbeitung zu öffnen; **Bearbeiten** wird nur für das jeweils aktive Gewehr angeboten. Das ist Absicht: ein Gewehr auszuwählen und ein Gewehr zu bearbeiten sind unterschiedliche Absichten, und die häufigere davon (ich möchte mit diesem hier schießen) bekommt den einfachen Klick.
 
+**Klonen**, ebenfalls nur beim aktiven Gewehr angeboten, erstellt eine vollständige Kopie davon, mit allen Patronen — um eine Variante auszuprobieren, ohne das Original anzutasten. Ein Dialog schlägt einen Namen wie *„Tikka T3x (Klon 1)“* vor; ändern Sie ihn nach Belieben und drücken Sie **Klonen** oder **Abbrechen**. Der Name muss sich von dem aller anderen Gewehre unterscheiden. Die Kopie wird zum aktiven Gewehr, und die Einstellungen **Eingeschossen mit** ihrer Patronen verweisen auf deren eigene Kopien; Geschosse und Zielfernrohr teilt sie mit dem Original, sie werden nicht dupliziert.
+
 Die Aktivierung auf der Arsenal-Seite ist vorläufig. **Nichts wird in die gemeinsame Konfiguration der App übernommen, bevor Sie Fertig drücken.** Sie können frei zwischen Gewehren wechseln, mehrere hintereinander bearbeiten, und nur das beim Verlassen in der Karte Aktives Gewehr angezeigte wirkt sich aus. Hat dieses Gewehr derzeit null Patronen, lässt Fertig die zuvor laufende Konfiguration unangetastet, statt sie auf nichts zurückzusetzen.
 
 Die Patronenauswahl des aktiven Gewehrs merkt sich, welche Patrone Sie zuletzt dafür gewählt hatten, und stellt sie beim nächsten Besuch wieder her.
 
 ### 6.3 Patronen unter dem aktiven Gewehr
 
-Jede Patrone des aktiven Gewehrs ist ihre eigene Zeile: Name, ein Abzeichen **Aktiv** bei der jeweils gewählten, ihre Mündungsgeschwindigkeit und der live berechnete Stabilitätschip aus §5.5. Ein Klick auf eine Zeile macht sie zur aktiven Patrone. **+ Patrone hinzufügen** sitzt unterhalb der Liste.
+Jede Patrone des aktiven Gewehrs ist ihre eigene Zeile: Name, ein Abzeichen **Aktiv** bei der jeweils gewählten, ihre Mündungsgeschwindigkeit und der live berechnete Stabilitätschip aus §5.5. Ein Klick auf eine Zeile macht sie zur aktiven Patrone. **+ Patrone hinzufügen** sitzt unterhalb der Liste. Die Zeile der aktiven Patrone bietet zudem **Klonen**: eine Kopie dieser Patrone am selben Gewehr, ebenso benannt (*„… (Klon 1)“*) und zur aktiven Patrone gemacht.
 
 Ein Gewehr ohne Patronen zeigt anstelle der Liste eine Warnung: *„Für dieses Gewehr sind keine Patronen definiert. Diese Konfiguration ist unbrauchbar und wird nicht aktiviert."*
 

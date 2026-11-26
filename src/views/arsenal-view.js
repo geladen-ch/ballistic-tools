@@ -60,6 +60,12 @@ import { reticleRecordFromLegacy, scopeRecordFromLegacy } from '../reticle/legac
 import { formatBytes } from '../format-bytes.js';
 import { reticleThumbnail } from '../ui/reticle-thumbnail.js';
 import { encodeReticleRecord, decodeReticleRecord } from '../reticle/reticle-record.js';
+import { proposeCloneName, cloneRifleRecord, cloneCartridgeRecord } from '../arsenal-clone.js';
+import { showCloneDialog } from '../ui/arsenal/clone-dialog.js';
+
+function cloneNameFormat(name, n) {
+  return t('arsenal.cloneName', { name, n });
+}
 
 const ALL_VALUE = '__all__';
 
@@ -1080,6 +1086,15 @@ export function mount(container) {
         renderComparisonSection();
       });
       const isActiveCartridge = cartridge.id === activeCartridgeId;
+      // Clone is offered on the active cartridge only.
+      let cloneButton = null;
+      if (isActiveCartridge) {
+        cloneButton = el('button', { class: 'secondary', id: 'arsenal-clone-cartridge', i18n: 'arsenal.cloneButton' });
+        cloneButton.addEventListener('click', (e) => {
+          e.stopPropagation?.();
+          cloneCartridge(rifle, cartridge);
+        });
+      }
       const cartridgeStability = stabilityIndicator();
       cartridgeStability.update(stabilityValuesFor(rifle, cartridge, userBullets));
       // "Zeroed with a different cartridge" (zero-donor.js) — the two
@@ -1103,7 +1118,7 @@ export function mount(container) {
           el('span', { class: 'hint', text: ` — ${siToDisplay('muzzleVelocity', cartridge.muzzleVelocity, velocityChoice.unit).toFixed(0)} ${velocityChoice.label}` }),
           cartridgeStability.node
         ]),
-        el('div', { class: 'arsenal-row-actions' }, [editButton, deleteButton])
+        el('div', { class: 'arsenal-row-actions' }, [cloneButton, editButton, deleteButton])
       ]);
       row.addEventListener('click', () => {
         activeCartridgeId = cartridge.id;
@@ -1200,6 +1215,54 @@ export function mount(container) {
     ]);
   }
 
+  // "Clone cartridge": a copy of the active cartridge, added to the same
+  // rifle under the name picked in the Clone modal, and made the active
+  // cartridge — the copy is what the user goes on to change. Copied from
+  // the record as stored when Clone is pressed, so a cartridge form still
+  // open with unsaved edits does not leak into it.
+  function cloneCartridge(rifle, cartridge) {
+    const takenNames = rifle.cartridges.map((c) => c.name);
+    showCloneDialog({
+      headingKey: 'arsenal.cloneCartridgeHeading',
+      intro: t('arsenal.cloneCartridgeIntro', { name: cartridge.name }),
+      proposedName: proposeCloneName(cartridge.name, takenNames, cloneNameFormat),
+      takenNames,
+      onClone: (name) => {
+        const current = loadUserRifles().find((r) => r.id === rifle.id);
+        const source = current && current.cartridges.find((c) => c.id === cartridge.id);
+        if (!source) return;
+        const id = generateUserId('user-cartridge');
+        saveUserRifle({ ...current, cartridges: [...current.cartridges, cloneCartridgeRecord(source, { id, name })] });
+        activeCartridgeId = id;
+        refreshLibraryView();
+      }
+    });
+  }
+
+  // "Clone rifle": a full copy of the active rifle, every cartridge
+  // included (see arsenal-clone.js), saved under the name picked in the
+  // Clone modal and made the active rifle, its active cartridge the copy
+  // of the one active on the original.
+  function cloneRifle(rifle) {
+    const takenNames = loadUserRifles().map((r) => r.name);
+    showCloneDialog({
+      headingKey: 'arsenal.cloneRifleHeading',
+      intro: t('arsenal.cloneRifleIntro', { name: rifle.name }),
+      proposedName: proposeCloneName(rifle.name, takenNames, cloneNameFormat),
+      takenNames,
+      onClone: (name) => {
+        const current = loadUserRifles().find((r) => r.id === rifle.id);
+        if (!current) return;
+        const saved = saveUserRifle(cloneRifleRecord(current, {
+          id: generateUserId('user-rifle'), name, newCartridgeId: () => generateUserId('user-cartridge')
+        }));
+        const activeIndex = current.cartridges.findIndex((c) => c.id === activeCartridgeId);
+        activateRifle(saved, activeIndex === -1 ? undefined : saved.cartridges[activeIndex].id);
+        renderRifleForm();
+      }
+    });
+  }
+
   // Makes `rifle` the one shown in the "Active rifle" pane — a purely
   // page-local action (no cookie write, no navigation), same spirit as
   // locations-view.js's own activateLocation(). `preferredCartridgeId`
@@ -1268,6 +1331,9 @@ export function mount(container) {
     });
     const saveToFileButton = el('button', { class: 'secondary', i18n: 'arsenal.saveToFileButton' });
     saveToFileButton.addEventListener('click', () => exportSingleRifle(rifle));
+    // Clone is offered on the active rifle only.
+    const cloneButton = el('button', { class: 'secondary', id: 'arsenal-clone-rifle', i18n: 'arsenal.cloneButton' });
+    cloneButton.addEventListener('click', () => cloneRifle(rifle));
 
     const actionChildren = [];
     if (rifle.cartridges.length > 0) {
@@ -1280,7 +1346,7 @@ export function mount(container) {
       });
       actionChildren.push(controls.select, controls.compareButton);
     }
-    actionChildren.push(saveToFileButton, editButton, deleteButton);
+    actionChildren.push(saveToFileButton, cloneButton, editButton, deleteButton);
 
     activeRifleListEl.appendChild(el('div', { class: 'arsenal-row' }, [
       el('div', { class: 'arsenal-row-info' }, [

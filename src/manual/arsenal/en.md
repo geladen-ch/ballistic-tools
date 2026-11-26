@@ -235,13 +235,15 @@ Exactly one rifle+cartridge combination is "active" across the whole app at any 
 
 **Clicking any row under "Other rifles" activates it** — moves it into the Active rifle card — rather than opening it for editing directly; **Edit** is only offered on whichever rifle is currently active. This is deliberate: picking a rifle and editing a rifle are different intentions, and the more common one (I want to shoot with this one) gets the plain click.
 
+**Clone**, also offered only on the active rifle, makes a full copy of it, every cartridge included — for trying a variation without touching the original. A dialog proposes a name such as *"Tikka T3x (Clone 1)"*; change it if you like, then press **Clone**, or **Cancel**. The name must differ from every other rifle's. The copy becomes the active rifle, and its cartridges' **Zeroed with** choices point at their own copies; bullets and scope are shared with the original, not duplicated.
+
 Activation on the Arsenal page is provisional. **Nothing is committed to the app's shared configuration until you press Done.** You can freely browse between rifles, edit several in a row, and only the one showing in the Active rifle card when you leave takes effect. If that rifle currently has zero cartridges, Done leaves whatever configuration was already running untouched, rather than clearing it to nothing.
 
 The active rifle's cartridge picker remembers which cartridge you last had selected for it, restored the next time you visit.
 
 ### 6.3 Cartridges under the active rifle
 
-Each cartridge on the active rifle is its own row: name, an **Active** badge on whichever one is currently picked, its muzzle velocity, and the live stability chip from §5.5. Clicking a row makes it the active cartridge. **+ Add Cartridge** sits beneath the list.
+Each cartridge on the active rifle is its own row: name, an **Active** badge on whichever one is currently picked, its muzzle velocity, and the live stability chip from §5.5. Clicking a row makes it the active cartridge. **+ Add Cartridge** sits beneath the list. The active cartridge's row also offers **Clone**: a copy of that cartridge on the same rifle, named the same way (*"… (Clone 1)"*) and made the active cartridge.
 
 A rifle with no cartridges shows a warning in place of the list: *"This rifle has no cartridges defined. This configuration is unusable and will not be set active."*
 

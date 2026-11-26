@@ -235,13 +235,15 @@ Esattamente una combinazione fucile+cartuccia è «attiva» in tutta l'app in og
 
 **Cliccare su una riga sotto «Altri fucili» lo attiva** — lo sposta nella scheda Fucile attivo — invece di aprirlo direttamente per la modifica; **Modifica** è offerto solo sul fucile attualmente attivo. Questo è deliberato: scegliere un fucile e modificare un fucile sono intenzioni diverse, e quella più comune (voglio sparare con questo) ottiene il clic semplice.
 
+**Clona**, anch'esso offerto solo sul fucile attivo, ne crea una copia completa, tutte le cartucce comprese — per provare una variante senza toccare l'originale. Una finestra propone un nome come *«Tikka T3x (clone 1)»*; modificalo se vuoi, poi premi **Clona**, oppure **Annulla**. Il nome deve essere diverso da quello di tutti gli altri fucili. La copia diventa il fucile attivo, e le scelte **Azzerata con** delle sue cartucce puntano alle rispettive copie; proiettili e ottica sono condivisi con l'originale, non duplicati.
+
 L'attivazione nella pagina Arsenale è provvisoria. **Nulla viene applicato alla configurazione condivisa dell'app finché non premi Fatto.** Puoi navigare liberamente tra i fucili, modificarne diversi di fila, e solo quello mostrato nella scheda Fucile attivo quando esci ha effetto. Se quel fucile ha attualmente zero cartucce, Fatto lascia intatta la configurazione precedentemente in esecuzione, invece di azzerarla.
 
 Il selettore di cartuccia del fucile attivo ricorda quale cartuccia avevi selezionato per ultima, e la ripristina alla tua prossima visita.
 
 ### 6.3 Cartucce sotto il fucile attivo
 
-Ogni cartuccia del fucile attivo è una riga a sé: nome, un'etichetta **Attiva** su quella attualmente scelta, la sua velocità alla volata, e l'indicatore di stabilità in tempo reale del §5.5. Cliccare su una riga la rende la cartuccia attiva. **+ Aggiungi cartuccia** si trova sotto la lista.
+Ogni cartuccia del fucile attivo è una riga a sé: nome, un'etichetta **Attiva** su quella attualmente scelta, la sua velocità alla volata, e l'indicatore di stabilità in tempo reale del §5.5. Cliccare su una riga la rende la cartuccia attiva. **+ Aggiungi cartuccia** si trova sotto la lista. La riga della cartuccia attiva offre anche **Clona**: una copia di quella cartuccia sullo stesso fucile, chiamata allo stesso modo (*«… (clone 1)»*) e resa la cartuccia attiva.
 
 Un fucile senza cartucce mostra un avviso al posto della lista: *«Per questo fucile non è definita alcuna cartuccia. Questa configurazione è inutilizzabile e non verrà attivata.»*
 
