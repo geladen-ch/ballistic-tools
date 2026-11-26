@@ -1982,7 +1982,7 @@
     "title": "Historique des versions",
     "intro": "Ce qui a changé dans chaque version de cette application.",
     "entries": {
-      "v257": "Nouveau : dans l'Arsenal, Cloner sur la carabine active la copie avec toutes ses cartouches, et Cloner sur la cartouche active copie cette cartouche sur la même carabine ; une fenêtre propose un nom tel que « … (clone 1) », à garder ou à modifier.",
+      "v257": "Nouveau : dans l'Arsenal, Cloner sur la carabine active la copie avec toutes ses cartouches, et Cloner sur la cartouche active copie cette cartouche sur la même carabine ; une fenêtre propose un nom tel que « … (clone 1) », à garder ou à modifier (merci à Long Range 338 pour l'idée).",
       "v256": "Nouveau : chaque emplacement peut lister ses cibles dans le Calculateur de terrain soit par distance (comme avant), soit dans votre propre ordre, fixé en glissant les cibles dans Emplacements et cibles ; cet ordre fixe aussi les repères des cibles sur la carte imprimable.",
       "v255": "Correction : boutons « +/- » ajoutés aux champs de latitude et de longitude, pour contourner un bogue de certains claviers virtuels Android (merci encore à JerkyFreak).",
       "v254": "Correction : dans « Tir », le clavier virtuel ne se referme plus aussitôt après avoir touché un champ sur certains navigateurs Android (p. ex. Opera) ; la distance et la vitesse du vent peuvent de nouveau être saisies (merci à JerkyFreak d’avoir signalé le bogue).",
